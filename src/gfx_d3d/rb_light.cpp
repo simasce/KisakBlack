@@ -370,9 +370,9 @@ void __cdecl SetPixelColorLightGridVec4_PC(unsigned __int8 *v, const float *colo
   else
     v3 = 1.0f;
   *(unsigned int *)v = ((unsigned __int8)(int)(float)(primaryWeight * 255.0) << 24)
-               | (unsigned __int8)(int)(float)(fsqrt(v3) * 255.0)
-               | ((unsigned __int8)(int)(float)(fsqrt(v4) * 255.0) << 8)
-               | ((unsigned __int8)(int)(float)(fsqrt(v5) * 255.0) << 16);
+               | (unsigned __int8)(int)(float)(sqrtf(v3) * 255.0)
+               | ((unsigned __int8)(int)(float)(sqrtf(v4) * 255.0) << 8)
+               | ((unsigned __int8)(int)(float)(sqrtf(v5) * 255.0) << 16);
 }
 
 void __cdecl R_DecodeLightGridColors(

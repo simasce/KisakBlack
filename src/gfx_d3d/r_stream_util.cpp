@@ -62,7 +62,7 @@ char __cdecl R_CalculateTriangleTopMipAabb(
   float viewSphereCenters[3][3]; // [esp+C4h] [ebp-3Ch] BYREF
   float texGradient[2][3]; // [esp+E8h] [ebp-18h] BYREF
 
-  MAX_RADIUS = fsqrt(5.0e11) * 0.99000001;
+  MAX_RADIUS = sqrtf(5.0e11) * 0.99000001;
   if ( !R_CalculateTriangleTextureGradient(pos, texCoord, texGradient, normal) )
     return 0;
   if ( (float)((float)((float)(texGradient[0][0] * texGradient[0][0]) + (float)(texGradient[0][1] * texGradient[0][1]))

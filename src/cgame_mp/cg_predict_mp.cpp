@@ -181,7 +181,7 @@ LABEL_6:
       LODWORD(max) = LODWORD(smove) & _mask__AbsFloat_;
     if ( COERCE_FLOAT(LODWORD(umove) & _mask__AbsFloat_) > max )
       LODWORD(max) = LODWORD(umove) & _mask__AbsFloat_;
-    total = fsqrt((float)((float)(fmove * fmove) + (float)(smove * smove)) + (float)(umove * umove));
+    total = sqrtf((float)((float)(fmove * fmove) + (float)(smove * smove)) + (float)(umove * umove));
     scale = (float)((float)(190.0 * max) / (float)(127.0 * total)) * 3.0;
     for ( i = 0; i < 3; ++i )
       cgameGlob->movieCameraAngles[i] = AngleNormalize180((float)cmd->angles[i] * 0.0054931641);

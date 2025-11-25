@@ -347,7 +347,7 @@ void __cdecl Dtp_Start(pmove_t *pm, pml_t *pml)
   pml->walking = 0;
   ps->groundEntityNum = 1023;
   ps->jumpTime = pm->cmd.serverTime;
-  ps->velocity[2] = fsqrt(velocitySqrd);
+  ps->velocity[2] = sqrtf(velocitySqrd);
   if ( dtp_new_trajectory->current.enabled )
     ps->velocity[2] = ps->velocity[2] * dtp_new_trajectory_multiplier->current.value;
   ps->pm_flags |= 0x400000u;

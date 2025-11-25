@@ -558,7 +558,7 @@ void __cdecl DynEnt_LoadEntities()
         if ( v34 <= 0.0099999998 )
           constraint->distance = 100.0f;
         else
-          constraint->distance = fsqrt(v34);
+          constraint->distance = sqrtf(v34);
       }
       if ( constraint->scale[1] != 0.0 )
         constraint->distance = constraint->distance * constraint->scale[1];

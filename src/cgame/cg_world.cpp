@@ -2049,7 +2049,7 @@ bool __cdecl CG_SightTracePointInternal(int *hitNum, const float *start, const f
   CM_CalcTraceExtents(&tw.extents);
   tw.deltaLenSq = (float)((float)(tw.delta.vec.v[0] * tw.delta.vec.v[0]) + (float)(tw.delta.vec.v[1] * tw.delta.vec.v[1]))
                 + (float)(tw.delta.vec.v[2] * tw.delta.vec.v[2]);
-  tw.deltaLen = fsqrt(tw.deltaLenSq);
+  tw.deltaLen = sqrtf(tw.deltaLenSq);
   Vec3Min(tw.extents.start.vec.v, tw.extents.end.vec.v, tw.bounds[0].vec.v);
   Vec3Max(tw.extents.start.vec.v, tw.extents.end.vec.v, tw.bounds[1].vec.v);
   tw.axialCullOnly = 0;

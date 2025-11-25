@@ -2954,7 +2954,7 @@ void __cdecl DynEntCl_ExplosionEvent(
               {
                 __debugbreak();
               }
-              v38 = (float)((float)(fsqrt(CylindricalRadiusDistSqr) - outerRadius) * v28) * v38;
+              v38 = (float)((float)(sqrtf(CylindricalRadiusDistSqr) - outerRadius) * v28) * v38;
             }
             if ( v38 < 0.0
               && !Assert_MyHandler(

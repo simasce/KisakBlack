@@ -231,7 +231,7 @@ void __cdecl PM_ProjectVelocity(const float *velIn, const float *normal, float *
     newZ = COERCE_FLOAT(COERCE_UNSIGNED_INT((float)(*velIn * *normal) + (float)(velIn[1] * normal[1])) ^ _mask__NegFloat_)
          / normal[2];
     adjusted_4 = velIn[1];
-    lengthScale = fsqrt((float)((float)(velIn[2] * velIn[2]) + lengthSq2D) / (float)((float)(newZ * newZ) + lengthSq2D));
+    lengthScale = sqrtf((float)((float)(velIn[2] * velIn[2]) + lengthSq2D) / (float)((float)(newZ * newZ) + lengthSq2D));
     if ( lengthScale < 1.0 || newZ < 0.0 || velIn[2] > 0.0 )
     {
       *velOut = lengthScale * *velIn;
@@ -2475,7 +2475,7 @@ double __cdecl PM_MoveScale(playerState_s *ps, float fmove, float rmove, float u
   if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_pmove.cpp", 1204, 0, "%s", "ps") )
     __debugbreak();
   scale = (float)((float)ps->speed * max)
-        / (float)(127.0 * fsqrt((float)((float)(fmove * fmove) + (float)(rmove * rmove)) + (float)(umove * umove)));
+        / (float)(127.0 * sqrtf((float)((float)(fmove * fmove) + (float)(rmove * rmove)) + (float)(umove * umove)));
   if ( (ps->pm_flags & 0x40) == 0 && ps->leanf == 0.0 )
     scalea = scale * 1.0;
   else
@@ -2498,7 +2498,7 @@ double __cdecl PM_CmdScale(playerState_s *ps, usercmd_s *cmd)
 
   if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_pmove.cpp", 1238, 0, "%s", "ps") )
     __debugbreak();
-  total = fsqrt((float)(cmd->rightmove * cmd->rightmove + cmd->forwardmove * cmd->forwardmove));
+  total = sqrtf((float)(cmd->rightmove * cmd->rightmove + cmd->forwardmove * cmd->forwardmove));
   max = abs8(cmd->forwardmove);
   if ( abs8(cmd->rightmove) > max )
     max = abs8(cmd->rightmove);
@@ -2850,7 +2850,7 @@ double __cdecl PM_CmdScale_Walk(pmove_t *pm, usercmd_s *cmd)
   if ( !pm->ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_pmove.cpp", 1292, 0, "%s", "ps") )
     __debugbreak();
   v5 = (ps->pm_flags & 1) != 0 && ps->fWeaponPosFrac > 0.0;
-  total = fsqrt((float)(cmd->rightmove * cmd->rightmove + cmd->forwardmove * cmd->forwardmove));
+  total = sqrtf((float)(cmd->rightmove * cmd->rightmove + cmd->forwardmove * cmd->forwardmove));
   if ( cmd->forwardmove >= 0 )
     LODWORD(v2) = COERCE_UNSIGNED_INT((float)cmd->forwardmove) & _mask__AbsFloat_;
   else
@@ -3364,7 +3364,7 @@ void __cdecl PM_CrashLand(pmove_t *pm, pml_t *pml)
     den = (float)(vel * vel) - (float)((float)(4.0 * (float)(acc * 0.5)) * dist);
     if ( den >= 0.0 )
     {
-      t = (float)(COERCE_FLOAT(LODWORD(b) ^ _mask__NegFloat_) - fsqrt(den)) / (float)(2.0 * a);
+      t = (float)(COERCE_FLOAT(LODWORD(b) ^ _mask__NegFloat_) - sqrtf(den)) / (float)(2.0 * a);
       landVel = (float)((float)(t * acc) + vel) * -1.0;
       fallHeight = (float)(landVel * landVel) / (float)((float)ps->gravity * 2.0);
       if ( bg_fallDamageMinHeight->current.value <= 0.0

@@ -1400,7 +1400,7 @@ int __cdecl G_RadiusDamage(
       RadiusDamageDistanceSquared = G_GetRadiusDamageDistanceSquared(origin, ent);
       if ( RadiusDamageDistanceSquared < v18 )
       {
-        v16 = fsqrt(RadiusDamageDistanceSquared);
+        v16 = sqrtf(RadiusDamageDistanceSquared);
         v13 = (float)((float)(fInnerDamage - fOuterDamage) * (float)(1.0 - (float)(v16 / radius))) + fOuterDamage;
         if ( ent->scr_vehicle )
         {

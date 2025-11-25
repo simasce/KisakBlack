@@ -1378,7 +1378,7 @@ void __cdecl Ragdoll_EstimateInitialVelocities(RagdollBody *body)
              + (float)(posOffset[2] * posOffset[2]);
         if ( len2 > (float)(600.0 * 600.0) )
         {
-          v1 = 600.0 / fsqrt(len2);
+          v1 = 600.0 / sqrtf(len2);
           posOffset[0] = v1 * posOffset[0];
           posOffset[1] = v1 * posOffset[1];
           posOffset[2] = v1 * posOffset[2];

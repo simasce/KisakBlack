@@ -70,9 +70,9 @@ void __cdecl AddLightGridLightingForDir(float (*lightingForDir)[3], GfxDecodedLi
   for ( sampleIndex = 0; sampleIndex < 56; ++sampleIndex )
   {
     src = &(*lightingForDir)[3 * sampleIndex];
-    *src = fsqrt(*src);
-    src[1] = fsqrt(src[1]);
-    src[2] = fsqrt(src[2]);
+    *src = sqrtf(*src);
+    src[1] = sqrtf(src[1]);
+    src[2] = sqrtf(src[2]);
     dest = colors->rgb[sampleIndex];
     *dest = *src + *dest;
     dest[1] = src[1] + dest[1];
@@ -106,7 +106,7 @@ char __cdecl EvaluateHeroLightForGrid(
   distSq = (float)((float)(delta * delta) + (float)(delta_4 * delta_4)) + (float)(delta_8 * delta_8);
   if ( distSq > (float)(light->radius * light->radius) )
     return 0;
-  dist = fsqrt(distSq);
+  dist = sqrtf(distSq);
   if ( dist < 0.001 )
     return 0;
   *dirToLight = (float)(1.0 / dist) * delta;

@@ -2285,12 +2285,12 @@ void  make_rotate(float a1@<ebp>, phys_mat44 *mat, const phys_vec3 *v1, const ph
   len = (float)((float)(co_ * co_) + (float)(v9 * v9)) + (float)(si_ * si_);
   if ( len >= 0.0000099999997 )
   {
-    lena = fsqrt(len);
+    lena = sqrtf(len);
     co_ = co_ * (float)(1.0 / lena);
     v9 = v9 * (float)(1.0 / lena);
     si_ = si_ * (float)(1.0 / lena);
     v5 = (float)((float)(v1->x * v2->x) + (float)(v1->y * v2->y)) + (float)(v1->z * v2->z);
-    v4 = fsqrt((float)(v5 * v5) + (float)(lena * lena));
+    v4 = sqrtf((float)(v5 * v5) + (float)(lena * lena));
     make_rotate(mat, (const phys_vec3 *)&co_, v5 / v4, lena / v4);
   }
   else

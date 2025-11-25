@@ -1086,7 +1086,7 @@ void __cdecl HELI_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float 
     {
       __debugbreak();
     }
-    frac = (float)(vehHelicopterHoverSpeedThreshold->current.value - fsqrt(speedSq))
+    frac = (float)(vehHelicopterHoverSpeedThreshold->current.value - sqrtf(speedSq))
          / vehHelicopterHoverSpeedThreshold->current.value;
     HELI_UpdateJitter(&veh->jitter);
     *rotAccel = (float)(frac * veh->jitter.jitterPos[0]) + *rotAccel;
@@ -1137,7 +1137,7 @@ void __cdecl HELI_CmdScale(char *move, float *outFracs)
     outFracs[axis] = (float)move[axis] / 127.0;
   if ( *move || move[1] )
   {
-    total = fsqrt((float)(move[1] * move[1] + *move * *move));
+    total = sqrtf((float)(move[1] * move[1] + *move * *move));
     max = abs8(*move);
     if ( abs8(move[1]) > max )
       max = abs8(move[1]);

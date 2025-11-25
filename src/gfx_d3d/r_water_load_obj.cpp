@@ -145,7 +145,7 @@ bool __cdecl R_WatersEquivalent(const water_t *w0, const water_t *w1)
     return 0;
   if ( COERCE_FLOAT(COERCE_UNSIGNED_INT(w0->windvel - w1->windvel) & _mask__AbsFloat_) > 0.1 )
     return 0;
-  v3 = fsqrt(
+  v3 = sqrtf(
          (float)((float)(w0->winddir[0] * w0->winddir[0]) + (float)(w0->winddir[1] * w0->winddir[1]))
        * (float)((float)(w1->winddir[0] * w1->winddir[0]) + (float)(w1->winddir[1] * w1->winddir[1])))
      + 1.0e-10;
@@ -230,12 +230,12 @@ void __cdecl R_PickWaterFrequencies(water_t *water)
     {
       kz = (float)m * m_scale;
       GaussianRandom(&E.real, &E.imag);
-      w_sqrd = water->gravity * fsqrt((float)(kx * kx) + (float)(kz * kz));
+      w_sqrd = water->gravity * sqrtf((float)(kx * kx) + (float)(kz * kz));
       windfactor = (float)(water->winddir[0] * kx) + (float)(water->winddir[1] * kz);
       if ( windfactor > 0.0 )
       {
         __libm_sse2_exp(v1);
-        HIDWORD(v1) = fsqrt(
+        HIDWORD(v1) = sqrtf(
                         (float)((float)((float)(water->amplitude
                                               * (float)(-1.0
                                                       / (float)((float)((float)(kx * kx) + (float)(kz * kz)) * L_sqrd)))
@@ -247,7 +247,7 @@ void __cdecl R_PickWaterFrequencies(water_t *water)
         scale = *((float *)&v1 + 1) * water->amplitude;
         water->H0[i].real = E.real * scale;
         water->H0[i].imag = E.imag * scale;
-        LODWORD(v1) = fsqrt(w_sqrd);
+        LODWORD(v1) = sqrtf(w_sqrd);
         water->wTerm[i] = *(float *)&v1;
       }
       else

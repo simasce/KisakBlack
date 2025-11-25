@@ -970,7 +970,7 @@ void __cdecl DynEntSv_RadiusDamage(
         RadiusDistSqr = DynEnt_GetRadiusDistSqr(dynEntColl, origin);
         if ( RadiusDistSqr < v15 && DynEnt_IsInCone(dynEntDef, &dynEntDef->pose, origin, coneAngleCos, coneDirection) )
         {
-          v13 = fsqrt(RadiusDistSqr);
+          v13 = sqrtf(RadiusDistSqr);
           v8 = (float)((float)(innerDamage - outerDamage) * (float)(1.0 - (float)(v13 / v20))) + outerDamage;
           v[0] = dynEntDef->pose.origin[0] - *origin;
           v[1] = dynEntDef->pose.origin[1] - origin[1];

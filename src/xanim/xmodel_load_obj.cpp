@@ -391,7 +391,7 @@ XModel *__cdecl XModelLoadFile(
             {
               __debugbreak();
             }
-            v22 = (float)(fsqrt(v21) * 128.0) * 1.5700001;
+            v22 = (float)(sqrtf(v21) * 128.0) * 1.5700001;
             if ( v38->dist == 0.0 )
             {
               model->flags |= 0x80000u;
@@ -1045,7 +1045,7 @@ void __cdecl ConsumeQuatNoSwap(const unsigned __int8 **pos, __int16 *out)
   }
   else
   {
-    v3 = floor(fsqrt((float)temp) + 0.5);
+    v3 = floor(sqrtf((float)temp) + 0.5);
     v2 = (int)v3;
   }
   if ( v2 != (__int16)v2
@@ -1237,8 +1237,8 @@ void __cdecl XModelGenerateHighMipVolume(XModel *model)
             }
             ++triangleIndex;
           }
-          uvmax = fsqrt(cumulativeCoverage);
-          width = fsqrt(cumulativeArea);
+          uvmax = sqrtf(cumulativeCoverage);
+          width = sqrtf(cumulativeArea);
           memset(fakePos, 0, 12);
           *(_QWORD *)&fakePos[1][0] = __PAIR64__(width, 0);
           fakePos[1][2] = 0.0f;
@@ -1274,8 +1274,8 @@ void __cdecl XModelGenerateHighMipVolume(XModel *model)
       {
         boundsJ = &model->streamInfo.highMipBounds[surfJ];
         dist = Vec3Distance(boundsJ->center, v2->center);
-        radius = fsqrt(v2->himipRadiusSq);
-        radiusJ = fsqrt(boundsJ->himipRadiusSq);
+        radius = sqrtf(v2->himipRadiusSq);
+        radiusJ = sqrtf(boundsJ->himipRadiusSq);
         if ( radiusJ >= (float)(dist + radius) )
           goto LABEL_54;
         if ( radius >= (float)(dist + radiusJ) )

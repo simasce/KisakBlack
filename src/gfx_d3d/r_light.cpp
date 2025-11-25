@@ -298,7 +298,7 @@ void __cdecl R_CalcSpotLightPlanes(const GfxLight *light, float dynamicSpotLight
                           + (float)((*planes)[2] * origin[2]))
                         ^ _mask__NegFloat_;
   R_ComputeSpotLightCrossDirs(light, crossDirs);
-  fSin = fsqrt(1.0 - (float)(light->cosHalfFovOuter * light->cosHalfFovOuter));
+  fSin = sqrtf(1.0 - (float)(light->cosHalfFovOuter * light->cosHalfFovOuter));
   R_CalcPlaneFromCosSinPointDirs(
     &(*planes)[4],
     light->cosHalfFovOuter,

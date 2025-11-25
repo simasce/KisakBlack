@@ -3214,7 +3214,7 @@ void __cdecl FX_SetupCamera(
   camera->frustum[0][0] = (*viewaxis)[0];
   camera->frustum[0][1] = (*viewaxis)[1];
   camera->frustum[0][2] = (*viewaxis)[2];
-  cosHalfFov = 1.0 / fsqrt((float)(tanHalfFovX * tanHalfFovX) + 1.0);
+  cosHalfFov = 1.0 / sqrtf((float)(tanHalfFovX * tanHalfFovX) + 1.0);
   camera->frustum[1][0] = (float)((float)(tanHalfFovX * cosHalfFov) * (*viewaxis)[0])
                         + (float)(cosHalfFov * (float)(*viewaxis)[3]);
   camera->frustum[1][1] = (float)((float)(tanHalfFovX * cosHalfFov) * (float)(*viewaxis)[1])
@@ -3227,7 +3227,7 @@ void __cdecl FX_SetupCamera(
                         + (float)(COERCE_FLOAT(LODWORD(cosHalfFov) ^ _mask__NegFloat_) * (float)(*viewaxis)[4]);
   camera->frustum[2][2] = (float)((float)(tanHalfFovX * cosHalfFov) * (float)(*viewaxis)[2])
                         + (float)(COERCE_FLOAT(LODWORD(cosHalfFov) ^ _mask__NegFloat_) * (float)(*viewaxis)[5]);
-  cosHalfFova = 1.0 / fsqrt((float)(tanHalfFovY * tanHalfFovY) + 1.0);
+  cosHalfFova = 1.0 / sqrtf((float)(tanHalfFovY * tanHalfFovY) + 1.0);
   camera->frustum[3][0] = (float)((float)(tanHalfFovY * cosHalfFova) * (*viewaxis)[0])
                         + (float)(cosHalfFova * (float)(*viewaxis)[6]);
   camera->frustum[3][1] = (float)((float)(tanHalfFovY * cosHalfFova) * (float)(*viewaxis)[1])

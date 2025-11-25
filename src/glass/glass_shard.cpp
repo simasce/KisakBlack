@@ -653,7 +653,7 @@ void __userpurge GlassPhysics::IntegrateVelocity(GlassPhysics *this@<ecx>, int a
     {
       __debugbreak();
     }
-    v9 = 16.0 / fsqrt(v10);
+    v9 = 16.0 / sqrtf(v10);
     v8 = &v75->m_a_vel;
     v75->m_a_vel.x = v75->m_a_vel.x * v9;
     v8->y = v8->y * v9;
@@ -1307,7 +1307,7 @@ void __thiscall GlassShard::Outline::GetNearestDistances(
     {
       __debugbreak();
     }
-    dists[n].dist = fsqrt(dists[n].dist);
+    dists[n].dist = sqrtf(dists[n].dist);
   }
 }
 
@@ -2222,7 +2222,7 @@ void __thiscall GlassShard::ExplosionEvent(
   distSq = Vec3DistanceSq(expOrigin, this->origin);
   if ( (float)(radius * radius) > distSq )
   {
-    dist = fsqrt(distSq);
+    dist = sqrtf(distSq);
     damage = (float)((float)(damageInner - damageOuter) * (float)(1.0 - (float)(dist / radius))) + damageOuter;
     dir[0] = this->origin[0] - *expOrigin;
     dir[1] = this->origin[1] - expOrigin[1];
@@ -3901,7 +3901,7 @@ char __thiscall GlassShard::InitPhysics(
           dir[1] = this->origin[1] - hitPos[1];
           dir[2] = this->origin[2] - hitPos[2];
           Vec3Normalize(dir);
-          strength = fsqrt(dirLengthSq) - 1.0;
+          strength = sqrtf(dirLengthSq) - 1.0;
           if ( (float)((float)(strength * 2.0) - 1.0) < 0.0 )
             v18 = strength * 2.0;
           else

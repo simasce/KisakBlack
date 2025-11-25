@@ -2160,13 +2160,13 @@ void  R_SetHDRControlConstants(float a1@<ebp>, GfxCmdBufInput *input, const GfxV
   R_SetInputCodeConstant(
     input,
     0x7Du,
-    (float)((float)(fsqrt(386.22 * v25) * floatTime) * r_waterWaveSpeed->current.value)
+    (float)((float)(sqrtf(386.22 * v25) * floatTime) * r_waterWaveSpeed->current.value)
   + r_waterWavePhase->current.value,
-    (float)((float)(fsqrt(386.22 * v24) * floatTime) * r_waterWaveSpeed->current.vector[1])
+    (float)((float)(sqrtf(386.22 * v24) * floatTime) * r_waterWaveSpeed->current.vector[1])
   + r_waterWavePhase->current.vector[1],
-    (float)((float)(fsqrt(386.22 * v23) * floatTime) * r_waterWaveSpeed->current.vector[2])
+    (float)((float)(sqrtf(386.22 * v23) * floatTime) * r_waterWaveSpeed->current.vector[2])
   + r_waterWavePhase->current.vector[2],
-    (float)((float)(fsqrt(386.22 * v22) * floatTime) * r_waterWaveSpeed->current.vector[3])
+    (float)((float)(sqrtf(386.22 * v22) * floatTime) * r_waterWaveSpeed->current.vector[3])
   + r_waterWavePhase->current.vector[3]);
   R_SetInputCodeConstant(
     input,

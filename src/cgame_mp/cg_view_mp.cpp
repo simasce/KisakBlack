@@ -1952,7 +1952,7 @@ void __cdecl CG_CalcViewValues(int localClientNum)
   cgameGlob->refdef.sunVisibility = 1.0f;
   cgameGlob->refdef.noLodCullOut = 0;
   uiBlurRadius = CL_GetMenuBlurRadius(localClientNum);
-  cgameGlob->refdef.blurRadius = fsqrt(
+  cgameGlob->refdef.blurRadius = sqrtf(
                                    (float)(*(float *)&dword_EC0BD4[1546 * localClientNum]
                                          * *(float *)&dword_EC0BD4[1546 * localClientNum])
                                  + (float)(uiBlurRadius * uiBlurRadius));
@@ -2234,7 +2234,7 @@ void  CG_OffsetChaseCamView(clientActive_t *a1@<ebp>, int localClientNum, Camera
     view[2] = view[2] - LocalClientGlobals->refdef.vieworg[1];
     v13 = v13 - LocalClientGlobals->refdef.vieworg[2];
     v7 = (float)(view[1] * view[1]) + (float)(view[2] * view[2]);
-    up[2] = fsqrt(v7);
+    up[2] = sqrtf(v7);
     if ( (float)(up[2] - 1.0) < 0.0 )
       up[1] = 1.0f;
     else
@@ -2397,7 +2397,7 @@ void  CG_OffsetThirdPersonView(DObj *a1@<ebp>, int localClientNum)
     view[2] = view[2] - *(float *)(LODWORD(tagMtx[3][2]) + 274144);
     v10 = v10 - *(float *)(LODWORD(tagMtx[3][2]) + 274148);
     *((float *)&v5 + 1) = (float)(view[1] * view[1]) + (float)(view[2] * view[2]);
-    LODWORD(v5) = fsqrt(*((float *)&v5 + 1));
+    LODWORD(v5) = sqrtf(*((float *)&v5 + 1));
     if ( *(float *)&v5 < 1.0 )
       *(float *)&v5 = 1.0f;
     *((float *)&v4 + 1) = v10;

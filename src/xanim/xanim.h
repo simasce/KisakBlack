@@ -54,6 +54,46 @@ enum XAssetType : __int32
     ASSET_TYPE_ASSETLIST         = 0x2C,
 };
 
+union XAssetHeader // sizeof=0x4
+{                                       // XREF: CG_AddVisionSetMenuItem+13/r
+    struct XModelPieces *xmodelPieces;
+    struct PhysPreset *physPreset;
+    struct PhysConstraints *physConstraints;
+    struct DestructibleDef *destructibleDef;
+    struct XAnimParts *parts;
+    struct XModel *model;
+    struct Material *material;
+    struct MaterialPixelShader *pixelShader;
+    struct MaterialVertexShader *vertexShader;
+    struct MaterialTechniqueSet *techniqueSet;
+    struct GfxImage *image;
+    struct SndBank *sound;
+    struct SndPatch *soundPatch;
+    struct clipMap_t *clipMap;
+    struct ComWorld *comWorld;
+    struct GameWorldSp *gameWorldSp;
+    struct GameWorldMp *gameWorldMp;
+    struct MapEnts *mapEnts;
+    struct GfxWorld *gfxWorld;
+    struct GfxLightDef *lightDef;
+    struct Font_s *font;
+    struct MenuList *menuList;
+    struct menuDef_t *menu;
+    struct LocalizeEntry *localize;
+    struct WeaponVariantDef *weapon;
+    struct SndDriverGlobals *sndDriverGlobals;
+    struct FxEffectDef *fx;
+    struct FxImpactTable *impactFx;
+    struct RawFile *rawfile;
+    struct StringTable *stringTable;
+    struct PackIndex *packIndex;
+    struct XGlobals *xGlobals;
+    struct ddlRoot_t *ddlRoot;
+    struct Glasses *glasses;
+    struct TextureList *textureList;
+    struct EmblemSet *emblemSet;
+    void *data;
+};
 
 struct XAnimParam // sizeof=0x14
 {

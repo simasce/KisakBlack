@@ -1897,7 +1897,7 @@ void __cdecl R_LoadLightGridColors(unsigned int bspVersion)
       lum = (float)((float)(v3 * 0.25) + (float)(v2 * 0.5)) + (float)(v1 * 0.25);
       loR = colorRound8Bit((__int64)((float)((float)(v3 * 0.25) / lum) * 255.0), 0x3Fu);
       loB = colorRound8Bit((__int64)((float)((float)(v1 * 0.25) / lum) * 255.0), 0x3Fu);
-      iLum = colorRound16Bit((__int64)(fsqrt(lum / 31.875) * 65535.0), 0xFFFu);
+      iLum = colorRound16Bit((__int64)(sqrtf(lum / 31.875) * 65535.0), 0xFFFu);
       dst->rgb[0][0] = loB | ((_BYTE)loR << 6);
       *(_WORD *)&dst->rgb[0][1] = (loB | (loR << 6) | (iLum << 12)) >> 8;
       src += 3;

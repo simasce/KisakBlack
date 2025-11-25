@@ -237,7 +237,7 @@ void  R_SetViewParmsForLight(
     v6 = 1.0 - 0.001;
   if ( (float)(0.001 - cosHalfFovOuter) >= 0.0 )
     v6 = 0.001f;
-  tanHalfFovX = fsqrt(1.0 - (float)(v6 * v6)) / v6;
+  tanHalfFovX = sqrtf(1.0 - (float)(v6 * v6)) / v6;
   FinitePerspectiveMatrix(tanHalfFovX, tanHalfFovX, nearPlaneBias + 1.0, light->radius, viewParms->projectionMatrix.m);
   R_SetupViewProjectionMatrices(viewParms, 0);
   viewParms->depthHackNearClip = viewParms->projectionMatrix.m[3][2];

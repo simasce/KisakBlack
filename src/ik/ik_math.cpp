@@ -174,7 +174,7 @@ void __cdecl ikAxisToQuat(const float (*mat)[3], float *out)
   {
     __debugbreak();
   }
-  invLength = 1.0 / fsqrt(testSizeSq);
+  invLength = 1.0 / sqrtf(testSizeSq);
   v2 = test[best];
   *out = invLength * *v2;
   out[1] = invLength * v2[1];
@@ -735,7 +735,7 @@ void __cdecl ikSolve2D(
   *ModelTargetDir = *ModelTarget - *BaseJoint;
   ModelTargetDir[1] = ModelTarget[1] - BaseJoint[1];
   ModelTargetDir[2] = ModelTarget[2] - BaseJoint[2];
-  tmp_C = fsqrt(
+  tmp_C = sqrtf(
             (float)((float)(*ModelTargetDir * *ModelTargetDir) + (float)(ModelTargetDir[1] * ModelTargetDir[1]))
           + (float)(ModelTargetDir[2] * ModelTargetDir[2]));
   *ModelTargetDir = (float)(1.0 / tmp_C) * *ModelTargetDir;
@@ -779,8 +779,8 @@ void __cdecl ikSolve2D(
     v11 = -1.0f;
   }
   *CosLower = v11;
-  *SinUpper = fsqrt(1.0 - (float)(*CosUpper * *CosUpper));
-  *SinLower = fsqrt(1.0 - (float)(*CosLower * *CosLower));
+  *SinUpper = sqrtf(1.0 - (float)(*CosUpper * *CosUpper));
+  *SinLower = sqrtf(1.0 - (float)(*CosLower * *CosLower));
 }
 
 // local variable allocation has failed, the output may be wrong!

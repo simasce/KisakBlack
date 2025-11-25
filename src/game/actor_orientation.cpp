@@ -136,7 +136,7 @@ void __cdecl StepYaw(float dt, float *yaw, float *yawVeloc, float targetYaw, flo
   else
     LODWORD(value) = ai_angularYawAccelRate->current.integer ^ _mask__NegFloat_;
   decel = COERCE_FLOAT(LODWORD(value) ^ _mask__NegFloat_) * ai_angularYawDecelFactor->current.value;
-  maxVeloc = fsqrt(
+  maxVeloc = sqrtf(
                (float)((float)((float)((float)((float)(-2.0 * angleDelta) * value) * decel)
                              + (float)((float)(targetVeloc * targetVeloc) * value))
                      - (float)((float)(*yawVeloc * *yawVeloc) * decel))

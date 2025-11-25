@@ -345,7 +345,7 @@ void __cdecl RB_TessCoronaBillboard(Corona *corona, GfxColor color, float radius
   if ( !query )
   {
     v4 = Vec3DistanceSq((const float *)(gfxCmdBufSourceState.sceneDef.time + 256), position);
-    distance = fsqrt(v4);
+    distance = sqrtf(v4);
     vert->xyzw[3] = distance;
     vert[1].xyzw[3] = distance;
     vert[2].xyzw[3] = distance;

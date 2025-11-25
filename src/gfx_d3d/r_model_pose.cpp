@@ -379,7 +379,7 @@ LABEL_28:
         else
           v6 = maxRadiusSq;
         if ( (float)(radiusSqMins * radiusSqMins) > v6 || v6 > (float)(v9 * v9) )
-          *(float *)(LODWORD(dpvsView->frustumPlanes[5].coeffs[2]) + 88) = fsqrt(v6);
+          *(float *)(LODWORD(dpvsView->frustumPlanes[5].coeffs[2]) + 88) = sqrtf(v6);
         LODWORD(dpvsView->frustumPlanes[2].coeffs[0]) = 2;
         return *(DObjAnimMat **)&v56[24];
       }

@@ -148,7 +148,7 @@ void __cdecl CG_DrawOverheadNames(int localClientNum, const centity_s *cent, flo
             viewPos[1] = cgameGlob->refdef.vieworg[1];
             viewPos[2] = cgameGlob->refdef.vieworg[2];
             distanceSq = Vec3DistanceSq(viewPos, origin);
-            distance = fsqrt(distanceSq);
+            distance = sqrtf(distanceSq);
             if ( (float)(cg_overheadNamesNearDist->current.value * cg_overheadNamesNearDist->current.value) <= distanceSq )
             {
               if ( distanceSq <= (float)(cg_overheadNamesFarDist->current.value * cg_overheadNamesFarDist->current.value) )

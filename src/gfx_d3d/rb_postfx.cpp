@@ -2830,7 +2830,7 @@ double __cdecl RB_GetBlurRadius(float blurRadiusFromCode)
 {
   float blurRadiusFinal; // [esp+Ch] [ebp-8h]
 
-  blurRadiusFinal = fsqrt(
+  blurRadiusFinal = sqrtf(
                       (float)(r_blur->current.value * r_blur->current.value)
                     + (float)(blurRadiusFromCode * blurRadiusFromCode));
   if ( blurRadiusFinal < 0.0

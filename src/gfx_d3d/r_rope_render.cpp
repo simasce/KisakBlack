@@ -151,7 +151,7 @@ void __cdecl R_Rope_GenerateVerts_Internal(
       radiusVec.v[1] = (float)(beamWorldBegin.v[1] - beamWorldEnd.v[1]) * 0.5;
       radiusVec.v[2] = (float)(beamWorldBegin.v[2] - beamWorldEnd.v[2]) * 0.5;
       radiusVec.v[3] = (float)(0.0 - 0.0) * 0.5;
-      radius.u[0] = fsqrt(
+      radius.u[0] = sqrtf(
                       (float)((float)((float)(radiusVec.v[0] * radiusVec.v[0]) + (float)(radiusVec.v[1] * radiusVec.v[1]))
                             + (float)(radiusVec.v[2] * radiusVec.v[2]))
                     + (float)(radiusVec.v[3] * radiusVec.v[3]));
@@ -162,7 +162,7 @@ void __cdecl R_Rope_GenerateVerts_Internal(
       distVec.v[1] = viewOrg.v[1] - ropeCenter.v[1];
       distVec.v[2] = viewOrg.v[2] - ropeCenter.v[2];
       distVec.v[3] = viewOrg.v[3] - ropeCenter.v[3];
-      dist.u[0] = fsqrt(
+      dist.u[0] = sqrtf(
                     (float)((float)((float)((float)(viewOrg.v[0] - ropeCenter.v[0])
                                           * (float)(viewOrg.v[0] - ropeCenter.v[0]))
                                   + (float)((float)(viewOrg.v[1] - ropeCenter.v[1])

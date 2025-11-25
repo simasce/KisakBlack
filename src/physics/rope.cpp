@@ -963,7 +963,7 @@ void __cdecl Rope_BuildCurve(const RopeUpdateCmdData *cmd, int rope_index)
       MatrixVecMultiplyProject(cmd->screenMtx, rope->m_particles[rope->m_num_particles - 1].p, p2);
       if ( p1[2] > 1.0 == p2[2] > 1.0 )
       {
-        dist = fsqrt(
+        dist = sqrtf(
                  (float)((float)(p1[0] - p2[0]) * (float)(p1[0] - p2[0]))
                + (float)((float)(p1[1] - p2[1]) * (float)(p1[1] - p2[1])));
         if ( numSegments < 6 )
@@ -1291,7 +1291,7 @@ void __cdecl Rope_ExplosionEvent(
         if ( dist2 < outerRadiusSqr )
         {
           scale = 1.0f;
-          dist = fsqrt(dist2);
+          dist = sqrtf(dist2);
           if ( dist2 > innerRadiusSqr )
           {
             if ( outerRadiusSqr <= innerRadiusSqr
@@ -1404,7 +1404,7 @@ int __cdecl trace_point_through_sphere(
   discr = (float)(b * b) - c;
   if ( discr < 0.0 )
     return 0;
-  *t = COERCE_FLOAT(LODWORD(b) ^ _mask__NegFloat_) - fsqrt(discr);
+  *t = COERCE_FLOAT(LODWORD(b) ^ _mask__NegFloat_) - sqrtf(discr);
   if ( *t < 0.0 )
     *t = 0.0f;
   v7 = *t;
@@ -1687,7 +1687,7 @@ void __cdecl Rope_CollideEntitiesHelper(int rope_index, float *origin)
             + (float)((float)(p_8 - p_8) * (float)(p_8 - p_8));
       if ( (float)(radius_1 * radius_1) > dist2 )
       {
-        dist = fsqrt(dist2);
+        dist = sqrtf(dist2);
         f = (float)((float)(1.0 - (float)(dist / radius_1)) * force_scale)
           * (float)((float)(1.0 / dist) * (float)(p - center));
         f_4 = (float)((float)(1.0 - (float)(dist / radius_1)) * force_scale)

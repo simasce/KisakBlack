@@ -958,7 +958,7 @@ void __cdecl R_DrawPointLitSurfs(GfxCmdBufSourceState *source, const GfxViewInfo
       tangentDistSq = offsetDistSq - (float)(pointLightPartition->light.radius * pointLightPartition->light.radius);
       if ( tangentDistSq > 1.0 )
       {
-        tangentDist = fsqrt(tangentDistSq);
+        tangentDist = sqrtf(tangentDistSq);
         perpDist = offsetDistSq / tangentDist;
         sign = 1.0f;
         planeIndex = 0;

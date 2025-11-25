@@ -2802,7 +2802,7 @@ void  gjk_sentient_push(
         v45 = v46 * v46;
         if ( (float)(v46 * v46) > v47 && v47 > 0.001 )
         {
-          v44 = fsqrt(v47);
+          v44 = sqrtf(v47);
           v43 = 1.0 / v44;
           v42 = (float)(1.0 / v44) * v48;
           v41 = (float)(1.0 / v44) * v49;
@@ -2849,7 +2849,7 @@ void  gjk_sentient_push(
     v26 = (float)((float)(v27.x * v27.x) + (float)(v27.y * v27.y)) + (float)(v27.z * v27.z);
     if ( v26 > (float)(pushRadius * pushRadius) )
     {
-      v25 = fsqrt(v26);
+      v25 = sqrtf(v26);
       v24 = pushRadius / v25;
       v27.x = v27.x * (float)(pushRadius / v25);
       v27.y = v27.y * (float)(pushRadius / v25);
@@ -3747,9 +3747,9 @@ void __cdecl gjk_polygon_cylinder_t::calc_disc_aabb(
   v8 = axis->x * axis->x;
   v7 = axis->y * axis->y;
   v6 = axis->z * axis->z;
-  aabb_max->x = radius * fsqrt(v7 + v6);
-  aabb_max->y = radius * fsqrt(v8 + v6);
-  aabb_max->z = radius * fsqrt(v8 + v7);
+  aabb_max->x = radius * sqrtf(v7 + v6);
+  aabb_max->y = radius * sqrtf(v8 + v6);
+  aabb_max->z = radius * sqrtf(v8 + v7);
   LODWORD(v4) = LODWORD(aabb_max->y) ^ _mask__NegFloat_;
   LODWORD(v5) = LODWORD(aabb_max->z) ^ _mask__NegFloat_;
   LODWORD(aabb_min->x) = LODWORD(aabb_max->x) ^ _mask__NegFloat_;

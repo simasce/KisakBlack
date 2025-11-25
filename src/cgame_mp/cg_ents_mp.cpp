@@ -1929,7 +1929,7 @@ void __cdecl CG_ClampPrimaryLightOrigin(GfxLight *light, const ComPrimaryLight *
              + (float)(lightDelta_8 * lightDelta_8);
   if ( (float)(refLight->translationLimit * refLight->translationLimit) <= deltaLenSq )
   {
-    v2 = refLight->translationLimit / fsqrt(deltaLenSq);
+    v2 = refLight->translationLimit / sqrtf(deltaLenSq);
     light->origin[0] = (float)(v2 * lightDelta) + refLight->origin[0];
     light->origin[1] = (float)(v2 * lightDelta_4) + refLight->origin[1];
     light->origin[2] = (float)(v2 * lightDelta_8) + refLight->origin[2];
@@ -1952,7 +1952,7 @@ void __cdecl CG_ClampPrimaryLightDir(GfxLight *light, const ComPrimaryLight *ref
   {
     perpendicular_4 = (float)(COERCE_FLOAT(LODWORD(cosTurnAngle) ^ _mask__NegFloat_) * refLight->dir[1]) + light->dir[1];
     perpendicular_8 = (float)(COERCE_FLOAT(LODWORD(cosTurnAngle) ^ _mask__NegFloat_) * refLight->dir[2]) + light->dir[2];
-    perpScale = fsqrt(
+    perpScale = sqrtf(
                   (float)(1.0 - (float)(refLight->rotationLimit * refLight->rotationLimit))
                 / (float)(1.0 - (float)(cosTurnAngle * cosTurnAngle)));
     rotationLimit = refLight->rotationLimit;

@@ -1357,7 +1357,7 @@ bool __cdecl Path_CanLinkNodes(pathnode_t *pNodeFrom, pathnode_t *pNodeTo, float
           phys.proximity_data.__vftable = (colgeom_visitor_inlined_t<200>_vtbl *)&visitor_base_t::`vftable';
           return 0;
         }
-        fDist = fsqrt(fDistSqrd);
+        fDist = sqrtf(fDistSqrd);
         phys.vWishDelta[0] = fDist * vMoveDir[0];
         phys.vWishDelta[1] = fDist * vMoveDir[1];
         if ( !Actor_Physics_z(&phys) )

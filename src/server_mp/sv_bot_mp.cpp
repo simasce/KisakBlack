@@ -2516,7 +2516,7 @@ char __cdecl Bot_GrenadeInRange(
   launchSpeedSq = (float)weapDef->iProjectileSpeed * (float)weapDef->iProjectileSpeed;
   g = bg_gravity->current.value;
   numerator = launchSpeedSq
-            - fsqrt(
+            - sqrtf(
                 (float)(launchSpeedSq * launchSpeedSq)
               - (float)((float)((float)((float)(range * range) * g) + (float)((float)(2.0 * height) * launchSpeedSq)) * g));
   denominator = g * range;
@@ -3253,7 +3253,7 @@ void __cdecl Bot_DrawDebug(const ScreenPlacement *scrPlace)
       else
         v29 = (float *)colorWhite;
       if ( botInfo->threat.enemy )
-        v28 = fsqrt(botInfo->threat.distSq);
+        v28 = sqrtf(botInfo->threat.distSq);
       else
         v28 = 0.0f;
       v13 = va("DISTANCE: %.1f", v28);

@@ -199,7 +199,7 @@ void __cdecl Jump_ClampVelocity(playerState_s *ps, const float *origin)
     heightDiff = (float)(ps->jumpOriginZ + jump_height->current.value) - ps->origin[2];
     if ( heightDiff >= 0.1 )
     {
-      maxJumpVel = fsqrt((float)(heightDiff * 2.0) * (float)ps->gravity);
+      maxJumpVel = sqrtf((float)(heightDiff * 2.0) * (float)ps->gravity);
       if ( ps->velocity[2] > maxJumpVel )
         ps->velocity[2] = maxJumpVel;
     }
@@ -279,7 +279,7 @@ void __cdecl Jump_Start(pmove_t *pm, pml_t *pml, float height)
   ps->groundEntityNum = 1023;
   ps->jumpTime = pm->cmd.serverTime;
   ps->jumpOriginZ = ps->origin[2];
-  ps->velocity[2] = fsqrt(velocitySqrd);
+  ps->velocity[2] = sqrtf(velocitySqrd);
   ps->pm_flags &= 0xFFFFFE7F;
   ps->pm_flags |= 0x4000u;
   ps->pm_time = 0;

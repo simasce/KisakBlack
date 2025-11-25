@@ -974,7 +974,7 @@ double __cdecl Vec3Normalize(float *v)
   float v2; // [esp+0h] [ebp-10h]
   float length; // [esp+Ch] [ebp-4h]
 
-  length = fsqrt((float)((float)(*v * *v) + (float)(v[1] * v[1])) + (float)(v[2] * v[2]));
+  length = sqrtf((float)((float)(*v * *v) + (float)(v[1] * v[1])) + (float)(v[2] * v[2]));
   if ( COERCE_FLOAT(LODWORD(length) ^ _mask__NegFloat_) < 0.0 )
     v2 = length;
   else
@@ -990,7 +990,7 @@ double __cdecl Vec2Normalize(float *v)
   float v2; // [esp+0h] [ebp-10h]
   float length; // [esp+Ch] [ebp-4h]
 
-  length = fsqrt((float)(*v * *v) + (float)(v[1] * v[1]));
+  length = sqrtf((float)(*v * *v) + (float)(v[1] * v[1]));
   if ( COERCE_FLOAT(LODWORD(length) ^ _mask__NegFloat_) < 0.0 )
     v2 = length;
   else
@@ -1317,7 +1317,7 @@ void __cdecl AimAssist_CalcAdjustedAxis(const AimInput *input, float *pitchAxis,
   }
   if ( aim_input_graph_enabled->current.enabled )
   {
-    deflection = fsqrt((float)(input->pitchAxis * input->pitchAxis) + (float)(input->yawAxis * input->yawAxis));
+    deflection = sqrtf((float)(input->pitchAxis * input->pitchAxis) + (float)(input->yawAxis * input->yawAxis));
     if ( (float)(deflection - 1.0) < 0.0 )
       v4 = deflection;
     else
@@ -1853,7 +1853,7 @@ void __cdecl AimAssist_ApplyLockOn(const AimInput *input, AimOutput *output)
     if ( screenTarget && screenTarget->distSqr > 0.0 )
     {
       aaGlob->lockOnTargetEnt = screenTarget->entIndex;
-      arcLength = fsqrt(screenTarget->distSqr) * 3.1415927;
+      arcLength = sqrtf(screenTarget->distSqr) * 3.1415927;
       if ( arcLength <= 0.0
         && !Assert_MyHandler(
               "C:\\projects_pc\\cod\\codsrc\\src\\aim_assist\\aim_assist.cpp",
@@ -1996,7 +1996,7 @@ LABEL_24:
     AimAssist_SetAutoMeleeTarget(aaGlob, screenTarget);
     if ( (aaGlob->ps.pm_flags & 1) == 0 && screenTarget->distSqr > 0.0 )
     {
-      dist = fsqrt(screenTarget->distSqr) - dist_offset;
+      dist = sqrtf(screenTarget->distSqr) - dist_offset;
       if ( dist > 0.0 )
       {
         if ( dist > 255.0 )
@@ -2315,7 +2315,7 @@ void __cdecl AimAssist_DrawTargets(int localClientNum, const playerState_s *ps, 
           colorYellow,
           0);
         yb = ya - 10.0;
-        v5 = va("Dist: %.2f", fsqrt(aaGlob->screenTargets[targetIndex].distSqr));
+        v5 = va("Dist: %.2f", sqrtf(aaGlob->screenTargets[targetIndex].distSqr));
         CL_DrawText(
           &scrPlaceView[localClientNum],
           v5,
@@ -2345,7 +2345,7 @@ void __cdecl AimAssist_DrawTargets(int localClientNum, const playerState_s *ps, 
           1.0,
           colorWhite,
           0);
-        msg = va("XHairDist: %.4f", fsqrt(aaGlob->screenTargets[targetIndex].crosshairDistSqr));
+        msg = va("XHairDist: %.4f", sqrtf(aaGlob->screenTargets[targetIndex].crosshairDistSqr));
         CL_DrawText(
           &scrPlaceView[localClientNum],
           msg,

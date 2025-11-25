@@ -96,7 +96,7 @@ void __cdecl Ragdoll_Mat33ToQuat(const float (*axis)[3], float *quat)
     {
       if ( (*axis)[4] <= (*axis)[8] )
       {
-        sc = fsqrt((float)((float)((float)(*axis)[8] + 1.0) - (*axis)[0]) - (float)(*axis)[4]) * 2.0;
+        sc = sqrtf((float)((float)((float)(*axis)[8] + 1.0) - (*axis)[0]) - (float)(*axis)[4]) * 2.0;
         *quat = (float)((float)(*axis)[2] + (float)(*axis)[6]) / sc;
         quat[1] = (float)((float)(*axis)[5] + (float)(*axis)[7]) / sc;
         quat[2] = 0.25 * sc;
@@ -104,7 +104,7 @@ void __cdecl Ragdoll_Mat33ToQuat(const float (*axis)[3], float *quat)
       }
       else
       {
-        sb = fsqrt((float)((float)((float)(*axis)[4] + 1.0) - (*axis)[0]) - (float)(*axis)[8]) * 2.0;
+        sb = sqrtf((float)((float)((float)(*axis)[4] + 1.0) - (*axis)[0]) - (float)(*axis)[8]) * 2.0;
         *quat = (float)((float)(*axis)[1] + (float)(*axis)[3]) / sb;
         quat[1] = 0.25 * sb;
         quat[2] = (float)((float)(*axis)[5] + (float)(*axis)[7]) / sb;
@@ -114,7 +114,7 @@ void __cdecl Ragdoll_Mat33ToQuat(const float (*axis)[3], float *quat)
     }
     else
     {
-      sa = fsqrt((float)((float)((*axis)[0] + 1.0) - (float)(*axis)[4]) - (float)(*axis)[8]) * 2.0;
+      sa = sqrtf((float)((float)((*axis)[0] + 1.0) - (float)(*axis)[4]) - (float)(*axis)[8]) * 2.0;
       *quat = 0.25 * sa;
       quat[1] = (float)((float)(*axis)[1] + (float)(*axis)[3]) / sa;
       quat[2] = (float)((float)(*axis)[2] + (float)(*axis)[6]) / sa;
@@ -123,7 +123,7 @@ void __cdecl Ragdoll_Mat33ToQuat(const float (*axis)[3], float *quat)
   }
   else
   {
-    s = 0.5 / fsqrt(trace);
+    s = 0.5 / sqrtf(trace);
     *quat = (float)((float)(*axis)[7] - (float)(*axis)[5]) * s;
     quat[1] = (float)((float)(*axis)[2] - (float)(*axis)[6]) * s;
     quat[2] = (float)((float)(*axis)[3] - (float)(*axis)[1]) * s;

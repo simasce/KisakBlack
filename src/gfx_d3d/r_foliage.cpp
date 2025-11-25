@@ -1037,7 +1037,7 @@ void __cdecl R_DynSModelBuildClientView(
   for ( j = 0; j < frameInfo->numGrassWindForces; ++j )
   {
     wForce = &frameInfo->grassWindForces[j];
-    radius = fsqrt(1.0 / frameInfo->grassWindForces[j].inverseRadiusSquared);
+    radius = sqrtf(1.0 / frameInfo->grassWindForces[j].inverseRadiusSquared);
     v14 = radius;
     v15 = radius;
     v17[0] = wForce->worldPosition[0] - radius;

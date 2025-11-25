@@ -1216,7 +1216,7 @@ char  FX_GenerateBeam_GetFlatDelta@<al>(
   if ( Vec4LengthSq((const float *)&v8) < 0.000002 )
     return 0;
   v7 = 1.0
-     / fsqrt(
+     / sqrtf(
          (float)((float)((float)(outFlatDelta->v[0] * outFlatDelta->v[0])
                        + (float)(outFlatDelta->v[1] * outFlatDelta->v[1]))
                + (float)(outFlatDelta->v[2] * outFlatDelta->v[2]))

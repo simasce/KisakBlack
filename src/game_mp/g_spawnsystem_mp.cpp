@@ -1314,7 +1314,7 @@ double __cdecl SpawnSystem_InfluenceWeight(
   {
     __debugbreak();
   }
-  dist_over_radius = fsqrt(distance_sq * (float)(1.0 / influencer_radius_sq));
+  dist_over_radius = sqrtf(distance_sq * (float)(1.0 / influencer_radius_sq));
   switch ( curve_type )
   {
     case INFLUENCER_SC_LINEAR:

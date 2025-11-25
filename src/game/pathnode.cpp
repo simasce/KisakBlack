@@ -3285,7 +3285,7 @@ void  Path_UpdateArcBadPlaceCount(float a1@<ebp>, badplace_arc_t *arc, int teamf
             fHeight0 = (float)(fDiscriminant * fDiscriminant) - (float)(fSqrtDisc * (float)(v27 - fMaxHeightSqrd));
             if ( fHeight0 > 0.0 )
             {
-              t1 = fsqrt(fHeight0);
+              t1 = sqrtf(fHeight0);
               fHeight1 = (float)(fDiscriminant - t1) / fSqrtDisc;
               if ( fHeight1 < 1.0 )
               {
@@ -3483,7 +3483,7 @@ LABEL_3:
             fDiscriminant = (float)(fB * fB) - (float)(fA * (float)(fPosDeltaSqrd - fRadiusSqrd));
             if ( fDiscriminant > 0.0 )
             {
-              fSqrtDisc = fsqrt(fDiscriminant);
+              fSqrtDisc = sqrtf(fDiscriminant);
               t0 = (float)(fB - fSqrtDisc) / fA;
               if ( t0 < 1.0 )
               {

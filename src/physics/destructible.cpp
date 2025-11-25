@@ -1189,7 +1189,7 @@ double __cdecl DestructibleRadiusDamage(
     distSquared = (float)((float)(dir[0] * dir[0]) + (float)(dir[1] * dir[1])) + (float)(dir[2] * dir[2]);
     if ( distSquared < radiusSquared )
     {
-      dist = fsqrt(distSquared);
+      dist = sqrtf(distSquared);
       if ( index )
       {
         if ( destructible->pieceArray[index].health > 0
@@ -2407,7 +2407,7 @@ void __cdecl CG_DestructibleRadiusDamage(
         distSquared = (float)((float)(dir[0] * dir[0]) + (float)(dir[1] * dir[1])) + (float)(dir[2] * dir[2]);
         if ( distSquared < radiusSquared )
         {
-          dist = fsqrt(distSquared);
+          dist = sqrtf(distSquared);
           damage = (float)((float)(damgeInner - damgeOuter) * (float)(1.0 - (float)(dist / radius))) + damgeOuter;
           damage = damage * piece->explosiveDamageScale;
           if ( dist <= 0.001 )
@@ -2838,7 +2838,7 @@ void __cdecl CG_DestructibleHitEvent(int localClientNum, int event, const entity
             }
             else
             {
-              v5 = 1.0 / fsqrt(dist);
+              v5 = 1.0 / sqrtf(dist);
               dir[0] = v5 * dir[0];
               dir[1] = v5 * dir[1];
               dir[2] = v5 * dir[2];

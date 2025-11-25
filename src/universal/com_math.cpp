@@ -57,7 +57,7 @@ void __cdecl PointInCircleFromUniformDeviates(float radiusDeviate, float yawDevi
   float sinYaw; // [esp+14h] [ebp-8h]
   float cosYaw; // [esp+18h] [ebp-4h]
 
-  r = fsqrt(radiusDeviate);
+  r = sqrtf(radiusDeviate);
   v3 = (float)(6.2831855 * yawDeviate);
   cosYaw = cos(v3);
   sinYaw = sin(v3);
@@ -1635,7 +1635,7 @@ void __cdecl SpotLightProjectionMatrix(float cosFov, float zNear, float zFar, fl
   else
     v4 = 0.001f;
   Q = zFar / (float)(zFar - v4);
-  cotanFov = 1.0 / (float)(fsqrt(1.0 - (float)(cosFov * cosFov)) / cosFov);
+  cotanFov = 1.0 / (float)(sqrtf(1.0 - (float)(cosFov * cosFov)) / cosFov);
   (*mtx)[0] = cotanFov;
   (*mtx)[5] = cotanFov;
   (*mtx)[10] = Q;
@@ -2276,7 +2276,7 @@ int __cdecl PlaneFromPoints(float *plane, const float *v0, const float *v1, cons
       return 0;
   }
 LABEL_7:
-  length = fsqrt(lengthSq);
+  length = sqrtf(lengthSq);
   *plane = *plane / length;
   plane[1] = plane[1] / length;
   plane[2] = plane[2] / length;
@@ -2653,7 +2653,7 @@ void __cdecl AxisToQuat(const float (*mat)[3], float *out)
   {
     __debugbreak();
   }
-  invLength = 1.0 / fsqrt(testSizeSq);
+  invLength = 1.0 / sqrtf(testSizeSq);
   v2 = test[best];
   *out = invLength * *v2;
   out[1] = invLength * v2[1];
@@ -2741,7 +2741,7 @@ bool __cdecl CullBoxFromCone(
   sinHalfFovSq = 1.0 - (float)(cosHalfFov * cosHalfFov);
   if ( (float)((float)(dist * dist) * sinHalfFovSq) >= (float)(perpLenSq * (float)(cosHalfFov * cosHalfFov)) )
     return 0;
-  scale = cosHalfFov / fsqrt(sinHalfFovSq * perpLenSq);
+  scale = cosHalfFov / sqrtf(sinHalfFovSq * perpLenSq);
   return (float)((float)((float)((float)((float)((float)((float)((float)(scale * perpendicular) + *coneDir) * deltaMid)
                                                + (float)((float)((float)(scale * perpendicular_4) + coneDir[1])
                                                        * deltaMid_4))
@@ -2862,7 +2862,7 @@ bool __cdecl CullBoxFromConicSectionOfSphere(
   sinHalfFovSq = 1.0 - (float)(cosHalfFov * cosHalfFov);
   if ( (float)((float)(dist * dist) * sinHalfFovSq) >= (float)(perpLenSq * (float)(cosHalfFov * cosHalfFov)) )
     return 0;
-  scale = cosHalfFov / fsqrt(sinHalfFovSq * perpLenSq);
+  scale = cosHalfFov / sqrtf(sinHalfFovSq * perpLenSq);
   return (float)((float)((float)((float)((float)((float)((float)((float)(scale * perpendicular) + *coneDir) * deltaMid)
                                                + (float)((float)((float)(scale * perpendicular_4) + coneDir[1])
                                                        * deltaMid_4))
@@ -2911,7 +2911,7 @@ bool __cdecl CullSphereFromCone(
     return 1;
   perpendicular_4 = (float)(COERCE_FLOAT(LODWORD(dist) ^ _mask__NegFloat_) * coneDir[1]) + delta_4;
   perpendicular_8 = (float)(COERCE_FLOAT(LODWORD(dist) ^ _mask__NegFloat_) * coneDir[2]) + delta_8;
-  discriminant = (float)(fsqrt(1.0 - (float)(cosHalfFov * cosHalfFov)) * dist) - radius;
+  discriminant = (float)(sqrtf(1.0 - (float)(cosHalfFov * cosHalfFov)) * dist) - radius;
   return (float)((float)((float)((float)((float)((float)(COERCE_FLOAT(LODWORD(dist) ^ _mask__NegFloat_) * *coneDir)
                                                + delta)
                                        * (float)((float)(COERCE_FLOAT(LODWORD(dist) ^ _mask__NegFloat_) * *coneDir)

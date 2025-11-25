@@ -246,14 +246,14 @@ void  IK_GetJointVars(IKJointBones *a1@<ebp>, IKState *ikState)
         *(_QWORD *)&posParent_4[64] = *(_QWORD *)&posJoint[52];
         *(unsigned int *)&posParent_4[72] = *(unsigned int *)&posJoint[60];
         ikCalcBoneModelMatrix(ikState, joints[2], (*ikState->matArrayPostIK)[0], (float (*)[4])posParent_4);
-        footHeightFromGround = fsqrt(
+        footHeightFromGround = sqrtf(
                                  (float)((float)((float)(*(float *)&posJoint[68] - *(float *)&posParent_4[64])
                                                * (float)(*(float *)&posJoint[68] - *(float *)&posParent_4[64]))
                                        + (float)((float)(*(float *)&posJoint[72] - *(float *)&posParent_4[68])
                                                * (float)(*(float *)&posJoint[72] - *(float *)&posParent_4[68])))
                                + (float)((float)(*(float *)&posJoint[76] - *(float *)&posParent_4[72])
                                        * (float)(*(float *)&posJoint[76] - *(float *)&posParent_4[72])));
-        v2 = fsqrt(
+        v2 = sqrtf(
                (float)((float)((float)(*(float *)&posParent_4[64] - *(float *)&posParent_4[48])
                              * (float)(*(float *)&posParent_4[64] - *(float *)&posParent_4[48]))
                      + (float)((float)(*(float *)&posParent_4[68] - *(float *)&posParent_4[52])

@@ -256,12 +256,12 @@ void __cdecl WaterPixelsFromAmplitudes(GfxColor *pixels, complex_s *H, const wat
   ixy = 0;
   while ( ixy < count )
   {
-    height = fsqrt((float)(H[ixy].real * H[ixy].real) + (float)(H[ixy].imag * H[ixy].imag));
+    height = sqrtf((float)(H[ixy].real * H[ixy].real) + (float)(H[ixy].imag * H[ixy].imag));
     ixya = ixy + 1;
-    height_4 = fsqrt((float)(H[ixya].real * H[ixya].real) + (float)(H[ixya].imag * H[ixya].imag));
+    height_4 = sqrtf((float)(H[ixya].real * H[ixya].real) + (float)(H[ixya].imag * H[ixya].imag));
     ++ixya;
-    height_8 = fsqrt((float)(H[ixya].real * H[ixya].real) + (float)(H[ixya].imag * H[ixya].imag));
-    height_12 = fsqrt((float)(H[ixya + 1].real * H[ixya + 1].real) + (float)(H[ixya + 1].imag * H[ixya + 1].imag));
+    height_8 = sqrtf((float)(H[ixya].real * H[ixya].real) + (float)(H[ixya].imag * H[ixya].imag));
+    height_12 = sqrtf((float)(H[ixya + 1].real * H[ixya + 1].real) + (float)(H[ixya + 1].imag * H[ixya + 1].imag));
     ixy = ixya + 2;
     if ( (float)((float)(height * dz) - 1.0) < 0.0 )
       v6 = height * dz;

@@ -115,7 +115,7 @@ void __cdecl ConsumeQuat2(const unsigned __int8 **pos, __int16 *out)
   }
   else
   {
-    v3 = floor(fsqrt((float)temp) + 0.5);
+    v3 = floor(sqrtf((float)temp) + 0.5);
     v2 = (int)v3;
   }
   if ( v2 != (__int16)v2
@@ -1473,7 +1473,7 @@ void __cdecl ConsumeQuat(const unsigned __int8 **pos, __int16 *out)
   }
   else
   {
-    v3 = floor(fsqrt((float)temp) + 0.5);
+    v3 = floor(sqrtf((float)temp) + 0.5);
     v2 = (int)v3;
   }
   if ( v2 != (__int16)v2

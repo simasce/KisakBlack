@@ -3838,7 +3838,7 @@ void __cdecl Scr_Vehicle_Init(gentity_s *pSelf)
       }
       if ( radius > 0.0 )
       {
-        radius = (float)(fsqrt(radius) + 1.0) * info->heliCollisionScalar;
+        radius = (float)(sqrtf(radius) + 1.0) * info->heliCollisionScalar;
         diff = maxHeight - minHeight;
         if ( radius > (float)(maxHeight - minHeight) )
         {
@@ -3873,7 +3873,7 @@ void __cdecl Scr_Vehicle_Init(gentity_s *pSelf)
     {
       __debugbreak();
     }
-    radius = fsqrt(radius) + 1.0;
+    radius = sqrtf(radius) + 1.0;
     phys_mins = phys->mins;
     LODWORD(phys->mins[0]) = LODWORD(radius) ^ _mask__NegFloat_;
     *((unsigned int *)phys_mins + 1) = LODWORD(radius) ^ _mask__NegFloat_;
@@ -6177,7 +6177,7 @@ void __cdecl VEH_UpdateAvoidance(gentity_s *ent)
                    + (float)((float)(closestPt[2] - otherEntPos_8) * (float)(closestPt[2] - otherEntPos_8));
           if ( (float)(avoidRadius * avoidRadius) > howClose )
           {
-            v4 = 1.0 / fsqrt(howClose);
+            v4 = 1.0 / sqrtf(howClose);
             goalPos[0] = (float)(avoidRadius * (float)(v4 * (float)(closestPt[0] - otherEntPos)))
                        + otherEnt->r.currentOrigin[0];
             goalPos[1] = (float)(avoidRadius * (float)(v4 * (float)(closestPt[1] - otherEntPos_4)))

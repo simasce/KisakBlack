@@ -377,7 +377,7 @@ void __cdecl CM_Trace(
   CM_CalcTraceExtents(&tw.extents);
   tw.deltaLenSq = (float)((float)(tw.delta.vec.v[0] * tw.delta.vec.v[0]) + (float)(tw.delta.vec.v[1] * tw.delta.vec.v[1]))
                 + (float)(tw.delta.vec.v[2] * tw.delta.vec.v[2]);
-  tw.deltaLen = fsqrt(tw.deltaLenSq);
+  tw.deltaLen = sqrtf(tw.deltaLenSq);
   if ( tw.size.vec.v[0] <= tw.size.vec.v[2] )
     v10 = tw.size.vec.u[0];
   else
@@ -1646,7 +1646,7 @@ int __cdecl CM_TraceSphereThroughSphere(
       if ( fDiscriminant >= 0.0 )
       {
         fDeltaLen = Vec3NormalizeTo(vDelta, vNormal);
-        fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - fsqrt(fDiscriminant)) / fA)
+        fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA)
                + (float)((float)(fDeltaLen * 0.125) / fB);
         if ( trace->fraction <= fEntry )
         {
@@ -1755,7 +1755,7 @@ int __cdecl CM_TraceCylinderThroughCylinder(
         vDelta[2] = 0.0f;
         fDeltaLen = Vec3NormalizeTo(vDelta, vNormal);
         fEpsilon = (float)(fDeltaLen * 0.125) / fB;
-        fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - fsqrt(fDiscriminant)) / fA) + fEpsilon;
+        fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA) + fEpsilon;
         if ( trace->fraction <= fEntry )
         {
           return 1;
@@ -3233,7 +3233,7 @@ int __cdecl CM_BoxSightTrace(
   CM_CalcTraceExtents(&tw.extents);
   tw.deltaLenSq = (float)((float)(tw.delta.vec.v[0] * tw.delta.vec.v[0]) + (float)(tw.delta.vec.v[1] * tw.delta.vec.v[1]))
                 + (float)(tw.delta.vec.v[2] * tw.delta.vec.v[2]);
-  tw.deltaLen = fsqrt(tw.deltaLenSq);
+  tw.deltaLen = sqrtf(tw.deltaLenSq);
   if ( tw.size.vec.v[0] <= tw.size.vec.v[2] )
     v9 = tw.size.vec.u[0];
   else
@@ -3468,7 +3468,7 @@ bool __cdecl CM_SightTraceSphereThroughSphere(
   if ( fDiscriminant < 0.0 )
     return 1;
   fDeltaLen = Vec3NormalizeTo(vDelta, vNormal);
-  return (float)((float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - fsqrt(fDiscriminant)) / fA)
+  return (float)((float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA)
                + (float)((float)(fB * 0.125) / fDeltaLen)) >= trace->fraction;
 }
 
@@ -3509,7 +3509,7 @@ bool __cdecl CM_SightTraceCylinderThroughCylinder(
         vDelta[2] = 0.0f;
         fDeltaLen = Vec3NormalizeTo(vDelta, vNormal);
         fEpsilon = (float)(fB * 0.125) / fDeltaLen;
-        fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - fsqrt(fDiscriminant)) / fA) + fEpsilon;
+        fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA) + fEpsilon;
         if ( fEntry < trace->fraction )
         {
           fTotalHeighta = (float)(tw->size.vec.v[2] - tw->radius) + fStationaryHalfHeight;
@@ -3605,7 +3605,7 @@ int __cdecl CM_SightTracePoint(int oldHitNum, const float *start, const float *e
   tw.contents = brushmask;
   tw.deltaLenSq = (float)((float)(tw.delta.vec.v[0] * tw.delta.vec.v[0]) + (float)(tw.delta.vec.v[1] * tw.delta.vec.v[1]))
                 + (float)(tw.delta.vec.v[2] * tw.delta.vec.v[2]);
-  tw.deltaLen = fsqrt(tw.deltaLenSq);
+  tw.deltaLen = sqrtf(tw.deltaLenSq);
   memset(&tw.radius, 0, 12);
   for ( i = 0; i < 3; ++i )
   {
@@ -3787,7 +3787,7 @@ int __cdecl CM_TracePointDown(
   CM_CalcTraceExtents(&tw.extents);
   tw.deltaLenSq = (float)((float)(tw.delta.vec.v[0] * tw.delta.vec.v[0]) + (float)(tw.delta.vec.v[1] * tw.delta.vec.v[1]))
                 + (float)(tw.delta.vec.v[2] * tw.delta.vec.v[2]);
-  tw.deltaLen = fsqrt(tw.deltaLenSq);
+  tw.deltaLen = sqrtf(tw.deltaLenSq);
   memset(&tw.radius, 0, 12);
   *(_QWORD *)tw.bounds[0].vec.v = *(_QWORD *)tw.extents.start.vec.v;
   tw.bounds[0].vec.u[2] = tw.extents.start.vec.u[2];
@@ -4206,7 +4206,7 @@ char __cdecl trace_sphere_through_triangle(
   if ( d <= 0.0 )
     return 0;
   ba = b * -1.0;
-  da = fsqrt(d);
+  da = sqrtf(d);
   root1 = ba - da;
   root2 = ba + da;
   if ( (float)(ba + da) < 0.0 || ndir2 < root1 || (float)((float)(ndir2 * ndir2) + 0.000099999997) <= root1 )

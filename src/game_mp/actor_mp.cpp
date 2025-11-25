@@ -3252,7 +3252,7 @@ int __fastcall Actor_PhysicsMoveAway(actor_s *self)
     lengthSqrd = (float)(translation[0] * translation[0]) + (float)(translation[1] * translation[1]);
     if ( lengthSqrd < 2.2500002 )
       lengthSqrd = FLOAT_2_2500002;
-    length = fsqrt(lengthSqrd);
+    length = sqrtf(lengthSqrd);
   }
   lengthSqrd = lengthSqrd * 0.25;
   self->Physics.vWishDelta[0] = length * vDelta[0];
@@ -4329,7 +4329,7 @@ void __fastcall Actor_PathEndActions(actor_s *self)
            && Path_CompleteLookahead(&self->Path)
            && !Actor_IsMovingToMeleeAttack(self) )
     {
-      Scr_AddFloat(fsqrt(distSqrd), SCRIPTINSTANCE_SERVER);
+      Scr_AddFloat(sqrtf(distSqrd), SCRIPTINSTANCE_SERVER);
       Scr_Notify(self->ent, scr_const.stop_soon, 1u);
       self->Path.pathEndAnimNotified = 1;
     }

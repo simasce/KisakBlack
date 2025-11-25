@@ -932,7 +932,7 @@ void __thiscall NitrousVehicleController::UpdateControlsTank(NitrousVehicleContr
   y = RecalibrateInputCustom((float)this->m_cmd.forwardmove * -1.0, 40.0);
   x = RecalibrateInputCustom(xa, 40.0);
   normalized_x = 0.0f;
-  input_dist = fsqrt((float)(x * x) + (float)(y * y));
+  input_dist = sqrtf((float)(x * x) + (float)(y * y));
   if ( input_dist != 0.0 )
     normalized_x = x / input_dist;
   if ( normalized_x < 0.0 )
@@ -952,7 +952,7 @@ void __thiscall NitrousVehicleController::UpdateControlsTank(NitrousVehicleContr
   if ( throttle == 0.0 )
     throttlea = 0.0f;
   else
-    throttlea = throttle / fsqrt(throttle);
+    throttlea = throttle / sqrtf(throttle);
   if ( y > 0.0 )
     throttlea = throttlea * -1.0;
   if ( rbveh->m_forward_vel >= 0.0 || throttlea <= 0.0 )

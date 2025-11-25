@@ -973,7 +973,7 @@ void __cdecl PM_AdjustAimSpreadScale(pmove_t *pm, pml_t *pml)
           speedSquared = (float)(ps->velocity[0] * ps->velocity[0]) + (float)(ps->velocity[1] * ps->velocity[1]);
           if ( speedSquared > (float)(bg_aimSpreadMoveSpeedThreshold->current.value
                                     * bg_aimSpreadMoveSpeedThreshold->current.value) )
-            viewchange = (float)((float)(weapDef->fHipSpreadMoveAdd * fsqrt(speedSquared)) / (float)ps->speed)
+            viewchange = (float)((float)(weapDef->fHipSpreadMoveAdd * sqrtf(speedSquared)) / (float)ps->speed)
                        + viewchange;
         }
         if ( ps->groundEntityNum == 1023 && ps->pm_type != 1 )

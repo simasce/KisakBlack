@@ -686,7 +686,7 @@ void __cdecl CG_GenerateFireSounds(int localClientNum)
   if ( (_S1 & 1) == 0 )
   {
     _S1 |= 1u;
-    SQRT2 = 1.0 / fsqrt(2.0);
+    SQRT2 = 1.0 / sqrtf(2.0);
   }
   if ( (_S1 & 2) == 0 )
   {

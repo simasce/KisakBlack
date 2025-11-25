@@ -398,7 +398,7 @@ int __cdecl CM_TraceSphereThroughEdge(
   if ( discriminant <= 0.0 )
     return 1;
   edgeLenSq = (float)((float)(*v0_v1 * *v0_v1) + (float)(v0_v1[1] * v0_v1[1])) + (float)(v0_v1[2] * v0_v1[2]);
-  f = fsqrt(edgeLenSq * discriminant) / perpendicularLenSq;
+  f = sqrtf(edgeLenSq * discriminant) / perpendicularLenSq;
   Vec3Cross(startDelta, v0_v1, edgeCrossDelta);
   tScaled = (float)((float)(edgeCrossDelta[0] * perpendicular[0]) + (float)(edgeCrossDelta[1] * perpendicular[1]))
           + (float)(edgeCrossDelta[2] * perpendicular[2]);
@@ -581,7 +581,7 @@ void __cdecl CM_TraceSphereThroughVertex(
       discriminant = (float)(b * b) - (float)(a * c);
       if ( (float)((float)(b * b) * 0.001) <= discriminant )
       {
-        frac = (float)(COERCE_FLOAT(COERCE_UNSIGNED_INT(fsqrt(discriminant)) ^ _mask__NegFloat_) - b) / a;
+        frac = (float)(COERCE_FLOAT(COERCE_UNSIGNED_INT(sqrtf(discriminant)) ^ _mask__NegFloat_) - b) / a;
         if ( frac < trace->fraction )
         {
           trace->normal.vec.v[0] = (float)(frac * tw->delta.vec.v[0]) + delta;
@@ -640,7 +640,7 @@ void __cdecl CM_TraceSphereThroughVertex(
     }
     else
     {
-      fraca = 1.0 / fsqrt(deltaLenSq);
+      fraca = 1.0 / sqrtf(deltaLenSq);
       trace->normal.vec.v[0] = fraca * delta;
       trace->normal.vec.v[1] = fraca * delta_4;
       trace->normal.vec.v[2] = fraca * delta_8;
@@ -778,7 +778,7 @@ void __cdecl CM_TraceCapsuleThroughBorder(const traceWork_t *tw, const Collision
     {
       __debugbreak();
     }
-    t = (float)(COERCE_FLOAT(LODWORD(deltaDotOffset) ^ _mask__NegFloat_) - fsqrt(discriminant)) / tw->deltaLenSq;
+    t = (float)(COERCE_FLOAT(LODWORD(deltaDotOffset) ^ _mask__NegFloat_) - sqrtf(discriminant)) / tw->deltaLenSq;
     if ( t >= trace->fraction || t <= 0.0 )
       return;
     endpos_8 = (float)(t * tw->delta.vec.v[2]) + tw->extents.start.vec.v[2];
@@ -925,7 +925,7 @@ LABEL_55:
     {
       __debugbreak();
     }
-    t = (float)(COERCE_FLOAT(LODWORD(deltaDotOffseta) ^ _mask__NegFloat_) - fsqrt(discriminanta)) / tw->deltaLenSq;
+    t = (float)(COERCE_FLOAT(LODWORD(deltaDotOffseta) ^ _mask__NegFloat_) - sqrtf(discriminanta)) / tw->deltaLenSq;
     if ( t < trace->fraction && t > 0.0 )
     {
       endpos_8 = (float)(t * tw->delta.vec.v[2]) + tw->extents.start.vec.v[2];

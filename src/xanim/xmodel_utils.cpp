@@ -202,11 +202,11 @@ void __cdecl XModelGetSurfaceStreamBounds(const XModel *model, int surfIndex, fl
   *outMaxs = v6->center[0];
   outMaxs[1] = v6->center[1];
   outMaxs[2] = v6->center[2];
-  LODWORD(v5) = COERCE_UNSIGNED_INT(fsqrt(model->streamInfo.highMipBounds[surfIndex].himipRadiusSq)) ^ _mask__NegFloat_;
+  LODWORD(v5) = COERCE_UNSIGNED_INT(sqrtf(model->streamInfo.highMipBounds[surfIndex].himipRadiusSq)) ^ _mask__NegFloat_;
   *outMins = *outMins + v5;
   outMins[1] = outMins[1] + v5;
   outMins[2] = outMins[2] + v5;
-  v4 = fsqrt(model->streamInfo.highMipBounds[surfIndex].himipRadiusSq);
+  v4 = sqrtf(model->streamInfo.highMipBounds[surfIndex].himipRadiusSq);
   *outMaxs = *outMaxs + v4;
   outMaxs[1] = outMaxs[1] + v4;
   outMaxs[2] = outMaxs[2] + v4;

@@ -357,7 +357,7 @@ void __cdecl Snd_Pan3d(
   to[1] = position[1] - listener[1];
   to[2] = position[2] - listener[2];
   d2 = (float)(to[0] * to[0]) + (float)(to[1] * to[1]);
-  d = fsqrt(d2);
+  d = sqrtf(d2);
   angle = 0.0f;
   omni = 0.0f;
   for ( i = 0; i < config->angleCount; ++i )
@@ -390,7 +390,7 @@ void __cdecl Snd_Pan3d(
     omni = 1.0 - v17;
   }
   v20 = 1.0 / (double)config->speakerCount;
-  omniBaseVolume = fsqrt(v20);
+  omniBaseVolume = sqrtf(v20);
   if ( omni != 1.0 )
   {
     if ( config->angleCount == 1 )
@@ -412,7 +412,7 @@ void __cdecl Snd_Pan3d(
     levels[k] = (float)((float)(1.0 - omni) * levels[k]) + (float)(omniBaseVolume * omni);
     totalVolume = (float)(levels[k] * levels[k]) + totalVolume;
   }
-  v19 = fsqrt(totalVolume);
+  v19 = sqrtf(totalVolume);
   if ( (float)(v19 - 1.0) < 0.0 )
     v18 = v19;
   else

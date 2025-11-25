@@ -210,7 +210,7 @@ void __cdecl vectosignedangles(const float *vec, float *angles)
     *(float *)&v2 = v2;
     v10 = (float)(*(float *)&v2 * 180.0) / 3.1415927;
     *(float *)&v7 = (float)(*vec * *vec) + (float)(vec[1] * vec[1]);
-    HIDWORD(v5) = fsqrt(*(float *)&v7);
+    HIDWORD(v5) = sqrtf(*(float *)&v7);
     *(float *)&v5 = vec[2];
     v3 = *(float *)&v5;
     __libm_sse2_atan2(v5, v7);

@@ -1005,7 +1005,7 @@ void SND_InitMasterVoice()
     switch ( g_sd.masterVoiceDetails.InputChannels )
     {
       case 1u:
-        matrix[0] = fsqrt(0.25);
+        matrix[0] = sqrtf(0.25);
         matrix[1] = matrix[0];
         matrix[2] = matrix[0];
         matrix[3] = matrix[0];
@@ -1041,7 +1041,7 @@ void SND_InitMasterVoice()
         matrix[5] = 1.0f;
         matrix[6] = 0.0f;
         matrix[7] = 0.0f;
-        matrix[16] = fsqrt(0.5);
+        matrix[16] = sqrtf(0.5);
         memset(&matrix[17], 0, 20);
         matrix[22] = matrix[16];
         matrix[23] = 0.0f;

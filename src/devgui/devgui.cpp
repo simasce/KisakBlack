@@ -981,9 +981,9 @@ void __cdecl DevGui_DrawSliders(const DevMenuItem *menu)
       }
       break;
     case DVAR_TYPE_LINEAR_COLOR_RGB:
-      color[0] = (int)(float)(fsqrt(dvar->latched.value) * 255.0);
-      color[1] = (int)(float)(fsqrt(dvar->latched.vector[1]) * 255.0);
-      color[2] = (int)(float)(fsqrt(dvar->latched.vector[2]) * 255.0);
+      color[0] = (int)(float)(sqrtf(dvar->latched.value) * 255.0);
+      color[1] = (int)(float)(sqrtf(dvar->latched.vector[1]) * 255.0);
+      color[2] = (int)(float)(sqrtf(dvar->latched.vector[2]) * 255.0);
       color[3] = -1;
       y += rowHeight + 2;
       DevGui_DrawBox(x, y, rowWidth, rowHeight, color);

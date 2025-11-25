@@ -11,6 +11,17 @@ struct cplane_s // sizeof=0x14
     unsigned __int8 pad[2];
 };
 
+
+struct float44 // sizeof=0x40
+{                                       // XREF: GfxLight/r GfxLight/r
+    //$ED5082F4EF9C51C3CAAE283CF5E38ECF ___u0;
+    union// $ED5082F4EF9C51C3CAAE283CF5E38ECF // sizeof=0x40
+    {                                       // XREF: float44/r
+        float m[4][4];
+        float member[16];
+    };
+};
+
 double __cdecl random();
 double __cdecl crandom();
 void __cdecl GaussianRandom(float *f0, float *f1);

@@ -195,7 +195,7 @@ double __cdecl FX_LerpFloat(float grid, float tint, float fraction)
   float result; // [esp+0h] [ebp-4h]
 
   result = (float)((float)((float)(1.0 - fraction) * (float)(tint / 255.0))
-                 + (float)(fsqrt((float)(tint / 255.0) * (float)(grid / 255.0)) * fraction))
+                 + (float)(sqrtf((float)(tint / 255.0) * (float)(grid / 255.0)) * fraction))
          * 255.0;
   if ( result > 255.0 )
     result = 255.0f;

@@ -653,7 +653,7 @@ char __cdecl CG_SoundWhizbyPath(const float *p1, const float *p2, const float *p
                     - (float)(r * r)));
   if ( d <= 0.0 )
     return 0;
-  da = fsqrt(d);
+  da = sqrtf(d);
   t0 = (float)(COERCE_FLOAT(LODWORD(b) ^ _mask__NegFloat_) + da) / (float)(2.0 * a);
   t1 = (float)(COERCE_FLOAT(LODWORD(b) ^ _mask__NegFloat_) - da) / (float)(2.0 * a);
   if ( (float)(t0 - 1.0) < 0.0 )

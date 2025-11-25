@@ -8037,7 +8037,7 @@ LABEL_20:
   if ( menu->soundName && !CL_IsLocalClientInGame(localClientNum) )
     UI_PlaySound(dc->contextIndex, (char *)menu->soundName);
   if ( menu->blurRadius != 0.0 && !zombietron->current.enabled )
-    dc->blurRadiusOut = fsqrt((float)(menu->blurRadius * menu->blurRadius) + (float)(dc->blurRadiusOut
+    dc->blurRadiusOut = sqrtf((float)(menu->blurRadius * menu->blurRadius) + (float)(dc->blurRadiusOut
                                                                                    * dc->blurRadiusOut));
   //PIXBeginNamedEvent(-1, "Item_UpdateAnimation");
   for ( j = 0; j < menu->itemCount; ++j )

@@ -961,7 +961,7 @@ void  IK_Layer_TerrainMapping(float a1@<ebp>, IKState *ikState)
                       terrainNormalRangeCap = terrainNormalLerpTime - v62;
                       if ( (float)(terrainNormalLerpTime - v62) > 0.1 )
                       {
-                        terrainNormalMinZ = fsqrt(terrainNormalRangeCap);
+                        terrainNormalMinZ = sqrtf(terrainNormalRangeCap);
                         ikState->footMats[j][3][2] = *(float *)&v67[56] - terrainNormalMinZ;
                       }
                     }
@@ -1036,7 +1036,7 @@ void  IK_Layer_TerrainMapping(float a1@<ebp>, IKState *ikState)
                   v33 = v35;
                   *v35 = (float)(v_up[1] / v36) * *v35;
                   v35[1] = v34 * v33[1];
-                  ikState->lastFootTraceNormals[j][2] = fsqrt(1.0 - (float)(v_up[1] * v_up[1]));
+                  ikState->lastFootTraceNormals[j][2] = sqrtf(1.0 - (float)(v_up[1] * v_up[1]));
                   Vec3Normalize(ikState->lastFootTraceNormals[j]);
                 }
                 if ( *(float *)&v281[68] >= 1.0 )

@@ -1238,7 +1238,7 @@ void __cdecl XAnimApplyAdditives(
       r = Vec4LengthSq(additiveArray[i].quat);
       if ( r != 0.0 )
       {
-        ra = fsqrt(r);
+        ra = sqrtf(r);
         v7 = &additiveArray[i];
         v7->quat[0] = (float)(1.0 / ra) * v7->quat[0];
         v7->quat[1] = (float)(1.0 / ra) * v7->quat[1];

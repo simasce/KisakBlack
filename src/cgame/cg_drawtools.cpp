@@ -234,7 +234,7 @@ double __cdecl Vec2NormalizeTo(const float *v, float *out)
   float v3; // [esp+0h] [ebp-10h]
   float length; // [esp+Ch] [ebp-4h]
 
-  length = fsqrt((float)(*v * *v) + (float)(v[1] * v[1]));
+  length = sqrtf((float)(*v * *v) + (float)(v[1] * v[1]));
   if ( COERCE_FLOAT(LODWORD(length) ^ _mask__NegFloat_) < 0.0 )
     v3 = length;
   else

@@ -1809,7 +1809,7 @@ void __cdecl R_WaterSimulationSimpleDisplace(const float *hitpos, float radius, 
         {
           v10 = (float)u - (float)((float)size / 2.0);
           dy = (float)v - (float)((float)size / 2.0);
-          scale = 1.0 - (float)(fsqrt((float)(v10 * v10) + (float)(dy * dy)) / (float)size);
+          scale = 1.0 - (float)(sqrtf((float)(v10 * v10) + (float)(dy * dy)) / (float)size);
           if ( scale < 0.0 )
             scale = 0.0f;
           x = u + sx - size / 2;

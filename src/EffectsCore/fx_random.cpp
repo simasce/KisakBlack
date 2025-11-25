@@ -22,7 +22,7 @@ void __cdecl FX_RandomDir(int seed, float *dir)
   {
     __debugbreak();
   }
-  radiusAtHeight = fsqrt(1.0 - (float)(height * height));
+  radiusAtHeight = sqrtf(1.0 - (float)(height * height));
   v2 = (float)(*(float *)&dword_CAEB04[seed] * 6.2831855);
   cosYaw = cos(v2);
   sinYaw = sin(v2);

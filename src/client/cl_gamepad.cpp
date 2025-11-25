@@ -429,7 +429,7 @@ double __cdecl CL_GamepadAxisValue(int localClientNum, unsigned int virtualAxis)
         otherAxisDeflection = 0.0f;
       else
         otherAxisDeflection = (float)gaGlob->axesValues[otherSameStickAxis] * 0.000015259022;
-      axisDeflection = fsqrt((float)(axisDeflection * axisDeflection) + (float)(otherAxisDeflection * otherAxisDeflection))
+      axisDeflection = sqrtf((float)(axisDeflection * axisDeflection) + (float)(otherAxisDeflection * otherAxisDeflection))
                      * axisDeflection;
     }
   }

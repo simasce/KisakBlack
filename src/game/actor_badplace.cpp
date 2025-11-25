@@ -258,7 +258,7 @@ void __cdecl Path_DrawBadPlace(badplace_t *place)
       if ( (float)(place->parms.arc.radius * place->parms.arc.radius) == 0.0 )
       {
         v2 = Actor_EventDefaultRadiusSqrd(AI_EV_BADPLACE_ARC);
-        radius = fsqrt(v2);
+        radius = sqrtf(v2);
       }
       else
       {

@@ -224,7 +224,7 @@ LABEL_44:
         return eResult;
       startIndex = Actor_TeamMoveTrimPath(pPath, &context);
       v6 = pPath->fLookaheadDistToNextNode != 0.0
-        && pPath->fLookaheadDist >= (float)(fsqrt(context.fDodgePosDeltaLengthSqrd) + 37.5);
+        && pPath->fLookaheadDist >= (float)(sqrtf(context.fDodgePosDeltaLengthSqrd) + 37.5);
       bCheckLookahead = v6;
       if ( v6
         && pPath->lookaheadNextNode >= pPath->wPathLen - 1
@@ -720,7 +720,7 @@ bool __cdecl Actor_TeamMoveTryDodge(team_move_context_t *context, team_move_othe
     {
       if ( (pPath->wDodgeCount || (pPath->flags & 2) != 0)
         && !Path_CompleteLookahead(pPath)
-        && (float)(fsqrt(context_other->fPosDeltaLengthSqrd) + 37.5) > pPath->fLookaheadDist )
+        && (float)(sqrtf(context_other->fPosDeltaLengthSqrd) + 37.5) > pPath->fLookaheadDist )
       {
         return 1;
       }

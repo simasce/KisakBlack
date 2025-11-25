@@ -6752,7 +6752,7 @@ void GScr_sqrt()
   float Float; // [esp+8h] [ebp-4h]
 
   Float = Scr_GetFloat(0, SCRIPTINSTANCE_SERVER);
-  Scr_AddFloat(fsqrt(Float), SCRIPTINSTANCE_SERVER);
+  Scr_AddFloat(sqrtf(Float), SCRIPTINSTANCE_SERVER);
 }
 
 void GScr_CastInt()

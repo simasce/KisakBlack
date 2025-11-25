@@ -20,6 +20,7 @@
 const char *debugOverlayNames[4] =
 { "Off", "ViewmodelInfo", "FontTest", NULL };
 
+cgMedia_t cgMedia;
 
 const dvar_s *cg_loadScripts;
 const dvar_s *cg_usingClientScripts;

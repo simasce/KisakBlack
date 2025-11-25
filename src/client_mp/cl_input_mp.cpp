@@ -730,12 +730,12 @@ void __cdecl CL_GamepadMove(int localClientNum, usercmd_s *cmd)
           if ( COERCE_FLOAT(LODWORD(side) & _mask__AbsFloat_) <= COERCE_FLOAT(LODWORD(forward) & _mask__AbsFloat_) )
           {
             length = side / forward;
-            v2 = fsqrt((float)((float)(side / forward) * (float)(side / forward)) + 1.0);
+            v2 = sqrtf((float)((float)(side / forward) * (float)(side / forward)) + 1.0);
           }
           else
           {
             length = forward / side;
-            v2 = fsqrt((float)((float)(forward / side) * (float)(forward / side)) + 1.0);
+            v2 = sqrtf((float)((float)(forward / side) * (float)(forward / side)) + 1.0);
           }
           moveScale = v2 * moveScale;
         }
@@ -857,12 +857,12 @@ void __cdecl CL_RandomMove(usercmd_s *cmd)
         if ( COERCE_FLOAT(LODWORD(side) & _mask__AbsFloat_) <= COERCE_FLOAT(LODWORD(forward) & _mask__AbsFloat_) )
         {
           length = side / forward;
-          v1 = fsqrt((float)((float)(side / forward) * (float)(side / forward)) + 1.0);
+          v1 = sqrtf((float)((float)(side / forward) * (float)(side / forward)) + 1.0);
         }
         else
         {
           length = forward / side;
-          v1 = fsqrt((float)((float)(forward / side) * (float)(forward / side)) + 1.0);
+          v1 = sqrtf((float)((float)(forward / side) * (float)(forward / side)) + 1.0);
         }
         moveScale = v1 * moveScale;
       }
@@ -929,7 +929,7 @@ void __cdecl CL_MouseMove(int localClientNum, usercmd_s *cmd)
   CL_GetMouseMovement(LocalClientGlobals, &mx, &my);
   if ( frame_msec )
   {
-    rate = fsqrt((float)(mx * mx) + (float)(my * my)) / (double)frame_msec;
+    rate = sqrtf((float)(mx * mx) + (float)(my * my)) / (double)frame_msec;
     accelSensitivity = (float)(rate * cl_mouseAccel->current.value) + cl_sensitivity->current.value;
     accelSensitivity = accelSensitivity * LocalClientGlobals->cgameFOVSensitivityScale;
     if ( rate != 0.0 && cl_showMouseRate->current.enabled )
@@ -1195,7 +1195,7 @@ char __cdecl CG_HandleLocationSelectionInput(int localClientNum, usercmd_s *cmd)
   magnitude = (float)(up * up) + (float)(right * right);
   if ( magnitude > 1.0 )
   {
-    magnitude = fsqrt(magnitude);
+    magnitude = sqrtf(magnitude);
     up = up / magnitude;
     right = right / magnitude;
   }

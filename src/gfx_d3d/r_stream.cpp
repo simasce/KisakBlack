@@ -2384,7 +2384,7 @@ void __cdecl R_StreamUpdateForXModel(const XModel *remoteModel, float distSq)
   int surf; // [esp+34h] [ebp-Ch]
   float distNotSq; // [esp+38h] [ebp-8h]
 
-  distNotSq = fsqrt(distSq);
+  distNotSq = sqrtf(distSq);
   materialHandles = remoteModel->materialHandles;
   highMipBounds = remoteModel->streamInfo.highMipBounds;
   for ( surf = 0; surf < remoteModel->numsurfs; ++surf )

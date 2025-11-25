@@ -504,7 +504,7 @@ void __cdecl GlassSv_RadiusDamage(
       distSqr = (float)((float)(dir[0] * dir[0]) + (float)(dir[1] * dir[1])) + (float)(dir[2] * dir[2]);
       if ( distSqr < radiusSqr )
       {
-        dist = fsqrt(distSqr);
+        dist = sqrtf(distSqr);
         if ( dist >= 0.0099999998 )
         {
           dir[0] = (float)(1.0 / dist) * dir[0];

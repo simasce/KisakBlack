@@ -3108,7 +3108,7 @@ void CScr_sqrt()
   float Float; // [esp+Ch] [ebp-4h]
 
   Float = Scr_GetFloat(0, SCRIPTINSTANCE_CLIENT);
-  Scr_AddFloat(fsqrt(Float), SCRIPTINSTANCE_CLIENT);
+  Scr_AddFloat(sqrtf(Float), SCRIPTINSTANCE_CLIENT);
 }
 
 void CScr_CastInt()

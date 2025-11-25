@@ -1361,7 +1361,7 @@ LABEL_25:
                 diff2 = boneInfo->radiusSquared - d2;
                 if ( diff2 > 0.0
                   && (lowestPriority != currentPriority
-                   || (float)(sphereFraction - fsqrt(diff2 * invL2)) < trace->fraction) )
+                   || (float)(sphereFraction - sqrtf(diff2 * invL2)) < trace->fraction) )
                 {
                   InvMatrixTransformVectorQuatTrans(start, boneMatrix, localStart);
                   InvMatrixTransformVectorQuatTrans(end, boneMatrix, localEnd);

@@ -146,7 +146,7 @@ double __cdecl Vec4Normalize(float *v)
 {
   float length; // [esp+4h] [ebp-4h]
 
-  length = fsqrt((float)((float)((float)(*v * *v) + (float)(v[1] * v[1])) + (float)(v[2] * v[2])) + (float)(v[3] * v[3]));
+  length = sqrtf((float)((float)((float)(*v * *v) + (float)(v[1] * v[1])) + (float)(v[2] * v[2])) + (float)(v[3] * v[3]));
   if ( length != 0.0 )
   {
     *v = *v * (float)(1.0 / length);
