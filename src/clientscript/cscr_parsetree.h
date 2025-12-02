@@ -12,43 +12,43 @@ sval_u __cdecl node2_(scriptInstance_t inst, sval_u val1, sval_u val2);
 sval_u __cdecl node3(scriptInstance_t inst, unsigned __int8 type, sval_u val1, sval_u val2, sval_u val3);
 sval_u __cdecl node4(scriptInstance_t inst, unsigned __int8 type, sval_u val1, sval_u val2, sval_u val3, sval_u val4);
 sval_u __cdecl node5(
-        scriptInstance_t inst,
-        unsigned __int8 type,
-        sval_u val1,
-        sval_u val2,
-        sval_u val3,
-        sval_u val4,
-        sval_u val5);
+                scriptInstance_t inst,
+                unsigned __int8 type,
+                sval_u val1,
+                sval_u val2,
+                sval_u val3,
+                sval_u val4,
+                sval_u val5);
 sval_u __cdecl node6(
-        scriptInstance_t inst,
-        unsigned __int8 type,
-        sval_u val1,
-        sval_u val2,
-        sval_u val3,
-        sval_u val4,
-        sval_u val5,
-        sval_u val6);
+                scriptInstance_t inst,
+                unsigned __int8 type,
+                sval_u val1,
+                sval_u val2,
+                sval_u val3,
+                sval_u val4,
+                sval_u val5,
+                sval_u val6);
 sval_u __cdecl node7(
-        scriptInstance_t inst,
-        unsigned __int8 type,
-        sval_u val1,
-        sval_u val2,
-        sval_u val3,
-        sval_u val4,
-        sval_u val5,
-        sval_u val6,
-        sval_u val7);
+                scriptInstance_t inst,
+                unsigned __int8 type,
+                sval_u val1,
+                sval_u val2,
+                sval_u val3,
+                sval_u val4,
+                sval_u val5,
+                sval_u val6,
+                sval_u val7);
 sval_u __cdecl node8(
-        scriptInstance_t inst,
-        unsigned __int8 type,
-        sval_u val1,
-        sval_u val2,
-        sval_u val3,
-        sval_u val4,
-        sval_u val5,
-        sval_u val6,
-        sval_u val7,
-        sval_u val8);
+                scriptInstance_t inst,
+                unsigned __int8 type,
+                sval_u val1,
+                sval_u val2,
+                sval_u val3,
+                sval_u val4,
+                sval_u val5,
+                sval_u val6,
+                sval_u val7,
+                sval_u val8);
 sval_u __cdecl linked_list_end(scriptInstance_t inst, sval_u val);
 sval_u __cdecl prepend_node(scriptInstance_t inst, sval_u val1, sval_u val2);
 sval_u __cdecl append_node(scriptInstance_t inst, sval_u val1, sval_u val2);
@@ -60,17 +60,17 @@ sval_u __cdecl debugger_node1(scriptInstance_t inst, unsigned __int8 type, sval_
 sval_u __cdecl debugger_node2(scriptInstance_t inst, unsigned __int8 type, sval_u val1, sval_u val2);
 sval_u __cdecl debugger_node3(scriptInstance_t inst, unsigned __int8 type, sval_u val1, sval_u val2, sval_u val3);
 sval_u __cdecl debugger_node4(
-        scriptInstance_t inst,
-        unsigned __int8 type,
-        sval_u val1,
-        sval_u val2,
-        sval_u val3,
-        sval_u val4);
+                scriptInstance_t inst,
+                unsigned __int8 type,
+                sval_u val1,
+                sval_u val2,
+                sval_u val3,
+                sval_u val4);
 sval_u __cdecl debugger_prepend_node(scriptInstance_t inst, sval_u val1, sval_u val2);
 sval_u __cdecl debugger_buffer(
-        scriptInstance_t inst,
-        unsigned __int8 type,
-        char *buf,
-        unsigned int size,
-        int alignment);
+                scriptInstance_t inst,
+                unsigned __int8 type,
+                char *buf,
+                unsigned int size,
+                int alignment);
 sval_u __cdecl debugger_string(scriptInstance_t inst, unsigned __int8 type, char *s);

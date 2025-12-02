@@ -48,12 +48,12 @@ char __cdecl FX_ParseAtlasRowIndexBits(const char **parse, FxEditorElemDef *edEl
 char __cdecl FX_ParseAtlasEntryCount(const char **parse, FxEditorElemDef *edElemDef);
 bool __cdecl FX_ParseVelGraph0X(const char **parse, FxEditorElemDef *edElemDef);
 bool __cdecl FX_ParseGraphRange(
-        const char **parse,
-        int dimCount,
-        float minValue,
-        float maxValue,
-        float *scale,
-        const FxCurve **shape);
+                const char **parse,
+                int dimCount,
+                float minValue,
+                float maxValue,
+                float *scale,
+                const FxCurve **shape);
 char __cdecl FX_ParseCurve(const char **parse, int dimCount, float minValue, float maxValue, const FxCurve **shape);
 bool __cdecl FX_ParseVelGraph0Y(const char **parse, FxEditorElemDef *edElemDef);
 bool __cdecl FX_ParseVelGraph0Z(const char **parse, FxEditorElemDef *edElemDef);
@@ -122,9 +122,9 @@ bool __cdecl FX_ParseBillboardPivot(const char **parse, FxEditorElemDef *edElemD
 char __cdecl FX_ParseEditorElem(int version, const char **parse, FxEditorElemDef *edElemDef);
 bool __cdecl FX_ParseEditorElemField(const char **parse, FxEditorElemDef *edElemDef, const char *token);
 char __cdecl FX_LoadEditorEffectFromBuffer(
-        const char *buffer,
-        const char *parseSessionName,
-        FxEditorEffectDef *edEffectDef);
+                const char *buffer,
+                const char *parseSessionName,
+                FxEditorEffectDef *edEffectDef);
 char __cdecl FX_ParseEditorEffect(const char **parse, FxEditorEffectDef *edEffectDef);
 bool __cdecl FX_ParseEditorEffectField(const char **parse, FxEditorEffectDef *edEffectDef, const char *token);
 bool __cdecl FX_LoadEditorEffect(const char *name, FxEditorEffectDef *edEffectDef);

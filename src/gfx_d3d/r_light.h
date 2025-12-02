@@ -12,12 +12,12 @@ void __cdecl R_CalcSpotLightPlanes(const GfxLight *light, float dynamicSpotLight
 void __cdecl R_CalcPlaneFromPointDir(float *plane, const float *origin, const float *dir);
 void __cdecl R_ComputeSpotLightCrossDirs(const GfxLight *light, float (*crossDirs)[3]);
 void __cdecl R_CalcPlaneFromCosSinPointDirs(
-        float *plane,
-        float fCos,
-        float fSin,
-        const float *origin,
-        const float *forward,
-        const float *lateral);
+                float *plane,
+                float fCos,
+                float fSin,
+                const float *origin,
+                const float *forward,
+                const float *lateral);
 void __cdecl R_GetBspLightSurfs(const GfxLight *visibleLights, int visibleCount);
 void __cdecl R_GetBspSpotLightSurfs(const GfxLight *light, int lightIndex, GfxBspDrawSurfData *surfData);
 void __cdecl R_EndCmdBuf(GfxDelayedCmdBuf *delayedCmdBuf);
@@ -26,22 +26,22 @@ int __cdecl R_AllowBspSpotLightShadows(int surfIndex);
 int __cdecl R_AllowBspSpotLight(int surfIndex, unsigned int *bspLightCallbackAsVoid);
 void __cdecl R_GetStaticModelLightSurfs(const GfxLight *visibleLights, int visibleCount);
 int __cdecl R_AllocDrawSurf(
-        GfxDelayedCmdBuf *delayedCmdBuf,
-        GfxDrawSurf drawSurf,
-        GfxDrawSurfList *drawSurfList,
-        unsigned int size);
+                GfxDelayedCmdBuf *delayedCmdBuf,
+                GfxDrawSurf drawSurf,
+                GfxDrawSurfList *drawSurfList,
+                unsigned int size);
 bool __cdecl R_AllowStaticModelOmniLight(int smodelIndex);
 int __cdecl R_AllowStaticModelSpotLight(int smodelIndex);
 void __cdecl R_GetSceneEntLightSurfs(const GfxLight *visibleLights, int visibleCount);
 bool __cdecl R_SpotLightIsAttachedToDobj(const DObj *obj);
 int __cdecl R_EmitPointLightPartitionSurfs(
-        GfxViewInfo *viewInfo,
-        const GfxLight *visibleLights,
-        int visibleCount,
-        const float *viewOrigin);
+                GfxViewInfo *viewInfo,
+                const GfxLight *visibleLights,
+                int visibleCount,
+                const float *viewOrigin);
 unsigned __int8 __cdecl R_GetTechniqueForLightType(const GfxLight *light, const GfxViewInfo *viewInfo);
 void __cdecl R_EmitShadowedLightPartitionSurfs(
-        GfxViewInfo *viewInfo,
-        unsigned int lightDrawSurfCount,
-        const GfxDrawSurf *lightDrawSurfs,
-        GfxDrawSurfListInfo *info);
+                GfxViewInfo *viewInfo,
+                unsigned int lightDrawSurfCount,
+                const GfxDrawSurf *lightDrawSurfs,
+                GfxDrawSurfListInfo *info);

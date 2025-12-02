@@ -1,108 +1,108 @@
 #pragma once
 
 enum DvarSetSource : __int32
-{                                       // XREF: Dvar_SetVariant/r
-    DVAR_SOURCE_INTERNAL = 0x0,
-    DVAR_SOURCE_EXTERNAL = 0x1,
-    DVAR_SOURCE_SCRIPT   = 0x2,
-    DVAR_SOURCE_DEVGUI   = 0x3,
+{                                                                             // XREF: Dvar_SetVariant/r
+        DVAR_SOURCE_INTERNAL = 0x0,
+        DVAR_SOURCE_EXTERNAL = 0x1,
+        DVAR_SOURCE_SCRIPT     = 0x2,
+        DVAR_SOURCE_DEVGUI     = 0x3,
 };
 
 enum dvarType_t : __int32
-{                                       // XREF: dvar_s/r
-                                         // ?Dvar_ValueInDomain@@YA_NW4dvarType_t@@TDvarValue@@TDvarLimits@@@Z/r ...
-     DVAR_TYPE_BOOL = 0x0,
-     DVAR_TYPE_FLOAT = 0x1,
-     DVAR_TYPE_FLOAT_2 = 0x2,
-     DVAR_TYPE_FLOAT_3 = 0x3,
-     DVAR_TYPE_FLOAT_4 = 0x4,
-     DVAR_TYPE_INT = 0x5,
-     DVAR_TYPE_ENUM = 0x6,
-     DVAR_TYPE_STRING = 0x7,
-     DVAR_TYPE_COLOR = 0x8,
-     DVAR_TYPE_INT64 = 0x9,
-     DVAR_TYPE_LINEAR_COLOR_RGB = 0xA,
-     DVAR_TYPE_COLOR_XYZ = 0xB,
-     DVAR_TYPE_COUNT = 0xC,
+{                                                                             // XREF: dvar_s/r
+                                                                                 // ?Dvar_ValueInDomain@@YA_NW4dvarType_t@@TDvarValue@@TDvarLimits@@@Z/r ...
+         DVAR_TYPE_BOOL = 0x0,
+         DVAR_TYPE_FLOAT = 0x1,
+         DVAR_TYPE_FLOAT_2 = 0x2,
+         DVAR_TYPE_FLOAT_3 = 0x3,
+         DVAR_TYPE_FLOAT_4 = 0x4,
+         DVAR_TYPE_INT = 0x5,
+         DVAR_TYPE_ENUM = 0x6,
+         DVAR_TYPE_STRING = 0x7,
+         DVAR_TYPE_COLOR = 0x8,
+         DVAR_TYPE_INT64 = 0x9,
+         DVAR_TYPE_LINEAR_COLOR_RGB = 0xA,
+         DVAR_TYPE_COLOR_XYZ = 0xB,
+         DVAR_TYPE_COUNT = 0xC,
 };
 
 union DvarValue // sizeof=0x10
-{                                       // XREF: CL_CommitDvarToProfiles+58/w
-                                        // CL_CommitDvarToProfiles+5E/w ...
-    bool enabled;
-    int integer;
-    unsigned int unsignedInt;
-    __int64 integer64;
-    unsigned __int64 unsignedInt64;
-    float value;
-    float vector[4];
-    const char *string;
-    unsigned __int8 color[4];
+{                                                                             // XREF: CL_CommitDvarToProfiles+58/w
+                                                                                // CL_CommitDvarToProfiles+5E/w ...
+        bool enabled;
+        int integer;
+        unsigned int unsignedInt;
+        __int64 integer64;
+        unsigned __int64 unsignedInt64;
+        float value;
+        float vector[4];
+        const char *string;
+        unsigned __int8 color[4];
 };
 
 struct DvarLimits_enum // sizeof=0x8
-{                                       // XREF: DvarLimits/r
-    int stringCount;
-    const char **strings;
+{                                                                             // XREF: DvarLimits/r
+        int stringCount;
+        const char **strings;
 };
 
 struct DvarLimits_int // sizeof=0x8
-{                                       // XREF: DvarLimits/r
-    int min;
-    int max;
+{                                                                             // XREF: DvarLimits/r
+        int min;
+        int max;
 };
 
 struct DvarLimits_int64 // sizeof=0x10
-{                                       // XREF: DvarLimits/r
-    __int64 min;
-    __int64 max;
+{                                                                             // XREF: DvarLimits/r
+        __int64 min;
+        __int64 max;
 };
 
 struct DvarLimits_float // sizeof=0x8
-{                                       // XREF: DvarLimits/r
-    float min;
-    float max;
+{                                                                             // XREF: DvarLimits/r
+        float min;
+        float max;
 };
 
 struct DvarLimits_vector // sizeof=0x8
-{                                       // XREF: DvarLimits/r
-    float min;
-    float max;
+{                                                                             // XREF: DvarLimits/r
+        float min;
+        float max;
 };
 
 union DvarLimits // sizeof=0x10
-{                                       // XREF: Dvar_ValueInDomain(dvarType_t,DvarValue,DvarLimits):$LN17_36/r
-                                        // Dvar_ValueInDomain(dvarType_t,DvarValue,DvarLimits)+61/r ...
-    DvarLimits_enum enumeration;
-    DvarLimits_int integer;
-    DvarLimits_int64 integer64;
-    DvarLimits_float value;
-    DvarLimits_vector vector;
+{                                                                             // XREF: Dvar_ValueInDomain(dvarType_t,DvarValue,DvarLimits):$LN17_36/r
+                                                                                // Dvar_ValueInDomain(dvarType_t,DvarValue,DvarLimits)+61/r ...
+        DvarLimits_enum enumeration;
+        DvarLimits_int integer;
+        DvarLimits_int64 integer64;
+        DvarLimits_float value;
+        DvarLimits_vector vector;
 };
 
 struct __declspec(align(8)) dvar_s // sizeof=0x70
-{                                       // XREF: .data:dvarPool/r
-                                        // dvar_t/r
-    const char *name;
-    const char *description;
-    int hash;
-    unsigned int flags;                 // XREF: Dvar_ResetScriptInfo(void)+4A/r
-                                        // Dvar_ResetScriptInfo(void)+5C/w
-    dvarType_t type;
-    bool modified;
-    bool loadedFromSaveGame;
-    // padding byte
-    // padding byte
-    DvarValue current;
-    DvarValue latched;
-    DvarValue reset;
-    DvarValue saved;
-    DvarLimits domain;
-    dvar_s *hashNext;
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
+{                                                                             // XREF: .data:dvarPool/r
+                                                                                // dvar_t/r
+        const char *name;
+        const char *description;
+        int hash;
+        unsigned int flags;                                 // XREF: Dvar_ResetScriptInfo(void)+4A/r
+                                                                                // Dvar_ResetScriptInfo(void)+5C/w
+        dvarType_t type;
+        bool modified;
+        bool loadedFromSaveGame;
+        // padding byte
+        // padding byte
+        DvarValue current;
+        DvarValue latched;
+        DvarValue reset;
+        DvarValue saved;
+        DvarLimits domain;
+        dvar_s *hashNext;
+        // padding byte
+        // padding byte
+        // padding byte
+        // padding byte
 };
 
 struct FastCriticalSection;
@@ -123,18 +123,18 @@ char __cdecl Dvar_ValueInDomain(dvarType_t type, DvarValue value, DvarLimits dom
 char __cdecl Dvar_VectorInDomain(const float *vector, int components, float min, float max);
 char *__cdecl Dvar_DomainToString(dvarType_t type, DvarLimits domain, char *outBuffer, int outBufferLen);
 char *__cdecl Dvar_DomainToString_Internal(
-        dvarType_t type,
-        DvarLimits domain,
-        char *outBuffer,
-        int outBufferLen,
-        int *outLineCount);
+                dvarType_t type,
+                DvarLimits domain,
+                char *outBuffer,
+                int outBufferLen,
+                int *outLineCount);
 void __cdecl Dvar_VectorDomainToString(int components, DvarLimits domain, char *outBuffer, unsigned int outBufferLen);
 char *__cdecl Dvar_DomainToString_GetLines(
-        dvarType_t type,
-        DvarLimits domain,
-        char *outBuffer,
-        int outBufferLen,
-        int *outLineCount);
+                dvarType_t type,
+                DvarLimits domain,
+                char *outBuffer,
+                int outBufferLen,
+                int *outLineCount);
 void __cdecl Dvar_PrintDomain(dvarType_t type, DvarLimits domain);
 bool __cdecl Dvar_HasLatchedValue(const dvar_s *dvar);
 bool __cdecl Dvar_ValuesEqual(dvarType_t type, DvarValue val0, DvarValue val1);
@@ -146,11 +146,11 @@ void __cdecl Dvar_ClearModified(const dvar_s *dvar);
 void __cdecl Dvar_SetModified(const dvar_s *dvar);
 void __cdecl Dvar_UpdateEnumDomain(dvar_s *dvar, const char **stringTable);
 DvarValue *__cdecl Dvar_ClampValueToDomain(
-        DvarValue *result,
-        dvarType_t type,
-        DvarValue value,
-        DvarValue resetValue,
-        DvarLimits domain);
+                DvarValue *result,
+                dvarType_t type,
+                DvarValue value,
+                DvarValue resetValue,
+                DvarLimits domain);
 void __cdecl Dvar_ClampVectorToDomain(float *vector, int components, float min, float max);
 bool __cdecl Dvar_GetBool(const char *dvarName);
 bool __cdecl Dvar_StringToBool(const char *string);
@@ -197,27 +197,27 @@ char __cdecl Dvar_CanChangeValue(const dvar_s *dvar, DvarValue value, DvarSetSou
 void __cdecl Dvar_ClearLatchedValue(dvar_s *dvar);
 const dvar_s *__cdecl _Dvar_RegisterBool(const char *dvarName, bool value, unsigned __int16 flags, const char *description);
 const dvar_s *__cdecl Dvar_RegisterVariant(
-        char *dvarName,
-        dvarType_t type,
-        unsigned __int16 flags,
-        DvarValue value,
-        DvarLimits domain,
-        const char *description);
+                char *dvarName,
+                dvarType_t type,
+                unsigned __int16 flags,
+                DvarValue value,
+                DvarLimits domain,
+                const char *description);
 void __cdecl Dvar_Reregister(
-        dvar_s *dvar,
-        const char *dvarName,
-        dvarType_t type,
-        unsigned __int16 flags,
-        DvarValue resetValue,
-        DvarLimits domain,
-        const char *description);
+                dvar_s *dvar,
+                const char *dvarName,
+                dvarType_t type,
+                unsigned __int16 flags,
+                DvarValue resetValue,
+                DvarLimits domain,
+                const char *description);
 void __cdecl Dvar_MakeExplicitType(
-        dvar_s *dvar,
-        const char *dvarName,
-        dvarType_t type,
-        unsigned __int16 flags,
-        DvarValue resetValue,
-        DvarLimits domain);
+                dvar_s *dvar,
+                const char *dvarName,
+                dvarType_t type,
+                unsigned __int16 flags,
+                DvarValue resetValue,
+                DvarLimits domain);
 DvarValue *__cdecl Dvar_StringToValue(DvarValue *result, dvarType_t type, DvarLimits domain, const char *string);
 void __cdecl Dvar_StringToVec2(const char *string, float *vector);
 void __cdecl Dvar_StringToVec3(const char *string, float *vector);
@@ -225,107 +225,107 @@ void __cdecl Dvar_StringToVec4(const char *string, float *vector);
 int __cdecl Dvar_StringToEnum(const DvarLimits *domain, const char *string);
 void __cdecl Dvar_UpdateValue(dvar_s *dvar, DvarValue value);
 void __cdecl Dvar_ReinterpretDvar(
-        dvar_s *dvar,
-        const char *dvarName,
-        dvarType_t type,
-        unsigned __int16 flags,
-        DvarValue value,
-        DvarLimits domain);
+                dvar_s *dvar,
+                const char *dvarName,
+                dvarType_t type,
+                unsigned __int16 flags,
+                DvarValue value,
+                DvarLimits domain);
 void __cdecl Dvar_PerformUnregistration(dvar_s *dvar);
 char *__cdecl Dvar_AllocNameString(char *name);
 DvarValue *__cdecl Dvar_GetReinterpretedResetValue(DvarValue *result, dvar_s *__formal, DvarValue value);
 const dvar_s *__cdecl Dvar_RegisterNew(
-        char *dvarName,
-        dvarType_t type,
-        unsigned __int16 flags,
-        DvarValue value,
-        DvarLimits domain,
-        const char *description);
+                char *dvarName,
+                dvarType_t type,
+                unsigned __int16 flags,
+                DvarValue value,
+                DvarLimits domain,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterInt(
-        const char *dvarName,
-        int value,
-        int min,
-        int max,
-        unsigned __int16 flags,
-        const char *description);
+                const char *dvarName,
+                int value,
+                int min,
+                int max,
+                unsigned __int16 flags,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterInt64(
-        char *dvarName,
-        __int64 value,
-        __int64 min,
-        __int64 max,
-        unsigned __int16 flags,
-        const char *description);
+                char *dvarName,
+                __int64 value,
+                __int64 min,
+                __int64 max,
+                unsigned __int16 flags,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterFloat(
-        const char *dvarName,
-        float value,
-        float min,
-        float max,
-        unsigned __int16 flags,
-        const char *description);
+                const char *dvarName,
+                float value,
+                float min,
+                float max,
+                unsigned __int16 flags,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterVec2(
-        const char *dvarName,
-        unsigned int x,
-        unsigned int y,
-        float min,
-        float max,
-        unsigned __int16 flags,
-        const char *description);
+                const char *dvarName,
+                unsigned int x,
+                unsigned int y,
+                float min,
+                float max,
+                unsigned __int16 flags,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterVec3(
-        const char *dvarName,
-        unsigned int x,
-        unsigned int y,
-        unsigned int z,
-        float min,
-        float max,
-        unsigned __int16 flags,
-        const char *description);
+                const char *dvarName,
+                unsigned int x,
+                unsigned int y,
+                unsigned int z,
+                float min,
+                float max,
+                unsigned __int16 flags,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterVec4(
-        const char *dvarName,
-        unsigned int x,
-        unsigned int y,
-        unsigned int z,
-        unsigned int w,
-        float min,
-        float max,
-        unsigned __int16 flags,
-        const char *description);
+                const char *dvarName,
+                unsigned int x,
+                unsigned int y,
+                unsigned int z,
+                unsigned int w,
+                float min,
+                float max,
+                unsigned __int16 flags,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterString(
-        const char *dvarName,
-        const char *value,
-        unsigned __int16 flags,
-        const char *description);
+                const char *dvarName,
+                const char *value,
+                unsigned __int16 flags,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterEnum(
-        const char *dvarName,
-        const char **valueList,
-        int defaultIndex,
-        unsigned __int16 flags,
-        const char *description);
+                const char *dvarName,
+                const char **valueList,
+                int defaultIndex,
+                unsigned __int16 flags,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterColor(
-        const char *dvarName,
-        float r,
-        float g,
-        float b,
-        float a,
-        unsigned __int16 flags,
-        const char *description);
+                const char *dvarName,
+                float r,
+                float g,
+                float b,
+                float a,
+                unsigned __int16 flags,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterLinearRGB(
-        char *dvarName,
-        unsigned int x,
-        unsigned int y,
-        unsigned int z,
-        float min,
-        float max,
-        unsigned __int16 flags,
-        const char *description);
+                char *dvarName,
+                unsigned int x,
+                unsigned int y,
+                unsigned int z,
+                float min,
+                float max,
+                unsigned __int16 flags,
+                const char *description);
 const dvar_s *__cdecl _Dvar_RegisterColorXYZ(
-        char *dvarName,
-        unsigned int x,
-        unsigned int y,
-        unsigned int z,
-        float min,
-        float max,
-        unsigned __int16 flags,
-        const char *description);
+                char *dvarName,
+                unsigned int x,
+                unsigned int y,
+                unsigned int z,
+                float min,
+                float max,
+                unsigned __int16 flags,
+                const char *description);
 void __cdecl Dvar_SetDvarValueFromSource(dvar_s *dvar, DvarValue newValue, DvarSetSource source);
 void __cdecl Dvar_SetBoolFromSource(dvar_s *dvar, bool value, DvarSetSource source);
 void __cdecl Dvar_SetIntFromSource(dvar_s *dvar, int value, DvarSetSource source);
@@ -334,12 +334,12 @@ void __cdecl Dvar_SetFloatFromSource(dvar_s *dvar, float value, DvarSetSource so
 void __cdecl Dvar_SetVec2FromSource(dvar_s *dvar, unsigned int x, unsigned int y, DvarSetSource source);
 void __cdecl Dvar_SetVec3FromSource(dvar_s *dvar, unsigned int x, unsigned int y, float z, DvarSetSource source);
 void __cdecl Dvar_SetVec4FromSource(
-        dvar_s *dvar,
-        unsigned int x,
-        unsigned int y,
-        unsigned int z,
-        unsigned int w,
-        DvarSetSource source);
+                dvar_s *dvar,
+                unsigned int x,
+                unsigned int y,
+                unsigned int z,
+                unsigned int w,
+                DvarSetSource source);
 void __cdecl Dvar_SetColorFromSource(dvar_s *dvar, float r, float g, float b, float a, DvarSetSource source);
 void __cdecl Dvar_SetBool(dvar_s *dvar, bool value);
 void __cdecl Dvar_SetInt(dvar_s *dvar, int value);
@@ -363,10 +363,10 @@ void __cdecl Dvar_SetVec4ByName(const char *dvarName, unsigned int x, unsigned i
 void __cdecl Dvar_SetStringByName(const char *dvarName, char *value);
 void __cdecl Dvar_SetColorByName(const char *dvarName, float r, float g, float b, float a);
 const dvar_s *__cdecl Dvar_SetFromStringByNameFromSource(
-        const char *dvarName,
-        char *string,
-        DvarSetSource source,
-        unsigned __int16 flags);
+                const char *dvarName,
+                char *string,
+                DvarSetSource source,
+                unsigned __int16 flags);
 void __cdecl Dvar_SetFromStringByName(const char *dvarName, char *string);
 void __cdecl Dvar_SetCommand(const char *dvarName, char *string);
 void __cdecl Dvar_AddFlags(const dvar_s *dvar, int flags);
@@ -382,11 +382,11 @@ void __cdecl Dvar_ResetConAccessDvars();
 int __cdecl Com_SaveDvarsToBuffer(const char **dvarnames, unsigned int numDvars, char *buffer, unsigned int bufsize);
 int __cdecl Com_LoadDvarsFromBuffer(const char **dvarnames, unsigned int numDvars, char *buffer, char *filename);
 int __cdecl Com_LoadDvarsFromBufferOptional(
-        const char **dvarnames,
-        bool *isOptional,
-        unsigned int numDvars,
-        char *buffer,
-        char *filename);
+                const char **dvarnames,
+                bool *isOptional,
+                unsigned int numDvars,
+                char *buffer,
+                char *filename);
 void __cdecl Dvar_SetBoolIfChanged(dvar_s *dvar, bool value);
 void __cdecl Dvar_SetIntIfChanged(dvar_s *dvar, int value);
 void __cdecl Dvar_SetFloatIfChanged(dvar_s *dvar, float value);

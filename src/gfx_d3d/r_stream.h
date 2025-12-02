@@ -38,11 +38,11 @@ void __cdecl importance_merge_sort(void **list, int list_count);
 void __cdecl R_StreamUpdate_EndQuery();
 unsigned intR_StreamUpdate_EndQuery_Internal();
 char __cdecl R_StreamRequestImageAllocation(
-        pendingRequest *request,
-        GfxImage *image,
-        bool highMip,
-        int imagePart,
-        float importance);
+                pendingRequest *request,
+                GfxImage *image,
+                bool highMip,
+                int imagePart,
+                float importance);
 char __cdecl R_StreamRequestImageRead(pendingRequest *request);
 char __cdecl R_StreamUpdate_FindImageAndOptimize(const float *viewPos);
 void __cdecl R_StreamUpdate_AddInitialImages(unsigned int importance);
@@ -57,51 +57,51 @@ void __cdecl R_StreamUpdateForcedModels();
 void __cdecl R_StreamTouchImagesFromMaterial(const Material *remoteMaterial, unsigned int importance);
 void __cdecl R_StreamUpdatePerClient(const float *viewPos);
 void __cdecl R_StreamUpdateDynamicModels(
-        const float *viewPos,
-        float maxDistSq,
-        unsigned int frame,
-        float *distanceScale);
+                const float *viewPos,
+                float maxDistSq,
+                unsigned int frame,
+                float *distanceScale);
 void __cdecl R_StreamUpdateForBModel(
-        const float *viewPos,
-        unsigned int frame,
-        unsigned int surfId,
-        const GfxBrushModel *bmodel,
-        const float *origin,
-        float maxDistSq,
-        Material *altMaterial,
-        bool isVisible,
-        float *distanceScale);
+                const float *viewPos,
+                unsigned int frame,
+                unsigned int surfId,
+                const GfxBrushModel *bmodel,
+                const float *origin,
+                float maxDistSq,
+                Material *altMaterial,
+                bool isVisible,
+                float *distanceScale);
 double __cdecl PointDistSqFromBounds(const float *v, const float *mins, const float *maxs);
 void __cdecl R_StreamUpdate_AddDynamicXModelDistance(
-        const XModel *model,
-        const float *viewPos,
-        const float *origin,
-        float scale,
-        bool visible,
-        float *distanceScale);
+                const XModel *model,
+                const float *viewPos,
+                const float *origin,
+                float scale,
+                bool visible,
+                float *distanceScale);
 void __cdecl R_StreamUpdate_End();
 void __cdecl R_Stream_UpdateStaticModelsCmd(char *data);
 void __cdecl R_StreamUpdateStaticModel(
-        int staticModelIndex,
-        const float *viewPos,
-        float maxDistSq,
-        float *distanceScale);
+                int staticModelIndex,
+                const float *viewPos,
+                float maxDistSq,
+                float *distanceScale);
 void __cdecl R_StreamUpdate_AddXModelDistance(
-        const XModel *model,
-        const float *viewPos,
-        const float *origin,
-        float scale,
-        bool visible,
-        float *distanceScale);
+                const XModel *model,
+                const float *viewPos,
+                const float *origin,
+                float scale,
+                bool visible,
+                float *distanceScale);
 void __cdecl R_Stream_UpdateStaticSurfacesCmd(char *data);
 void __cdecl R_StreamUpdateWorldSurface(int surfId, const float *viewPos, float maxDistSq, float *distanceScale);
 void __cdecl MultiplePointDistSqFromBounds(
-        distance_data *distances,
-        const float *v,
-        const float *mip0mins,
-        const float *mip0maxs,
-        float himipRadiusSq,
-        float distanceScale);
+                distance_data *distances,
+                const float *v,
+                const float *mip0mins,
+                const float *mip0maxs,
+                float himipRadiusSq,
+                float distanceScale);
 double __cdecl FastPointDistSqFromBounds(float4 mins, float4 maxs);
 void __cdecl R_Stream_SortCmd(_BYTE *data);
 void __cdecl R_StreamUpdate_EndQuerySort(bool diskOrder);

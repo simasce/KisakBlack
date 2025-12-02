@@ -2,10 +2,10 @@
 
 void __cdecl R_Rope_GenerateVerts_Camera(RopeGenerateVertsCmd *cmd);
 void __cdecl R_Rope_GenerateVerts_Internal(
-        const RopeGenerateVertsCmd *cmd,
-        char sceneIndex,
-        unsigned int drawsurfRegion,
-        bool forceLowResLOD);
+                const RopeGenerateVertsCmd *cmd,
+                char sceneIndex,
+                unsigned int drawsurfRegion,
+                bool forceLowResLOD);
 void __cdecl R_Rope_ClearAll();
 void __cdecl R_Rope_Add(const VisualRope *vropeIn);
 RopeRenderInfo *__cdecl R_Rope_GetInfo();

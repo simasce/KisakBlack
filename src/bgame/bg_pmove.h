@@ -2,23 +2,23 @@
 
 void __cdecl setup_gjkcc_input(pmove_t *pm, gjkcc_input_t *gjkcc_in);
 void __cdecl PM_trace(
-        pmove_t *pm,
-        trace_t *results,
-        const float *start,
-        const float *mins,
-        const float *maxs,
-        const float *end,
-        int passEntityNum,
-        int contentMask);
+                pmove_t *pm,
+                trace_t *results,
+                const float *start,
+                const float *mins,
+                const float *maxs,
+                const float *end,
+                int passEntityNum,
+                int contentMask);
 void __cdecl PM_playerTrace(
-        pmove_t *pm,
-        trace_t *results,
-        float *start,
-        float *mins,
-        float *maxs,
-        float *end,
-        int passEntityNum,
-        int contentMask);
+                pmove_t *pm,
+                trace_t *results,
+                float *start,
+                float *mins,
+                float *maxs,
+                float *end,
+                int passEntityNum,
+                int contentMask);
 TraceExtents *__thiscall TraceExtents::TraceExtents(TraceExtents *this);
 void __cdecl PM_AddEvent(playerState_s *ps, unsigned int newEvent);
 void __cdecl PM_AddTouchEnt(pmove_t *pm, int entityNum);
@@ -40,33 +40,33 @@ void __cdecl PM_FootstepEvent(pmove_t *pm, pml_t *pml, int iOldBobCycle, int iNe
 int __cdecl PM_FootstepType(pmove_t *pm);
 bool __cdecl PM_ShouldMakeFootsteps(pmove_t *pm);
 void __cdecl PM_UpdateLean(
-        playerState_s *ps,
-        float msec,
-        usercmd_s *cmd,
-        void (__cdecl *capsuleTrace)(trace_t *, const float *, const float *, const float *, const float *, int, int, col_context_t *));
+                playerState_s *ps,
+                float msec,
+                usercmd_s *cmd,
+                void (__cdecl *capsuleTrace)(trace_t *, const float *, const float *, const float *, const float *, int, int, col_context_t *));
 void __cdecl PM_UpdateViewAngles_RangeLimited(playerState_s *ps);
 void __cdecl PM_UpdateViewAngles(
-        int localClientNum,
-        playerState_s *ps,
-        float msec,
-        usercmd_s *cmd,
-        unsigned __int8 handler);
+                int localClientNum,
+                playerState_s *ps,
+                float msec,
+                usercmd_s *cmd,
+                unsigned __int8 handler);
 void __cdecl PM_UpdateViewLockedEnt(playerState_s *ps, usercmd_s *cmd, unsigned __int8 handler);
 void __cdecl PM_UpdateViewAngles_Clamp(playerState_s *ps, usercmd_s *cmd, unsigned __int8 handler);
 void __cdecl PM_UpdateViewAngles_LadderClamp(playerState_s *ps);
 void __cdecl PM_UpdateViewAngles_Prone(
-        playerState_s *ps,
-        float msec,
-        usercmd_s *cmd,
-        unsigned __int8 handler,
-        float oldViewYaw);
+                playerState_s *ps,
+                float msec,
+                usercmd_s *cmd,
+                unsigned __int8 handler,
+                float oldViewYaw);
 int __cdecl BG_CheckProneTurned(playerState_s *ps, float newProneYaw, unsigned __int8 handler);
 void __cdecl PM_UpdateViewAngles_ProneYawClamp(
-        playerState_s *ps,
-        float delta,
-        int proneBlocked,
-        float oldViewYaw,
-        float newViewYaw);
+                playerState_s *ps,
+                float delta,
+                int proneBlocked,
+                float oldViewYaw,
+                float newViewYaw);
 void __cdecl PM_UpdateViewAngles_PronePitchClamp(playerState_s *ps);
 void __cdecl PM_UpdatePronePitch(pmove_t *pm, pml_t *pml);
 void __cdecl PM_SetProneMovementOverride(playerState_s *ps);
@@ -125,20 +125,20 @@ int __cdecl PM_GetStanceEx(int stance, int backward);
 char __cdecl PM_Footstep_LadderMove(pmove_t *pm, pml_t *pml);
 double __cdecl PM_GetMaxSpeed(pmove_t *pm, int walking, int sprinting);
 double __cdecl PM_GetBobMove(
-        pmove_t *pm,
-        PmStanceFrontBack stance,
-        float xyspeed,
-        float fMaxSpeed,
-        int walking,
-        int sprinting);
+                pmove_t *pm,
+                PmStanceFrontBack stance,
+                float xyspeed,
+                float fMaxSpeed,
+                int walking,
+                int sprinting);
 void __cdecl PM_Footstep_NotTryingToMove(pmove_t *pm);
 int __cdecl BG_CalcBob(pmove_t *pm, pml_t *pml, int old, float bobmove);
 void __cdecl PM_ApplyMovementAnimations(
-        pmove_t *pm,
-        pml_t *pml,
-        PmStanceFrontBack stanceFrontBack,
-        int walking,
-        int sprinting);
+                pmove_t *pm,
+                pml_t *pml,
+                PmStanceFrontBack stanceFrontBack,
+                int walking,
+                int sprinting);
 int __cdecl PM_GetMoveAnim(playerState_s *ps, pml_t *pml, PmStanceFrontBack stance, int walking, int sprinting);
 void __cdecl PM_ApplyLegAnimations(pmove_t *pm, pml_t *pml, int iStance, PmStanceFrontBack stanceFrontBack);
 double __cdecl PM_CalcPlayerPitch(playerState_s *ps, pml_t *pml);
@@ -158,18 +158,18 @@ void __cdecl Pmove(pmove_t *pm);
 void bitarray<51>::bitarray<51>(bitarray<51> *this, unsigned int first, ...);
 void __thiscall bitarray<51>::setBit(bitarray<51> *this, unsigned int pos);
 void __thiscall colgeom_visitor_inlined_t<200>::update(
-        colgeom_visitor_inlined_t<200> *this,
-        const float *start,
-        const float *end,
-        const float *mins,
-        const float *maxs,
-        int mask);
+                colgeom_visitor_inlined_t<200> *this,
+                const float *start,
+                const float *end,
+                const float *mins,
+                const float *maxs,
+                int mask);
 void __cdecl Vec3Min(const float *a, const float *b, float *result);
 void __cdecl Vec3Max(const float *a, const float *b, float *result);
 void __thiscall colgeom_visitor_inlined_t<200>::update(
-        colgeom_visitor_inlined_t<200> *this,
-        const float *_mn,
-        const float *_mx,
-        int mask,
-        const float *expand_vec);
+                colgeom_visitor_inlined_t<200> *this,
+                const float *_mn,
+                const float *_mx,
+                int mask,
+                const float *expand_vec);
 void __cdecl setup_gjkcc_input(actor_physics_t *pPhys, gjkcc_input_t *gjkcc_in);

@@ -5,20 +5,20 @@ void __cdecl CG_Player_PreControllers(DObj *obj, centity_s *cent);
 void __cdecl CG_mg42_OverheatUpdate(int localClientNum, const DObj *obj, centity_s *cent);
 void __cdecl CG_mg42_PreControllers(DObj *obj, centity_s *cent);
 // local variable allocation has failed, the output may be wrong!
-void  CG_UpdateBModelWorldBounds(int a1@<ebp>, int localClientNum, centity_s *cent, int forceFilter);
+void    CG_UpdateBModelWorldBounds(int a1@<ebp>, int localClientNum, centity_s *cent, int forceFilter);
 bool __cdecl VecLessThan(float *a, float *b);
 double __cdecl CG_ScriptMover_GetBurnFraction(int localClientNum, centity_s *cent);
 DObj *__cdecl CG_ScriptMover_GetDObj(int localClientNum, centity_s *cent);
 // local variable allocation has failed, the output may be wrong!
-void  CG_AdjustPositionForMover(
-        int a1@<ebp>,
-        int localClientNum,
-        float *in,
-        int moverNum,
-        int fromTime,
-        int toTime,
-        float *out,
-        float *outDeltaAngles);
+void    CG_AdjustPositionForMover(
+                int a1@<ebp>,
+                int localClientNum,
+                float *in,
+                int moverNum,
+                int fromTime,
+                int toTime,
+                float *out,
+                float *outDeltaAngles);
 void __cdecl LerpAngleVector(float *from, const float *to, float frac, float *result);
 phys_vec3 *__cdecl operator-(phys_vec3 *result, const phys_vec3 *a, const phys_vec3 *b);
 void __cdecl Phys_AxisToNitrousMat(float (*axis)[3], phys_mat44 *outMat);
@@ -26,11 +26,11 @@ bool __cdecl ShouldAdjustPositionForMover(const centity_s *cent);
 void __cdecl CG_SetFrameInterpolation(int localClientNum);
 void __cdecl CScr_GetFootColor(eFoot foot, float *color);
 void __cdecl CG_PlayClientSoundNoteTracks(
-        int localClientNum,
-        int entnum,
-        float *origin,
-        const char *notifyName,
-        bool isViewArms);
+                int localClientNum,
+                int entnum,
+                float *origin,
+                const char *notifyName,
+                bool isViewArms);
 bool __cdecl CG_isSoundAlias(const char *notifyName);
 void __cdecl CG_DebugDrawFootFalls(int localClientNum, const centity_s *cent, eFoot foot);
 void __cdecl MatrixNegateXY(const float (*in)[3], float (*out)[3]);
@@ -38,11 +38,11 @@ void __cdecl MatrixSwapXYNegateX(const float (*in)[3], float (*out)[3]);
 void __cdecl CG_DoFootsteps(int localClientNum, centity_s *cent);
 void __cdecl CG_DoFootStep(int localClientNum, centity_s *cent, eFoot foot);
 void __cdecl CG_ProcessClientNote(
-        XAnimClientNotify *note,
-        unsigned int entityNum,
-        cg_s *cgameGlob,
-        centity_s *cent,
-        int localClientNum);
+                XAnimClientNotify *note,
+                unsigned int entityNum,
+                cg_s *cgameGlob,
+                centity_s *cent,
+                int localClientNum);
 void __cdecl CScr_AddEntity(centity_s *cent, int clientNum);
 void __cdecl CG_ProcessFakeEntClientNoteTracks(int localClientNum, int entityNum);
 void __cdecl CG_AddPacketEntity(int localClientNum, unsigned int entnum);
@@ -72,11 +72,11 @@ void __cdecl CG_DObjUpdateInfo(const cg_s *cgameGlob, DObj *obj, int notifyFlags
 int __cdecl CG_DObjGetWorldBoneMatrix(const cpose_t *pose, DObj *obj, int boneIndex, float (*tagMat)[3], float *origin);
 DObjAnimMat *__cdecl CG_DObjGetLocalBoneMatrix(const cpose_t *pose, DObj *obj, int boneIndex);
 int __cdecl CG_DObjGetWorldTagMatrix(
-        const cpose_t *pose,
-        DObj *obj,
-        unsigned int tagName,
-        float (*tagMat)[3],
-        float *origin);
+                const cpose_t *pose,
+                DObj *obj,
+                unsigned int tagName,
+                float (*tagMat)[3],
+                float *origin);
 DObjAnimMat *__cdecl CG_DObjGetLocalTagMatrix(const cpose_t *pose, DObj *obj, unsigned int tagName);
 int __cdecl CG_DObjGetWorldTagPos(const cpose_t *pose, DObj *obj, unsigned int tagName, float *pos);
 centity_s *__cdecl CG_GetPose(int localClientNum, unsigned int handle);
@@ -92,12 +92,12 @@ void __cdecl CG_InterpolateEntityPosition(cg_s *cgameGlob, centity_s *cent, int 
 fake_centity_s *__cdecl CG_GetFakeEntity(int localClientNum, int entityIndex);
 void __cdecl CG_InterpolateVehicle(cg_s *cgameGlob, centity_s *cent, int curTime);
 void __cdecl CG_LerpTrajectory(
-        const cg_s *cgameGlob,
-        trajectory_t *trFrom,
-        trajectory_t *trTo,
-        float lerp,
-        trajectory_t *trResult,
-        bool isAngle);
+                const cg_s *cgameGlob,
+                trajectory_t *trFrom,
+                trajectory_t *trTo,
+                float lerp,
+                trajectory_t *trResult,
+                bool isAngle);
 void __cdecl CG_InterpolateVehicleDriver(const cg_s *cgameGlob, centity_s *cent, int curTime);
 void __cdecl CG_CalcEntityRagdollPositions(int localClientNum, centity_s *cent);
 void __cdecl CG_UpdateRagdollPose(centity_s *cent);
@@ -106,20 +106,20 @@ DObj *__cdecl CG_PreProcess_GetDObj(int localClientNum, int entIndex, int entTyp
 XAnim_s *__cdecl CG_GetAnimations(int localClientNum, int entIndex, int entType);
 XAnim_s *__cdecl CG_GetMG42Anims(centity_s *cent);
 unsigned int __cdecl CG_AddClientScriptAttachedModel(
-        centity_s *cent,
-        DObjModel_s *dobjModels,
-        unsigned int numModels,
-        int localClientNum);
+                centity_s *cent,
+                DObjModel_s *dobjModels,
+                unsigned int numModels,
+                int localClientNum);
 unsigned int __cdecl CG_AddVehicleAttachedModel(
-        centity_s *cent,
-        DObjModel_s *dobjModels,
-        unsigned int numModels,
-        int localClientNum);
+                centity_s *cent,
+                DObjModel_s *dobjModels,
+                unsigned int numModels,
+                int localClientNum);
 unsigned int __cdecl CG_AddScriptMoverAttachedModel(
-        centity_s *cent,
-        DObjModel_s *dobjModels,
-        unsigned int numModels,
-        int localClientNum);
+                centity_s *cent,
+                DObjModel_s *dobjModels,
+                unsigned int numModels,
+                int localClientNum);
 void __cdecl CG_DObjCalcBone(const cpose_t *pose, DObj *obj, int boneIndex);
 void __cdecl CG_ClearUnion(int localClientNum, centity_s *cent);
 void __cdecl CG_SetUnionType(int localClientNum, centity_s *cent);
@@ -131,10 +131,10 @@ void __cdecl CG_mg42(int localClientNum, centity_s *cent);
 void __cdecl CG_Missile(int localClientNum, centity_s *cent);
 void __cdecl SetBallisticAngles(int localClientNum, centity_s *cent);
 bool __cdecl IsWeaponRetrieveable(
-        int localClientNum,
-        const centity_s *cent,
-        const WeaponDef *weapDef,
-        unsigned int weapIndex);
+                int localClientNum,
+                const centity_s *cent,
+                const WeaponDef *weapDef,
+                unsigned int weapIndex);
 void __cdecl CG_Vehicle(int localClientNum, centity_s *cent);
 void __cdecl CG_ClientFlagCallback(int localClientNum, centity_s *cent);
 void __cdecl CG_AddPacketFxEntity(int localClientNum, int entnum);
@@ -149,12 +149,12 @@ void __cdecl CG_PredictiveSkinCEntity(GfxSceneEntity *sceneEnt);
 void __cdecl CG_SetOrigin(centity_s *ent, const float *origin);
 void __cdecl CG_SetAngle(centity_s *ent, const float *angle);
 int __cdecl CG_WhatModelShouldLocalPlayerSee(
-        int localClientNum,
-        const cg_s *cgameGlob,
-        const centity_s *cent,
-        int centTeam,
-        int friendlyModel,
-        int enemyModel);
+                int localClientNum,
+                const cg_s *cgameGlob,
+                const centity_s *cent,
+                int centTeam,
+                int friendlyModel,
+                int enemyModel);
 int __cdecl CG_GetDriverClientNumFromVehicle(int localClientNum, const centity_s *vehicle);
 void __cdecl CG_ClientFlagResetAll(centity_s *cent);
 void __cdecl CG_ClientFlagSet(centity_s *cent, unsigned int flagNum);

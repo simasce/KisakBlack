@@ -4,20 +4,20 @@ bool __cdecl Com_IsBspLoaded();
 char *__cdecl Com_GetBspLump(LumpType type, unsigned int elemSize, unsigned int *count);
 char *__cdecl Com_GetBspLumpCountForVersion(int version);
 char *__cdecl Com_ValidateBspLumpData(
-        LumpType type,
-        unsigned int offset,
-        unsigned int length,
-        unsigned int elemSize,
-        unsigned int *count);
+                LumpType type,
+                unsigned int offset,
+                unsigned int length,
+                unsigned int elemSize,
+                unsigned int *count);
 const void *__cdecl Com_LoadBspLump(char *mapname, LumpType type, unsigned int elemSize, unsigned int *count);
 unsigned __int8 *__cdecl Com_ReadLumpOutOfBsp(int h, LumpType type, unsigned int elemSize, unsigned int *count);
 unsigned __int8 *__cdecl Com_ReadLumpOutOfBspAtOffset(
-        int h,
-        LumpType type,
-        unsigned int offset,
-        unsigned int length,
-        unsigned int elemSize,
-        unsigned int *count);
+                int h,
+                LumpType type,
+                unsigned int offset,
+                unsigned int length,
+                unsigned int elemSize,
+                unsigned int *count);
 void __cdecl Com_UnloadBspLump(LumpType type);
 bool __cdecl Com_BspHasLump(LumpType type);
 unsigned int __cdecl Com_GetBspVersion();
@@ -39,9 +39,9 @@ void __cdecl Com_LoadWorld(char *name);
 void __cdecl Com_LoadWorld_LoadObj(char *name);
 ComPrimaryLight *Com_LoadPrimaryLights();
 const char *__cdecl Com_GetLightDefName(
-        char *defName,
-        const ComPrimaryLight *primaryLights,
-        unsigned int primaryLightCount);
+                char *defName,
+                const ComPrimaryLight *primaryLights,
+                unsigned int primaryLightCount);
 ComPrimaryLight *Com_LoadPrimaryLights_Version14();
 const DiskPrimaryLight_Version16 *Com_LoadPrimaryLights_Version16();
 void __cdecl Com_LoadWorld_FastFile(const char *name);

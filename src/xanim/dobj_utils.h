@@ -17,11 +17,11 @@ void __cdecl DObjSetControlTagAngles(const DObj *obj, int *partBits, unsigned in
 XModel *__cdecl DObjGetModel(const DObj *obj, int modelIndex);
 int __cdecl DObjGetModelBoneIndex(const DObj *obj, int model_index, unsigned int name, unsigned __int8 *index);
 void __cdecl DObjSetLocalTag(
-        const DObj *obj,
-        int *partBits,
-        unsigned int boneIndex,
-        const float *trans,
-        const float *angles);
+                const DObj *obj,
+                int *partBits,
+                unsigned int boneIndex,
+                const float *trans,
+                const float *angles);
 void __cdecl DObjSetLocalTagInternal(const DObj *obj, const float *trans, const float *angles, int boneIndex);
 void __cdecl DObjSetAngles(DObjAnimMat *rotTrans, const float *angles);
 void __cdecl DObjClearAngles(DObjAnimMat *rotTrans);

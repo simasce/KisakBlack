@@ -31,47 +31,47 @@ void __cdecl UI_NetSource_UpdateDisplayList(int source);
 int __cdecl UI_NetSource_HandleKey(int flags, int key);
 int __cdecl UI_NetFilter_HandleKey(int flags, int key);
 void __cdecl UI_DrawGameType(
-        int contextIndex,
-        const rectDef_s *rect,
-        Font_s *font,
-        float scale,
-        const float *color,
-        int textStyle);
+                int contextIndex,
+                const rectDef_s *rect,
+                Font_s *font,
+                float scale,
+                const float *color,
+                int textStyle);
 void __cdecl UI_DrawNetGameType(
-        int contextIndex,
-        const rectDef_s *rect,
-        Font_s *font,
-        float scale,
-        const float *color,
-        int textStyle);
+                int contextIndex,
+                const rectDef_s *rect,
+                Font_s *font,
+                float scale,
+                const float *color,
+                int textStyle);
 void __cdecl UI_DrawJoinGameType(
-        int contextIndex,
-        const rectDef_s *rect,
-        Font_s *font,
-        float scale,
-        const float *color,
-        int textStyle);
+                int contextIndex,
+                const rectDef_s *rect,
+                Font_s *font,
+                float scale,
+                const float *color,
+                int textStyle);
 void __cdecl UI_DrawJoinMod(
-        int contextIndex,
-        const rectDef_s *rect,
-        Font_s *font,
-        float scale,
-        const float *color,
-        int textStyle);
+                int contextIndex,
+                const rectDef_s *rect,
+                Font_s *font,
+                float scale,
+                const float *color,
+                int textStyle);
 void __cdecl UI_DrawNetFilter(
-        int contextIndex,
-        const rectDef_s *rect,
-        Font_s *font,
-        float scale,
-        const float *color,
-        int textStyle);
+                int contextIndex,
+                const rectDef_s *rect,
+                Font_s *font,
+                float scale,
+                const float *color,
+                int textStyle);
 void __cdecl UI_DrawNetSource(
-        int contextIndex,
-        const rectDef_s *rect,
-        Font_s *font,
-        float scale,
-        const float *color,
-        int textStyle);
+                int contextIndex,
+                const rectDef_s *rect,
+                Font_s *font,
+                float scale,
+                const float *color,
+                int textStyle);
 Material *__cdecl UI_GetLevelShot(int index);
 void __cdecl UI_DrawMapPreview(int contextIndex, const rectDef_s *rect, const float *color);
 bool __cdecl UI_LodMods_ShouldSkipMap(const char *dir);

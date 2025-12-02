@@ -10,19 +10,19 @@ int __cdecl CL_GetSnapshot(int localClientNum, int snapshotNumber, snapshot_s *s
 void __cdecl CL_SetUserCmdWeapons(int localClientNum, int weapon, int offHandIndex, int lastWeaponForAlt);
 void __cdecl CL_SetUserCmdAimValues(int localClientNum, const float *kickAngles);
 void __cdecl CL_SetUserCmdOrigin(
-        int localClientNum,
-        const float *origin,
-        const float *velocity,
-        const float *viewangles,
-        int bobCycle,
-        int movementDir);
+                int localClientNum,
+                const float *origin,
+                const float *velocity,
+                const float *viewangles,
+                int bobCycle,
+                int movementDir);
 void __cdecl CL_SetUserCmdVehicle(
-        int localClientNum,
-        bool inVehicle,
-        const float *origin,
-        const float *angles,
-        const float *tVelocity,
-        const float *aVelocity);
+                int localClientNum,
+                bool inVehicle,
+                const float *origin,
+                const float *angles,
+                const float *tVelocity,
+                const float *aVelocity);
 void __cdecl CL_SetFOVSensitivityScale(int localClientNum, float scale);
 void __cdecl CL_SetExtraButtons(int localClientNum, bitarray<51> *button_bits);
 void __cdecl CL_DumpReliableCommands(int localClientNum);
@@ -43,107 +43,107 @@ void __cdecl CL_RenderScene(refdef_s *fd, int frameTime);
 void __cdecl CL_RenderMissileCam(const refdef_s *fd, int frameTime);
 void __cdecl CL_SetCustomConstant(unsigned int type, const float *vec);
 void __cdecl CL_DrawStretchPicPhysical(
-        float x,
-        float y,
-        float w,
-        float h,
-        float s1,
-        float t1,
-        float s2,
-        float t2,
-        const float *color,
-        Material *material);
+                float x,
+                float y,
+                float w,
+                float h,
+                float s1,
+                float t1,
+                float s2,
+                float t2,
+                const float *color,
+                Material *material);
 void __cdecl CL_DrawStretchPicPhysicalW(
-        float x,
-        float y,
-        float w0,
-        float w,
-        float h,
-        float s1,
-        float t1,
-        float s2,
-        float t2,
-        const float *color,
-        Material *material);
+                float x,
+                float y,
+                float w0,
+                float w,
+                float h,
+                float s1,
+                float t1,
+                float s2,
+                float t2,
+                const float *color,
+                Material *material);
 void __cdecl CL_DrawStretchPicPhysicalRotateXY(
-        float x,
-        float y,
-        float w,
-        float h,
-        float s1,
-        float t1,
-        float s2,
-        float t2,
-        float angle,
-        const float *color,
-        Material *material);
+                float x,
+                float y,
+                float w,
+                float h,
+                float s1,
+                float t1,
+                float s2,
+                float t2,
+                float angle,
+                const float *color,
+                Material *material);
 void __cdecl CL_DrawStretchPicPhysicalRotateXYW(
-        float x,
-        float y,
-        float w0,
-        float w,
-        float h,
-        float s1,
-        float t1,
-        float s2,
-        float t2,
-        float angle,
-        const float *color,
-        Material *material);
+                float x,
+                float y,
+                float w0,
+                float w,
+                float h,
+                float s1,
+                float t1,
+                float s2,
+                float t2,
+                float angle,
+                const float *color,
+                Material *material);
 void __cdecl CL_DrawStretchPicW(
-        const ScreenPlacement *scrPlace,
-        float x,
-        float y,
-        float w0,
-        float w,
-        float h,
-        int horzAlign,
-        int vertAlign,
-        float s1,
-        float t1,
-        float s2,
-        float t2,
-        const float *color,
-        Material *material);
+                const ScreenPlacement *scrPlace,
+                float x,
+                float y,
+                float w0,
+                float w,
+                float h,
+                int horzAlign,
+                int vertAlign,
+                float s1,
+                float t1,
+                float s2,
+                float t2,
+                const float *color,
+                Material *material);
 void __cdecl CL_DrawStretchPic(
-        const ScreenPlacement *scrPlace,
-        float x,
-        float y,
-        float w,
-        float h,
-        int horzAlign,
-        int vertAlign,
-        float s1,
-        float t1,
-        float s2,
-        float t2,
-        const float *color,
-        Material *material);
+                const ScreenPlacement *scrPlace,
+                float x,
+                float y,
+                float w,
+                float h,
+                int horzAlign,
+                int vertAlign,
+                float s1,
+                float t1,
+                float s2,
+                float t2,
+                const float *color,
+                Material *material);
 void __cdecl CL_DrawStretchPicRotatedST(
-        const ScreenPlacement *scrPlace,
-        float x,
-        float y,
-        float w,
-        float h,
-        int horzAlign,
-        int vertAlign,
-        float centerS,
-        float centerT,
-        float radiusST,
-        float scaleFinalS,
-        float scaleFinalT,
-        float angle,
-        const float *color,
-        Material *material);
+                const ScreenPlacement *scrPlace,
+                float x,
+                float y,
+                float w,
+                float h,
+                int horzAlign,
+                int vertAlign,
+                float centerS,
+                float centerT,
+                float radiusST,
+                float scaleFinalS,
+                float scaleFinalT,
+                float angle,
+                const float *color,
+                Material *material);
 void __cdecl CL_DrawStretchPicRotatedXY(
-        const ScreenPlacement *scrPlace,
-        float x,
-        float y,
-        float w,
-        float h,
-        float angle,
-        const float *color,
-        Material *material);
+                const ScreenPlacement *scrPlace,
+                float x,
+                float y,
+                float w,
+                float h,
+                float angle,
+                const float *color,
+                Material *material);
 void __cdecl CL_CapTurnRate(int localClientNum, float maxPitchSpeed, float maxYawSpeed);
 void __cdecl CL_SetViewAngles(int localClientNum, const float *angles);
 void __cdecl CL_AdjustViewAngles(int localClientNum, const float *adjust);
@@ -151,7 +151,7 @@ void __cdecl CL_ClampViewAngle(int localClientNum, unsigned int angle, float min
 void __cdecl CL_SyncTimes(int localClientNum);
 int __cdecl LoadWorld(char *mapname);
 void __cdecl CL_UpdateLevelHunkUsage();
-void  CL_StartLoading(int a1@<esi>);
+void    CL_StartLoading(int a1@<esi>);
 void __cdecl CL_InitCGame(int localClientNum);
 void __cdecl CL_SetLocalClientConnectionState(int client, connstate_t state);
 void __cdecl CL_LocalClient_SetCUIFlag(int localClientNum, int flag);

@@ -42,12 +42,12 @@ void __cdecl Bot_UpdateSpeed(bot_info_t *botInfo, const client_t *bot, usercmd_s
 void __cdecl Bot_StrafeOnPath(const playerState_s *ps, const path_t *path, usercmd_s *cmd);
 void __cdecl Vec3Rotate(const float *in, const float (*matrix)[3], float *out);
 void __cdecl Bot_SetTimedAction(
-        unsigned int button,
-        int *timedAction,
-        const dvar_s *minTime,
-        const dvar_s *maxTime,
-        usercmd_s *cmd,
-        const usercmd_s *lastCmd);
+                unsigned int button,
+                int *timedAction,
+                const dvar_s *minTime,
+                const dvar_s *maxTime,
+                usercmd_s *cmd,
+                const usercmd_s *lastCmd);
 void __cdecl Bot_UpdateStance(bot_info_t *botInfo, const client_t *bot, usercmd_s *cmd);
 void __cdecl Bot_UpdateSprint(bot_info_t *botInfo, const client_t *bot, usercmd_s *cmd);
 bool __cdecl Bot_IsFlashbanged(const client_t *bot);
@@ -58,11 +58,11 @@ char __cdecl Bot_UpdateMelee(bot_info_t *botInfo, const client_t *bot, usercmd_s
 char __cdecl Bot_UpdateGrenadeThrow(bot_info_t *botInfo, const client_t *bot, usercmd_s *cmd);
 char __cdecl Bot_GrenadeSightTrace(const client_t *bot, float projectileSpeed, float throwPitch);
 char __cdecl Bot_GrenadeInRange(
-        float range,
-        float height,
-        const float *angles,
-        const WeaponDef *weapDef,
-        float *outPitch);
+                float range,
+                float height,
+                const float *angles,
+                const WeaponDef *weapDef,
+                float *outPitch);
 char __cdecl Bot_GrenadePickType(const bot_info_t *botInfo, const playerState_s *ps, OffhandSlot *slot);
 char __cdecl Bot_ShouldThrowGrenade(bot_info_t *botInfo, const client_t *bot);
 void __cdecl Bot_Clear(bot_info_t *botInfo);
@@ -72,7 +72,7 @@ void __cdecl Bot_DrawString(const ScreenPlacement *scrPlace, char *text, float x
 void __cdecl SV_DrawBotPath();
 void __cdecl Bot_DrawPath(const client_t *bot);
 void __cdecl SV_DrawBotThreat();
-void  Bot_DrawThreat(const gentity_s *a1@<ebp>, const client_t *bot);
+void    Bot_DrawThreat(const gentity_s *a1@<ebp>, const client_t *bot);
 const char *__cdecl SV_BotNameRandom();
 char __cdecl Friends_IsInCurrentSession(const char *name);
 char __cdecl SV_BotNameRandomFriend(int controller, char *buf, int bufLen);

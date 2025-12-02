@@ -8,7 +8,7 @@ bool __cdecl Sys_SupportsSSE();
 void __cdecl Sys_SetAutoConfigureGHz(SysInfo *sysInfo);
 void __cdecl Sys_GetPhysicalCpuCount(SysInfo *sysInfo);
 unsigned int __cdecl Sys_AddApicIdIfUnique(
-        unsigned int apicId,
-        unsigned int *existingApicId,
-        unsigned int existingCount);
+                unsigned int apicId,
+                unsigned int *existingApicId,
+                unsigned int existingCount);
 long double __cdecl Sys_BenchmarkGHz();

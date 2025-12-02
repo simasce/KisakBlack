@@ -7,11 +7,11 @@ void __cdecl Snd_StreamInit();
 void __cdecl Snd_StreamFini();
 void __cdecl SND_StreamCloseFiles();
 void __cdecl Snd_StreamOpen(
-        unsigned int index,
-        char *filename,
-        bool looping,
-        unsigned int prime_size,
-        char *prime_data);
+                unsigned int index,
+                char *filename,
+                bool looping,
+                unsigned int prime_size,
+                char *prime_data);
 void __thiscall scoped_performance_error::test(scoped_performance_error *this, const char *__formal);
 void __cdecl Snd_StreamClose(unsigned int index);
 snd_stream_status __cdecl Snd_StreamStatus(unsigned int index);
@@ -20,23 +20,23 @@ void __cdecl Snd_StarvationError();
 unsigned int __cdecl Snd_StreamGetFreeWindows(unsigned int index);
 char __thiscall tlAtomicMutex::TryLock(tlAtomicMutex *this);
 snd_stream_status __cdecl Snd_StreamAcquireWindow(
-        unsigned int index,
-        unsigned int *size,
-        unsigned int *position,
-        char **data);
+                unsigned int index,
+                unsigned int *size,
+                unsigned int *position,
+                char **data);
 bool __cdecl Snd_StreamIsInBufferStrict(snd_buffer *buffer, unsigned int offset_in_file);
 bool __cdecl Snd_StreamIsInBuffer(
-        snd_buffer *buffer,
-        unsigned int offset_in_file,
-        unsigned int stream_length,
-        bool looping);
+                snd_buffer *buffer,
+                unsigned int offset_in_file,
+                unsigned int stream_length,
+                bool looping);
 void __cdecl Snd_StreamGetWindow(
-        snd_buffer *buffer,
-        unsigned int offset_in_file,
-        unsigned int stream_length,
-        bool looping,
-        unsigned int *size,
-        char **data);
+                snd_buffer *buffer,
+                unsigned int offset_in_file,
+                unsigned int stream_length,
+                bool looping,
+                unsigned int *size,
+                char **data);
 void __cdecl Snd_StreamReleaseWindow(unsigned int index, char *data);
 void __cdecl Snd_StreamReleaseWindowWork(unsigned int index, char *data);
 void __cdecl Snd_StreamReleaseProcess(unsigned int index);

@@ -6,10 +6,10 @@ int __cdecl XModelGetSurfaces(const XModel *model, XSurface **surfaces, int subm
 XSurface *__cdecl XModelGetSurface(const XModel *model, int lod, int surfIndex);
 const XModelLodInfo *__cdecl XModelGetLodInfo(const XModel *model, int lod);
 void __cdecl XModelSetSModelCacheForLod(
-        XModel *model,
-        unsigned int lod,
-        unsigned int smcIndex,
-        unsigned int smcAllocBits);
+                XModel *model,
+                unsigned int lod,
+                unsigned int smcIndex,
+                unsigned int smcAllocBits);
 int __cdecl XModelGetStaticModelCacheVertCount(XModel *model, unsigned int lod);
 void __cdecl XModelGetSurfaceStreamBounds(const XModel *model, int surfIndex, float *outMins, float *outMaxs);
 unsigned int __cdecl XModelGetSurfCount(const XModel *model, int lod);

@@ -1,7 +1,7 @@
 #pragma once
 
-void __cdecl  R_FatalInitError(const char *msg);
-void __cdecl  R_FatalLockError(HRESULT hr);
+void __cdecl    R_FatalInitError(const char *msg);
+void __cdecl    R_FatalLockError(HRESULT hr);
 const char *__cdecl R_ErrorDescription(HRESULT hr);
 void __cdecl R_SetColorMappings();
 void __cdecl R_CalcGammaRamp(GfxGammaRamp *gammaRamp);

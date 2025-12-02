@@ -16,10 +16,10 @@ void __cdecl Gamer//Profile_SaveProfile(int controllerIndex);
 void __cdecl Gamer//Profile_CreateExeBindingsConfig(int controllerIndex);
 void __cdecl Gamer//Profile_AppendDvarListToConfig(char *buffer, unsigned int size, const char **dvarNameList);
 void __cdecl Gamer//Profile_AppendByteListToConfig(
-        char *buffer,
-        unsigned int bufSize,
-        unsigned __int8 *data,
-        unsigned __int16 dataSize);
+                char *buffer,
+                unsigned int bufSize,
+                unsigned __int8 *data,
+                unsigned __int16 dataSize);
 void __cdecl Gamer//Profile_CreateCommonBindingsConfig(int controllerIndex);
 bool __cdecl Gamer//Profile_IsNewLocalProfile(int controllerIndex);
 void __cdecl Gamer//Profile_InitAllProfiles();

@@ -49,24 +49,24 @@ int __cdecl Actor_UpdateActorInfo(gentity_s *ent);
 bool __cdecl Actor_InScriptedState(const actor_s *self);
 void __cdecl Actor_Touch(gentity_s *self, gentity_s *other);
 void __cdecl Actor_Pain(
-        gentity_s *self,
-        gentity_s *pAttacker,
-        int iDamage,
-        const float *vPoint,
-        int iMod,
-        const float *vDir,
-        hitLocation_t hitLoc,
-        int weaponIdx);
+                gentity_s *self,
+                gentity_s *pAttacker,
+                int iDamage,
+                const float *vPoint,
+                int iMod,
+                const float *vDir,
+                hitLocation_t hitLoc,
+                int weaponIdx);
 void __cdecl Actor_Die(
-        gentity_s *self,
-        gentity_s *pInflictor,
-        gentity_s *pAttacker,
-        int iDamage,
-        unsigned int iMod,
-        unsigned int iWeapon,
-        float *vDir,
-        hitLocation_t hitLoc,
-        int timeOffset);
+                gentity_s *self,
+                gentity_s *pInflictor,
+                gentity_s *pAttacker,
+                int iDamage,
+                unsigned int iMod,
+                unsigned int iWeapon,
+                float *vDir,
+                hitLocation_t hitLoc,
+                int timeOffset);
 bool __cdecl usingCodeGoal(actor_s *actor);
 bool __cdecl isNodeInRegion(pathnode_t *node, gentity_s *volume);
 void __fastcall Actor_DebugDrawNodesInVolume(actor_s *self);
@@ -82,11 +82,11 @@ bool __fastcall Actor_ShouldMoveAwayFromCloseEnt(actor_s *self);
 int __fastcall Actor_PhysicsMoveAway(actor_s *self);
 double __cdecl Actor_CalcultatePlayerPushDelta(const actor_s *self, const gentity_s *pusher, float *pushDir);
 int __fastcall Actor_PhysicsCheckMoveAwayNoWorse(
-        actor_s *self,
-        gentity_s *other,
-        int flags,
-        float distanceSqrd,
-        float lengthSqrd);
+                actor_s *self,
+                gentity_s *other,
+                int flags,
+                float distanceSqrd,
+                float lengthSqrd);
 int __cdecl Actor_MoveAwayNoWorse(actor_s *self);
 bool __cdecl Actor_AtDifferentElevation(float *vOrgSelf, float *vOrgOther);
 void __cdecl actor_controller(const gentity_s *self, int *partBits);
@@ -99,27 +99,27 @@ bool __fastcall Actor_IsAtGoal(actor_s *self);
 bool __fastcall Actor_IsAtScriptGoal(actor_s *self);
 bool __fastcall Actor_IsNearClaimedNode(actor_s *self);
 gentity_s *__fastcall Actor_IsKnownEnemyInRegion(
-        const actor_s *self,
-        const gentity_s *volume,
-        const float *position,
-        float radius);
+                const actor_s *self,
+                const gentity_s *volume,
+                const float *position,
+                float radius);
 void __fastcall Actor_FindPathToGoalDirect(actor_s *self);
 bool __fastcall Actor_FindPathToGoalDirectInternal(actor_s *self);
 void __fastcall Actor_HandleInvalidPath(actor_s *self);
 bool __fastcall Actor_FindPath(
-        actor_s *self,
-        const float *vGoalPos,
-        int bAllowNegotiationLinks,
-        bool ignoreSuppression);
+                actor_s *self,
+                const float *vGoalPos,
+                int bAllowNegotiationLinks,
+                bool ignoreSuppression);
 void __fastcall Actor_RecalcPath(actor_s *self);
 bool __fastcall Actor_FindPathToNode(actor_s *self, pathnode_t *pGoalNode, int bSuppressable);
 bool __fastcall Actor_FindPathToNode(actor_s *self, pathnode_t *pGoalNode, int bSuppressable, int bIgnoreBadplaces);
 bool __fastcall Actor_FindPathToSentient(actor_s *self, sentient_s *pGoalEnt, int bSuppressable);
 void __fastcall Actor_FindPathInGoalWithLOS(
-        actor_s *self,
-        const float *vGoalPos,
-        float fWithinDistSqrd,
-        bool ignoreSuppression);
+                actor_s *self,
+                const float *vGoalPos,
+                float fWithinDistSqrd,
+                bool ignoreSuppression);
 void __cdecl Actor_BadPlacesChanged();
 bool __fastcall Actor_HasPath(actor_s *self);
 void __fastcall Actor_InitPath(actor_s *self);
@@ -156,9 +156,9 @@ void __cdecl Actor_CheckOverridePos(actor_s *self, const float *prevGoalPos);
 void __fastcall Actor_SetGoalRadius(actor_goal_s *goal, float radius);
 void __fastcall Actor_SetGoalHeight(actor_goal_s *goal, float height);
 bool __fastcall Actor_IsInsideArc(
-        actor_s *self,
-        const float *origin,
-        float radius,
-        float angle0,
-        float angle1,
-        float halfHeight);
+                actor_s *self,
+                const float *origin,
+                float radius,
+                float angle0,
+                float angle1,
+                float halfHeight);

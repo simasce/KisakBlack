@@ -5,8 +5,8 @@ void __thiscall XAnimClientNotifyList::~XAnimClientNotifyList(XAnimClientNotifyL
 XAnimClientNotifyList *__thiscall XAnimClientNotifyList::GetNotifyList(XAnimClientNotifyList *this);
 void __thiscall XAnimClientNotifyList::AddNotify(XAnimClientNotifyList *this, const ClientNotifyData *notifyData);
 XAnimClientNotify *__thiscall XAnimClientNotify::XAnimClientNotify(
-        XAnimClientNotify *this,
-        const ClientNotifyData *notifyData);
+                XAnimClientNotify *this,
+                const ClientNotifyData *notifyData);
 void __thiscall XAnimClientNotify::~XAnimClientNotify(XAnimClientNotify *this);
 void __thiscall XAnimClientNotify::swap(XAnimClientNotify *this, XAnimClientNotify *otherNotify);
 bool __thiscall XAnimClientNotify::IsClientAnimNotify(XAnimClientNotify *this);

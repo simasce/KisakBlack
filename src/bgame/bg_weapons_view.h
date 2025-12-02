@@ -6,36 +6,36 @@ double __cdecl BG_CalculateWeaponMovement_HorizontalBobFactor(const playerState_
 void __cdecl BG_CalculateWeaponMovement(weaponState_t *ws, float *origin, float *angles);
 void __cdecl BG_CalculateWeaponMovement_Base(weaponState_t *ws);
 void __cdecl BG_CalculateWeaponMovement_Base_Internal_WeaponState(
-        const weaponState_t *ws,
-        float *targetPos,
-        float *targetAngles);
+                const weaponState_t *ws,
+                float *targetPos,
+                float *targetAngles);
 double __cdecl BG_CalculateWeaponMovement_GetSprintLerp(const weaponState_t *ws, const WeaponDef *weapDef);
 double __cdecl BG_CalculateWeaponMovement_GetLowReadyLerp(const weaponState_t *ws, const WeaponDef *weapDef);
 double __cdecl BG_CalculateWeaponMovement_GetDTPLerp(const weaponState_t *ws, const WeaponDef *weapDef);
 double __cdecl BG_CalculateWeaponMovement_GetSlideLerp(const weaponState_t *ws, const WeaponDef *weapDef);
 void __cdecl BG_CalculateWeaponMovement_Base_Internal_Stance(
-        const weaponState_t *ws,
-        float *targetPos,
-        float *targetAngles);
+                const weaponState_t *ws,
+                float *targetPos,
+                float *targetAngles);
 void __cdecl BG_CalculateWeaponMovement_Base_Internal_Movement(
-        const weaponState_t *ws,
-        float minSpeed,
-        float *targetPos,
-        float *targetAngles);
+                const weaponState_t *ws,
+                float minSpeed,
+                float *targetPos,
+                float *targetAngles);
 void __cdecl BG_CalculateWeaponMovement_Base_Internal_Save(
-        weaponState_t *ws,
-        const float *targetPos,
-        const float *targetAngles);
+                weaponState_t *ws,
+                const float *targetPos,
+                const float *targetAngles);
 void __cdecl BG_CalculateWeaponMovement_Recoil(weaponState_t *ws);
 int __cdecl BG_CalculateWeaponMovement_GunRecoil_SingleAngle(
-        float *fOffset,
-        float *speed,
-        float fTimeStep,
-        float fOfsCap,
-        float fGunKickAccel,
-        float fGunKickSpeedMax,
-        float fGunKickSpeedDecay,
-        float fGunKickStaticDecay);
+                float *fOffset,
+                float *speed,
+                float fTimeStep,
+                float fOfsCap,
+                float fGunKickAccel,
+                float fGunKickSpeedMax,
+                float fGunKickSpeedDecay,
+                float fGunKickStaticDecay);
 void __cdecl BG_CalculateWeaponMovement_Sway(weaponState_t *ws);
 void __cdecl BG_CalculateWeaponMovement_Bob(weaponState_t *ws);
 void __cdecl BG_SetWeaponMovementAngles(weaponState_t *ws, float *angles);

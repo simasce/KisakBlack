@@ -6,11 +6,11 @@ bool __cdecl R_CalcSurfaceNoDynamicShadow(unsigned int bits, GfxSurface *localSu
 void __cdecl R_AddCellStaticSurfacesInFrustumCmd(DpvsStaticCellCmd *data);
 int __cdecl R_AddCellStaticSurfacesInFrustum(DpvsStaticCellCmd *dpvsCell);
 int __cdecl R_AddAabbTreeSurfacesInFrustum_r(
-        const GfxAabbTree *tree,
-        const DpvsClipPlanes *planes,
-        int treeDepth,
-        int numOccluders,
-        float (*occluderPlanes)[4]);
+                const GfxAabbTree *tree,
+                const DpvsClipPlanes *planes,
+                int treeDepth,
+                int numOccluders,
+                float (*occluderPlanes)[4]);
 double __cdecl R_DpvsPlaneMinSignedDistToBox(const DpvsPlane *plane, const float *minmax);
 int __cdecl R_CullBoxLeaf(const float *minmax, DpvsClipPlanes *planes);
 void __cdecl R_CopyClipPlanes(const DpvsPlane *in, DpvsPlane *out);

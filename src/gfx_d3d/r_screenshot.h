@@ -2,26 +2,26 @@
 
 unsigned __int8 *__cdecl R_TakeResampledScreenshot(int width, int height, int bytesPerPixel, int headerSize);
 void __cdecl R_ResampleImage(
-        int oldWidth,
-        int oldHeight,
-        int newWidth,
-        int newHeight,
-        int bytesPerPixel,
-        unsigned __int8 *data);
+                int oldWidth,
+                int oldHeight,
+                int newWidth,
+                int newHeight,
+                int bytesPerPixel,
+                unsigned __int8 *data);
 void __cdecl R_DownsamplePixelData(
-        int oldSize,
-        int newSize,
-        int stride,
-        int bytesPerPixel,
-        unsigned __int8 *src,
-        unsigned __int8 *dst);
+                int oldSize,
+                int newSize,
+                int stride,
+                int bytesPerPixel,
+                unsigned __int8 *src,
+                unsigned __int8 *dst);
 void __cdecl R_UpsamplePixelData(
-        int oldSize,
-        int newSize,
-        int stride,
-        int bytesPerPixel,
-        unsigned __int8 *src,
-        unsigned __int8 *dst);
+                int oldSize,
+                int newSize,
+                int stride,
+                int bytesPerPixel,
+                unsigned __int8 *src,
+                unsigned __int8 *dst);
 char __cdecl R_GetFrontBufferData(int x, int y, int width, int height, int bytesPerPixel, unsigned __int8 *buffer);
 void __cdecl R_TakeScreenshotJpgCallback(char *param);
 char __cdecl R_TakeScreenshot(char *filename, _D3DXIMAGE_FILEFORMAT format);
@@ -49,11 +49,11 @@ void __cdecl R_CubemapShotWriteTargaHeader(int res, unsigned __int8 *fileBuffer)
 void __cdecl R_CubemapShotCopyBufferToTarga(const unsigned __int8 *srcBuffer, unsigned __int8 *targa);
 void __cdecl R_CubemapShotApplyFresnelToTarga(CubemapShot shotIndex, float n0, float n1, unsigned __int8 *targa);
 unsigned __int8 __cdecl R_CubemapShotCalcReflectionFactor(
-        int shotIndex,
-        int colIndex,
-        int rowIndex,
-        float n0,
-        float n1);
+                int shotIndex,
+                int colIndex,
+                int rowIndex,
+                float n0,
+                float n1);
 void __cdecl R_CreateReflectionRawDataFromCubemapShot(DiskGfxReflectionProbe *probeRawData, int downSampleRes);
 void __cdecl R_CubemapFaceNormalize(float *inbuffer, int size, float *average);
 void __cdecl R_CubemapShotRotateClockwise(float *inbuffer, float *tmpbuffer, int size);
@@ -62,21 +62,21 @@ void __cdecl R_CubemapShotFlipVertical(float *buffer, int size);
 void __cdecl R_CubemapShotFlipHorizontal(float *buffer, int size);
 void __cdecl R_LightingFromCubemapShots(const float *baseColor);
 void __cdecl R_CubemapLighting(
-        float (**linearColors)[3],
-        int width,
-        int height,
-        const float *baseColor,
-        unsigned __int8 **pixels);
+                float (**linearColors)[3],
+                int width,
+                int height,
+                const float *baseColor,
+                unsigned __int8 **pixels);
 void __cdecl R_GetDirForCubemapPixel(int faceIndex, float x, float y, float *dir);
 void __cdecl R_CubemapLightingForDir(
-        float (**linearColors)[3],
-        int width,
-        int height,
-        const float *dir,
-        const float *baseColor,
-        unsigned __int8 *pixel);
+                float (**linearColors)[3],
+                int width,
+                int height,
+                const float *dir,
+                const float *baseColor,
+                unsigned __int8 *pixel);
 void __cdecl R_CubemapShotExtractLinearLight(
-        unsigned __int8 **pixels,
-        int width,
-        int height,
-        float (**linearColors)[3]);
+                unsigned __int8 **pixels,
+                int width,
+                int height,
+                float (**linearColors)[3]);

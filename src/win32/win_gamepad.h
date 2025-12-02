@@ -18,8 +18,8 @@ bool __cdecl GPad_IsButtonReleased(int portIndex, GamePadButton button);
 double __cdecl GPad_GetStick(int portIndex, GamePadStick stick);
 bool __cdecl GPad_IsStickPressed(int portIndex, GamePadStick stick, GamePadStickDir stickDir);
 bool __cdecl GPad_GetStickChangedToPressedState(
-        int portIndex,
-        GamePadStick stick,
-        GamePadStickDir stickDir,
-        bool pressedState);
+                int portIndex,
+                GamePadStick stick,
+                GamePadStickDir stickDir,
+                bool pressedState);
 bool __cdecl GPad_IsStickReleased(int portIndex, GamePadStick stick, GamePadStickDir stickDir);

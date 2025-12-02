@@ -3,7 +3,7 @@
 void __cdecl Demo_AllocatePlaybackMemory(unsigned int location);
 void __cdecl Demo_DeallocatePlaybackMemory();
 void __cdecl Demo_Load();
-void  Demo_HiResScreenshot(int a1@<esi>, int localClientNum, int tiles);
+void    Demo_HiResScreenshot(int a1@<esi>, int localClientNum, int tiles);
 void __cdecl Demo_TagPlayers(int localClientNum, demoTagPlayers *players);
 void __cdecl Demo_TagPlayer(demoTagPlayers *players, unsigned __int64 playerXuid);
 char __cdecl Demo_IsPlayerTagged(int localClientNum, demoTagPlayers *players, unsigned __int64 playerXuid);
@@ -81,10 +81,10 @@ bool __cdecl Demo_ShouldFilterServerCommandForMovieCamera(const char *cmd);
 void __cdecl Demo_ParseSnapshot(int localClientNum, msg_t *msg);
 void __cdecl Demo_ReadMatchState(int localClientNum, msg_t *msg, int time);
 playerState_s *__cdecl Demo_ReadPlayerStates(
-        playerState_s *result,
-        int localClientNum,
-        msg_t *msg,
-        playerState_s *time);
+                playerState_s *result,
+                int localClientNum,
+                msg_t *msg,
+                playerState_s *time);
 int __cdecl Demo_ReadPacketEntities(int localClientNum, msg_t *msg, int time, int deltaNum);
 int __cdecl Demo_ReadPacketClients(int localClientNum, msg_t *msg, int time, int deltaNum);
 void __cdecl Demo_SetupPlaybackForClient(int localClientNum, playerState_s *ps);
@@ -95,16 +95,16 @@ void __cdecl Demo_SetDefaultVisionSet(int localClientNum);
 void __cdecl Demo_UpdateCurrentSnapshot(int localClientNum, playerState_s *ps);
 void __cdecl Demo_EnableSnapshotProcessing();
 void __cdecl Demo_DisableSnapshotProcessing();
-void  Demo_GenerateUncompressedSnapshot(
-        int a1@<ebp>,
-        int localClientNum,
-        msg_t *msg,
-        int msgSequence,
-        int cmdSequence,
-        int serverTime,
-        int physicsTime,
-        int snapFlags,
-        bool writeAllPlayerStates);
+void    Demo_GenerateUncompressedSnapshot(
+                int a1@<ebp>,
+                int localClientNum,
+                msg_t *msg,
+                int msgSequence,
+                int cmdSequence,
+                int serverTime,
+                int physicsTime,
+                int snapFlags,
+                bool writeAllPlayerStates);
 void __cdecl Demo_WriteCustomSnapshotInformation(int localClientNum, msg_t *msg);
 void __cdecl Demo_ReadCustomSnaphotInformation(int localClientNum, msg_t *msg);
 void __cdecl Demo_UpdateDesiredTime(int localClientNum);
@@ -113,12 +113,12 @@ void __cdecl Demo_ReadConfigStrings(int localClientNum, msg_t *msg);
 void __cdecl Demo_UpdateConfigStrings(int localClientNum);
 bool __cdecl Demo_ShouldGenerateKeyFrameSnapshot(int localClientNum, int serverTime);
 void __cdecl Demo_GenerateKeyFrameSnapshot(
-        int localClientNum,
-        int msgSequence,
-        int cmdSequence,
-        int serverTime,
-        int physicsTime,
-        int snapFlags);
+                int localClientNum,
+                int msgSequence,
+                int cmdSequence,
+                int serverTime,
+                int physicsTime,
+                int snapFlags);
 void __cdecl Demo_WriteKeyFrameInformation(int localClientNum);
 void __cdecl Demo_InitClipRecord(int localClientNum, bool newClip);
 void __cdecl Demo_WriteUncompressedClipSnapshot(int localClientNum);
@@ -127,17 +127,17 @@ void __cdecl Demo_WriteClipCommandsInternal(int localClientNum, msg_t *msg, bool
 void __cdecl Demo_WriteEndOfFrameClipCommand(msg_t *msg);
 void __cdecl Demo_WriteClipCommandsWhenPaused(int localClientNum);
 int __cdecl Demo_WriteTransitionClipCommandBlockToBuffer(
-        unsigned __int8 transition,
-        unsigned __int8 *buffer,
-        int maxBufferSize);
+                unsigned __int8 transition,
+                unsigned __int8 *buffer,
+                int maxBufferSize);
 unsigned __int8 __cdecl Demo_ParseClipCommand(int localClientNum, msg_t *msg, bool setClipPlaybackParams);
 void __cdecl Demo_WriteClipGameState(int localClientNum);
 bool __cdecl Demo_ShouldFlushClipRecordMessage();
 void __cdecl Demo_SaveClipRecordMessageToMainMemory(
-        int localClientNum,
-        unsigned __int8 *data,
-        unsigned int size,
-        bool forceWrite);
+                int localClientNum,
+                unsigned __int8 *data,
+                unsigned int size,
+                bool forceWrite);
 void __cdecl Demo_MoveToNextPhase();
 void __cdecl Demo_SetupClipStreamingState();
 void __cdecl Demo_PopulateClipPlayerTags(demoMetaInfo *info);

@@ -4,50 +4,50 @@ const FxEffectDef *__cdecl FX_Convert(const FxEditorEffectDef *editorEffect, voi
 int __cdecl FX_DecideVelocitySampleCount(const FxEditorElemDef *edElem, int intervalLimit);
 int __cdecl FX_DecideSampleCount(int curveCount, const FxCurve **curves, int intervalLimit);
 double __cdecl FX_MaxErrorForIntervalCount(
-        int dimensions,
-        int sampleCount,
-        const float *samples,
-        int intervalCount,
-        float errorCutoff);
+                int dimensions,
+                int sampleCount,
+                const float *samples,
+                int intervalCount,
+                float errorCutoff);
 void __cdecl FX_InterpolateSamples(
-        int dimensions,
-        float time0,
-        const float *samples0,
-        float time1,
-        const float *samples1,
-        float timeEval,
-        float *result);
+                int dimensions,
+                float time0,
+                const float *samples0,
+                float time1,
+                const float *samples1,
+                float timeEval,
+                float *result);
 void __cdecl FX_GetVisualSampleRouting(const FxEditorElemDef *edElem, FxSampleChannel *routing);
 int __cdecl FX_DecideVisualSampleCount(
-        const FxEditorElemDef *edElem,
-        const FxSampleChannel *routing,
-        int intervalLimit);
+                const FxEditorElemDef *edElem,
+                const FxSampleChannel *routing,
+                int intervalLimit);
 int __cdecl FX_DecideIntervalLimit(const FxEditorElemDef *edElemDef);
 int __cdecl FX_AdditionalBytesNeededForGeomTrail(const FxEditorElemDef *elemDef);
 int __cdecl FX_FindEmission(const FxEffectDef *emission, const FxEditorEffectDef *editorEffect);
 int __cdecl FX_ConvertElemDefsOfType(
-        FxElemDef *elemDefArray,
-        const FxEditorEffectDef *editorEffect,
-        unsigned int loopingFlagState,
-        const int *velStateCount,
-        const int *visStateCount,
-        const int *emitIndex,
-        unsigned __int8 **memPool);
+                FxElemDef *elemDefArray,
+                const FxEditorEffectDef *editorEffect,
+                unsigned int loopingFlagState,
+                const int *velStateCount,
+                const int *visStateCount,
+                const int *emitIndex,
+                unsigned __int8 **memPool);
 void __cdecl FX_ConvertElemDef(
-        FxElemDef *elemDef,
-        const FxEditorElemDef *edElemDef,
-        int velStateCount,
-        int visStateCount,
-        int emitIndex,
-        unsigned __int8 **memPool);
+                FxElemDef *elemDef,
+                const FxEditorElemDef *edElemDef,
+                int velStateCount,
+                int visStateCount,
+                int emitIndex,
+                unsigned __int8 **memPool);
 void __cdecl FX_SampleVelocity(FxElemDef *elemDef, const FxEditorElemDef *edElemDef);
 void __cdecl FX_SampleVelocityInFrame(
-        FxElemDef *elemDef,
-        const float (*velScale)[3],
-        FxElemVelStateInFrame *velState,
-        int velStateStride,
-        int useGraphBit,
-        const FxEditorElemDef *edElemDef);
+                FxElemDef *elemDef,
+                const float (*velScale)[3],
+                FxElemVelStateInFrame *velState,
+                int velStateStride,
+                int useGraphBit,
+                const FxEditorElemDef *edElemDef);
 double __cdecl FX_SampleCurve1D(const FxCurve *curve, float scale, float time);
 double __cdecl FxCurveIterator_SampleTime(FxCurveIterator *source, float time);
 double __cdecl FxCurve_Interpolate1d(float *key, float intermediateTime);
@@ -58,12 +58,12 @@ void __cdecl FX_SampleCurve3D(const FxCurve *curve, float scale, float time, flo
 void __cdecl FxCurveIterator_SampleTimeVec3(FxCurveIterator *source, float *replyVector, float time);
 void __cdecl FxCurve_Interpolate3d(const float *key, float intermediateTime, float *result);
 void __cdecl FX_SampleVisualStateScalar(
-        const FxEditorElemDef *edElemDef,
-        float sampleTime,
-        FxSampleChannel routing,
-        float scaleFactor,
-        float *base,
-        float *amplitude);
+                const FxEditorElemDef *edElemDef,
+                float sampleTime,
+                FxSampleChannel routing,
+                float scaleFactor,
+                float *base,
+                float *amplitude);
 void __cdecl FX_ConvertAtlas(FxElemDef *elemDef, const FxEditorElemDef *edElemDef);
 bool __cdecl FX_ElemUsesMaterial(const FxEditorElemDef *edElemDef);
 void __cdecl FX_ScaleFloatRange(FxFloatRange *to, const FxFloatRange *from, float scale);
@@ -74,21 +74,21 @@ void __cdecl FX_ConvertEffectDefRef(FxEffectDefRef *ref, const FxEffectDef *effe
 void __cdecl FX_BoundFloatRange(FxFloatRange *range, float lower, float upper);
 void __cdecl FX_ConvertTrail(FxTrailDef **outTrailDef, const FxEditorElemDef *edElemDef, unsigned __int8 **mempool);
 void __cdecl FX_ConvertTrail_CompileVertices(
-        const FxEditorElemDef *edElemDef,
-        FxTrailDef *outTrailDef,
-        unsigned __int8 **mempool);
+                const FxEditorElemDef *edElemDef,
+                FxTrailDef *outTrailDef,
+                unsigned __int8 **mempool);
 void __cdecl FX_ConvertTrail_CalcNormForSegment(const float *vert0, const float *vert1, float *outNormal);
 void __cdecl FX_ConvertElemSpawnSound(FxElemSpawnSound *dest, const FxElemSpawnSound *src, unsigned __int8 **memPool);
 int __cdecl FX_CopyEmittedElemDefs(
-        FxElemDef *elemDefArray,
-        const FxEditorEffectDef *editorEffect,
-        unsigned __int8 **memPool);
+                FxElemDef *elemDefArray,
+                const FxEditorEffectDef *editorEffect,
+                unsigned __int8 **memPool);
 int __cdecl FX_AdditionalBytesNeededForElemDef(
-        unsigned __int8 elemType,
-        int velStateSampleCount,
-        int visStateSampleCount,
-        int visualCount,
-        const FxElemSpawnSound *elemSpawnSound);
+                unsigned __int8 elemType,
+                int velStateSampleCount,
+                int visStateSampleCount,
+                int visualCount,
+                const FxElemSpawnSound *elemSpawnSound);
 int __cdecl FX_AdditionalBytesNeededForEmission(const FxEffectDef *emission);
 int __cdecl FX_GetLoopingLife(const FxEffectDef *effectDef);
 bool __cdecl FX_Validate(const FxEditorEffectDef *editorEffect, const FxEditorElemDef *edElemDef);

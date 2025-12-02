@@ -11,20 +11,20 @@
 #include "tomcrypt.h"
 
 /**
-   @file dsa_free.c
-   DSA implementation, free a DSA key, Tom St Denis
+     @file dsa_free.c
+     DSA implementation, free a DSA key, Tom St Denis
 */
 
 #ifdef LTC_MDSA
 
 /**
-   Free a DSA key
-   @param key   The key to free from memory
+     Free a DSA key
+     @param key     The key to free from memory
 */
 void dsa_free(dsa_key *key)
 {
-   LTC_ARGCHKVD(key != NULL);
-   mp_clear_multi(key->g, key->q, key->p, key->x, key->y, NULL);
+     LTC_ARGCHKVD(key != NULL);
+     mp_clear_multi(key->g, key->q, key->p, key->x, key->y, NULL);
 }
 
 #endif

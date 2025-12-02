@@ -12,18 +12,18 @@ void __cdecl CG_PrecacheScriptMenu(int localClientNum, int configStringIndex);
 void __cdecl CG_RegisterServerMaterial(int configStringIndex);
 void __cdecl CG_ParseClientSystemStateChange(int localClientNum, int sysIndex, char *pState);
 void __cdecl CG_ParseAirsupport(
-        int localClientNum,
-        float x,
-        float y,
-        float z,
-        int yaw,
-        char *type,
-        char *teamFaction,
-        char *team,
-        int owner,
-        char *exitType,
-        int serverTime,
-        int height);
+                int localClientNum,
+                float x,
+                float y,
+                float z,
+                int yaw,
+                char *type,
+                char *teamFaction,
+                char *team,
+                int owner,
+                char *exitType,
+                int serverTime,
+                int height);
 void __cdecl CG_ClearGenericFilter(cg_s *gameglob);
 void __cdecl CG_MapRestart(int localClientNum, int savepersist);
 void __cdecl CG_ClearEntityFxHandles(int localClientNum);

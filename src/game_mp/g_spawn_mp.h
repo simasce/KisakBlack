@@ -17,9 +17,9 @@ void __cdecl G_SetupDestructible(gentity_s *ent, SpawnVar *spawnVar);
 void __cdecl G_CallSpawn(SpawnVar *spawnVar);
 const gitem_s *__cdecl G_GetItemForClassname(const char *classname);
 void (__cdecl *__cdecl G_FindSpawnFunc(
-        const char *classname,
-        const SpawnFuncEntry *spawnFuncArray,
-        int spawnFuncCount))(gentity_s *, SpawnVar *);
+                const char *classname,
+                const SpawnFuncEntry *spawnFuncArray,
+                int spawnFuncCount))(gentity_s *, SpawnVar *);
 int __cdecl G_CallSpawnEntity(gentity_s *ent);
 void __cdecl GScr_AddFieldsForEntity();
 void __cdecl GScr_AddFieldsForRadiant();

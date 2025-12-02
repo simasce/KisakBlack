@@ -17,20 +17,20 @@
 #include "tomcrypt.h"
 
 /**
-  @file ecc_free.c
-  ECC Crypto, Tom St Denis
-*/  
+    @file ecc_free.c
+    ECC Crypto, Tom St Denis
+*/    
 
 #ifdef LTC_MECC
 
 /**
-  Free an ECC key from memory
-  @param key   The key you wish to free
+    Free an ECC key from memory
+    @param key     The key you wish to free
 */
 void ecc_free(ecc_key *key)
 {
-   LTC_ARGCHKVD(key != NULL);
-   mp_clear_multi(key->pubkey.x, key->pubkey.y, key->pubkey.z, key->k, NULL);
+     LTC_ARGCHKVD(key != NULL);
+     mp_clear_multi(key->pubkey.x, key->pubkey.y, key->pubkey.z, key->k, NULL);
 }
 
 #endif

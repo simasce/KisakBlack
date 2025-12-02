@@ -12,23 +12,23 @@ void __cdecl DynEnt_GetEntityCountFromString(const char *entityString, int *entC
 char __cdecl DynEnt_IsValidConstraintName(const char *className);
 parseInfo_t *LoadRopeParams();
 void __cdecl DynEnt_GetEntityConstraintParams(
-        DynEntityConstraintCreateParams *constraintParams,
-        PhysConstraint *constraints,
-        int dynEntConstraintCount);
+                DynEntityConstraintCreateParams *constraintParams,
+                PhysConstraint *constraints,
+                int dynEntConstraintCount);
 char __cdecl DynEnt_CreateConstraint(PhysConstraint *constraint, DynEntityConstraintCreateParams *params);
 bool __cdecl FindConstraints(
-        const char *targetname,
-        const float *origin,
-        const float *angles,
-        AttachPointType attach_type,
-        DynEntityConstraintCreateParams *constraintParams,
-        int numConstraints,
-        int *outConstraints);
+                const char *targetname,
+                const float *origin,
+                const float *angles,
+                AttachPointType attach_type,
+                DynEntityConstraintCreateParams *constraintParams,
+                int numConstraints,
+                int *outConstraints);
 char __cdecl DynEnt_Create(
-        DynEntityDef *dynEntDef,
-        const DynEntityCreateParams *params,
-        DynEntityConstraintCreateParams *constraintParams,
-        int numConstraints);
+                DynEntityDef *dynEntDef,
+                const DynEntityCreateParams *params,
+                DynEntityConstraintCreateParams *constraintParams,
+                int numConstraints);
 int __cdecl DynEnt_GetType(const char *typeName);
 XModel *__cdecl DynEnt_XModelPrecache(char *modelName);
 unsigned __int8 *__cdecl DynEnt_AllocXModel(int size);

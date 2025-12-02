@@ -16,9 +16,9 @@ void __cdecl Live_JoinSessionInProgress_f();
 void __cdecl Live_ToggleMute_f();
 void __cdecl Live_InitPlatform();
 bool __cdecl Live_HandleDWChallengeResponse(
-        unsigned __int64 senderID,
-        unsigned __int8 *message,
-        unsigned int messageSize);
+                unsigned __int64 senderID,
+                unsigned __int8 *message,
+                unsigned int messageSize);
 int __cdecl Live_GetControllerFromXUID(unsigned __int64 player);
 void __cdecl Live_GiveAchievement(int localControllerIndex, const char *achievementName);
 bool __cdecl Live_IsInLiveGame();

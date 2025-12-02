@@ -8,7 +8,7 @@ void __cdecl ProfLoad_EndTrackedValueTicks(MapProfileElement *value, unsigned __
 void __cdecl ProfLoad_Init();
 void __cdecl ProfLoad_Activate();
 void __cdecl ProfLoad_Deactivate();
-void  ProfLoad_Print(MapProfileEntry *a1@<eax>);
+void    ProfLoad_Print(MapProfileEntry *a1@<eax>);
 MapProfileEntry * ProfLoad_CalculateSelfTicks@<eax>(MapProfileEntry *result@<eax>);
 int ProfLoad_PrintTree();
 void __cdecl ProfLoad_GetEntryRowText(const MapProfileEntry *entry, char *rowText, unsigned int sizeofRowText);
@@ -19,4 +19,4 @@ void __cdecl ProfLoad_Begin(const char *label);
 MapProfileEntry *__cdecl Com_GetEntryForNewLabel(const char *label);
 void __cdecl ProfLoad_End();
 void __cdecl ProfLoad_DrawOverlay(rectDef_s *rect);
-int  ProfLoad_DrawTree@<eax>(MapProfileEntry *a1@<eax>);
+int    ProfLoad_DrawTree@<eax>(MapProfileEntry *a1@<eax>);

@@ -16,27 +16,27 @@ char *__cdecl Demo_GetSaveScreenDescription(const char *type);
 void __cdecl Demo_GetConnectionTimeInfoForPlayer(int localClientNum, int *connectTime, int *disconnectTime);
 int __cdecl Demo_GetPlayerIndexForClientNum(int clientNum, int serverTime);
 int __cdecl Demo_GetNextDefaultBookmarkForPlayer(
-        int localClientNum,
-        int index,
-        int *type,
-        int *time,
-        float (*color)[4]);
+                int localClientNum,
+                int index,
+                int *type,
+                int *time,
+                float (*color)[4]);
 int __cdecl Demo_GetClientNumForXuid(int localClientNum, unsigned __int64 xuid);
 char __cdecl Demo_GetActivatedColorForButton(int demoControlButtonType, float (*color)[4]);
 void __cdecl Demo_DrawVerticalLine(
-        const ScreenPlacement *scrPlace,
-        float x,
-        float y,
-        float w,
-        float h,
-        int horzAlign,
-        int vertAlign,
-        float s1,
-        float t1,
-        float s2,
-        float t2,
-        const float *color,
-        Material *material);
+                const ScreenPlacement *scrPlace,
+                float x,
+                float y,
+                float w,
+                float h,
+                int horzAlign,
+                int vertAlign,
+                float s1,
+                float t1,
+                float s2,
+                float t2,
+                const float *color,
+                Material *material);
 int __cdecl Demo_GetSegmentCount();
 clipSegment *__cdecl Demo_GetSegmentName(int index);
 char *__cdecl Demo_GetSegmentTransition(int index);

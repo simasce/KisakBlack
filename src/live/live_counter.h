@@ -1,15 +1,15 @@
 #pragma once
 
 TaskRecord *__cdecl LiveCounter_IncrementCounters(
-        const TaskDefinition *definition,
-        int controllerIndex,
-        bdCounterValue *const counterIncrements,
-        unsigned int numEntries);
+                const TaskDefinition *definition,
+                int controllerIndex,
+                bdCounterValue *const counterIncrements,
+                unsigned int numEntries);
 TaskRecord *__cdecl LiveCounter_GetCounterTotals(
-        const TaskDefinition *definition,
-        int controllerIndex,
-        bdCounterValue *results,
-        unsigned int numCounterIDs);
+                const TaskDefinition *definition,
+                int controllerIndex,
+                bdCounterValue *results,
+                unsigned int numCounterIDs);
 TaskRecord *__cdecl LiveCounter_UploadAllCounters(int controllerIndex);
 void __cdecl LiveCounter_UploadAllCountersComplete();
 void __cdecl LiveCounter_UploadAllCountersFailure(TaskRecord *task);

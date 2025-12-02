@@ -8,15 +8,15 @@ void __cdecl FX_SortNewElemsInEffect(FxSystem *system, FxEffect *effect);
 void __cdecl FX_SortSpriteElemIntoEffect(FxSystem *system, FxEffect *effect, FxElem *remoteElem, FxElem *elem);
 int __cdecl FX_ElemToHandle(FxSystem *system, FxElem *elem);
 void __cdecl FX_GetInsertSortElem(
-        const FxSystem *system,
-        const FxEffect *effect,
-        const FxElem *elem,
-        FxInsertSortElem *sortElem);
+                const FxSystem *system,
+                const FxEffect *effect,
+                const FxElem *elem,
+                FxInsertSortElem *sortElem);
 bool __cdecl FX_ExistingElemSortsBeforeNewElem(
-        const FxSystem *system,
-        const FxEffect *effect,
-        const FxElem *remoteElem,
-        const FxInsertSortElem *sortElemNew);
+                const FxSystem *system,
+                const FxEffect *effect,
+                const FxElem *remoteElem,
+                const FxInsertSortElem *sortElemNew);
 int __cdecl FX_PoolToHandle_Generic<FxElem,FxElemContainer,2048>(
-        FxPool<FxElem,FxElemContainer> *poolArray,
-        FxElem *item_slim);
+                FxPool<FxElem,FxElemContainer> *poolArray,
+                FxElem *item_slim);

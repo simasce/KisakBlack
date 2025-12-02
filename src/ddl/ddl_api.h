@@ -11,11 +11,11 @@ void DDL_NoCheckPrintError(const char *fmt, ...);
 int __cdecl DDL_IsStateReadyForIO(const ddlState_t *state);
 int __cdecl DDL_AssociateBuffer(char *buffer, int bufferSize, ddlDef_t *ddl);
 int __cdecl DDL_FixBufferVersion(
-        char *buffer,
-        ddlDef_t *ddlTo,
-        const char *ddlName,
-        char *backupBuffer,
-        int bufferSize);
+                char *buffer,
+                ddlDef_t *ddlTo,
+                const char *ddlName,
+                char *backupBuffer,
+                int bufferSize);
 ddlDef_t *__cdecl DDL_LoadAssetWithVersion(const char *fileName, int version);
 ddlDef_t *__cdecl DDL_LoadAsset(const char *fileName);
 void __cdecl DDL_CopyFromBaseState(ddlState_t *newState, const ddlState_t *baseState);
@@ -25,10 +25,10 @@ int __cdecl DDL_MoveToPath(const ddlState_t *searchState, ddlState_t *resultStat
 bool __cdecl DDL_MoveToStart(ddlState_t *searchState, ddlDef_t *ddl);
 int __cdecl DDL_MoveToName(const ddlState_t *searchState, ddlState_t *resultState, const char *name);
 int __cdecl DDL_MoveToIndex(
-        const ddlState_t *searchState,
-        ddlState_t *resultState,
-        int arrayIndex,
-        int checkValidIndex);
+                const ddlState_t *searchState,
+                ddlState_t *resultState,
+                int arrayIndex,
+                int checkValidIndex);
 int __cdecl DDL_MoveNext(const ddlState_t *searchState, ddlState_t *resultState);
 int __cdecl DDL_IterateNext(const ddlState_t *searchState, ddlState_t *resultState);
 int __cdecl DDL_IteratePrev(const ddlState_t *searchState, ddlState_t *resultState);
@@ -36,16 +36,16 @@ int __cdecl DDL_IterateFirst(const ddlState_t *searchState, ddlState_t *resultSt
 int __cdecl DDL_SetRawBytes(char *buffer, int offset, int size, const char *valueToInsert);
 void __cdecl DDL_SetValueChanged(char *buffer);
 bool __cdecl DDL_WriteIntValueInternal(
-        ddlMemberDef_t *member,
-        int absoluteOffset,
-        unsigned int valueToInsert,
-        char *buffer);
+                ddlMemberDef_t *member,
+                int absoluteOffset,
+                unsigned int valueToInsert,
+                char *buffer);
 int __cdecl DDL_WriteIntValueIfChanged(char *buffer, int offset, int size, unsigned int valueToInsert);
 bool __cdecl DDL_WriteInt64ValueInternal(
-        ddlMemberDef_t *member,
-        int absoluteOffset,
-        unsigned __int64 valueToInsert,
-        char *buffer);
+                ddlMemberDef_t *member,
+                int absoluteOffset,
+                unsigned __int64 valueToInsert,
+                char *buffer);
 int __cdecl DDL_WriteStringValueInternal(ddlMemberDef_t *member, int absoluteOffset, const char *value, char *buffer);
 int __cdecl DDL_WriteValueInternal(ddlMemberDef_t *member, int absoluteOffset, const char *valueToInsert, char *buffer);
 bool __cdecl DDL_SetInt(const ddlState_t *searchState, unsigned int value, char *buffer);

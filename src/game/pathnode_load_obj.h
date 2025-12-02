@@ -21,10 +21,10 @@ void __cdecl Path_LoadPaths();
 int __cdecl Path_LoadPathsInternal();
 bool __cdecl Path_IsNegotiationLink(pathnode_t *pNodeFrom, pathnode_t *pNodeTo);
 void __cdecl Path_MakePathDataPermanent(
-        pathlink_s *pSourceLinks,
-        unsigned int totalLinkCount,
-        unsigned __int8 *pVis,
-        int visBytes);
+                pathlink_s *pSourceLinks,
+                unsigned int totalLinkCount,
+                unsigned __int8 *pVis,
+                int visBytes);
 pathnode_tree_t *__cdecl Path_BuildNodeBsp_r(unsigned __int16 *nodes, int numNodes);
 pathnode_tree_t *__cdecl Path_AllocPathnodeTree();
 void __cdecl Path_BuildNodeVis(unsigned __int8 *visbuf, unsigned int iVisCacheSize);

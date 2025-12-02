@@ -25,11 +25,11 @@ void __cdecl SV_FreeClients();
 void __cdecl SV_DirectConnect(netadr_t from);
 void __cdecl SV_FreeClientScriptPers();
 void __cdecl SV_SendDisconnect(
-        client_t *client,
-        int state,
-        const char *reason,
-        bool translationForReason,
-        const char *clientName);
+                client_t *client,
+                int state,
+                const char *reason,
+                bool translationForReason,
+                const char *clientName);
 void __cdecl SV_DropClient(client_t *drop, const char *reason, bool tellThem, bool writeStats);
 void __cdecl SV_DelayDropClient(client_t *drop, const char *reason);
 void __cdecl SV_SendClientGameState(client_t *client);

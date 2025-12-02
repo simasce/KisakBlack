@@ -1,31 +1,31 @@
 #pragma once
 
 char __fastcall Actor_CanSeePointFrom(
-        actor_s *self,
-        const float *vStart,
-        const float *vEnd,
-        float fMaxDistSqrd,
-        int ignoreEntityNum);
+                actor_s *self,
+                const float *vStart,
+                const float *vEnd,
+                float fMaxDistSqrd,
+                int ignoreEntityNum);
 char __fastcall Actor_SightTrace(actor_s *self, const float *start, const float *end, int passEntNum);
 char __fastcall Actor_CanSeePointEx(
-        actor_s *self,
-        const float *vPoint,
-        float fovDot,
-        float fMaxDistSqrd,
-        int ignoreEntityNum);
+                actor_s *self,
+                const float *vPoint,
+                float fovDot,
+                float fMaxDistSqrd,
+                int ignoreEntityNum);
 char __fastcall Actor_CanSeePointExInternal(
-        actor_s *self,
-        const float *vPoint,
-        float fovDot,
-        float fMaxDistSqrd,
-        int ignoreEntityNum,
-        float *vViewPos);
+                actor_s *self,
+                const float *vPoint,
+                float fovDot,
+                float fMaxDistSqrd,
+                int ignoreEntityNum,
+                float *vViewPos);
 bool __fastcall PointInFovAndRange(
-        actor_s *self,
-        const float *vEyePos,
-        const float *vPoint,
-        float fovDot,
-        float fMaxDistSqrd);
+                actor_s *self,
+                const float *vEyePos,
+                const float *vPoint,
+                float fovDot,
+                float fMaxDistSqrd);
 char __fastcall Actor_CanSeeEntity(actor_s *self, const gentity_s *ent);
 void __fastcall Actor_UpdateVisCache(actor_s *self, const gentity_s *ent, sentient_info_t *pInfo, bool bVisible);
 char __fastcall Actor_CanSeeEntityEx(actor_s *self, const gentity_s *ent, float fovDot, float fMaxDistSqrd);

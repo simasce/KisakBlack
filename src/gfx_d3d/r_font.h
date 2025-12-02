@@ -2,28 +2,28 @@
 
 struct Glyph // sizeof=0x18
 {
-    unsigned __int16 letter;
-    char x0;
-    char y0;
-    unsigned __int8 dx;
-    unsigned __int8 pixelWidth;
-    unsigned __int8 pixelHeight;
-    // padding byte
-    float s0;
-    float t0;
-    float s1;
-    float t1;
+        unsigned __int16 letter;
+        char x0;
+        char y0;
+        unsigned __int8 dx;
+        unsigned __int8 pixelWidth;
+        unsigned __int8 pixelHeight;
+        // padding byte
+        float s0;
+        float t0;
+        float s1;
+        float t1;
 };
 
 struct Font_s // sizeof=0x18
-{                                       // XREF: XAssetPoolEntry<Font_s>/r
-                                        // Font/r
-    const char *fontName;
-    int pixelHeight;
-    int glyphCount;
-    struct Material *material;
-    struct Material *glowMaterial;
-    Glyph *glyphs;
+{                                                                             // XREF: XAssetPoolEntry<Font_s>/r
+                                                                                // Font/r
+        const char *fontName;
+        int pixelHeight;
+        int glyphCount;
+        struct Material *material;
+        struct Material *glowMaterial;
+        Glyph *glyphs;
 };
 
 const Glyph *__cdecl R_GetCharacterGlyph(Font_s *font, unsigned int letter);
@@ -39,9 +39,9 @@ int __cdecl R_LetterWidth(unsigned int letter, Font_s *font);
 int __cdecl R_TextWidth(const char *text, int maxChars, Font_s *font);
 int __cdecl R_TextHeight(Font_s *font);
 const char *__cdecl R_TextLineWrapPosition(
-        const char *text,
-        int bufferSize,
-        int pixelsAvailable,
-        Font_s *font,
-        float scale);
+                const char *text,
+                int bufferSize,
+                int pixelsAvailable,
+                Font_s *font,
+                float scale);
 int __cdecl R_ConsoleTextWidth(const char *textPool, int poolSize, int firstChar, int charCount, Font_s *font);

@@ -1,15 +1,15 @@
 #pragma once
 
 void __cdecl Field_DrawTextOverride(
-        int localClientNum,
-        const field_t *edit,
-        int x,
-        int y,
-        int horzAlign,
-        int vertAlign,
-        char *str,
-        int drawLen,
-        int cursorPos);
+                int localClientNum,
+                const field_t *edit,
+                int x,
+                int y,
+                int horzAlign,
+                int vertAlign,
+                char *str,
+                int drawLen,
+                int cursorPos);
 void __cdecl Field_Draw(int localClientNum, field_t *edit, int x, int y, int horzAlign, int vertAlign);
 void __cdecl Field_AdjustScroll(const ScreenPlacement *scrPlace, field_t *edit);
 void __cdecl Console_Key(int localClientNum, int key);
@@ -38,11 +38,11 @@ void __cdecl Key_SetBindings(int localClientNum, int *twokeys, char *binding, in
 const char *__cdecl Key_GetBinding(int localClientNum, unsigned int keynum, int bindNum);
 int __cdecl Key_GetCommandAssignment(int localClientNum, const char *command, int *twokeys, int bindNum);
 int __cdecl Key_GetCommandAssignmentInternal(
-        int localClientNum,
-        const char *command,
-        int *twokeys,
-        int gamePadOnly,
-        int bindNum);
+                int localClientNum,
+                const char *command,
+                int *twokeys,
+                int gamePadOnly,
+                int bindNum);
 bool __cdecl Key_IsCommandBound(int localClientNum, const char *command, int bindNum);
 void __cdecl Key_Unbind_f();
 void __cdecl Key_Unbind2_f();
@@ -65,11 +65,11 @@ void __cdecl CL_ConsoleCharEvent(int localClientNum, int key);
 void __cdecl Key_ClearStates(int localClientNum);
 int __cdecl CL_GetKeyBinding(int localClientNum, const char *command, char (*keyNames)[128], int bindNum);
 int __cdecl CL_GetKeyBindingInternal(
-        int localClientNum,
-        const char *command,
-        char (*keyNames)[128],
-        int gamePadOnly,
-        int bindNum);
+                int localClientNum,
+                const char *command,
+                char (*keyNames)[128],
+                int gamePadOnly,
+                int bindNum);
 int __cdecl CL_GetGamePadBinding(int localClientNum, const char *command, char (*keyNames)[128], int bindNum);
 int __cdecl CL_IsKeyPressed(int localClientNum, const char *keyName);
 void __cdecl Key_Shutdown();

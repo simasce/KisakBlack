@@ -14,71 +14,71 @@ int __cdecl Scr_GetNumScriptThreads(scriptInstance_t inst);
 void __cdecl Scr_ClearOutParams(scriptInstance_t inst);
 char *__cdecl Scr_GetReturnPos(scriptInstance_t inst, unsigned int *localId);
 char *__cdecl Scr_GetNextCodepos(
-        scriptInstance_t inst,
-        VariableValue *top,
-        const char *pos,
-        int opcode,
-        int mode,
-        unsigned int *localId);
+                scriptInstance_t inst,
+                VariableValue *top,
+                const char *pos,
+                int opcode,
+                int mode,
+                unsigned int *localId);
 void __cdecl VM_CancelNotify(scriptInstance_t inst, unsigned int notifyListOwnerId, unsigned int startLocalId);
 void __cdecl VM_CancelNotifyInternal(
-        scriptInstance_t inst,
-        unsigned int notifyListOwnerId,
-        unsigned int startLocalId,
-        unsigned int notifyListId,
-        unsigned int notifyNameListId,
-        unsigned int stringValue);
+                scriptInstance_t inst,
+                unsigned int notifyListOwnerId,
+                unsigned int startLocalId,
+                unsigned int notifyListId,
+                unsigned int notifyNameListId,
+                unsigned int stringValue);
 bool __cdecl Scr_IsEndonThread(scriptInstance_t inst, unsigned int localId);
 unsigned int __cdecl Scr_GetWaittillThreadStackId(
-        scriptInstance_t inst,
-        unsigned int localId,
-        unsigned int startLocalId);
+                scriptInstance_t inst,
+                unsigned int localId,
+                unsigned int startLocalId);
 char *__cdecl Scr_GetThreadPos(scriptInstance_t inst, unsigned int localId);
 const char *__cdecl Scr_GetStackThreadPos(
-        scriptInstance_t inst,
-        unsigned int endLocalId,
-        VariableStackBuffer *stackValue,
-        bool killThread);
+                scriptInstance_t inst,
+                unsigned int endLocalId,
+                VariableStackBuffer *stackValue,
+                bool killThread);
 char *__cdecl Scr_GetRunningThreadPos(scriptInstance_t inst, unsigned int localId);
 unsigned int __cdecl Scr_GetWaitThreadStackId(scriptInstance_t inst, unsigned int localId, unsigned int startLocalId);
 void __cdecl Scr_NotifyNum_Internal(
-        scriptInstance_t inst,
-        int clientNum,
-        unsigned int entnum,
-        unsigned int classnum,
-        unsigned int stringValue,
-        unsigned int paramcount);
+                scriptInstance_t inst,
+                int clientNum,
+                unsigned int entnum,
+                unsigned int classnum,
+                unsigned int stringValue,
+                unsigned int paramcount);
 void __cdecl VM_Notify(
-        scriptInstance_t inst,
-        unsigned int notifyListOwnerId,
-        unsigned int stringValue,
-        VariableValue *top);
+                scriptInstance_t inst,
+                unsigned int notifyListOwnerId,
+                unsigned int stringValue,
+                VariableValue *top);
 void __cdecl Scr_TerminateThread(scriptInstance_t inst, unsigned int localId);
 void __cdecl Scr_TerminateRunningThread(scriptInstance_t inst, unsigned int localId);
 void __cdecl Scr_TerminateWaitThread(scriptInstance_t inst, unsigned int localId, unsigned int startLocalId);
 void __cdecl VM_TerminateStack(
-        scriptInstance_t inst,
-        unsigned int endLocalId,
-        unsigned int startLocalId,
-        VariableStackBuffer *stackValue);
+                scriptInstance_t inst,
+                unsigned int endLocalId,
+                unsigned int startLocalId,
+                VariableStackBuffer *stackValue);
 void __cdecl Scr_TerminateWaittillThread(scriptInstance_t inst, unsigned int localId, unsigned int startLocalId);
 void __cdecl Scr_NotifyNum(
-        unsigned int entnum,
-        unsigned int classnum,
-        unsigned int stringValue,
-        unsigned int paramcount);
+                unsigned int entnum,
+                unsigned int classnum,
+                unsigned int stringValue,
+                unsigned int paramcount);
 void __cdecl CScr_NotifyNum(
-        int clientNum,
-        unsigned int entnum,
-        unsigned int classnum,
-        unsigned int stringValue,
-        unsigned int paramcount);
+                int clientNum,
+                unsigned int entnum,
+                unsigned int classnum,
+                unsigned int stringValue,
+                unsigned int paramcount);
 void __cdecl Scr_CancelNotifyList(scriptInstance_t inst, unsigned int notifyListOwnerId);
 void __cdecl VM_TrimStack(
-        scriptInstance_t inst,
-        unsigned int startLocalId,
-        VariableStackBuffer *stackValue,
-        bool fromEndon);
+                scriptInstance_t inst,
+                unsigned int startLocalId,
+                VariableStackBuffer *stackValue,
+                bool fromEndon);
 void __cdecl Scr_CancelWaittill(scriptInstance_t inst, unsigned int startLocalId);
 unsigned __int16 __cdecl Scr_ExecThread(scriptInstance_t inst, int handle, unsigned int paramcount);
 unsigned int __cdecl VM_Execute(scriptInstance_t inst, unsigned int localId, char *pos, unsigned int paramcount);
@@ -91,12 +91,12 @@ int __cdecl GetDummyFieldValue(scriptInstance_t inst);
 void __cdecl VM_PrintJumpHistory(scriptInstance_t inst);
 VariableStackBuffer *__cdecl VM_ArchiveStack(scriptInstance_t inst, function_stack_t *stack);
 unsigned __int16 __cdecl Scr_ExecEntThreadNum(
-        scriptInstance_t inst,
-        unsigned int entnum,
-        unsigned int classnum,
-        int handle,
-        unsigned int paramcount,
-        unsigned __int16 localClientNum);
+                scriptInstance_t inst,
+                unsigned int entnum,
+                unsigned int classnum,
+                int handle,
+                unsigned int paramcount,
+                unsigned __int16 localClientNum);
 void __cdecl Scr_AddExecThread(scriptInstance_t inst, int handle, unsigned int paramcount);
 void __cdecl Scr_FreeThread(unsigned __int16 handle, scriptInstance_t inst);
 void __cdecl Scr_ExecCode(scriptInstance_t inst, char *pos, unsigned int localId);
@@ -149,25 +149,25 @@ void __cdecl Scr_NeverTerminalError(const char *error, scriptInstance_t inst);
 void __cdecl Scr_ParamError(unsigned int index, const char *error, scriptInstance_t inst);
 void __cdecl Scr_ObjectError(const char *error, scriptInstance_t inst);
 char __cdecl SetEntityFieldValue(
-        scriptInstance_t inst,
-        unsigned int classnum,
-        unsigned int entnum,
-        unsigned __int16 clientNum,
-        unsigned int offset,
-        VariableValue *value);
+                scriptInstance_t inst,
+                unsigned int classnum,
+                unsigned int entnum,
+                unsigned __int16 clientNum,
+                unsigned int offset,
+                VariableValue *value);
 VariableUnion __cdecl GetEntityFieldValue(
-        scriptInstance_t inst,
-        unsigned int classnum,
-        unsigned int entnum,
-        unsigned __int16 clientNum,
-        unsigned int offset);
+                scriptInstance_t inst,
+                unsigned int classnum,
+                unsigned int entnum,
+                unsigned __int16 clientNum,
+                unsigned int offset);
 void __cdecl Scr_SetStructField(unsigned int structId, unsigned int index, scriptInstance_t inst);
 void __cdecl Scr_SetDynamicEntityField(
-        unsigned int entnum,
-        unsigned int classnum,
-        unsigned int index,
-        scriptInstance_t inst,
-        unsigned __int16 localClientNum);
+                unsigned int entnum,
+                unsigned int classnum,
+                unsigned int index,
+                scriptInstance_t inst,
+                unsigned __int16 localClientNum);
 void __cdecl Scr_IncTime(scriptInstance_t inst);
 void __cdecl Scr_DecTime(scriptInstance_t inst);
 void __cdecl Scr_RunCurrentThreads(scriptInstance_t inst);

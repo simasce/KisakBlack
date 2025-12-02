@@ -18,9 +18,9 @@ double __cdecl Actor_BadPlace_GetMaximumFleeRadius();
 int __cdecl Actor_BadPlace_FindSafeNodeOutsideBadPlace(actor_s *self, pathsort_t *potentialNodes, float maxFleeDist);
 int __cdecl Path_IsCoverNode(const pathnode_t *node);
 char __cdecl Actor_BadPlace_HasPotentialNodeDuplicates(
-        pathsort_t *potentialNodes,
-        int potentialNodeCount,
-        pathnode_t *checkNode);
+                pathsort_t *potentialNodes,
+                int potentialNodeCount,
+                pathnode_t *checkNode);
 bool __cdecl Actor_BadPlace_IsNodeInAnyBadPlace(pathnode_t *node);
 pathnode_t *__cdecl Actor_BadPlace_FindSafeNodeAlongPath(actor_s *self);
 int __fastcall Actor_BadPlace_Flee_Think(actor_s *self);

@@ -7,353 +7,353 @@ union XAssetHeader;
 
 
 struct __declspec(align(8)) MaterialInfo // sizeof=0x28
-{                                       // XREF: Material/r
-                                        // FX_ConvertAtlas/r ...
-    const char *name;                   // XREF: FX_ValidateAtlasSettings+92/r
-                                        // FX_ValidateAtlasSettings+DD/r ...
-    unsigned int gameFlags;
-    unsigned __int8 pad;
-    unsigned __int8 sortKey;
-    unsigned __int8 textureAtlasRowCount;
-                                        // XREF: FX_Beam_GenerateVerts(FxGenerateVertsCmd *)+8CA/r
-                                        // FX_Beam_GenerateVerts(FxGenerateVertsCmd *):loc_5C10FA/r ...
-    unsigned __int8 textureAtlasColumnCount;
-                                        // XREF: FX_Beam_GenerateVerts(FxGenerateVertsCmd *)+8BE/r
-                                        // FX_Beam_GenerateVerts(FxGenerateVertsCmd *)+8E1/r ...
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
-    GfxDrawSurf drawSurf;
-    unsigned int surfaceTypeBits;
-    unsigned int layeredSurfaceTypes;
-    unsigned __int16 hashIndex;
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
+{                                                                             // XREF: Material/r
+                                                                                // FX_ConvertAtlas/r ...
+        const char *name;                                     // XREF: FX_ValidateAtlasSettings+92/r
+                                                                                // FX_ValidateAtlasSettings+DD/r ...
+        unsigned int gameFlags;
+        unsigned __int8 pad;
+        unsigned __int8 sortKey;
+        unsigned __int8 textureAtlasRowCount;
+                                                                                // XREF: FX_Beam_GenerateVerts(FxGenerateVertsCmd *)+8CA/r
+                                                                                // FX_Beam_GenerateVerts(FxGenerateVertsCmd *):loc_5C10FA/r ...
+        unsigned __int8 textureAtlasColumnCount;
+                                                                                // XREF: FX_Beam_GenerateVerts(FxGenerateVertsCmd *)+8BE/r
+                                                                                // FX_Beam_GenerateVerts(FxGenerateVertsCmd *)+8E1/r ...
+        // padding byte
+        // padding byte
+        // padding byte
+        // padding byte
+        GfxDrawSurf drawSurf;
+        unsigned int surfaceTypeBits;
+        unsigned int layeredSurfaceTypes;
+        unsigned __int16 hashIndex;
+        // padding byte
+        // padding byte
+        // padding byte
+        // padding byte
+        // padding byte
+        // padding byte
 };
 
 struct MaterialStreamRouting // sizeof=0x2
-{                                       // XREF: MaterialVertexStreamRouting/r
-                                        // ?Load_BuildVertexDecl@@YAXPAPAUMaterialVertexDeclaration@@@Z/r ...
-    unsigned __int8 source;             // XREF: Material_LoadPassVertexDecl+26A/w
-                                        // Material_LoadPassVertexDecl+277/w
-    unsigned __int8 dest;               // XREF: Material_LoadPassVertexDecl+281/w
+{                                                                             // XREF: MaterialVertexStreamRouting/r
+                                                                                // ?Load_BuildVertexDecl@@YAXPAPAUMaterialVertexDeclaration@@@Z/r ...
+        unsigned __int8 source;                         // XREF: Material_LoadPassVertexDecl+26A/w
+                                                                                // Material_LoadPassVertexDecl+277/w
+        unsigned __int8 dest;                             // XREF: Material_LoadPassVertexDecl+281/w
 };
 
 struct MaterialVertexStreamRouting // sizeof=0x68
-{                                       // XREF: MaterialVertexDeclaration/r
-    MaterialStreamRouting data[16];
-    IDirect3DVertexDeclaration9 *decl[18];
+{                                                                             // XREF: MaterialVertexDeclaration/r
+        MaterialStreamRouting data[16];
+        IDirect3DVertexDeclaration9 *decl[18];
 };
 
 struct MaterialVertexDeclaration // sizeof=0x6C
-{                                       // XREF: $54435CF730F84DB67694F69169881761/r
-    unsigned __int8 streamCount;
-    bool hasOptionalSource;
-    bool isLoaded;
-    // padding byte
-    MaterialVertexStreamRouting routing;
+{                                                                             // XREF: $54435CF730F84DB67694F69169881761/r
+        unsigned __int8 streamCount;
+        bool hasOptionalSource;
+        bool isLoaded;
+        // padding byte
+        MaterialVertexStreamRouting routing;
 };
 
 struct __declspec(align(4)) GfxVertexShaderLoadDef // sizeof=0x8
-{                                       // XREF: MaterialVertexShaderProgram/r
-    unsigned int *program;
-    unsigned __int16 programSize;
-    // padding byte
-    // padding byte
+{                                                                             // XREF: MaterialVertexShaderProgram/r
+        unsigned int *program;
+        unsigned __int16 programSize;
+        // padding byte
+        // padding byte
 };
 
 struct MaterialVertexShaderProgram // sizeof=0xC
-{                                       // XREF: MaterialVertexShader/r
-    IDirect3DVertexShader9 *vs;
-    GfxVertexShaderLoadDef loadDef;
+{                                                                             // XREF: MaterialVertexShader/r
+        IDirect3DVertexShader9 *vs;
+        GfxVertexShaderLoadDef loadDef;
 };
 
 struct MaterialVertexShader // sizeof=0x10
 {
-    const char *name;
-    MaterialVertexShaderProgram prog;
+        const char *name;
+        MaterialVertexShaderProgram prog;
 };
 
 struct __declspec(align(4)) GfxPixelShaderLoadDef // sizeof=0x8
-{                                       // XREF: MaterialPixelShaderProgram/r
-    unsigned int *program;
-    unsigned __int16 programSize;
-    // padding byte
-    // padding byte
+{                                                                             // XREF: MaterialPixelShaderProgram/r
+        unsigned int *program;
+        unsigned __int16 programSize;
+        // padding byte
+        // padding byte
 };
 
 struct MaterialPixelShaderProgram // sizeof=0xC
-{                                       // XREF: MaterialPixelShader/r
-    IDirect3DPixelShader9 *ps;
-    GfxPixelShaderLoadDef loadDef;
+{                                                                             // XREF: MaterialPixelShader/r
+        IDirect3DPixelShader9 *ps;
+        GfxPixelShaderLoadDef loadDef;
 };
 
 struct MaterialPixelShader // sizeof=0x10
 {
-    const char *name;
-    MaterialPixelShaderProgram prog;
+        const char *name;
+        MaterialPixelShaderProgram prog;
 };
 
 struct MaterialArgumentCodeConst // sizeof=0x4
-{                                       // XREF: MaterialArgumentDef/r
-                                        // GfxShaderConstantState::<unnamed_type_fields>/r
-    unsigned __int16 index;
-    unsigned __int8 firstRow;
-    unsigned __int8 rowCount;
+{                                                                             // XREF: MaterialArgumentDef/r
+                                                                                // GfxShaderConstantState::<unnamed_type_fields>/r
+        unsigned __int16 index;
+        unsigned __int8 firstRow;
+        unsigned __int8 rowCount;
 };
 
 union MaterialArgumentDef // sizeof=0x4
-{                                       // XREF: MaterialShaderArgument/r
-    const float *literalConst;
-    MaterialArgumentCodeConst codeConst;
-    unsigned int codeSampler;
-    unsigned int nameHash;
+{                                                                             // XREF: MaterialShaderArgument/r
+        const float *literalConst;
+        MaterialArgumentCodeConst codeConst;
+        unsigned int codeSampler;
+        unsigned int nameHash;
 };
 
 struct MaterialShaderArgument // sizeof=0x8
-{                                       // XREF: Material_LoadPass/r
-                                        // Material_ParseShaderArguments/r
-    unsigned __int16 type;
-    unsigned __int16 dest;
-    MaterialArgumentDef u;
+{                                                                             // XREF: Material_LoadPass/r
+                                                                                // Material_ParseShaderArguments/r
+        unsigned __int16 type;
+        unsigned __int16 dest;
+        MaterialArgumentDef u;
 };
 
 union $DC376F3ECA4A0877231069DAD65BD3EF // sizeof=0x4
-{                                       // XREF: MaterialPass/r
-    MaterialPixelShader *pixelShader;
-    MaterialPixelShader *localPixelShader;
+{                                                                             // XREF: MaterialPass/r
+        MaterialPixelShader *pixelShader;
+        MaterialPixelShader *localPixelShader;
 };
 
 union $852269A6FD668DA4A9FB8DA442445F23 // sizeof=0x4
-{                                       // XREF: MaterialPass/r
-    MaterialShaderArgument *localArgs;
-    MaterialShaderArgument *args;
+{                                                                             // XREF: MaterialPass/r
+        MaterialShaderArgument *localArgs;
+        MaterialShaderArgument *args;
 };
 
 struct MaterialPass // sizeof=0x14
-{                                       // XREF: MaterialTechnique/r
-                                        // Material_LoadTechnique/r
-    MaterialVertexDeclaration *vertexDecl;
-                                        // XREF: Material_LoadTechnique+3A6/r
-    MaterialVertexShader *vertexShader;
-    $DC376F3ECA4A0877231069DAD65BD3EF ___u2;
-    unsigned __int8 perPrimArgCount;
-    unsigned __int8 perObjArgCount;
-    unsigned __int8 stableArgCount;
-    unsigned __int8 customSamplerFlags;
-    $852269A6FD668DA4A9FB8DA442445F23 ___u7;
+{                                                                             // XREF: MaterialTechnique/r
+                                                                                // Material_LoadTechnique/r
+        MaterialVertexDeclaration *vertexDecl;
+                                                                                // XREF: Material_LoadTechnique+3A6/r
+        MaterialVertexShader *vertexShader;
+        $DC376F3ECA4A0877231069DAD65BD3EF ___u2;
+        unsigned __int8 perPrimArgCount;
+        unsigned __int8 perObjArgCount;
+        unsigned __int8 stableArgCount;
+        unsigned __int8 customSamplerFlags;
+        $852269A6FD668DA4A9FB8DA442445F23 ___u7;
 };
 
 struct MaterialTechnique // sizeof=0x1C
 {
-    const char *name;
-    unsigned __int16 flags;
-    unsigned __int16 passCount;
-    MaterialPass passArray[1];
+        const char *name;
+        unsigned __int16 flags;
+        unsigned __int16 passCount;
+        MaterialPass passArray[1];
 };
 
 struct MaterialTechniqueSet // sizeof=0x210
-{                                       // XREF: XAssetPoolEntry<MaterialTechniqueSet>/r
-    const char *name;
-    unsigned __int8 worldVertFormat;
-    unsigned __int8 unused[1];
-    unsigned __int16 techsetFlags;
-    MaterialTechnique *techniques[130];
+{                                                                             // XREF: XAssetPoolEntry<MaterialTechniqueSet>/r
+        const char *name;
+        unsigned __int8 worldVertFormat;
+        unsigned __int8 unused[1];
+        unsigned __int16 techsetFlags;
+        MaterialTechnique *techniques[130];
 };
 
 struct __declspec(align(4)) GfxImageLoadDef // sizeof=0x10
 {
-    unsigned __int8 levelCount;
-    unsigned __int8 flags;
-    // padding byte
-    // padding byte
-    int format;
-    int resourceSize;
-    unsigned __int8 data[1];
-    // padding byte
-    // padding byte
-    // padding byte
+        unsigned __int8 levelCount;
+        unsigned __int8 flags;
+        // padding byte
+        // padding byte
+        int format;
+        int resourceSize;
+        unsigned __int8 data[1];
+        // padding byte
+        // padding byte
+        // padding byte
 };
 
 union GfxTexture // sizeof=0x4
-{                                       // XREF: GfxImage/r
-                                        // GfxTextureLoad/r ...
-    IDirect3DBaseTexture9 *basemap;
-    IDirect3DTexture9 *map;
-    IDirect3DVolumeTexture9 *volmap;
-    IDirect3DCubeTexture9 *cubemap;
-    GfxImageLoadDef *loadDef;
+{                                                                             // XREF: GfxImage/r
+                                                                                // GfxTextureLoad/r ...
+        IDirect3DBaseTexture9 *basemap;
+        IDirect3DTexture9 *map;
+        IDirect3DVolumeTexture9 *volmap;
+        IDirect3DCubeTexture9 *cubemap;
+        GfxImageLoadDef *loadDef;
 };
 
 struct Picmip // sizeof=0x2
-{                                       // XREF: GfxImage/r
-                                        // ?Image_UpdatePicmip@@YAXPAUGfxImage@@@Z/r
-    unsigned __int8 platform[2];        // XREF: Image_UpdatePicmip(GfxImage *)+60/r
+{                                                                             // XREF: GfxImage/r
+                                                                                // ?Image_UpdatePicmip@@YAXPAUGfxImage@@@Z/r
+        unsigned __int8 platform[2];                // XREF: Image_UpdatePicmip(GfxImage *)+60/r
 };
 
 struct CardMemory // sizeof=0x8
-{                                       // XREF: GfxImage/r
-                                        // $240FF632105687D15E57E43F247C9BAA/r
-    int platform[2];                    // XREF: Image_TrackTotalMemory(GfxImage *,int,int)+2A/r
-                                        // Image_TrackTotalMemory(GfxImage *,int,int)+34/w ...
+{                                                                             // XREF: GfxImage/r
+                                                                                // $240FF632105687D15E57E43F247C9BAA/r
+        int platform[2];                                        // XREF: Image_TrackTotalMemory(GfxImage *,int,int)+2A/r
+                                                                                // Image_TrackTotalMemory(GfxImage *,int,int)+34/w ...
 };
 
 struct GfxImage // sizeof=0x34
-{                                       // XREF: .data:g_imageProgs/r
-                                        // XAssetPoolEntry<GfxImage>/r ...
-    GfxTexture texture;
-    unsigned __int8 mapType;            // XREF: R_ImageList_Output(void)+88/r
-    unsigned __int8 semantic;
-    unsigned __int8 category;
-    bool delayLoadPixels;
-    Picmip picmip;
-    bool noPicmip;
-    unsigned __int8 track;
-    CardMemory cardMemory;
-    unsigned __int16 width;
-    unsigned __int16 height;
-    unsigned __int16 depth;
-    unsigned __int8 levelCount;
-    unsigned __int8 streaming;
-    unsigned int baseSize;
-    unsigned __int8 *pixels;
-    unsigned int loadedSize;
-    unsigned __int8 skippedMipLevels;
-    // padding byte
-    // padding byte
-    // padding byte
-    const char *name;
-    unsigned int hash;
+{                                                                             // XREF: .data:g_imageProgs/r
+                                                                                // XAssetPoolEntry<GfxImage>/r ...
+        GfxTexture texture;
+        unsigned __int8 mapType;                        // XREF: R_ImageList_Output(void)+88/r
+        unsigned __int8 semantic;
+        unsigned __int8 category;
+        bool delayLoadPixels;
+        Picmip picmip;
+        bool noPicmip;
+        unsigned __int8 track;
+        CardMemory cardMemory;
+        unsigned __int16 width;
+        unsigned __int16 height;
+        unsigned __int16 depth;
+        unsigned __int8 levelCount;
+        unsigned __int8 streaming;
+        unsigned int baseSize;
+        unsigned __int8 *pixels;
+        unsigned int loadedSize;
+        unsigned __int8 skippedMipLevels;
+        // padding byte
+        // padding byte
+        // padding byte
+        const char *name;
+        unsigned int hash;
 };
 
 struct WaterWritable // sizeof=0x4
-{                                       // XREF: water_t/r
-    float floatTime;
+{                                                                             // XREF: water_t/r
+        float floatTime;
 };
 
 struct complex_s // sizeof=0x8
-{                                       // XREF: WaterGlob/r
-                                        // WaterGlobStatic/r ...
-    float real;                         // XREF: TransposeArray+4F/w
-                                        // TransposeArray+8A/r ...
-    float imag;                         // XREF: TransposeArray+52/w
-                                        // TransposeArray+90/r ...
+{                                                                             // XREF: WaterGlob/r
+                                                                                // WaterGlobStatic/r ...
+        float real;                                                 // XREF: TransposeArray+4F/w
+                                                                                // TransposeArray+8A/r ...
+        float imag;                                                 // XREF: TransposeArray+52/w
+                                                                                // TransposeArray+90/r ...
 };
 
 struct water_t // sizeof=0x44
-{                                       // XREF: .data:sceneWaterMapSetups/r
-                                        // Material_RegisterWaterImage/r
-    WaterWritable writable;
-    complex_s *H0;
-    float *wTerm;
-    int M;                              // XREF: Material_RegisterWaterImage+17/w
-                                        // Material_RegisterWaterImage+1A/r ...
-    int N;                              // XREF: Material_RegisterWaterImage+1D/w
-                                        // Material_RegisterWaterImage+B4/r ...
-    float Lx;                           // XREF: Material_RegisterWaterImage+28/w
-    float Lz;                           // XREF: Material_RegisterWaterImage+35/w
-    float gravity;                      // XREF: Material_RegisterWaterImage+42/w
-    float windvel;                      // XREF: Material_RegisterWaterImage+4F/w
-    float winddir[2];                   // XREF: Material_RegisterWaterImage+5C/w
-                                        // Material_RegisterWaterImage+69/w
-    float amplitude;                    // XREF: Material_RegisterWaterImage+76/w
-    float codeConstant[4];
-    GfxImage *image;                    // XREF: Material_RegisterWaterImage+7B/w
+{                                                                             // XREF: .data:sceneWaterMapSetups/r
+                                                                                // Material_RegisterWaterImage/r
+        WaterWritable writable;
+        complex_s *H0;
+        float *wTerm;
+        int M;                                                            // XREF: Material_RegisterWaterImage+17/w
+                                                                                // Material_RegisterWaterImage+1A/r ...
+        int N;                                                            // XREF: Material_RegisterWaterImage+1D/w
+                                                                                // Material_RegisterWaterImage+B4/r ...
+        float Lx;                                                     // XREF: Material_RegisterWaterImage+28/w
+        float Lz;                                                     // XREF: Material_RegisterWaterImage+35/w
+        float gravity;                                            // XREF: Material_RegisterWaterImage+42/w
+        float windvel;                                            // XREF: Material_RegisterWaterImage+4F/w
+        float winddir[2];                                     // XREF: Material_RegisterWaterImage+5C/w
+                                                                                // Material_RegisterWaterImage+69/w
+        float amplitude;                                        // XREF: Material_RegisterWaterImage+76/w
+        float codeConstant[4];
+        GfxImage *image;                                        // XREF: Material_RegisterWaterImage+7B/w
 };
 
 union MaterialTextureDefInfo // sizeof=0x4
-{                                       // XREF: MaterialTextureDef/r
-    GfxImage *image;
-    water_t *water;
+{                                                                             // XREF: MaterialTextureDef/r
+        GfxImage *image;
+        water_t *water;
 };
 
 struct MaterialTextureDef // sizeof=0x10
 {
-    unsigned int nameHash;
-    char nameStart;
-    char nameEnd;
-    unsigned __int8 samplerState;
-    unsigned __int8 semantic;
-    unsigned __int8 isMatureContent;
-    unsigned __int8 pad[3];
-    MaterialTextureDefInfo u;
+        unsigned int nameHash;
+        char nameStart;
+        char nameEnd;
+        unsigned __int8 samplerState;
+        unsigned __int8 semantic;
+        unsigned __int8 isMatureContent;
+        unsigned __int8 pad[3];
+        MaterialTextureDefInfo u;
 };
 
 struct MaterialConstantDef // sizeof=0x20
-{                                       // XREF: .data:MaterialParameterConstantEntry_save/r
-    unsigned int nameHash;              // XREF: R_MaterialParameterTweakUpdate(void)+16/r
-    char name[12];
-    float literal[4];
+{                                                                             // XREF: .data:MaterialParameterConstantEntry_save/r
+        unsigned int nameHash;                            // XREF: R_MaterialParameterTweakUpdate(void)+16/r
+        char name[12];
+        float literal[4];
 };
 
 struct GfxStateBits // sizeof=0x8
 {
-    unsigned int loadBits[2];
+        unsigned int loadBits[2];
 };
 
 union $090A22A23743445EB0E711FA011CE2F0 // sizeof=0x4
-{                                       // XREF: Material/r
-    MaterialTechniqueSet *localTechniqueSet;
-    MaterialTechniqueSet *techniqueSet;
+{                                                                             // XREF: Material/r
+        MaterialTechniqueSet *localTechniqueSet;
+        MaterialTechniqueSet *techniqueSet;
 };
 
 union $A4FF57C4AF6A63DB9C0EEC1063D439DF // sizeof=0x4
-{                                       // XREF: Material/r
-    MaterialConstantDef *localConstantTable;
-    MaterialConstantDef *constantTable;
+{                                                                             // XREF: Material/r
+        MaterialConstantDef *localConstantTable;
+        MaterialConstantDef *constantTable;
 };
 
 struct Material // sizeof=0xC0
-{                                       // XREF: XAssetPoolEntry<Material>/r
-    MaterialInfo info;
-    unsigned __int8 stateBitsEntry[130];
-    unsigned __int8 textureCount;
-    unsigned __int8 constantCount;
-    unsigned __int8 stateBitsCount;
-    unsigned __int8 stateFlags;
-    unsigned __int8 cameraRegion;
-    unsigned __int8 maxStreamedMips;
-    $090A22A23743445EB0E711FA011CE2F0 ___u8;
-    MaterialTextureDef *textureTable;
-    $A4FF57C4AF6A63DB9C0EEC1063D439DF ___u10;
-    GfxStateBits *stateBitsTable;
+{                                                                             // XREF: XAssetPoolEntry<Material>/r
+        MaterialInfo info;
+        unsigned __int8 stateBitsEntry[130];
+        unsigned __int8 textureCount;
+        unsigned __int8 constantCount;
+        unsigned __int8 stateBitsCount;
+        unsigned __int8 stateFlags;
+        unsigned __int8 cameraRegion;
+        unsigned __int8 maxStreamedMips;
+        $090A22A23743445EB0E711FA011CE2F0 ___u8;
+        MaterialTextureDef *textureTable;
+        $A4FF57C4AF6A63DB9C0EEC1063D439DF ___u10;
+        GfxStateBits *stateBitsTable;
 };
 
 struct stream_source_info_t // sizeof=0x3
-{                                       // XREF: .rdata:s_streamSourceInfo/r
-    unsigned __int8 Stream;
-    unsigned __int8 Offset;
-    unsigned __int8 Type;
+{                                                                             // XREF: .rdata:s_streamSourceInfo/r
+        unsigned __int8 Stream;
+        unsigned __int8 Offset;
+        unsigned __int8 Type;
 };
 
 enum MtlTechSetNotFoundBehavior : __int32
-{                                       // XREF: ?Material_FindTechniqueSet@@YAPAUMaterialTechniqueSet@@PBDW4MtlTechSetNotFoundBehavior@@@Z/r
-                                        // Material_FindTechniqueSet_LoadObj/r ...
-    MTL_TECHSET_NOT_FOUND_RETURN_NULL = 0x0,
-    MTL_TECHSET_NOT_FOUND_RETURN_DEFAULT = 0x1,
+{                                                                             // XREF: ?Material_FindTechniqueSet@@YAPAUMaterialTechniqueSet@@PBDW4MtlTechSetNotFoundBehavior@@@Z/r
+                                                                                // Material_FindTechniqueSet_LoadObj/r ...
+        MTL_TECHSET_NOT_FOUND_RETURN_NULL = 0x0,
+        MTL_TECHSET_NOT_FOUND_RETURN_DEFAULT = 0x1,
 };
 
 struct MaterialMemory // sizeof=0x8
-{                                       // XREF: MaterialList/r
-    Material *material;                 // XREF: std::_Sort_heap<MaterialMemory *,bool (*)(MaterialMemory const &,MaterialMemory const &)>(MaterialMemory *,MaterialMemory *,bool (*)(MaterialMemory const &,MaterialMemory const &))+4E/w
-    int memory;                         // XREF: std::_Sort_heap<MaterialMemory *,bool (*)(MaterialMemory const &,MaterialMemory const &)>(MaterialMemory *,MaterialMemory *,bool (*)(MaterialMemory const &,MaterialMemory const &))+51/w
+{                                                                             // XREF: MaterialList/r
+        Material *material;                                 // XREF: std::_Sort_heap<MaterialMemory *,bool (*)(MaterialMemory const &,MaterialMemory const &)>(MaterialMemory *,MaterialMemory *,bool (*)(MaterialMemory const &,MaterialMemory const &))+4E/w
+        int memory;                                                 // XREF: std::_Sort_heap<MaterialMemory *,bool (*)(MaterialMemory const &,MaterialMemory const &)>(MaterialMemory *,MaterialMemory *,bool (*)(MaterialMemory const &,MaterialMemory const &))+51/w
 };
 
 struct PerMapMaterialTable // sizeof=0x8
-{                                       // XREF: .rdata:s_permapMaterials/r
-    const char *name;
-    Material **material;
+{                                                                             // XREF: .rdata:s_permapMaterials/r
+        const char *name;
+        Material **material;
 };
 
 struct BuiltInMaterialTable // sizeof=0x8
-{                                       // XREF: .rdata:s_builtInMaterials/r
-    const char *name;
-    Material **material;
+{                                                                             // XREF: .rdata:s_builtInMaterials/r
+        const char *name;
+        Material **material;
 };
 
 void __cdecl Material_FreeTechniqueSet(XAssetHeader header);
@@ -362,17 +362,17 @@ void __cdecl Load_CreateMaterialPixelShader(GfxPixelShaderLoadDef *loadDef, Mate
 void __cdecl Load_CreateMaterialVertexShader(GfxVertexShaderLoadDef *loadDef, MaterialVertexShader *mtlShader);
 void __cdecl Load_BuildVertexDecl(MaterialVertexDeclaration **mtlVertDecl);
 IDirect3DVertexDeclaration9 *__cdecl Material_BuildVertexDecl(
-        const MaterialStreamRouting *routingData,
-        int streamCount,
-        const stream_source_info_t *sourceTable);
+                const MaterialStreamRouting *routingData,
+                int streamCount,
+                const stream_source_info_t *sourceTable);
 MaterialTechniqueSet *__cdecl Material_FindTechniqueSet(const char *name, MtlTechSetNotFoundBehavior notFoundBehavior);
 MaterialTechniqueSet *__cdecl Material_FindTechniqueSet_LoadObj(
-        const char *name,
-        MtlTechSetNotFoundBehavior notFoundBehavior);
+                const char *name,
+                MtlTechSetNotFoundBehavior notFoundBehavior);
 char __cdecl MaterialTechniqueSet_FindHashLocation(const char *name, int *foundHashIndex);
 MaterialTechniqueSet *__cdecl Material_FindTechniqueSet_FastFile(
-        const char *name,
-        MtlTechSetNotFoundBehavior notFoundBehavior);
+                const char *name,
+                MtlTechSetNotFoundBehavior notFoundBehavior);
 void __cdecl Material_SetAlwaysUseDefaultMaterial(bool alwaysUseDefaultMaterial);
 void __cdecl Material_PreventOverrideTechniqueGeneration();
 MaterialTechniqueSet *__cdecl Material_RegisterTechniqueSet(char *name);

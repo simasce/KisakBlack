@@ -7,26 +7,26 @@ void __cdecl XModelCopyXModelParts(const XModelPartsLoad *modelParts, XModel *mo
 void __cdecl R_GetXModelBounds(XModel *model, const float (*axes)[3], float *mins, float *maxs);
 XModel *__cdecl XModelLoad(char *name, void *(__cdecl *Alloc)(int), void *(__cdecl *AllocColl)(int));
 XModel *__cdecl XModelLoadFile(
-        char *name,
-        void *(__cdecl *Alloc)(int),
-        void *(__cdecl *AllocColl)(int),
-        __int64 *xmodelModifiedTime);
+                char *name,
+                void *(__cdecl *Alloc)(int),
+                void *(__cdecl *AllocColl)(int),
+                __int64 *xmodelModifiedTime);
 char __cdecl XModelLoadConfigFile(const char *name, float **pos, XModelConfig *config);
 void __cdecl XModelLoadCollData(
-        const unsigned __int8 **pos,
-        XModel *model,
-        void *(__cdecl *AllocColl)(int),
-        const char *name);
+                const unsigned __int8 **pos,
+                XModel *model,
+                void *(__cdecl *AllocColl)(int),
+                const char *name);
 XModelPartsLoad *__cdecl XModelPartsPrecache(
-        XModel *model,
-        const char *name,
-        void *(__cdecl *Alloc)(int),
-        __int64 *xmodelModifiedTime);
+                XModel *model,
+                const char *name,
+                void *(__cdecl *Alloc)(int),
+                __int64 *xmodelModifiedTime);
 XModelPartsLoad *__cdecl XModelPartsLoadFile(
-        XModel *model,
-        const char *name,
-        void *(__cdecl *Alloc)(int),
-        __int64 *xmodelModifiedTime);
+                XModel *model,
+                const char *name,
+                void *(__cdecl *Alloc)(int),
+                __int64 *xmodelModifiedTime);
 void __cdecl ConsumeQuatNoSwap(const unsigned __int8 **pos, __int16 *out);
 void __cdecl XModelCalcBasePose(XModelPartsLoad *modelParts);
 int __cdecl XModelAllowLoadMesh();
@@ -37,28 +37,28 @@ char __cdecl Material_IncludesImage(Material *mat, GfxImage *image);
 void __cdecl XModelGetSurfaceVertexPos(const XSurface *surface, int vertIndex, float *out);
 void __cdecl XModelGetSurfaceTexCoords(const XSurface *surface, int vertIndex, float *out);
 int __cdecl XModelSurfsPrecache(
-        XModel *model,
-        const char *name,
-        void *(__cdecl *Alloc)(int),
-        __int16 modelNumsurfs,
-        const char *modelName,
-        XModelSurfs *outModelSurfs,
-        __int64 *xmodelModifiedTime);
+                XModel *model,
+                const char *name,
+                void *(__cdecl *Alloc)(int),
+                __int16 modelNumsurfs,
+                const char *modelName,
+                XModelSurfs *outModelSurfs,
+                __int64 *xmodelModifiedTime);
 XModelSurfs *__cdecl R_XModelSurfsLoadFile(
-        XModel *model,
-        const char *name,
-        void *(__cdecl *Alloc)(int),
-        __int16 modelNumsurfs,
-        const char *modelName,
-        __int64 *xmodelModifiedTime);
+                XModel *model,
+                const char *name,
+                void *(__cdecl *Alloc)(int),
+                __int16 modelNumsurfs,
+                const char *modelName,
+                __int64 *xmodelModifiedTime);
 void __cdecl XModelReadSurfaces(
-        XModel *model,
-        const char *name,
-        XModelSurfs *modelSurfs,
-        int *modelPartBits,
-        int surfCount,
-        unsigned __int8 **pos,
-        void *(__cdecl *AllocMesh)(int));
+                XModel *model,
+                const char *name,
+                XModelSurfs *modelSurfs,
+                int *modelPartBits,
+                int surfCount,
+                unsigned __int8 **pos,
+                void *(__cdecl *AllocMesh)(int));
 int __cdecl XModelGetFlags(const XModel *model);
 XModelPieces *__cdecl XModelPiecesLoadFile(const char *name, void *(__cdecl *Alloc)(int));
 XModelPieces *__cdecl XModelPiecesPrecache(const char *name, void *(__cdecl *Alloc)(int));

@@ -1,13 +1,13 @@
 #pragma once
 
 int __cdecl RB_AddDebugLine(
-        const float *start,
-        const float *end,
-        const float *color,
-        bool depthTest,
-        int vertCount,
-        int vertLimit,
-        GfxPointVertex *verts);
+                const float *start,
+                const float *end,
+                const float *color,
+                bool depthTest,
+                int vertCount,
+                int vertLimit,
+                GfxPointVertex *verts);
 int __cdecl RB_EndDebugLines(int vertCount, const GfxPointVertex *verts);
 void __cdecl RB_SetPolyVert(float *xyz, GfxColor color, int tessVertIndex);
 void __cdecl RB_SetDebugBrushesAndPatchesCallback(void (__cdecl *callback)());
@@ -25,10 +25,10 @@ void RB_DrawDebugBrushesAndPatches();
 void __cdecl RB_ApplySunLight(const float (*verts)[3], const float *color, float *out_color);
 void __cdecl RB_BeginCollisionPolygons(bool faceDepthTest, bool faceBlend);
 void __cdecl RB_DrawCollisionPolygon(
-        int vertCount,
-        const float (*verts)[3],
-        const float *faceColor,
-        bool faceDepthTest,
-        int debug_partition);
+                int vertCount,
+                const float (*verts)[3],
+                const float *faceColor,
+                bool faceDepthTest,
+                int debug_partition);
 materialCommands_t *__cdecl RB_GetCmd();
 void __cdecl RB_EndCollisionPolygons();

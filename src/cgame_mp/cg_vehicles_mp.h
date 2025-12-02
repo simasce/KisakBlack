@@ -9,17 +9,17 @@ int __cdecl CG_VehPlayerVehicleSeat(int localClientNum, int entNum);
 void __cdecl CG_VehSeatTransformForPlayer(int localClientNum, int entNum, float *resultOrigin, float *resultAngles);
 void __cdecl SeatTransformForClientInfo(int localClientNum, clientInfo_t *ci, float *resultOrigin, float *resultAngles);
 void __cdecl SeatTransformForSlot(
-        int localClientNum,
-        int vehEntNum,
-        int vehSlotIdx,
-        float *resultOrigin,
-        float *resultAngles);
+                int localClientNum,
+                int vehEntNum,
+                int vehSlotIdx,
+                float *resultOrigin,
+                float *resultAngles);
 void __cdecl GetTagMatrix(
-        int localClientNum,
-        int vehEntNum,
-        unsigned __int16 tagName,
-        float (*resultTagMat)[3],
-        float *resultOrigin);
+                int localClientNum,
+                int vehEntNum,
+                unsigned __int16 tagName,
+                float (*resultTagMat)[3],
+                float *resultOrigin);
 double __cdecl CG_VehGetHealthPercentageEntity(const centity_s *cent);
 double __cdecl CG_VehGetHealthPercentageLeftTread(const centity_s *cent);
 double __cdecl CG_VehGetHealthPercentageRightTread(const centity_s *cent);

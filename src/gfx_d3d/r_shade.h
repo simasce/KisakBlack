@@ -2,57 +2,57 @@
 
 void __cdecl R_SetupPassPerPrimArgs(GfxCmdBufContext context);
 void __cdecl R_SetPassShaderPrimArguments(
-        const GfxCmdBufContext *context,
-        unsigned int argCount,
-        const MaterialShaderArgument *arg);
+                const GfxCmdBufContext *context,
+                unsigned int argCount,
+                const MaterialShaderArgument *arg);
 void __cdecl R_SetVertexShaderConstantFromCode_Old(GfxCmdBufContext context, const MaterialShaderArgument *routingData);
 $26AC422158757CD6FC73CEC8E4188A45 *__cdecl R_GetCodeConstant(const GfxCmdBufContext *context, unsigned int constant);
 char __cdecl R_IsVertexShaderConstantUpToDate(GfxCmdBufContext context, const MaterialShaderArgument *routingData);
 char __cdecl R_IsShaderMatrixUpToDate(
-        const GfxCmdBufSourceState *source,
-        GfxShaderConstantState *constant,
-        const MaterialShaderArgument *routingData);
+                const GfxCmdBufSourceState *source,
+                GfxShaderConstantState *constant,
+                const MaterialShaderArgument *routingData);
 char __cdecl R_IsShaderConstantUpToDate(
-        const GfxCmdBufSourceState *source,
-        GfxShaderConstantState *constant,
-        const MaterialShaderArgument *routingData);
+                const GfxCmdBufSourceState *source,
+                GfxShaderConstantState *constant,
+                const MaterialShaderArgument *routingData);
 void __cdecl R_SetVertexShaderConstantFromCode_New(
-        const GfxCmdBufContext *context,
-        const MaterialShaderArgument *routingData);
+                const GfxCmdBufContext *context,
+                const MaterialShaderArgument *routingData);
 void __cdecl R_SetupPassPerObjectArgs(GfxCmdBufContext context);
 void __cdecl R_SetPassShaderObjectArguments(
-        const GfxCmdBufContext *context,
-        unsigned int argCount,
-        const MaterialShaderArgument *arg);
+                const GfxCmdBufContext *context,
+                unsigned int argCount,
+                const MaterialShaderArgument *arg);
 void __cdecl R_SetPassPixelShaderStableArguments(
-        const GfxCmdBufContext *context,
-        unsigned int argCount,
-        const MaterialShaderArgument *arg);
+                const GfxCmdBufContext *context,
+                unsigned int argCount,
+                const MaterialShaderArgument *arg);
 void __cdecl R_SetPixelShaderConstantFromLiteral(GfxCmdBufState *state, unsigned int dest, const float *literal);
 void __cdecl R_HW_SetPixelShaderConstant(
-        IDirect3DDevice9 *device,
-        unsigned int dest,
-        const float *data,
-        unsigned int rowCount);
+                IDirect3DDevice9 *device,
+                unsigned int dest,
+                const float *data,
+                unsigned int rowCount);
 int __cdecl R_IsPixelShaderConstantUpToDate(const GfxCmdBufContext *context, const MaterialShaderArgument *routingData);
 void __cdecl R_SetPixelShaderConstantFromCode(
-        const GfxCmdBufContext *context,
-        const MaterialShaderArgument *routingData);
+                const GfxCmdBufContext *context,
+                const MaterialShaderArgument *routingData);
 void __cdecl R_SetupPassCriticalPixelShaderArgs(GfxCmdBufContext context);
 void __cdecl R_SetupPassVertexShaderArgs(GfxCmdBufContext context);
 void __cdecl R_SetPassVertexShaderStableArguments(
-        const GfxCmdBufContext *context,
-        unsigned int argCount,
-        const MaterialShaderArgument *arg);
+                const GfxCmdBufContext *context,
+                unsigned int argCount,
+                const MaterialShaderArgument *arg);
 const MaterialTextureDef *__cdecl R_SetPixelSamplerFromMaterial(
-        const GfxCmdBufContext *context,
-        const MaterialShaderArgument *arg,
-        const MaterialTextureDef *texDef);
+                const GfxCmdBufContext *context,
+                const MaterialShaderArgument *arg,
+                const MaterialTextureDef *texDef);
 void __cdecl R_OverrideImage(GfxImage **image, const MaterialTextureDef *texdef);
 void __cdecl R_SetPassShaderStableArguments(
-        const GfxCmdBufContext *context,
-        unsigned int argCount,
-        const MaterialShaderArgument *arg);
+                const GfxCmdBufContext *context,
+                unsigned int argCount,
+                const MaterialShaderArgument *arg);
 void __cdecl R_SetVertexShaderConstantFromLiteral(GfxCmdBufState *state, unsigned int dest, const float *literal);
 int __cdecl R_ReserveIndexData(GfxCmdBufPrimState *state, int triCount);
 int __cdecl R_SetIndexData(GfxCmdBufPrimState *state, unsigned __int8 *indices, int triCount);

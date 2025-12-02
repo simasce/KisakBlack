@@ -15,21 +15,21 @@ char __cdecl PCache_GetRank(int controllerIndex, unsigned __int64 xuid, int *ran
 char __cdecl PCache_GetCodpoints(int controllerIndex, unsigned __int64 xuid, int *codpoints);
 void __cdecl PCache_UpdateProfileData(int controllerIndex, PCachePublicProfile *profile);
 void __cdecl PCache_GetProfileEmblem(
-        PCachePublicProfile *profile,
-        CompositeEmblemLayer *layers,
-        int layerCount,
-        __int16 *backgroundID);
+                PCachePublicProfile *profile,
+                CompositeEmblemLayer *layers,
+                int layerCount,
+                __int16 *backgroundID);
 double __cdecl GetItemFloat(const ddlState_t *state, char *buffer, const char *item, float min, float max, int range);
 void __cdecl PCache_SetProfileEmblem(
-        int controllerIndex,
-        const CompositeEmblemLayer *layers,
-        int layerCount,
-        __int16 backgroundID);
+                int controllerIndex,
+                const CompositeEmblemLayer *layers,
+                int layerCount,
+                __int16 backgroundID);
 void __cdecl SetItemFloat(
-        const ddlState_t *state,
-        char *buffer,
-        const char *item,
-        float value,
-        float min,
-        float max,
-        int range);
+                const ddlState_t *state,
+                char *buffer,
+                const char *item,
+                float value,
+                float min,
+                float max,
+                int range);

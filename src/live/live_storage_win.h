@@ -20,43 +20,43 @@ void __cdecl LiveStorage_FetchPlaylistsLocal(int controllerIndex);
 void __cdecl LiveStorage_CheckOngoingSessionTasks_Platform();
 bool __cdecl SV_GetStatFromBlob(char *buffer, const char *stat, int *outInt);
 bool __cdecl SV_GetIntClientStatByGameMode(
-        unsigned int clientNum,
-        int *outInt,
-        const char *gameMode,
-        const char *statName);
+                unsigned int clientNum,
+                int *outInt,
+                const char *gameMode,
+                const char *statName);
 void __cdecl SV_DWInitStats();
 bool __cdecl SV_MakeClientLBRow(
-        int clientNum,
-        const LbPlayerStat *const stats,
-        int type,
-        int lbIndex,
-        LeaderBoardRow<10> *const row,
-        bool statWriteTypeAdd);
+                int clientNum,
+                const LbPlayerStat *const stats,
+                int type,
+                int lbIndex,
+                LeaderBoardRow<10> *const row,
+                bool statWriteTypeAdd);
 void __cdecl SV_CommitClientLeaderboardsSuccess();
 void __cdecl SV_CommitClientLeaderboardsFailure();
 void __cdecl SV_DoTimedStatsForClient(
-        unsigned int clientnum,
-        const char *gameModePrefix,
-        LeaderBoardRow<10> *weeklyRow,
-        int weeklylbIndex,
-        LeaderBoardRow<10> *monthlyRow,
-        int monthlylBIndex);
+                unsigned int clientnum,
+                const char *gameModePrefix,
+                LeaderBoardRow<10> *weeklyRow,
+                int weeklylbIndex,
+                LeaderBoardRow<10> *monthlyRow,
+                int monthlylBIndex);
 bool __cdecl SV_GetClientDDLStat(unsigned int clientnum, const char *stat, int *outInt);
 int __cdecl LiveStorage_GetMatchesPlayed(const char *gameModePrefix, int resetPeriod);
 char __cdecl SV_GetIntClientStatMatchDeltaByGameMode(
-        int clientNum,
-        int *outInt,
-        const char *gameMode,
-        const char *statName);
+                int clientNum,
+                int *outInt,
+                const char *gameMode,
+                const char *statName);
 int __cdecl SV_GetTotalMatchesPlayedByGameModeForClient(unsigned int clientNum, const char *gameModePrefix);
 bool __cdecl SV_ArePrestigeLBsEnabledForClient(client_t *client);
 void __cdecl SV_SetGlobalLBsForClient(unsigned int clientNum);
 void __cdecl SV_SetClientLBStat(unsigned int clientNum, int statId, int value);
 bool __cdecl SV_MakeClientGlobalLBRow(
-        int clientNum,
-        const LbPlayerStat *const stats,
-        int lbIndex,
-        LeaderBoardRow<10> *const row);
+                int clientNum,
+                const LbPlayerStat *const stats,
+                int lbIndex,
+                LeaderBoardRow<10> *const row);
 void __thiscall SV_CommitClientLeaderboards(void *this);
 void __cdecl SV_SetClientStatsForRow(int clientNum, const char *gameModePrefix, bool delta);
 void __cdecl SV_ReadClientFileSuccess(TaskRecord *task);
@@ -74,28 +74,28 @@ int __cdecl SV_DWReadClientCACFailure(int controllerIndex, _QWORD *data);
 void __cdecl SV_DWWriteClientStats(client_t *client);
 void __cdecl SV_DWWriteClientGlobalStatsSuccess(int controllerIndex, unsigned __int8 **data);
 void __cdecl LiveStorage_SendStatsBufferToClient(
-        unsigned __int64 uid,
-        unsigned __int8 *buffer,
-        int buffersize,
-        blobtype_t blobtype,
-        bool sendOK);
+                unsigned __int64 uid,
+                unsigned __int8 *buffer,
+                int buffersize,
+                blobtype_t blobtype,
+                bool sendOK);
 char __cdecl SV_CACValidate_SetIntStat(unsigned __int8 *buffer, const char *stat, unsigned int value);
 void __cdecl SV_PrestigeReset(char *liveStatsBuffer);
 bool __cdecl SV_ValidateClientCAC(
-        unsigned __int8 *oldcacblob,
-        int oldcacblobsize,
-        unsigned __int8 *newcacblob,
-        int newcacblobsize,
-        unsigned __int8 *globalblob,
-        int globalblobsize,
-        unsigned __int64 clientUID);
+                unsigned __int8 *oldcacblob,
+                int oldcacblobsize,
+                unsigned __int8 *newcacblob,
+                int newcacblobsize,
+                unsigned __int8 *globalblob,
+                int globalblobsize,
+                unsigned __int64 clientUID);
 void __cdecl SV_CACValidate_EvaluateStatsBlobs(
-        bool *oldcacok,
-        bool *globalok,
-        char *oldcacblob,
-        char *globalblob,
-        int oldcacsize,
-        int globalsize);
+                bool *oldcacok,
+                bool *globalok,
+                char *oldcacblob,
+                char *globalblob,
+                int oldcacsize,
+                int globalsize);
 void __cdecl SV_CACValidateSendClientMsgSuccess();
 void __cdecl SV_CACValidateSendClientMsgFailure();
 void __cdecl SV_CACValidateSendClientMsg(unsigned __int64 uid, unsigned int msg);
@@ -109,20 +109,20 @@ TaskRecord *__cdecl SV_CACValidateReadCAC(unsigned __int64 client, unsigned __in
 void __cdecl SV_CACValidateReadCACSuccess(int controllerIndex, void *data);
 int __cdecl SV_CACValidateReadCACFailure(int controllerIndex, void *data);
 TaskRecord *__cdecl SV_CACValidateReadGlobal(
-        unsigned __int64 client,
-        unsigned __int8 *globalblob,
-        unsigned int globalblobsize);
+                unsigned __int64 client,
+                unsigned __int8 *globalblob,
+                unsigned int globalblobsize);
 void __cdecl SV_CACValidateReadGlobalSuccess(int controllerIndex, void *data);
 int __cdecl SV_CACValidateReadGlobalFailure(int controllerIndex, _QWORD *data);
 void __cdecl SV_CACValidateHandleRequest(
-        unsigned __int64 clientID,
-        unsigned __int8 *compressedcac,
-        unsigned int cacsize);
+                unsigned __int64 clientID,
+                unsigned __int8 *compressedcac,
+                unsigned int cacsize);
 void __cdecl Live_OnNewStatsFromServer(unsigned __int8 *compressedblob, unsigned int blobsize, blobtype_t blobtype);
 char __cdecl Live_CACValidate_DispatchMessage(
-        unsigned __int64 senderID,
-        unsigned __int8 *message,
-        unsigned int messageSize);
+                unsigned __int64 senderID,
+                unsigned __int8 *message,
+                unsigned int messageSize);
 void __cdecl SV_SetPlaylistFetchedTime();
 int __cdecl SV_GetPlaylistFetchedTime();
 void __cdecl SV_SetShouldMapRotate(bool should);

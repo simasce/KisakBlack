@@ -11,14 +11,14 @@
 #include "tomcrypt.h"
 
 /**
-  @file der_length_printable_string.c
-  ASN.1 DER, get length of Printable STRING, Tom St Denis
+    @file der_length_printable_string.c
+    ASN.1 DER, get length of Printable STRING, Tom St Denis
 */
 
 #ifdef LTC_DER
 
 static const struct {
-   int code, value;
+     int code, value;
 } printable_table[] = {
 { ' ', 32 }, 
 { '\'', 39 }, 
@@ -98,64 +98,64 @@ static const struct {
 
 int der_printable_char_encode(int c)
 {
-   int x;
-   for (x = 0; x < (int)(sizeof(printable_table)/sizeof(printable_table[0])); x++) {
-       if (printable_table[x].code == c) {
-          return printable_table[x].value;
-       }
-   }
-   return -1;
+     int x;
+     for (x = 0; x < (int)(sizeof(printable_table)/sizeof(printable_table[0])); x++) {
+             if (printable_table[x].code == c) {
+                    return printable_table[x].value;
+             }
+     }
+     return -1;
 }
 
 int der_printable_value_decode(int v)
 {
-   int x;
-   for (x = 0; x < (int)(sizeof(printable_table)/sizeof(printable_table[0])); x++) {
-       if (printable_table[x].value == v) {
-          return printable_table[x].code;
-       }
-   }
-   return -1;
+     int x;
+     for (x = 0; x < (int)(sizeof(printable_table)/sizeof(printable_table[0])); x++) {
+             if (printable_table[x].value == v) {
+                    return printable_table[x].code;
+             }
+     }
+     return -1;
 }
-   
+     
 /**
-  Gets length of DER encoding of Printable STRING 
-  @param octets   The values you want to encode 
-  @param noctets  The number of octets in the string to encode
-  @param outlen   [out] The length of the DER encoding for the given string
-  @return CRYPT_OK if successful
+    Gets length of DER encoding of Printable STRING 
+    @param octets     The values you want to encode 
+    @param noctets    The number of octets in the string to encode
+    @param outlen     [out] The length of the DER encoding for the given string
+    @return CRYPT_OK if successful
 */
 int der_length_printable_string(const unsigned char *octets, unsigned long noctets, unsigned long *outlen)
 {
-   unsigned long x;
+     unsigned long x;
 
-   LTC_ARGCHK(outlen != NULL);
-   LTC_ARGCHK(octets != NULL);
+     LTC_ARGCHK(outlen != NULL);
+     LTC_ARGCHK(octets != NULL);
 
-   /* scan string for validity */
-   for (x = 0; x < noctets; x++) {
-       if (der_printable_char_encode(octets[x]) == -1) {
-          return CRYPT_INVALID_ARG;
-       }
-   }
+     /* scan string for validity */
+     for (x = 0; x < noctets; x++) {
+             if (der_printable_char_encode(octets[x]) == -1) {
+                    return CRYPT_INVALID_ARG;
+             }
+     }
 
-   if (noctets < 128) {
-      /* 16 LL DD DD DD ... */
-      *outlen = 2 + noctets;
-   } else if (noctets < 256) {
-      /* 16 81 LL DD DD DD ... */
-      *outlen = 3 + noctets;
-   } else if (noctets < 65536UL) {
-      /* 16 82 LL LL DD DD DD ... */
-      *outlen = 4 + noctets;
-   } else if (noctets < 16777216UL) {
-      /* 16 83 LL LL LL DD DD DD ... */
-      *outlen = 5 + noctets;
-   } else {
-      return CRYPT_INVALID_ARG;
-   }
+     if (noctets < 128) {
+            /* 16 LL DD DD DD ... */
+            *outlen = 2 + noctets;
+     } else if (noctets < 256) {
+            /* 16 81 LL DD DD DD ... */
+            *outlen = 3 + noctets;
+     } else if (noctets < 65536UL) {
+            /* 16 82 LL LL DD DD DD ... */
+            *outlen = 4 + noctets;
+     } else if (noctets < 16777216UL) {
+            /* 16 83 LL LL LL DD DD DD ... */
+            *outlen = 5 + noctets;
+     } else {
+            return CRYPT_INVALID_ARG;
+     }
 
-   return CRYPT_OK;
+     return CRYPT_OK;
 }
 
 #endif

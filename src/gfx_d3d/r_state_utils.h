@@ -11,7 +11,7 @@ GfxCmdBufSourceState *__cdecl R_GetActiveWorldMatrix(GfxCmdBufSourceState *sourc
 void __cdecl R_WorldMatrixChanged(GfxCmdBufSourceState *source);
 void __cdecl R_Set2D(GfxCmdBufSourceState *source);
 // local variable allocation has failed, the output may be wrong!
-void  R_CmdBufSet2D(GfxViewParms *a1@<ebp>, GfxCmdBufSourceState *source, GfxViewport *viewport);
+void    R_CmdBufSet2D(GfxViewParms *a1@<ebp>, GfxCmdBufSourceState *source, GfxViewport *viewport);
 void __cdecl R_MatrixIdentity44(float (*out)[4]);
 void __cdecl R_CmdBufSet3D(GfxCmdBufSourceState *source);
 void __cdecl R_Set3D(GfxCmdBufSourceState *source);

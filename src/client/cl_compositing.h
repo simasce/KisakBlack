@@ -16,15 +16,15 @@ void __cdecl CL_PCCopyImageGenMIPCallback(unsigned int *job);
 void __cdecl CL_CompositeRender();
 bool __cdecl R_HW_IsFencePending(IDirect3DQuery9 *const *fence);
 // local variable allocation has failed, the output may be wrong!
-char  CL_CompositeDrawEmblemPhysical@<al>(
-        GfxColor a1@<ebp>,
-        float x,
-        float y,
-        float w,
-        float h,
-        const float *color,
-        CompositeEmblemLayer *layers,
-        int layerCount);
+char    CL_CompositeDrawEmblemPhysical@<al>(
+                GfxColor a1@<ebp>,
+                float x,
+                float y,
+                float w,
+                float h,
+                const float *color,
+                CompositeEmblemLayer *layers,
+                int layerCount);
 void __cdecl UV_Transform(const float (*mat)[3], float *vec);
 bool __cdecl CL_CompositeIsLayerEmpty(CompositeEmblemLayer *layer);
 void __cdecl CL_CompositeResetLayer(CompositeEmblemLayer *layer);

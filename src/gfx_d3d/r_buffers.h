@@ -1,21 +1,21 @@
 #pragma once
 
 void __cdecl R_ReleaseAndSetNULL<IDirect3DIndexBuffer9>(
-        IDirect3DSurface9 *var,
-        const char *fn,
-        const char *filename,
-        int line);
+                IDirect3DSurface9 *var,
+                const char *fn,
+                const char *filename,
+                int line);
 void *__cdecl R_LockVertexBuffer(
-        IDirect3DVertexBuffer9 *handle,
-        unsigned int offset,
-        unsigned int bytes,
-        unsigned int lockFlags);
+                IDirect3DVertexBuffer9 *handle,
+                unsigned int offset,
+                unsigned int bytes,
+                unsigned int lockFlags);
 void __cdecl R_UnlockVertexBuffer(IDirect3DVertexBuffer9 *handle);
 void *__cdecl R_LockIndexBuffer(
-        IDirect3DIndexBuffer9 *handle,
-        unsigned int offset,
-        unsigned int bytes,
-        unsigned int lockFlags);
+                IDirect3DIndexBuffer9 *handle,
+                unsigned int offset,
+                unsigned int bytes,
+                unsigned int lockFlags);
 void __cdecl R_UnlockIndexBuffer(IDirect3DIndexBuffer9 *handle);
 void *__cdecl R_AllocDynamicVertexBuffer(IDirect3DVertexBuffer9 **vb, int sizeInBytes);
 void *__cdecl R_AllocStaticVertexBuffer(IDirect3DVertexBuffer9 **vb, int sizeInBytes);

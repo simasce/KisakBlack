@@ -15,7 +15,7 @@ void __cdecl SV_InitArchivedSnapshot();
 void __cdecl SV_SetSystemInfoConfig();
 void __cdecl SV_SaveSystemInfo();
 void __cdecl SV_SetServerDvarsBeforeScriptsInit();
-void __cdecl  SV_SpawnServer(int controllerIndex, char *server, int mapIsPreloaded, int savegame);
+void __cdecl    SV_SpawnServer(int controllerIndex, char *server, int mapIsPreloaded, int savegame);
 char *__cdecl SV_AllocateClientMemory_SizeRequired(int maxLocalClients, int maxClients);
 void __cdecl SV_AllocateClientMemory(HunkUser *hunk, int maxLocalClients, int maxClients);
 void __cdecl SV_FreeClientMemory(HunkUser *hunk);

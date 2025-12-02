@@ -11,56 +11,56 @@
 #include "tomcrypt.h"
 
 /**
-  @file der_length_short_integer.c
-  ASN.1 DER, get length of encoding, Tom St Denis
+    @file der_length_short_integer.c
+    ASN.1 DER, get length of encoding, Tom St Denis
 */
 
 
 #ifdef LTC_DER
 /**
-  Gets length of DER encoding of num 
-  @param num    The integer to get the size of 
-  @param outlen [out] The length of the DER encoding for the given integer
-  @return CRYPT_OK if successful
+    Gets length of DER encoding of num 
+    @param num        The integer to get the size of 
+    @param outlen [out] The length of the DER encoding for the given integer
+    @return CRYPT_OK if successful
 */
 int der_length_short_integer(unsigned long num, unsigned long *outlen)
 {
-   unsigned long z, y, len;
+     unsigned long z, y, len;
 
-   LTC_ARGCHK(outlen  != NULL);
+     LTC_ARGCHK(outlen    != NULL);
 
-   /* force to 32 bits */
-   num &= 0xFFFFFFFFUL;
+     /* force to 32 bits */
+     num &= 0xFFFFFFFFUL;
 
-   /* get the number of bytes */
-   z = 0;
-   y = num;
-   while (y) {
-     ++z;
-     y >>= 8;
-   }
-   
-   /* handle zero */
-   if (z == 0) {
-      z = 1;
-   }
+     /* get the number of bytes */
+     z = 0;
+     y = num;
+     while (y) {
+         ++z;
+         y >>= 8;
+     }
+     
+     /* handle zero */
+     if (z == 0) {
+            z = 1;
+     }
 
-   /* we need a 0x02 to indicate it's INTEGER */
-   len = 1;
+     /* we need a 0x02 to indicate it's INTEGER */
+     len = 1;
 
-   /* length byte */
-   ++len;
+     /* length byte */
+     ++len;
 
-   /* bytes in value */
-   len += z;
+     /* bytes in value */
+     len += z;
 
-   /* see if msb is set */
-   len += (num&(1UL<<((z<<3) - 1))) ? 1 : 0;
+     /* see if msb is set */
+     len += (num&(1UL<<((z<<3) - 1))) ? 1 : 0;
 
-   /* return length */
-   *outlen = len; 
-   
-   return CRYPT_OK;
+     /* return length */
+     *outlen = len; 
+     
+     return CRYPT_OK;
 }
 
 #endif

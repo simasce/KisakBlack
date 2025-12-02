@@ -3,59 +3,59 @@
 #include "net_chan_mp.h"
 
 enum errorParm_t : __int32
-{                                       // XREF: ?Com_Error@@YAXW4errorParm_t@@PBDZZ/r
-    ERR_FATAL            = 0x0,
-    ERR_DROP             = 0x1,
-    ERR_SERVERDISCONNECT = 0x2,
-    ERR_DISCONNECT       = 0x3,
-    ERR_SCRIPT           = 0x4,
-    ERR_SCRIPT_DROP      = 0x5,
-    ERR_LOCALIZATION     = 0x6,
+{                                                                             // XREF: ?Com_Error@@YAXW4errorParm_t@@PBDZZ/r
+        ERR_FATAL                        = 0x0,
+        ERR_DROP                         = 0x1,
+        ERR_SERVERDISCONNECT = 0x2,
+        ERR_DISCONNECT             = 0x3,
+        ERR_SCRIPT                     = 0x4,
+        ERR_SCRIPT_DROP            = 0x5,
+        ERR_LOCALIZATION         = 0x6,
 };
 
 struct __declspec(align(8)) SysInfo // sizeof=0x260
-{                                       // XREF: .data:sys_info/r
-                                        // ?Com_SetRecommended@@YAXHH@Z/r
-    long double cpuGHz;                 // XREF: Sys_RegisterInfoDvars+DA/r
-                                        // Sys_Init(void)+1B7/r ...
-    long double configureGHz;           // XREF: Com_SetRecommended(int,int)+31/r
-                                        // Com_SetRecommended(int,int)+41/w ...
-    int logicalCpuCount;                // XREF: Sys_Init(void)+13F/r
-                                        // Sys_Init(void)+165/r ...
-    int physicalCpuCount;               // XREF: Sys_Init(void)+17B/r
-                                        // Sys_Init(void)+1A1/r
-    int sysMB;                          // XREF: Com_SetRecommended(int,int)+49/r
-                                        // Com_SetRecommended(int,int)+55/w ...
-    char gpuDescription[512];           // XREF: Com_SetRecommended(int,int)+125/o
-                                        // Sys_HasInfoChanged(void):loc_7D9644/o ...
-    bool SSE;                           // XREF: Sys_RegisterInfoDvars+A5/r
-                                        // Sys_Init(void)+211/r ...
-    char cpuVendor[13];                 // XREF: Sys_Init(void):loc_7DA2D7/o
-                                        // Sys_FindInfo+90/o
-    char cpuName[49];                   // XREF: Sys_RegisterInfoDvars+FC/o
-                                        // Sys_Init(void)+12B/o ...
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
+{                                                                             // XREF: .data:sys_info/r
+                                                                                // ?Com_SetRecommended@@YAXHH@Z/r
+        long double cpuGHz;                                 // XREF: Sys_RegisterInfoDvars+DA/r
+                                                                                // Sys_Init(void)+1B7/r ...
+        long double configureGHz;                     // XREF: Com_SetRecommended(int,int)+31/r
+                                                                                // Com_SetRecommended(int,int)+41/w ...
+        int logicalCpuCount;                                // XREF: Sys_Init(void)+13F/r
+                                                                                // Sys_Init(void)+165/r ...
+        int physicalCpuCount;                             // XREF: Sys_Init(void)+17B/r
+                                                                                // Sys_Init(void)+1A1/r
+        int sysMB;                                                    // XREF: Com_SetRecommended(int,int)+49/r
+                                                                                // Com_SetRecommended(int,int)+55/w ...
+        char gpuDescription[512];                     // XREF: Com_SetRecommended(int,int)+125/o
+                                                                                // Sys_HasInfoChanged(void):loc_7D9644/o ...
+        bool SSE;                                                     // XREF: Sys_RegisterInfoDvars+A5/r
+                                                                                // Sys_Init(void)+211/r ...
+        char cpuVendor[13];                                 // XREF: Sys_Init(void):loc_7DA2D7/o
+                                                                                // Sys_FindInfo+90/o
+        char cpuName[49];                                     // XREF: Sys_RegisterInfoDvars+FC/o
+                                                                                // Sys_Init(void)+12B/o ...
+        // padding byte
+        // padding byte
+        // padding byte
+        // padding byte
+        // padding byte
 };
 
 struct field_t // sizeof=0x118
-{                                       // XREF: .data:field_t g_consoleField/r
-                                        // .data:field_t * historyEditLines/r ...
-    int cursor;                         // XREF: Con_Echo_f+50/w
-                                        // Con_CommitToAutoComplete(void)+C5/w ...
-    int scroll;
-    int drawWidth;                      // XREF: Con_CommitToAutoComplete(void)+FF/w
-    int widthInPixels;                  // XREF: Con_ToggleConsole(void)+20/w
-                                        // Con_Init(void)+67/w ...
-    float charHeight;                   // XREF: Con_ToggleConsole(void)+2D/w
-                                        // Con_Init(void)+74/w ...
-    int fixedSize;                      // XREF: Con_ToggleConsole(void)+35/w
-                                        // Con_Init(void)+7C/w ...
-    char buffer[256];                   // XREF: Con_Echo_f+15/o
-                                        // Con_Echo_f+22/o ...
+{                                                                             // XREF: .data:field_t g_consoleField/r
+                                                                                // .data:field_t * historyEditLines/r ...
+        int cursor;                                                 // XREF: Con_Echo_f+50/w
+                                                                                // Con_CommitToAutoComplete(void)+C5/w ...
+        int scroll;
+        int drawWidth;                                            // XREF: Con_CommitToAutoComplete(void)+FF/w
+        int widthInPixels;                                    // XREF: Con_ToggleConsole(void)+20/w
+                                                                                // Con_Init(void)+67/w ...
+        float charHeight;                                     // XREF: Con_ToggleConsole(void)+2D/w
+                                                                                // Con_Init(void)+74/w ...
+        int fixedSize;                                            // XREF: Con_ToggleConsole(void)+35/w
+                                                                                // Con_Init(void)+7C/w ...
+        char buffer[256];                                     // XREF: Con_Echo_f+15/o
+                                                                                // Con_Echo_f+22/o ...
 };
 
 struct XAnim_s;
@@ -88,10 +88,10 @@ void __cdecl Com_SetLocalizedErrorMessage(const char *localizedErrorMessage, con
 void __cdecl Com_SetErrorMessage(char *errorMessage);
 char __cdecl Com_ErrorIsNotice(const char *errorMessage);
 void __cdecl Com_PrintStackTrace();
-void __cdecl  Com_ErrorAbort();
+void __cdecl    Com_ErrorAbort();
 void Com_Error(errorParm_t code, const char *fmt, ...);
 void __cdecl Com_CheckError();
-void __cdecl  Com_Quit_f();
+void __cdecl    Com_Quit_f();
 void Com_ClearTempMemory();
 int __cdecl Com_SafeMode();
 void __cdecl Com_ForceSafeMode();

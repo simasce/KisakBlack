@@ -19,19 +19,19 @@ void __cdecl IKImport_SetIKPartBits(DObj *obj, int *partBits);
 void __cdecl IKImport_RecurseSetIKPartBits(const DObj *obj, int boneIndex, int *partBits);
 char __cdecl IKImport_CheckIKPartBits(IKState *ikState);
 void __cdecl IKImport_AccumulateParentObjBones(
-        IKState *ikState,
-        const unsigned __int8 *parentList,
-        int numRootBones,
-        float *transArray,
-        int objBoneIndex,
-        DObjAnimMat *matArray,
-        DObjAnimMat *localMat);
+                IKState *ikState,
+                const unsigned __int8 *parentList,
+                int numRootBones,
+                float *transArray,
+                int objBoneIndex,
+                DObjAnimMat *matArray,
+                DObjAnimMat *localMat);
 void __cdecl IKImport_GetBoneMatrixArrayModelBones();
 void __cdecl IKImport_GetBoneMatrixArrayLocalBones(IKState *ikState);
 void __cdecl IKImport_GetBoneMatrixArray(IKState *ikState, bool isLocalBones);
 void __cdecl IKImport_ApplyIKToSkeletonModelBones();
 // local variable allocation has failed, the output may be wrong!
-void  IKImport_ApplyIKToSkeletonLocalBones(DObjAnimMat *a1@<ebp>, IKState *ikState);
+void    IKImport_ApplyIKToSkeletonLocalBones(DObjAnimMat *a1@<ebp>, IKState *ikState);
 void __cdecl IKImport_ApplyIKToSkeleton(IKState *ikState, bool isLocalBones);
 IKState *__cdecl IKImport_FetchDObjIKState(const unsigned __int8 *model);
 void __cdecl IKImport_SetDObjIKState(DObj *model, IKState *ikState);
@@ -42,24 +42,24 @@ char __cdecl IKImport_ApplyTerrainMapping(IKState *ikState);
 bool __cdecl IKImport_ApplyLeftHandIK(IKState *ikState);
 bool __cdecl IKImport_ApplyRightHandIK(IKState *ikState);
 // local variable allocation has failed, the output may be wrong!
-void  IKImport_GetEntityXform(gentity_s *a1@<ebp>, IKState *ikState);
+void    IKImport_GetEntityXform(gentity_s *a1@<ebp>, IKState *ikState);
 void __cdecl IKImport_UpdateCollisionCache(IKState *ikState);
 bool __cdecl IKImport_TraceBox(
-        IKState *ikState,
-        float *startPos,
-        float *endPos,
-        float boxRadius,
-        float *tracePos,
-        float *outNormal,
-        int hintIndexListItem,
-        float *outTraceFraction,
-        bool bIgnoreStartSolid);
+                IKState *ikState,
+                float *startPos,
+                float *endPos,
+                float boxRadius,
+                float *tracePos,
+                float *outNormal,
+                int hintIndexListItem,
+                float *outTraceFraction,
+                bool bIgnoreStartSolid);
 void __cdecl IKImport_DrawAxisOrigin(float (*mat44)[4], float colorScale);
 void __cdecl IKImport_DrawLine(float *start, float *end, int colorType);
 void IKImport_DebugPrint(const char *fmt, ...);
 clientInfo_t *__cdecl IKImport_GetClientInfo(IKState *ikState);
 // local variable allocation has failed, the output may be wrong!
-void  IKImport_DrawDebugSkeleton(int a1@<ebp>, IKState *ikState);
+void    IKImport_DrawDebugSkeleton(int a1@<ebp>, IKState *ikState);
 int __cdecl IKImport_GetFrameNum();
 bool __cdecl IKImport_IsMainThread();
 int __cdecl IKImport_GetLocalClientIndex(IKState *ikState);
@@ -71,10 +71,10 @@ bool __cdecl IKImport_IsClient(IKState *ikState);
 LerpEntityState *__cdecl IKImport_GetLerpEntityState(IKState *ikState, int inEntityNum);
 gentity_s *__cdecl IKImport_GetEntityState(IKState *ikState, int inEntityNum);
 char __cdecl IKImport_ConditionLayerTest(
-        bool condition,
-        IKLayerNames thisLayer,
-        const IKLayerNames *layers,
-        int arraySize);
+                bool condition,
+                IKLayerNames thisLayer,
+                const IKLayerNames *layers,
+                int arraySize);
 unsigned int __cdecl IKImport_GetWeaponIndex(IKState *ikState);
 const WeaponVariantDef *__cdecl IKImport_GetWeaponVariantDef(IKState *ikState);
 const WeaponDef *__cdecl IKImport_GetWeaponDef(IKState *ikState);
@@ -99,5 +99,5 @@ bool __cdecl IKImport_IsValidEntityType(const unsigned __int8 *model);
 void __cdecl IKImport_GetPitchWeaponOffset(IKState *ikState, bool bIsPitchDirectionUp, float *weapOfsOut);
 void __cdecl IKImport_InitCollisionCache(IKState *ikState);
 // local variable allocation has failed, the output may be wrong!
-void  IKImport_Profiler(int a1@<ebp>, IKState *ikState);
+void    IKImport_Profiler(int a1@<ebp>, IKState *ikState);
 double __cdecl IKImport_GetMaxLayerLerp(IKState *ikState);

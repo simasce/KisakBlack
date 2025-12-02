@@ -13,11 +13,11 @@ bool __cdecl SV_inSnapshot(const float *origin, int iEntityNum);
 bool __cdecl SV_EntityContact(const float *mins, const float *maxs, const gentity_s *gEnt);
 void __cdecl SV_GetServerinfo(char *buffer, int bufferSize);
 void __cdecl SV_LocateGameData(
-        gentity_s *gEnts,
-        int numGEntities,
-        int sizeofGEntity_t,
-        playerState_s *clients,
-        int sizeofGameClient);
+                gentity_s *gEnts,
+                int numGEntities,
+                int sizeofGEntity_t,
+                playerState_s *clients,
+                int sizeofGameClient);
 void __cdecl SV_GetUsercmd(int clientNum, usercmd_s *cmd);
 XModel *__cdecl SV_XModelGet(char *name);
 unsigned __int8 *__cdecl SV_AllocXModelPrecache(unsigned int size);
@@ -47,9 +47,9 @@ bool __cdecl SV_IsLocalClient(unsigned int clientNum);
 void __cdecl SV_ShutdownGameProgs();
 void __cdecl SV_SetGametype();
 void __cdecl SV_ShutdownGameVM(int clearScripts);
-void __cdecl  SV_RestartGameProgs(int savepersist);
-void __cdecl  SV_InitGameVM(int restart, int registerDvars);
-void __cdecl  SV_InitGameProgs(int savepersist);
+void __cdecl    SV_RestartGameProgs(int savepersist);
+void __cdecl    SV_InitGameVM(int restart, int registerDvars);
+void __cdecl    SV_InitGameProgs(int savepersist);
 int __cdecl SV_GameCommand();
 const char *__cdecl SV_Archived_Dvar_GetVariantString(const char *dvarName);
 const char *__cdecl SV_Archived_Dvar_GetVariantString(int dvarHash);

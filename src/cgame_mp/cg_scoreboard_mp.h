@@ -3,12 +3,12 @@
 const char *__cdecl CG_GetNameForScoreboardColumn(int localClientNum, unsigned int columnNumber);
 void __cdecl CG_UpdateMatchScoreboard(int localClientNum);
 void __cdecl CG_AddSBColumnToMatchScoreBoard(
-        int localClientNum,
-        listColumnTypes_t columnType,
-        int columnWidth,
-        const char *columnName,
-        int alignment,
-        scoreboardColumnType_t sbColumnType);
+                int localClientNum,
+                listColumnTypes_t columnType,
+                int columnWidth,
+                const char *columnName,
+                int alignment,
+                scoreboardColumnType_t sbColumnType);
 int __cdecl CG_GetMatchScoreboardClientCount(int localClientNum, team_t team);
 int __cdecl CG_GetMatchscoreboardTeam(int localClientNum, int index);
 int __cdecl CG_GetMatchScoreboardIndexForTeam(int localClientNum, int index, team_t team);
@@ -17,24 +17,24 @@ char *__cdecl CG_GetMatchScoreboardInfo(int localClientNum, int column, int inde
 char *__cdecl CG_GetColumnValueString(int localClientNum, const score_s *score, scoreboardColumnType_t columnType);
 int __cdecl CG_GetColumnValue(int localClientNum, const score_s *score, scoreboardColumnType_t columnType);
 const char *__cdecl CG_GetMatchInGamePlayerListInfo(
-        int localClientNum,
-        int column,
-        int index,
-        team_t team,
-        Material **handle);
+                int localClientNum,
+                int column,
+                int index,
+                team_t team,
+                Material **handle);
 const char *__cdecl CG_IsInGamePlayerListPlayerTalking(int localClientNum, unsigned int clientNum, Material **handle);
 char *__cdecl CG_GetMatchInGamePlayersInfo(
-        int localClientNum,
-        int column,
-        unsigned int index,
-        int feederType,
-        Material **handle);
+                int localClientNum,
+                int column,
+                unsigned int index,
+                int feederType,
+                Material **handle);
 const char *__cdecl CG_GetMatchInGamePlayerXuid(int localClientNum, int index, team_t team);
 char __cdecl CG_GetMatchInGamePlayersXUID(
-        int localClientNum,
-        unsigned int index,
-        int feederType,
-        unsigned __int64 *retXUID);
+                int localClientNum,
+                unsigned int index,
+                int feederType,
+                unsigned __int64 *retXUID);
 void __cdecl CG_GetMatchScoreboardRankIcon(int localClientNum, int index, team_t team, Material **handle);
 int __cdecl CG_GetIndexIntoMatchScoreboard(int localClientNum, int controllerIndex);
 int __cdecl CG_GetWagerPlaceForMatchScoreboard(int localClientNum, int matchScoreboardIndex);
@@ -51,49 +51,49 @@ double __cdecl CG_BackdropTop();
 void __cdecl CG_DrawBackdropServerInfo(int localClientNum, float alpha);
 void __cdecl CG_DrawScoreboard_ScoresList(int localClientNum, float alpha);
 double __cdecl CG_DrawScoreboard_ListColumnHeaders(
-        int localClientNum,
-        const float *color,
-        float y,
-        float h,
-        float listWidth);
+                int localClientNum,
+                const float *color,
+                float y,
+                float h,
+                float listWidth);
 void __cdecl CG_GetScoreboardInfo(int localClientNum, const listColumnInfo_t **colInfo, int *numFields);
 int __cdecl CG_ScoreboardTotalLines(int localClientNum);
 double __cdecl CG_DrawTeamOfClientScore(
-        int localClientNum,
-        const float *color,
-        float y,
-        int team,
-        float listWidth,
-        int *drawLine);
+                int localClientNum,
+                const float *color,
+                float y,
+                int team,
+                float listWidth,
+                int *drawLine);
 int __cdecl CG_CheckDrawScoreboardLine(int localClientNum, int *drawLine, float y, float lineHeight);
 double __cdecl CG_DrawScoreboard_ListBanner(
-        int localClientNum,
-        const float *color,
-        float y,
-        float w,
-        float h,
-        int team,
-        int *piDrawLine);
+                int localClientNum,
+                const float *color,
+                float y,
+                float w,
+                float h,
+                int team,
+                int *piDrawLine);
 int __cdecl CG_GetLivePlayersOnTeam(int localClientNum, int team);
 double __cdecl CG_DrawClientScore(
-        int localClientNum,
-        unsigned int clientNum,
-        const float *color,
-        float y,
-        const score_s *score,
-        float listWidth);
+                int localClientNum,
+                unsigned int clientNum,
+                const float *color,
+                float y,
+                const score_s *score,
+                float listWidth);
 double __cdecl CalcXAdj(int align, float maxw, float w);
 void __cdecl DrawListString(
-        int localClientNum,
-        char *string,
-        float x,
-        float y,
-        float width,
-        int alignment,
-        Font_s *font,
-        float scale,
-        int style,
-        const float *color);
+                int localClientNum,
+                char *string,
+                float x,
+                float y,
+                float width,
+                int alignment,
+                Font_s *font,
+                float scale,
+                int style,
+                const float *color);
 void __cdecl CG_DrawClientPing(int localClientNum, int ping, float x, float y, float maxWidth, float maxHeight);
 void __cdecl CG_DrawScrollbar(int localClientNum, float top);
 void __cdecl CenterViewOnClient(int localClientNum);

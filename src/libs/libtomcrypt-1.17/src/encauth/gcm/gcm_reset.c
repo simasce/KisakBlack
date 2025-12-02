@@ -10,31 +10,31 @@
  */
 
 /**
-   @file gcm_reset.c
-   GCM implementation, reset a used state so it can accept IV data, by Tom St Denis
+     @file gcm_reset.c
+     GCM implementation, reset a used state so it can accept IV data, by Tom St Denis
 */
 #include "tomcrypt.h"
 
 #ifdef LTC_GCM_MODE
 
 /**
-  Reset a GCM state to as if you just called gcm_init().  This saves the initialization time.
-  @param gcm   The GCM state to reset
-  @return CRYPT_OK on success
+    Reset a GCM state to as if you just called gcm_init().    This saves the initialization time.
+    @param gcm     The GCM state to reset
+    @return CRYPT_OK on success
 */
 int gcm_reset(gcm_state *gcm)
 {
-   LTC_ARGCHK(gcm != NULL);
+     LTC_ARGCHK(gcm != NULL);
 
-   zeromem(gcm->buf, sizeof(gcm->buf));
-   zeromem(gcm->X,   sizeof(gcm->X));
-   gcm->mode     = LTC_GCM_MODE_IV;
-   gcm->ivmode   = 0;
-   gcm->buflen   = 0;
-   gcm->totlen   = 0;
-   gcm->pttotlen = 0;
-  
-   return CRYPT_OK;
+     zeromem(gcm->buf, sizeof(gcm->buf));
+     zeromem(gcm->X,     sizeof(gcm->X));
+     gcm->mode         = LTC_GCM_MODE_IV;
+     gcm->ivmode     = 0;
+     gcm->buflen     = 0;
+     gcm->totlen     = 0;
+     gcm->pttotlen = 0;
+    
+     return CRYPT_OK;
 }
 
 #endif

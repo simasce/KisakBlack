@@ -38,9 +38,9 @@ unsigned int __cdecl LiveContracts_GetIndexForActiveContract(int controllerIndex
 unsigned int __cdecl LiveContracts_GetIndexForActiveContract_Internal(char *buffer, unsigned int activeContractIndex);
 int __cdecl LiveContracts_GetActiveContractProgress(int controllerIndex, unsigned int activeContractIndex);
 int __cdecl LiveContracts_GetActiveContractProgress_Internal(
-        char *buffer,
-        unsigned int activeContractIndex,
-        bool getInternalValue);
+                char *buffer,
+                unsigned int activeContractIndex,
+                bool getInternalValue);
 int __cdecl LiveContracts_GetProgressInterval(int contractIndex);
 int __cdecl LiveContracts_GetCombatTimeLeft(int controllerIndex, unsigned int activeContractIndex);
 int __cdecl LiveContracts_GetCombatTimeLeft_Internal(char *buffer, unsigned int activeContractIndex);
@@ -49,19 +49,19 @@ int __cdecl LiveContracts_GetActiveContractStatus_Internal(char *buffer, unsigne
 bool __cdecl LiveContracts_IsActiveContractExpired_Internal(char *buffer, unsigned int activeContractIndex);
 int __cdecl LiveContracts_GetActiveContractStatus(int controllerIndex, unsigned int activeContractIndex);
 unsigned int __cdecl LiveContracts_SV_GetIndexForActiveContract(
-        unsigned int clientNum,
-        unsigned int activeContractIndex);
+                unsigned int clientNum,
+                unsigned int activeContractIndex);
 char *__cdecl LiveContracts_SV_GetStatBuffer(unsigned int clientNum);
 int __cdecl LiveContracts_SV_GetActiveContractProgress(unsigned int clientNum, unsigned int activeContractIndex);
 void __cdecl LiveContracts_SV_IncrementActiveContractProgress(
-        unsigned int clientNum,
-        unsigned int activeContractIndex,
-        int increment);
+                unsigned int clientNum,
+                unsigned int activeContractIndex,
+                int increment);
 void __cdecl LiveContracts_SV_ResetActiveContractProgress(unsigned int clientNum, unsigned int activeContractIndex);
 void __cdecl LiveContracts_SV_IncrementActiveContractTime(
-        unsigned int clientNum,
-        unsigned int activeContractIndex,
-        int increment);
+                unsigned int clientNum,
+                unsigned int activeContractIndex,
+                int increment);
 int __cdecl LiveContracts_SV_GetActiveContractStatus(unsigned int clientNum, unsigned int activeContractIndex);
 int __cdecl LiveContracts_SV_GetCombatTimePassed(unsigned int clientNum, unsigned int activeContractIndex);
 void __cdecl LiveContracts_SVMergeBuffers(unsigned __int8 *cacbuffer, unsigned __int8 *globalbuffer);

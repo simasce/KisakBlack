@@ -16,10 +16,10 @@ void __cdecl UI_AddServerToFavoritesList(unsigned __int64 uid);
 void __cdecl UI_RemoveServerFromFavoritesList();
 // local variable allocation has failed, the output may be wrong!
 void __cdecl UI_DrawServerRefreshDate(
-        int contextIndex,
-        rectDef_s *rect,
-        Font_s *font,
-        float scale,
-        float *color,
-        int textStyle);
+                int contextIndex,
+                rectDef_s *rect,
+                Font_s *font,
+                float scale,
+                float *color,
+                int textStyle);
 void __cdecl UI_UpdateServerToolTips(int localClientNum, listBoxDef_s *listPtr);

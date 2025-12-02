@@ -4,11 +4,11 @@ XAnim_s *__cdecl Dog_GetAnims();
 void __cdecl Dog_CreateAnims(void *(__cdecl *xanimAlloc)(int));
 void __cdecl Dog_DebugPrint(const char *msg);
 void __cdecl BG_Dog_CreateAnimChildGroup(
-        unsigned int index,
-        unsigned int childindex,
-        const char **animNames,
-        int count,
-        unsigned int flags);
+                unsigned int index,
+                unsigned int childindex,
+                const char **animNames,
+                int count,
+                unsigned int flags);
 void __cdecl Dog_ShutdownAnims();
 void __cdecl BG_Actor_FastForwardAnimState(int localClientNum, const entityState_s *es, actorInfo_t *actorInfo);
 void __cdecl BG_Dog_Look_At(int localClientNum, const entityState_s *es);

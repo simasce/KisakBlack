@@ -8,9 +8,9 @@ void __cdecl R_SetObjectIdentityPlacement(GfxCmdBufSourceState *source);
 unsigned int __cdecl R_TessCodeMeshList(const GfxDrawSurfListArgs *listArgs, GfxCmdBufContext prepassContext);
 int __cdecl R_SetVertexDeclTypeNormal_Safe(GfxCmdBufState *state, MaterialVertexDeclType vertDeclType);
 void __cdecl R_TessCodeMeshList_AddCodeMeshArgs(
-        GfxCmdBufSourceState *source,
-        const GfxBackEndData *data,
-        const FxCodeMeshData *codeMesh);
+                GfxCmdBufSourceState *source,
+                const GfxBackEndData *data,
+                const FxCodeMeshData *codeMesh);
 unsigned int __cdecl R_TessRopeMeshList(const GfxDrawSurfListArgs *listArgs, GfxCmdBufContext prepassContext);
 unsigned int __cdecl R_TessGlassMeshList(const GfxDrawSurfListArgs *listArgs, GfxCmdBufContext prepassContext);
 unsigned int __cdecl R_TessMarkMeshList(const GfxDrawSurfListArgs *listArgs, GfxCmdBufContext prepassContext);
@@ -23,29 +23,29 @@ void __cdecl R_DrawXModelSkinnedModelSurf(GfxCmdBufContext context, const GfxMod
 void __cdecl R_DrawXModelSkinnedCached(GfxCmdBufContext context, const GfxModelSkinnedSurface *modelSurf);
 void __cdecl R_DrawXModelSkinnedUncached(GfxCmdBufContext context, XSurface *xsurf, GfxPackedVertex *skinnedVert);
 unsigned int __cdecl R_TessXModelSkinnedDrawSurfList(
-        const GfxDrawSurfListArgs *listArgs,
-        GfxCmdBufContext prepassContext);
+                const GfxDrawSurfListArgs *listArgs,
+                GfxCmdBufContext prepassContext);
 unsigned int __cdecl R_TessXModelRigidDrawSurfList(
-        const GfxDrawSurfListArgs *listArgs,
-        GfxCmdBufContext prepassContext);
+                const GfxDrawSurfListArgs *listArgs,
+                GfxCmdBufContext prepassContext);
 unsigned int __cdecl R_TessXModelWaterList(const GfxDrawSurfListArgs *listArgs, GfxCmdBufContext prepassContext);
 void __cdecl R_SetDoubleStreamSource(
-        GfxCmdBufPrimState *primState,
-        IDirect3DVertexBuffer9 *vb0,
-        unsigned int vertexOffset0,
-        unsigned int vertexStride0,
-        IDirect3DVertexBuffer9 *vb1,
-        unsigned int vertexOffset1,
-        unsigned int vertexStride1);
+                GfxCmdBufPrimState *primState,
+                IDirect3DVertexBuffer9 *vb0,
+                unsigned int vertexOffset0,
+                unsigned int vertexStride0,
+                IDirect3DVertexBuffer9 *vb1,
+                unsigned int vertexOffset1,
+                unsigned int vertexStride1);
 unsigned int __cdecl R_TessXModelRigidSkinnedDrawSurfList(
-        const GfxDrawSurfListArgs *listArgs,
-        GfxCmdBufContext prepassContext);
+                const GfxDrawSurfListArgs *listArgs,
+                GfxCmdBufContext prepassContext);
 unsigned int __cdecl R_TessStaticModelRigidDrawSurfList(
-        const GfxDrawSurfListArgs *listArgs,
-        GfxCmdBufContext prepassContext);
+                const GfxDrawSurfListArgs *listArgs,
+                GfxCmdBufContext prepassContext);
 unsigned int __cdecl R_TessStaticModelSkinnedDrawSurfList(
-        const GfxDrawSurfListArgs *listArgs,
-        GfxCmdBufContext prepassContext);
+                const GfxDrawSurfListArgs *listArgs,
+                GfxCmdBufContext prepassContext);
 unsigned int __cdecl R_TessStaticModelPreTessList(const GfxDrawSurfListArgs *listArgs, GfxCmdBufContext prepassContext);
 unsigned int __cdecl R_TessStaticModelCachedList(const GfxDrawSurfListArgs *listArgs, GfxCmdBufContext prepassContext);
 unsigned int __cdecl R_TessTrianglesList(const GfxDrawSurfListArgs *listArgs, GfxCmdBufContext prepassContext);

@@ -12,11 +12,11 @@ bool __cdecl G_XModelBad(int index);
 unsigned int __cdecl G_ModelName(unsigned int index);
 void __cdecl G_EntityCentroid(const gentity_s *ent, float *centroid);
 void __cdecl G_GetEntityBoundsPoint(
-        const gentity_s *ent,
-        float ratioFromCenterX,
-        float ratioFromCenterY,
-        float ratioFromCenterZ,
-        float *result);
+                const gentity_s *ent,
+                float ratioFromCenterX,
+                float ratioFromCenterY,
+                float ratioFromCenterZ,
+                float *result);
 int __cdecl G_TagIndex(char *name);
 int __cdecl G_EffectIndex(char *name);
 int __cdecl G_ShellShockIndex(char *name);
@@ -33,11 +33,11 @@ void __cdecl G_EntDetachAll(gentity_s *ent);
 int __cdecl G_EntLinkTo(gentity_s *ent, gentity_s *parent, unsigned int tagName);
 int __cdecl G_EntLinkToInternal(gentity_s *ent, gentity_s *parent, unsigned int tagName);
 int __cdecl G_EntLinkToWithOffset(
-        gentity_s *ent,
-        gentity_s *parent,
-        unsigned int tagName,
-        const float *originOffset,
-        const float *anglesOffset);
+                gentity_s *ent,
+                gentity_s *parent,
+                unsigned int tagName,
+                const float *originOffset,
+                const float *anglesOffset);
 void __cdecl G_EntUnlink(gentity_s *ent);
 bool __cdecl G_EntIsLinkedTo(gentity_s *ent, gentity_s *parent);
 void __cdecl G_UpdateTagInfo(gentity_s *ent, int bParentHasDObj);

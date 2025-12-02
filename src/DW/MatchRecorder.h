@@ -12,10 +12,10 @@ char __cdecl MatchRecord_GetPlayerInSlot(unsigned int playerSlot, ddlState_t *pl
 void __cdecl SaveTeamScores();
 void __cdecl GenerateRecordedMatchData(int controllerIndex, char **matchRecordBuffer, int *matchRecordBufferSize);
 bool __cdecl CompressBuffer(
-        char *destBuffer,
-        unsigned int *destBufferLen,
-        char *sourceBuffer,
-        unsigned int sourceBufferLen);
+                char *destBuffer,
+                unsigned int *destBufferLen,
+                char *sourceBuffer,
+                unsigned int sourceBufferLen);
 void __cdecl GenerateBinaryMatchSummary(unsigned int titleID);
 unsigned int __cdecl MatchRecorderDDLGetInt(ddlState_t *searchState, const char *name);
 unsigned int __cdecl MatchRecord_GetPlayerCount();
@@ -28,43 +28,43 @@ void __cdecl FindNemesisForPlayer(unsigned int attackingPlayerSlot);
 void GenerateBinaryBreadcrumbData();
 void ClearTeamScores();
 void __cdecl MatchRecord_NormaliseHeatMap(
-        int width,
-        int height,
-        unsigned __int8 *heatMap,
-        unsigned __int8 *buffer,
-        float maxVal);
+                int width,
+                int height,
+                unsigned __int8 *heatMap,
+                unsigned __int8 *buffer,
+                float maxVal);
 unsigned __int8 __cdecl MatchRecord_ReadHeatMapPixel(
-        int xPos,
-        int yPos,
-        int width,
-        int height,
-        unsigned __int8 *buffer);
+                int xPos,
+                int yPos,
+                int width,
+                int height,
+                unsigned __int8 *buffer);
 void __cdecl MatchRecord_WriteHeatMapPixel(
-        int xPos,
-        int yPos,
-        int width,
-        int height,
-        unsigned __int8 *buffer,
-        unsigned __int8 pixelVal);
+                int xPos,
+                int yPos,
+                int width,
+                int height,
+                unsigned __int8 *buffer,
+                unsigned __int8 pixelVal);
 void __cdecl MatchRecord_GenerateHeatMapData(
-        unsigned __int8 *buffer,
-        int buffSize,
-        int width,
-        int height,
-        unsigned __int64 xuid);
+                unsigned __int8 *buffer,
+                int buffSize,
+                int width,
+                int height,
+                unsigned __int64 xuid);
 unsigned __int8 __cdecl MatchRecord_BlurHeatMap(
-        int width,
-        int height,
-        unsigned __int8 *buffer,
-        unsigned int bufferSize);
+                int width,
+                int height,
+                unsigned __int8 *buffer,
+                unsigned int bufferSize);
 void __cdecl MatchRecord_SetPlayerDeathPosition(
-        unsigned __int8 *buffer,
-        int width,
-        int height,
-        float xScale,
-        float yScale,
-        int xPos,
-        int yPos);
+                unsigned __int8 *buffer,
+                int width,
+                int height,
+                float xScale,
+                float yScale,
+                int xPos,
+                int yPos);
 void __cdecl MatchRecord_GeneratePooledFileDetails(int controllerIndex);
 int __cdecl MatchRecord_ParseDownloadedMatchData(int controllerIndex, char *inputBuffer, int buffsize);
 void __cdecl MatchRecordSpawn(gclient_s *client);
@@ -77,23 +77,23 @@ void __cdecl MatchRecorderDDLSetString(ddlState_t *searchState, const char *name
 void __cdecl MatchRecord_SetPlayerCount(__int16 currentPlayers);
 int __cdecl MatchRecord_SearchForPlayerSlotByXUID(unsigned __int64 xuid);
 void __cdecl GetWorldLocation(
-        float xPos,
-        float yPos,
-        float zPos,
-        unsigned __int8 *xWorld,
-        unsigned __int8 *yWorld,
-        unsigned __int8 *zWorld);
+                float xPos,
+                float yPos,
+                float zPos,
+                unsigned __int8 *xWorld,
+                unsigned __int8 *yWorld,
+                unsigned __int8 *zWorld);
 void __cdecl MatchRecordHit(gclient_s *attackerClient, hitLocation_t hitLocation);
 void __cdecl MatchRecordSetHitStat(
-        ddlState_t playerState,
-        gclient_s *attackerClient,
-        hitLocation_t hitLocation,
-        const char *hitLocStatName);
+                ddlState_t playerState,
+                gclient_s *attackerClient,
+                hitLocation_t hitLocation,
+                const char *hitLocStatName);
 void __cdecl MatchRecordDeath(
-        gclient_s *client,
-        gclient_s *attackerClient,
-        char *weaponName,
-        hitLocation_t hitLocation);
+                gclient_s *client,
+                gclient_s *attackerClient,
+                char *weaponName,
+                hitLocation_t hitLocation);
 void __cdecl MatchRecordPointsSpent(int controllerIndex, int amount, pointsSpent_t reasonType, int reasonIndex);
 void __cdecl MatchRecordEnd(gclient_s *client);
 void __cdecl MatchRecordWriteItemStatsEnd(ddlState_t playerState, unsigned int clientNum);

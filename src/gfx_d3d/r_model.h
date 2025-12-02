@@ -12,15 +12,15 @@ void __cdecl R_XModelDebugBoxes(const DObj *obj, int *partBits);
 void __cdecl R_XModelDebugAxes(const DObj *obj, int *partBits);
 void __cdecl R_LockSkinnedCache();
 void __cdecl R_UnlockSkinnedCache();
-int  R_SkinXModel@<eax>(
-        int a1@<ebp>,
-        XModelDrawInfo *modelInfo,
-        const XModel *model,
-        const DObj *obj,
-        const GfxPlacement *placement,
-        float scale,
-        __int16 gfxEntIndex,
-        bool offscreen);
+int    R_SkinXModel@<eax>(
+                int a1@<ebp>,
+                XModelDrawInfo *modelInfo,
+                const XModel *model,
+                const DObj *obj,
+                const GfxPlacement *placement,
+                float scale,
+                __int16 gfxEntIndex,
+                bool offscreen);
 int __cdecl R_SkinAndBoundSceneEnt(GfxSceneEntity *sceneEnt);
 void __cdecl R_ShutdownModels();
 void __cdecl R_ReleaseAllModels();

@@ -27,12 +27,12 @@ const char *__cdecl Playlist_GetPlaylistDescription(int controllerIndex, unsigne
 const char *__cdecl Playlist_GetPlaylistIconName(int controllerIndex, unsigned int playlistId);
 const char *__cdecl Playlist_GetCategoryIconName(int controllerIndex, unsigned int categoryId);
 int __cdecl Playlist_IsLocked(
-        int controllerIndex,
-        unsigned int playlistId,
-        int xp,
-        int prestige,
-        int gametypeBan,
-        int partyCount);
+                int controllerIndex,
+                unsigned int playlistId,
+                int xp,
+                int prestige,
+                int gametypeBan,
+                int partyCount);
 int __cdecl Playlist_CategoryIsLocked(int controllerIndex, unsigned int categoryId, int xp, int prestige);
 int __cdecl Playlist_GetMapPacksUsedByPlaylist(unsigned int playlistId);
 bool __cdecl Playlist_DoWeHaveRequiredDLC(int controllerIndex, unsigned int playlistId);

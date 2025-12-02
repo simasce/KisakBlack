@@ -23,11 +23,11 @@ const actor_fields_s *__cdecl FindFieldForName(const actor_fields_s *fields, con
 void Cmd_AI_PrintUsage();
 void __cdecl PrintFieldUsage(const actor_fields_s *fields);
 void __cdecl Cmd_AI_EntityNumber(
-        int argc,
-        const actor_fields_s *fields,
-        const actor_fields_s *pField,
-        const char *szNum,
-        int bInvertSelection);
+                int argc,
+                const actor_fields_s *fields,
+                const actor_fields_s *pField,
+                const char *szNum,
+                int bInvertSelection);
 void __cdecl Cmd_AI_Dispatch(int argc, actor_s *pSelf, const actor_fields_s *fields, const actor_fields_s *pField);
 gentity_s *__cdecl BaseForFields(actor_s *actor, const actor_fields_s *fields);
 void __cdecl Cmd_AI_DisplayInfo(actor_s *actor);
@@ -35,17 +35,17 @@ void __cdecl Cmd_AI_Delete(actor_s *actor);
 void __cdecl Cmd_AI_DisplayValue(actor_s *pSelf, unsigned __int8 *pBase, const actor_fields_s *pField);
 void __cdecl Cmd_AI_SetValue(actor_s *pSelf, int argc, unsigned __int8 *pBase, const actor_fields_s *pField);
 void __cdecl Cmd_AI_Team(
-        int argc,
-        const actor_fields_s *fields,
-        const actor_fields_s *pField,
-        int iTeamFlags,
-        int bInvertSelection);
+                int argc,
+                const actor_fields_s *fields,
+                const actor_fields_s *pField,
+                int iTeamFlags,
+                int bInvertSelection);
 void __cdecl Cmd_AI_Name(
-        int argc,
-        const actor_fields_s *fields,
-        const actor_fields_s *pField,
-        char *szName,
-        int bInvertSelection);
+                int argc,
+                const actor_fields_s *fields,
+                const actor_fields_s *pField,
+                char *szName,
+                int bInvertSelection);
 void __cdecl GScr_AddFieldsForActor();
 void __cdecl Scr_SetActorField(actor_s *actor, unsigned int offset);
 void __cdecl Scr_GetActorField(actor_s *actor, unsigned int offset);

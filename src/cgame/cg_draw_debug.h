@@ -2,22 +2,22 @@
 
 double __cdecl CG_DrawAnimTagInfo(const ScreenPlacement *scrPlace, float posY);
 double __cdecl CG_CornerDebugPrint(
-        const ScreenPlacement *sP,
-        float posX,
-        float posY,
-        float labelWidth,
-        char *text,
-        char *label,
-        const float *color);
+                const ScreenPlacement *sP,
+                float posX,
+                float posY,
+                float labelWidth,
+                char *text,
+                char *label,
+                const float *color);
 void __cdecl CG_DrawUpperRightDebugInfo(int localClientNum);
 double __cdecl CG_DrawSnapshot(int localClientNum, float posY);
 double __cdecl CG_CornerDebugPrintCaption(
-        const ScreenPlacement *sP,
-        float posX,
-        float posY,
-        float labelWidth,
-        char *text,
-        const float *color);
+                const ScreenPlacement *sP,
+                float posX,
+                float posY,
+                float labelWidth,
+                char *text,
+                const float *color);
 double __cdecl CG_DrawStatmon(const ScreenPlacement *scrPlace, float y);
 double __cdecl CG_DrawViewpos(const ScreenPlacement *scrPlace, float y, int localClientNum);
 double __cdecl DrawEntityCounts(const ScreenPlacement *scrPlace, float posY);

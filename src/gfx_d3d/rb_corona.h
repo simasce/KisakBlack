@@ -21,10 +21,10 @@ void __cdecl RB_AllocCoronaSpriteQuery(Corona *corona);
 void __cdecl RB_FreeCoronaSpriteQueries();
 void __cdecl RB_FreeCoronaSpriteQuery(Corona *corona);
 void __cdecl RB_DrawWaypoint(
-        Material *material,
-        GfxColor color,
-        float *origin,
-        float radius,
-        bool screenSize,
-        bool alignBottom,
-        bool forceNear);
+                Material *material,
+                GfxColor color,
+                float *origin,
+                float radius,
+                bool screenSize,
+                bool alignBottom,
+                bool forceNear);

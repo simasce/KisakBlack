@@ -33,30 +33,30 @@ void __cdecl VEH_GetBoundingBoxFromCollmap(gentity_s *vehicle, float *bbMins, fl
 void __cdecl VEH_DebugAim(gentity_s *ent, const float *color, int duration);
 void __cdecl VEH_UpdateVelocityWithRotation(gentity_s *ent);
 void __cdecl VEH_GetNewSpeedAndAccel(
-        scr_vehicle_s *veh,
-        float dt,
-        int hovering,
-        float speedScale,
-        float *newSpeed,
-        float *accelMax);
+                scr_vehicle_s *veh,
+                float dt,
+                int hovering,
+                float speedScale,
+                float *newSpeed,
+                float *accelMax);
 double __cdecl VEH_AccelerateSpeed(float speed, float tgtSpeed, float accel, float dt);
 void __cdecl VEH_SetLinkAngleClamps(
-        const vehicle_info_t *info,
-        gentity_s *player,
-        int seatIndex,
-        float *playerAngles,
-        float *vehicleAngles);
+                const vehicle_info_t *info,
+                gentity_s *player,
+                int seatIndex,
+                float *playerAngles,
+                float *vehicleAngles);
 void __cdecl VEH_SetPlayerVehicle(gentity_s *ent, bool enable);
 void __cdecl VEH_LinkPlayer(gentity_s *ent, gentity_s *player, int seatIndex, bool changingSeats);
-double  Scr_Vehicle_DamageScale@<st0>(
-        float a1@<ebp>,
-        gentity_s *pSelf,
-        gentity_s *pAttacker,
-        gentity_s *pInflictor,
-        const float *point,
-        int mod,
-        int weapon,
-        int *damageFromUnderneath);
+double    Scr_Vehicle_DamageScale@<st0>(
+                float a1@<ebp>,
+                gentity_s *pSelf,
+                gentity_s *pAttacker,
+                gentity_s *pInflictor,
+                const float *point,
+                int mod,
+                int weapon,
+                int *damageFromUnderneath);
 void __cdecl VEH_UnlinkPlayer(gentity_s *player, bool changingSeats, char *error_msg);
 char __cdecl VEH_ExitPosOkay(gentity_s *vehEnt, gentity_s *player, int exitIndex, float *origin);
 void __cdecl G_VehicleFinishedAnimating(gentity_s *player, pmoveVehAnimState_t vehAnimState);
@@ -97,7 +97,7 @@ bool __cdecl VEH_ShouldEjectOccupants(gentity_s *ent);
 bool __cdecl G_IsVehicleImmune(gentity_s *ent, int mod, char damageFlags, unsigned int weapon);
 bool __cdecl G_IsPlayerDrivingVehicle(const gentity_s *player);
 // local variable allocation has failed, the output may be wrong!
-void  VEH_Teleport(NitrousVehicle *a1@<ebp>, gentity_s *pSelf, float *origin, float *angles, float *vel);
+void    VEH_Teleport(NitrousVehicle *a1@<ebp>, gentity_s *pSelf, float *origin, float *angles, float *vel);
 void __cdecl VEH_UpdateNOClip(gentity_s *pSelf);
 void __cdecl VEH_UpdateDebug(gentity_s *pSelf);
 void __cdecl Scr_Vehicle_Controller(const gentity_s *pSelf, int *partBits);
@@ -112,9 +112,9 @@ bool __cdecl AttachedStickyMissile(gentity_s *vehicle, gentity_s *missile);
 void __cdecl PushAttachedStickyMissile(gentity_s *vehicle, gentity_s *missile);
 void __cdecl VEH_UpdateHealth(gentity_s *pSelf);
 double __cdecl GetPieceHealthPercentage(
-        Destructible *dest,
-        unsigned __int16 destructibleLabelString,
-        float defaultPercentage);
+                Destructible *dest,
+                unsigned __int16 destructibleLabelString,
+                float defaultPercentage);
 char __cdecl GetPieceHealth(Destructible *dest, unsigned __int16 destructibleLabelString, int *pieceHealth);
 bool __cdecl PlayersSeatGunTurning(gentity_s *const pVehEnt, int seatIndex, int angle);
 void __cdecl VEH_UpdateNitrousPosition(gentity_s *pSelf);
@@ -138,19 +138,19 @@ void __cdecl VEH_UpdateAvoidance(gentity_s *ent);
 void __userpurge NitrousVehicle::update_script_target(NitrousVehicle *this@<ecx>, int a2@<ebp>, float *goal_position);
 void __cdecl GetClosestPointOnSegment(float *pt1, float *pt2, float *testPt, float *out);
 // local variable allocation has failed, the output may be wrong!
-void  VEH_UpdatePath(const vehicle_info_t *a1@<ebp>, gentity_s *ent);
+void    VEH_UpdatePath(const vehicle_info_t *a1@<ebp>, gentity_s *ent);
 void __cdecl VEH_UpdateAIMove(gentity_s *ent);
 void __cdecl VEH_UpdateMoveToGoal(gentity_s *ent, const float *goalPos);
 bool __cdecl VEH_IsHovering(scr_vehicle_s *veh);
 double __cdecl VEH_UpdateMove_GetDesiredYaw(scr_vehicle_s *veh, float *desiredDir);
 void __cdecl VEH_UpdateMoveOrientation(gentity_s *ent, float *desiredDir);
 void __cdecl VEH_UpdateAngleAndAngularVel(
-        int index,
-        float desiredAngle,
-        float accel,
-        float decel,
-        float overShoot,
-        vehicle_physic_t *phys);
+                int index,
+                float desiredAngle,
+                float accel,
+                float decel,
+                float overShoot,
+                vehicle_physic_t *phys);
 double __cdecl VEH_CalcAccelFraction(float accel, int infoIdx);
 double __cdecl VEH_CalcAngleForAccel(float accelFraction);
 double __cdecl VEH_CalcStoppingTime(float accel, float accelFraction);
@@ -158,10 +158,10 @@ void __cdecl VEH_UpdateYawAndNotify(gentity_s *ent, float desiredYaw);
 double __cdecl VEH_GetAccelForAngles(scr_vehicle_s *veh);
 void __cdecl VEH_AddFakeDrag(const float *velocity, float maxDragSpeed, float *accelVec);
 void __cdecl VEH_CheckHorizontalVelocityToGoal(
-        scr_vehicle_s *veh,
-        const float *vecToGoal,
-        float accelMax,
-        float *accelVec);
+                scr_vehicle_s *veh,
+                const float *vecToGoal,
+                float accelMax,
+                float *accelVec);
 void __cdecl VEH_CheckVerticalVelocityToGoal(scr_vehicle_s *veh, float verticalDist, float *accelVec);
 int __cdecl VEH_UpdateMove_CheckGoalReached(gentity_s *ent, float distToGoal);
 double __cdecl VEH_UpdateMove_CheckStop(scr_vehicle_s *veh, float distToGoal);
@@ -176,27 +176,27 @@ void __cdecl VEH_UpdatePlaneRoll(gentity_s *ent);
 void __cdecl VEH_UpdatePlaneFree(gentity_s *ent);
 void __cdecl VEH_UpdateChopperPathDrive(gentity_s *ent);
 void __cdecl Scr_Vehicle_Pain(
-        gentity_s *pSelf,
-        gentity_s *pAttacker,
-        int damage,
-        const float *point,
-        int mod,
-        const float *dir,
-        hitLocation_t hitLoc,
-        int weaponIdx);
+                gentity_s *pSelf,
+                gentity_s *pAttacker,
+                int damage,
+                const float *point,
+                int mod,
+                const float *dir,
+                hitLocation_t hitLoc,
+                int weaponIdx);
 void __cdecl Scr_Vehicle_Touch(gentity_s *pSelf, gentity_s *pOther);
 unsigned __int16 __cdecl G_GetVehicleTypeString(int clientNum, int entityNum);
 void __cdecl Scr_Vehicle_Use(gentity_s *pEnt, gentity_s *pOther);
 void __cdecl Scr_Vehicle_Die(
-        gentity_s *pSelf,
-        gentity_s *pInflictor,
-        gentity_s *pAttacker,
-        int damage,
-        int mod,
-        int weapon,
-        float *dir,
-        hitLocation_t hitLoc,
-        int timeOffset);
+                gentity_s *pSelf,
+                gentity_s *pInflictor,
+                gentity_s *pAttacker,
+                int damage,
+                int mod,
+                int weapon,
+                float *dir,
+                hitLocation_t hitLoc,
+                int timeOffset);
 void __cdecl SP_script_vehicle(gentity_s *pSelf, SpawnVar *spawnVar);
 void __cdecl SP_script_vehicle_collmap(gentity_s *pSelf);
 void (__cdecl *__cdecl ScriptVehicle_GetMethod(const char **pName))(scr_entref_t);
@@ -240,7 +240,7 @@ void __cdecl CMD_VEH_SetViewClamp();
 void __cdecl CMD_VEH_ResetViewClamp(scr_entref_t entref);
 void __cdecl CMD_VEH_SetVehicleLookatText(scr_entref_t entref);
 void __cdecl CMD_VEH_NearGoalNotifyDist(scr_entref_t entref);
-void  CMD_VEH_SetGoalPos(float a1@<ebp>, scr_entref_t entref);
+void    CMD_VEH_SetGoalPos(float a1@<ebp>, scr_entref_t entref);
 void __cdecl CMD_VEH_ClearGoalPos(scr_entref_t entref);
 void __cdecl CMD_VEH_SetPlaneGoalPos(scr_entref_t entref);
 void __cdecl VEH_GenerateCurveForPlane(gentity_s *ent, float (*goals)[3], int numGoals, const float *goalAngles);

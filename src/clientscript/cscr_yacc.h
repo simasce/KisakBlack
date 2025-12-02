@@ -17,7 +17,7 @@ void __cdecl yy_load_buffer_state();
 yy_buffer_state *__cdecl yy_create_buffer(_iobuf *file, unsigned int size);
 void __cdecl yy_init_buffer(yy_buffer_state *b, _iobuf *file);
 void __cdecl yy_flush_buffer(yy_buffer_state *b);
-void __cdecl  yy_fatal_error(const char *msg);
+void __cdecl    yy_fatal_error(const char *msg);
 void *__cdecl yy_flex_alloc(unsigned int size);
 void *__cdecl yy_flex_realloc(void *ptr, unsigned int size);
 int __cdecl yyerror();

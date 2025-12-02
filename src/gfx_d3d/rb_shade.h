@@ -21,8 +21,8 @@ void RB_DrawTessSurface();
 void __cdecl R_DrawTessTechnique(GfxCmdBufContext context, const GfxDrawPrimArgs *args);
 void __cdecl R_CheckVertexDataOverflow(int dataSize);
 void __cdecl R_SetStreamSource(
-        GfxCmdBufPrimState *primState,
-        IDirect3DVertexBuffer9 *vb,
-        unsigned int vertexOffset,
-        unsigned int vertexStride);
+                GfxCmdBufPrimState *primState,
+                IDirect3DVertexBuffer9 *vb,
+                unsigned int vertexOffset,
+                unsigned int vertexStride);
 void __cdecl RB_TessOverflow();

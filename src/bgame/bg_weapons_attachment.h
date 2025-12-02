@@ -33,17 +33,17 @@ int __cdecl BG_GetWeaponOptionFromName(const char *optionName);
 void __cdecl BG_LoadWeaponAttachmentTable();
 void __cdecl BG_LoadAttachmentRow(const StringTable *attachmentTable, int row, AttachmentTableEntry *entry, int *count);
 void __cdecl BG_LoadWeaponAttachmentTableRow(
-        const StringTable *attachmentTable,
-        int row,
-        WeaponAttachmentTableEntry *entry);
+                const StringTable *attachmentTable,
+                int row,
+                WeaponAttachmentTableEntry *entry);
 void __cdecl BG_LoadAttachmentPointRow(
-        const StringTable *attachmentTable,
-        int row,
-        AttachmentPointTableEntry *entry,
-        int *count);
+                const StringTable *attachmentTable,
+                int row,
+                AttachmentPointTableEntry *entry,
+                int *count);
 void __cdecl BG_LoadWeaponOptions(const StringTable *attachmentTable);
 void __cdecl BG_LoadWeaponOptionRow(
-        const StringTable *attachmentTable,
-        int row,
-        WeaponOptionTableEntry *entry,
-        int *count);
+                const StringTable *attachmentTable,
+                int row,
+                WeaponOptionTableEntry *entry,
+                int *count);

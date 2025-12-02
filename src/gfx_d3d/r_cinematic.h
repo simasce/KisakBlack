@@ -9,10 +9,10 @@ const char *R_Cinematic_CheckBinkError();
 void __cdecl R_Cinematic_EndLostDevice();
 CinematicTextureSet *R_Cinematic_MakeBinkDrawTextures();
 IDirect3DTexture9 *__cdecl R_Cinematic_MakeBinkTexture_PC(
-        GfxImage *image,
-        unsigned int width,
-        unsigned int height,
-        int baseImageFlags);
+                GfxImage *image,
+                unsigned int width,
+                unsigned int height,
+                int baseImageFlags);
 void R_Cinematic_ClearBinkDrawTextures();
 void __cdecl R_Cinematic_ClearTexture(IDirect3DTexture9 *texture, int width, int height, unsigned __int8 clearValue);
 void __cdecl R_Cinematic_Init();

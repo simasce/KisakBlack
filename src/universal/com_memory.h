@@ -21,16 +21,16 @@ int __cdecl DB_GetAllXAssetOfType(XAssetType type, XAssetHeader *assets, int max
 int __cdecl DB_GetAllXAssetOfType_LoadObj(XAssetType type, XAssetHeader *assets, int maxCount);
 void __cdecl Hunk_AddAsset(XAssetHeader header, unsigned int *data);
 void __cdecl DB_EnumXAssets(
-        XAssetType type,
-        void (__cdecl *func)(XAssetHeader, void *),
-        void *inData,
-        bool includeOverride);
+                XAssetType type,
+                void (__cdecl *func)(XAssetHeader, void *),
+                void *inData,
+                bool includeOverride);
 void __cdecl DB_EnumXAssets_LoadObj(XAssetType type, void (__cdecl *func)(void *, void *), void *inData);
 void __cdecl DB_EnumXAssetsFor(
-        fileData_s *fileData,
-        int fileDataType,
-        void (__cdecl *func)(void *, void *),
-        void *inData);
+                fileData_s *fileData,
+                int fileDataType,
+                void (__cdecl *func)(void *, void *),
+                void *inData);
 int __cdecl Hunk_SetMark();
 void __cdecl Hunk_ClearToMark(int mark);
 void Hunk_ClearData();
@@ -57,7 +57,7 @@ void __cdecl Z_Free(char *ptr, int type);
 unsigned int *__cdecl Z_TryMalloc(int size, const char *name, int type);
 char *__cdecl Z_TryMallocGarbage(int size, const char *name, int type);
 unsigned int *__cdecl Z_Malloc(int size, const char *name, int type);
-void __cdecl  Z_MallocFailed(int size);
+void __cdecl    Z_MallocFailed(int size);
 char *__cdecl Z_MallocGarbage(int size, const char *name, int type);
 char *__cdecl CopyString(char *in, const char *name, int type, scriptInstance_t inst);
 void __cdecl ReplaceString(const char **str, char *in, const char *name, int type, scriptInstance_t inst);

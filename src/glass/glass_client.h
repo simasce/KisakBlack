@@ -15,17 +15,17 @@ void __thiscall GlassesClient::PreShatterNext(GlassesClient *this);
 void __thiscall GlassClient::Init(GlassClient *this, const Glass *gls);
 void __thiscall GlassClient::Reset(GlassClient *this);
 void __thiscall GlassClient::SetState(
-        GlassClient *this,
-        int localClientNum,
-        GlassState::State newState,
-        const float *hitPos,
-        float *hitDir,
-        bool gameState);
+                GlassClient *this,
+                int localClientNum,
+                GlassState::State newState,
+                const float *hitPos,
+                float *hitDir,
+                bool gameState);
 void __thiscall GlassClient::PlayShatterFX(
-        GlassClient *this,
-        int localClientNum,
-        const float *hitPos,
-        const float *hitDir);
+                GlassClient *this,
+                int localClientNum,
+                const float *hitPos,
+                const float *hitDir);
 int __cdecl compareOutlineEdges(float *s1, float *s2);
 void __thiscall GlassClient::Update(GlassClient *this, int localClientNum);
 void __thiscall GlassClient::SetBrushMaterial(GlassClient *this, GlassState::State state);
@@ -33,15 +33,15 @@ void __thiscall GlassClient::Shatter(GlassClient *this, const float *pos, const 
 char __thiscall GlassClient::PreShatter(GlassClient *this);
 int __cdecl GlassClient::Outlines::CalcMemorySize(GlassShard **shards, int numShards);
 void __thiscall GlassClient::Outlines::Outlines(
-        GlassClient::Outlines *this,
-        const GlassShard *baseShard,
-        GlassShard **shards,
-        int numShards);
+                GlassClient::Outlines *this,
+                const GlassShard *baseShard,
+                GlassShard **shards,
+                int numShards);
 int __thiscall GlassClient::Outlines::InitShards(
-        GlassClient::Outlines *this,
-        const GlassShard *baseShard,
-        GlassShard **shards,
-        int maxNewShards);
+                GlassClient::Outlines *this,
+                const GlassShard *baseShard,
+                GlassShard **shards,
+                int maxNewShards);
 void __cdecl GlassCl_AllocateMemory();
 void __cdecl GlassCl_FreeMemory();
 void __cdecl GlassCl_Reset(int localClientNum);
@@ -54,26 +54,26 @@ void __cdecl GlassCl_BeginGenerateVerts(unsigned int localClientNum, unsigned in
 void __cdecl GlassCl_WaitGenerateVerts();
 void __cdecl GlassCl_GenerateVerts(int localClientNum, unsigned int viewIndex);
 void __cdecl GlassCl_ExplosionEvent(
-        int localClientNum,
-        const float *origin,
-        float damageInner,
-        float damageOuter,
-        float radius,
-        int mod);
+                int localClientNum,
+                const float *origin,
+                float damageInner,
+                float damageOuter,
+                float radius,
+                int mod);
 void __cdecl GlassCl_TracePoint(const pointtrace_t *clip, trace_t *results);
 void __thiscall GlassesClient::TracePoint(GlassesClient *this, const pointtrace_t *clip, trace_t *results);
 void __cdecl GlassCl_MeleeEvent(int localClientNum, int attackerEntNum);
 void __cdecl GlassCl_DrawDebug();
 unsigned int __cdecl GlassCl_AreaGlasses(
-        const float *mins,
-        const float *maxs,
-        const Glass **glasses,
-        unsigned int maxGlasses);
+                const float *mins,
+                const float *maxs,
+                const Glass **glasses,
+                unsigned int maxGlasses);
 unsigned int __thiscall GlassesClient::AreaGlasses(
-        GlassesClient *this,
-        const float *mins,
-        const float *maxs,
-        const Glass **glss,
-        unsigned int maxGlasses);
+                GlassesClient *this,
+                const float *mins,
+                const float *maxs,
+                const Glass **glss,
+                unsigned int maxGlasses);
 void __cdecl GlassCl_ClipMoveTrace(const moveclip_t *clip, trace_t *results);
 void __thiscall GlassesClient::ClipMoveTrace(GlassesClient *this, const moveclip_t *clip, trace_t *results);

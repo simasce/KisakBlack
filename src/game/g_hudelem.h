@@ -42,16 +42,16 @@ void __cdecl HudElem_GetGlowAlpha(game_hudelem_s *hud, int offset);
 void __cdecl HudElem_SetFontScale(game_hudelem_s *hud, int offset);
 void __cdecl HudElem_SetFont(game_hudelem_s *hud, int offset);
 void __cdecl HudElem_SetEnumString(
-        game_hudelem_s *hud,
-        const game_hudelem_field_t *f,
-        const char **names,
-        int nameCount);
+                game_hudelem_s *hud,
+                const game_hudelem_field_t *f,
+                const char **names,
+                int nameCount);
 void __cdecl HudElem_GetFont(game_hudelem_s *hud, int offset);
 void __cdecl HudElem_GetEnumString(
-        game_hudelem_s *hud,
-        const game_hudelem_field_t *f,
-        const char **names,
-        int nameCount);
+                game_hudelem_s *hud,
+                const game_hudelem_field_t *f,
+                const char **names,
+                int nameCount);
 void __cdecl HudElem_SetAlignX(game_hudelem_s *hud, int offset);
 void __cdecl HudElem_GetAlignX(game_hudelem_s *hud, int offset);
 void __cdecl HudElem_SetAlignY(game_hudelem_s *hud, int offset);

@@ -7,33 +7,33 @@ void __cdecl Touch_Item(gentity_s *ent, gentity_s *other, int touched);
 int __cdecl WeaponPickup(gentity_s *weaponEnt, gentity_s *player, int *pickupEvent, int touched);
 int __cdecl WeaponPickup_Grab(gentity_s *weaponEnt, gentity_s *player, int weapIdx, int *pickupEvent);
 int __cdecl WeaponPickup_AddWeapon(
-        gentity_s *ent,
-        gentity_s *other,
-        int weapon,
-        unsigned __int8 weaponModel,
-        gentity_s **pDroppedWeapon);
+                gentity_s *ent,
+                gentity_s *other,
+                int weapon,
+                unsigned __int8 weaponModel,
+                gentity_s **pDroppedWeapon);
 int __cdecl CurrentPrimaryWeapon(playerState_s *ps);
 int __cdecl G_ItemClipMask(gentity_s *ent);
 bool __cdecl WeaponPickup_LeechFromWeaponEnt(
-        gentity_s *weaponEnt,
-        gentity_s *player,
-        int haveExactWeapon,
-        int *pickupEvent,
-        bool suppressNotifies);
+                gentity_s *weaponEnt,
+                gentity_s *player,
+                int haveExactWeapon,
+                int *pickupEvent,
+                bool suppressNotifies);
 void __cdecl PrintPlayerPickupMessage(gentity_s *player, unsigned int weapIdx);
 void __cdecl WeaponPickup_AddAmmoForNewWeapon(gentity_s *weaponEnt, gentity_s *player);
 void __cdecl WeaponPickup_Notifies(
-        gentity_s *thisItem,
-        gentity_s *newDroppedItem,
-        gentity_s *player,
-        const WeaponDef *weapDef);
+                gentity_s *thisItem,
+                gentity_s *newDroppedItem,
+                gentity_s *player,
+                const WeaponDef *weapDef);
 bool __cdecl WeaponPickup_Touch(gentity_s *weaponEnt, gentity_s *player, unsigned int weapIdx, int *pickupEvent);
 void __cdecl PrintMessage_CannotGrabItem(
-        gentity_s *ent,
-        gentity_s *player,
-        int touched,
-        gitem_s *item,
-        unsigned int weapIndex);
+                gentity_s *ent,
+                gentity_s *player,
+                int touched,
+                gitem_s *item,
+                unsigned int weapIndex);
 void __cdecl DroppedItemClearOwner(gentity_s *pSelf);
 void __cdecl G_GetItemClassname(const gitem_s *item, unsigned __int16 *out);
 gentity_s *__cdecl Drop_Item(gentity_s *ent, const gitem_s *item, float angle, int novelocity);
@@ -43,12 +43,12 @@ gentity_s *__cdecl ThrowClientWeapon(gentity_s *ent, const gitem_s *item, float 
 bool __cdecl PlayerHasAnyAmmoToTransferToWeapon(gentity_s *player, unsigned int transferWeapon);
 int __cdecl GetNonClipAmmoToTransferToWeaponEntity(gentity_s *player, unsigned int transferWeapon);
 gentity_s *__cdecl ThrowDownWeapon(
-        gentity_s *ent,
-        int weapIdx,
-        unsigned __int8 weaponModel,
-        unsigned int tag,
-        float throwHeight,
-        float throwDistance);
+                gentity_s *ent,
+                int weapIdx,
+                unsigned __int8 weaponModel,
+                unsigned int tag,
+                float throwHeight,
+                float throwDistance);
 int __cdecl TransferPlayerAmmoToWeaponEntity(gentity_s *player, gentity_s *weaponEnt, int transferWeapon);
 int __cdecl TransferRandomAmmoToWeaponEntity(gentity_s *weaponEnt, int transferWeapon);
 int __cdecl BG_GetDropMinAmmo(unsigned int weaponIndex);

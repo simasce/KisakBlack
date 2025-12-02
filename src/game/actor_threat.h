@@ -19,20 +19,20 @@ int __fastcall Actor_ThreatFromDistance(float fDistance);
 bool __fastcall Actor_CanBePathedTo(actor_s *self, sentient_s *enemy, int isCurrentEnemy);
 bool __fastcall Actor_IsFullyAware(actor_s *self, sentient_s *enemy, int isCurrentEnemy);
 void __cdecl DebugThreatNodes(
-        const actor_s *self,
-        sentient_s *enemy,
-        pathnode_t *selfNode,
-        pathnode_t *enemyNode,
-        const float *color);
+                const actor_s *self,
+                sentient_s *enemy,
+                pathnode_t *selfNode,
+                pathnode_t *enemyNode,
+                const float *color);
 int __fastcall Actor_ThreatFromVisibilityAndAwareness(int isVisible, int isFullyAware, int friendlyTimingOut);
 int __fastcall Actor_ThreatFromAttackerCount(actor_s *self, sentient_s *enemy, int isCurrentEnemy);
 bool __fastcall Actor_ShouldIgnoreFromAttackerCount(actor_s *self, sentient_s *enemy, int isCurrentEnemy);
 int __fastcall Actor_ThreatBonusForCurrentEnemy(
-        int isCurrentEnemy,
-        int isFullyAware,
-        int friendlyTimingOut,
-        int isPlayer,
-        int isDamaged);
+                int isCurrentEnemy,
+                int isFullyAware,
+                int friendlyTimingOut,
+                int isPlayer,
+                int isDamaged);
 int __fastcall Actor_ThreatCoveringFire(actor_s *self, sentient_s *enemy);
 int __fastcall Actor_ThreatFlashed(sentient_s *enemy);
 void __fastcall Actor_IncrementThreatTime(actor_s *self);

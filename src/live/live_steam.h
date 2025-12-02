@@ -1,7 +1,7 @@
 #pragma once
 
 void __cdecl SteamAPIDebugTextHook(int severity, const char *pchDebugText);
-void __cdecl  LiveSteam_Quit(bool showErrorMessage);
+void __cdecl    LiveSteam_Quit(bool showErrorMessage);
 void __cdecl LiveSteam_CheckAccess();
 bool __cdecl LiveSteam_IsInitialized();
 char __cdecl LiveSteam_IsClientSignedInLocally();

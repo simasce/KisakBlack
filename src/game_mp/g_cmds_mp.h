@@ -17,13 +17,13 @@ int __cdecl Cmd_FollowCycle_f(gentity_s *ent, int dir);
 bool __cdecl G_IsPlaying(gentity_s *ent);
 void __cdecl G_Say(gentity_s *ent, gentity_s *target, int mode, const char *chatText);
 void __cdecl G_SayTo(
-        gentity_s *ent,
-        gentity_s *other,
-        int mode,
-        int color,
-        const char *teamString,
-        const char *cleanname,
-        const char *message);
+                gentity_s *ent,
+                gentity_s *other,
+                int mode,
+                int color,
+                const char *teamString,
+                const char *cleanname,
+                const char *message);
 void __cdecl Cmd_Where_f(gentity_s *ent);
 void __cdecl Cmd_CallVote_f(gentity_s *ent);
 void __cdecl Cmd_Vote_f(gentity_s *ent);

@@ -7,9 +7,9 @@ void __cdecl LB_RegisterStat(LbStructure *const structure, LbStatEnum statType, 
 void __cdecl LB_RegisterStructure(LbLookup *const lookup, LbStructure structure, int type);
 void __cdecl LB_InitGlobalStructure(LbGlobalStructure *const globalStructures, int lbIndex);
 void __cdecl LB_RegisterGlobalStat(
-        LbGlobalStructure *const globalStructures,
-        GlobalLbStatEnum globalStatType,
-        bool isRating);
+                LbGlobalStructure *const globalStructures,
+                GlobalLbStatEnum globalStatType,
+                bool isRating);
 void __cdecl LB_RegisterGlobalStructure(LbLookup *const lookup, LbGlobalStructure globalStructures, int lbIndex);
 LbType __cdecl LB_GetLbIndex(LbType type, LbResetPeriod resetPeriod, bool isPrestigeLb, bool isHiddenLb);
 char __cdecl LB_GetNumMatchesPlayedForPlayerFromLb(Leaderboard *lb, int controllerIndex);
@@ -31,17 +31,17 @@ unsigned int __cdecl LB_CalcPlayerIndex(int localControllerIndex, Leaderboard *l
 void __cdecl LB_SortXUserStatsByRank(Leaderboard *lb);
 int __cdecl LB_CompareXUserStatsRowRanks(_QWORD *r1, _QWORD *r2);
 bool __cdecl LB_MakeRow(
-        int controllerIndex,
-        const LbPlayerStat *const stats,
-        int type,
-        int lbIndex,
-        LeaderBoardRow<10> *const row,
-        bool statWriteTypeAdd);
+                int controllerIndex,
+                const LbPlayerStat *const stats,
+                int type,
+                int lbIndex,
+                LeaderBoardRow<10> *const row,
+                bool statWriteTypeAdd);
 bool __cdecl LB_MakeGlobalRow(
-        int controllerIndex,
-        const LbPlayerStat *const stats,
-        int lbIndex,
-        LeaderBoardRow<10> *const row);
+                int controllerIndex,
+                const LbPlayerStat *const stats,
+                int lbIndex,
+                LeaderBoardRow<10> *const row);
 void __cdecl LB_openDownloadingMenuCmd();
 void __cdecl LB_ReportUser();
 void __cdecl LB_IncrementEscrow();
@@ -55,10 +55,10 @@ void __cdecl LB_SetStat(int localControllerIndex, int statId, int value);
 void __cdecl LB_UpdateNeeded(int localControllerIndex);
 void __cdecl LB_UploadPlayerGlobalStats(int localControllerIndex);
 void __cdecl Lb_ReadHiddenLeaderboardEntry(
-        int controllerIndex,
-        LeaderBoardRow<10> *userStats,
-        int lbIndex,
-        LbTaskEnum task);
+                int controllerIndex,
+                LeaderBoardRow<10> *userStats,
+                int lbIndex,
+                LbTaskEnum task);
 void __cdecl Lb_InitiateWeeklyAndMonthlyLbWrite(int controllerIndex, LbType type);
 char __cdecl LB_UploadPlayerStats(int localControllerIndex);
 taskCompleteResults __cdecl LB_UploadPlayerStatsComplete(unsigned int slot);
@@ -69,17 +69,17 @@ taskCompleteResults __cdecl LB_RetrieveEscrowBalanceComplete(unsigned int slot);
 taskCompleteResults __cdecl LB_ClearEscrowComplete(int slot);
 char *__cdecl LB_FeederItemText(int localClientNum, unsigned int index, int column, Material **material);
 void __cdecl LB_ReadRowForUser(
-        int controllerIndex,
-        unsigned __int64 entityID,
-        unsigned int leaderboardID,
-        int taskType,
-        LeaderBoardRow<10> *userStats);
+                int controllerIndex,
+                unsigned __int64 entityID,
+                unsigned int leaderboardID,
+                int taskType,
+                LeaderBoardRow<10> *userStats);
 void __cdecl LB_WriteRows(int controllerIndex, bdStatsInfo **statsInfo, unsigned int numStats, int taskType);
 void __cdecl LB_InitAndRegisterStructure(LbStructure *const structure, int type);
 void __cdecl LB_InitAndRegisterStructureForSpecialLeaderboards(
-        LbGlobalStructure *const globalStructures,
-        int lbIndex,
-        int type);
+                LbGlobalStructure *const globalStructures,
+                int lbIndex,
+                int type);
 void __cdecl LB_Init();
 void __cdecl LB_CheckOngoingTasks();
 void __cdecl LB_EndOngoingTasks();
@@ -88,8 +88,8 @@ bool __thiscall LeaderBoardRow<10>::deserialize(LeaderBoardRow<10> *this, bdRefe
 LbGlob *__thiscall LbGlob::LbGlob(LbGlob *this);
 Leaderboard *__thiscall Leaderboard::Leaderboard(Leaderboard *this);
 LeaderBoardResult<LeaderBoardRow<10>,100> *__thiscall LeaderBoardResult<LeaderBoardRow<10>,100>::LeaderBoardResult<LeaderBoardRow<10>,100>(
-        LeaderBoardResult<LeaderBoardRow<10>,100> *this);
+                LeaderBoardResult<LeaderBoardRow<10>,100> *this);
 void __thiscall LeaderBoardResult<LeaderBoardRow<10>,100>::~LeaderBoardResult<LeaderBoardRow<10>,100>(
-        LeaderBoardResult<LeaderBoardRow<10>,100> *this);
+                LeaderBoardResult<LeaderBoardRow<10>,100> *this);
 void __thiscall LbGlob::~LbGlob(LbGlob *this);
 void __thiscall Leaderboard::~Leaderboard(Leaderboard *this);

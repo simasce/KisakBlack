@@ -23,26 +23,26 @@ void __cdecl SL_AddUser(unsigned int stringValue, unsigned int user, scriptInsta
 void __cdecl SL_AddUserInternal(scriptInstance_t inst, RefString *refStr, unsigned int user);
 unsigned int __cdecl SL_GetUser(unsigned int stringValue, scriptInstance_t inst);
 unsigned int __cdecl SL_GetStringOfSize(
-        scriptInstance_t inst,
-        char *str,
-        unsigned int user,
-        unsigned int len,
-        int type);
+                scriptInstance_t inst,
+                char *str,
+                unsigned int user,
+                unsigned int len,
+                int type);
 unsigned int __cdecl SL_GetString_(scriptInstance_t inst, char *str, unsigned int user, int type);
 unsigned int __cdecl SL_GetString(char *str, unsigned int user, scriptInstance_t inst);
 unsigned int __cdecl SL_GetLowercaseString_(const char *str, unsigned int user, int type, scriptInstance_t inst);
 unsigned int __cdecl SL_GetLowercaseStringOfSize(
-        scriptInstance_t inst,
-        const char *str,
-        unsigned int user,
-        unsigned int len,
-        int type);
+                scriptInstance_t inst,
+                const char *str,
+                unsigned int user,
+                unsigned int len,
+                int type);
 unsigned int __cdecl SL_GetLowercaseString(const char *str, unsigned int user, scriptInstance_t inst);
 unsigned int __cdecl SL_ConvertToLowercase(
-        scriptInstance_t inst,
-        unsigned int stringValue,
-        unsigned int user,
-        int type);
+                scriptInstance_t inst,
+                unsigned int stringValue,
+                unsigned int user,
+                int type);
 void __cdecl SL_TransferRefToUser(scriptInstance_t inst, unsigned int stringValue, unsigned int user);
 void __cdecl SL_CheckExists(scriptInstance_t inst, unsigned int stringValue);
 void __cdecl SL_AddRefToString(unsigned int stringValue, scriptInstance_t inst);

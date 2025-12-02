@@ -1,7 +1,7 @@
 #pragma once
 
 // this is the define for determining if we have an asm version of a C function
-#if (defined _M_IX86 || defined __i386__) && !defined __sun__  && !defined __LCC__
+#if (defined _M_IX86 || defined __i386__) && !defined __sun__    && !defined __LCC__
 #define id386	1
 #else
 #define id386	0
@@ -88,21 +88,21 @@ unsigned __int8 __cdecl I_CleanChar(unsigned __int8 character);
 #undef HIBYTE
 
 #if defined(__GNUC__)
-typedef          long long ll;
+typedef                    long long ll;
 typedef unsigned long long ull;
 #define __int64 long long
 #define __int32 int
 #define __int16 short
-#define __int8  char
+#define __int8    char
 #define MAKELL(num) num ## LL
 #define FMT_64 "ll"
 #elif defined(_MSC_VER)
-typedef          __int64 ll;
+typedef                    __int64 ll;
 typedef unsigned __int64 ull;
 #define MAKELL(num) num ## i64
 #define FMT_64 "I64"
 #elif defined (__BORLANDC__)
-typedef          __int64 ll;
+typedef                    __int64 ll;
 typedef unsigned __int64 ull;
 #define MAKELL(num) num ## i64
 #define FMT_64 "L"
@@ -114,23 +114,23 @@ typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
 
-typedef   signed char   int8; // LWSS: slight changes here made to conform with steam api...
-typedef   signed char   sint8;
-typedef unsigned char   uint8;
-typedef          short  int16;
-typedef   signed short  sint16;
-typedef unsigned short  uint16;
+typedef     signed char     int8; // LWSS: slight changes here made to conform with steam api...
+typedef     signed char     sint8;
+typedef unsigned char     uint8;
+typedef                    short    int16;
+typedef     signed short    sint16;
+typedef unsigned short    uint16;
 typedef __int32				int32;
 typedef unsigned __int32 uint32;
 typedef signed long			sint32;
-typedef ll              int64;
-typedef ll              sint64;
-typedef ull             uint64;
+typedef ll                            int64;
+typedef ll                            sint64;
+typedef ull                         uint64;
 
 // Partially defined types. They are used when the decompiler does not know
 // anything about the type except its size.
-#define _BYTE  uint8
-#define _WORD  uint16
+#define _BYTE    uint8
+#define _WORD    uint16
 #define _DWORD uint32
 #define _QWORD uint64
 #if !defined(_MSC_VER)
@@ -144,121 +144,121 @@ typedef ull             uint64;
 #define M_PI_HALF (M_PI / 2.0) // LWSS ADD
 
 // Some convenience macros to make partial accesses nicer
-#define LAST_IND(x,part_type)    (sizeof(x)/sizeof(part_type) - 1)
+#define LAST_IND(x,part_type)        (sizeof(x)/sizeof(part_type) - 1)
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN
-#  define LOW_IND(x,part_type)   LAST_IND(x,part_type)
-#  define HIGH_IND(x,part_type)  0
+#    define LOW_IND(x,part_type)     LAST_IND(x,part_type)
+#    define HIGH_IND(x,part_type)    0
 #else
-#  define HIGH_IND(x,part_type)  LAST_IND(x,part_type)
-#  define LOW_IND(x,part_type)   0
+#    define HIGH_IND(x,part_type)    LAST_IND(x,part_type)
+#    define LOW_IND(x,part_type)     0
 #endif
 // first unsigned macros:
-#define BYTEn(x, n)   (*((_BYTE*)&(x)+n))
-#define WORDn(x, n)   (*((_WORD*)&(x)+n))
-#define DWORDn(x, n)  (*((_DWORD*)&(x)+n))
+#define BYTEn(x, n)     (*((_BYTE*)&(x)+n))
+#define WORDn(x, n)     (*((_WORD*)&(x)+n))
+#define DWORDn(x, n)    (*((_DWORD*)&(x)+n))
 
-#define LOBYTE(x)  BYTEn(x,LOW_IND(x,_BYTE))
-#define LOWORD(x)  WORDn(x,LOW_IND(x,_WORD))
+#define LOBYTE(x)    BYTEn(x,LOW_IND(x,_BYTE))
+#define LOWORD(x)    WORDn(x,LOW_IND(x,_WORD))
 #define LODWORD(x) DWORDn(x,LOW_IND(x,_DWORD))
-#define HIBYTE(x)  BYTEn(x,HIGH_IND(x,_BYTE))
-#define HIWORD(x)  WORDn(x,HIGH_IND(x,_WORD))
+#define HIBYTE(x)    BYTEn(x,HIGH_IND(x,_BYTE))
+#define HIWORD(x)    WORDn(x,HIGH_IND(x,_WORD))
 #define HIDWORD(x) DWORDn(x,HIGH_IND(x,_DWORD))
-#define BYTE1(x)   BYTEn(x,  1)         // byte 1 (counting from 0)
-#define BYTE2(x)   BYTEn(x,  2)
-#define BYTE3(x)   BYTEn(x,  3)
-#define BYTE4(x)   BYTEn(x,  4)
-#define BYTE5(x)   BYTEn(x,  5)
-#define BYTE6(x)   BYTEn(x,  6)
-#define BYTE7(x)   BYTEn(x,  7)
-#define BYTE8(x)   BYTEn(x,  8)
-#define BYTE9(x)   BYTEn(x,  9)
-#define BYTE10(x)  BYTEn(x, 10)
-#define BYTE11(x)  BYTEn(x, 11)
-#define BYTE12(x)  BYTEn(x, 12)
-#define BYTE13(x)  BYTEn(x, 13)
-#define BYTE14(x)  BYTEn(x, 14)
-#define BYTE15(x)  BYTEn(x, 15)
-#define WORD1(x)   WORDn(x,  1)
-#define WORD2(x)   WORDn(x,  2)         // third word of the object, unsigned
-#define WORD3(x)   WORDn(x,  3)
-#define WORD4(x)   WORDn(x,  4)
-#define WORD5(x)   WORDn(x,  5)
-#define WORD6(x)   WORDn(x,  6)
-#define WORD7(x)   WORDn(x,  7)
+#define BYTE1(x)     BYTEn(x,    1)                 // byte 1 (counting from 0)
+#define BYTE2(x)     BYTEn(x,    2)
+#define BYTE3(x)     BYTEn(x,    3)
+#define BYTE4(x)     BYTEn(x,    4)
+#define BYTE5(x)     BYTEn(x,    5)
+#define BYTE6(x)     BYTEn(x,    6)
+#define BYTE7(x)     BYTEn(x,    7)
+#define BYTE8(x)     BYTEn(x,    8)
+#define BYTE9(x)     BYTEn(x,    9)
+#define BYTE10(x)    BYTEn(x, 10)
+#define BYTE11(x)    BYTEn(x, 11)
+#define BYTE12(x)    BYTEn(x, 12)
+#define BYTE13(x)    BYTEn(x, 13)
+#define BYTE14(x)    BYTEn(x, 14)
+#define BYTE15(x)    BYTEn(x, 15)
+#define WORD1(x)     WORDn(x,    1)
+#define WORD2(x)     WORDn(x,    2)                 // third word of the object, unsigned
+#define WORD3(x)     WORDn(x,    3)
+#define WORD4(x)     WORDn(x,    4)
+#define WORD5(x)     WORDn(x,    5)
+#define WORD6(x)     WORDn(x,    6)
+#define WORD7(x)     WORDn(x,    7)
 
 // now signed macros (the same but with sign extension)
-#define SBYTEn(x, n)   (*((int8*)&(x)+n))
-#define SWORDn(x, n)   (*((int16*)&(x)+n))
-#define SDWORDn(x, n)  (*((int32*)&(x)+n))
+#define SBYTEn(x, n)     (*((int8*)&(x)+n))
+#define SWORDn(x, n)     (*((int16*)&(x)+n))
+#define SDWORDn(x, n)    (*((int32*)&(x)+n))
 
-#define SLOBYTE(x)  SBYTEn(x,LOW_IND(x,int8))
-#define SLOWORD(x)  SWORDn(x,LOW_IND(x,int16))
+#define SLOBYTE(x)    SBYTEn(x,LOW_IND(x,int8))
+#define SLOWORD(x)    SWORDn(x,LOW_IND(x,int16))
 #define SLODWORD(x) SDWORDn(x,LOW_IND(x,int32))
-#define SHIBYTE(x)  SBYTEn(x,HIGH_IND(x,int8))
-#define SHIWORD(x)  SWORDn(x,HIGH_IND(x,int16))
+#define SHIBYTE(x)    SBYTEn(x,HIGH_IND(x,int8))
+#define SHIWORD(x)    SWORDn(x,HIGH_IND(x,int16))
 #define SHIDWORD(x) SDWORDn(x,HIGH_IND(x,int32))
-#define SBYTE1(x)   SBYTEn(x,  1)
-#define SBYTE2(x)   SBYTEn(x,  2)
-#define SBYTE3(x)   SBYTEn(x,  3)
-#define SBYTE4(x)   SBYTEn(x,  4)
-#define SBYTE5(x)   SBYTEn(x,  5)
-#define SBYTE6(x)   SBYTEn(x,  6)
-#define SBYTE7(x)   SBYTEn(x,  7)
-#define SBYTE8(x)   SBYTEn(x,  8)
-#define SBYTE9(x)   SBYTEn(x,  9)
-#define SBYTE10(x)  SBYTEn(x, 10)
-#define SBYTE11(x)  SBYTEn(x, 11)
-#define SBYTE12(x)  SBYTEn(x, 12)
-#define SBYTE13(x)  SBYTEn(x, 13)
-#define SBYTE14(x)  SBYTEn(x, 14)
-#define SBYTE15(x)  SBYTEn(x, 15)
-#define SWORD1(x)   SWORDn(x,  1)
-#define SWORD2(x)   SWORDn(x,  2)
-#define SWORD3(x)   SWORDn(x,  3)
-#define SWORD4(x)   SWORDn(x,  4)
-#define SWORD5(x)   SWORDn(x,  5)
-#define SWORD6(x)   SWORDn(x,  6)
-#define SWORD7(x)   SWORDn(x,  7)
+#define SBYTE1(x)     SBYTEn(x,    1)
+#define SBYTE2(x)     SBYTEn(x,    2)
+#define SBYTE3(x)     SBYTEn(x,    3)
+#define SBYTE4(x)     SBYTEn(x,    4)
+#define SBYTE5(x)     SBYTEn(x,    5)
+#define SBYTE6(x)     SBYTEn(x,    6)
+#define SBYTE7(x)     SBYTEn(x,    7)
+#define SBYTE8(x)     SBYTEn(x,    8)
+#define SBYTE9(x)     SBYTEn(x,    9)
+#define SBYTE10(x)    SBYTEn(x, 10)
+#define SBYTE11(x)    SBYTEn(x, 11)
+#define SBYTE12(x)    SBYTEn(x, 12)
+#define SBYTE13(x)    SBYTEn(x, 13)
+#define SBYTE14(x)    SBYTEn(x, 14)
+#define SBYTE15(x)    SBYTEn(x, 15)
+#define SWORD1(x)     SWORDn(x,    1)
+#define SWORD2(x)     SWORDn(x,    2)
+#define SWORD3(x)     SWORDn(x,    3)
+#define SWORD4(x)     SWORDn(x,    4)
+#define SWORD5(x)     SWORDn(x,    5)
+#define SWORD6(x)     SWORDn(x,    6)
+#define SWORD7(x)     SWORDn(x,    7)
 
 // Generate a pair of operands. S stands for 'signed'
-#define __SPAIR16__(high, low)  (((int16)  (high) <<  8) | (uint8) (low))
-#define __SPAIR32__(high, low)  (((int32)  (high) << 16) | (uint16)(low))
-#define __SPAIR64__(high, low)  (((int64)  (high) << 32) | (uint32)(low))
+#define __SPAIR16__(high, low)    (((int16)    (high) <<    8) | (uint8) (low))
+#define __SPAIR32__(high, low)    (((int32)    (high) << 16) | (uint16)(low))
+#define __SPAIR64__(high, low)    (((int64)    (high) << 32) | (uint32)(low))
 #define __SPAIR128__(high, low) (((int128) (high) << 64) | (uint64)(low))
-#define __PAIR16__(high, low)   (((uint16) (high) <<  8) | (uint8) (low))
-#define __PAIR32__(high, low)   (((uint32) (high) << 16) | (uint16)(low))
-#define __PAIR64__(high, low)   (((uint64) (high) << 32) | (uint32)(low))
-#define __PAIR128__(high, low)  (((uint128)(high) << 64) | (uint64)(low))
+#define __PAIR16__(high, low)     (((uint16) (high) <<    8) | (uint8) (low))
+#define __PAIR32__(high, low)     (((uint32) (high) << 16) | (uint16)(low))
+#define __PAIR64__(high, low)     (((uint64) (high) << 32) | (uint32)(low))
+#define __PAIR128__(high, low)    (((uint128)(high) << 64) | (uint64)(low))
 
 // rotate left
 template<class T> T __ROL__(T value, int count)
 {
-    const uint nbits = sizeof(T) * 8;
+        const uint nbits = sizeof(T) * 8;
 
-    if (count > 0)
-    {
-        count %= nbits;
-        T high = value >> (nbits - count);
-        if (T(-1) < 0) // signed value
-            high &= ~((T(-1) << count));
-        value <<= count;
-        value |= high;
-    }
-    else
-    {
-        count = -count % nbits;
-        T low = value << (nbits - count);
-        value >>= count;
-        value |= low;
-    }
-    return value;
+        if (count > 0)
+        {
+                count %= nbits;
+                T high = value >> (nbits - count);
+                if (T(-1) < 0) // signed value
+                        high &= ~((T(-1) << count));
+                value <<= count;
+                value |= high;
+        }
+        else
+        {
+                count = -count % nbits;
+                T low = value << (nbits - count);
+                value >>= count;
+                value |= low;
+        }
+        return value;
 }
 
-inline uint8  __ROL1__(uint8  value, int count) { return __ROL__((uint8)value, count); }
+inline uint8    __ROL1__(uint8    value, int count) { return __ROL__((uint8)value, count); }
 inline uint16 __ROL2__(uint16 value, int count) { return __ROL__((uint16)value, count); }
 inline uint32 __ROL4__(uint32 value, int count) { return __ROL__((uint32)value, count); }
 inline uint64 __ROL8__(uint64 value, int count) { return __ROL__((uint64)value, count); }
-inline uint8  __ROR1__(uint8  value, int count) { return __ROL__((uint8)value, -count); }
+inline uint8    __ROR1__(uint8    value, int count) { return __ROL__((uint8)value, -count); }
 inline uint16 __ROR2__(uint16 value, int count) { return __ROL__((uint16)value, -count); }
 inline uint32 __ROR4__(uint32 value, int count) { return __ROL__((uint32)value, -count); }
 inline uint64 __ROR8__(uint64 value, int count) { return __ROL__((uint64)value, -count); }
@@ -277,113 +277,113 @@ inline void BLOPS_NULLSUB(void *fakearg = nullptr)
 //=============================================
 
 enum TraceHitType : __int32
-{                                       // XREF: vehicle_cache_t/r
-                                        // trace_t/r ...
-    TRACE_HITTYPE_NONE         = 0x0,
-    TRACE_HITTYPE_ENTITY       = 0x1,
-    TRACE_HITTYPE_DYNENT_MODEL = 0x2,
-    TRACE_HITTYPE_DYNENT_BRUSH = 0x3,
-    TRACE_HITTYPE_GLASS        = 0x4,
+{                                                                             // XREF: vehicle_cache_t/r
+                                                                                // trace_t/r ...
+        TRACE_HITTYPE_NONE                 = 0x0,
+        TRACE_HITTYPE_ENTITY             = 0x1,
+        TRACE_HITTYPE_DYNENT_MODEL = 0x2,
+        TRACE_HITTYPE_DYNENT_BRUSH = 0x3,
+        TRACE_HITTYPE_GLASS                = 0x4,
 };
 
 struct TraceCheckCount // sizeof=0x8
-{                                       // XREF: TraceThreadInfo/r
-    int global;
-    int *partitions;
+{                                                                             // XREF: TraceThreadInfo/r
+        int global;
+        int *partitions;
 };
 
 struct TraceThreadInfo // sizeof=0x14
-{                                       // XREF: .data:TraceThreadInfo * g_traceThreadInfo/r
-                                        // traceWork_t/r
-    TraceCheckCount checkcount;
-    struct cbrush_t *box_brush;                // XREF: CM_Trace(trace_t *,float const * const,float const * const,float const * const,float const * const,uint,int,col_context_t &)+66E/r
-                                        // CM_Trace(trace_t *,float const * const,float const * const,float const * const,float const * const,uint,int,col_context_t &)+94C/r ...
-    struct cmodel_t *box_model;
-    struct PhysGeomList **geoms;
+{                                                                             // XREF: .data:TraceThreadInfo * g_traceThreadInfo/r
+                                                                                // traceWork_t/r
+        TraceCheckCount checkcount;
+        struct cbrush_t *box_brush;                                // XREF: CM_Trace(trace_t *,float const * const,float const * const,float const * const,float const * const,uint,int,col_context_t &)+66E/r
+                                                                                // CM_Trace(trace_t *,float const * const,float const * const,float const * const,float const * const,uint,int,col_context_t &)+94C/r ...
+        struct cmodel_t *box_model;
+        struct PhysGeomList **geoms;
 };
 
 struct trace_t // sizeof=0x38
-{                                       // XREF: actor_physics_local_t/r
-                                        // pml_t/r ...
-    hybrid_vector normal;               // XREF: AimTarget_IsTargetVisible+1B/w
-                                        // AimTarget_IsTargetVisible+28/w ...
-    float fraction;                     // XREF: AimTarget_IsTargetVisible+12B/r
-                                        // AimTarget_IsTargetVisible+16B/r ...
-    int sflags;                         // XREF: Mantle_Check(pmove_t *,pml_t *)+1EF/r
-                                        // Mantle_Check(pmove_t *,pml_t *):loc_41E705/r ...
-    int cflags;                         // XREF: CG_Laser_Add_Core+4C8/r
-                                        // FireBulletPenetrate+113F/r ...
-    TraceHitType hitType;               // XREF: Mantle_CheckLedge+4AE/r
-                                        // Weapon_Melee_internal:loc_6955C4/r ...
-    unsigned __int16 hitId;             // XREF: Bullet_FirePenetrate+541/r
-                                        // Weapon_Melee_internal+139/r ...
-    unsigned __int16 modelIndex;        // XREF: Weapon_Melee_internal+43F/r
-                                        // Flame_Phys_Update_Items_PerStream(bool,int,flameGeneric_s * *,int)+A27/w ...
-    unsigned __int16 partName;          // XREF: Weapon_Melee_internal+43A/r
-                                        // Flame_Phys_Update_Items_PerStream(bool,int,flameGeneric_s * *,int)+A30/w ...
-    unsigned __int16 boneIndex;         // XREF: FireBulletPenetrate+1133/r
-                                        // Weapon_Melee_internal+400/r ...
-    unsigned __int16 partGroup;         // XREF: Weapon_Melee_internal+444/r
-                                        // Flame_Phys_Update_Items_PerStream(bool,int,flameGeneric_s * *,int)+A39/w ...
-    bool allsolid;                      // XREF: is_not_penetrating+9B/r
-                                        // PM_GroundTrace:loc_432679/r ...
-    bool startsolid;                    // XREF: Mantle_CheckLedge+1C8/r
-                                        // Mantle_CheckLedge+254/r ...
-    bool walkable;                      // XREF: Mantle_CheckLedge:loc_41EFB2/r
-                                        // PM_GroundTrace+3FD/r ...
-    // padding byte
-    // padding byte
-    // padding byte
-    struct cStaticModel_s *staticModel;        // XREF: Phys_FindAndRenderBulletMesh(float const * const,float const * const,int,bool)+47/w
-                                        // Phys_FindAndRenderBulletMesh(float const * const,float const * const,int,bool)+334/r ...
-    int hitPartition;                   // XREF: Mount_CheckLedge+10/w
-                                        // BG_CheckProne(playerState_s const *,int,float const * const,float,float,float,float *,float *,bool,bool,bool,uchar,proneCheckType_t,float)+10/w ...
+{                                                                             // XREF: actor_physics_local_t/r
+                                                                                // pml_t/r ...
+        hybrid_vector normal;                             // XREF: AimTarget_IsTargetVisible+1B/w
+                                                                                // AimTarget_IsTargetVisible+28/w ...
+        float fraction;                                         // XREF: AimTarget_IsTargetVisible+12B/r
+                                                                                // AimTarget_IsTargetVisible+16B/r ...
+        int sflags;                                                 // XREF: Mantle_Check(pmove_t *,pml_t *)+1EF/r
+                                                                                // Mantle_Check(pmove_t *,pml_t *):loc_41E705/r ...
+        int cflags;                                                 // XREF: CG_Laser_Add_Core+4C8/r
+                                                                                // FireBulletPenetrate+113F/r ...
+        TraceHitType hitType;                             // XREF: Mantle_CheckLedge+4AE/r
+                                                                                // Weapon_Melee_internal:loc_6955C4/r ...
+        unsigned __int16 hitId;                         // XREF: Bullet_FirePenetrate+541/r
+                                                                                // Weapon_Melee_internal+139/r ...
+        unsigned __int16 modelIndex;                // XREF: Weapon_Melee_internal+43F/r
+                                                                                // Flame_Phys_Update_Items_PerStream(bool,int,flameGeneric_s * *,int)+A27/w ...
+        unsigned __int16 partName;                    // XREF: Weapon_Melee_internal+43A/r
+                                                                                // Flame_Phys_Update_Items_PerStream(bool,int,flameGeneric_s * *,int)+A30/w ...
+        unsigned __int16 boneIndex;                 // XREF: FireBulletPenetrate+1133/r
+                                                                                // Weapon_Melee_internal+400/r ...
+        unsigned __int16 partGroup;                 // XREF: Weapon_Melee_internal+444/r
+                                                                                // Flame_Phys_Update_Items_PerStream(bool,int,flameGeneric_s * *,int)+A39/w ...
+        bool allsolid;                                            // XREF: is_not_penetrating+9B/r
+                                                                                // PM_GroundTrace:loc_432679/r ...
+        bool startsolid;                                        // XREF: Mantle_CheckLedge+1C8/r
+                                                                                // Mantle_CheckLedge+254/r ...
+        bool walkable;                                            // XREF: Mantle_CheckLedge:loc_41EFB2/r
+                                                                                // PM_GroundTrace+3FD/r ...
+        // padding byte
+        // padding byte
+        // padding byte
+        struct cStaticModel_s *staticModel;                // XREF: Phys_FindAndRenderBulletMesh(float const * const,float const * const,int,bool)+47/w
+                                                                                // Phys_FindAndRenderBulletMesh(float const * const,float const * const,int,bool)+334/r ...
+        int hitPartition;                                     // XREF: Mount_CheckLedge+10/w
+                                                                                // BG_CheckProne(playerState_s const *,int,float const * const,float,float,float,float *,float *,bool,bool,bool,uchar,proneCheckType_t,float)+10/w ...
 };
 
 union FloatWriteSwap_union // sizeof=0x4
-{                                       // ...
-    float f;
-    int n;
-    unsigned __int8 b[4];
+{                                                                             // ...
+        float f;
+        int n;
+        unsigned __int8 b[4];
 };
 
 
 struct cspField_t // sizeof=0xC
-{                                       // XREF: .data:weaponDefFields/r
-                                        // .data:destructiblePieceFields/r ...
-    const char *szName;                 // XREF: BG_ParsePenetrationDepthTable+13D/w
-                                        // G_ParseHitLocDmgTable(void)+5D/w ...
-    int iOffset;                        // XREF: BG_ParsePenetrationDepthTable+156/w
-                                        // G_ParseHitLocDmgTable(void)+70/w
-    int iFieldType;                     // XREF: BG_ParsePenetrationDepthTable+166/w
-                                        // G_ParseHitLocDmgTable(void)+7D/w
+{                                                                             // XREF: .data:weaponDefFields/r
+                                                                                // .data:destructiblePieceFields/r ...
+        const char *szName;                                 // XREF: BG_ParsePenetrationDepthTable+13D/w
+                                                                                // G_ParseHitLocDmgTable(void)+5D/w ...
+        int iOffset;                                                // XREF: BG_ParsePenetrationDepthTable+156/w
+                                                                                // G_ParseHitLocDmgTable(void)+70/w
+        int iFieldType;                                         // XREF: BG_ParsePenetrationDepthTable+166/w
+                                                                                // G_ParseHitLocDmgTable(void)+7D/w
 };
 
 struct orientation_t // sizeof=0x30
-{                                       // XREF: .rdata:orientation_t const orIdentity/r
-                                        // snd_listener/r ...
-    float origin[3];                    // XREF: Weapon_DrawAxisOrigin(orientation_t,float)+EB/r
-                                        // Weapon_DrawAxisOrigin(orientation_t,float)+102/r ...
-    float axis[3][3];                   // XREF: CG_Laser_Add(centity_s *,DObj *,cpose_t *,float const * const,LaserOwnerEnum)+50/o
-                                        // CG_UpdateHelicopterKillCam+152/o ...
+{                                                                             // XREF: .rdata:orientation_t const orIdentity/r
+                                                                                // snd_listener/r ...
+        float origin[3];                                        // XREF: Weapon_DrawAxisOrigin(orientation_t,float)+EB/r
+                                                                                // Weapon_DrawAxisOrigin(orientation_t,float)+102/r ...
+        float axis[3][3];                                     // XREF: CG_Laser_Add(centity_s *,DObj *,cpose_t *,float const * const,LaserOwnerEnum)+50/o
+                                                                                // CG_UpdateHelicopterKillCam+152/o ...
 };
 
 struct trajectory_t // sizeof=0x24
-{                                       // XREF: LerpEntityState/r
-                                        // LerpEntityState/r ...
-    unsigned __int8 trType;             // XREF: CScriptMover_SetupMoveSpeed+6AD/w
-                                        // CScr_LaunchRagdoll+147/w ...
-    // padding byte
-    // padding byte
-    // padding byte
-    int trTime;                         // XREF: CScriptMover_SetupMoveSpeed+6C9/w
-                                        // CScr_LaunchRagdoll+14E/w ...
-    int trDuration;                     // XREF: CScriptMover_SetupMoveSpeed+6DF/w
-                                        // CScriptMover_SetupMoveSpeed+7E0/r ...
-    float trBase[3];                    // XREF: CScriptMover_SetupMoveSpeed+6E9/w
-                                        // CScriptMover_SetupMoveSpeed+6F6/w ...
-    float trDelta[3];                   // XREF: CScriptMover_SetupMoveSpeed+70F/w
-                                        // CScriptMover_SetupMoveSpeed+71C/w ...
+{                                                                             // XREF: LerpEntityState/r
+                                                                                // LerpEntityState/r ...
+        unsigned __int8 trType;                         // XREF: CScriptMover_SetupMoveSpeed+6AD/w
+                                                                                // CScr_LaunchRagdoll+147/w ...
+        // padding byte
+        // padding byte
+        // padding byte
+        int trTime;                                                 // XREF: CScriptMover_SetupMoveSpeed+6C9/w
+                                                                                // CScr_LaunchRagdoll+14E/w ...
+        int trDuration;                                         // XREF: CScriptMover_SetupMoveSpeed+6DF/w
+                                                                                // CScriptMover_SetupMoveSpeed+7E0/r ...
+        float trBase[3];                                        // XREF: CScriptMover_SetupMoveSpeed+6E9/w
+                                                                                // CScriptMover_SetupMoveSpeed+6F6/w ...
+        float trDelta[3];                                     // XREF: CScriptMover_SetupMoveSpeed+70F/w
+                                                                                // CScriptMover_SetupMoveSpeed+71C/w ...
 };
 
 static const float colorBlack[4] = { 0.0, 0.0, 0.0, 1.0 }; // idb
@@ -466,32 +466,32 @@ bool __cdecl Info_Validate(char *s);
 void __cdecl Info_SetValueForKey(char *s, char *key, const char *value);
 void __cdecl Info_SetValueForKey_Big(char *s, char *key, const char *value);
 bool __cdecl ParseConfigStringToStruct(
-        unsigned __int8 *pStruct,
-        const cspField_t *pFieldList,
-        int iNumFields,
-        char *pszBuffer,
-        int iMaxFieldTypes,
-        int (__cdecl *parseSpecialFieldType)(unsigned __int8 *, const char *, const int, const int),
-        void (__cdecl *parseStrCpy)(unsigned __int8 *, const char *));
+                unsigned __int8 *pStruct,
+                const cspField_t *pFieldList,
+                int iNumFields,
+                char *pszBuffer,
+                int iMaxFieldTypes,
+                int (__cdecl *parseSpecialFieldType)(unsigned __int8 *, const char *, const int, const int),
+                void (__cdecl *parseStrCpy)(unsigned __int8 *, const char *));
 bool __cdecl KeyValueToField(
-        unsigned __int8 *pStruct,
-        const cspField_t *pField,
-        char *pszKeyValue,
-        int iMaxFieldTypes,
-        int (__cdecl *parseSpecialFieldType)(unsigned __int8 *, const char *, const int, const int),
-        void (__cdecl *parseStrcpy)(unsigned __int8 *, const char *));
+                unsigned __int8 *pStruct,
+                const cspField_t *pField,
+                char *pszKeyValue,
+                int iMaxFieldTypes,
+                int (__cdecl *parseSpecialFieldType)(unsigned __int8 *, const char *, const int, const int),
+                void (__cdecl *parseStrcpy)(unsigned __int8 *, const char *));
 bool __cdecl ParseConfigStringToStructMerged(
-        unsigned __int8 *pStruct,
-        cspField_t *pFieldList,
-        int iNumFields,
-        const char *mergedName,
-        const char **pszBuffer,
-        const char **sourceName,
-        char *pszMergedBuffer,
-        int iMaxFieldTypes,
-        int (__cdecl *parseSpecialFieldType)(unsigned __int8 *, const char *, const int, const int),
-        void (__cdecl *parseStrCpy)(unsigned __int8 *, const char *),
-        int (__cdecl *parseMergeSpecialCase)(const char *, char **, char *, int));
+                unsigned __int8 *pStruct,
+                cspField_t *pFieldList,
+                int iNumFields,
+                const char *mergedName,
+                const char **pszBuffer,
+                const char **sourceName,
+                char *pszMergedBuffer,
+                int iMaxFieldTypes,
+                int (__cdecl *parseSpecialFieldType)(unsigned __int8 *, const char *, const int, const int),
+                void (__cdecl *parseStrCpy)(unsigned __int8 *, const char *),
+                int (__cdecl *parseMergeSpecialCase)(const char *, char **, char *, int));
 double __cdecl GetLeanFraction(float fFrac);
 double __cdecl UnGetLeanFraction(float fFrac);
 void __cdecl AddLeanToPosition(float *position, float fViewYaw, float fLeanFrac, float fViewRoll, float fLeanDist);

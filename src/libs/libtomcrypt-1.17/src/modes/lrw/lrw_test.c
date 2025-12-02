@@ -11,24 +11,24 @@
 #include "tomcrypt.h"
 
 /**
-   @file lrw_test.c
-   LRW_MODE implementation, test LRW, Tom St Denis
+     @file lrw_test.c
+     LRW_MODE implementation, test LRW, Tom St Denis
 */
 
 #ifdef LTC_LRW_MODE
 
 /**
-  Test LRW against specs
-  @return CRYPT_OK if goodly
+    Test LRW against specs
+    @return CRYPT_OK if goodly
 */
 int lrw_test(void)
 {
-#ifndef  LTC_TEST
-   return CRYPT_NOP;
+#ifndef    LTC_TEST
+     return CRYPT_NOP;
 #else
-   static const struct {
-      unsigned char key[16], tweak[16], IV[16], P[16], expected_tweak[16], C[16];
-   } tests[] = {
+     static const struct {
+            unsigned char key[16], tweak[16], IV[16], P[16], expected_tweak[16], C[16];
+     } tests[] = {
 
 {
 { 0x45, 0x62, 0xac, 0x25, 0xf8, 0x28, 0x17, 0x6d, 0x4c, 0x26, 0x84, 0x14, 0xb5, 0x68, 0x01, 0x85 },
@@ -69,61 +69,61 @@ int lrw_test(void)
 }
 };
 
-  int idx, err, x;
-  symmetric_LRW lrw;
-  unsigned char buf[2][16];
+    int idx, err, x;
+    symmetric_LRW lrw;
+    unsigned char buf[2][16];
 
-  idx = find_cipher("aes");
-  if (idx == -1) {
-     idx = find_cipher("rijndael");
-     if (idx == -1) {
-        return CRYPT_NOP;
-     }
-  }
+    idx = find_cipher("aes");
+    if (idx == -1) {
+         idx = find_cipher("rijndael");
+         if (idx == -1) {
+                return CRYPT_NOP;
+         }
+    }
 
-  for (x = 0; x < (int)(sizeof(tests)/sizeof(tests[0])); x++) {
-     /* schedule it */
-     if ((err = lrw_start(idx, tests[x].IV, tests[x].key, 16, tests[x].tweak, 0, &lrw)) != CRYPT_OK) {
-        return err;
-     }
+    for (x = 0; x < (int)(sizeof(tests)/sizeof(tests[0])); x++) {
+         /* schedule it */
+         if ((err = lrw_start(idx, tests[x].IV, tests[x].key, 16, tests[x].tweak, 0, &lrw)) != CRYPT_OK) {
+                return err;
+         }
 
-     /* check pad against expected tweak */
-     if (XMEMCMP(tests[x].expected_tweak, lrw.pad, 16)) {
-        lrw_done(&lrw);
-        return CRYPT_FAIL_TESTVECTOR;
-     }
+         /* check pad against expected tweak */
+         if (XMEMCMP(tests[x].expected_tweak, lrw.pad, 16)) {
+                lrw_done(&lrw);
+                return CRYPT_FAIL_TESTVECTOR;
+         }
 
-     /* process block */
-     if ((err = lrw_encrypt(tests[x].P, buf[0], 16, &lrw)) != CRYPT_OK) {
-        lrw_done(&lrw);
-        return err;
-     }
+         /* process block */
+         if ((err = lrw_encrypt(tests[x].P, buf[0], 16, &lrw)) != CRYPT_OK) {
+                lrw_done(&lrw);
+                return err;
+         }
 
-     if (XMEMCMP(buf[0], tests[x].C, 16)) {
-        lrw_done(&lrw);
-        return CRYPT_FAIL_TESTVECTOR;
-     }
+         if (XMEMCMP(buf[0], tests[x].C, 16)) {
+                lrw_done(&lrw);
+                return CRYPT_FAIL_TESTVECTOR;
+         }
 
-     /* process block */
-     if ((err = lrw_setiv(tests[x].IV, 16, &lrw)) != CRYPT_OK) { 
-        lrw_done(&lrw);
-        return err;
-     }
+         /* process block */
+         if ((err = lrw_setiv(tests[x].IV, 16, &lrw)) != CRYPT_OK) { 
+                lrw_done(&lrw);
+                return err;
+         }
 
-     if ((err = lrw_decrypt(buf[0], buf[1], 16, &lrw)) != CRYPT_OK) {
-        lrw_done(&lrw);
-        return err;
-     }
+         if ((err = lrw_decrypt(buf[0], buf[1], 16, &lrw)) != CRYPT_OK) {
+                lrw_done(&lrw);
+                return err;
+         }
 
-     if (XMEMCMP(buf[1], tests[x].P, 16)) {
-        lrw_done(&lrw);
-        return CRYPT_FAIL_TESTVECTOR;
+         if (XMEMCMP(buf[1], tests[x].P, 16)) {
+                lrw_done(&lrw);
+                return CRYPT_FAIL_TESTVECTOR;
+         }
+         if ((err = lrw_done(&lrw)) != CRYPT_OK) {
+                return err;
+         }
      }
-     if ((err = lrw_done(&lrw)) != CRYPT_OK) {
-        return err;
-     }
-   }
-   return CRYPT_OK;
+     return CRYPT_OK;
 #endif
 }
 

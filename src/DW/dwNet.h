@@ -15,15 +15,15 @@ char __cdecl dwRegisterSecIDAndKey(bdSecurityID *id, bdSecurityKey *key);
 int __cdecl dwSendTo(unsigned int length, unsigned __int8 *data, netadr_t to);
 int __cdecl dwRecvFrom(netadr_t *const from, unsigned __int8 *data, unsigned int size);
 bool __cdecl dwRegisterAddrHandle(
-        bdReference<bdAddrHandle> addrHandle,
-        bdSecurityID *secID,
-        unsigned int *index,
-        bool *newHandle);
+                bdReference<bdAddrHandle> addrHandle,
+                bdSecurityID *secID,
+                unsigned int *index,
+                bool *newHandle);
 unsigned int __cdecl dwGetNumFreeAddrHandleSlots();
 bool __cdecl dwCommonAddrToNetadr(netadr_t *const adr, bool *commonAddrBuf, bdCommonAddr *secID);
 bdReference<bdAddrHandle> *__cdecl dwAddrHandleIndexToAddrHandle(
-        bdReference<bdAddrHandle> *result,
-        int addrHandleIndex);
+                bdReference<bdAddrHandle> *result,
+                int addrHandleIndex);
 bdReference<bdAddrHandle> *__cdecl dwNetadrToAddrHandle(bdReference<bdAddrHandle> *result, const netadr_t *const adr);
 unsigned int __cdecl dwGetNumAddrHandles();
 bool __cdecl dwCloseConnection(netadr_t *const adr);
@@ -38,11 +38,11 @@ void __thiscall bdArray<bdString>::increaseCapacity(bdArray<bdString> *this, uns
 void __thiscall bdArray<bdInetAddr>::increaseCapacity(bdArray<bdInetAddr> *this, unsigned int increase);
 void __thiscall bdArray<bdInetAddr>::clear(bdArray<bdInetAddr> *this);
 bool __thiscall dwRawInterceptor::acceptPacket(
-        dwRawInterceptor *this,
-        bdSocket *socket,
-        bdAddr addr,
-        char *data,
-        unsigned int size,
-        unsigned __int8 type);
+                dwRawInterceptor *this,
+                bdSocket *socket,
+                bdAddr addr,
+                char *data,
+                unsigned int size,
+                unsigned __int8 type);
 char __cdecl checkRconAddr(bdAddr fromAddr);
 SecID *__thiscall SecID::SecID(SecID *this);

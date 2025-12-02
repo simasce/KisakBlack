@@ -11,17 +11,17 @@ char __cdecl Actor_TeamMoveNeedToCheckWait(unsigned __int8 moveMode, path_t *pPa
 bool __cdecl Actor_IsEnemy(actor_s *self, sentient_s *other);
 void __cdecl Actor_TeamMoveSetDodge(team_move_context_t *context, team_move_other_context_t *context_other);
 char __cdecl Actor_TeamMoveShouldTryDodgeSentient(
-        team_move_context_t *context,
-        team_move_other_context_t *context_other);
+                team_move_context_t *context,
+                team_move_other_context_t *context_other);
 void __cdecl Actor_AddToList(int *dodgeEntities, int *dodgeEntityCount, int arraysz, actor_s *pOtherActor);
 bool __cdecl Actor_TeamMoveTryDodge(team_move_context_t *context, team_move_other_context_t *context_other);
 char __cdecl Actor_TeamMoveConsiderSlowDown(team_move_context_t *context, ai_teammove_t *eResult);
 ai_teammove_t __cdecl Actor_TeamMoveNoDodge(team_move_context_t *context, ai_teammove_t eResult);
 void __cdecl Actor_TeamMoveInitializeContext(
-        actor_s *self,
-        bool bUseInterval,
-        bool bAllowGoalPileUp,
-        team_move_context_t *context);
+                actor_s *self,
+                bool bUseInterval,
+                bool bAllowGoalPileUp,
+                team_move_context_t *context);
 void __cdecl Actor_CalcInterval(actor_s *self, bool bUseInterval, float *fIntervalSqrdOut, float *fWalkIntervalSqrdOut);
 double __cdecl Actor_TeamMoveDeltaCorrection(actor_s *self, float fVelSelfSqrd);
 int __cdecl Actor_TeamMoveTrimPath(path_t *pPath, const team_move_context_t *context);

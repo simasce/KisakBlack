@@ -18,10 +18,10 @@ void __cdecl SND_OcclusionLpfCoef(float occlusionLevel, float occlusionRatio, fl
 double __cdecl powf(float _X, float _Y);
 double __cdecl I_fclamp(float val, float min, float max);
 void __cdecl SND_DspBiquadInPlace(
-        const snd_dsp_biquad_coef *coef,
-        snd_dsp_biquad_state *state,
-        unsigned int count,
-        float *input);
+                const snd_dsp_biquad_coef *coef,
+                snd_dsp_biquad_state *state,
+                unsigned int count,
+                float *input);
 void __cdecl SND_DspBiquadNormalize(float *a, float *b, snd_dsp_biquad_coef *coef);
 void __cdecl SND_DspBiquadHShelve(float Fs, float db, float Fhz, float q, snd_dsp_biquad_coef *coef);
 void __cdecl SND_DspBiquadLShelve(float Fs, float db, float Fhz, float q, snd_dsp_biquad_coef *coef);
@@ -30,57 +30,57 @@ void __cdecl SND_DspBiquadBpf(float Fs, float Fhz, float q, snd_dsp_biquad_coef 
 void __cdecl SND_DspPolyDistortion(unsigned int count, float amount, float *frame, float *temp);
 void __cdecl SND_DspClip(unsigned int count, float *c, float minimum, float maximum);
 void __cdecl SND_DspSquelch(
-        const snd_dsp_squelch_param *param,
-        snd_dsp_squelch_state *state,
-        float frameRate,
-        unsigned int frameCount,
-        float *input);
+                const snd_dsp_squelch_param *param,
+                snd_dsp_squelch_state *state,
+                float frameRate,
+                unsigned int frameCount,
+                float *input);
 double __cdecl SND_DspDecayConstant(float time, float dt, float targetAmplitude);
 double __cdecl logf(float _X);
 void __cdecl SND_DspFutzMono(
-        const snd_dsp_futz_param *param,
-        snd_dsp_futz_state *state,
-        float rate,
-        unsigned int count,
-        float *input,
-        float *tempa,
-        float *tempb);
+                const snd_dsp_futz_param *param,
+                snd_dsp_futz_state *state,
+                float rate,
+                unsigned int count,
+                float *input,
+                float *tempa,
+                float *tempb);
 void __cdecl SND_DspInterleave(unsigned int channel_count, unsigned int frame_count, float *in, float *out);
 void __cdecl SND_DspUninterleave(unsigned int channel_count, unsigned int frame_count, float *in, float *out);
 double __cdecl SND_DspLog(float m);
 double __cdecl SND_DspExp(float x);
 void __cdecl SND_DspDynamoDenormal(snd_dsp_dynamo_state *state);
 void __cdecl SND_DspDynamo(
-        unsigned int frameCount,
-        float sampleRate,
-        float TH,
-        float R,
-        float TA,
-        float TR,
-        snd_dsp_dynamo_state *state,
-        float *input,
-        float *gain);
+                unsigned int frameCount,
+                float sampleRate,
+                float TH,
+                float R,
+                float TA,
+                float TR,
+                snd_dsp_dynamo_state *state,
+                float *input,
+                float *gain);
 void __cdecl SND_DspFxSourceMono(
-        const snd_dsp_futz_param *params,
-        snd_dsp_source_state *state,
-        unsigned int frameCount,
-        float *frames,
-        float *tempa,
-        float *tempb);
+                const snd_dsp_futz_param *params,
+                snd_dsp_source_state *state,
+                unsigned int frameCount,
+                float *frames,
+                float *tempa,
+                float *tempb);
 void __cdecl SND_DspBiquadDenormal(snd_dsp_biquad_state *state);
 double __cdecl I_fsel(float comparand, float valGE, float valLT);
 void __cdecl SND_DspBiquadNanCheck(snd_dsp_biquad_state *state);
 void __cdecl SND_DspFxMasterNoVoiceSingleChannel(
-        unsigned int frameCount,
-        float frameRate,
-        float *frames,
-        snd_dsp_master_no_voice_params *params,
-        snd_dsp_master_no_voice_state *state,
-        snd_dsp_meters *meters);
+                unsigned int frameCount,
+                float frameRate,
+                float *frames,
+                snd_dsp_master_no_voice_params *params,
+                snd_dsp_master_no_voice_state *state,
+                snd_dsp_meters *meters);
 void __cdecl SND_DspFxMasterSingleChannel(
-        unsigned int frameCount,
-        float frameRate,
-        float *frames,
-        snd_dsp_master_params *params,
-        snd_dsp_master_state *state,
-        snd_dsp_meters *meters);
+                unsigned int frameCount,
+                float frameRate,
+                float *frames,
+                snd_dsp_master_params *params,
+                snd_dsp_master_state *state,
+                snd_dsp_meters *meters);

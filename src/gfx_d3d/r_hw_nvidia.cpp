@@ -2,6 +2,6 @@
 
 bool __cdecl NV_UseShadowNullColorRenderTarget()
 {
-  return dx.nvInitialized;
+    return dx.nvInitialized;
 }
 

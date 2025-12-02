@@ -9,7 +9,7 @@ void __cdecl R_InitWaterSimulationBuffers(unsigned int location);
 void __cdecl R_FreeWaterSimulationBuffers();
 void __cdecl R_SetWaterSimulationConstants(GfxCmdBufSourceState *state, float interp);
 // local variable allocation has failed, the output may be wrong!
-void  R_WaterSimulationRender(int a1@<ebp>, const float *eyePos, int time, unsigned int viewIndex);
+void    R_WaterSimulationRender(int a1@<ebp>, const float *eyePos, int time, unsigned int viewIndex);
 void __cdecl R_WaterSimulationTrackView(const float *eyePos);
 bool __cdecl R_WaterSimulationFillTile(tile_t *tile);
 char __cdecl R_WaterFindCells(int gridX, int gridY, ComWaterCell **cells);
@@ -22,7 +22,7 @@ char *__cdecl R_SurfaceAlloc(unsigned int size);
 void __cdecl R_WaterSimulationSwitchOff();
 void *FlushBuffers();
 // local variable allocation has failed, the output may be wrong!
-void  R_WaterSimulationUpdateFrame(channel_t<float4> *a1@<ebp>, const WaterSimulationCmd *cmd);
+void    R_WaterSimulationUpdateFrame(channel_t<float4> *a1@<ebp>, const WaterSimulationCmd *cmd);
 void __cdecl Float4LoadFloats(unsigned int x, unsigned int y, unsigned int z, unsigned int w, float4 *result);
 void *__cdecl Water_AllocVertexBuffer(IDirect3DVertexBuffer9 **vb, unsigned int buffersize);
 void *__cdecl Water_AllocIndexBuffer(IDirect3DIndexBuffer9 **ib, unsigned int buffersize);
@@ -42,7 +42,7 @@ void __cdecl R_WaterSimulationCmd(const WaterSimulationCmd *rawdata);
 unsigned intLockUpdateMutex();
 bool UnlockUpdateMutex();
 // local variable allocation has failed, the output may be wrong!
-void  R_WaterSimulationSkinMesh(float a1@<ebp>, const WaterSimulationCmd *cmd);
+void    R_WaterSimulationSkinMesh(float a1@<ebp>, const WaterSimulationCmd *cmd);
 float4 *__cdecl ReadValue(float4 *result, unsigned __int8 u, int v, unsigned int bufnum);
 double __cdecl R_WaterSimulationGetBaseHeight(const float *queryPos);
 double __cdecl R_WaterSimulationGetHeight(const float *queryPos);

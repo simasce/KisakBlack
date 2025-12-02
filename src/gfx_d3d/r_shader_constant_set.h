@@ -8,16 +8,16 @@ int __cdecl R_GetConstantIndex(const ShaderConstantSet *scs, const char *constan
 int __cdecl R_GetFreeConstantIndex(const ShaderConstantSet *scs);
 char __cdecl R_SetShaderConstantSetValue(ShaderConstantSet *scs, unsigned int index, float *v);
 char __cdecl R_SetShaderConstantSetValue(
-        ShaderConstantSet *scs,
-        unsigned int index,
-        float x,
-        float y,
-        float z,
-        float w);
+                ShaderConstantSet *scs,
+                unsigned int index,
+                float x,
+                float y,
+                float z,
+                float w);
 int __cdecl RB_ApplyShaderConstantSet(GfxCmdBufSourceState *gfxSourceState, const ShaderConstantSet *scs);
 const ShaderConstantSet *__cdecl RB_ShaderConstantSetFromDrawSurf(
-        const GfxBackEndData *backEndData,
-        const GfxDrawSurf *drawSurf);
+                const GfxBackEndData *backEndData,
+                const GfxDrawSurf *drawSurf);
 unsigned int __cdecl XModelDrawSurf_DecodeIndex(const GfxDrawSurf *drawSurf);
 void __cdecl RB_ApplyShaderConstantSet(GfxCmdBufSourceState *gfxSourceState, const GfxDrawSurf *drawSurf);
 bool __cdecl RB_DrawSurf_Uses_ShaderConstantSet(const GfxDrawSurf *drawSurf);
@@ -28,16 +28,16 @@ int __cdecl R_ShaderConstantSet_CopyToFrontEndDataOut(const ShaderConstantSet *s
 int __cdecl CopyShaderConstantSetToBackendData(const ShaderConstantSet *scs);
 const ShaderConstantSet *__cdecl R_ShaderConstantSet_FromFrontEndDataOut(unsigned int constSetindex);
 void __cdecl RB_SaveCurrentShaderConstantSetValues(
-        ShaderConstantSet *destSet,
-        GfxCmdBufSourceState *gfxSourceState,
-        const ShaderConstantSet *srcSet);
+                ShaderConstantSet *destSet,
+                GfxCmdBufSourceState *gfxSourceState,
+                const ShaderConstantSet *srcSet);
 ScopedShaderConstantSetUndo *__thiscall ScopedShaderConstantSetUndo::ScopedShaderConstantSetUndo(
-        ScopedShaderConstantSetUndo *this,
-        GfxCmdBufSourceState *sourceState,
-        const ShaderConstantSet *cscEA);
+                ScopedShaderConstantSetUndo *this,
+                GfxCmdBufSourceState *sourceState,
+                const ShaderConstantSet *cscEA);
 void __thiscall ScopedShaderConstantSetUndo::~ScopedShaderConstantSetUndo(ScopedShaderConstantSetUndo *this);
 void __cdecl R_ShaderConstantShowDebug(
-        const float *eyePos,
-        const float *objOrigin,
-        float objRad,
-        const ShaderConstantSet *scs);
+                const float *eyePos,
+                const float *objOrigin,
+                float objRad,
+                const ShaderConstantSet *scs);

@@ -14,11 +14,11 @@ int __cdecl Session_GetFreeSessionGraveYardSlot();
 void __cdecl Session_StartHost(SessionData_s *session, int sessionFlags, int numPrivateSlots, int numPublicSlots);
 int __cdecl Session_GetFreeCreateSessionSlot();
 void __cdecl Session_Modify(
-        int localControllerIndex,
-        SessionData_s *session,
-        int flags,
-        int publicSlots,
-        int privateSlots);
+                int localControllerIndex,
+                SessionData_s *session,
+                int flags,
+                int publicSlots,
+                int privateSlots);
 taskCompleteResults __cdecl Session_ModifyComplete(int slot);
 void __cdecl Session_EveryoneLeaveSessionAsync(int localControllerIndex, SessionData_s *session);
 char __cdecl Session_JoinInProgress();

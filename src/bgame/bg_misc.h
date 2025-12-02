@@ -8,10 +8,10 @@ bool __cdecl BG_PlayerTouchesItem(const playerState_s *ps, const entityState_s *
 bool __cdecl BG_PlayerCanPickUpWeaponType(const WeaponDef *weapDef, const playerState_s *ps);
 bool __cdecl BG_CanItemBeGrabbed(const entityState_s *ent, const playerState_s *ps, int touched);
 char __cdecl WeaponEntCanBeGrabbed(
-        const entityState_s *weaponEntState,
-        const playerState_s *ps,
-        int touched,
-        unsigned int weapIdx);
+                const entityState_s *weaponEntState,
+                const playerState_s *ps,
+                int touched,
+                unsigned int weapIdx);
 bool __cdecl BG_PlayerHasWeapon(const playerState_s *ps, unsigned int weaponIndex);
 const PlayerHeldWeapon *__cdecl BG_GetHeldWeaponConst(const playerState_s *ps, unsigned int weaponIndex);
 int __cdecl BG_GetHeldWeaponSlot(const playerState_s *ps, unsigned int weaponIndex);
@@ -30,13 +30,13 @@ void __cdecl BG_PlayerToEntitySetPitchAngles(playerState_s *ps, entityState_s *s
 void __cdecl BG_PlayerStateToEntityState(playerState_s *ps, entityState_s *s, int snap, unsigned __int8 handler);
 void __cdecl BG_PlayerToEntityProcessEvents(playerState_s *ps, entityState_s *s, unsigned __int8 handler);
 void __cdecl BG_PlayerToEntityProcessEvents_Internal(
-        entityState_s *s,
-        unsigned __int8 handler,
-        __int16 *eventSequence,
-        __int16 *oldEventSequence,
-        int *events,
-        unsigned int *eventParms,
-        unsigned int eventTime);
+                entityState_s *s,
+                unsigned __int8 handler,
+                __int16 *eventSequence,
+                __int16 *oldEventSequence,
+                int *events,
+                unsigned int *eventParms,
+                unsigned int eventTime);
 char __cdecl BG_PlayerToEntityShouldAddEvent(int event);
 void __cdecl BG_PlayerToEntitySetMisc(playerState_s *ps, entityState_s *s);
 void __thiscall renderOptions_s::CopyWeaponOptions(renderOptions_s *this, const renderOptions_s *o);
@@ -44,22 +44,22 @@ unsigned __int8 __cdecl BG_GetPlayerWeaponModel(const playerState_s *ps, unsigne
 renderOptions_s __cdecl BG_PlayerWeaponOptions(const playerState_s *ps, unsigned int weaponIndex);
 void __cdecl BG_PlayerToEntitySetTrajectory(playerState_s *ps, entityState_s *s, int snap);
 // local variable allocation has failed, the output may be wrong!
-char  BG_CheckProne@<al>(
-        cStaticModel_s *a1@<ebp>,
-        const playerState_s *ps,
-        int passEntityNum,
-        const float *vPos,
-        float fSize,
-        float fHeight,
-        float fYaw,
-        float *pfTorsoPitch,
-        float *pfWaistPitch,
-        bool isAlreadyProne,
-        bool isOnGround,
-        bool groundIsWalkable,
-        unsigned __int8 handler,
-        proneCheckType_t proneCheckType,
-        float prone_feet_dist);
+char    BG_CheckProne@<al>(
+                cStaticModel_s *a1@<ebp>,
+                const playerState_s *ps,
+                int passEntityNum,
+                const float *vPos,
+                float fSize,
+                float fHeight,
+                float fYaw,
+                float *pfTorsoPitch,
+                float *pfWaistPitch,
+                bool isAlreadyProne,
+                bool isOnGround,
+                bool groundIsWalkable,
+                unsigned __int8 handler,
+                proneCheckType_t proneCheckType,
+                float prone_feet_dist);
 void __cdecl Phys_Vec3ToNitrousVec(float *inVector, phys_vec3 *outVector);
 void __cdecl BG_GetPlayerViewOrigin(const playerState_s *ps, float *origin, int time);
 void __cdecl BG_GetPlayerViewDirection(const playerState_s *ps, float *forward, float *right, float *up);

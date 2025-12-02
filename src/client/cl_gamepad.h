@@ -10,10 +10,10 @@ int __cdecl Gamepad_StringToPhysicalAxis(const char *axisName);
 int __cdecl Axis_StringToVirtualAxis(const char *axisName);
 int __cdecl Gamepad_InputTypeStringToId(const char *name);
 void __cdecl Gamepad_BindAxis(
-        GpadAxesGlob *gaGlob,
-        GamepadPhysicalAxis realIndex,
-        GamepadVirtualAxis axisIndex,
-        GamepadMapping mapType);
+                GpadAxesGlob *gaGlob,
+                GamepadPhysicalAxis realIndex,
+                GamepadVirtualAxis axisIndex,
+                GamepadMapping mapType);
 void __cdecl Axis_Unbindall_f();
 void __cdecl Gamepad_WriteBindings(int localClientNum, int f);
 const char *__cdecl Axis_NumToAxisString(GamepadPhysicalAxis axis);
@@ -24,17 +24,17 @@ void __cdecl CL_GamepadGenerateAPad(int localClientNum, int portIndex, unsigned 
 double __cdecl CL_GamepadAxisValue(int localClientNum, unsigned int virtualAxis);
 void __cdecl CL_GamepadResetMenuScrollTime(int localClientNum, int key, int down, unsigned int time);
 void __cdecl CL_GamepadButtonEvent(
-        int localClientNum,
-        int controllerIndex,
-        int key,
-        int buttonEvent,
-        unsigned int time,
-        GamePadButton gamePadButton);
+                int localClientNum,
+                int controllerIndex,
+                int key,
+                int buttonEvent,
+                unsigned int time,
+                GamePadButton gamePadButton);
 bool __cdecl CL_CheckForIgnoreDueToRepeat(int localClientNum, int key, int repeatCount, int time);
 char __cdecl IsGamepadKey(int key);
 void __cdecl CL_GamepadButtonEventForPort(
-        int portIndex,
-        int key,
-        int buttonEvent,
-        unsigned int time,
-        GamePadButton button);
+                int portIndex,
+                int key,
+                int buttonEvent,
+                unsigned int time,
+                GamePadButton button);

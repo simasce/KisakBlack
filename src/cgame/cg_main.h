@@ -20,11 +20,11 @@ void __cdecl CG_UpdateFov(float value);
 void __cdecl CG_SetThirdPerson(int value);
 bool __cdecl CG_IsEntWalkable(int localClientNum, int entityNum);
 int __cdecl CScriptMover_UpdateMove(
-        trajectory_t *pTr,
-        float *vCurrPos,
-        float fSpeed,
-        float fMidTime,
-        float fDecelTime,
-        const float *vPos1,
-        const float *vPos2,
-        const float *vPos3);
+                trajectory_t *pTr,
+                float *vCurrPos,
+                float fSpeed,
+                float fMidTime,
+                float fDecelTime,
+                const float *vPos1,
+                const float *vPos2,
+                const float *vPos3);

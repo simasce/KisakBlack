@@ -10,12 +10,12 @@ void __cdecl dwDeleteFileFailure(TaskRecord *task);
 TaskRecord *__cdecl dwDeleteFile(int localControllerIndex, char *filename);
 void __cdecl dwWriteFileFailure(TaskRecord *task);
 TaskRecord *__cdecl dwWriteFile(
-        int localControllerIndex,
-        char *filename,
-        unsigned __int8 *data,
-        unsigned int dataSize,
-        bdFileInfo *fileInfo,
-        unsigned __int64 ownerID);
+                int localControllerIndex,
+                char *filename,
+                unsigned __int8 *data,
+                unsigned int dataSize,
+                bdFileInfo *fileInfo,
+                unsigned __int64 ownerID);
 TaskRecord *__cdecl dwFileShareGetListing(int localControllerIndex, dwFileShareListTask *const fsTask);
 TaskRecord *__cdecl dwFileShareGetRating(int localControllerIndex, dwFileShareGetRatingTask *const fsTask);
 TaskRecord *__cdecl dwFileShareGetTopRated(int localControllerIndex, dwFileShareGetTopRatedTask *const fsTask);
@@ -23,11 +23,11 @@ char __cdecl dwFileShareLocationToCollectionID(fileShareLocation location, unsig
 TaskRecord *__cdecl dwFileShareSearch(int localControllerIndex, dwFileShareSearchTask *const fsTask);
 TaskRecord *__cdecl dwFileShareGetDescriptors(int localControllerIndex, dwFileShareDescriptorsTask *const fsTask);
 TaskRecord *__cdecl dwFileShareGetDescriptorsFromPooledStorage(
-        int localControllerIndex,
-        dwFileShareDescriptorsTask *const fsTask);
+                int localControllerIndex,
+                dwFileShareDescriptorsTask *const fsTask);
 TaskRecord *__cdecl dwFileShareGetDescriptorsFromUserStorage(
-        int localControllerIndex,
-        dwFileShareDescriptorsTask *const fsTask);
+                int localControllerIndex,
+                dwFileShareDescriptorsTask *const fsTask);
 TaskRecord *__cdecl dwFileShareReadFile(int controllerIndex, dwFileShareReadFileTask *const fsTask);
 TaskRecord *__cdecl dwFileShareReadPooledStorageFile(int controllerIndex, dwFileShareReadFileTask *const fsTask);
 TaskRecord *__cdecl dwFileShareReadUserStorageFile(int controllerIndex, dwFileShareReadFileTask *const fsTask);
@@ -41,10 +41,10 @@ TaskRecord *__cdecl dwFileShareWriteFile(int controllerIndex, dwFileShareWriteFi
 TaskRecord *__cdecl dwFileShareWritePooledStorageFile(int controllerIndex, dwFileShareWriteFileTask *const fsTask);
 TaskRecord *__cdecl dwFileShareWriteUserStorageFile(int controllerIndex, dwFileShareWriteFileTask *const fsTask);
 void __cdecl dwFileShareGetProgress(
-        int localControllerIndex,
-        unsigned int *bytes,
-        float *dataRate,
-        fileShareLocation location);
+                int localControllerIndex,
+                unsigned int *bytes,
+                float *dataRate,
+                fileShareLocation location);
 void __cdecl dwFileShareGetProgressPooled(int localControllerIndex, unsigned int *bytes, float *dataRate);
 void __cdecl dwFileShareGetProgressUser(int localControllerIndex, unsigned int *bytes, float *dataRate);
 void __cdecl dwFileShareAbortOperation(int localControllerIndex, fileShareLocation location);

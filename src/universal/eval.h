@@ -1,9 +1,9 @@
 #pragma once
 
 bool __cdecl Eval_AnyMissingOperands(const Eval *eval);
-char  Eval_PushOperator@<al>(long double a1@<esi:edi>, Eval *eval, EvalOperatorType op);
+char    Eval_PushOperator@<al>(long double a1@<esi:edi>, Eval *eval, EvalOperatorType op);
 // local variable allocation has failed, the output may be wrong!
-bool  Eval_EvaluationStep@<al>(int a1@<ebp>, long double a2@<esi:edi>, Eval *eval);
+bool    Eval_EvaluationStep@<al>(int a1@<ebp>, long double a2@<esi:edi>, Eval *eval);
 void __cdecl Eval_PrepareBinaryOpSameTypes(Eval *eval);
 void __cdecl Eval_PrepareBinaryOpIntegers(Eval *eval);
 void __cdecl Eval_PrepareBinaryOpBoolean(Eval *eval);

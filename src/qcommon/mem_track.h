@@ -5,36 +5,36 @@ void __cdecl track_addbasicinfo(meminfo_t *info, int type, int location, int siz
 void __cdecl track_static_alloc_internal(void *ptr, int size, const char *name, int type);
 void __cdecl track_flush_physical_alloc(const char *name, unsigned __int8 type);
 TempMemInfo *__cdecl GetTempMemInfo(
-        int permanent,
-        const char *name,
-        unsigned __int8 type,
-        int usageType,
-        TempMemInfo *tempMemInfoArray,
-        int *tempMemInfoCount,
-        bool add_if_missing);
+                int permanent,
+                const char *name,
+                unsigned __int8 type,
+                int usageType,
+                TempMemInfo *tempMemInfoArray,
+                int *tempMemInfoCount,
+                bool add_if_missing);
 void __cdecl track_set_max_memory_level();
 void __cdecl track_z_alloc(int size, const char *name, int type, char *pos, int project, int overhead);
 void __cdecl AddTempMemInfo(
-        int size,
-        int hunkSize,
-        int permanent,
-        const char *name,
-        unsigned __int8 type,
-        int location,
-        int usageType,
-        TempMemInfo *tempMemInfoArray,
-        int *tempMemInfoCount);
+                int size,
+                int hunkSize,
+                int permanent,
+                const char *name,
+                unsigned __int8 type,
+                int location,
+                int usageType,
+                TempMemInfo *tempMemInfoArray,
+                int *tempMemInfoCount);
 void __cdecl CheckHighMemInfo(TempMemInfo *tempMemInfo, int hunkSize, int location);
 void __cdecl track_z_free(int type, char *pos, int overhead);
 void __cdecl RemoveTempMemInfo(
-        int size,
-        int permanent,
-        const char *name,
-        unsigned __int8 type,
-        int location,
-        int usageType,
-        TempMemInfo *tempMemInfoArray,
-        int *tempMemInfoCount);
+                int size,
+                int permanent,
+                const char *name,
+                unsigned __int8 type,
+                int location,
+                int usageType,
+                TempMemInfo *tempMemInfoArray,
+                int *tempMemInfoCount);
 void __cdecl CheckLowMemInfo(TempMemInfo *tempMemInfo, int location);
 void __cdecl track_z_commit(int size, int type);
 void __cdecl track_z_decommit(int size, int type);

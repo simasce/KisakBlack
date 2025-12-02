@@ -2,19 +2,19 @@
 
 void __cdecl CG_AddAllPlayerSpriteDrawSurfs(int localClientNum);
 void __cdecl CG_AddPlayerSpriteDrawSurfs(int localClientNum, const centity_s *cent);
-void  CG_AddPlayerSpriteDrawSurf(
-        int a1@<ebp>,
-        int localClientNum,
-        const centity_s *cent,
-        Material *material,
-        float additionalRadiusSize,
-        int height,
-        bool fixedScreenSize);
+void    CG_AddPlayerSpriteDrawSurf(
+                int a1@<ebp>,
+                int localClientNum,
+                const centity_s *cent,
+                Material *material,
+                float additionalRadiusSize,
+                int height,
+                bool fixedScreenSize);
 char __cdecl CG_Player_ApplyVehicleAnimOffsets(
-        int localClientNum,
-        const entityState_s *es,
-        centity_s *cent,
-        clientInfo_t *ci);
+                int localClientNum,
+                const entityState_s *es,
+                centity_s *cent,
+                clientInfo_t *ci);
 void __cdecl CG_HighlightPlayer(int localClientNum, centity_s *cent, ShaderConstantSet *constantSet, bool isExtraCam);
 void __cdecl CG_Player(int localClientNum, centity_s *cent);
 void __cdecl CG_PlayerTurretPositionAndBlend(int localClientNum, centity_s *cent);
@@ -34,10 +34,10 @@ void __cdecl CG_UpdateWeaponVisibilityImmediate(int localClientNum, centity_s *c
 void __cdecl CG_UpdateWeaponVisibilityInternal(int localClientNum, centity_s *cent);
 bool __cdecl CG_IsWeaponVisible(int localClientNum, centity_s *cent, XModel *weapModel, float *origin, float *forward);
 void __cdecl CG_CalcWeaponVisTrace(
-        XModel *weapModel,
-        float *origin,
-        float *forward,
-        float *start,
-        float *end,
-        float *modelLen);
+                XModel *weapModel,
+                float *origin,
+                float *forward,
+                float *start,
+                float *end,
+                float *modelLen);
 bool __cdecl CG_PlayerInViewFrustum(int localClientNum, const centity_s *cent);

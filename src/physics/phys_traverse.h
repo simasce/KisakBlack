@@ -9,8 +9,8 @@ void __thiscall colgeom_visitor_t::intersect_box_partitions_r(colgeom_visitor_t 
 void __thiscall static_colgeom_visitor_t::visit(static_colgeom_visitor_t *this, const CollisionAabbTree *tree);
 void __thiscall static_colgeom_visitor_t::visit(static_colgeom_visitor_t *this, const cbrush_t *brush);
 void __thiscall static_colgeom_visitor_t::update(
-        static_colgeom_visitor_t *this,
-        const float *_mn,
-        const float *_mx,
-        int mask,
-        const float *expand_vec);
+                static_colgeom_visitor_t *this,
+                const float *_mn,
+                const float *_mx,
+                int mask,
+                const float *expand_vec);

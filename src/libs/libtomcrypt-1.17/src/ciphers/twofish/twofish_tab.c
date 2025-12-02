@@ -10,8 +10,8 @@
  */
 
  /**
-    @file twofish_tab.c
-    Twofish tables, Tom St Denis
+        @file twofish_tab.c
+        Twofish tables, Tom St Denis
  */
 #ifdef LTC_TWOFISH_TABLES
 

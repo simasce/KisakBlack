@@ -39,9 +39,9 @@ int BG_UnlockablesSetProfessionalIndex();
 int __cdecl BG_UnlockablesGetItemAttachmentNumWithAttachPoint(int itemIndex, int attachmentNum, int attachmentPoint);
 eAttachment __cdecl BG_UnlockablesGetItemAttachment(int itemIndex, int attachmentNum);
 int __cdecl BG_UnlockablesGetItemAttachmentIndexForAttachmentPoint(
-        int itemIndex,
-        eAttachment attachment,
-        eAttachmentPoint point);
+                int itemIndex,
+                eAttachment attachment,
+                eAttachmentPoint point);
 const char *__cdecl BG_UnlockablesGetItemName(int itemIndex);
 const char *__cdecl BG_UnlockablesGetItemRef(int itemIndex);
 int __cdecl BG_UnlockablesGetItemCount(int itemIndex);
@@ -58,9 +58,9 @@ int __cdecl BG_UnlockablesGetNumItemAttachmentsWithAttachPoint(int itemIndex, in
 int __cdecl BG_UnlockablesGetNumItemAttachments(int itemIndex);
 int __cdecl BG_UnlockablesGetNumItemAttachmentsAtPoint(int itemIndex, eAttachmentPoint point);
 eAttachment __cdecl BG_UnlockablesGetItemAttachmentAtPointByIndex(
-        int itemIndex,
-        eAttachmentPoint point,
-        int attachmentIndex);
+                int itemIndex,
+                eAttachmentPoint point,
+                int attachmentIndex);
 const char *__cdecl BG_UnlockablesGetItemGroup(int itemIndex);
 int __cdecl BG_UnlockablesGetItemGroupEnum(int itemIndex);
 int __cdecl BG_UnlockablesGetLoadoutSlotFromString(const char *slotName);
@@ -92,15 +92,15 @@ void __cdecl BG_UnlockablesPurchaseItemAttachmentPoint(int controllerIndex, int 
 int __cdecl BG_UnlockablesIsItemAttachmentValid(itemInfo_t *itemInfo, const char *attachmentString);
 void __cdecl BG_UnlockablesPurchaseItemAttachment(int controllerIndex, int itemIndex, eAttachment attachmentNum);
 char __cdecl BG_UnlockablesSetItemAttachmentPurchased(
-        int controllerIndex,
-        int itemIndex,
-        int attachmentNum,
-        bool isPurchased);
+                int controllerIndex,
+                int itemIndex,
+                int attachmentNum,
+                bool isPurchased);
 char __cdecl BG_UnlockablesSetAttachmentPurchased(int controllerIndex, const char *attachmentRef, bool isPurchased);
 bool __cdecl BG_UnlockablesIsItemAttachmentPointPurchased(
-        int controllerIndex,
-        int itemIndex,
-        const char *attachmentPoint);
+                int controllerIndex,
+                int itemIndex,
+                const char *attachmentPoint);
 bool __cdecl BG_UnlockablesIsItemAttachmentPurchased(int controllerIndex, int itemIndex, int attachmentNum);
 int __cdecl BG_UnlockablesGetWeaponOptionFromName(const char *optionName);
 bool __cdecl BG_UnlockablesIsItemOptionPurchased(int controllerIndex, int itemIndex, int optionIndex);
@@ -113,20 +113,20 @@ int __cdecl BG_UnlockablesGetAssociatedBody(int itemIndex);
 int __cdecl BG_UnlockablesGetAssociatedBodyWithPrimary(int itemIndex);
 int __cdecl BG_UnlockablesGetAssociatedBodyWithPerk(int itemIndex);
 void __cdecl BG_UnlockablesEquipClassToSlot(
-        int controllerIndex,
-        const char *customClassName,
-        int itemIndex,
-        const char *loadoutName);
+                int controllerIndex,
+                const char *customClassName,
+                int itemIndex,
+                const char *loadoutName);
 void __cdecl BG_UnlockablesEquipClassSpecialPropertiesToSlot(
-        int controllerIndex,
-        const char *customClassName,
-        int itemIndex,
-        const char *loadoutName);
+                int controllerIndex,
+                const char *customClassName,
+                int itemIndex,
+                const char *loadoutName);
 void __cdecl BG_UnlockablesEquipAssociatedBody(int controllerIndex, const char *customClassName, int itemIndex);
 unsigned int __cdecl BG_UnlockablesGetEquippedItemInSlot(
-        int controllerIndex,
-        const char *customClassName,
-        const char *slotName);
+                int controllerIndex,
+                const char *customClassName,
+                const char *slotName);
 bool __cdecl BG_UnlockablesIsItemEquipped(int controllerIndex, const char *customClassName, int itemIndex);
 bool __cdecl BG_UnlockablesIsItemEquippedInAnyCustomClass(int controllerIndex, int itemIndex);
 int __cdecl BG_UnlockablesGetActualDefaultItem(unsigned int loadoutSlot);
@@ -146,39 +146,39 @@ int __cdecl BG_UnlockablesGetNumPurchasesBeforeDeclassified(int itemIndex);
 int __cdecl BG_UnlockablesGetItemIndexInSlot(int itemNum);
 void __cdecl BG_UnlockablesClearWeaponInfo(int controllerIndex, int itemIndex);
 char __cdecl BG_UnlockablesSetItemOptionPurchased(
-        int controllerIndex,
-        int itemIndex,
-        int optionIndex,
-        bool isPurchased);
+                int controllerIndex,
+                int itemIndex,
+                int optionIndex,
+                bool isPurchased);
 char __cdecl BG_UnlockablesSetProItemUnlocked(int controllerIndex, int itemIndex, bool isUnlocked);
 bool __cdecl BG_UnlockablesIsWeaponOptionLocked(int controllerIndex, int weaponOptionIndex);
 bool __cdecl SV_CacValidate_IsItemPurchased(unsigned __int8 *cacBuffer, int itemIndex, int pLevel, int rank);
 bool __cdecl SV_CACValidate_IsItemAttachmentPurchased(
-        unsigned __int8 *cacbuffer,
-        int itemIndex,
-        int attachmentNum,
-        int pLevel,
-        int rank);
+                unsigned __int8 *cacbuffer,
+                int itemIndex,
+                int attachmentNum,
+                int pLevel,
+                int rank);
 bool __cdecl SV_CACValidate_IsItemOptionPurchased(
-        unsigned __int8 *cacbuffer,
-        int itemIndex,
-        int optionIndex,
-        int pLevel,
-        int rank);
+                unsigned __int8 *cacbuffer,
+                int itemIndex,
+                int optionIndex,
+                int pLevel,
+                int rank);
 bool __cdecl SV_CACValidate_IsClanTagFeaturePurchased(
-        unsigned __int8 *cacbuffer,
-        unsigned int index,
-        int plevel,
-        int rank);
+                unsigned __int8 *cacbuffer,
+                unsigned int index,
+                int plevel,
+                int rank);
 bool __cdecl SV_CACValidate_IsClanTagFeatureLocked(int rank, int plevel, unsigned int index);
 void __cdecl SV_CACValidate_ClearWeaponInfo(char *buffer, int itemIndex);
 char __cdecl SV_CACValidate_SetProItemUnlocked(char *buffer, int itemIndex, bool isUnlocked);
 char __cdecl SV_CACValidate_SetItemPurchased(char *buffer, int itemIndex, bool isPurchased);
 char __cdecl SV_CACValidate_SetItemAttachmentPurchased(
-        char *buffer,
-        int itemIndex,
-        int attachmentNum,
-        bool isPurchased);
+                char *buffer,
+                int itemIndex,
+                int attachmentNum,
+                bool isPurchased);
 char __cdecl SV_CACValidate_SetItemOptionPurchased(char *buffer, int itemIndex, int optionIndex, bool isPurchased);
 bool __cdecl SV_CACValidate_IsItemDualWieldPurchased(unsigned __int8 *cacbuffer, int itemIndex, int pLevel, int rank);
 char __cdecl SV_CACValidate_CheckIfEquippedItemsArePurchased(unsigned __int8 *cacBuffer, int pLevel, int rank);
@@ -200,11 +200,11 @@ void __cdecl BG_UnlockablesEquipDefaultItemToSlotCmd();
 void __cdecl BG_UnlockablesEquipDefaultGlobalItemToSlotCmd();
 void __cdecl BG_UnlockablesEquipClassAttachmentCmd();
 void __cdecl BG_UnlockablesEquipClassAttachment(
-        int controllerIndex,
-        const char *customClassName,
-        const char *itemName,
-        const char *attachmentName,
-        const char *attachmentPoint);
+                int controllerIndex,
+                const char *customClassName,
+                const char *itemName,
+                const char *attachmentName,
+                const char *attachmentPoint);
 void __cdecl BG_UnlockablesEquipClassCurrentAttachmentCmd();
 void __cdecl BG_UnlockablesEquipClassCurrentOptionCmd();
 void __cdecl BG_UnlockablesToggleWeaponOptionCmd();
@@ -215,9 +215,9 @@ void __cdecl BG_UnlockablesEquipClassCurrentGlobalItemCmd();
 void __cdecl BG_UnlockablesEquipClassItemCmd();
 void __cdecl BG_UnlockablesEquipDefaultClassCmd();
 void __cdecl BG_UnlockablesEquipDefaultClass(
-        int controllerIndex,
-        const char *customClassName,
-        defaultClass_t defaultClass);
+                int controllerIndex,
+                const char *customClassName,
+                defaultClass_t defaultClass);
 void __cdecl BG_UnlockablesEquipDefaultGlobalItemsCmd();
 void __cdecl BG_UnlockablesClearItemNewCmd();
 void __cdecl BG_UnlockablesClearAllItemsNewCmd();
@@ -235,9 +235,9 @@ void __cdecl BG_UnlockablesBuildItemListForGroupNameCmd();
 int __cdecl BG_UnlockablesBuildItemListForGroupName(int controllerIndex, const char *groupName);
 void __cdecl BG_UnlockablesBuildItemListForSlotNameAndGroupCmd();
 int __cdecl BG_UnlockablesBuildItemListForSlotNameAndGroup(
-        int controllerIndex,
-        const char *slotName,
-        const char *groupName);
+                int controllerIndex,
+                const char *slotName,
+                const char *groupName);
 void __cdecl OpenAttachmentMenuForCurrentItemCmd();
 void __cdecl BG_UnlockablesEquipItemInSlotSortedCmd();
 void __cdecl BG_UnlockablesEquipItemInSlotSortedCmdInternal(bool isGlobalItem);

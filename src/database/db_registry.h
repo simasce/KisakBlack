@@ -85,10 +85,10 @@ void __cdecl DB_MarkAssetTypeUsageDirty();
 void __cdecl DB_GetAssetTypeUsageInfo(XAssetType assetType, const char **outName, int *outUsed, int *outPool);
 void __cdecl DB_PrintXAssetsForType_FastFile(XAssetType type, void *inData, bool includeOverride);
 void __cdecl DB_PrintXAssetsForType(
-        XAssetType type,
-        void (__cdecl *func)(XAssetHeader, void *),
-        void *inData,
-        bool includeOverride);
+                XAssetType type,
+                void (__cdecl *func)(XAssetHeader, void *),
+                void *inData,
+                bool includeOverride);
 GfxImage *__cdecl DB_AllocTempImage();
 XAssetHeader __cdecl DB_AllocXAssetHeader(XAssetType type);
 void __cdecl DB_PrintAssetName(XAssetHeader header, int *data);
@@ -96,10 +96,10 @@ void __cdecl DB_FreeXAssetHeader(XAssetType type);
 XAssetType __cdecl DB_HashForName(const char *name, XAssetType type);
 void __cdecl DB_LogMissingAsset(XAssetType type, const char *name);
 void __cdecl DB_EnumXAssets_FastFile(
-        XAssetType type,
-        void (__cdecl *func)(XAssetHeader, void *),
-        void *inData,
-        bool includeOverride);
+                XAssetType type,
+                void (__cdecl *func)(XAssetHeader, void *),
+                void *inData,
+                bool includeOverride);
 void __cdecl DB_LoadDelayedImages();
 XAssetHeader __cdecl DB_FindXAssetDefaultHeaderInternal(XAssetType type);
 const char *__cdecl DB_FindXAssetNameFromHash(XAssetType type, unsigned int hash);
@@ -155,7 +155,7 @@ void __cdecl DB_DumpMaterialList_f();
 void __cdecl DB_LoadXZone(XZoneInfo *zoneInfo, unsigned int zoneCount);
 void __cdecl DB_LoadZone_f();
 void __cdecl DB_InitThread();
-void __cdecl  DB_Thread(unsigned int threadContext);
+void __cdecl    DB_Thread(unsigned int threadContext);
 void DB_TryLoadXFile();
 int __cdecl DB_TryLoadXFileInternal(const char *zoneName, int zoneFlags);
 void __cdecl DB_BeginReorderZone(const char *zoneName);

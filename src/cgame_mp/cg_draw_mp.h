@@ -2,18 +2,18 @@
 
 void __cdecl CG_PriorityCenterPrint(int localClientNum, const char *str, int priority);
 void __cdecl CG_DisplayPlayerCard(
-        int localClientNum,
-        const clientInfo_t *attackerCI,
-        const clientInfo_t *victimCI,
-        bool wasKilled);
+                int localClientNum,
+                const clientInfo_t *attackerCI,
+                const clientInfo_t *victimCI,
+                bool wasKilled);
 void __cdecl CG_ClearCenterPrint(int localClientNum);
 void __cdecl CG_DrawCenterString(
-        int localClientNum,
-        const rectDef_s *rect,
-        Font_s *font,
-        float fontscale,
-        float *color,
-        int textStyle);
+                int localClientNum,
+                const rectDef_s *rect,
+                Font_s *font,
+                float fontscale,
+                float *color,
+                int textStyle);
 void __cdecl CG_Electrified(int localClientNum, int durationMS);
 void __cdecl CG_ClearElectrified(int localClientNum);
 void __cdecl CG_Burn(int localClientNum, int durationMS);
@@ -27,9 +27,9 @@ void __cdecl CG_CheckTimedMenus(int localClientNum);
 void __cdecl CG_CheckForPlayerInput(int localClientNum);
 bool __cdecl CG_CheckPlayerMovement(usercmd_s oldCmd, usercmd_s newCmd);
 int __cdecl CG_CheckPlayerStanceChange(
-        int localClientNum,
-        bitarray<51> *newButton_bits,
-        bitarray<51> *changedButton_bits);
+                int localClientNum,
+                bitarray<51> *newButton_bits,
+                bitarray<51> *changedButton_bits);
 int __cdecl CG_CheckPlayerWeaponUsage(int localClientNum, bitarray<51> *button_bits);
 bool __cdecl CG_CheckPlayerTryReload(int localClientNum, bitarray<51> *button_bits);
 bool __cdecl CG_CheckPlayerFireNonTurret(int localClientNum, bitarray<51> *button_bits);

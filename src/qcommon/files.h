@@ -24,10 +24,10 @@ char *__cdecl FS_ReferencedIwdPureChecksums();
 char __cdecl FS_PureServerSetLoadedIwds(char *iwdSums, char *iwdNames);
 void __cdecl FS_ServerSetReferencedIwds(const char *iwdSums, const char *iwdNames);
 int __cdecl FS_ServerSetReferencedFiles(
-        const char *fileSums,
-        const char *fileNames,
-        int maxFiles,
-        int *fs_sums,
-        const char **fs_names);
+                const char *fileSums,
+                const char *fileNames,
+                int maxFiles,
+                int *fs_sums,
+                const char **fs_names);
 void __cdecl FS_ServerSetReferencedFFs(const char *FFSums, const char *FFNames);
 char *__cdecl FS_GetMapBaseName(char *mapname);

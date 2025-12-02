@@ -2,10 +2,10 @@
 
 void __cdecl R_StreamAlloc_InitTempImages();
 GfxImage *__cdecl R_StreamAlloc_SetupTempImage(
-        _D3DFORMAT format,
-        bool linear,
-        unsigned __int16 width,
-        unsigned __int16 height);
+                _D3DFORMAT format,
+                bool linear,
+                unsigned __int16 width,
+                unsigned __int16 height);
 void __cdecl R_StreamAlloc_ReleaseTempImage(GfxImage *image);
 void __cdecl R_StreamAlloc_Lock();
 void __cdecl R_StreamAlloc_Unlock();

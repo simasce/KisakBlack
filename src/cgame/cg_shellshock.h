@@ -2,16 +2,16 @@
 
 void __cdecl CG_PerturbCamera(cg_s *cgameGlob);
 int __cdecl CG_DrawShellShockSavedScreenBlendBlurred(
-        int localClientNum,
-        const shellshock_parms_t *parms,
-        int start,
-        int duration);
+                int localClientNum,
+                const shellshock_parms_t *parms,
+                int start,
+                int duration);
 void __cdecl SaveScreenToBuffer(int localClientNum);
 int __cdecl CG_DrawShellShockSavedScreenBlendFlashed(
-        int localClientNum,
-        const shellshock_parms_t *parms,
-        int start,
-        int duration);
+                int localClientNum,
+                const shellshock_parms_t *parms,
+                int start,
+                int duration);
 double __cdecl BlendSmooth(float percent);
 void __cdecl EndShellShock(int localClientNum);
 void __cdecl EndShellShockSound(int localClientNum);

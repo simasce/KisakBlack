@@ -10,10 +10,10 @@ void __cdecl turret_clientaim(gentity_s *self, gentity_s *other);
 void __cdecl turret_shoot_internal(gentity_s *self, gentity_s *other);
 void __cdecl Fire_Lead(gentity_s *ent, gentity_s *activator);
 void __cdecl Turret_FillWeaponParms(
-        const gentity_s *ent,
-        const gentity_s *activator,
-        unsigned int weapon,
-        weaponParms *wp);
+                const gentity_s *ent,
+                const gentity_s *activator,
+                unsigned int weapon,
+                weaponParms *wp);
 bool __cdecl turret_is_overheating(gentity_s *self);
 void __cdecl turret_UpdateSound(gentity_s *self);
 bool __cdecl turret_IsFiringInternal(int state);
@@ -25,11 +25,11 @@ void __cdecl turret_SetScanningPitch(gentity_s *self, float pitch);
 void __cdecl turret_shoot(gentity_s *self);
 int __cdecl turret_CanTargetPoint(const gentity_s *self, const float *vPoint, float *vSource, float *localAngles);
 int __cdecl turret_CanTargetSentient(
-        const gentity_s *self,
-        const sentient_s *sentient,
-        float *targetPosition,
-        float *muzzlePosition,
-        float *localAngles);
+                const gentity_s *self,
+                const sentient_s *sentient,
+                float *targetPosition,
+                float *muzzlePosition,
+                float *localAngles);
 void __cdecl Turret_PredictPosition(const gentity_s *ent, const playerState_s *ps, float *vPos);
 int __cdecl turret_SightTrace(const float *start, const float *end, int passEnt1, int passEnt2, gentity_s *turret);
 void __cdecl turret_think_init(gentity_s *self);
@@ -38,9 +38,9 @@ void __cdecl turret_think(gentity_s *self);
 int __cdecl turret_ReturnToDefaultPos(gentity_s *self, int bManned);
 int __cdecl turret_UpdateTargetAngles(gentity_s *self, const float *desiredAngles, int bManned);
 void __cdecl turret_CalculateConvergenceAngularVelocity(
-        const gentity_s *self,
-        const float *desiredAngles,
-        float *angularVelocity);
+                const gentity_s *self,
+                const float *desiredAngles,
+                float *angularVelocity);
 int __cdecl Turret_GetRemainingConvergenceTime(const TurretInfo *turretInfo, unsigned int type);
 void __cdecl Turret_ScanStop(gentity_s *self);
 void __cdecl turret_think_auto_nonai(gentity_s *self);
@@ -49,11 +49,11 @@ void __cdecl Turret_ScanForEnemies(gentity_s *self);
 void __cdecl Turret_ScanStart(gentity_s *self, const WeaponDef *weapDef, float deltaYaw);
 int __cdecl turret_aimat_Sentient(gentity_s *self, sentient_s *enemy, int bShoot, int missTime);
 int __cdecl turret_aimat_Sentient_Internal(
-        gentity_s *self,
-        sentient_s *enemy,
-        int bShoot,
-        int missTime,
-        float *desiredAngles);
+                gentity_s *self,
+                sentient_s *enemy,
+                int bShoot,
+                int missTime,
+                float *desiredAngles);
 void __cdecl turret_aimat_vector_internal(gentity_s *self, const float *origin, int bShoot, const float *desiredAngles);
 int __cdecl turret_aimat_vector(gentity_s *self, float *origin, int bShoot, float *desiredAngles);
 void __cdecl turret_SetTargetEnt(gentity_s *self, gentity_s *ent);

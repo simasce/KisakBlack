@@ -3,120 +3,120 @@
 #include "cscr_main.h"
 
 union ObjectInfo_u // sizeof=0x4
-{                                       // XREF: ObjectInfo/r
-    unsigned __int16 entnum;
-    unsigned __int16 size;
-    unsigned int nextEntId;
-    unsigned int self;
+{                                                                             // XREF: ObjectInfo/r
+        unsigned __int16 entnum;
+        unsigned __int16 size;
+        unsigned int nextEntId;
+        unsigned int self;
 };
 
 struct ObjectInfo // sizeof=0x8
-{                                       // XREF: VariableValueInternal::<unnamed_type_u>/r
-    unsigned __int16 refCount;
-    // padding byte
-    // padding byte
-    ObjectInfo_u u;
+{                                                                             // XREF: VariableValueInternal::<unnamed_type_u>/r
+        unsigned __int16 refCount;
+        // padding byte
+        // padding byte
+        ObjectInfo_u u;
 };
 
 struct __declspec(align(4)) VariableStackBuffer // sizeof=0x10
 {
-    const char *pos;
-    unsigned __int16 size;
-    unsigned __int16 bufLen;
-    unsigned int localId;
-    unsigned __int8 time;
-    char buf[1];
-    // padding byte
-    // padding byte
+        const char *pos;
+        unsigned __int16 size;
+        unsigned __int16 bufLen;
+        unsigned int localId;
+        unsigned __int8 time;
+        char buf[1];
+        // padding byte
+        // padding byte
 };
 
 union VariableUnion // sizeof=0x4
-{                                       // XREF: Scr_EmitAnimationInternal+8E/w
-    int intValue;
-    float floatValue;
-    unsigned int stringValue;
-    const float *vectorValue;
-    const char *codePosValue;
-    unsigned int pointerValue;
-    VariableStackBuffer *stackValue;
-    unsigned int entityOffset;
+{                                                                             // XREF: Scr_EmitAnimationInternal+8E/w
+        int intValue;
+        float floatValue;
+        unsigned int stringValue;
+        const float *vectorValue;
+        const char *codePosValue;
+        unsigned int pointerValue;
+        VariableStackBuffer *stackValue;
+        unsigned int entityOffset;
 };
 
 union VariableValueInternal_u // sizeof=0x8
-{                                       // XREF: VariableValueInternal/r
-    unsigned int next;
-    VariableUnion u;
-    ObjectInfo o;
+{                                                                             // XREF: VariableValueInternal/r
+        unsigned int next;
+        VariableUnion u;
+        ObjectInfo o;
 };
 
 union VariableValueInternal_w // sizeof=0x4
-{                                       // XREF: VariableValueInternal/r
-    unsigned int status;
-    unsigned int type;
-    unsigned int name;
-    unsigned int classnum;
-    unsigned int notifyName;
-    unsigned int waitTime;
-    unsigned int parentLocalId;
+{                                                                             // XREF: VariableValueInternal/r
+        unsigned int status;
+        unsigned int type;
+        unsigned int name;
+        unsigned int classnum;
+        unsigned int notifyName;
+        unsigned int waitTime;
+        unsigned int parentLocalId;
 };
 
 union VariableValueInternal_v // sizeof=0x4
-{                                       // XREF: VariableValueInternal/r
-    unsigned int next;
-    unsigned int index;
+{                                                                             // XREF: VariableValueInternal/r
+        unsigned int next;
+        unsigned int index;
 };
 
 union Variable_u // sizeof=0x4
-{                                       // XREF: MakeVariableExternal+3E8/w
-                                        // MakeVariableExternal+403/r ...
-    unsigned int prev;
-    unsigned int prevSibling;
+{                                                                             // XREF: MakeVariableExternal+3E8/w
+                                                                                // MakeVariableExternal+403/r ...
+        unsigned int prev;
+        unsigned int prevSibling;
 };
 
 struct Variable // sizeof=0x8
-{                                       // XREF: VariableValueInternal/r
-                                        // MakeVariableExternal/r
-    unsigned int id;                    // XREF: MakeVariableExternal+3E5/w
-                                        // MakeVariableExternal+3FE/r
-    Variable_u u;       // XREF: MakeVariableExternal+3E8/w
-                                        // MakeVariableExternal+403/r
+{                                                                             // XREF: VariableValueInternal/r
+                                                                                // MakeVariableExternal/r
+        unsigned int id;                                        // XREF: MakeVariableExternal+3E5/w
+                                                                                // MakeVariableExternal+3FE/r
+        Variable_u u;             // XREF: MakeVariableExternal+3E8/w
+                                                                                // MakeVariableExternal+403/r
 };
 
 struct VariableValueInternal // sizeof=0x1C
 {
-    Variable hash;
-    VariableValueInternal_u u;
-    VariableValueInternal_w w;
-    VariableValueInternal_v v;
-    unsigned int nextSibling;
+        Variable hash;
+        VariableValueInternal_u u;
+        VariableValueInternal_w w;
+        VariableValueInternal_v v;
+        unsigned int nextSibling;
 };
 
 struct VariableValue // sizeof=0x8
-{                                       // XREF: CompareArrayIndices+79/r
-    VariableUnion u;                    // XREF: Scr_EmitAnimationInternal+8E/w
-    int type;                           // XREF: Scr_EmitAnimationInternal+84/w
+{                                                                             // XREF: CompareArrayIndices+79/r
+        VariableUnion u;                                        // XREF: Scr_EmitAnimationInternal+8E/w
+        int type;                                                     // XREF: Scr_EmitAnimationInternal+84/w
 };
 
 struct scr_entref_t // sizeof=0x6
-{                                       // XREF: ?Scr_GetPathnode@@YAPAUpathnode_t@@IW4scriptInstance_t@@@Z/r
-    unsigned __int16 entnum;            // XREF: CScr_PlaySoundOnEntity+12/r
-    unsigned __int16 classnum;          // XREF: CScr_PlaySoundOnEntity+6/r
-    unsigned __int16 client;            // XREF: CScr_PlaySoundOnEntity:loc_4EB534/r
+{                                                                             // XREF: ?Scr_GetPathnode@@YAPAUpathnode_t@@IW4scriptInstance_t@@@Z/r
+        unsigned __int16 entnum;                        // XREF: CScr_PlaySoundOnEntity+12/r
+        unsigned __int16 classnum;                    // XREF: CScr_PlaySoundOnEntity+6/r
+        unsigned __int16 client;                        // XREF: CScr_PlaySoundOnEntity:loc_4EB534/r
 };
 
 
 void __cdecl Scr_DumpScriptThreads(scriptInstance_t inst);
 int __cdecl ThreadInfoCompare(unsigned int *info1, unsigned int *info2);
 void __cdecl Scr_DumpScriptVariables(
-        scriptInstance_t inst,
-        bool spreadsheet,
-        bool summary,
-        bool total,
-        bool functionSummary,
-        bool lineSort,
-        const char *fileName,
-        const char *functionName,
-        int minCount);
+                scriptInstance_t inst,
+                bool spreadsheet,
+                bool summary,
+                bool total,
+                bool functionSummary,
+                bool lineSort,
+                const char *fileName,
+                const char *functionName,
+                int minCount);
 int __cdecl VariableInfoFileNameCompare(unsigned int *info1, unsigned int *info2);
 int __cdecl VariableInfoFunctionCompare(unsigned int *info1, unsigned int *info2);
 int __cdecl VariableInfoCountCompare(unsigned int *info1, unsigned int *info2);
@@ -134,15 +134,15 @@ int __cdecl Scr_GetNumScriptVarsChild(scriptInstance_t inst);
 unsigned int __cdecl GetVariableKeyObject(scriptInstance_t inst, unsigned int id);
 unsigned int __cdecl GetVariableIndexInternal(scriptInstance_t inst, unsigned int parentId, unsigned int name);
 unsigned int __cdecl GetNewVariableIndexInternal2(
-        scriptInstance_t inst,
-        unsigned int parentId,
-        unsigned int name,
-        unsigned int index);
+                scriptInstance_t inst,
+                unsigned int parentId,
+                unsigned int name,
+                unsigned int index);
 unsigned int __cdecl GetNewVariableIndexInternal3(
-        scriptInstance_t inst,
-        unsigned int parentId,
-        unsigned int name,
-        unsigned int index);
+                scriptInstance_t inst,
+                unsigned int parentId,
+                unsigned int name,
+                unsigned int index);
 void __cdecl ClearObject(scriptInstance_t inst, unsigned int parentId);
 void __cdecl ClearObjectInternal(scriptInstance_t inst, unsigned int parentId);
 void __cdecl MakeVariableExternal(scriptInstance_t inst, unsigned int index, VariableValueInternal *parentValue);
@@ -195,14 +195,14 @@ unsigned int __cdecl GetObjectVariable(scriptInstance_t inst, unsigned int paren
 unsigned int __cdecl GetNewObjectVariable(scriptInstance_t inst, unsigned int parentId, unsigned int id);
 unsigned int __cdecl GetNewObjectVariableReverse(scriptInstance_t inst, unsigned int parentId, unsigned int id);
 unsigned int __cdecl GetNewVariableIndexReverseInternal(
-        scriptInstance_t inst,
-        unsigned int parentId,
-        unsigned int name);
+                scriptInstance_t inst,
+                unsigned int parentId,
+                unsigned int name);
 unsigned int __cdecl GetNewVariableIndexReverseInternal2(
-        scriptInstance_t inst,
-        unsigned int parentId,
-        unsigned int name,
-        unsigned int index);
+                scriptInstance_t inst,
+                unsigned int parentId,
+                unsigned int name,
+                unsigned int index);
 void __cdecl RemoveVariable(scriptInstance_t inst, unsigned int parentId, unsigned int unsignedValue);
 void __cdecl RemoveNextVariable(scriptInstance_t inst, unsigned int parentId);
 void __cdecl RemoveObjectVariable(scriptInstance_t inst, unsigned int parentId, unsigned int id);
@@ -212,10 +212,10 @@ void __cdecl RemoveVariableValue(scriptInstance_t inst, unsigned int parentId, u
 void __cdecl SetNewVariableValue(scriptInstance_t inst, unsigned int id, VariableValue *value);
 VariableValueInternal_u *__cdecl GetVariableValueAddress(scriptInstance_t inst, unsigned int id);
 void __cdecl SetVariableEntityFieldValue(
-        scriptInstance_t inst,
-        unsigned int entId,
-        unsigned int fieldName,
-        VariableValue *value);
+                scriptInstance_t inst,
+                unsigned int entId,
+                unsigned int fieldName,
+                VariableValue *value);
 void __cdecl ClearVariableValue(scriptInstance_t inst, unsigned int id);
 void __cdecl SetVariableFieldValue(scriptInstance_t inst, unsigned int id, VariableValue *value);
 unsigned int __cdecl Scr_EvalVariableObject(scriptInstance_t inst, unsigned int id);
@@ -271,10 +271,10 @@ VariableUnion __cdecl Scr_GetOffset(unsigned int classnum, char *name, scriptIns
 unsigned int __cdecl FindEntityId(scriptInstance_t inst, unsigned int entnum, unsigned int classnum, int clientNum);
 unsigned int __cdecl Scr_GetEntityId(scriptInstance_t inst, unsigned int entnum, unsigned int classnum, int clientNum);
 unsigned int __cdecl AllocEntity(
-        scriptInstance_t inst,
-        unsigned int classnum,
-        unsigned __int16 entnum,
-        unsigned __int8 clientNum);
+                scriptInstance_t inst,
+                unsigned int classnum,
+                unsigned __int16 entnum,
+                unsigned __int8 clientNum);
 void __cdecl Scr_EvalArray(scriptInstance_t inst, VariableValue *value, VariableValue *index);
 unsigned int __cdecl Scr_FindArrayIndex(scriptInstance_t inst, unsigned int parentId, VariableValue *index);
 unsigned int __cdecl Scr_EvalArrayRef(scriptInstance_t inst, unsigned int parentId);
@@ -285,10 +285,10 @@ void __cdecl SetEmptyArray(scriptInstance_t inst, unsigned int parentId);
 void __cdecl Scr_AddArrayKeys(unsigned int parentId, scriptInstance_t inst);
 scr_entref_t __cdecl Scr_GetEntityIdRef(scriptInstance_t inst, unsigned int entId);
 void __cdecl Scr_CopyEntityNum(
-        unsigned int fromEntnum,
-        unsigned int toEntnum,
-        unsigned int classnum,
-        scriptInstance_t inst);
+                unsigned int fromEntnum,
+                unsigned int toEntnum,
+                unsigned int classnum,
+                scriptInstance_t inst);
 void __cdecl CopyEntity(scriptInstance_t inst, unsigned int parentId, unsigned int newParentId);
 double __cdecl Scr_GetObjectUsage(scriptInstance_t inst, unsigned int parentId);
 double __cdecl Scr_GetEntryUsage(scriptInstance_t inst, VariableValueInternal *entryValue);

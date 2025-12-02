@@ -1,12 +1,12 @@
 #pragma once
 
 void __cdecl UI_AnimateLocalItem(
-        int localClientNum,
-        UiContext *dc,
-        const char *menuName,
-        const char *itemName,
-        const char *newStateName,
-        int milliseconds);
+                int localClientNum,
+                UiContext *dc,
+                const char *menuName,
+                const char *itemName,
+                const char *newStateName,
+                int milliseconds);
 void __cdecl UI_SetLocalVarStringByName(char *inputName, char *inputValue, int localClientNum);
 void __cdecl UI_SetFakeLocalDvarStringByName(const char *inputName, char *inputValue, unsigned int localClientNum);
 void __cdecl CG_ClearPopUpUI(int localClientNum);
@@ -15,13 +15,13 @@ void __cdecl CG_ClearPlayerCardPopUpUI(int localClientNum);
 void __cdecl CG_TeamMessagePopUpUI(int localClientNum);
 void __cdecl CG_GameMessagePopUpUI(int localClientNum);
 void __cdecl CG_DisplayCenterPopup(
-        int localClientNum,
-        const char *animationType,
-        char *displayString1,
-        char *displayString2,
-        char *displayString3,
-        char *displayMaterial,
-        char *displayBacking);
+                int localClientNum,
+                const char *animationType,
+                char *displayString1,
+                char *displayString2,
+                char *displayString3,
+                char *displayMaterial,
+                char *displayBacking);
 void __cdecl CG_PlayPopUpSound(int localClientNum, char *sound);
 void __cdecl CG_DisplayRankUp(int localClientNum);
 void __cdecl CG_DisplayMilestoneComplete(int localClientNum);

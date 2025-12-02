@@ -14,7 +14,7 @@ void __cdecl LiveStorage_HandlePublisherStorageTasks();
 void LiveStorage_ProcessOnlineWAD();
 void __cdecl tlEndianSwapMemory32(int *Data, unsigned int Bytes);
 bool __cdecl LiveStorage_DecompressBuffer(
-        unsigned __int8 *compressedBuffer,
-        unsigned int compressedSize,
-        unsigned __int8 *uncompressedBuffer,
-        unsigned int uncompressedSize);
+                unsigned __int8 *compressedBuffer,
+                unsigned int compressedSize,
+                unsigned __int8 *uncompressedBuffer,
+                unsigned int uncompressedSize);

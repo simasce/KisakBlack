@@ -356,32 +356,32 @@ void __cdecl GetNumWeaponUnlocks(int localClientNum, itemDef_s *item, OperandSta
 void __cdecl GetNumFeatureUnlocks(int localClientNum, itemDef_s *item, OperandStack *dataStack);
 void __cdecl GetNumStatsMilestones(int localClientNum, itemDef_s *item, OperandStack *dataStack);
 const char *__cdecl GetStatsMilestoneData(
-        milestoneTableColumns_t comparisonColumn1,
-        const char *value1,
-        milestoneTableColumns_t comparisonColumn2,
-        const char *value2,
-        milestoneTableColumns_t comparisonColumn3,
-        const char *value3,
-        milestoneTableColumns_t returnColumn);
+                milestoneTableColumns_t comparisonColumn1,
+                const char *value1,
+                milestoneTableColumns_t comparisonColumn2,
+                const char *value2,
+                milestoneTableColumns_t comparisonColumn3,
+                const char *value3,
+                milestoneTableColumns_t returnColumn);
 void __cdecl GetStatsMilestoneValue(int localClientNum, itemDef_s *item, OperandStack *dataStack);
 void __cdecl GetStatsMilestoneName(int localClientNum, itemDef_s *item, OperandStack *dataStack);
 char __cdecl GetCurrentIndex(
-        int localClientNum,
-        itemDef_s *item,
-        OperandStack *dataStack,
-        Operand *result,
-        int *challengeNum,
-        operandInternalDataUnion *milestoneType,
-        char *challengeType);
+                int localClientNum,
+                itemDef_s *item,
+                OperandStack *dataStack,
+                Operand *result,
+                int *challengeNum,
+                operandInternalDataUnion *milestoneType,
+                char *challengeType);
 void __cdecl GetCurrentChallengeXpReward(int localClientNum, itemDef_s *item, OperandStack *dataStack);
 char __cdecl GetCurrentIndexOfHighlightedFeeder(
-        int localClientNum,
-        itemDef_s *item,
-        OperandStack *dataStack,
-        Operand *result,
-        int *challengeNum,
-        int *milestoneType,
-        char *name);
+                int localClientNum,
+                itemDef_s *item,
+                OperandStack *dataStack,
+                Operand *result,
+                int *challengeNum,
+                int *milestoneType,
+                char *name);
 void __cdecl IsCurrentChallengeItemClassified(int localClientNum, itemDef_s *item, OperandStack *dataStack);
 void __cdecl GetXpReward(int localClientNum, itemDef_s *item, OperandStack *dataStack);
 void __cdecl GetCurrentChallengeCpReward(int localClientNum, itemDef_s *item, OperandStack *dataStack);
@@ -437,14 +437,14 @@ void __cdecl StatsTableLookup(int localClientNum, itemDef_s *item, OperandStack 
 void __cdecl GetClassBonus(int localClientNum, itemDef_s *item, OperandStack *dataStack);
 int __cdecl GetClassBonusInternal(int localClientNum, const StringTable *table, const char *className);
 int __cdecl FindClassBonusMatches(
-        int localClientNum,
-        const StringTable *table,
-        int *rowMatches,
-        int numRows,
-        const char *statName,
-        const char *className,
-        int column,
-        int ignoreRow);
+                int localClientNum,
+                const StringTable *table,
+                int *rowMatches,
+                int numRows,
+                const char *statName,
+                const char *className,
+                int column,
+                int ignoreRow);
 bool __cdecl IsClassBonusMatch(const char *tableData, const char *playerData);
 const char *__cdecl ClassBonusStatQuery(int controllerIndex, const char *statName, const char *className);
 void __cdecl GetCustomClassLoadoutItem(int localClientNum, itemDef_s *item, OperandStack *dataStack);
@@ -514,26 +514,26 @@ int __cdecl Expression_GetIndexForFunction(int func);
 int __cdecl Expression_GetFunctionForOp(int op);
 char *__cdecl GetExpressionResultString(int localClientNum, itemDef_s *item, ExpressionStatement *statement);
 char __cdecl EvaluateExpression(
-        int localClientNum,
-        itemDef_s *item,
-        ExpressionStatement *statement,
-        Operand *results,
-        int resultCount);
+                int localClientNum,
+                itemDef_s *item,
+                ExpressionStatement *statement,
+                Operand *results,
+                int resultCount);
 bool __cdecl IsExpressionTrue(int localClientNum, itemDef_s *item, ExpressionStatement *statement);
 operandInternalDataUnion __cdecl GetExpressionInt(int localClientNum, itemDef_s *item, ExpressionStatement *statement);
 double __cdecl GetExpressionFloat(int localClientNum, itemDef_s *item, ExpressionStatement *statement);
 char __cdecl GetExpressionStringInt(
-        int localClientNum,
-        itemDef_s *item,
-        ExpressionStatement *statement,
-        char **outString,
-        operandInternalDataUnion *outInt);
+                int localClientNum,
+                itemDef_s *item,
+                ExpressionStatement *statement,
+                char **outString,
+                operandInternalDataUnion *outInt);
 char *__cdecl GetExpressionResultStringCompile(
-        int localClientNum,
-        itemDef_s *item,
-        const char **text,
-        void *compileBuffer,
-        int compileBufferSize);
+                int localClientNum,
+                itemDef_s *item,
+                const char **text,
+                void *compileBuffer,
+                int compileBufferSize);
 void __cdecl Expression_MapIndexToFunction(int index, const char *function);
 char __cdecl Expression_Throttle();
 void Expression_Error(const char *str, ...);

@@ -2,14 +2,14 @@
 
 void __cdecl SNDL_AliasName(char *name, unsigned int id);
 int __cdecl SNDL_Play(
-        unsigned int aliasHash,
-        int fadeTimeMs,
-        float attenuation,
-        SndEntHandle entHandle,
-        float *position,
-        const float *direction,
-        bool notify,
-        snd_playback *playback);
+                unsigned int aliasHash,
+                int fadeTimeMs,
+                float attenuation,
+                SndEntHandle entHandle,
+                float *position,
+                const float *direction,
+                bool notify,
+                snd_playback *playback);
 void __cdecl SNDL_StopSoundAliasOnEnt(SndEntHandle sndEnt, unsigned int name);
 void __cdecl StopSoundAliasesOnEnt(SndEntHandle sndEnt, unsigned int name);
 bool __cdecl SND_IsAliasStopOnDeath(const snd_alias_t *alias);
@@ -18,20 +18,20 @@ void __cdecl SNDL_NotifyCinematicStart(float volume);
 void __cdecl SNDL_NotifyCinematicEnd();
 void __cdecl SNDL_DisconnectListener(int localClientNum);
 void __cdecl SNDL_SetListener(
-        int localClientNum,
-        int clientNum,
-        team_t team,
-        const float *origin,
-        const float (*inAxis)[3]);
+                int localClientNum,
+                int clientNum,
+                team_t team,
+                const float *origin,
+                const float (*inAxis)[3]);
 void __cdecl SNDL_StopSounds(snd_stop_sound_flags which);
 void __cdecl SNDL_FadeOut();
 void __cdecl SNDL_FadeIn();
 void __cdecl SNDL_SetEnvironmentEffects(
-        int priority,
-        unsigned int roomstring,
-        float drylevel,
-        float wetlevel,
-        int fademsec);
+                int priority,
+                unsigned int roomstring,
+                float drylevel,
+                float wetlevel,
+                int fademsec);
 void __cdecl SNDL_DeactivateEnvironmentEffects(int priority, int fademsec);
 void __cdecl SNDL_SetPlaybackAttenuation(int playbackId, float attenuation);
 void __cdecl SNDL_SetPlaybackAttenuationRate(int playbackId, float rate);

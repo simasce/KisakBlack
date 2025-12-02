@@ -12,21 +12,21 @@ int __cdecl LiveMeetPlayer_GetNoOfMetPlayers(int localControllerIndex);
 void __cdecl LiveMeetPlayer_SortMetPlayers(int localControllerIndex, unsigned int noOfPlayers);
 int __cdecl LiveMeetPlayer_MetPlayerCompare(_QWORD *arg0, _QWORD *arg1);
 void __cdecl LiveMeetPlayer_UpdateMeetPlayerList(
-        int localControllerIndex,
-        unsigned __int64 playeruid,
-        const char *playername);
+                int localControllerIndex,
+                unsigned __int64 playeruid,
+                const char *playername);
 void __cdecl LiveMeetPlayer_SetCurrentTime(_FILETIME *currentTime);
 char __cdecl LiveMeetPlayer_AddPlayerAtSlot(
-        int localControllerIndex,
-        unsigned __int64 playeruid,
-        const char *playername,
-        int slot);
+                int localControllerIndex,
+                unsigned __int64 playeruid,
+                const char *playername,
+                int slot);
 unsigned int __cdecl LiveMeetPlayer_GetLastMetTime(int localControllerIndex, int index);
 XuidInfo *__cdecl LiveMeetPlayer_GetMetFriendInfo(XuidInfo *result, int localControllerIndex, int index);
 char __cdecl LiveMeetPlayer_GetRecentPlayerInfoByID(
-        int controllerIndex,
-        unsigned __int64 id,
-        XuidInfo *recentMetPlayerInfo);
+                int controllerIndex,
+                unsigned __int64 id,
+                XuidInfo *recentMetPlayerInfo);
 unsigned int __cdecl LiveMeetPlayer_GetRecentPlayerIndexByID(int controllerIndex, unsigned __int64 id);
 void __cdecl LiveMeetPlayer_UpdatePlayerSession(unsigned __int64 playerUid, unsigned __int64 sessionUid);
 int __cdecl LiveMeetPlayer_GetPlayerSessionByID(unsigned __int64 playerUid);

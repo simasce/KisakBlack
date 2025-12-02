@@ -22,10 +22,10 @@ void __cdecl ActorCmd_StopLookAt(scr_entref_t entref);
 void __cdecl ActorCmd_CanSee(scr_entref_t entref);
 void __cdecl ActorCmd_MayMoveToPoint(scr_entref_t entref);
 void __cdecl DEBUGMAYMOVE(
-        const float *vec1,
-        const float *vec2,
-        const float *color,
-        DEBUGMAYMOVE_LIFT_ENUM liftBehavior);
+                const float *vec1,
+                const float *vec2,
+                const float *color,
+                DEBUGMAYMOVE_LIFT_ENUM liftBehavior);
 int __cdecl MayMove_TraceCheck(actor_s *self, float *vStart, float *vEnd, int allowStartSolid, int checkDrop);
 void __cdecl ActorCmd_MayMoveFromPointToPoint(scr_entref_t entref);
 void __cdecl ActorCmd_Teleport(scr_entref_t entref);

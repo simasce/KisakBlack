@@ -35,9 +35,9 @@ void __cdecl CG_InitView(int localClientNum);
 void __cdecl LerpKillCamView(int localClientNum);
 void __cdecl CG_CalcViewValues(int localClientNum);
 void __cdecl CG_DevSaveCamera(float *angles, float *origin);
-void  CG_OffsetChaseCamView(clientActive_t *a1@<ebp>, int localClientNum, CameraMode camMode);
+void    CG_OffsetChaseCamView(clientActive_t *a1@<ebp>, int localClientNum, CameraMode camMode);
 // local variable allocation has failed, the output may be wrong!
-void  CG_OffsetThirdPersonView(DObj *a1@<ebp>, int localClientNum);
+void    CG_OffsetThirdPersonView(DObj *a1@<ebp>, int localClientNum);
 void __cdecl CG_CalcVrect(int localClientNum);
 void __cdecl CG_SmoothCameraZ(cg_s *cgameGlob);
 void __cdecl CG_OffsetFirstPersonView(cg_s *cgameGlob);
@@ -49,21 +49,21 @@ void __cdecl CG_UpdateHelicopterKillCamDof(float distance, GfxDepthOfField *dof)
 void __cdecl CG_UpdateExplosiveKillCam(int localClientNum, KillCamEntityType killCamEntityType);
 double __cdecl LookAtBothPoints(const float *point1, const float *point2, const float *campos, float (*lookaxis)[3]);
 void __cdecl CG_KillcamCameraTrace(
-        const float *originalBombOrigin,
-        const float *bombAngles,
-        const float *desiredCamPos,
-        int passEntIndex,
-        KillCamEntityRestState killCamEntityRestState,
-        float *campos);
+                const float *originalBombOrigin,
+                const float *bombAngles,
+                const float *desiredCamPos,
+                int passEntIndex,
+                KillCamEntityRestState killCamEntityRestState,
+                float *campos);
 void __cdecl RewindTrace(trace_t *trace, const float *start, const float *end, float amount);
 void __cdecl DebugTraceLine(float *start, float *end, float frac, const float *color);
 bool __cdecl CG_ShouldRenderThirdPerson(CameraMode camMode);
 void __cdecl CG_UpdateThirdPerson(int localClientNum, bool forExtraCam);
 const ClientViewParams *__cdecl CG_GetLocalClientViewParams(int localClientNum);
 const ClientViewParams *__cdecl CG_GetLocalClientViewParams(
-        int localClientNum,
-        int activeClientIndex,
-        int activeClientCountArrayIndex);
+                int localClientNum,
+                int activeClientIndex,
+                int activeClientCountArrayIndex);
 void __cdecl GetCeilingHeight(cg_s *cgameGlob);
 void __cdecl CG_UpdateViewOffset(int localClientNum);
 void __cdecl CG_UpdateKillCamEntityViewOffset(int localClientNum);
@@ -72,14 +72,14 @@ void __cdecl CG_SetupFlameFX(int localClientNum, int enable);
 void __cdecl CG_SetupElectrifiedFX(int localClientNum, int enable);
 bool __cdecl CG_IsInfrared(int localClientNum);
 bool __cdecl CG_IsTvguided(int localClientNum, bool onlyADS);
-int  CG_DrawActiveFrame@<eax>(
-        int a1@<esi>,
-        int localClientNum,
-        int serverTime,
-        DemoType demoType,
-        CubemapShot cubemapShot,
-        int cubemapSize,
-        int renderScreen);
+int    CG_DrawActiveFrame@<eax>(
+                int a1@<esi>,
+                int localClientNum,
+                int serverTime,
+                DemoType demoType,
+                CubemapShot cubemapShot,
+                int cubemapSize,
+                int renderScreen);
 void __cdecl CG_UpdateTestFX(int localClientNum);
 void __cdecl CG_KickAngles(cg_s *cgameGlob);
 void __cdecl UpdateKillCamEntityCache(int localClientNum);
@@ -102,30 +102,30 @@ void __cdecl CG_UpdateElectrifiedFX(cg_s *cgameGlob);
 void __cdecl CG_ValidateWeaponSelect(cg_s *cgameGlob);
 void __cdecl CG_PickValidWeaponSelect(cg_s *cgameGlob);
 int __cdecl CG_DrawExtraCamFrame(
-        int localClientNum,
-        int serverTime,
-        DemoType demoType,
-        CubemapShot cubemapShot,
-        int cubemapSize,
-        int renderScreen);
+                int localClientNum,
+                int serverTime,
+                DemoType demoType,
+                CubemapShot cubemapShot,
+                int cubemapSize,
+                int renderScreen);
 void __cdecl CG_CalcViewValues_ExtraCam(int localClientNum);
 void __cdecl CG_CalcVrect_ExtraCam(int localClientNum);
 void __cdecl CG_ClearSaveScreenFx(int localClientNum);
 void __cdecl CG_SaveScreen(int localClientNum);
 void __cdecl CG_SaveScreenSection(float viewX, float viewY, float viewWidth, float viewHeight, int screenTimerId);
 void __cdecl CG_BlendSavedScreenShockBlurred(
-        int fadeMsec,
-        float viewX,
-        float viewY,
-        float viewWidth,
-        float viewHeight,
-        int screenTimerId);
+                int fadeMsec,
+                float viewX,
+                float viewY,
+                float viewWidth,
+                float viewHeight,
+                int screenTimerId);
 void __cdecl CG_BlendSavedScreenShockFlashed(
-        int localClientNum,
-        float intensityWhiteout,
-        float intensityScreengrab,
-        float viewX,
-        float viewY,
-        float viewWidth,
-        float viewHeight);
+                int localClientNum,
+                float intensityWhiteout,
+                float intensityScreengrab,
+                float viewX,
+                float viewY,
+                float viewWidth,
+                float viewHeight);
 void __cdecl CG_ResetFullscreenFX(int localClientNum);

@@ -1,193 +1,193 @@
 /* ---- HASH FUNCTIONS ---- */
 #ifdef LTC_SHA512
 struct sha512_state {
-    ulong64  length, state[8];
-    unsigned long curlen;
-    unsigned char buf[128];
+        ulong64    length, state[8];
+        unsigned long curlen;
+        unsigned char buf[128];
 };
 #endif
 
 #ifdef LTC_SHA256
 struct sha256_state {
-    ulong64 length;
-    ulong32 state[8], curlen;
-    unsigned char buf[64];
+        ulong64 length;
+        ulong32 state[8], curlen;
+        unsigned char buf[64];
 };
 #endif
 
 #ifdef LTC_SHA1
 struct sha1_state {
-    ulong64 length;
-    ulong32 state[5], curlen;
-    unsigned char buf[64];
+        ulong64 length;
+        ulong32 state[5], curlen;
+        unsigned char buf[64];
 };
 #endif
 
 #ifdef LTC_MD5
 struct md5_state {
-    ulong64 length;
-    ulong32 state[4], curlen;
-    unsigned char buf[64];
+        ulong64 length;
+        ulong32 state[4], curlen;
+        unsigned char buf[64];
 };
 #endif
 
 #ifdef LTC_MD4
 struct md4_state {
-    ulong64 length;
-    ulong32 state[4], curlen;
-    unsigned char buf[64];
+        ulong64 length;
+        ulong32 state[4], curlen;
+        unsigned char buf[64];
 };
 #endif
 
 #ifdef LTC_TIGER
 struct tiger_state {
-    ulong64 state[3], length;
-    unsigned long curlen;
-    unsigned char buf[64];
+        ulong64 state[3], length;
+        unsigned long curlen;
+        unsigned char buf[64];
 };
 #endif
 
 #ifdef LTC_MD2
 struct md2_state {
-    unsigned char chksum[16], X[48], buf[16];
-    unsigned long curlen;
+        unsigned char chksum[16], X[48], buf[16];
+        unsigned long curlen;
 };
 #endif
 
 #ifdef LTC_RIPEMD128
 struct rmd128_state {
-    ulong64 length;
-    unsigned char buf[64];
-    ulong32 curlen, state[4];
+        ulong64 length;
+        unsigned char buf[64];
+        ulong32 curlen, state[4];
 };
 #endif
 
 #ifdef LTC_RIPEMD160
 struct rmd160_state {
-    ulong64 length;
-    unsigned char buf[64];
-    ulong32 curlen, state[5];
+        ulong64 length;
+        unsigned char buf[64];
+        ulong32 curlen, state[5];
 };
 #endif
 
 #ifdef LTC_RIPEMD256
 struct rmd256_state {
-    ulong64 length;
-    unsigned char buf[64];
-    ulong32 curlen, state[8];
+        ulong64 length;
+        unsigned char buf[64];
+        ulong32 curlen, state[8];
 };
 #endif
 
 #ifdef LTC_RIPEMD320
 struct rmd320_state {
-    ulong64 length;
-    unsigned char buf[64];
-    ulong32 curlen, state[10];
+        ulong64 length;
+        unsigned char buf[64];
+        ulong32 curlen, state[10];
 };
 #endif
 
 #ifdef LTC_WHIRLPOOL
 struct whirlpool_state {
-    ulong64 length, state[8];
-    unsigned char buf[64];
-    ulong32 curlen;
+        ulong64 length, state[8];
+        unsigned char buf[64];
+        ulong32 curlen;
 };
 #endif
 
 #ifdef LTC_CHC_HASH
 struct chc_state {
-    ulong64 length;
-    unsigned char state[MAXBLOCKSIZE], buf[MAXBLOCKSIZE];
-    ulong32 curlen;
+        ulong64 length;
+        unsigned char state[MAXBLOCKSIZE], buf[MAXBLOCKSIZE];
+        ulong32 curlen;
 };
 #endif
 
 typedef union Hash_state {
-    char dummy[1];
+        char dummy[1];
 #ifdef LTC_CHC_HASH
-    struct chc_state chc;
+        struct chc_state chc;
 #endif
 #ifdef LTC_WHIRLPOOL
-    struct whirlpool_state whirlpool;
+        struct whirlpool_state whirlpool;
 #endif
 #ifdef LTC_SHA512
-    struct sha512_state sha512;
+        struct sha512_state sha512;
 #endif
 #ifdef LTC_SHA256
-    struct sha256_state sha256;
+        struct sha256_state sha256;
 #endif
 #ifdef LTC_SHA1
-    struct sha1_state   sha1;
+        struct sha1_state     sha1;
 #endif
 #ifdef LTC_MD5
-    struct md5_state    md5;
+        struct md5_state        md5;
 #endif
 #ifdef LTC_MD4
-    struct md4_state    md4;
+        struct md4_state        md4;
 #endif
 #ifdef LTC_MD2
-    struct md2_state    md2;
+        struct md2_state        md2;
 #endif
 #ifdef LTC_TIGER
-    struct tiger_state  tiger;
+        struct tiger_state    tiger;
 #endif
 #ifdef LTC_RIPEMD128
-    struct rmd128_state rmd128;
+        struct rmd128_state rmd128;
 #endif
 #ifdef LTC_RIPEMD160
-    struct rmd160_state rmd160;
+        struct rmd160_state rmd160;
 #endif
 #ifdef LTC_RIPEMD256
-    struct rmd256_state rmd256;
+        struct rmd256_state rmd256;
 #endif
 #ifdef LTC_RIPEMD320
-    struct rmd320_state rmd320;
+        struct rmd320_state rmd320;
 #endif
-    void *data;
+        void *data;
 } hash_state;
 
 /** hash descriptor */
-extern  struct ltc_hash_descriptor {
-    /** name of hash */
-    char *name;
-    /** internal ID */
-    unsigned char ID;
-    /** Size of digest in octets */
-    unsigned long hashsize;
-    /** Input block size in octets */
-    unsigned long blocksize;
-    /** ASN.1 OID */
-    unsigned long OID[16];
-    /** Length of DER encoding */
-    unsigned long OIDlen;
+extern    struct ltc_hash_descriptor {
+        /** name of hash */
+        char *name;
+        /** internal ID */
+        unsigned char ID;
+        /** Size of digest in octets */
+        unsigned long hashsize;
+        /** Input block size in octets */
+        unsigned long blocksize;
+        /** ASN.1 OID */
+        unsigned long OID[16];
+        /** Length of DER encoding */
+        unsigned long OIDlen;
 
-    /** Init a hash state
-      @param hash   The hash to initialize
-      @return CRYPT_OK if successful
-    */
-    int (*init)(hash_state *hash);
-    /** Process a block of data 
-      @param hash   The hash state
-      @param in     The data to hash
-      @param inlen  The length of the data (octets)
-      @return CRYPT_OK if successful
-    */
-    int (*process)(hash_state *hash, const unsigned char *in, unsigned long inlen);
-    /** Produce the digest and store it
-      @param hash   The hash state
-      @param out    [out] The destination of the digest
-      @return CRYPT_OK if successful
-    */
-    int (*done)(hash_state *hash, unsigned char *out);
-    /** Self-test
-      @return CRYPT_OK if successful, CRYPT_NOP if self-tests have been disabled
-    */
-    int (*test)(void);
+        /** Init a hash state
+            @param hash     The hash to initialize
+            @return CRYPT_OK if successful
+        */
+        int (*init)(hash_state *hash);
+        /** Process a block of data 
+            @param hash     The hash state
+            @param in         The data to hash
+            @param inlen    The length of the data (octets)
+            @return CRYPT_OK if successful
+        */
+        int (*process)(hash_state *hash, const unsigned char *in, unsigned long inlen);
+        /** Produce the digest and store it
+            @param hash     The hash state
+            @param out        [out] The destination of the digest
+            @return CRYPT_OK if successful
+        */
+        int (*done)(hash_state *hash, unsigned char *out);
+        /** Self-test
+            @return CRYPT_OK if successful, CRYPT_NOP if self-tests have been disabled
+        */
+        int (*test)(void);
 
-    /* accelerated hmac callback: if you need to-do multiple packets just use the generic hmac_memory and provide a hash callback */
-    int  (*hmac_block)(const unsigned char *key, unsigned long  keylen,
-                       const unsigned char *in,  unsigned long  inlen, 
-                             unsigned char *out, unsigned long *outlen);
+        /* accelerated hmac callback: if you need to-do multiple packets just use the generic hmac_memory and provide a hash callback */
+        int    (*hmac_block)(const unsigned char *key, unsigned long    keylen,
+                                             const unsigned char *in,    unsigned long    inlen, 
+                                                         unsigned char *out, unsigned long *outlen);
 
 } hash_descriptor[];
 
@@ -218,7 +218,7 @@ extern const struct ltc_hash_descriptor sha512_desc;
 
 #ifdef LTC_SHA384
 #ifndef LTC_SHA512
-   #error LTC_SHA512 is required for LTC_SHA384
+     #error LTC_SHA512 is required for LTC_SHA384
 #endif
 int sha384_init(hash_state * md);
 #define sha384_process sha512_process
@@ -236,7 +236,7 @@ extern const struct ltc_hash_descriptor sha256_desc;
 
 #ifdef LTC_SHA224
 #ifndef LTC_SHA256
-   #error LTC_SHA256 is required for LTC_SHA224
+     #error LTC_SHA256 is required for LTC_SHA224
 #endif
 int sha224_init(hash_state * md);
 #define sha224_process sha256_process
@@ -330,48 +330,48 @@ int hash_is_valid(int idx);
 LTC_MUTEX_PROTO(ltc_hash_mutex)
 
 int hash_memory(int hash, 
-                const unsigned char *in,  unsigned long inlen, 
-                      unsigned char *out, unsigned long *outlen);
+                                const unsigned char *in,    unsigned long inlen, 
+                                            unsigned char *out, unsigned long *outlen);
 int hash_memory_multi(int hash, unsigned char *out, unsigned long *outlen,
-                      const unsigned char *in, unsigned long inlen, ...);
+                                            const unsigned char *in, unsigned long inlen, ...);
 int hash_filehandle(int hash, FILE *in, unsigned char *out, unsigned long *outlen);
 int hash_file(int hash, const char *fname, unsigned char *out, unsigned long *outlen);
 
 /* a simple macro for making hash "process" functions */
-#define HASH_PROCESS(func_name, compress_name, state_var, block_size)                       \
-int func_name (hash_state * md, const unsigned char *in, unsigned long inlen)               \
-{                                                                                           \
-    unsigned long n;                                                                        \
-    int           err;                                                                      \
-    LTC_ARGCHK(md != NULL);                                                                 \
-    LTC_ARGCHK(in != NULL);                                                                 \
-    if (md-> state_var .curlen > sizeof(md-> state_var .buf)) {                             \
-       return CRYPT_INVALID_ARG;                                                            \
-    }                                                                                       \
-    while (inlen > 0) {                                                                     \
-        if (md-> state_var .curlen == 0 && inlen >= block_size) {                           \
-           if ((err = compress_name (md, (unsigned char *)in)) != CRYPT_OK) {               \
-              return err;                                                                   \
-           }                                                                                \
-           md-> state_var .length += block_size * 8;                                        \
-           in             += block_size;                                                    \
-           inlen          -= block_size;                                                    \
-        } else {                                                                            \
-           n = MIN(inlen, (block_size - md-> state_var .curlen));                           \
-           memcpy(md-> state_var .buf + md-> state_var.curlen, in, (size_t)n);              \
-           md-> state_var .curlen += n;                                                     \
-           in             += n;                                                             \
-           inlen          -= n;                                                             \
-           if (md-> state_var .curlen == block_size) {                                      \
-              if ((err = compress_name (md, md-> state_var .buf)) != CRYPT_OK) {            \
-                 return err;                                                                \
-              }                                                                             \
-              md-> state_var .length += 8*block_size;                                       \
-              md-> state_var .curlen = 0;                                                   \
-           }                                                                                \
-       }                                                                                    \
-    }                                                                                       \
-    return CRYPT_OK;                                                                        \
+#define HASH_PROCESS(func_name, compress_name, state_var, block_size)                                             \
+int func_name (hash_state * md, const unsigned char *in, unsigned long inlen)                             \
+{                                                                                                                                                                                     \
+        unsigned long n;                                                                                                                                                \
+        int                     err;                                                                                                                                            \
+        LTC_ARGCHK(md != NULL);                                                                                                                                 \
+        LTC_ARGCHK(in != NULL);                                                                                                                                 \
+        if (md-> state_var .curlen > sizeof(md-> state_var .buf)) {                                                         \
+             return CRYPT_INVALID_ARG;                                                                                                                        \
+        }                                                                                                                                                                             \
+        while (inlen > 0) {                                                                                                                                         \
+                if (md-> state_var .curlen == 0 && inlen >= block_size) {                                                     \
+                     if ((err = compress_name (md, (unsigned char *)in)) != CRYPT_OK) {                             \
+                            return err;                                                                                                                                     \
+                     }                                                                                                                                                                \
+                     md-> state_var .length += block_size * 8;                                                                                \
+                     in                         += block_size;                                                                                                        \
+                     inlen                    -= block_size;                                                                                                        \
+                } else {                                                                                                                                                        \
+                     n = MIN(inlen, (block_size - md-> state_var .curlen));                                                     \
+                     memcpy(md-> state_var .buf + md-> state_var.curlen, in, (size_t)n);                            \
+                     md-> state_var .curlen += n;                                                                                                         \
+                     in                         += n;                                                                                                                         \
+                     inlen                    -= n;                                                                                                                         \
+                     if (md-> state_var .curlen == block_size) {                                                                            \
+                            if ((err = compress_name (md, md-> state_var .buf)) != CRYPT_OK) {                        \
+                                 return err;                                                                                                                                \
+                            }                                                                                                                                                         \
+                            md-> state_var .length += 8*block_size;                                                                             \
+                            md-> state_var .curlen = 0;                                                                                                     \
+                     }                                                                                                                                                                \
+             }                                                                                                                                                                        \
+        }                                                                                                                                                                             \
+        return CRYPT_OK;                                                                                                                                                \
 }
 
 /* $Source: /cvs/libtom/libtomcrypt/src/headers/tomcrypt_hash.h,v $ */

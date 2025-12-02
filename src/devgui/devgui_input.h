@@ -13,12 +13,12 @@ void __cdecl DevGui_MouseEvent(int dx, int dy);
 __int16 __cdecl DevGui_GetMenuScroll(DevGuiInputAxis axis);
 __int64 __cdecl DevGui_UpdateIntScroll(float deltaTime, __int64 value, __int64 min, __int64 max, DevGuiInputAxis axis);
 double __cdecl DevGui_UpdateFloatScroll(
-        float deltaTime,
-        float value,
-        float min,
-        float max,
-        float step,
-        DevGuiInputAxis axis);
+                float deltaTime,
+                float value,
+                float min,
+                float max,
+                float step,
+                DevGuiInputAxis axis);
 bool __cdecl DevGui_IsButtonDown(DevGuiInputButton button);
 bool __cdecl DevGui_IsButtonPressed(DevGuiInputButton button);
 bool __cdecl DevGui_IsButtonReleased(DevGuiInputButton button);

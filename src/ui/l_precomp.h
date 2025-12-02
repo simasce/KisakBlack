@@ -18,17 +18,17 @@ define_s *__cdecl PC_FindHashedDefine(define_s **definehash, char *name);
 int __cdecl PC_FindDefineParm(define_s *define, const char *name);
 void __cdecl PC_FreeDefine(define_s *define);
 int __cdecl PC_ExpandBuiltinDefine(
-        source_s *source,
-        token_s *deftoken,
-        define_s *define,
-        token_s **firsttoken,
-        token_s **lasttoken);
+                source_s *source,
+                token_s *deftoken,
+                define_s *define,
+                token_s **firsttoken,
+                token_s **lasttoken);
 int __cdecl PC_ExpandDefine(
-        source_s *source,
-        token_s *deftoken,
-        define_s *define,
-        token_s **firsttoken,
-        token_s **lasttoken);
+                source_s *source,
+                token_s *deftoken,
+                define_s *define,
+                token_s **firsttoken,
+                token_s **lasttoken);
 void __cdecl PC_ConvertPath(char *path);
 int __cdecl PC_Directive_include(source_s *source);
 bool __cdecl PC_WhiteSpaceBeforeToken(token_s *token);

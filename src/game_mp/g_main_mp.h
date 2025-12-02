@@ -28,14 +28,14 @@ bool __cdecl G_ExitOnComError(int code);
 int __cdecl G_IsServerGameSystem(int clientNum);
 unsigned __int16 __cdecl G_GetWeaponAttachBone(clientInfo_t *ci, weapType_t weapType, weapInventoryType_t invType);
 void G_FreeAnimTreeInstances();
-void __cdecl  G_InitGame(int levelTime, int randomSeed, int restart, int registerDvars);
+void __cdecl    G_InitGame(int levelTime, int randomSeed, int restart, int registerDvars);
 const dvar_s *G_RegisterDvars();
 void __cdecl G_CreateDObj(
-        DObjModel_s *dobjModels,
-        unsigned __int16 numModels,
-        XAnimTree_s *tree,
-        unsigned int handle,
-        int unusedLocalClientNum);
+                DObjModel_s *dobjModels,
+                unsigned __int16 numModels,
+                XAnimTree_s *tree,
+                unsigned int handle,
+                int unusedLocalClientNum);
 DObj *__cdecl G_GetDObj(unsigned int handle, int unusedLocalClientNum);
 void __cdecl G_SafeDObjFree(unsigned int handle, int unusedLocalClientNum);
 XAnim_s *G_LoadAnimTreeInstances();
@@ -62,17 +62,17 @@ void __cdecl G_UpdateTimedDamage(gentity_s *ent);
 void __cdecl G_DebugTimedDamage();
 void __cdecl G_UpdateClientLinkInfo(gentity_s *ent);
 bool __cdecl ResolveParentClientMask(const gentity_s *entChild, gentity_s *entParent);
-void  G_RunFrame(__m128 a1@<xmm0>, int levelTime);
+void    G_RunFrame(__m128 a1@<xmm0>, int levelTime);
 void __cdecl G_ClientDoPerFrameNotifies(gentity_s *ent);
 bool __cdecl DoPerFrameNotify(
-        gentity_s *ent,
-        bool isCurrently,
-        bool wasPreviously,
-        unsigned __int16 begin,
-        unsigned __int16 end);
+                gentity_s *ent,
+                bool isCurrently,
+                bool wasPreviously,
+                unsigned __int16 begin,
+                unsigned __int16 end);
 void __cdecl G_UpdateIKCulling(gentity_s *ent);
 void __cdecl G_RunFrameForEntity(gentity_s *ent);
-void  G_UpdateWeapons(__m128 a1@<xmm0>, gentity_s *ent);
+void    G_UpdateWeapons(__m128 a1@<xmm0>, gentity_s *ent);
 int G_PopulateMatchState();
 bool __cdecl G_IsEntWalkable(int localClientNum, int entityNum);
 char __cdecl G_GetEntityOriginAngles(int localClientNum, int entityNum, float *origin, float *angles);

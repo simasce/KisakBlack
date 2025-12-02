@@ -11,10 +11,10 @@ void __fastcall Sentient_GetThirdPersonEyePosition(const sentient_s *self, float
 void __fastcall Sentient_GetDebugEyePosition(const sentient_s *self, float *vEyePosOut);
 pathnode_t *__fastcall Sentient_NearestNode(sentient_s *self);
 pathnode_t *__fastcall Sentient_NearestNodeSuppressed(
-        sentient_s *self,
-        float (*vNormal)[2],
-        float *fDist,
-        int iPlaneCount);
+                sentient_s *self,
+                float (*vNormal)[2],
+                float *fDist,
+                int iPlaneCount);
 void __fastcall Sentient_InvalidateNearestNode(sentient_s *self);
 void __fastcall Sentient_SetEnemy(sentient_s *self, gentity_s *enemy, int bNotify);
 sentient_s *__fastcall Sentient_FirstSentient(int iTeamFlags);

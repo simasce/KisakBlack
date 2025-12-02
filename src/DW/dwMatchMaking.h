@@ -28,9 +28,9 @@ void __cdecl dwMatchMaking_GetSessionByIDSuccess();
 TaskRecord *__cdecl dwMatchMaking_FindSessionByID(bdSessionID *sessionID);
 void __cdecl dwFindSessionsByEntityIDsFailure();
 TaskRecord *__cdecl dwFindSessionsByEntityIDs(
-        const unsigned __int64 *serverIDs,
-        unsigned int numservers,
-        MatchMakingInfo *serverinfos);
+                const unsigned __int64 *serverIDs,
+                unsigned int numservers,
+                MatchMakingInfo *serverinfos);
 int __cdecl dwRegionCodeFromCountryCode(const char *countrycode);
 bool __cdecl dwIsPagedFindInProgress();
 void __cdecl dwFindSessionsPagedSuccess(TaskRecord *task);
@@ -41,20 +41,20 @@ bdNetImpl *__cdecl bdSingleton<bdNetImpl>::getInstance();
 bdGameInfoFactoryImpl *__cdecl bdSingleton<bdGameInfoFactoryImpl>::getInstance();
 void __thiscall bdCreatorBase<bdGameInfo>::~bdCreatorBase<bdGameInfo>(bdCreatorBase<bdGameInfo> *this);
 void __thiscall bdCreator<bdGameInfo,bdGameInfo>::~bdCreator<bdGameInfo,bdGameInfo>(
-        bdCreator<bdGameInfo,bdGameInfo> *this);
+                bdCreator<bdGameInfo,bdGameInfo> *this);
 bdGameInfo *__thiscall bdCreator<bdGameInfo,bdGameInfo>::create(bdCreator<bdGameInfo,bdGameInfo> *this);
 unsigned int __thiscall bdCreator<bdGameInfo,bdGameInfo>::getSizeOf(bdCreator<bdGameInfo,bdGameInfo> *this);
 void __thiscall bdArray<bdReference<bdGameInfo>>::clear(bdArray<bdReference<bdGameInfo> > *this);
 void __thiscall bdArray<bdReference<bdGameInfo>>::pushBack(
-        bdArray<bdReference<bdGameInfo> > *this,
-        const bdReference<bdGameInfo> *value);
+                bdArray<bdReference<bdGameInfo> > *this,
+                const bdReference<bdGameInfo> *value);
 void bdSingleton<bdNetImpl>::destroyInstance();
 void bdSingleton<bdGameInfoFactoryImpl>::destroyInstance();
 void __thiscall bdArray<bdReference<bdGameInfo>>::increaseCapacity(
-        bdArray<bdReference<bdGameInfo> > *this,
-        unsigned int increase);
+                bdArray<bdReference<bdGameInfo> > *this,
+                unsigned int increase);
 void __thiscall bdArray<bdReference<bdGameInfo>>::copyConstructArrayArray(
-        bdArray<bdReference<bdGameInfo> > *this,
-        bdReference<bdGameInfo> *dest,
-        const bdReference<bdGameInfo> *src,
-        unsigned int n);
+                bdArray<bdReference<bdGameInfo> > *this,
+                bdReference<bdGameInfo> *dest,
+                const bdReference<bdGameInfo> *src,
+                unsigned int n);

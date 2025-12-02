@@ -10,9 +10,9 @@
  */
 
 /**
-  @file kseed.c
-  seed implementation of SEED derived from RFC4269
-  Tom St Denis
+    @file kseed.c
+    seed implementation of SEED derived from RFC4269
+    Tom St Denis
 */
 
 #include "tomcrypt.h"
@@ -20,16 +20,16 @@
 #ifdef LTC_KSEED
 
 const struct ltc_cipher_descriptor kseed_desc = {
-   "seed",
-   20,
-   16, 16, 16, 16,
-   &kseed_setup,
-   &kseed_ecb_encrypt,
-   &kseed_ecb_decrypt,
-   &kseed_test,
-   &kseed_done,
-   &kseed_keysize,
-   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+     "seed",
+     20,
+     16, 16, 16, 16,
+     &kseed_setup,
+     &kseed_ecb_encrypt,
+     &kseed_ecb_decrypt,
+     &kseed_test,
+     &kseed_done,
+     &kseed_keysize,
+     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 static const ulong32 SS0[256] = {
@@ -186,187 +186,187 @@ static const ulong32 KCi[16] = {
 #define G(x) (SS3[((x)>>24)&255] ^ SS2[((x)>>16)&255] ^ SS1[((x)>>8)&255] ^ SS0[(x)&255])
 
 #define F(L1, L2, R1, R2, K1, K2) \
-   T2 = G((R1 ^ K1) ^ (R2 ^ K2)); \
-   T = G( G(T2 + (R1 ^ K1)) + T2); \
-   L2 ^= T; \
-   L1 ^= (T + G(T2 + (R1 ^ K1))); \
+     T2 = G((R1 ^ K1) ^ (R2 ^ K2)); \
+     T = G( G(T2 + (R1 ^ K1)) + T2); \
+     L2 ^= T; \
+     L1 ^= (T + G(T2 + (R1 ^ K1))); \
 
  /**
-    Initialize the SEED block cipher
-    @param key The symmetric key you wish to pass
-    @param keylen The key length in bytes
-    @param num_rounds The number of rounds desired (0 for default)
-    @param skey The key in as scheduled by this function.
-    @return CRYPT_OK if successful
+        Initialize the SEED block cipher
+        @param key The symmetric key you wish to pass
+        @param keylen The key length in bytes
+        @param num_rounds The number of rounds desired (0 for default)
+        @param skey The key in as scheduled by this function.
+        @return CRYPT_OK if successful
  */
 int kseed_setup(const unsigned char *key, int keylen, int num_rounds, symmetric_key *skey)
 {
-    int     i;
-    ulong32 tmp, k1, k2, k3, k4;
+        int         i;
+        ulong32 tmp, k1, k2, k3, k4;
 
-    if (keylen != 16) {
-       return CRYPT_INVALID_KEYSIZE;
-    }
-   
-    if (num_rounds != 16 && num_rounds != 0) {
-       return CRYPT_INVALID_ROUNDS;
-    }
+        if (keylen != 16) {
+             return CRYPT_INVALID_KEYSIZE;
+        }
+     
+        if (num_rounds != 16 && num_rounds != 0) {
+             return CRYPT_INVALID_ROUNDS;
+        }
 
-    /* load key */
-    LOAD32H(k1, key);
-    LOAD32H(k2, key+4);
-    LOAD32H(k3, key+8);
-    LOAD32H(k4, key+12);
+        /* load key */
+        LOAD32H(k1, key);
+        LOAD32H(k2, key+4);
+        LOAD32H(k3, key+8);
+        LOAD32H(k4, key+12);
 
-    for (i = 0; i < 16; i++) {
-       skey->kseed.K[2*i+0] = G(k1 + k3 - KCi[i]);
-       skey->kseed.K[2*i+1] = G(k2 - k4 + KCi[i]);
-       if (i&1) {
-          tmp = k3;
-          k3 = ((k3 << 8) | (k4 >> 24)) & 0xFFFFFFFF;
-          k4 = ((k4 << 8) | (tmp >> 24)) & 0xFFFFFFFF;
-       } else {
-          tmp = k1;
-          k1 = ((k1 >> 8) | (k2 << 24)) & 0xFFFFFFFF;
-          k2 = ((k2 >> 8) | (tmp << 24)) & 0xFFFFFFFF;
-      }
-      /* reverse keys for decrypt */
-      skey->kseed.dK[2*(15-i)+0] = skey->kseed.K[2*i+0];
-      skey->kseed.dK[2*(15-i)+1] = skey->kseed.K[2*i+1];
-    }
+        for (i = 0; i < 16; i++) {
+             skey->kseed.K[2*i+0] = G(k1 + k3 - KCi[i]);
+             skey->kseed.K[2*i+1] = G(k2 - k4 + KCi[i]);
+             if (i&1) {
+                    tmp = k3;
+                    k3 = ((k3 << 8) | (k4 >> 24)) & 0xFFFFFFFF;
+                    k4 = ((k4 << 8) | (tmp >> 24)) & 0xFFFFFFFF;
+             } else {
+                    tmp = k1;
+                    k1 = ((k1 >> 8) | (k2 << 24)) & 0xFFFFFFFF;
+                    k2 = ((k2 >> 8) | (tmp << 24)) & 0xFFFFFFFF;
+            }
+            /* reverse keys for decrypt */
+            skey->kseed.dK[2*(15-i)+0] = skey->kseed.K[2*i+0];
+            skey->kseed.dK[2*(15-i)+1] = skey->kseed.K[2*i+1];
+        }
 
-    return CRYPT_OK;
+        return CRYPT_OK;
 }
 
 static void rounds(ulong32 *P, ulong32 *K)
 {
-   ulong32 T, T2;
-   int     i;
-   for (i = 0; i < 16; i += 2) {
-     F(P[0], P[1], P[2], P[3], K[0], K[1]);
-     F(P[2], P[3], P[0], P[1], K[2], K[3]);
-     K += 4;
-   }
+     ulong32 T, T2;
+     int         i;
+     for (i = 0; i < 16; i += 2) {
+         F(P[0], P[1], P[2], P[3], K[0], K[1]);
+         F(P[2], P[3], P[0], P[1], K[2], K[3]);
+         K += 4;
+     }
 }
 
 /**
-  Encrypts a block of text with SEED
-  @param pt The input plaintext (16 bytes)
-  @param ct The output ciphertext (16 bytes)
-  @param skey The key as scheduled
-  @return CRYPT_OK if successful
+    Encrypts a block of text with SEED
+    @param pt The input plaintext (16 bytes)
+    @param ct The output ciphertext (16 bytes)
+    @param skey The key as scheduled
+    @return CRYPT_OK if successful
 */
 int kseed_ecb_encrypt(const unsigned char *pt, unsigned char *ct, symmetric_key *skey)
 {
-   ulong32 P[4];
-   LOAD32H(P[0], pt);
-   LOAD32H(P[1], pt+4);
-   LOAD32H(P[2], pt+8);
-   LOAD32H(P[3], pt+12);
-   rounds(P, skey->kseed.K);
-   STORE32H(P[2], ct);
-   STORE32H(P[3], ct+4);
-   STORE32H(P[0], ct+8);
-   STORE32H(P[1], ct+12);
-   return CRYPT_OK;
+     ulong32 P[4];
+     LOAD32H(P[0], pt);
+     LOAD32H(P[1], pt+4);
+     LOAD32H(P[2], pt+8);
+     LOAD32H(P[3], pt+12);
+     rounds(P, skey->kseed.K);
+     STORE32H(P[2], ct);
+     STORE32H(P[3], ct+4);
+     STORE32H(P[0], ct+8);
+     STORE32H(P[1], ct+12);
+     return CRYPT_OK;
 }
 
 /**
-  Decrypts a block of text with SEED
-  @param ct The input ciphertext (16 bytes)
-  @param pt The output plaintext (16 bytes)
-  @param skey The key as scheduled 
-  @return CRYPT_OK if successful
+    Decrypts a block of text with SEED
+    @param ct The input ciphertext (16 bytes)
+    @param pt The output plaintext (16 bytes)
+    @param skey The key as scheduled 
+    @return CRYPT_OK if successful
 */
 int kseed_ecb_decrypt(const unsigned char *ct, unsigned char *pt, symmetric_key *skey)
 {
-   ulong32 P[4];
-   LOAD32H(P[0], ct);
-   LOAD32H(P[1], ct+4);
-   LOAD32H(P[2], ct+8);
-   LOAD32H(P[3], ct+12);
-   rounds(P, skey->kseed.dK);
-   STORE32H(P[2], pt);
-   STORE32H(P[3], pt+4);
-   STORE32H(P[0], pt+8);
-   STORE32H(P[1], pt+12);
-   return CRYPT_OK;
+     ulong32 P[4];
+     LOAD32H(P[0], ct);
+     LOAD32H(P[1], ct+4);
+     LOAD32H(P[2], ct+8);
+     LOAD32H(P[3], ct+12);
+     rounds(P, skey->kseed.dK);
+     STORE32H(P[2], pt);
+     STORE32H(P[3], pt+4);
+     STORE32H(P[0], pt+8);
+     STORE32H(P[1], pt+12);
+     return CRYPT_OK;
 }
 
 /** Terminate the context 
-   @param skey    The scheduled key
+     @param skey        The scheduled key
 */
 void kseed_done(symmetric_key *skey)
 {
 }
 
 /**
-  Performs a self-test of the SEED block cipher
-  @return CRYPT_OK if functional, CRYPT_NOP if self-test has been disabled
+    Performs a self-test of the SEED block cipher
+    @return CRYPT_OK if functional, CRYPT_NOP if self-test has been disabled
 */
 int kseed_test(void)
 {
 #if !defined(LTC_TEST)
-  return CRYPT_NOP;
+    return CRYPT_NOP;
 #else
-  static const struct test {
-     unsigned char pt[16], ct[16], key[16];
-  } tests[] = {
+    static const struct test {
+         unsigned char pt[16], ct[16], key[16];
+    } tests[] = {
 
 {
-  { 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0A,0x0B,0x0C,0x0D,0x0E,0x0F },
-  { 0x5E,0xBA,0xC6,0xE0,0x05,0x4E,0x16,0x68,0x19,0xAF,0xF1,0xCC,0x6D,0x34,0x6C,0xDB },
-  { 0 },
+    { 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0A,0x0B,0x0C,0x0D,0x0E,0x0F },
+    { 0x5E,0xBA,0xC6,0xE0,0x05,0x4E,0x16,0x68,0x19,0xAF,0xF1,0xCC,0x6D,0x34,0x6C,0xDB },
+    { 0 },
 },
 
 {
-  { 0 },
-  { 0xC1,0x1F,0x22,0xF2,0x01,0x40,0x50,0x50,0x84,0x48,0x35,0x97,0xE4,0x37,0x0F,0x43 },
-  { 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0A,0x0B,0x0C,0x0D,0x0E,0x0F },
+    { 0 },
+    { 0xC1,0x1F,0x22,0xF2,0x01,0x40,0x50,0x50,0x84,0x48,0x35,0x97,0xE4,0x37,0x0F,0x43 },
+    { 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0A,0x0B,0x0C,0x0D,0x0E,0x0F },
 },
 
 {
-  { 0x83,0xA2,0xF8,0xA2,0x88,0x64,0x1F,0xB9,0xA4,0xE9,0xA5,0xCC,0x2F,0x13,0x1C,0x7D },
-  { 0xEE,0x54,0xD1,0x3E,0xBC,0xAE,0x70,0x6D,0x22,0x6B,0xC3,0x14,0x2C,0xD4,0x0D,0x4A },
-  { 0x47,0x06,0x48,0x08,0x51,0xE6,0x1B,0xE8,0x5D,0x74,0xBF,0xB3,0xFD,0x95,0x61,0x85 },
+    { 0x83,0xA2,0xF8,0xA2,0x88,0x64,0x1F,0xB9,0xA4,0xE9,0xA5,0xCC,0x2F,0x13,0x1C,0x7D },
+    { 0xEE,0x54,0xD1,0x3E,0xBC,0xAE,0x70,0x6D,0x22,0x6B,0xC3,0x14,0x2C,0xD4,0x0D,0x4A },
+    { 0x47,0x06,0x48,0x08,0x51,0xE6,0x1B,0xE8,0x5D,0x74,0xBF,0xB3,0xFD,0x95,0x61,0x85 },
 },
 
 {
-  { 0xB4,0x1E,0x6B,0xE2,0xEB,0xA8,0x4A,0x14,0x8E,0x2E,0xED,0x84,0x59,0x3C,0x5E,0xC7 },
-  { 0x9B,0x9B,0x7B,0xFC,0xD1,0x81,0x3C,0xB9,0x5D,0x0B,0x36,0x18,0xF4,0x0F,0x51,0x22 },
-  { 0x28,0xDB,0xC3,0xBC,0x49,0xFF,0xD8,0x7D,0xCF,0xA5,0x09,0xB1,0x1D,0x42,0x2B,0xE7 },
+    { 0xB4,0x1E,0x6B,0xE2,0xEB,0xA8,0x4A,0x14,0x8E,0x2E,0xED,0x84,0x59,0x3C,0x5E,0xC7 },
+    { 0x9B,0x9B,0x7B,0xFC,0xD1,0x81,0x3C,0xB9,0x5D,0x0B,0x36,0x18,0xF4,0x0F,0x51,0x22 },
+    { 0x28,0xDB,0xC3,0xBC,0x49,0xFF,0xD8,0x7D,0xCF,0xA5,0x09,0xB1,0x1D,0x42,0x2B,0xE7 },
 }
 };
-   int x;
-   unsigned char buf[2][16];
-   symmetric_key skey;
+     int x;
+     unsigned char buf[2][16];
+     symmetric_key skey;
 
-   for (x = 0; x < (int)(sizeof(tests)/sizeof(tests[0])); x++) {
-       kseed_setup(tests[x].key, 16, 0, &skey);
-       kseed_ecb_encrypt(tests[x].pt, buf[0], &skey);
-       kseed_ecb_decrypt(buf[0], buf[1], &skey);
-       if (XMEMCMP(buf[0], tests[x].ct, 16) || XMEMCMP(buf[1], tests[x].pt, 16)) {
-          return CRYPT_FAIL_TESTVECTOR;
-       }
-   }
-   return CRYPT_OK;
+     for (x = 0; x < (int)(sizeof(tests)/sizeof(tests[0])); x++) {
+             kseed_setup(tests[x].key, 16, 0, &skey);
+             kseed_ecb_encrypt(tests[x].pt, buf[0], &skey);
+             kseed_ecb_decrypt(buf[0], buf[1], &skey);
+             if (XMEMCMP(buf[0], tests[x].ct, 16) || XMEMCMP(buf[1], tests[x].pt, 16)) {
+                    return CRYPT_FAIL_TESTVECTOR;
+             }
+     }
+     return CRYPT_OK;
 #endif
 }
 
 /**
-  Gets suitable key size
-  @param keysize [in/out] The length of the recommended key (in bytes).  This function will store the suitable size back in this variable.
-  @return CRYPT_OK if the input key size is acceptable.
+    Gets suitable key size
+    @param keysize [in/out] The length of the recommended key (in bytes).    This function will store the suitable size back in this variable.
+    @return CRYPT_OK if the input key size is acceptable.
 */
 int kseed_keysize(int *keysize)
 {
-   LTC_ARGCHK(keysize != NULL);
-   if (*keysize >= 16) {
-      *keysize = 16;
-   } else {
-      return CRYPT_INVALID_KEYSIZE;
-   }
-   return CRYPT_OK;
+     LTC_ARGCHK(keysize != NULL);
+     if (*keysize >= 16) {
+            *keysize = 16;
+     } else {
+            return CRYPT_INVALID_KEYSIZE;
+     }
+     return CRYPT_OK;
 }
 
 #endif

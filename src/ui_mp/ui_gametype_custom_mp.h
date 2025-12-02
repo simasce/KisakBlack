@@ -48,25 +48,25 @@ void __cdecl UI_Gametype_Custom_Reset_f();
 void __cdecl UI_Gametype_RevertChanges_f();
 bool __cdecl isValidClassSlotNum(unsigned int slotNum);
 unsigned __int8 __cdecl GetCustomClassLoadoutItemForSlot(
-        int controllerIndex,
-        unsigned int slotNum,
-        const char *itemName);
+                int controllerIndex,
+                unsigned int slotNum,
+                const char *itemName);
 unsigned __int8 __cdecl GetCustomClassLoadoutItemForClassName(
-        int controllerIndex,
-        const char *className,
-        const char *itemName);
+                int controllerIndex,
+                const char *className,
+                const char *itemName);
 int __cdecl GetCustomClassModifierForClass(int controllerIndex, unsigned int classNum, const char *itemName);
 void __cdecl UI_Gametype_EquipCustomClassLoadoutItem(
-        int controllerIndex,
-        const char *customClassName,
-        unsigned __int8 itemIndex,
-        const char *loadoutName);
+                int controllerIndex,
+                const char *customClassName,
+                unsigned __int8 itemIndex,
+                const char *loadoutName);
 int __thiscall _CustomClassData::GetClassModifierValue(_CustomClassData *this, const char *modifierName);
 unsigned __int8 __thiscall _CustomClassData::GetLoadoutItem(_CustomClassData *this, const char *itemName);
 void __thiscall _CustomClassData::SetLoadoutItem(
-        _CustomClassData *this,
-        const char *itemName,
-        unsigned __int8 itemIndex);
+                _CustomClassData *this,
+                const char *itemName,
+                unsigned __int8 itemIndex);
 void __thiscall _CustomClassData::PopulateCustomDvarsFromClassData(_CustomClassData *this);
 void __thiscall _CustomClassData::SaveClassDataFromDvars(_CustomClassData *this);
 void __thiscall _CustomClassData::WriteClassToClientData(_CustomClassData *this, msg_t *msg);
@@ -87,10 +87,10 @@ void __cdecl UI_Gametype_Custom_ResolveNumKillsConflicts();
 void __cdecl UI_Gametype_Custom_UploadToFileShareSuccess(int controllerIndex, unsigned __int64 fileID);
 void __cdecl UI_Gametype_Custom_UploadToFileShareFailure();
 void __cdecl UI_Gametype_Custom_UploadToFileShare(
-        int controllerIndex,
-        unsigned __int16 fileSlot,
-        const char *fileName,
-        MemoryFile *customGameMode);
+                int controllerIndex,
+                unsigned __int16 fileSlot,
+                const char *fileName,
+                MemoryFile *customGameMode);
 void __cdecl UI_Gametype_UploadToFileShare_f();
 void __cdecl UI_Gametype_FileShareDownloadComplete(dwFileShareReadFileTask *task);
 void __cdecl UI_Gametype_FileShareDownloadFailed(dwFileShareReadFileTask *task);

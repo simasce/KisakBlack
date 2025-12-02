@@ -10,11 +10,11 @@ void __cdecl CL_SetCursorPos(unsigned int x, unsigned int y);
 void __cdecl CL_ShowSystemCursor(bool show);
 bool __cdecl CL_KeyActiveOrPressed(int localClientNum, unsigned int kbButton);
 void __cdecl CL_UpdateCmdButton(
-        int localClientNum,
-        bitarray<51> *cmdButton_bits,
-        int kbButton,
-        int buttonBit,
-        int numBits);
+                int localClientNum,
+                bitarray<51> *cmdButton_bits,
+                int kbButton,
+                int buttonBit,
+                int numBits);
 void __cdecl CL_WritePacket(int localClientNum);
 bool __cdecl CG_IsRemoteGuidingMissile(int localClientNum);
 void __cdecl CL_SendCmd(int localClientNum);

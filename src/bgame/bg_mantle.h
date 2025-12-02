@@ -18,8 +18,8 @@ void __cdecl Mantle_GetAnimDelta(MantleState *mstate, int time, float *delta);
 int __cdecl Mantle_FindTransition(float curHeight, float goalHeight);
 void __cdecl Mantle_SetHaveWeapon(MantleState *mstate, const playerState_s *ps);
 // local variable allocation has failed, the output may be wrong!
-void  Mount_CheckLedge(cStaticModel_s *a1@<ebp>, pmove_t *pm, pml_t *pml, MantleResults *mresults);
-char  Mantle_FindMantleSurface@<al>(int a1@<ebp>, pmove_t *pm, pml_t *pml, trace_t *trace, float *mantleDir);
+void    Mount_CheckLedge(cStaticModel_s *a1@<ebp>, pmove_t *pm, pml_t *pml, MantleResults *mresults);
+char    Mantle_FindMantleSurface@<al>(int a1@<ebp>, pmove_t *pm, pml_t *pml, trace_t *trace, float *mantleDir);
 void __cdecl Mantle_Move(pmove_t *pm, playerState_s *ps, pml_t *pml);
 int __cdecl Mantle_GetAnim(MantleState *mstate);
 void __cdecl Mantle_CapView(playerState_s *ps);

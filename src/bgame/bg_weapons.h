@@ -2,39 +2,39 @@
 #include <universal/q_shared.h>
 
 struct BulletFireParams // sizeof=0x40
-{                                       // XREF: ?VEH_DebugAim@@YAXPAUgentity_s@@QBMH@Z/r
-                                        // ?Bullet_Fire@@YAXPAUgentity_s@@MPBUweaponParms@@PBU1@H@Z/r ...
-    int weaponEntIndex;                 // XREF: DrawBulletImpacts+13F7/w
-                                        // Bullet_Fire(gentity_s *,float,weaponParms const *,gentity_s const *,int)+176/w ...
-    int ignoreEntIndex;                 // XREF: DrawBulletImpacts+1407/w
-                                        // DrawBulletImpacts+1427/w ...
-    float damageMultiplier;             // XREF: DrawBulletImpacts+1436/w
-                                        // DrawBulletImpacts+159A/w ...
-    int methodOfDeath;                  // XREF: DrawBulletImpacts+1451/w
-                                        // Bullet_Fire(gentity_s *,float,weaponParms const *,gentity_s const *,int)+1C8/w
-    float origStart[3];                 // XREF: DrawBulletImpacts+14AF/w
-                                        // DrawBulletImpacts+14BC/w ...
-    float start[3];                     // XREF: FireBulletPenetrate+C3A/w
-                                        // FireBulletPenetrate+C4A/w ...
-    float end[3];                       // XREF: FireBulletPenetrate+C74/w
-                                        // FireBulletPenetrate+C8B/w ...
-    float dir[3];                       // XREF: FireBulletPenetrate+BF1/w
-                                        // FireBulletPenetrate+C08/w ...
+{                                                                             // XREF: ?VEH_DebugAim@@YAXPAUgentity_s@@QBMH@Z/r
+                                                                                // ?Bullet_Fire@@YAXPAUgentity_s@@MPBUweaponParms@@PBU1@H@Z/r ...
+        int weaponEntIndex;                                 // XREF: DrawBulletImpacts+13F7/w
+                                                                                // Bullet_Fire(gentity_s *,float,weaponParms const *,gentity_s const *,int)+176/w ...
+        int ignoreEntIndex;                                 // XREF: DrawBulletImpacts+1407/w
+                                                                                // DrawBulletImpacts+1427/w ...
+        float damageMultiplier;                         // XREF: DrawBulletImpacts+1436/w
+                                                                                // DrawBulletImpacts+159A/w ...
+        int methodOfDeath;                                    // XREF: DrawBulletImpacts+1451/w
+                                                                                // Bullet_Fire(gentity_s *,float,weaponParms const *,gentity_s const *,int)+1C8/w
+        float origStart[3];                                 // XREF: DrawBulletImpacts+14AF/w
+                                                                                // DrawBulletImpacts+14BC/w ...
+        float start[3];                                         // XREF: FireBulletPenetrate+C3A/w
+                                                                                // FireBulletPenetrate+C4A/w ...
+        float end[3];                                             // XREF: FireBulletPenetrate+C74/w
+                                                                                // FireBulletPenetrate+C8B/w ...
+        float dir[3];                                             // XREF: FireBulletPenetrate+BF1/w
+                                                                                // FireBulletPenetrate+C08/w ...
 };
 
 struct BulletTraceResults // sizeof=0x50
-{                                       // XREF: Bullet_FireExtended/r
-    trace_t trace;                      // XREF: BulletTrace_Start(int,BulletFireParams *,uint,centity_s const *,float * const,bool,bool)+1C/w
-                                        // BulletTrace_Start(int,BulletFireParams *,uint,centity_s const *,float * const,bool,bool)+29/w ...
-    struct gentity_s *hitEnt;                  // XREF: Bullet_FireExtended:loc_5F3D1A/r
-                                        // Bullet_FireExtended+174/r ...
-    float hitPos[3];                    // XREF: FireBulletPenetrate+DE5/o
-                                        // FireBulletPenetrate+10E4/o ...
-    bool ignoreHitEnt;                  // XREF: Bullet_FireExtended+186/r
-    // padding byte
-    // padding byte
-    // padding byte
-    int depthSurfaceType;               // XREF: FireBulletPenetrate:loc_52B4A6/r
+{                                                                             // XREF: Bullet_FireExtended/r
+        trace_t trace;                                            // XREF: BulletTrace_Start(int,BulletFireParams *,uint,centity_s const *,float * const,bool,bool)+1C/w
+                                                                                // BulletTrace_Start(int,BulletFireParams *,uint,centity_s const *,float * const,bool,bool)+29/w ...
+        struct gentity_s *hitEnt;                                    // XREF: Bullet_FireExtended:loc_5F3D1A/r
+                                                                                // Bullet_FireExtended+174/r ...
+        float hitPos[3];                                        // XREF: FireBulletPenetrate+DE5/o
+                                                                                // FireBulletPenetrate+10E4/o ...
+        bool ignoreHitEnt;                                    // XREF: Bullet_FireExtended+186/r
+        // padding byte
+        // padding byte
+        // padding byte
+        int depthSurfaceType;                             // XREF: FireBulletPenetrate:loc_52B4A6/r
 };
 
 struct pmove_t;
@@ -64,10 +64,10 @@ bool __cdecl BG_IsUseAsMeleeWeapon(unsigned int weapIndex);
 int __cdecl BG_TakePlayerWeapon(playerState_s *ps, unsigned int weaponIndex);
 void __cdecl BG_TakeHeldWeapon(playerState_s *ps, unsigned int weaponIndex);
 void __cdecl BG_GetSpreadForWeapon(
-        const playerState_s *ps,
-        const WeaponDef *weapDef,
-        float *minSpread,
-        float *maxSpread);
+                const playerState_s *ps,
+                const WeaponDef *weapDef,
+                float *minSpread,
+                float *maxSpread);
 void __cdecl PM_UpdateAimDownSightFlag(pmove_t *pm, pml_t *pml);
 bool __cdecl PM_IsAdsAllowed(pmove_t *pm, pml_t *pml);
 void __cdecl PM_ExitAimDownSight(playerState_s *ps);
@@ -104,18 +104,18 @@ void __cdecl PM_Weapon_FinishWeaponChange(pmove_t *pm, int previousWeaponState);
 bool __cdecl BG_PlayerEverHadWeapon(const playerState_s *ps, unsigned int weaponIndex);
 void __cdecl BG_PlayerSetEverHadWeapon(playerState_s *ps, unsigned int weaponIndex, bool hadWeapon);
 void __cdecl PM_Weapon_BeginWeaponRaise(
-        playerState_s *ps,
-        unsigned int anim,
-        unsigned int time,
-        float aim,
-        int altSwitch);
+                playerState_s *ps,
+                unsigned int anim,
+                unsigned int time,
+                float aim,
+                int altSwitch);
 void __cdecl BG_TakeClipOnlyWeaponIfEmpty(playerState_s *ps, unsigned int weaponIndex);
 int __cdecl BG_GetAmmoNotInClip(const playerState_s *ps, unsigned int weaponIndex);
 int __cdecl BG_GetAmmoNotInClipForAmmoIndex(const playerState_s *ps, int ammoIndex);
 unsigned __int16 __cdecl BG_GetValidPrimaryWeaponForAltMode(
-        const playerState_s *ps,
-        unsigned int newWeapon,
-        unsigned int lastWeaponAltModeSwitch);
+                const playerState_s *ps,
+                unsigned int newWeapon,
+                unsigned int lastWeaponAltModeSwitch);
 void __cdecl PM_Weapon_FinishWeaponRaise(playerState_s *ps);
 void __cdecl PM_Weapon_FinishReloadStart(pmove_t *pm, int delayedAction);
 void __cdecl PM_SetReloadingState(playerState_s *ps);

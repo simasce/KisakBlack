@@ -3,9 +3,9 @@
 void __cdecl CMod_LoadPlanes();
 MapEnts *__cdecl MapEnts_VirtualLoad(char *name);
 bool __cdecl MapEnts_CanPurgeEntity(
-        const char *classname,
-        void *userData,
-        bool (__cdecl *HasKeyCallback)(void *, const char *));
+                const char *classname,
+                void *userData,
+                bool (__cdecl *HasKeyCallback)(void *, const char *));
 MapEnts *__cdecl MapEnts_RealLoad(char *name);
 MapEnts *__cdecl MapEnts_GetFromString(char *name, const char *entityString, int numEntityChars);
 bool __cdecl CMod_HasSpawnString(const SpawnVar *userData, const char *key);
@@ -26,18 +26,18 @@ unsigned int CMod_LoadSubmodels();
 unsigned int CMod_LoadSubmodelBrushNodes();
 void __cdecl CMod_PartionLeafBrushes(unsigned __int16 *leafBrushes, int numLeafBrushes, cLeaf_s *leaf);
 cLeafBrushNode_s *__cdecl CMod_PartionLeafBrushes_r(
-        unsigned __int16 *leafBrushes,
-        int numLeafBrushes,
-        const float *mins,
-        const float *maxs);
+                unsigned __int16 *leafBrushes,
+                int numLeafBrushes,
+                const float *mins,
+                const float *maxs);
 cLeafBrushNode_s *__cdecl CMod_AllocLeafBrushNode();
 double __cdecl CMod_GetPartitionScore(
-        unsigned __int16 *leafBrushes,
-        int numLeafBrushes,
-        int axis,
-        const float *mins,
-        const float *maxs,
-        float *dist);
+                unsigned __int16 *leafBrushes,
+                int numLeafBrushes,
+                int axis,
+                const float *mins,
+                const float *maxs,
+                float *dist);
 int __cdecl CMod_GetLeafTerrainContents(cLeaf_s *leaf);
 const unsigned __int8 *CMod_LoadBrushes();
 void __cdecl CMod_LoadLeafs(bool usePvs);

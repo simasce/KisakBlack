@@ -32,14 +32,14 @@ bool __cdecl Demo_ShouldBuildDemoSnapshot();
 void __cdecl Demo_WriteHeader(msg_t *msg, bool isDemoClip);
 void __cdecl Demo_BuildDemoSnapshot();
 void __cdecl Demo_WriteSnapshotStartData(
-        int localClientNum,
-        msg_t *msg,
-        int msgSequence,
-        int cmdSequence,
-        int serverTime,
-        int physicsTime,
-        unsigned __int8 lastFrame,
-        unsigned __int8 snapFlags);
+                int localClientNum,
+                msg_t *msg,
+                int msgSequence,
+                int cmdSequence,
+                int serverTime,
+                int physicsTime,
+                unsigned __int8 lastFrame,
+                unsigned __int8 snapFlags);
 void __cdecl Demo_WriteGamestateToBuffer(int clientNum, int demoMsgType, msg_t *msg, int msgSequence);
 bool __cdecl Demo_ShouldFilterServerCommand(int clientNum, const char *cmd);
 void __cdecl Demo_WriteServerCommands(msg_t *msg);
@@ -49,11 +49,11 @@ void __cdecl Demo_WritePacketEntities(msg_t *msg);
 void __cdecl Demo_WritePacketClients(msg_t *msg);
 void __cdecl Demo_PopulateStaticInfoData(demoMetaInfo *info);
 unsigned int __cdecl Demo_WriteToBuffer(
-        unsigned __int8 *to,
-        unsigned __int8 *from,
-        unsigned int size,
-        int bytesWritten,
-        int maxBufferSize);
+                unsigned __int8 *to,
+                unsigned __int8 *from,
+                unsigned int size,
+                int bytesWritten,
+                int maxBufferSize);
 unsigned int __cdecl Demo_WriteInfoDataToBuffer(demoMetaInfo *info, unsigned __int8 *buffer, int maxBufferSize);
 void __cdecl Demo_WriteInfoData(int handle, demoMetaInfo *info);
 void __cdecl Demo_InfoPlayerConnected(int clientNum);

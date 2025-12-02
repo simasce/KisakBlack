@@ -11,41 +11,41 @@
 #include "tomcrypt.h"
 
 /**
-  @file ctr_setiv.c
-  CTR implementation, set IV, Tom St Denis
+    @file ctr_setiv.c
+    CTR implementation, set IV, Tom St Denis
 */
-  
+    
 #ifdef LTC_CTR_MODE
 
 /**
-   Set an initial vector
-   @param IV   The initial vector
-   @param len  The length of the vector (in octets)
-   @param ctr  The CTR state
-   @return CRYPT_OK if successful
+     Set an initial vector
+     @param IV     The initial vector
+     @param len    The length of the vector (in octets)
+     @param ctr    The CTR state
+     @return CRYPT_OK if successful
 */
 int ctr_setiv(const unsigned char *IV, unsigned long len, symmetric_CTR *ctr)
 {
-   int err;
-   
-   LTC_ARGCHK(IV  != NULL);
-   LTC_ARGCHK(ctr != NULL);
+     int err;
+     
+     LTC_ARGCHK(IV    != NULL);
+     LTC_ARGCHK(ctr != NULL);
 
-   /* bad param? */
-   if ((err = cipher_is_valid(ctr->cipher)) != CRYPT_OK) {
-      return err;
-   }
-   
-   if (len != (unsigned long)ctr->blocklen) {
-      return CRYPT_INVALID_ARG;
-   }
+     /* bad param? */
+     if ((err = cipher_is_valid(ctr->cipher)) != CRYPT_OK) {
+            return err;
+     }
+     
+     if (len != (unsigned long)ctr->blocklen) {
+            return CRYPT_INVALID_ARG;
+     }
 
-   /* set IV */
-   XMEMCPY(ctr->ctr, IV, len);
-   
-   /* force next block */
-   ctr->padlen = 0;
-   return cipher_descriptor[ctr->cipher].ecb_encrypt(IV, ctr->pad, &ctr->key);
+     /* set IV */
+     XMEMCPY(ctr->ctr, IV, len);
+     
+     /* force next block */
+     ctr->padlen = 0;
+     return cipher_descriptor[ctr->cipher].ecb_encrypt(IV, ctr->pad, &ctr->key);
 }
 
 #endif 

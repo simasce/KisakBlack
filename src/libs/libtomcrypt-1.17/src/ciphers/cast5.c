@@ -10,24 +10,24 @@
  */
  
  /** 
-   @file cast5.c
-   Implementation of LTC_CAST5 (RFC 2144) by Tom St Denis 
+     @file cast5.c
+     Implementation of LTC_CAST5 (RFC 2144) by Tom St Denis 
  */
 #include "tomcrypt.h"
 
 #ifdef LTC_CAST5
 
 const struct ltc_cipher_descriptor cast5_desc = {
-   "cast5",
-   15,
-   5, 16, 8, 16,
-   &cast5_setup,
-   &cast5_ecb_encrypt,
-   &cast5_ecb_decrypt,
-   &cast5_test,
-   &cast5_done,
-   &cast5_keysize,
-   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+     "cast5",
+     15,
+     5, 16, 8, 16,
+     &cast5_setup,
+     &cast5_ecb_encrypt,
+     &cast5_ecb_decrypt,
+     &cast5_test,
+     &cast5_done,
+     &cast5_keysize,
+     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 static const ulong32 S1[256] = {
@@ -392,18 +392,18 @@ static const ulong32 S8[256] = {
 
 /* returns the i'th byte of a variable */
 #ifdef _MSC_VER
-   #define GB(x, i) ((unsigned char)((x[(15-i)>>2])>>(unsigned)(8*((15-i)&3))))
-#else   
-   #define GB(x, i) (((x[(15-i)>>2])>>(unsigned)(8*((15-i)&3)))&255)
-#endif   
+     #define GB(x, i) ((unsigned char)((x[(15-i)>>2])>>(unsigned)(8*((15-i)&3))))
+#else     
+     #define GB(x, i) (((x[(15-i)>>2])>>(unsigned)(8*((15-i)&3)))&255)
+#endif     
 
  /**
-    Initialize the LTC_CAST5 block cipher
-    @param key The symmetric key you wish to pass
-    @param keylen The key length in bytes
-    @param num_rounds The number of rounds desired (0 for default)
-    @param skey The key in as scheduled by this function.
-    @return CRYPT_OK if successful
+        Initialize the LTC_CAST5 block cipher
+        @param key The symmetric key you wish to pass
+        @param keylen The key length in bytes
+        @param num_rounds The number of rounds desired (0 for default)
+        @param skey The key in as scheduled by this function.
+        @return CRYPT_OK if successful
  */
 #ifdef LTC_CLEAN_STACK
 static int _cast5_setup(const unsigned char *key, int keylen, int num_rounds, symmetric_key *skey)
@@ -411,129 +411,129 @@ static int _cast5_setup(const unsigned char *key, int keylen, int num_rounds, sy
 int cast5_setup(const unsigned char *key, int keylen, int num_rounds, symmetric_key *skey)
 #endif
 {
-   ulong32 x[4], z[4];
-   unsigned char buf[16];
-   int y, i;
+     ulong32 x[4], z[4];
+     unsigned char buf[16];
+     int y, i;
 
-   LTC_ARGCHK(key != NULL);
-   LTC_ARGCHK(skey != NULL);
+     LTC_ARGCHK(key != NULL);
+     LTC_ARGCHK(skey != NULL);
 
-   if (num_rounds != 12 && num_rounds != 16 && num_rounds != 0) {
-      return CRYPT_INVALID_ROUNDS; 
-   }
+     if (num_rounds != 12 && num_rounds != 16 && num_rounds != 0) {
+            return CRYPT_INVALID_ROUNDS; 
+     }
  
-   if (num_rounds == 12 && keylen > 10) {
-      return CRYPT_INVALID_ROUNDS;
-   }
+     if (num_rounds == 12 && keylen > 10) {
+            return CRYPT_INVALID_ROUNDS;
+     }
 
-   if (keylen < 5 || keylen > 16) {
-      return CRYPT_INVALID_KEYSIZE;
-   }
+     if (keylen < 5 || keylen > 16) {
+            return CRYPT_INVALID_KEYSIZE;
+     }
 
-   /* extend the key as required */
-   zeromem(buf, sizeof(buf));
-   XMEMCPY(buf, key, (size_t)keylen);
+     /* extend the key as required */
+     zeromem(buf, sizeof(buf));
+     XMEMCPY(buf, key, (size_t)keylen);
 
-   /* load and start the awful looking network */
-   for (y = 0; y < 4; y++) {
-       LOAD32H(x[3-y],buf+4*y);
-   }
+     /* load and start the awful looking network */
+     for (y = 0; y < 4; y++) {
+             LOAD32H(x[3-y],buf+4*y);
+     }
 
-   for (i = y = 0; y < 2; y++) {
-        z[3] = x[3] ^ S5[GB(x, 0xD)] ^ S6[GB(x, 0xF)] ^ S7[GB(x, 0xC)] ^ S8[GB(x, 0xE)] ^ S7[GB(x, 0x8)];
-        z[2] = x[1] ^ S5[GB(z, 0x0)] ^ S6[GB(z, 0x2)] ^ S7[GB(z, 0x1)] ^ S8[GB(z, 0x3)] ^ S8[GB(x, 0xA)];
-        z[1] = x[0] ^ S5[GB(z, 0x7)] ^ S6[GB(z, 0x6)] ^ S7[GB(z, 0x5)] ^ S8[GB(z, 0x4)] ^ S5[GB(x, 0x9)];
-        z[0] = x[2] ^ S5[GB(z, 0xA)] ^ S6[GB(z, 0x9)] ^ S7[GB(z, 0xb)] ^ S8[GB(z, 0x8)] ^ S6[GB(x, 0xB)];
-        skey->cast5.K[i++] = S5[GB(z, 0x8)] ^ S6[GB(z, 0x9)] ^ S7[GB(z, 0x7)] ^ S8[GB(z, 0x6)] ^ S5[GB(z, 0x2)];
-        skey->cast5.K[i++] = S5[GB(z, 0xA)] ^ S6[GB(z, 0xB)] ^ S7[GB(z, 0x5)] ^ S8[GB(z, 0x4)] ^ S6[GB(z, 0x6)];
-        skey->cast5.K[i++] = S5[GB(z, 0xC)] ^ S6[GB(z, 0xd)] ^ S7[GB(z, 0x3)] ^ S8[GB(z, 0x2)] ^ S7[GB(z, 0x9)];
-        skey->cast5.K[i++] = S5[GB(z, 0xE)] ^ S6[GB(z, 0xF)] ^ S7[GB(z, 0x1)] ^ S8[GB(z, 0x0)] ^ S8[GB(z, 0xc)];
+     for (i = y = 0; y < 2; y++) {
+                z[3] = x[3] ^ S5[GB(x, 0xD)] ^ S6[GB(x, 0xF)] ^ S7[GB(x, 0xC)] ^ S8[GB(x, 0xE)] ^ S7[GB(x, 0x8)];
+                z[2] = x[1] ^ S5[GB(z, 0x0)] ^ S6[GB(z, 0x2)] ^ S7[GB(z, 0x1)] ^ S8[GB(z, 0x3)] ^ S8[GB(x, 0xA)];
+                z[1] = x[0] ^ S5[GB(z, 0x7)] ^ S6[GB(z, 0x6)] ^ S7[GB(z, 0x5)] ^ S8[GB(z, 0x4)] ^ S5[GB(x, 0x9)];
+                z[0] = x[2] ^ S5[GB(z, 0xA)] ^ S6[GB(z, 0x9)] ^ S7[GB(z, 0xb)] ^ S8[GB(z, 0x8)] ^ S6[GB(x, 0xB)];
+                skey->cast5.K[i++] = S5[GB(z, 0x8)] ^ S6[GB(z, 0x9)] ^ S7[GB(z, 0x7)] ^ S8[GB(z, 0x6)] ^ S5[GB(z, 0x2)];
+                skey->cast5.K[i++] = S5[GB(z, 0xA)] ^ S6[GB(z, 0xB)] ^ S7[GB(z, 0x5)] ^ S8[GB(z, 0x4)] ^ S6[GB(z, 0x6)];
+                skey->cast5.K[i++] = S5[GB(z, 0xC)] ^ S6[GB(z, 0xd)] ^ S7[GB(z, 0x3)] ^ S8[GB(z, 0x2)] ^ S7[GB(z, 0x9)];
+                skey->cast5.K[i++] = S5[GB(z, 0xE)] ^ S6[GB(z, 0xF)] ^ S7[GB(z, 0x1)] ^ S8[GB(z, 0x0)] ^ S8[GB(z, 0xc)];
 
-        x[3] = z[1] ^ S5[GB(z, 0x5)] ^ S6[GB(z, 0x7)] ^ S7[GB(z, 0x4)] ^ S8[GB(z, 0x6)] ^ S7[GB(z, 0x0)];
-        x[2] = z[3] ^ S5[GB(x, 0x0)] ^ S6[GB(x, 0x2)] ^ S7[GB(x, 0x1)] ^ S8[GB(x, 0x3)] ^ S8[GB(z, 0x2)];
-        x[1] = z[2] ^ S5[GB(x, 0x7)] ^ S6[GB(x, 0x6)] ^ S7[GB(x, 0x5)] ^ S8[GB(x, 0x4)] ^ S5[GB(z, 0x1)];
-        x[0] = z[0] ^ S5[GB(x, 0xA)] ^ S6[GB(x, 0x9)] ^ S7[GB(x, 0xb)] ^ S8[GB(x, 0x8)] ^ S6[GB(z, 0x3)];
-        skey->cast5.K[i++] = S5[GB(x, 0x3)] ^ S6[GB(x, 0x2)] ^ S7[GB(x, 0xc)] ^ S8[GB(x, 0xd)] ^ S5[GB(x, 0x8)];
-        skey->cast5.K[i++] = S5[GB(x, 0x1)] ^ S6[GB(x, 0x0)] ^ S7[GB(x, 0xe)] ^ S8[GB(x, 0xf)] ^ S6[GB(x, 0xd)];
-        skey->cast5.K[i++] = S5[GB(x, 0x7)] ^ S6[GB(x, 0x6)] ^ S7[GB(x, 0x8)] ^ S8[GB(x, 0x9)] ^ S7[GB(x, 0x3)];
-        skey->cast5.K[i++] = S5[GB(x, 0x5)] ^ S6[GB(x, 0x4)] ^ S7[GB(x, 0xa)] ^ S8[GB(x, 0xb)] ^ S8[GB(x, 0x7)];
+                x[3] = z[1] ^ S5[GB(z, 0x5)] ^ S6[GB(z, 0x7)] ^ S7[GB(z, 0x4)] ^ S8[GB(z, 0x6)] ^ S7[GB(z, 0x0)];
+                x[2] = z[3] ^ S5[GB(x, 0x0)] ^ S6[GB(x, 0x2)] ^ S7[GB(x, 0x1)] ^ S8[GB(x, 0x3)] ^ S8[GB(z, 0x2)];
+                x[1] = z[2] ^ S5[GB(x, 0x7)] ^ S6[GB(x, 0x6)] ^ S7[GB(x, 0x5)] ^ S8[GB(x, 0x4)] ^ S5[GB(z, 0x1)];
+                x[0] = z[0] ^ S5[GB(x, 0xA)] ^ S6[GB(x, 0x9)] ^ S7[GB(x, 0xb)] ^ S8[GB(x, 0x8)] ^ S6[GB(z, 0x3)];
+                skey->cast5.K[i++] = S5[GB(x, 0x3)] ^ S6[GB(x, 0x2)] ^ S7[GB(x, 0xc)] ^ S8[GB(x, 0xd)] ^ S5[GB(x, 0x8)];
+                skey->cast5.K[i++] = S5[GB(x, 0x1)] ^ S6[GB(x, 0x0)] ^ S7[GB(x, 0xe)] ^ S8[GB(x, 0xf)] ^ S6[GB(x, 0xd)];
+                skey->cast5.K[i++] = S5[GB(x, 0x7)] ^ S6[GB(x, 0x6)] ^ S7[GB(x, 0x8)] ^ S8[GB(x, 0x9)] ^ S7[GB(x, 0x3)];
+                skey->cast5.K[i++] = S5[GB(x, 0x5)] ^ S6[GB(x, 0x4)] ^ S7[GB(x, 0xa)] ^ S8[GB(x, 0xb)] ^ S8[GB(x, 0x7)];
 
-        /* second half */
-        z[3] = x[3] ^ S5[GB(x, 0xD)] ^ S6[GB(x, 0xF)] ^ S7[GB(x, 0xC)] ^ S8[GB(x, 0xE)] ^ S7[GB(x, 0x8)];
-        z[2] = x[1] ^ S5[GB(z, 0x0)] ^ S6[GB(z, 0x2)] ^ S7[GB(z, 0x1)] ^ S8[GB(z, 0x3)] ^ S8[GB(x, 0xA)];
-        z[1] = x[0] ^ S5[GB(z, 0x7)] ^ S6[GB(z, 0x6)] ^ S7[GB(z, 0x5)] ^ S8[GB(z, 0x4)] ^ S5[GB(x, 0x9)];
-        z[0] = x[2] ^ S5[GB(z, 0xA)] ^ S6[GB(z, 0x9)] ^ S7[GB(z, 0xb)] ^ S8[GB(z, 0x8)] ^ S6[GB(x, 0xB)];
-        skey->cast5.K[i++] = S5[GB(z, 0x3)] ^ S6[GB(z, 0x2)] ^ S7[GB(z, 0xc)] ^ S8[GB(z, 0xd)] ^ S5[GB(z, 0x9)];
-        skey->cast5.K[i++] = S5[GB(z, 0x1)] ^ S6[GB(z, 0x0)] ^ S7[GB(z, 0xe)] ^ S8[GB(z, 0xf)] ^ S6[GB(z, 0xc)];
-        skey->cast5.K[i++] = S5[GB(z, 0x7)] ^ S6[GB(z, 0x6)] ^ S7[GB(z, 0x8)] ^ S8[GB(z, 0x9)] ^ S7[GB(z, 0x2)];
-        skey->cast5.K[i++] = S5[GB(z, 0x5)] ^ S6[GB(z, 0x4)] ^ S7[GB(z, 0xa)] ^ S8[GB(z, 0xb)] ^ S8[GB(z, 0x6)];
+                /* second half */
+                z[3] = x[3] ^ S5[GB(x, 0xD)] ^ S6[GB(x, 0xF)] ^ S7[GB(x, 0xC)] ^ S8[GB(x, 0xE)] ^ S7[GB(x, 0x8)];
+                z[2] = x[1] ^ S5[GB(z, 0x0)] ^ S6[GB(z, 0x2)] ^ S7[GB(z, 0x1)] ^ S8[GB(z, 0x3)] ^ S8[GB(x, 0xA)];
+                z[1] = x[0] ^ S5[GB(z, 0x7)] ^ S6[GB(z, 0x6)] ^ S7[GB(z, 0x5)] ^ S8[GB(z, 0x4)] ^ S5[GB(x, 0x9)];
+                z[0] = x[2] ^ S5[GB(z, 0xA)] ^ S6[GB(z, 0x9)] ^ S7[GB(z, 0xb)] ^ S8[GB(z, 0x8)] ^ S6[GB(x, 0xB)];
+                skey->cast5.K[i++] = S5[GB(z, 0x3)] ^ S6[GB(z, 0x2)] ^ S7[GB(z, 0xc)] ^ S8[GB(z, 0xd)] ^ S5[GB(z, 0x9)];
+                skey->cast5.K[i++] = S5[GB(z, 0x1)] ^ S6[GB(z, 0x0)] ^ S7[GB(z, 0xe)] ^ S8[GB(z, 0xf)] ^ S6[GB(z, 0xc)];
+                skey->cast5.K[i++] = S5[GB(z, 0x7)] ^ S6[GB(z, 0x6)] ^ S7[GB(z, 0x8)] ^ S8[GB(z, 0x9)] ^ S7[GB(z, 0x2)];
+                skey->cast5.K[i++] = S5[GB(z, 0x5)] ^ S6[GB(z, 0x4)] ^ S7[GB(z, 0xa)] ^ S8[GB(z, 0xb)] ^ S8[GB(z, 0x6)];
 
-        x[3] = z[1] ^ S5[GB(z, 0x5)] ^ S6[GB(z, 0x7)] ^ S7[GB(z, 0x4)] ^ S8[GB(z, 0x6)] ^ S7[GB(z, 0x0)];
-        x[2] = z[3] ^ S5[GB(x, 0x0)] ^ S6[GB(x, 0x2)] ^ S7[GB(x, 0x1)] ^ S8[GB(x, 0x3)] ^ S8[GB(z, 0x2)];
-        x[1] = z[2] ^ S5[GB(x, 0x7)] ^ S6[GB(x, 0x6)] ^ S7[GB(x, 0x5)] ^ S8[GB(x, 0x4)] ^ S5[GB(z, 0x1)];
-        x[0] = z[0] ^ S5[GB(x, 0xA)] ^ S6[GB(x, 0x9)] ^ S7[GB(x, 0xb)] ^ S8[GB(x, 0x8)] ^ S6[GB(z, 0x3)];
-        skey->cast5.K[i++] = S5[GB(x, 0x8)] ^ S6[GB(x, 0x9)] ^ S7[GB(x, 0x7)] ^ S8[GB(x, 0x6)] ^ S5[GB(x, 0x3)];
-        skey->cast5.K[i++] = S5[GB(x, 0xa)] ^ S6[GB(x, 0xb)] ^ S7[GB(x, 0x5)] ^ S8[GB(x, 0x4)] ^ S6[GB(x, 0x7)];
-        skey->cast5.K[i++] = S5[GB(x, 0xc)] ^ S6[GB(x, 0xd)] ^ S7[GB(x, 0x3)] ^ S8[GB(x, 0x2)] ^ S7[GB(x, 0x8)];
-        skey->cast5.K[i++] = S5[GB(x, 0xe)] ^ S6[GB(x, 0xf)] ^ S7[GB(x, 0x1)] ^ S8[GB(x, 0x0)] ^ S8[GB(x, 0xd)];
-   }
+                x[3] = z[1] ^ S5[GB(z, 0x5)] ^ S6[GB(z, 0x7)] ^ S7[GB(z, 0x4)] ^ S8[GB(z, 0x6)] ^ S7[GB(z, 0x0)];
+                x[2] = z[3] ^ S5[GB(x, 0x0)] ^ S6[GB(x, 0x2)] ^ S7[GB(x, 0x1)] ^ S8[GB(x, 0x3)] ^ S8[GB(z, 0x2)];
+                x[1] = z[2] ^ S5[GB(x, 0x7)] ^ S6[GB(x, 0x6)] ^ S7[GB(x, 0x5)] ^ S8[GB(x, 0x4)] ^ S5[GB(z, 0x1)];
+                x[0] = z[0] ^ S5[GB(x, 0xA)] ^ S6[GB(x, 0x9)] ^ S7[GB(x, 0xb)] ^ S8[GB(x, 0x8)] ^ S6[GB(z, 0x3)];
+                skey->cast5.K[i++] = S5[GB(x, 0x8)] ^ S6[GB(x, 0x9)] ^ S7[GB(x, 0x7)] ^ S8[GB(x, 0x6)] ^ S5[GB(x, 0x3)];
+                skey->cast5.K[i++] = S5[GB(x, 0xa)] ^ S6[GB(x, 0xb)] ^ S7[GB(x, 0x5)] ^ S8[GB(x, 0x4)] ^ S6[GB(x, 0x7)];
+                skey->cast5.K[i++] = S5[GB(x, 0xc)] ^ S6[GB(x, 0xd)] ^ S7[GB(x, 0x3)] ^ S8[GB(x, 0x2)] ^ S7[GB(x, 0x8)];
+                skey->cast5.K[i++] = S5[GB(x, 0xe)] ^ S6[GB(x, 0xf)] ^ S7[GB(x, 0x1)] ^ S8[GB(x, 0x0)] ^ S8[GB(x, 0xd)];
+     }
 
-   skey->cast5.keylen = keylen;
+     skey->cast5.keylen = keylen;
 
 #ifdef LTC_CLEAN_STACK
-   zeromem(buf, sizeof(buf));
-   zeromem(x, sizeof(x));
-   zeromem(z, sizeof(z));
-#endif  
+     zeromem(buf, sizeof(buf));
+     zeromem(x, sizeof(x));
+     zeromem(z, sizeof(z));
+#endif    
 
-   return CRYPT_OK;
+     return CRYPT_OK;
 }
 
 #ifdef LTC_CLEAN_STACK
 int cast5_setup(const unsigned char *key, int keylen, int num_rounds, symmetric_key *skey)
 {
-   int z;
-   z = _cast5_setup(key, keylen, num_rounds, skey);
-   burn_stack(sizeof(ulong32)*8 + 16 + sizeof(int)*2);
-   return z;
+     int z;
+     z = _cast5_setup(key, keylen, num_rounds, skey);
+     burn_stack(sizeof(ulong32)*8 + 16 + sizeof(int)*2);
+     return z;
 }
 #endif
 
 #ifdef _MSC_VER
-   #define INLINE __inline
+     #define INLINE __inline
 #else
-   #define INLINE 
-#endif   
-   
+     #define INLINE 
+#endif     
+     
 INLINE static ulong32 FI(ulong32 R, ulong32 Km, ulong32 Kr)
 {
-   ulong32 I;
-   I = (Km + R);
-   I = ROL(I, Kr);
-   return ((S1[byte(I, 3)] ^ S2[byte(I,2)]) - S3[byte(I,1)]) + S4[byte(I,0)];
+     ulong32 I;
+     I = (Km + R);
+     I = ROL(I, Kr);
+     return ((S1[byte(I, 3)] ^ S2[byte(I,2)]) - S3[byte(I,1)]) + S4[byte(I,0)];
 }
-   
+     
 INLINE static ulong32 FII(ulong32 R, ulong32 Km, ulong32 Kr)
 {
-   ulong32 I;
-   I = (Km ^ R);
-   I = ROL(I, Kr);
-   return ((S1[byte(I, 3)] - S2[byte(I,2)]) + S3[byte(I,1)]) ^ S4[byte(I,0)];
+     ulong32 I;
+     I = (Km ^ R);
+     I = ROL(I, Kr);
+     return ((S1[byte(I, 3)] - S2[byte(I,2)]) + S3[byte(I,1)]) ^ S4[byte(I,0)];
 }
 
 INLINE static ulong32 FIII(ulong32 R, ulong32 Km, ulong32 Kr)
 {
-   ulong32 I;
-   I = (Km - R);
-   I = ROL(I, Kr);
-   return ((S1[byte(I, 3)] + S2[byte(I,2)]) ^ S3[byte(I,1)]) - S4[byte(I,0)];
+     ulong32 I;
+     I = (Km - R);
+     I = ROL(I, Kr);
+     return ((S1[byte(I, 3)] + S2[byte(I,2)]) ^ S3[byte(I,1)]) - S4[byte(I,0)];
 }
 
 /**
-  Encrypts a block of text with LTC_CAST5
-  @param pt The input plaintext (8 bytes)
-  @param ct The output ciphertext (8 bytes)
-  @param skey The key as scheduled
+    Encrypts a block of text with LTC_CAST5
+    @param pt The input plaintext (8 bytes)
+    @param ct The output ciphertext (8 bytes)
+    @param skey The key as scheduled
 */
 #ifdef LTC_CLEAN_STACK
 static int _cast5_ecb_encrypt(const unsigned char *pt, unsigned char *ct, symmetric_key *skey)
@@ -541,52 +541,52 @@ static int _cast5_ecb_encrypt(const unsigned char *pt, unsigned char *ct, symmet
 int cast5_ecb_encrypt(const unsigned char *pt, unsigned char *ct, symmetric_key *skey)
 #endif
 {
-   ulong32 R, L;
+     ulong32 R, L;
 
-   LTC_ARGCHK(pt   != NULL);
-   LTC_ARGCHK(ct   != NULL);
-   LTC_ARGCHK(skey != NULL);
+     LTC_ARGCHK(pt     != NULL);
+     LTC_ARGCHK(ct     != NULL);
+     LTC_ARGCHK(skey != NULL);
 
-   LOAD32H(L,&pt[0]); 
-   LOAD32H(R,&pt[4]);
-   L ^= FI(R, skey->cast5.K[0], skey->cast5.K[16]);
-   R ^= FII(L, skey->cast5.K[1], skey->cast5.K[17]);
-   L ^= FIII(R, skey->cast5.K[2], skey->cast5.K[18]);
-   R ^= FI(L, skey->cast5.K[3], skey->cast5.K[19]);
-   L ^= FII(R, skey->cast5.K[4], skey->cast5.K[20]);
-   R ^= FIII(L, skey->cast5.K[5], skey->cast5.K[21]);
-   L ^= FI(R, skey->cast5.K[6], skey->cast5.K[22]);
-   R ^= FII(L, skey->cast5.K[7], skey->cast5.K[23]);
-   L ^= FIII(R, skey->cast5.K[8], skey->cast5.K[24]);
-   R ^= FI(L, skey->cast5.K[9], skey->cast5.K[25]);
-   L ^= FII(R, skey->cast5.K[10], skey->cast5.K[26]);
-   R ^= FIII(L, skey->cast5.K[11], skey->cast5.K[27]);
-   if (skey->cast5.keylen > 10) {
-      L ^= FI(R, skey->cast5.K[12], skey->cast5.K[28]);
-      R ^= FII(L, skey->cast5.K[13], skey->cast5.K[29]);
-      L ^= FIII(R, skey->cast5.K[14], skey->cast5.K[30]);
-      R ^= FI(L, skey->cast5.K[15], skey->cast5.K[31]);
-   }
-   STORE32H(R,&ct[0]);
-   STORE32H(L,&ct[4]);
-   return CRYPT_OK;
+     LOAD32H(L,&pt[0]); 
+     LOAD32H(R,&pt[4]);
+     L ^= FI(R, skey->cast5.K[0], skey->cast5.K[16]);
+     R ^= FII(L, skey->cast5.K[1], skey->cast5.K[17]);
+     L ^= FIII(R, skey->cast5.K[2], skey->cast5.K[18]);
+     R ^= FI(L, skey->cast5.K[3], skey->cast5.K[19]);
+     L ^= FII(R, skey->cast5.K[4], skey->cast5.K[20]);
+     R ^= FIII(L, skey->cast5.K[5], skey->cast5.K[21]);
+     L ^= FI(R, skey->cast5.K[6], skey->cast5.K[22]);
+     R ^= FII(L, skey->cast5.K[7], skey->cast5.K[23]);
+     L ^= FIII(R, skey->cast5.K[8], skey->cast5.K[24]);
+     R ^= FI(L, skey->cast5.K[9], skey->cast5.K[25]);
+     L ^= FII(R, skey->cast5.K[10], skey->cast5.K[26]);
+     R ^= FIII(L, skey->cast5.K[11], skey->cast5.K[27]);
+     if (skey->cast5.keylen > 10) {
+            L ^= FI(R, skey->cast5.K[12], skey->cast5.K[28]);
+            R ^= FII(L, skey->cast5.K[13], skey->cast5.K[29]);
+            L ^= FIII(R, skey->cast5.K[14], skey->cast5.K[30]);
+            R ^= FI(L, skey->cast5.K[15], skey->cast5.K[31]);
+     }
+     STORE32H(R,&ct[0]);
+     STORE32H(L,&ct[4]);
+     return CRYPT_OK;
 }
 
 
 #ifdef LTC_CLEAN_STACK
 int cast5_ecb_encrypt(const unsigned char *pt, unsigned char *ct, symmetric_key *skey)
 {
-   int err =_cast5_ecb_encrypt(pt,ct,skey);
-   burn_stack(sizeof(ulong32)*3);
-   return err;
+     int err =_cast5_ecb_encrypt(pt,ct,skey);
+     burn_stack(sizeof(ulong32)*3);
+     return err;
 }
 #endif
 
 /**
-  Decrypts a block of text with LTC_CAST5
-  @param ct The input ciphertext (8 bytes)
-  @param pt The output plaintext (8 bytes)
-  @param skey The key as scheduled 
+    Decrypts a block of text with LTC_CAST5
+    @param ct The input ciphertext (8 bytes)
+    @param pt The output plaintext (8 bytes)
+    @param skey The key as scheduled 
 */
 #ifdef LTC_CLEAN_STACK
 static int _cast5_ecb_decrypt(const unsigned char *ct, unsigned char *pt, symmetric_key *skey)
@@ -594,123 +594,123 @@ static int _cast5_ecb_decrypt(const unsigned char *ct, unsigned char *pt, symmet
 int cast5_ecb_decrypt(const unsigned char *ct, unsigned char *pt, symmetric_key *skey)
 #endif
 {
-   ulong32 R, L;
+     ulong32 R, L;
 
-   LTC_ARGCHK(pt   != NULL);
-   LTC_ARGCHK(ct   != NULL);
-   LTC_ARGCHK(skey != NULL);
+     LTC_ARGCHK(pt     != NULL);
+     LTC_ARGCHK(ct     != NULL);
+     LTC_ARGCHK(skey != NULL);
 
-   LOAD32H(R,&ct[0]); 
-   LOAD32H(L,&ct[4]);
-   if (skey->cast5.keylen > 10) {
-      R ^= FI(L, skey->cast5.K[15], skey->cast5.K[31]);
-      L ^= FIII(R, skey->cast5.K[14], skey->cast5.K[30]);
-      R ^= FII(L, skey->cast5.K[13], skey->cast5.K[29]);
-      L ^= FI(R, skey->cast5.K[12], skey->cast5.K[28]);
-   }
-   R ^= FIII(L, skey->cast5.K[11], skey->cast5.K[27]);
-   L ^= FII(R, skey->cast5.K[10], skey->cast5.K[26]);
-   R ^= FI(L, skey->cast5.K[9], skey->cast5.K[25]);
-   L ^= FIII(R, skey->cast5.K[8], skey->cast5.K[24]);
-   R ^= FII(L, skey->cast5.K[7], skey->cast5.K[23]);
-   L ^= FI(R, skey->cast5.K[6], skey->cast5.K[22]);
-   R ^= FIII(L, skey->cast5.K[5], skey->cast5.K[21]);
-   L ^= FII(R, skey->cast5.K[4], skey->cast5.K[20]);
-   R ^= FI(L, skey->cast5.K[3], skey->cast5.K[19]);
-   L ^= FIII(R, skey->cast5.K[2], skey->cast5.K[18]);
-   R ^= FII(L, skey->cast5.K[1], skey->cast5.K[17]);
-   L ^= FI(R, skey->cast5.K[0], skey->cast5.K[16]);
-   STORE32H(L,&pt[0]);
-   STORE32H(R,&pt[4]);
+     LOAD32H(R,&ct[0]); 
+     LOAD32H(L,&ct[4]);
+     if (skey->cast5.keylen > 10) {
+            R ^= FI(L, skey->cast5.K[15], skey->cast5.K[31]);
+            L ^= FIII(R, skey->cast5.K[14], skey->cast5.K[30]);
+            R ^= FII(L, skey->cast5.K[13], skey->cast5.K[29]);
+            L ^= FI(R, skey->cast5.K[12], skey->cast5.K[28]);
+     }
+     R ^= FIII(L, skey->cast5.K[11], skey->cast5.K[27]);
+     L ^= FII(R, skey->cast5.K[10], skey->cast5.K[26]);
+     R ^= FI(L, skey->cast5.K[9], skey->cast5.K[25]);
+     L ^= FIII(R, skey->cast5.K[8], skey->cast5.K[24]);
+     R ^= FII(L, skey->cast5.K[7], skey->cast5.K[23]);
+     L ^= FI(R, skey->cast5.K[6], skey->cast5.K[22]);
+     R ^= FIII(L, skey->cast5.K[5], skey->cast5.K[21]);
+     L ^= FII(R, skey->cast5.K[4], skey->cast5.K[20]);
+     R ^= FI(L, skey->cast5.K[3], skey->cast5.K[19]);
+     L ^= FIII(R, skey->cast5.K[2], skey->cast5.K[18]);
+     R ^= FII(L, skey->cast5.K[1], skey->cast5.K[17]);
+     L ^= FI(R, skey->cast5.K[0], skey->cast5.K[16]);
+     STORE32H(L,&pt[0]);
+     STORE32H(R,&pt[4]);
 
-   return CRYPT_OK;
+     return CRYPT_OK;
 }
 
 #ifdef LTC_CLEAN_STACK
 int cast5_ecb_decrypt(const unsigned char *ct, unsigned char *pt, symmetric_key *skey)
 {
-   int err = _cast5_ecb_decrypt(ct,pt,skey);
-   burn_stack(sizeof(ulong32)*3);
-   return err;
+     int err = _cast5_ecb_decrypt(ct,pt,skey);
+     burn_stack(sizeof(ulong32)*3);
+     return err;
 }
 #endif
 
 /**
-  Performs a self-test of the LTC_CAST5 block cipher
-  @return CRYPT_OK if functional, CRYPT_NOP if self-test has been disabled
+    Performs a self-test of the LTC_CAST5 block cipher
+    @return CRYPT_OK if functional, CRYPT_NOP if self-test has been disabled
 */
 int cast5_test(void)
 {
  #ifndef LTC_TEST
-    return CRYPT_NOP;
- #else    
-   static const struct {
-       int keylen;
-       unsigned char key[16];
-       unsigned char pt[8];
-       unsigned char ct[8];
-   } tests[] = {
-     { 16,
-       {0x01, 0x23, 0x45, 0x67, 0x12, 0x34, 0x56, 0x78, 0x23, 0x45, 0x67, 0x89, 0x34, 0x56, 0x78, 0x9A},
-       {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF},
-       {0x23, 0x8B, 0x4F, 0xE5, 0x84, 0x7E, 0x44, 0xB2}
-     },
-     { 10,
-       {0x01, 0x23, 0x45, 0x67, 0x12, 0x34, 0x56, 0x78, 0x23, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-       {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF},
-       {0xEB, 0x6A, 0x71, 0x1A, 0x2C, 0x02, 0x27, 0x1B},
-     },
-     { 5,
-       {0x01, 0x23, 0x45, 0x67, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
-       {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF},
-       {0x7A, 0xC8, 0x16, 0xD1, 0x6E, 0x9B, 0x30, 0x2E}
-     }
-   };
-   int i, y, err;
-   symmetric_key key;
-   unsigned char tmp[2][8];
+        return CRYPT_NOP;
+ #else        
+     static const struct {
+             int keylen;
+             unsigned char key[16];
+             unsigned char pt[8];
+             unsigned char ct[8];
+     } tests[] = {
+         { 16,
+             {0x01, 0x23, 0x45, 0x67, 0x12, 0x34, 0x56, 0x78, 0x23, 0x45, 0x67, 0x89, 0x34, 0x56, 0x78, 0x9A},
+             {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF},
+             {0x23, 0x8B, 0x4F, 0xE5, 0x84, 0x7E, 0x44, 0xB2}
+         },
+         { 10,
+             {0x01, 0x23, 0x45, 0x67, 0x12, 0x34, 0x56, 0x78, 0x23, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+             {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF},
+             {0xEB, 0x6A, 0x71, 0x1A, 0x2C, 0x02, 0x27, 0x1B},
+         },
+         { 5,
+             {0x01, 0x23, 0x45, 0x67, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+             {0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF},
+             {0x7A, 0xC8, 0x16, 0xD1, 0x6E, 0x9B, 0x30, 0x2E}
+         }
+     };
+     int i, y, err;
+     symmetric_key key;
+     unsigned char tmp[2][8];
 
-   for (i = 0; i < (int)(sizeof(tests) / sizeof(tests[0])); i++) {
-       if ((err = cast5_setup(tests[i].key, tests[i].keylen, 0, &key)) != CRYPT_OK) {
-          return err;
-       }
-       cast5_ecb_encrypt(tests[i].pt, tmp[0], &key);
-       cast5_ecb_decrypt(tmp[0], tmp[1], &key);
-       if ((XMEMCMP(tmp[0], tests[i].ct, 8) != 0) || (XMEMCMP(tmp[1], tests[i].pt, 8) != 0)) {
-          return CRYPT_FAIL_TESTVECTOR;
-       }
-      /* now see if we can encrypt all zero bytes 1000 times, decrypt and come back where we started */
-      for (y = 0; y < 8; y++) tmp[0][y] = 0;
-      for (y = 0; y < 1000; y++) cast5_ecb_encrypt(tmp[0], tmp[0], &key);
-      for (y = 0; y < 1000; y++) cast5_ecb_decrypt(tmp[0], tmp[0], &key);
-      for (y = 0; y < 8; y++) if (tmp[0][y] != 0) return CRYPT_FAIL_TESTVECTOR;
-   
-   }
-   return CRYPT_OK;
+     for (i = 0; i < (int)(sizeof(tests) / sizeof(tests[0])); i++) {
+             if ((err = cast5_setup(tests[i].key, tests[i].keylen, 0, &key)) != CRYPT_OK) {
+                    return err;
+             }
+             cast5_ecb_encrypt(tests[i].pt, tmp[0], &key);
+             cast5_ecb_decrypt(tmp[0], tmp[1], &key);
+             if ((XMEMCMP(tmp[0], tests[i].ct, 8) != 0) || (XMEMCMP(tmp[1], tests[i].pt, 8) != 0)) {
+                    return CRYPT_FAIL_TESTVECTOR;
+             }
+            /* now see if we can encrypt all zero bytes 1000 times, decrypt and come back where we started */
+            for (y = 0; y < 8; y++) tmp[0][y] = 0;
+            for (y = 0; y < 1000; y++) cast5_ecb_encrypt(tmp[0], tmp[0], &key);
+            for (y = 0; y < 1000; y++) cast5_ecb_decrypt(tmp[0], tmp[0], &key);
+            for (y = 0; y < 8; y++) if (tmp[0][y] != 0) return CRYPT_FAIL_TESTVECTOR;
+     
+     }
+     return CRYPT_OK;
  #endif
 }
 
 /** Terminate the context 
-   @param skey    The scheduled key
+     @param skey        The scheduled key
 */
 void cast5_done(symmetric_key *skey)
 {
 }
 
 /**
-  Gets suitable key size
-  @param keysize [in/out] The length of the recommended key (in bytes).  This function will store the suitable size back in this variable.
-  @return CRYPT_OK if the input key size is acceptable.
+    Gets suitable key size
+    @param keysize [in/out] The length of the recommended key (in bytes).    This function will store the suitable size back in this variable.
+    @return CRYPT_OK if the input key size is acceptable.
 */
 int cast5_keysize(int *keysize)
 {
-   LTC_ARGCHK(keysize != NULL);
-   if (*keysize < 5) {
-      return CRYPT_INVALID_KEYSIZE;
-   } else if (*keysize > 16) {
-      *keysize = 16;
-   }
-   return CRYPT_OK;
+     LTC_ARGCHK(keysize != NULL);
+     if (*keysize < 5) {
+            return CRYPT_INVALID_KEYSIZE;
+     } else if (*keysize > 16) {
+            *keysize = 16;
+     }
+     return CRYPT_OK;
 } 
 
 #endif

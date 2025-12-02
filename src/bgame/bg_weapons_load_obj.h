@@ -16,10 +16,10 @@ flameTable *__cdecl BG_GetFlameTable(const char *folder, char *name);
 char __cdecl BG_LoadWeaponFile(char *szFileName, char *szBuffer, int iBufferSize);
 void __cdecl BG_LoadWeaponMergeSupport();
 char __cdecl BG_SplitWeaponDefNames(
-        const char *name,
-        char **sources,
-        WeaponComponentList *componentAll,
-        char *outputName);
+                const char *name,
+                char **sources,
+                WeaponComponentList *componentAll,
+                char *outputName);
 int __cdecl BG_MergeWeaponDefClipName(char **value, char *mergedValue, int size);
 int __cdecl BG_MergeWeaponDefFloatValue(char **value, char *mergedValue);
 int __cdecl BG_MergeWeaponDefHidetags(char **value, char *mergedValue, int size);

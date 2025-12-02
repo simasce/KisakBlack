@@ -148,20 +148,20 @@ void __cdecl CScr_GetIsDog(centity_s *cent, const cent_field_s *pField);
 unsigned int __cdecl GetFootstepString(int event);
 void __cdecl ReportBadFootsteps(int localClientNum, centity_s *cent, int surfaceType, bool isPlayerView);
 void __cdecl CScr_PlayerFootstepEvent(
-        int localClientNum,
-        centity_s *cent,
-        bool isPlayerView,
-        int event,
-        int surfaceType,
-        bool quiet);
+                int localClientNum,
+                centity_s *cent,
+                bool isPlayerView,
+                int event,
+                int surfaceType,
+                bool quiet);
 void __cdecl CScr_PlayerJumpEvent(int localClientNum, centity_s *cent, bool isPlayerView, int surfaceType, bool quiet);
 void __cdecl CScr_PlayerLandEvent(
-        int localClientNum,
-        centity_s *cent,
-        bool isPlayerView,
-        int surfaceType,
-        bool quiet,
-        bool damagePlayer);
+                int localClientNum,
+                centity_s *cent,
+                bool isPlayerView,
+                int surfaceType,
+                bool quiet,
+                bool damagePlayer);
 void __cdecl CScr_PlayerFoliageEvent(int localClientNum, centity_s *cent, bool isPlayerView, bool quiet);
 void __cdecl CScrCmd_GetThrottle(scr_entref_t entref);
 void __cdecl CScrCmd_GetBrake(scr_entref_t entref);
@@ -245,59 +245,59 @@ void __cdecl CScrCmd_MoveGravity(scr_entref_t entref);
 void __cdecl CScriptMover_MoveGravity(trajectory_t *pTr, const float *velocity, float fTotalTime, float *vCurrPos);
 void __cdecl CScrCmd_MoveTo(scr_entref_t entref);
 void __cdecl CScriptMover_Move(
-        centity_s *pEnt,
-        const float *vPos,
-        float fTotalTime,
-        float fAccelTime,
-        float fDecelTime);
+                centity_s *pEnt,
+                const float *vPos,
+                float fTotalTime,
+                float fAccelTime,
+                float fDecelTime);
 void __cdecl CScriptMover_SetupMove(
-        trajectory_t *pTr,
-        const float *vPos,
-        float fTotalTime,
-        float fAccelTime,
-        float fDecelTime,
-        float *vCurrPos,
-        float *pfSpeed,
-        float *pfMidTime,
-        float *pfDecelTime,
-        float *vPos1,
-        float *vPos2,
-        float *vPos3);
+                trajectory_t *pTr,
+                const float *vPos,
+                float fTotalTime,
+                float fAccelTime,
+                float fDecelTime,
+                float *vCurrPos,
+                float *pfSpeed,
+                float *pfMidTime,
+                float *pfDecelTime,
+                float *vPos1,
+                float *vPos2,
+                float *vPos3);
 void __cdecl CScrEnt_MoveAxis(scr_entref_t entref, int iAxis);
 void __cdecl CScrEntCmd_MoveX(scr_entref_t entref);
 void __cdecl CScrEntCmd_MoveY(scr_entref_t entref);
 void __cdecl CScrEntCmd_MoveZ(scr_entref_t entref);
 void __cdecl CScriptEnt_RotateAxis(scr_entref_t entref, int iAxis);
 void __cdecl CScriptMover_Rotate(
-        centity_s *cent,
-        const float *vRot,
-        float fTotalTime,
-        float fAccelTime,
-        float fDecelTime);
+                centity_s *cent,
+                const float *vRot,
+                float fTotalTime,
+                float fAccelTime,
+                float fDecelTime);
 void __cdecl CScrCmd_RotatePitch(scr_entref_t entref);
 void __cdecl CScrCmd_RotateYaw(scr_entref_t entref);
 void __cdecl CScrCmd_RotateRoll(scr_entref_t entref);
 void __cdecl CScrCmd_RotateTo(scr_entref_t entref);
 void __cdecl CScrCmd_RotateVelocity(scr_entref_t entref);
 void __cdecl CScriptMover_RotateSpeed(
-        centity_s *pEnt,
-        const float *vRotSpeed,
-        float fTotalTime,
-        float fAccelTime,
-        float fDecelTime);
+                centity_s *pEnt,
+                const float *vRotSpeed,
+                float fTotalTime,
+                float fAccelTime,
+                float fDecelTime);
 void __cdecl CScriptMover_SetupMoveSpeed(
-        trajectory_t *pTr,
-        const float *vSpeed,
-        float fTotalTime,
-        float fAccelTime,
-        float fDecelTime,
-        float *vCurrPos,
-        float *pfSpeed,
-        float *pfMidTime,
-        float *pfDecelTime,
-        float *vPos1,
-        float *vPos2,
-        float *vPos3);
+                trajectory_t *pTr,
+                const float *vSpeed,
+                float fTotalTime,
+                float fAccelTime,
+                float fDecelTime,
+                float *vCurrPos,
+                float *pfSpeed,
+                float *pfMidTime,
+                float *pfDecelTime,
+                float *vPos1,
+                float *vPos2,
+                float *vPos3);
 void __cdecl CScr_StartPoisoning(scr_entref_t entref);
 void __cdecl CScr_StopPoisoning(scr_entref_t entref);
 void __cdecl CScr_IsPoisoned(scr_entref_t entref);
@@ -364,10 +364,10 @@ void __cdecl CScr_Hide(scr_entref_t entref);
 void (__cdecl *__cdecl CScr_GetMethod(const char **pName, int *type))(scr_entref_t);
 void __cdecl CScr_LoadLevel();
 int __cdecl CScr_SetScriptAndLabel(
-        ScriptFunctions *functions,
-        const char *filename,
-        const char *label,
-        int bEnforceExists);
+                ScriptFunctions *functions,
+                const char *filename,
+                const char *label,
+                int bEnforceExists);
 void __cdecl CScr_SetLevelScript(ScriptFunctions *functions);
 void __cdecl CG_FreeEntityDelay(centity_s *ed);
 void __cdecl CScr_FreeScripts();

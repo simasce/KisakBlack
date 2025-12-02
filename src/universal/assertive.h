@@ -3,9 +3,9 @@
 #include <cstdio> // FILE
 
 enum AssertOccurance : __int32
-{                                       // XREF: AssertNotify/r
-    FIRST_TIME = 0x0,
-    RECURSIVE = 0x1,
+{                                                                             // XREF: AssertNotify/r
+        FIRST_TIME = 0x0,
+        RECURSIVE = 0x1,
 };
 
 void __cdecl FixWindowsDesktop();
@@ -28,15 +28,15 @@ bool __cdecl QuitOnError();
 bool Assert_MyHandler(const char *filename, int line, int type, const char *fmt, ...);
 
 #ifdef _DEBUG 
-#define iassert(expression) (void)(                                                       \
-            (!!(expression)) ||                                                          \
-            (Assert_MyHandler(__FILE__, (unsigned)(__LINE__), 0, "%s", #expression), 0) \
-        )
+#define iassert(expression) (void)(                                                                                                             \
+                        (!!(expression)) ||                                                                                                                    \
+                        (Assert_MyHandler(__FILE__, (unsigned)(__LINE__), 0, "%s", #expression), 0) \
+                )
 
-#define vassert(expression, fmt, ...)  (void)(                                                       \
-            (!!(expression)) ||                                                          \
-            (Assert_MyHandler(__FILE__, (unsigned)(__LINE__), 0, "%s\n\t" fmt, #expression, __VA_ARGS__), 0) \
-        )
+#define vassert(expression, fmt, ...)    (void)(                                                                                                             \
+                        (!!(expression)) ||                                                                                                                    \
+                        (Assert_MyHandler(__FILE__, (unsigned)(__LINE__), 0, "%s\n\t" fmt, #expression, __VA_ARGS__), 0) \
+                )
 
 #define bcassert(expression, maxv) vassert(((expression) < (maxv)), #expression "%d does not index [0, %d)", expression, maxv)
 #define bcassert2(expression, maxv) vassert(((expression) <= (maxv)), #expression "%d does not index [0, %d]", expression, maxv)

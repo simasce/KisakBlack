@@ -1,36 +1,36 @@
 #pragma once
 
 struct animStringItem_t // sizeof=0x8
-{                                       // XREF: BG_AddVehicleName(char const *,int,int,int,int)+19A/w
-    const char *string;                 // XREF: BG_InitWeaponString(int,char const *)+9/w
-    int hash;                           // XREF: BG_InitWeaponString(int,char const *)+1F/w
+{                                                                             // XREF: BG_AddVehicleName(char const *,int,int,int,int)+19A/w
+        const char *string;                                 // XREF: BG_InitWeaponString(int,char const *)+9/w
+        int hash;                                                     // XREF: BG_InitWeaponString(int,char const *)+1F/w
 };
 
 struct animScriptCondition_t // sizeof=0x8
-{                                       // XREF: animScriptItem_t/r
-    int index;
-    unsigned int value;
+{                                                                             // XREF: animScriptItem_t/r
+        int index;
+        unsigned int value;
 };
 
 struct animScriptCommand_t // sizeof=0x14
-{                                       // XREF: animScriptItem_t/r
-    __int16 bodyPart[2];
-    __int16 animIndex[2];
-    unsigned __int16 animDuration[2];
-    snd_alias_list_t *soundAlias;
-    unsigned __int16 tagName;           // XREF: _Com_InitHunkMemory+BD/o
-                                        // Sys_GetPhysicalCpuCount+131/o ...
-    unsigned __int16 flags;
+{                                                                             // XREF: animScriptItem_t/r
+        __int16 bodyPart[2];
+        __int16 animIndex[2];
+        unsigned __int16 animDuration[2];
+        snd_alias_list_t *soundAlias;
+        unsigned __int16 tagName;                     // XREF: _Com_InitHunkMemory+BD/o
+                                                                                // Sys_GetPhysicalCpuCount+131/o ...
+        unsigned __int16 flags;
 };
 
 struct animScriptItem_t // sizeof=0xC8
-{                                       // XREF: animScriptData_t/r
-                                        // BG_AnimParseAnimScript/r
-    int numConditions;
-    animScriptCondition_t conditions[4];
-    int numCommands;
-    animScriptCommand_t commands[8];    // XREF: _Com_InitHunkMemory+BD/o
-                                        // Sys_GetPhysicalCpuCount+131/o ...
+{                                                                             // XREF: animScriptData_t/r
+                                                                                // BG_AnimParseAnimScript/r
+        int numConditions;
+        animScriptCondition_t conditions[4];
+        int numCommands;
+        animScriptCommand_t commands[8];        // XREF: _Com_InitHunkMemory+BD/o
+                                                                                // Sys_GetPhysicalCpuCount+131/o ...
 };
 
 
@@ -49,13 +49,13 @@ void __cdecl BG_ParseCommands(const char **input, animScriptItem_t *scriptItem, 
 int __cdecl GetValueForBitfield(unsigned int bitfield);
 bool __cdecl Com_BitCheckAssert(const unsigned int *array, int bitNum, int size);
 int __cdecl BG_PlayAnim(
-        playerState_s *ps,
-        int animNum,
-        animBodyPart_t bodyPart,
-        int forceDuration,
-        int setTimer,
-        int isContinue,
-        int force);
+                playerState_s *ps,
+                int animNum,
+                animBodyPart_t bodyPart,
+                int forceDuration,
+                int setTimer,
+                int isContinue,
+                int force);
 const char *__cdecl BG_GetCurrentStance(playerState_s *ps);
 const char *__cdecl BG_GetCurrentMoveStatus(playerState_s *ps);
 const char *__cdecl BG_GetCurrentDirection(playerState_s *ps);
@@ -66,11 +66,11 @@ const char *__cdecl BG_GetCurrentWeaponName(playerState_s *ps);
 const char *__cdecl BG_GetCurrentWeaponClass(playerState_s *ps);
 char *__cdecl BG_GetCurrentPlayerAnimType(playerState_s *ps);
 int __cdecl BG_ExecuteCommand(
-        playerState_s *ps,
-        animScriptCommand_t *scriptCommand,
-        int setTimer,
-        int isContinue,
-        int force);
+                playerState_s *ps,
+                animScriptCommand_t *scriptCommand,
+                int setTimer,
+                int isContinue,
+                int force);
 int __cdecl BG_AnimScriptAnimation(pmove_t *pm, aistateEnum_t state, scriptAnimMoveTypes_t movetype, int force);
 animScriptItem_t *__cdecl BG_FirstValidItem(unsigned int client, animScript_t *script);
 int __cdecl BG_EvaluateConditions(clientInfo_t *ci, animScriptItem_t *scriptItem);
@@ -101,49 +101,49 @@ void __cdecl BG_Player_DoControllersInternal(const entityState_s *es, const clie
 void __cdecl BG_LerpAngles(float *angles_goal, float maxAngleChange, float *angles);
 void __cdecl BG_PlayerAnimation(int localClientNum, const entityState_s *es, clientInfo_t *ci);
 void __cdecl BG_RunLerpFrameRate(
-        int localClientNum,
-        clientInfo_t *ci,
-        lerpFrame_t *lf,
-        int newAnimation,
-        const entityState_s *es);
+                int localClientNum,
+                clientInfo_t *ci,
+                lerpFrame_t *lf,
+                int newAnimation,
+                const entityState_s *es);
 void __cdecl BG_SetNewAnimation(
-        int localClientNum,
-        clientInfo_t *ci,
-        lerpFrame_t *lf,
-        int newAnimation,
-        const entityState_s *es);
+                int localClientNum,
+                clientInfo_t *ci,
+                lerpFrame_t *lf,
+                int newAnimation,
+                const entityState_s *es);
 void __cdecl BG_PlayerAnimation_VerifyAnim(XAnimTree_s *pAnimTree, lerpFrame_t *lf);
 void __cdecl BG_PlayerAngles(const entityState_s *es, clientInfo_t *ci);
 void __cdecl BG_SwingAngles(
-        float destination,
-        float swingTolerance,
-        float clampTolerance,
-        float speed,
-        float *angle,
-        int *swinging);
+                float destination,
+                float swingTolerance,
+                float clampTolerance,
+                float speed,
+                float *angle,
+                int *swinging);
 void __cdecl BG_AnimPlayerConditions(const entityState_s *es);
 void __cdecl BG_UpdatePlayerDObj(
-        int localClientNum,
-        DObj *pDObj,
-        entityState_s *es,
-        clientInfo_t *ci,
-        int attachIgnoreCollision);
+                int localClientNum,
+                DObj *pDObj,
+                entityState_s *es,
+                clientInfo_t *ci,
+                int attachIgnoreCollision);
 int __cdecl BG_GetPlayerWeaponForDObj(int localClientNum, entityState_s *es);
 int __cdecl BG_GetPlayerOffhandWeaponForDObj(int localClientNum, entityState_s *es);
 void __cdecl BG_FindAnimTrees();
 scr_animtree_t __cdecl BG_FindAnimTree(const char *filename, int bEnforceExists);
 void __cdecl BG_LoadAnim(const char *levelName);
 void __cdecl BG_AnimParseAnimScript(
-        animScriptData_t *scriptData,
-        loadAnim_t *pLoadAnims,
-        unsigned int *piNumAnims,
-        const char *levelName);
+                animScriptData_t *scriptData,
+                loadAnim_t *pLoadAnims,
+                unsigned int *piNumAnims,
+                const char *levelName);
 char *__cdecl BG_CopyStringIntoBuffer(const char *string, char *buffer, unsigned int bufSize, unsigned int *offset);
 void __cdecl BG_ParseConditionBits(
-        const char **text_pp,
-        animStringItem_t *stringTable,
-        int condIndex,
-        unsigned int *result);
+                const char **text_pp,
+                animStringItem_t *stringTable,
+                int condIndex,
+                unsigned int *result);
 void __cdecl BG_SetAnimConditionFlags(int condIndex, unsigned int result);
 int __cdecl BG_ParseConditions(const char **text_pp, animScriptItem_t *scriptItem);
 void BG_FindAnims();

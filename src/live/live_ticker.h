@@ -14,24 +14,24 @@ void __cdecl LiveTicker_ReplaceMessages(const char *text, streamName_t streamNam
 void __cdecl LiveTicker_AddMessages(const char *text, streamName_t streamName, bool isMultiple);
 void __cdecl LiveTicker_RemoveStream(streamName_t streamName);
 char *__cdecl LiveTicker_GetCurrentMessage(
-        float scrX,
-        float baseX,
-        float baseY,
-        float baseAlpha,
-        Font_s *const font,
-        float scale,
-        float *xCoord,
-        float *yCoord,
-        float *alpha);
+                float scrX,
+                float baseX,
+                float baseY,
+                float baseAlpha,
+                Font_s *const font,
+                float scale,
+                float *xCoord,
+                float *yCoord,
+                float *alpha);
 char *__cdecl LiveTicker_GetCurrentMessageCategory(
-        float baseAlpha,
-        float baseX,
-        float baseWidth,
-        Font_s *font,
-        float baseScale,
-        float *outXCoord,
-        float *outAlpha,
-        float *outScale);
+                float baseAlpha,
+                float baseX,
+                float baseWidth,
+                Font_s *font,
+                float baseScale,
+                float *outXCoord,
+                float *outAlpha,
+                float *outScale);
 void __cdecl LiveTicker_SetBatchSize(streamName_t streamName, int batchSize);
 void __cdecl LiveTicker_SetContractMsgsBatchSize_f();
 void __cdecl LiveTicker_SetEventMsgsBatchSize_f();

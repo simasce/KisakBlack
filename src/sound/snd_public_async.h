@@ -1,58 +1,58 @@
 #pragma once
 
 void __cdecl SND_PlayInternal(
-        unsigned int id,
-        int fadeTimeMs,
-        float attenuation,
-        SndEntHandle entHandle,
-        const float *position,
-        const float *direction,
-        bool notify,
-        snd_playback *playback);
+                unsigned int id,
+                int fadeTimeMs,
+                float attenuation,
+                SndEntHandle entHandle,
+                const float *position,
+                const float *direction,
+                bool notify,
+                snd_playback *playback);
 void __cdecl SND_Play(
-        unsigned int id,
-        int fadeTimeMs,
-        float attenuation,
-        SndEntHandle entHandle,
-        const float *position,
-        const float *direction,
-        bool notify);
+                unsigned int id,
+                int fadeTimeMs,
+                float attenuation,
+                SndEntHandle entHandle,
+                const float *position,
+                const float *direction,
+                bool notify);
 void __cdecl SND_Play(
-        char *alias,
-        int fadeTimeMs,
-        float attenuation,
-        SndEntHandle entHandle,
-        const float *position,
-        const float *direction,
-        bool notify);
+                char *alias,
+                int fadeTimeMs,
+                float attenuation,
+                SndEntHandle entHandle,
+                const float *position,
+                const float *direction,
+                bool notify);
 int __cdecl SND_Playback(
-        unsigned int alias,
-        int fadeTimeMs,
-        float attenuation,
-        SndEntHandle entHandle,
-        const float *position,
-        const float *direction,
-        bool notify);
+                unsigned int alias,
+                int fadeTimeMs,
+                float attenuation,
+                SndEntHandle entHandle,
+                const float *position,
+                const float *direction,
+                bool notify);
 void __cdecl SND_StopSoundAliasOnEnt(SndEntHandle ent, unsigned int alias_name);
 void __cdecl SND_StopSoundsOnEnt(SndEntHandle ent);
 void __cdecl SND_NotifyCinematicStart(float volume);
 void __cdecl SND_NotifyCinematicEnd();
 void __cdecl SND_DisconnectListener(unsigned int listener);
 void __cdecl SND_SetListener(
-        unsigned int listener,
-        int clientNum,
-        team_t team,
-        const float *origin,
-        const float (*axis)[3]);
+                unsigned int listener,
+                int clientNum,
+                team_t team,
+                const float *origin,
+                const float (*axis)[3]);
 void __cdecl SND_StopSounds(snd_stop_sound_flags flags);
 void __cdecl SND_FadeIn();
 void __cdecl SND_FadeOut();
 void __cdecl SND_SetEnvironmentEffects(
-        unsigned int priority,
-        const char *preset,
-        float drylevel,
-        float wetlevel,
-        int fademsec);
+                unsigned int priority,
+                const char *preset,
+                float drylevel,
+                float wetlevel,
+                int fademsec);
 void __cdecl SND_DeactivateEnvironmentEffects(unsigned int priority, int fademsec);
 void __cdecl SND_SetPlaybackAttenuation(unsigned int id, float attenuation);
 void __cdecl SND_SetPlaybackAttenuationRate(unsigned int id, float rate);
@@ -69,16 +69,16 @@ void __cdecl SND_SetContext(const char *type, const char *value);
 void __cdecl SND_SetScriptTimescale(float value);
 snd_ent_state *__cdecl SND_FindEntState(SndEntHandle handle, bool createNew);
 void __cdecl SND_UpdateEntState(
-        SndEntHandle handle,
-        const float *origin,
-        const float *velocity,
-        const float (*orientation)[3]);
+                SndEntHandle handle,
+                const float *origin,
+                const float *velocity,
+                const float (*orientation)[3]);
 char __cdecl SND_GetEntState(SndEntHandle handle, float *origin, float *velocity, float (*orientation)[3]);
 void __cdecl SNDL_SetEntState(
-        SndEntHandle handle,
-        const float *origin,
-        const float *velocity,
-        const float (*orientation)[3]);
+                SndEntHandle handle,
+                const float *origin,
+                const float *velocity,
+                const float (*orientation)[3]);
 void __cdecl SND_EntStateFrame();
 void __cdecl SND_ResetEntState();
 void __cdecl SND_EntStateRequest(SndEntHandle handle);

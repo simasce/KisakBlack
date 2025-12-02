@@ -1,8 +1,8 @@
 #pragma once
 
 const bdReference<bdCommonAddr> *__thiscall bdReference<bdCommonAddr>::operator=(
-        bdReference<bdCommonAddr> *this,
-        const bdReference<bdCommonAddr> *other);
+                bdReference<bdCommonAddr> *this,
+                const bdReference<bdCommonAddr> *other);
 dwQoSMultiProbeListener *__thiscall dwQoSMultiProbeListener::dwQoSMultiProbeListener(dwQoSMultiProbeListener *this);
 void __thiscall dwQoSMultiProbeListener::addProbe(dwQoSMultiProbeListener *this, bdQoSRemoteAddr addr);
 void __thiscall dwQoSMultiProbeListener::onQoSProbeSuccess(dwQoSMultiProbeListener *this, const bdQoSProbeInfo *info);

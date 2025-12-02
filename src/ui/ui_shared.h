@@ -11,51 +11,51 @@ void __cdecl Script_SetColor(int localClientNum, UiContext *dc, itemDef_s *item,
 void __cdecl Script_SetBackground(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 itemDef_s *__cdecl Menu_FindItemByName(menuDef_t *menu, const char *p);
 void __cdecl UI_UpdateContextItem(
-        UiContext *dc,
-        const char *menuName,
-        const char *itemName,
-        float offsetX,
-        float offsetY);
+                UiContext *dc,
+                const char *menuName,
+                const char *itemName,
+                float offsetX,
+                float offsetY);
 void __cdecl UI_UpdateContextItemInternal(
-        UiContext *dc,
-        const char *menuName,
-        const char *itemName,
-        float offsetX,
-        float offsetY);
+                UiContext *dc,
+                const char *menuName,
+                const char *itemName,
+                float offsetX,
+                float offsetY);
 void __cdecl Item_SnapRectClientToMouse(UiContext *dc, itemDef_s *item, float x, float y);
 void __cdecl UI_AnimateItem(
-        int localClientNum,
-        UiContext *dc,
-        const char *menuName,
-        const char *itemName,
-        const char *newStateName,
-        int milliseconds);
+                int localClientNum,
+                UiContext *dc,
+                const char *menuName,
+                const char *itemName,
+                const char *newStateName,
+                int milliseconds);
 void __cdecl UI_AnimateItemInternal(
-        int localClientNum,
-        UiContext *dc,
-        const char *menuName,
-        const char *itemName,
-        const char *newStateName,
-        int milliseconds,
-        bool sysTime);
+                int localClientNum,
+                UiContext *dc,
+                const char *menuName,
+                const char *itemName,
+                const char *newStateName,
+                int milliseconds,
+                bool sysTime);
 animParamsDef_t *__cdecl Item_FindStateByName(itemDef_s *item, const char *p);
 void __cdecl Item_AnimateToState(
-        int localClientNum,
-        UiContext *dc,
-        itemDef_s *item,
-        animParamsDef_t *state,
-        int milliseconds,
-        bool sysTime);
+                int localClientNum,
+                UiContext *dc,
+                itemDef_s *item,
+                animParamsDef_t *state,
+                int milliseconds,
+                bool sysTime);
 void __cdecl Item_CompleteAnimation(itemDef_s *item);
 void __cdecl Item_UpdateAnimation(int localClientNum, UiContext *dc, itemDef_s *item);
 void __cdecl Item_LerpAnimationParameters(int localClientNum, int contextIndex, itemDef_s *item, float lerpValue);
 void __cdecl UI_AnimateItemSysTime(
-        int localClientNum,
-        UiContext *dc,
-        const char *menuName,
-        const char *itemName,
-        const char *newStateName,
-        int milliseconds);
+                int localClientNum,
+                UiContext *dc,
+                const char *menuName,
+                const char *itemName,
+                const char *newStateName,
+                int milliseconds);
 void __cdecl UI_SetShaderTime(int localClientNum);
 void __cdecl Script_SetItemColor(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Item_SetColor(int contextIndex, itemDef_s *item, const char *name, float *color);
@@ -67,17 +67,17 @@ void __cdecl Menus_HideByName(const UiContext *dc, const char *menuName);
 void __cdecl Menus_ShowByName(const UiContext *dc, const char *windowName);
 void __cdecl Menus_CloseByName(int localClientNum, UiContext *dc, const char *p);
 void __cdecl Menus_Close(int localClientNum, UiContext *dc, menuDef_t *menu);
-void  Menu_RunLeaveFocusScript(
-        GenericEventHandler *a1@<ebp>,
-        int localClientNum,
-        UiContext *dc,
-        menuDef_t *menu);
+void    Menu_RunLeaveFocusScript(
+                GenericEventHandler *a1@<ebp>,
+                int localClientNum,
+                UiContext *dc,
+                menuDef_t *menu);
 itemDef_s *__cdecl Menu_ClearFocus(int localClientNum, UiContext *dc, menuDef_t *menu);
 int __cdecl Menus_RemoveFromStack(int localClientNum, UiContext *dc, menuDef_t *pMenu);
 void __cdecl Menu_GainFocusDueToClose(int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Menu_CallOnFocusDueToOpen(int localClientNum, UiContext *dc, menuDef_t *menu);
-void  Menu_RunFocusScript(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
-void  Menu_RunCloseScript(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
+void    Menu_RunFocusScript(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
+void    Menu_RunCloseScript(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Menus_CompleteItemAnimations(int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Menus_ClearFlagsOnClose(int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Menus_CloseImmediateByName(int localClientNum, UiContext *dc, const char *p);
@@ -126,22 +126,22 @@ void __cdecl Script_ExecKeyHandler(int localClientNum, UiContext *dc, itemDef_s 
 void __cdecl Script_ExecKeyPress(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_Exec(int localClientNum, UiContext *dc, itemDef_s *item, char **args);
 void __cdecl Script_ExecHandler(
-        int localClientNum,
-        int controllerIndex,
-        itemDef_s *item,
-        char **args,
-        void (__cdecl *textCallback)(int, int, itemDef_s *, const char *));
+                int localClientNum,
+                int controllerIndex,
+                itemDef_s *item,
+                char **args,
+                void (__cdecl *textCallback)(int, int, itemDef_s *, const char *));
 void __cdecl Script_AddTextWrapper(int localClientNum, int controllerIndex, itemDef_s *__formal, const char *text);
 void __cdecl Script_ExecNow(int localClientNum, UiContext *dc, itemDef_s *item, char **args);
 void __cdecl Script_ExecDvar(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_ExecOnDvarStringValue(int localClientNum, UiContext *dc, itemDef_s *item, char **args);
 void __cdecl Script_ConditionalExecHandler(
-        int localClientNum,
-        UiContext *dc,
-        itemDef_s *item,
-        char **args,
-        bool (__cdecl *shouldExec)(const char *, const char *),
-        void (__cdecl *textCallback)(int, int, itemDef_s *, const char *));
+                int localClientNum,
+                UiContext *dc,
+                itemDef_s *item,
+                char **args,
+                bool (__cdecl *shouldExec)(const char *, const char *),
+                void (__cdecl *textCallback)(int, int, itemDef_s *, const char *));
 bool __cdecl Script_ExecIfStringsEqual(const char *dvarValue, const char *testValue);
 void __cdecl Script_ExecOnDvarIntValue(int localClientNum, UiContext *dc, itemDef_s *item, char **args);
 bool __cdecl Script_ExecIfIntsEqual(const char *dvarValue, const char *testValue);
@@ -152,11 +152,11 @@ void __cdecl Script_ExecNowOnDvarIntValue(int localClientNum, UiContext *dc, ite
 void __cdecl Script_ExecNowOnDvarFloatValue(int localClientNum, UiContext *dc, itemDef_s *item, char **args);
 void __cdecl Script_RespondOnDvarStringValue(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_ConditionalResponseHandler(
-        int localClientNum,
-        UiContext *dc,
-        itemDef_s *item,
-        const char **args,
-        bool (__cdecl *shouldRespond)(const char *, const char *));
+                int localClientNum,
+                UiContext *dc,
+                itemDef_s *item,
+                const char **args,
+                bool (__cdecl *shouldRespond)(const char *, const char *));
 void __cdecl Script_RespondOnDvarIntValue(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_RespondOnDvarFloatValue(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_SetLocalVarBool(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
@@ -175,23 +175,23 @@ char __cdecl Item_ArePrereqsSatisfied(GenericEventScript *eventScript, nestingSt
 void __cdecl Item_MarkProcessed(GenericEventScript *eventScript, nestingStack_t *stack, bool isConditionSatisfied);
 char __cdecl Item_IsBlockProcessed(GenericEventScript *eventScript, nestingStack_t *stack, bool *result);
 void __cdecl Item_RunSingleEventScript(
-        int localClientNum,
-        UiContext *dc,
-        itemDef_s *item,
-        GenericEventScript *eventScript);
+                int localClientNum,
+                UiContext *dc,
+                itemDef_s *item,
+                GenericEventScript *eventScript);
 bool __cdecl Item_IsConditionSatisfied(
-        int localClientNum,
-        UiContext *dc,
-        itemDef_s *item,
-        GenericEventScript *eventScript);
+                int localClientNum,
+                UiContext *dc,
+                itemDef_s *item,
+                GenericEventScript *eventScript);
 void __cdecl Item_RunEventScript(int localClientNum, UiContext *dc, itemDef_s *item, const char *eventName);
 void __cdecl Item_RunScript(int localClientNum, UiContext *dc, itemDef_s *item, const char *s);
 void __cdecl UIAnimation_RunEventScript(
-        int localClientNum,
-        UiContext *dc,
-        itemDef_s *item,
-        animParamsDef_t *animState,
-        const char *eventName);
+                int localClientNum,
+                UiContext *dc,
+                itemDef_s *item,
+                animParamsDef_t *animState,
+                const char *eventName);
 void __cdecl UI_RegisterCmds();
 void __cdecl UI_SetLocalVarBool_f();
 void __cdecl UI_SetLocalVarInt_f();
@@ -230,21 +230,21 @@ bool __cdecl Window_IsHorizontal(const windowDef_t *w);
 double __cdecl Item_ListBox_GetMaxHeight(int localClientNum, int contextIndex, itemDef_s *item);
 bool __cdecl Item_ListBox_RequiresScroll(int localClientNum, int contextIndex, itemDef_s *item);
 void __cdecl Item_ListBox_SetCursorPos(
-        int localClientNum,
-        int contextIndex,
-        itemDef_s *item,
-        int max,
-        int viewmax,
-        int newCursorPos,
-        bool autoScroll);
+                int localClientNum,
+                int contextIndex,
+                itemDef_s *item,
+                int max,
+                int viewmax,
+                int newCursorPos,
+                bool autoScroll);
 void __cdecl Item_ListBox_Scroll(
-        int localClientNum,
-        int contextIndex,
-        itemDef_s *item,
-        int max,
-        int scrollmax,
-        int viewmax,
-        int delta);
+                int localClientNum,
+                int contextIndex,
+                itemDef_s *item,
+                int max,
+                int scrollmax,
+                int viewmax,
+                int delta);
 bool __cdecl Item_IsTextField(const itemDef_s *item);
 void __cdecl Item_TextField_BeginEdit(int localClientNum, int contextIndex, itemDef_s *item);
 void __cdecl Menus_Open(int localClientNum, UiContext *dc, menuDef_t *menu);
@@ -252,28 +252,28 @@ void __cdecl Menus_AddToStack(int localClientNum, UiContext *dc, menuDef_t *pMen
 void __cdecl Menu_LoseFocusDueToOpen(int localClientNum, UiContext *dc, menuDef_t *menu);
 int __cdecl Menus_OpenByName(int localClientNum, UiContext *dc, const char *p);
 int __cdecl Menus_OpenImmediateByName(int localClientNum, UiContext *dc, const char *p);
-void  Menus_SetupOpenMenu(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
+void    Menus_SetupOpenMenu(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
 itemDef_s *__cdecl Menu_SetNextCursorItem(
-        int localClientNum,
-        UiContext *dc,
-        menuDef_t *menu,
-        int usedTab,
-        int usedKeyboard);
+                int localClientNum,
+                UiContext *dc,
+                menuDef_t *menu,
+                int usedTab,
+                int usedKeyboard);
 int __cdecl Item_HasFocusEvent(int localClientNum, UiContext *dc, itemDef_s *item);
 void __cdecl Menus_PrintAllLoadedMenus(UiContext *dc);
-int  Menu_CheckOnKey@<eax>(int a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu, int key);
-void  Menu_HandleKey(int a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu, int key, int down);
+int    Menu_CheckOnKey@<eax>(int a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu, int key);
+void    Menu_HandleKey(int a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu, int key, int down);
 itemDef_s *__cdecl Item_LoseFocus(int localClientNum, UiContext *dc, itemDef_s *item);
 bool __cdecl Item_IsModal(itemDef_s *item);
 int __cdecl Item_ListBox_HandleKey(int localClientNum, UiContext *dc, itemDef_s *item, int key, int down, int force);
 void __cdecl Item_ListBox_Page(
-        int localClientNum,
-        int contextIndex,
-        itemDef_s *item,
-        int max,
-        int scrollmax,
-        int viewmax,
-        int delta);
+                int localClientNum,
+                int contextIndex,
+                itemDef_s *item,
+                int max,
+                int scrollmax,
+                int viewmax,
+                int delta);
 bool __cdecl Item_TextField_HandleKey(int localClientNum, UiContext *dc, itemDef_s *item, int key);
 int __cdecl Menu_GetItemIndex(menuDef_t *menu, itemDef_s *item);
 void __cdecl Item_TextField_EnsureCursorVisible(int contextIndex, itemDef_s *item, const char *text);
@@ -310,66 +310,66 @@ const rectDef_s *__cdecl Item_GetNonTextRect(int contextIndex, const itemDef_s *
 char __cdecl Menu_ItemsAreAnimating(int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Item_TextColor(UiContext *dc, itemDef_s *item, float (*newColor)[4]);
 void __cdecl Fade(
-        int *flags,
-        float *f,
-        float clamp,
-        int *nextTime,
-        int offsetTime,
-        int bFlags,
-        float fadeAmount,
-        float fadeInAmount,
-        UiContext *dc);
+                int *flags,
+                float *f,
+                float clamp,
+                int *nextTime,
+                int offsetTime,
+                int bFlags,
+                float fadeAmount,
+                float fadeInAmount,
+                UiContext *dc);
 double __cdecl Item_GetTextPlacementX(int alignX, float x0, float containerWidth, float selfWidth);
 double __cdecl Item_GetTextPlacementY(int alignY, float y0, float containerHeight, float selfHeight);
 int __cdecl UI_PickWordWrapLineWidth(
-        const char *text,
-        int bufferSize,
-        Font_s *font,
-        float normalizedScale,
-        int targetLineCount,
-        int widthGuess,
-        int widthLimit);
+                const char *text,
+                int bufferSize,
+                Font_s *font,
+                float normalizedScale,
+                int targetLineCount,
+                int widthGuess,
+                int widthLimit);
 void __cdecl UI_DrawWrappedText(
-        const ScreenPlacement *scrPlace,
-        const char *text,
-        const rectDef_s *rect,
-        Font_s *font,
-        float x,
-        float y,
-        float scale,
-        const float *color,
-        int style,
-        char textAlignMode,
-        rectDef_s *textRect);
+                const ScreenPlacement *scrPlace,
+                const char *text,
+                const rectDef_s *rect,
+                Font_s *font,
+                float x,
+                float y,
+                float scale,
+                const float *color,
+                int style,
+                char textAlignMode,
+                rectDef_s *textRect);
 void __cdecl DrawWrappedText(
-        const ScreenPlacement *scrPlace,
-        const char *text,
-        const rectDef_s *rect,
-        Font_s *font,
-        float x,
-        float y,
-        float scale,
-        const float *color,
-        int style,
-        char textAlignMode,
-        rectDef_s *textRect,
-        bool subtitle,
-        const float *subtitleGlowColor,
-        bool cinematic);
+                const ScreenPlacement *scrPlace,
+                const char *text,
+                const rectDef_s *rect,
+                Font_s *font,
+                float x,
+                float y,
+                float scale,
+                const float *color,
+                int style,
+                char textAlignMode,
+                rectDef_s *textRect,
+                bool subtitle,
+                const float *subtitleGlowColor,
+                bool cinematic);
 void __cdecl UI_DrawWrappedTextSubtitled(
-        const ScreenPlacement *scrPlace,
-        const char *text,
-        const rectDef_s *rect,
-        Font_s *font,
-        float x,
-        float y,
-        float scale,
-        const float *color,
-        int style,
-        char textAlignMode,
-        rectDef_s *textRect,
-        const float *subtitleGlowColor,
-        bool cinematic);
+                const ScreenPlacement *scrPlace,
+                const char *text,
+                const rectDef_s *rect,
+                Font_s *font,
+                float x,
+                float y,
+                float scale,
+                const float *color,
+                int style,
+                char textAlignMode,
+                rectDef_s *textRect,
+                const float *subtitleGlowColor,
+                bool cinematic);
 char __cdecl UI_GetSticksTranslatedString(int localClientNum, const char *command, char *keys);
 int __cdecl UI_GetKeyBindingLocalizedString(int localClientNum, const char *command, char *keys, int bindNum);
 void __cdecl GetPlatformCommand(int localClientNum, const char *command, const char **consoleCommand);
@@ -377,12 +377,12 @@ int __cdecl Display_KeyBindPending();
 int __cdecl Item_Bind_HandleKey(int localClientNum, UiContext *dc, itemDef_s *item, int key, int down);
 menuDef_t *__cdecl Menu_GetFocused(UiContext *dc);
 void __cdecl Menu_SetFeederSelection(
-        int localClientNum,
-        UiContext *dc,
-        menuDef_t *menu,
-        int feeder,
-        int index,
-        const char *name);
+                int localClientNum,
+                UiContext *dc,
+                menuDef_t *menu,
+                int feeder,
+                int index,
+                const char *name);
 int __cdecl Menu_GetFeederSelection(UiContext *dc, menuDef_t *menu, int feeder, const char *name);
 int __cdecl Menus_AnyFullScreenVisible(UiContext *dc);
 int __cdecl Menu_HandleMouseMove(int localClientNum, UiContext *dc, menuDef_t *menu);
@@ -394,38 +394,38 @@ void __cdecl Item_Listbox_Mouse_Column_Set(int localClientNum, int contextIndex,
 void __cdecl Item_MouseLeave(int localClientNum, UiContext *dc, itemDef_s *item);
 void __cdecl Item_SetMouseOver(const UiContext *dc, itemDef_s *item, int focus);
 bool __cdecl IsVisible(char flags);
-char  Menu_IsVisible@<al>(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
+char    Menu_IsVisible@<al>(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Menu_PerformTransitionEffects(int localClientNum, UiContext *dc, menuDef_t *menu);
-char  Menu_Paint@<al>(
-        GenericEventHandler *a1@<ebp>,
-        int localClientNum,
-        UiContext *dc,
-        ScreenPlacementStack *scrPlaceViewStack,
-        menuDef_t *menu,
-        const ScreenPlacement *UI3DOverrideId);
+char    Menu_Paint@<al>(
+                GenericEventHandler *a1@<ebp>,
+                int localClientNum,
+                UiContext *dc,
+                ScreenPlacementStack *scrPlaceViewStack,
+                menuDef_t *menu,
+                const ScreenPlacement *UI3DOverrideId);
 void __cdecl Window_Paint(
-        int localClientNum,
-        UiContext *dc,
-        windowDef_t *w,
-        float fadeAmount,
-        float fadeInAmount,
-        float fadeClamp,
-        float fadeCycle,
-        int itemType,
-        itemDef_s *item);
+                int localClientNum,
+                UiContext *dc,
+                windowDef_t *w,
+                float fadeAmount,
+                float fadeInAmount,
+                float fadeClamp,
+                float fadeCycle,
+                int itemType,
+                itemDef_s *item);
 void __cdecl Item_Paint(int localClientNum, UiContext *dc, itemDef_s *item);
 void __cdecl Item_Text_Paint(int localClientNum, UiContext *dc, itemDef_s *item);
 Font_s *__cdecl Item_GetFont(int contextIndex, const itemDef_s *item);
 void __cdecl Item_SetTextExtents(int contextIndex, itemDef_s *item, const char *text);
 void __cdecl ToWindowCoords(float *x, float *y, const windowDef_t *window);
 void __cdecl Item_Text_AutoWrapped_Paint(
-        int contextIndex,
-        itemDef_s *item,
-        const char *text,
-        const float *color,
-        bool subtitle,
-        const float *subtitleGlowColor,
-        bool cinematic);
+                int contextIndex,
+                itemDef_s *item,
+                const char *text,
+                const float *color,
+                bool subtitle,
+                const float *subtitleGlowColor,
+                bool cinematic);
 void __cdecl Item_TextField_Paint(int localClientNum, UiContext *dc, itemDef_s *item);
 void __cdecl Item_YesNo_Paint(int localClientNum, UiContext *dc, itemDef_s *item);
 void __cdecl Item_Multi_Paint(int localClientNum, UiContext *dc, itemDef_s *item);
@@ -438,28 +438,28 @@ void __cdecl Item_Bind_Paint(int localClientNum, UiContext *dc, itemDef_s *item)
 void __cdecl Item_ListBox_Paint(int localClientNum, UiContext *dc, itemDef_s *item);
 double __cdecl Item_ListBox_ThumbDrawPosition(int localClientNum, UiContext *dc, itemDef_s *item);
 void __cdecl Item_ListBox_PaintTextElem(
-        int localClientNum,
-        int contextIndex,
-        itemDef_s *item,
-        itemGroup_t row,
-        int col,
-        int maxChars,
-        int halignment,
-        int valignment,
-        float x,
-        float y,
-        float w,
-        float h,
-        bool onFocus);
+                int localClientNum,
+                int contextIndex,
+                itemDef_s *item,
+                itemGroup_t row,
+                int col,
+                int maxChars,
+                int halignment,
+                int valignment,
+                float x,
+                float y,
+                float w,
+                float h,
+                bool onFocus);
 double __cdecl Item_GetTextAlignAdj(int alignment, float width, float textWidth);
 double __cdecl Item_ListBox_LanguageScale(language_t language, int feederID, int col);
 void __cdecl Item_ListBox_PaintBackground(
-        int localClientNum,
-        int contextIndex,
-        itemDef_s *item,
-        float x,
-        float y,
-        int row);
+                int localClientNum,
+                int contextIndex,
+                itemDef_s *item,
+                float x,
+                float y,
+                int row);
 // local variable allocation has failed, the output may be wrong!
 void __cdecl Item_ListBox_PaintHighlight(int localClientNum, int contextIndex, itemDef_s *item, float x, float y);
 void __cdecl Item_OwnerDraw_Paint(int localClientNum, UiContext *dc, itemDef_s *item);

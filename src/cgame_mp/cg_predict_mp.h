@@ -1,12 +1,12 @@
 #pragma once
 
 void __thiscall colgeom_visitor_inlined_t<200>::update(
-        colgeom_visitor_inlined_t<200> *this,
-        const float *start,
-        const float *end,
-        const float *mins,
-        const float *maxs,
-        int mask);
+                colgeom_visitor_inlined_t<200> *this,
+                const float *start,
+                const float *end,
+                const float *mins,
+                const float *maxs,
+                int mask);
 int __cdecl CG_ItemListLocalClientNum();
 void __cdecl CG_ClearItemList();
 void __cdecl CG_BuildItemList(int localClientNum, const snapshot_s *nextSnap);
@@ -24,17 +24,17 @@ void __cdecl CG_InterpolatePlayerState(int localClientNum, int grabAngles);
 void __cdecl CG_CopyFlagsFromSnapshotEntity(int localClientNum);
 pmove_t *__thiscall pmove_t::pmove_t(pmove_t *this);
 void __thiscall colgeom_visitor_inlined_t<200>::visit(
-        colgeom_visitor_inlined_t<200> *this,
-        const CollisionAabbTree *tree);
+                colgeom_visitor_inlined_t<200> *this,
+                const CollisionAabbTree *tree);
 void __thiscall colgeom_visitor_inlined_t<200>::visit(colgeom_visitor_inlined_t<200> *this, const cbrush_t *brush);
 void __thiscall colgeom_visitor_inlined_t<200>::update(
-        colgeom_visitor_inlined_t<200> *this,
-        const float *_mn,
-        const float *_mx,
-        int mask,
-        const float *expand_vec);
+                colgeom_visitor_inlined_t<200> *this,
+                const float *_mn,
+                const float *_mx,
+                int mask,
+                const float *expand_vec);
 colgeom_visitor_t *__thiscall colgeom_visitor_t::colgeom_visitor_t(colgeom_visitor_t *this);
 pmove_t *__thiscall pmove_t::pmove_t(pmove_t *this, const pmove_t *__that);
 colgeom_visitor_t *__thiscall colgeom_visitor_t::colgeom_visitor_t(
-        colgeom_visitor_t *this,
-        const colgeom_visitor_t *__that);
+                colgeom_visitor_t *this,
+                const colgeom_visitor_t *__that);

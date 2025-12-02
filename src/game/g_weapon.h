@@ -6,39 +6,39 @@ void __cdecl G_AntiLag_RestoreClientPos(AntilagClientStore *antilagStore);
 gentity_s *__cdecl Weapon_Melee(gentity_s *ent, weaponParms *wp, float range, float width, float height, int gametime);
 gentity_s *__cdecl Weapon_Melee_internal(gentity_s *ent, weaponParms *wp, float range, float width, float height);
 bool __cdecl Melee_Trace(
-        gentity_s *ent,
-        weaponParms *wp,
-        int damage,
-        float range,
-        float width,
-        float height,
-        trace_t *traceResult,
-        float *hitOrigin);
+                gentity_s *ent,
+                weaponParms *wp,
+                int damage,
+                float range,
+                float width,
+                float height,
+                trace_t *traceResult,
+                float *hitOrigin);
 gentity_s *__cdecl Weapon_Throw_Grenade(gentity_s *ent, int grenType, unsigned __int8 grenModel, weaponParms *wp);
 gentity_s *__cdecl Weapon_GrenadeLauncher_Fire(
-        gentity_s *ent,
-        int grenType,
-        unsigned __int8 grenModel,
-        weaponParms *wp);
+                gentity_s *ent,
+                int grenType,
+                unsigned __int8 grenModel,
+                weaponParms *wp);
 gentity_s * Weapon_RocketLauncher_Fire@<eax>(
-        float a1@<ebp>,
-        gentity_s *ent,
-        unsigned int weaponIndex,
-        float spread,
-        weaponParms *wp,
-        const float *gunVel,
-        gentity_s *target,
-        const float *targetOffset);
+                float a1@<ebp>,
+                gentity_s *ent,
+                unsigned int weaponIndex,
+                float spread,
+                weaponParms *wp,
+                const float *gunVel,
+                gentity_s *target,
+                const float *targetOffset);
 void __cdecl gunrandom(float *x, float *y);
 gentity_s *__cdecl Weapon_BombDrop_Fire(
-        gentity_s *ent,
-        unsigned int weaponIndex,
-        float spread,
-        weaponParms *wp,
-        const float *gunVel,
-        gentity_s *target,
-        const float *targetOffset);
-void  Weapon_Overheat_Update(__m128 amount@<xmm0>, gentity_s *ent);
+                gentity_s *ent,
+                unsigned int weaponIndex,
+                float spread,
+                weaponParms *wp,
+                const float *gunVel,
+                gentity_s *target,
+                const float *targetOffset);
+void    Weapon_Overheat_Update(__m128 amount@<xmm0>, gentity_s *ent);
 void __cdecl Weapon_Flamethrower_Update(gentity_s *ent, weaponParms *wp);
 void __cdecl Weapon_Flamethrower_Fire(gentity_s *ent, weaponParms *wp);
 void __cdecl Weapon_Napalm_Flame(gentity_s *ent, trace_t *trace, int count);
@@ -50,10 +50,10 @@ void __cdecl BreakDownWeapon(gentity_s *ent);
 void __cdecl G_UseOffHand(gentity_s *ent);
 void __cdecl FireWeaponMelee(gentity_s *ent, int gametime);
 int __cdecl G_GivePlayerWeapon(
-        playerState_s *pPS,
-        int iWeaponIndex,
-        unsigned __int8 altModelIndex,
-        renderOptions_s weaponOptions);
+                playerState_s *pPS,
+                int iWeaponIndex,
+                unsigned __int8 altModelIndex,
+                renderOptions_s weaponOptions);
 void __cdecl G_SetupWeaponDef();
 int __cdecl G_GetWeaponIndexForName(char *name);
 void __cdecl G_SelectWeaponIndex(int clientNum, int iWeaponIndex);

@@ -2,37 +2,37 @@
 
 void __cdecl UI_DrawCustomEmblem(int contextIndex, const rectDef_s *rect, const float *color);
 void __cdecl UI_DrawCustomEmblemInternal(
-        int contextIndex,
-        const rectDef_s *rect,
-        const float *color,
-        CompositeEmblemLayer *layers,
-        int layerCount,
-        bool withSpinner);
+                int contextIndex,
+                const rectDef_s *rect,
+                const float *color,
+                CompositeEmblemLayer *layers,
+                int layerCount,
+                bool withSpinner);
 void __cdecl UI_DrawEmblemSelector(
-        int localClientNum,
-        int contextIndex,
-        itemDef_s *item,
-        const rectDef_s *rect,
-        const float *color);
+                int localClientNum,
+                int contextIndex,
+                itemDef_s *item,
+                const rectDef_s *rect,
+                const float *color);
 void __cdecl UI_DrawPlayerEmblemServer(
-        int localClientNum,
-        int contextIndex,
-        itemDef_s *item,
-        const rectDef_s *rect,
-        const float *color);
+                int localClientNum,
+                int contextIndex,
+                itemDef_s *item,
+                const rectDef_s *rect,
+                const float *color);
 void __cdecl UI_DrawPlayerEmblem(
-        int localClientNum,
-        int contextIndex,
-        itemDef_s *item,
-        const rectDef_s *rect,
-        const float *color);
+                int localClientNum,
+                int contextIndex,
+                itemDef_s *item,
+                const rectDef_s *rect,
+                const float *color);
 void __cdecl UI_DrawPlayerEmblemByXuid(
-        int localClientNum,
-        int contextIndex,
-        itemDef_s *item,
-        const rectDef_s *rect,
-        const float *color,
-        unsigned __int64 xuid);
+                int localClientNum,
+                int contextIndex,
+                itemDef_s *item,
+                const rectDef_s *rect,
+                const float *color,
+                unsigned __int64 xuid);
 void __cdecl UI_DrawEmblemIconThumbnail(int contextIndex, const rectDef_s *rect, const float *color);
 void __cdecl UI_DrawEmblemColors(int contextIndex, const rectDef_s *rect);
 void __cdecl UI_EmblemUpdate(int localClientNum);

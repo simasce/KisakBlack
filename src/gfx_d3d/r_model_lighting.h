@@ -5,57 +5,57 @@ void __cdecl R_SetModelLightingCoords(unsigned __int16 handle, float *out);
 unsigned int __cdecl R_ModelLightingIndexFromHandle(unsigned __int16 handle);
 char __cdecl R_AllocStaticModelLighting(const GfxStaticModelDrawInst *smodelDrawInst, unsigned int smodelIndex);
 unsigned int __cdecl R_AllocModelLighting_DynEnts(
-        float *lightingOrigin,
-        unsigned int dynEntId,
-        bool useHeroLighting,
-        unsigned __int16 *cachedLightingHandle,
-        GfxLightingInfo *lightingInfoOut);
+                float *lightingOrigin,
+                unsigned int dynEntId,
+                bool useHeroLighting,
+                unsigned __int16 *cachedLightingHandle,
+                GfxLightingInfo *lightingInfoOut);
 unsigned int __cdecl R_AllocModelLighting(
-        float *lightingOrigin,
-        float lightingOriginToleranceSq,
-        bool useHeroLighting,
-        unsigned __int16 *cachedLightingHandle,
-        unsigned int (__cdecl *GetPrimaryLightCallback)(const void *),
-        const void *userData,
-        GfxLightingInfo *lightingInfoOut);
+                float *lightingOrigin,
+                float lightingOriginToleranceSq,
+                bool useHeroLighting,
+                unsigned __int16 *cachedLightingHandle,
+                unsigned int (__cdecl *GetPrimaryLightCallback)(const void *),
+                const void *userData,
+                GfxLightingInfo *lightingInfoOut);
 unsigned int __cdecl R_DynEntPrimaryLightCallback(unsigned int *userData);
 unsigned int __cdecl R_AllocModelLighting_PrimaryLight(
-        float *lightingOrigin,
-        unsigned int primaryLightIndex,
-        bool useHeroLighting,
-        unsigned __int16 *cachedLightingHandle,
-        GfxLightingInfo *lightingInfoOut);
+                float *lightingOrigin,
+                unsigned int primaryLightIndex,
+                bool useHeroLighting,
+                unsigned __int16 *cachedLightingHandle,
+                GfxLightingInfo *lightingInfoOut);
 unsigned int __cdecl R_PassbackPrimaryLightCallback(const void *userData);
 unsigned int __cdecl R_AllocModelLighting_Box(
-        const GfxViewInfo *viewInfo,
-        float *lightingOrigin,
-        float originToleranceSq,
-        const float *boxMins,
-        const float *boxMaxs,
-        bool useHeroLighting,
-        unsigned __int16 *cachedLightingHandle,
-        GfxLightingInfo *lightingInfoOut);
+                const GfxViewInfo *viewInfo,
+                float *lightingOrigin,
+                float originToleranceSq,
+                const float *boxMins,
+                const float *boxMaxs,
+                bool useHeroLighting,
+                unsigned __int16 *cachedLightingHandle,
+                GfxLightingInfo *lightingInfoOut);
 unsigned int __cdecl R_GetPrimaryLightForBoxCallback(const void *userData);
 unsigned int __cdecl R_AllocModelLighting_Sphere(
-        const GfxViewInfo *viewInfo,
-        float *lightingOrigin,
-        float originToleranceSq,
-        const float *origin,
-        float radius,
-        bool useHeroLighting,
-        unsigned __int16 *cachedLightingHandle,
-        GfxLightingInfo *lightingInfoOut);
+                const GfxViewInfo *viewInfo,
+                float *lightingOrigin,
+                float originToleranceSq,
+                const float *origin,
+                float radius,
+                bool useHeroLighting,
+                unsigned __int16 *cachedLightingHandle,
+                GfxLightingInfo *lightingInfoOut);
 unsigned int __cdecl R_GetPrimaryLightForSphereCallback(const void *userData);
 void __cdecl R_ToggleModelLightingFrame();
 void __cdecl R_CalcModelLightingCmd(CalcLightingCmd *data);
 void __cdecl R_CalcModelLighting(
-        unsigned int entryIndex,
-        const float *lightingOrigin,
-        unsigned int nonSunPrimaryLightIndex,
-        GfxModelLightExtrapolation extrapolateBehavior,
-        bool useHeroLighting,
-        unsigned __int8 *primaryLightIndex1,
-        unsigned __int8 *primaryLightIndex2);
+                unsigned int entryIndex,
+                const float *lightingOrigin,
+                unsigned int nonSunPrimaryLightIndex,
+                GfxModelLightExtrapolation extrapolateBehavior,
+                bool useHeroLighting,
+                unsigned __int8 *primaryLightIndex1,
+                unsigned __int8 *primaryLightIndex2);
 void __cdecl R_BeginAllStaticModelLighting();
 void __cdecl R_SetAllStaticModelLighting();
 void __cdecl R_SetStaticModelLighting(unsigned int smodelIndex);

@@ -27,20 +27,20 @@ int __cdecl BG_GetWeaponIndexForName(char *name);
 int __cdecl BG_GetWeaponTableItemIndex(int weaponIndex);
 char __cdecl BG_LoadWeaponTable(const char *weaponNamePostfix, void (__cdecl *regWeap)(unsigned int));
 char __cdecl BG_LoadWeaponTableBaseAndVariants(
-        int weaponTableItemIndex,
-        const char *weaponNamePostfix,
-        void (__cdecl *regWeap)(unsigned int));
+                int weaponTableItemIndex,
+                const char *weaponNamePostfix,
+                void (__cdecl *regWeap)(unsigned int));
 char __cdecl BG_WeaponVariantPrecache_r(
-        int weaponTableItemIndex,
-        int baseWeaponIndex,
-        void (__cdecl *regWeap)(unsigned int),
-        const char *namePrefix,
-        const char *namePostfix,
-        eAttachmentPoint point,
-        int index,
-        bool alreadyRegistered);
+                int weaponTableItemIndex,
+                int baseWeaponIndex,
+                void (__cdecl *regWeap)(unsigned int),
+                const char *namePrefix,
+                const char *namePostfix,
+                eAttachmentPoint point,
+                int index,
+                bool alreadyRegistered);
 void __cdecl BG_WeaponVariantPrecache(
-        int baseWeaponIndex,
-        void (__cdecl *regWeap)(unsigned int),
-        const char *namePrefix,
-        const char *namePostfix);
+                int baseWeaponIndex,
+                void (__cdecl *regWeap)(unsigned int),
+                const char *namePrefix,
+                const char *namePostfix);

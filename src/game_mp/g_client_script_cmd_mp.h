@@ -46,8 +46,8 @@ void __cdecl PlayerCmd_CameraSetLookAt(scr_entref_t entref);
 void __cdecl PlayerCmd_Revive(scr_entref_t entref);
 pmove_t *__thiscall pmove_t::pmove_t(pmove_t *this, const pmove_t *__that);
 colgeom_visitor_t *__thiscall colgeom_visitor_t::colgeom_visitor_t(
-        colgeom_visitor_t *this,
-        const colgeom_visitor_t *__that);
+                colgeom_visitor_t *this,
+                const colgeom_visitor_t *__that);
 void __cdecl PlayerCmd_useButtonPressed(scr_entref_t entref);
 void __cdecl PlayerCmd_ChangeSeatButtonPressed(scr_entref_t entref);
 void __cdecl PlayerCmd_attackButtonPressed(scr_entref_t entref);

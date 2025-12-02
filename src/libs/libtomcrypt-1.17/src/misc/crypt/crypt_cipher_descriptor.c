@@ -11,8 +11,8 @@
 #include "tomcrypt.h"
 
 /**
-  @file crypt_cipher_descriptor.c
-  Stores the cipher descriptor table, Tom St Denis
+    @file crypt_cipher_descriptor.c
+    Stores the cipher descriptor table, Tom St Denis
 */
 
 struct ltc_cipher_descriptor cipher_descriptor[TAB_SIZE] = {

@@ -21,13 +21,13 @@ double __cdecl CG_GetViewFov(int localClientNum);
 bool __cdecl CG_ShouldDefaultViewFov(int localClientNum);
 void __cdecl CG_CalcFov(int localClientNum, float fov_x);
 void __cdecl CG_CalculateGunnerOffset_Sway(
-        const float *playerViewAngles,
-        unsigned int weapon,
-        float *swayViewAngles,
-        float *swayOffset,
-        float *swayAngles,
-        float ssSwayScale,
-        int frametime);
+                const float *playerViewAngles,
+                unsigned int weapon,
+                float *swayViewAngles,
+                float *swayOffset,
+                float *swayAngles,
+                float ssSwayScale,
+                int frametime);
 void __cdecl CG_OffsetVehicleGunner(int localClientNum, cg_s *cgameGlob);
 void __cdecl CG_OffsetVehicleAnimCam(int localClientNum);
 void __cdecl CG_GetExtraCamOrigin(int localClientNum, float *out);
@@ -37,27 +37,27 @@ void __cdecl CG_GetMissileViewOrigin(int localClientNum, float *out);
 void __cdecl CG_CalcMissileAngleValues(int localClientNum);
 void __cdecl CG_CalcVehicleViewValues(int localClientNum);
 void __cdecl CG_Calc3rdPersonSpringDamp(
-        float *currPos,
-        float *trgPos,
-        float *prevTrgPos,
-        float deltaTime,
-        float springConst,
-        float dampConst,
-        float springLen,
-        float *newPos);
+                float *currPos,
+                float *trgPos,
+                float *prevTrgPos,
+                float deltaTime,
+                float springConst,
+                float dampConst,
+                float springLen,
+                float *newPos);
 double __cdecl GetPitchOffsetRelativeToADirection(float *angles, float *direction);
 void __cdecl CG_Calc3rdPersonVehicleViewValues(int localClientNum);
 double __cdecl Vec3Distance(const float *v1, const float *v2);
 void __cdecl RotatePoint(const float *v, const float *q, float *out);
 void __cdecl CG_OffsetVehicleView(int localClientNum, CameraMode camMode);
 double __cdecl ThirdPersonViewTrace(
-        cg_s *cgameGlob,
-        const float *start,
-        const float *end,
-        int contentMask,
-        float *result,
-        bool pitch_up,
-        bool ignoreStartSolid);
+                cg_s *cgameGlob,
+                const float *start,
+                const float *end,
+                int contentMask,
+                float *result,
+                bool pitch_up,
+                bool ignoreStartSolid);
 void __cdecl Vec3NormalizeFast(float *v);
 void __cdecl ThirdPerson_TraceCalcEndpos(const float *start, const float *end, float fraction, float *endpos);
 void __cdecl MovieCameraViewTrace(int localClientNum, int contentMask);
@@ -75,7 +75,7 @@ bool __cdecl CG_ExtraCamIsActive(int localClientNum);
 clientActive_t *__cdecl CL_GetLocalClientGlobals(int localClientNum);
 int __cdecl CL_GetLocalClientConnectionState(int localClientNum);
 ExtraCamClientStateRestore *__thiscall ExtraCamClientStateRestore::ExtraCamClientStateRestore(
-        ExtraCamClientStateRestore *this,
-        int localClientNum);
+                ExtraCamClientStateRestore *this,
+                int localClientNum);
 void __thiscall ExtraCamClientStateRestore::~ExtraCamClientStateRestore(ExtraCamClientStateRestore *this);
 void __cdecl RotatePoint(float *point, const float (*mat)[3]);

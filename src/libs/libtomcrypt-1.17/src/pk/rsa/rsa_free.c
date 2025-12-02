@@ -11,20 +11,20 @@
 #include "tomcrypt.h"
 
 /**
-  @file rsa_free.c
-  Free an RSA key, Tom St Denis
-*/  
+    @file rsa_free.c
+    Free an RSA key, Tom St Denis
+*/    
 
 #ifdef LTC_MRSA
 
 /**
-  Free an RSA key from memory
-  @param key   The RSA key to free
+    Free an RSA key from memory
+    @param key     The RSA key to free
 */
 void rsa_free(rsa_key *key)
 {
-   LTC_ARGCHKVD(key != NULL);
-   mp_clear_multi(key->e, key->d, key->N, key->dQ, key->dP, key->qP, key->p, key->q, NULL);
+     LTC_ARGCHKVD(key != NULL);
+     mp_clear_multi(key->e, key->d, key->N, key->dQ, key->dP, key->qP, key->p, key->q, NULL);
 }
 
 #endif

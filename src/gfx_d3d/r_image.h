@@ -9,46 +9,46 @@ void __cdecl Image_Release(GfxImage *image);
 GfxImage *__cdecl Image_AllocProg(int imageProgType, unsigned __int8 category, unsigned __int8 semantic);
 unsigned int __cdecl Image_GetAvailableHashLocation(const char *name);
 GfxImage *__cdecl Image_Alloc(
-        char *name,
-        unsigned __int8 category,
-        unsigned __int8 semantic,
-        unsigned __int8 imageTrack);
+                char *name,
+                unsigned __int8 category,
+                unsigned __int8 semantic,
+                unsigned __int8 imageTrack);
 void __cdecl Image_Construct(
-        char *name,
-        int nameSize,
-        unsigned __int8 category,
-        unsigned __int8 semantic,
-        unsigned __int8 imageTrack,
-        GfxImage *image);
+                char *name,
+                int nameSize,
+                unsigned __int8 category,
+                unsigned __int8 semantic,
+                unsigned __int8 imageTrack,
+                GfxImage *image);
 void __cdecl R_ShutdownImages();
 bool __cdecl Image_IsProg(GfxImage *image);
 void __cdecl Image_Free(GfxImage *image);
 void __cdecl Image_Create2DTexture_PC(
-        GfxImage *image,
-        unsigned __int16 width,
-        unsigned __int16 height,
-        unsigned int mipmapCount,
-        int imageFlags,
-        _D3DFORMAT imageFormat);
+                GfxImage *image,
+                unsigned __int16 width,
+                unsigned __int16 height,
+                unsigned int mipmapCount,
+                int imageFlags,
+                _D3DFORMAT imageFormat);
 unsigned int __cdecl Image_GetUsage(int imageFlags, _D3DFORMAT imageFormat);
 void __cdecl Image_Create3DTexture_PC(
-        GfxImage *image,
-        unsigned __int16 width,
-        unsigned __int16 height,
-        unsigned __int16 depth,
-        unsigned int mipmapCount,
-        int imageFlags,
-        _D3DFORMAT imageFormat);
+                GfxImage *image,
+                unsigned __int16 width,
+                unsigned __int16 height,
+                unsigned __int16 depth,
+                unsigned int mipmapCount,
+                int imageFlags,
+                _D3DFORMAT imageFormat);
 void __cdecl Image_CreateCubeTexture_PC(
-        GfxImage *image,
-        unsigned __int16 edgeLen,
-        unsigned int mipmapCount,
-        _D3DFORMAT imageFormat);
+                GfxImage *image,
+                unsigned __int16 edgeLen,
+                unsigned int mipmapCount,
+                _D3DFORMAT imageFormat);
 void __cdecl Image_SetupRenderTarget(
-        GfxImage *image,
-        unsigned __int16 width,
-        unsigned __int16 height,
-        _D3DFORMAT imageFormat);
+                GfxImage *image,
+                unsigned __int16 width,
+                unsigned __int16 height,
+                _D3DFORMAT imageFormat);
 void __cdecl Image_PicmipForSemantic(unsigned __int8 semantic, Picmip *picmip);
 void __cdecl R_DelayLoadImage(XAssetHeader header);
 char __cdecl Image_AssignDefaultTexture(GfxImage *image);
@@ -77,8 +77,8 @@ void __cdecl R_ImageList_Output();
 bool __cdecl imagecompare(GfxImage *image1, GfxImage *image2);
 _D3DFORMAT __cdecl R_ImagePixelFormat(GfxImage *image);
 void __cdecl R_DownsampleMipMapBilinear(
-        const unsigned __int8 *src,
-        int srcWidth,
-        int srcHeight,
-        int texelPitch,
-        unsigned __int8 *dst);
+                const unsigned __int8 *src,
+                int srcWidth,
+                int srcHeight,
+                int texelPitch,
+                unsigned __int8 *dst);

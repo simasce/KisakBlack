@@ -22,10 +22,10 @@ int __cdecl GetTargetIDFromFeederIndex(int feederIndex);
 GVEvent *__cdecl GetEventByDvarIndex(const char *dvarName);
 unsigned __int8 __cdecl GetValidTargetMask(unsigned __int8 targetMask);
 GVConditional *__cdecl GetConditionalForDvarIndex(
-        GVConditional *result,
-        const char *lhsDvarIndexName,
-        const char *opDvarIndexName,
-        const char *rhsDvarIndexName);
+                GVConditional *result,
+                const char *lhsDvarIndexName,
+                const char *opDvarIndexName,
+                const char *rhsDvarIndexName);
 unsigned int __cdecl GetCondLhsIndexForFeederIndex(int feederIndex);
 unsigned __int8 __cdecl GetValidCondMask(unsigned __int8 condMask);
 void __cdecl UI_GV_SetRuleParameterFromDisplayDvars(GVRule *rule);
@@ -96,9 +96,9 @@ void __cdecl Scr_GameVariants_AddPerkString(char *paramValue);
 void __cdecl Scr_GameVariants_GetRule();
 GVGlob *__thiscall GVGlob::GVGlob(GVGlob *this);
 GVAction *__thiscall GVAction::GVAction(
-        GVAction *this,
-        char *name,
-        char *scriptName,
-        unsigned __int8 parameterType,
-        GVValue *parameters,
-        int parametersSize);
+                GVAction *this,
+                char *name,
+                char *scriptName,
+                unsigned __int8 parameterType,
+                GVValue *parameters,
+                int parametersSize);

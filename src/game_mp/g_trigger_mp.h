@@ -20,12 +20,12 @@ void __cdecl Activate_trigger_damage(gentity_s *pEnt, gentity_s *pOther, int iDa
 void __cdecl Use_trigger_damage(gentity_s *pEnt, gentity_s *pOther);
 void __cdecl Pain_trigger_damage(gentity_s *pSelf, gentity_s *pAttacker, int iDamage, const float *vPoint, int iMod);
 void __cdecl Flame_trigger_damage(
-        gentity_s *pSelf,
-        gentity_s *pAttacker,
-        int iDamage,
-        float *vPoint,
-        int iMod,
-        float *vDir);
+                gentity_s *pSelf,
+                gentity_s *pAttacker,
+                int iDamage,
+                float *vPoint,
+                int iMod,
+                float *vDir);
 void __cdecl Die_trigger_damage(gentity_s *pSelf, gentity_s *pInflictor, gentity_s *pAttacker, int iDamage, int iMod);
 void __cdecl SP_trigger_damage(gentity_s *pSelf, SpawnVar *spawnVar);
 void __cdecl G_CheckHitTriggerDamage(gentity_s *pActivator, float *vStart, float *vEnd, int iDamage, unsigned int iMOD);

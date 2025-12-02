@@ -2,6 +2,6 @@
 
 int __cdecl Content_GetAvailableContentPacks()
 {
-  return 2;
+    return 2;
 }
 

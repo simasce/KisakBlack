@@ -3,43 +3,43 @@
 #define MAX_11BIT_FLT 0.99951172f // not a real name
 
 struct cplane_s // sizeof=0x14
-{                                       // XREF: cplane_t/r
-                                        // CM_TraceThroughBrush/r ...
-    float normal[3];                    // XREF: CM_TraceThroughBrush+629/w
-                                        // CM_TraceThroughBrush+636/w ...
-    float dist;
-    unsigned __int8 type;
-    unsigned __int8 signbits;
-    unsigned __int8 pad[2];
+{                                                                             // XREF: cplane_t/r
+                                                                                // CM_TraceThroughBrush/r ...
+        float normal[3];                                        // XREF: CM_TraceThroughBrush+629/w
+                                                                                // CM_TraceThroughBrush+636/w ...
+        float dist;
+        unsigned __int8 type;
+        unsigned __int8 signbits;
+        unsigned __int8 pad[2];
 };
 
 
 struct float44 // sizeof=0x40
-{                                       // XREF: GfxLight/r GfxLight/r
-    //$ED5082F4EF9C51C3CAAE283CF5E38ECF ___u0;
-    union// $ED5082F4EF9C51C3CAAE283CF5E38ECF // sizeof=0x40
-    {                                       // XREF: float44/r
-        float m[4][4];
-        float member[16];
-    };
+{                                                                             // XREF: GfxLight/r GfxLight/r
+        //$ED5082F4EF9C51C3CAAE283CF5E38ECF ___u0;
+        union// $ED5082F4EF9C51C3CAAE283CF5E38ECF // sizeof=0x40
+        {                                                                             // XREF: float44/r
+                float m[4][4];
+                float member[16];
+        };
 };
 
 union PackedUnitVec // sizeof=0x4
-{                                       // XREF: FX_GenSpriteVerts+8BE/w
-                                        // FX_GenSpriteVerts+986/w ...
-    unsigned int packed;
-    unsigned __int8 array[4];
+{                                                                             // XREF: FX_GenSpriteVerts+8BE/w
+                                                                                // FX_GenSpriteVerts+986/w ...
+        unsigned int packed;
+        unsigned __int8 array[4];
 };
 
 union float4 {
-    float v[4];
-    unsigned int u[4];
-    PackedUnitVec unitVec[4];
+        float v[4];
+        unsigned int u[4];
+        PackedUnitVec unitVec[4];
 };
 
 struct hybrid_vector // sizeof=0x10
-{                                       // XREF: colgeom_visitor_t/r
-    float4 vec;                         // XREF: AimTarget_IsTargetVisible+1B/w
+{                                                                             // XREF: colgeom_visitor_t/r
+        float4 vec;                                                 // XREF: AimTarget_IsTargetVisible+1B/w
 };
 
 // TODO change if we ever actually use classes
@@ -110,12 +110,12 @@ double __cdecl RotationToYaw(const float *rot);
 void __cdecl MatrixRotationZ(float (*mat)[3], float degree);
 void __cdecl FinitePerspectiveMatrix(float tanHalfFovX, float tanHalfFovY, float zNear, float zFar, float (*mtx)[4]);
 
-void  SpotLightViewMatrix(const float *direction, float rotation, float (*mtx)[4]);
-void  SpotLightViewMatrixDir3(
-        const float *dirx,
-        const float *diry,
-        const float *dirz,
-        float (*mtx)[4]);
+void    SpotLightViewMatrix(const float *direction, float rotation, float (*mtx)[4]);
+void    SpotLightViewMatrixDir3(
+                const float *dirx,
+                const float *diry,
+                const float *dirz,
+                float (*mtx)[4]);
 void __cdecl SpotLightProjectionMatrix(float cosFov, float zNear, float zFar, float (*mtx)[4]);
 void __cdecl InfinitePerspectiveMatrix(float (*mtx)[4], float tanHalfFovX, float tanHalfFovY, float zNear);
 
@@ -140,10 +140,10 @@ bool __cdecl BoundsOverlap(const float *mins0, const float *maxs0, const float *
 void __cdecl ExpandBounds(const float *addedmins, const float *addedmaxs, float *mins, float *maxs);
 void __cdecl ExpandBounds2D(const float *addedmins, const float *addedmaxs, float *mins, float *maxs);
 void __cdecl GetRotatedBounds(
-        const float (*baseBounds)[3],
-        const float *origin,
-        const float (*axis)[3],
-        float (*rotatedBounds)[3]);
+                const float (*baseBounds)[3],
+                const float *origin,
+                const float (*axis)[3],
+                float (*rotatedBounds)[3]);
 void __cdecl AxisClear(float (*axis)[3]);
 void __cdecl AxisTranspose(const float (*in)[3], float (*out)[3]);
 void __cdecl AxisTransformVec3(const float (*axes)[3], const float *vec, float *out);
@@ -153,27 +153,27 @@ void __cdecl Axis4ToAngles(const float (*axis)[4], float *angles);
 int __cdecl IntersectPlanes(const float **plane, float *xyz);
 void __cdecl SnapPointToIntersectingPlanes(const float **planes, float *xyz, float snapGrid, float snapEpsilon);
 int __cdecl ProjectedWindingContainsCoplanarPoint(
-        const float (*verts)[3],
-        int vertCount,
-        int x,
-        int y,
-        const float *point);
+                const float (*verts)[3],
+                int vertCount,
+                int x,
+                int y,
+                const float *point);
 int __cdecl PlaneFromPoints(float *plane, const float *v0, const float *v1, const float *v2);
 void __cdecl ProjectPointOnPlane(const float *p, const float *normal, float *dst);
 void __cdecl SetPlaneSignbits(cplane_s *out);
 int __cdecl BoxOnPlaneSide(
-    const float *emins,
-    const float *emaxs,
-    const cplane_s *p,
-    const cplane_s *pa);
+        const float *emins,
+        const float *emaxs,
+        const cplane_s *p,
+        const cplane_s *pa);
 int __cdecl IsPosInsideArc(
-        const float *pos,
-        float posRadius,
-        const float *arcOrigin,
-        float arcRadius,
-        float arcAngle0,
-        float arcAngle1,
-        float arcHalfHeight);
+                const float *pos,
+                float posRadius,
+                const float *arcOrigin,
+                float arcRadius,
+                float arcAngle0,
+                float arcAngle1,
+                float arcHalfHeight);
 bool __cdecl BoxDistSqrdExceeds(const float *absmin, const float *absmax, const float *org, float fogOpaqueDistSqrd);
 double __cdecl Q_rint(float in);
 double __cdecl ColorNormalize(float *in, float *out);
@@ -186,25 +186,25 @@ int __cdecl irand(int min, int max);
 void __cdecl AxisToQuat(const float (*mat)[3], float *out);
 void __cdecl QuatLerp(const float *qa, const float *qb, float frac, float *out);
 bool __cdecl CullBoxFromCone(
-        const float *coneOrg,
-        const float *coneDir,
-        float cosHalfFov,
-        const float *boxCenter,
-        const float *boxHalfSize);
+                const float *coneOrg,
+                const float *coneDir,
+                float cosHalfFov,
+                const float *boxCenter,
+                const float *boxHalfSize);
 bool __cdecl CullBoxFromSphere(const float *sphereOrg, float radius, const float *boxCenter, const float *boxHalfSize);
 bool __cdecl CullBoxFromConicSectionOfSphere(
-        const float *coneOrg,
-        const float *coneDir,
-        float cosHalfFov,
-        float radius,
-        const float *boxCenter,
-        const float *boxHalfSize);
+                const float *coneOrg,
+                const float *coneDir,
+                float cosHalfFov,
+                float radius,
+                const float *boxCenter,
+                const float *boxHalfSize);
 bool __cdecl CullSphereFromCone(
-        const float *coneOrg,
-        const float *coneDir,
-        float cosHalfFov,
-        const float *sphereCenter,
-        float radius);
+                const float *coneOrg,
+                const float *coneDir,
+                float cosHalfFov,
+                const float *sphereCenter,
+                float radius);
 void __cdecl colorTempMatrix(float (*finalMatrix)[4], float colorTemp);
 void __cdecl colorTempToXYZ(float colorTemp, float *XYZ);
 void __cdecl colorHueMatrix(float (*finalMatrix)[4], float hue);
@@ -220,7 +220,7 @@ float __cdecl Vec2Normalize(float *v);
 
 float AngleNormalize180(float angle);
 
-float  __cdecl Abs(const float *v);
+float    __cdecl Abs(const float *v);
 
 
 constexpr float vec2_origin[2] = { 0.0, 0.0 };

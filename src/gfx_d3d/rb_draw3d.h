@@ -3,10 +3,10 @@
 const float (*__cdecl R_GetCloudArea())[4];
 void __cdecl R_CalcGameTimeVec(float gameTime, float *out);
 void __cdecl R_ShowTris(GfxCmdBufContext context, const GfxDrawSurfListInfo *info);
-void  R_DrawEmissive(int a1@<ebp>, const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf);
+void    R_DrawEmissive(int a1@<ebp>, const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf);
 void __cdecl R_DrawEmissiveCallback(char *userData, GfxCmdBufContext context);
 void __cdecl R_HW_DisableScissor(IDirect3DDevice9 *device);
-void  R_DrawReflected(int a1@<ebp>, const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf);
+void    R_DrawReflected(int a1@<ebp>, const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf);
 void __cdecl R_DrawReflectedCallback(char *userData, GfxCmdBufContext context);
 void __cdecl R_InitLocalCmdBufState(GfxCmdBufState *state);
 bool __cdecl RB_ShouldDrawCoronas();
@@ -18,19 +18,19 @@ void __cdecl R_ClearForFrameBuffer(IDirect3DDevice9 *device, const GfxViewport *
 void __cdecl R_DrawFullbright(const GfxViewInfo *viewInfo, GfxCmdBufInput *input, GfxCmdBuf *cmdBuf);
 void __cdecl R_DrawFullbrightLitCallback(char *data, GfxCmdBufContext context);
 void __cdecl R_HW_EnableScissor(
-        IDirect3DDevice9 *device,
-        unsigned int x,
-        unsigned int y,
-        unsigned int w,
-        unsigned int h);
+                IDirect3DDevice9 *device,
+                unsigned int x,
+                unsigned int y,
+                unsigned int w,
+                unsigned int h);
 void __cdecl R_DrawFullbrightDecalCallback(char *data, GfxCmdBufContext context);
 void __cdecl R_DrawFullbrightEmissiveCallback(char *data, GfxCmdBufContext context);
-void  R_DrawFullbrightOrDebugShader(
-        int a1@<ebp>,
-        void (__cdecl *callback)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *),
-        const GfxViewInfo *viewInfo,
-        const GfxDrawSurfListInfo *info,
-        GfxCmdBuf *cmdBuf);
+void    R_DrawFullbrightOrDebugShader(
+                int a1@<ebp>,
+                void (__cdecl *callback)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *),
+                const GfxViewInfo *viewInfo,
+                const GfxDrawSurfListInfo *info,
+                GfxCmdBuf *cmdBuf);
 void __cdecl RB_DebugShaderDrawCommands(const GfxViewInfo *viewInfo);
 void __cdecl R_DrawDebugShader(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf);
 void __cdecl R_DrawDebugShaderLitCallback(char *data, GfxCmdBufContext context);
@@ -38,7 +38,7 @@ void __cdecl R_DrawDebugShaderDecalCallback(char *data, GfxCmdBufContext context
 void __cdecl R_DrawDebugShaderEmissiveCallback(char *data, GfxCmdBufContext context);
 void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo);
 void RB_SetFrameBufferAlpha();
-void  R_DrawLights(int a1@<ebp>, const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf);
+void    R_DrawLights(int a1@<ebp>, const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf);
 void __cdecl R_DrawPointLitSurfs(GfxCmdBufSourceState *source, const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf);
 void __cdecl R_DrawPointLitSurfsCallback(GfxMeshData **userData, GfxCmdBufContext context);
 void __cdecl R_ResolveDistortion(const GfxViewInfo *viewInfo);

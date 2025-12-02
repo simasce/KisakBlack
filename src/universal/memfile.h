@@ -1,18 +1,18 @@
 #pragma once
 
 void __cdecl MemFile_CommonInit(
-        MemoryFile *memFile,
-        int size,
-        unsigned __int8 *buffer,
-        bool errorOnOverflow,
-        bool compress_enabled);
+                MemoryFile *memFile,
+                int size,
+                unsigned __int8 *buffer,
+                bool errorOnOverflow,
+                bool compress_enabled);
 void __cdecl MemFile_InitForReading(MemoryFile *memFile, int size, unsigned __int8 *buffer, bool compress_enabled);
 void __cdecl MemFile_InitForWriting(
-        MemoryFile *memFile,
-        int size,
-        unsigned __int8 *buffer,
-        bool errorOnOverflow,
-        bool compress_enabled);
+                MemoryFile *memFile,
+                int size,
+                unsigned __int8 *buffer,
+                bool errorOnOverflow,
+                bool compress_enabled);
 void __cdecl MemFile_StartSegment(MemoryFile *memFile, int index);
 void __cdecl MemFile_EndSegment(MemoryFile *memFile);
 void __cdecl MemFile_MoveToSegment(MemoryFile *memFile, int index);

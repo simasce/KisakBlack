@@ -55,28 +55,28 @@ int __cdecl FS_WriteFile(char *filename, char *buffer, unsigned int size);
 int __cdecl FS_GetFileOsPath(const char *filename, char *ospath);
 int __cdecl FS_OpenFileOverwrite(const char *qpath);
 const char **__cdecl FS_ListFilteredFiles(
-        searchpath_s *searchPath,
-        const char *path,
-        char *extension,
-        char *filter,
-        FsListBehavior_e behavior,
-        int *numfiles);
+                searchpath_s *searchPath,
+                const char *path,
+                char *extension,
+                char *filter,
+                FsListBehavior_e behavior,
+                int *numfiles);
 int __cdecl FS_ReturnPath(const char *zname, char *zpath, int *depth);
 int __cdecl FS_AddFileToList(HunkUser *user, const char *name, const char **list, int nfiles);
 const char **__cdecl FS_ListFiles(const char *path, char *extension, FsListBehavior_e behavior, int *numfiles);
 const char **__cdecl FS_ListFilesInLocation(
-        const char *path,
-        char *extension,
-        FsListBehavior_e behavior,
-        int *numfiles,
-        int lookInFlags);
+                const char *path,
+                char *extension,
+                FsListBehavior_e behavior,
+                int *numfiles,
+                int lookInFlags);
 const char **__cdecl FS_ListFilteredFilesInLocation(
-        const char *path,
-        char *extension,
-        char *filter,
-        FsListBehavior_e behavior,
-        int *numfiles,
-        int lookInFlags);
+                const char *path,
+                char *extension,
+                char *filter,
+                FsListBehavior_e behavior,
+                int *numfiles,
+                int lookInFlags);
 bool __cdecl FS_CheckLocation(const char *path, int lookInFlags);
 void __cdecl FS_FreeFileList(const char **list);
 int __cdecl FS_GetFileList(const char *path, char *extension, FsListBehavior_e behavior, char *listbuf, int bufsize);

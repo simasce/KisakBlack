@@ -3,103 +3,103 @@
 #include <qcommon/bitarray.h>
 
 struct DObjAnimMat // sizeof=0x20
-{                                       // XREF: XAnimCalcAnimInfo/r
-    float quat[4];                      // XREF: CG_DoBaseOriginController+1D7/w
-    float trans[3];                     // XREF: FX_GenerateMarkVertsForMark_MatrixFromPlacement+10/w
-    float transWeight;                  // XREF: CG_DoBaseOriginController+23B/w
+{                                                                             // XREF: XAnimCalcAnimInfo/r
+        float quat[4];                                            // XREF: CG_DoBaseOriginController+1D7/w
+        float trans[3];                                         // XREF: FX_GenerateMarkVertsForMark_MatrixFromPlacement+10/w
+        float transWeight;                                    // XREF: CG_DoBaseOriginController+23B/w
 };
 
 struct DSkelPartBits // sizeof=0x3C
-{                                       // XREF: DSkel/r
-    //int anim[5];                        // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+A0/w
-    //int control[5];                     // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+A7/w
-    //int skel[5];                        // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+92/w
-    bitarray<160> anim;
-    bitarray<160> control;
-    bitarray<160> skel;
-                                        // DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+9C/r
+{                                                                             // XREF: DSkel/r
+        //int anim[5];                                                // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+A0/w
+        //int control[5];                                         // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+A7/w
+        //int skel[5];                                                // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+92/w
+        bitarray<160> anim;
+        bitarray<160> control;
+        bitarray<160> skel;
+                                                                                // DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+9C/r
 };
 
 union $E37E2D40D980A1CD669FE5FFE5D2594A // sizeof=0x4
-{                                       // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+64/w
-                                        // DSkel/r
-    DObjAnimMat *mat;
-    DObjAnimMat *localMat;
+{                                                                             // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+64/w
+                                                                                // DSkel/r
+        DObjAnimMat *mat;
+        DObjAnimMat *localMat;
 };
 
 struct DSkel // sizeof=0x44
-{                                       // XREF: DObj/r
-                                        // ?DObjCalcBaseSkel@@YAXPBUDObj@@PAUDObjAnimMat@@QAH@Z/r
-    DSkelPartBits partBits;             // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+92/w
-                                        // DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+9C/r ...
-    int timeStamp;                      // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+67/w
-    $E37E2D40D980A1CD669FE5FFE5D2594A ___u2;
-                                        // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+64/w
+{                                                                             // XREF: DObj/r
+                                                                                // ?DObjCalcBaseSkel@@YAXPBUDObj@@PAUDObjAnimMat@@QAH@Z/r
+        DSkelPartBits partBits;                         // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+92/w
+                                                                                // DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+9C/r ...
+        int timeStamp;                                            // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+67/w
+        $E37E2D40D980A1CD669FE5FFE5D2594A ___u2;
+                                                                                // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+64/w
 };
 
 struct DObj // sizeof=0x7C
 {
-    //$505CB099FB1B2F089675B7DC2E6E811F ___u0;
-    union //$505CB099FB1B2F089675B7DC2E6E811F // sizeof=0x4
-    {                                       // XREF: DObj/r
-        struct XAnimTree_s *localTree;
-        struct XAnimTree_s *tree;
-    };
-    unsigned __int16 duplicateParts;
-    unsigned __int16 entnum;
-    unsigned __int8 duplicatePartsSize;
-    unsigned __int8 numModels;
-    unsigned __int8 numBones;
-    // padding byte
-    unsigned int ignoreCollision;
-    volatile int locked;
-    DSkel skel;
-    float radius;
-    unsigned int hidePartBits[5];
-    char localClientIndex;
-    unsigned __int8 flags;
-    // padding byte
-    // padding byte
-    unsigned __int8 *ikState;
-    //$5CBEAE0A843BDDEAC35D3349B6AE42EB ___u14;
-    union //$5CBEAE0A843BDDEAC35D3349B6AE42EB // sizeof=0x4
-    {                                       // XREF: DObj/r
-        struct XModel **localModels;
-        struct XModel **models;
-    };
+        //$505CB099FB1B2F089675B7DC2E6E811F ___u0;
+        union //$505CB099FB1B2F089675B7DC2E6E811F // sizeof=0x4
+        {                                                                             // XREF: DObj/r
+                struct XAnimTree_s *localTree;
+                struct XAnimTree_s *tree;
+        };
+        unsigned __int16 duplicateParts;
+        unsigned __int16 entnum;
+        unsigned __int8 duplicatePartsSize;
+        unsigned __int8 numModels;
+        unsigned __int8 numBones;
+        // padding byte
+        unsigned int ignoreCollision;
+        volatile int locked;
+        DSkel skel;
+        float radius;
+        unsigned int hidePartBits[5];
+        char localClientIndex;
+        unsigned __int8 flags;
+        // padding byte
+        // padding byte
+        unsigned __int8 *ikState;
+        //$5CBEAE0A843BDDEAC35D3349B6AE42EB ___u14;
+        union //$5CBEAE0A843BDDEAC35D3349B6AE42EB // sizeof=0x4
+        {                                                                             // XREF: DObj/r
+                struct XModel **localModels;
+                struct XModel **models;
+        };
 };
 
 struct __declspec(align(2)) DObjModel_s // sizeof=0x8
-{                                       // XREF: DObjModel/r
-                                        // ?DObjArchive@@YAXPAUDObj@@@Z/r ...
-    XModel *model;                      // XREF: BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+287/w
-                                        // BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+294/r ...
-    unsigned __int16 boneName;          // XREF: BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+2CC/w
-                                        // BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+494/w ...
-    bool ignoreCollision;               // XREF: BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+2DA/w
-                                        // BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+4B8/w ...
-    // padding byte
+{                                                                             // XREF: DObjModel/r
+                                                                                // ?DObjArchive@@YAXPAUDObj@@@Z/r ...
+        XModel *model;                                            // XREF: BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+287/w
+                                                                                // BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+294/r ...
+        unsigned __int16 boneName;                    // XREF: BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+2CC/w
+                                                                                // BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+494/w ...
+        bool ignoreCollision;                             // XREF: BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+2DA/w
+                                                                                // BG_UpdatePlayerDObj(int,DObj *,entityState_s *,clientInfo_t *,int)+4B8/w ...
+        // padding byte
 };
 
 struct DObjTrace_s // sizeof=0x20
-{                                       // XREF: DObjTrace/r
-                                        // ?SV_TracePointToEntity@@YAXPBUpointtrace_t@@PAUsvEntity_s@@PAUtrace_t@@@Z/r ...
-    float fraction;                     // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+579/w
-                                        // CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+716/r ...
-    int sflags;                         // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7AA/r
-                                        // SV_TracePointToEntity(pointtrace_t const *,svEntity_s *,trace_t *)+64D/r
-    float normal[3];                    // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7E8/r
-                                        // CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7F7/r ...
-    unsigned __int16 modelIndex;        // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7B6/r
-                                        // SV_TracePointToEntity(pointtrace_t const *,svEntity_s *,trace_t *)+656/r
-    unsigned __int16 partName;          // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7C4/r
-                                        // SV_TracePointToEntity(pointtrace_t const *,svEntity_s *,trace_t *)+661/r
-    unsigned __int16 partGroup;         // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7D2/r
-                                        // SV_TracePointToEntity(pointtrace_t const *,svEntity_s *,trace_t *)+677/r
-    // padding byte
-    // padding byte
-    int localBoneIndex;                 // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7DD/r
-                                        // SV_TracePointToEntity(pointtrace_t const *,svEntity_s *,trace_t *)+66C/r
+{                                                                             // XREF: DObjTrace/r
+                                                                                // ?SV_TracePointToEntity@@YAXPBUpointtrace_t@@PAUsvEntity_s@@PAUtrace_t@@@Z/r ...
+        float fraction;                                         // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+579/w
+                                                                                // CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+716/r ...
+        int sflags;                                                 // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7AA/r
+                                                                                // SV_TracePointToEntity(pointtrace_t const *,svEntity_s *,trace_t *)+64D/r
+        float normal[3];                                        // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7E8/r
+                                                                                // CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7F7/r ...
+        unsigned __int16 modelIndex;                // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7B6/r
+                                                                                // SV_TracePointToEntity(pointtrace_t const *,svEntity_s *,trace_t *)+656/r
+        unsigned __int16 partName;                    // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7C4/r
+                                                                                // SV_TracePointToEntity(pointtrace_t const *,svEntity_s *,trace_t *)+661/r
+        unsigned __int16 partGroup;                 // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7D2/r
+                                                                                // SV_TracePointToEntity(pointtrace_t const *,svEntity_s *,trace_t *)+677/r
+        // padding byte
+        // padding byte
+        int localBoneIndex;                                 // XREF: CG_PointTraceToEntity(pointtrace_t const *,int,trace_t *)+7DD/r
+                                                                                // SV_TracePointToEntity(pointtrace_t const *,svEntity_s *,trace_t *)+66C/r
 };
 
 struct PhysGeomList;
@@ -115,30 +115,30 @@ void __cdecl DObjGetHierarchyBits(DObj *obj, int boneIndex, int *partBits);
 bool __cdecl DObjSkelIsBoneUpToDate(DObj *obj, int boneIndex);
 void __cdecl DObjSetTree(DObj *obj, XAnimTree_s *tree);
 void __cdecl DObjCreate(
-        DObjModel_s *dobjModels,
-        unsigned int numModels,
-        XAnimTree_s *tree,
-        unsigned __int8 *buf,
-        __int16 entnum);
+                DObjModel_s *dobjModels,
+                unsigned int numModels,
+                XAnimTree_s *tree,
+                unsigned __int8 *buf,
+                __int16 entnum);
 void __cdecl DObjCreateDuplicateParts(DObj *obj, DObjModel_s *dobjModels, unsigned int numModels);
 void __cdecl DObjDumpCreationInfo(DObjModel_s *dobjModels, unsigned int numModels);
 void __cdecl DObjComputeBounds(DObj *obj);
 void __cdecl DObjCreateExt(
-        DObjModel_s *dobjModels,
-        unsigned int numModels,
-        XAnimTree_s *tree,
-        unsigned __int8 *buf,
-        __int16 entnum,
-        bool isServer,
-        bool isLocalPlayer,
-        unsigned __int8 localClientIndex);
+                DObjModel_s *dobjModels,
+                unsigned int numModels,
+                XAnimTree_s *tree,
+                unsigned __int8 *buf,
+                __int16 entnum,
+                bool isServer,
+                bool isLocalPlayer,
+                unsigned __int8 localClientIndex);
 void __cdecl DObjFree(DObj *obj);
 void __cdecl DObjGetCreateParms(
-        const DObj *obj,
-        DObjModel_s *dobjModels,
-        unsigned __int16 *numModels,
-        XAnimTree_s **tree,
-        unsigned __int16 *entnum);
+                const DObj *obj,
+                DObjModel_s *dobjModels,
+                unsigned __int16 *numModels,
+                XAnimTree_s **tree,
+                unsigned __int16 *entnum);
 void __cdecl DObjCalcBounds(DObj *dobj, float *mins, float *maxs);
 void __cdecl DObjArchive(DObj *obj);
 void __cdecl DObjUnarchive(DObj *obj);

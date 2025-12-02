@@ -2,12 +2,12 @@
 
 cCurve *__thiscall cCurve::cCurve(cCurve *this);
 void __cdecl GetPositionOnCubic(
-        float *startPos,
-        float *startVel,
-        float *endPos,
-        float *endVel,
-        float time,
-        float *output);
+                float *startPos,
+                float *startVel,
+                float *endPos,
+                float *endVel,
+                float time,
+                float *output);
 void __cdecl GetPositionOnSpine(float *p1, float *p2, float *p3, float *p4, float time, float *output);
 void __thiscall cCurve::Reset(cCurve *this);
 void __thiscall cCurve::Reinit(cCurve *this);

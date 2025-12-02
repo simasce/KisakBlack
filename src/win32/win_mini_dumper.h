@@ -8,9 +8,9 @@ int __stdcall miniDumper::unhandledExceptionHandler(_EXCEPTION_POINTERS *pExcept
 void __thiscall miniDumper::setMiniDumpFileName(miniDumper *this);
 char __thiscall miniDumper::getImpersonationToken(miniDumper *this, void **phToken);
 bool __thiscall miniDumper::enablePrivilege(
-        miniDumper *this,
-        const char *pszPriv,
-        void *hToken,
-        _TOKEN_PRIVILEGES *ptpOld);
+                miniDumper *this,
+                const char *pszPriv,
+                void *hToken,
+                _TOKEN_PRIVILEGES *ptpOld);
 bool __thiscall miniDumper::restorePrivilege(miniDumper *this, void *hToken, _TOKEN_PRIVILEGES *ptpOld);
 int __thiscall miniDumper::writeMiniDump(miniDumper *this, _EXCEPTION_POINTERS *pExceptionInfo);

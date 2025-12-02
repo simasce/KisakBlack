@@ -11,19 +11,19 @@
 #include "tomcrypt.h"
 
 /** 
-  Source donated by Elliptic Semiconductor Inc (www.ellipticsemi.com) to the LibTom Projects
+    Source donated by Elliptic Semiconductor Inc (www.ellipticsemi.com) to the LibTom Projects
 */
 
 #ifdef LTC_XTS_MODE
 
 /** Terminate XTS state 
-   @param XTS    The state to terminate
+     @param XTS        The state to terminate
 */
 void xts_done(symmetric_xts *xts)
 {
-   LTC_ARGCHKVD(xts != NULL);
-   cipher_descriptor[xts->cipher].done(&xts->key1);
-   cipher_descriptor[xts->cipher].done(&xts->key2);
+     LTC_ARGCHKVD(xts != NULL);
+     cipher_descriptor[xts->cipher].done(&xts->key1);
+     cipher_descriptor[xts->cipher].done(&xts->key2);
 }
 
 #endif

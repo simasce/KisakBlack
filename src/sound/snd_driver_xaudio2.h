@@ -6,12 +6,12 @@ void __cdecl SD_TruncateAudioDeviceNames(Font_s *font, float scale, int size);
 void __cdecl SD_XAudio2Done();
 unsigned int __cdecl SDXA2_ChannelFixup(unsigned int outputChannels, unsigned int channel);
 IXAudio2SubmixVoice *__cdecl SD_CreateBus(
-        unsigned int inputChannelCount,
-        unsigned int outputChannelCount,
-        unsigned int sampleRate,
-        unsigned int stage,
-        SDXA2Effect *dsp,
-        IXAudio2Voice *outputVoice);
+                unsigned int inputChannelCount,
+                unsigned int outputChannelCount,
+                unsigned int sampleRate,
+                unsigned int stage,
+                SDXA2Effect *dsp,
+                IXAudio2Voice *outputVoice);
 void __cdecl SD_StopVoice(int voiceIndex);
 unsigned int __cdecl iSND_GetStreamChannel(unsigned int index);
 void __cdecl iSND_ReleaseStreamBuffer(unsigned int streamVoice, unsigned int bufferIndex);
@@ -23,15 +23,15 @@ char __cdecl SD_Init();
 void SDXA2_VoiceDspAssertUnused();
 bool __cdecl SD_XAudio2Init();
 HRESULT __cdecl XAudio2Create(
-        IXAudio2 **ppXAudio2,
-        unsigned int Flags,
-        XAUDIO2_WINDOWS_PROCESSOR_SPECIFIER XAudio2Processor);
+                IXAudio2 **ppXAudio2,
+                unsigned int Flags,
+                XAUDIO2_WINDOWS_PROCESSOR_SPECIFIER XAudio2Processor);
 char __cdecl SD_XAudio2EnumerateDevices();
 char __cdecl SD_XAudio2GetDeviceGUID(wchar_t *inGUID, _GUID *guid, char *outGUID, int size);
 char __cdecl SD_XAudio2CheckDevice(
-        IXAudio2 *pXAudio2,
-        const XAUDIO2_DEVICE_DETAILS *deviceDetails,
-        unsigned int deviceIndex);
+                IXAudio2 *pXAudio2,
+                const XAUDIO2_DEVICE_DETAILS *deviceDetails,
+                unsigned int deviceIndex);
 void SD_SwitchDevice();
 void SND_InitMasterVoice();
 void __thiscall SD_Shutdown(void *this);

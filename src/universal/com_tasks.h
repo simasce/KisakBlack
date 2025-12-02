@@ -18,18 +18,18 @@ void __cdecl TaskManager2_ProcessNestedTask(TaskRecord *task);
 void __cdecl TaskManager2_ProcessTasks(int localControllerIndex);
 void TaskManager2_CreateDeferredTasks();
 TaskRecord *__cdecl TaskManager2_CreateTaskFromServerThread(
-        const TaskDefinition *definition,
-        int controllerIndex,
-        TaskRecord *nestTask,
-        int timeout);
+                const TaskDefinition *definition,
+                int controllerIndex,
+                TaskRecord *nestTask,
+                int timeout);
 int __cdecl Task_Allocate(int bytes);
 int __cdecl ChunkAllocate(int index, int blocks);
 bool __cdecl TaskManager2_IsValidServerTask(const TaskDefinition *definition);
 TaskRecord *__cdecl TaskManager2_CreateTask(
-        const TaskDefinition *definition,
-        int controllerIndex,
-        TaskRecord *nestTask,
-        int timeout);
+                const TaskDefinition *definition,
+                int controllerIndex,
+                TaskRecord *nestTask,
+                int timeout);
 void __cdecl TaskManager2_StartTask(TaskRecord *task);
 char __cdecl TaskManger2_TaskGetInProgressForControllerByName(const char *taskName, int controllerIndex);
 TaskRecord *__cdecl TaskManager2_TaskGetInProgressForController(const TaskDefinition *definition, int controllerIndex);

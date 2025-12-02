@@ -2,6 +2,6 @@
 
 void __cdecl R_InitContext(const GfxBackEndData *data, GfxCmdBuf *cmdBuf)
 {
-  cmdBuf->device = dx.device;
+    cmdBuf->device = dx.device;
 }
 
