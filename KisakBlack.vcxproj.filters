@@ -5021,5 +5021,11 @@
     <ClInclude Include="src\gfx_d3d\r_gfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\bgame\bg_public.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\physics\phys_local.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

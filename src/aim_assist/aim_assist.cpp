@@ -24,6 +24,7 @@
 #include <cgame_mp/cg_main_mp.h>
 #include <cmath>
 #include <xanim/xanim.h>
+#include <client_mp/cl_cgame_mp.h>
 
 AimAssistGlobals aaGlobArray[1];
 GraphFloat aaInputGraph[4];
@@ -1885,6 +1886,7 @@ const AimScreenTarget *__cdecl AimAssist_GetPrevOrBestTarget(
   }
 }
 
+static const float dist_offset = 32.0f;
 void __cdecl AimAssist_ApplyAutoMelee(const AimInput *input, AimOutput *output)
 {
   int integer; // [esp+10h] [ebp-5Ch]
@@ -2128,22 +2130,22 @@ void __cdecl AimAssist_DrawDebugOverlay(int localClientNum)
     if ( aim_slowdown_debug->current.enabled )
     {
       AimAssist_DrawTargets(localClientNum, ps, red);
-      AimAssist_DrawCenterBox(aaGlob, tweaks->slowdownRegionWidth, tweaks->slowdownRegionHeight, green, 0);
+      AimAssist_DrawCenterBox(aaGlob, tweaks->slowdownRegionWidth, tweaks->slowdownRegionHeight, green);
     }
     if ( aim_autoaim_debug->current.enabled )
     {
       AimAssist_DrawTargets(localClientNum, ps, red);
-      AimAssist_DrawCenterBox(aaGlob, tweaks->autoAimRegionWidth, tweaks->autoAimRegionHeight, green, 1);
+      AimAssist_DrawCenterBox(aaGlob, tweaks->autoAimRegionWidth, tweaks->autoAimRegionHeight, green);
     }
     if ( aim_automelee_debug->current.enabled )
     {
       AimAssist_DrawTargets(localClientNum, ps, red);
-      AimAssist_DrawCenterBox(aaGlob, tweaks->autoMeleeRegionWidth, tweaks->autoMeleeRegionHeight, green, 0);
+      AimAssist_DrawCenterBox(aaGlob, tweaks->autoMeleeRegionWidth, tweaks->autoMeleeRegionHeight, green);
     }
     if ( aim_lockon_debug->current.enabled )
     {
       AimAssist_DrawTargets(localClientNum, ps, red);
-      AimAssist_DrawCenterBox(aaGlob, tweaks->lockOnRegionWidth, tweaks->lockOnRegionHeight, green, 0);
+      AimAssist_DrawCenterBox(aaGlob, tweaks->lockOnRegionWidth, tweaks->lockOnRegionHeight, green);
     }
   }
 }

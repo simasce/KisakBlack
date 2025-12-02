@@ -3194,3 +3194,8 @@ float AngleNormalize180(float angle)
         angle += 360.0f;
     return angle - 180.0f;
 }
+
+float  __cdecl Abs(const float *v)
+{
+    return (float)sqrt((float)((float)((float)(*v * *v) + (float)(v[1] * v[1])) + (float)(v[2] * v[2])));
+}

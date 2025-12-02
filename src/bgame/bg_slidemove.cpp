@@ -1798,11 +1798,6 @@ phys_vec3 *__thiscall phys_vec3::operator=(phys_vec3 *this, const phys_vec3 *v)
   return this;
 }
 
-double __cdecl Abs(const float *v)
-{
-  return (float)sqrt((float)((float)((float)(*v * *v) + (float)(v[1] * v[1])) + (float)(v[2] * v[2])));
-}
-
 void __cdecl Phys_NitrousVecToVec3(const phys_vec3 *inVector, float *outVector)
 {
   *outVector = inVector->x;

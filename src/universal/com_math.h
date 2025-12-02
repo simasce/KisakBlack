@@ -24,6 +24,24 @@ struct float44 // sizeof=0x40
     };
 };
 
+union PackedUnitVec // sizeof=0x4
+{                                       // XREF: FX_GenSpriteVerts+8BE/w
+                                        // FX_GenSpriteVerts+986/w ...
+    unsigned int packed;
+    unsigned __int8 array[4];
+};
+
+union float4 {
+    float v[4];
+    unsigned int u[4];
+    PackedUnitVec unitVec[4];
+};
+
+struct hybrid_vector // sizeof=0x10
+{                                       // XREF: colgeom_visitor_t/r
+    float4 vec;                         // XREF: AimTarget_IsTargetVisible+1B/w
+};
+
 // TODO change if we ever actually use classes
 #define vec2r float*
 #define vec3r float*
@@ -201,6 +219,8 @@ float __cdecl Vec3Normalize(float *v);
 float __cdecl Vec2Normalize(float *v);
 
 float AngleNormalize180(float angle);
+
+float  __cdecl Abs(const float *v);
 
 
 constexpr float vec2_origin[2] = { 0.0, 0.0 };

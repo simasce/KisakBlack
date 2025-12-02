@@ -16,6 +16,7 @@
 #include <turret/turret_placement.h>
 #include <bgame/bg_misc.h>
 #include <game_mp/g_main_mp.h>
+#include "cg_local_mp.h"
 
 const char *debugOverlayNames[4] =
 { "Off", "ViewmodelInfo", "FontTest", NULL };

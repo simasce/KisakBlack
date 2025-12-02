@@ -1125,6 +1125,7 @@
     <ClInclude Include="src\bgame\bg_misctables.h" />
     <ClInclude Include="src\bgame\bg_perks.h" />
     <ClInclude Include="src\bgame\bg_pmove.h" />
+    <ClInclude Include="src\bgame\bg_public.h" />
     <ClInclude Include="src\bgame\bg_slidemove.h" />
     <ClInclude Include="src\bgame\bg_unlockable_items.h" />
     <ClInclude Include="src\bgame\bg_vehicles_mp.h" />
@@ -1596,6 +1597,7 @@
     <ClInclude Include="src\physics\phys_gjk.h" />
     <ClInclude Include="src\physics\phys_gjk_collision_detection.h" />
     <ClInclude Include="src\physics\phys_gjk_sep_dir.h" />
+    <ClInclude Include="src\physics\phys_local.h" />
     <ClInclude Include="src\physics\phys_main.h" />
     <ClInclude Include="src\physics\phys_mem_new.h" />
     <ClInclude Include="src\physics\phys_render.h" />

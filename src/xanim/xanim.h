@@ -367,14 +367,6 @@ union PackedTexCoords // sizeof=0x4
     unsigned int packed;
 };
 
-union PackedUnitVec // sizeof=0x4
-{                                       // XREF: FX_GenSpriteVerts+8BE/w
-                                        // FX_GenSpriteVerts+986/w ...
-    unsigned int packed;
-    unsigned __int8 array[4];
-};
-
-
 struct GfxPackedVertex // sizeof=0x20
 {                                       // XREF: GfxPackedVertex0/r
                                         // GfxPackedVertex1/r ...
@@ -1470,6 +1462,45 @@ struct WeaponVariantDef // sizeof=0xE4
     float ikLeftHandProneRotation[3];
     float ikLeftHandUiViewerOffset[3];
     float ikLeftHandUiViewerRotation[3];
+};
+
+struct cplane_s // sizeof=0x14
+{                                       // XREF: cplane_t/r
+                                        // CM_TraceThroughBrush/r ...
+    float normal[3];                    // XREF: CM_TraceThroughBrush+629/w
+                                        // CM_TraceThroughBrush+636/w ...
+    float dist;
+    unsigned __int8 type;
+    unsigned __int8 signbits;
+    unsigned __int8 pad[2];
+};
+
+struct cbrushside_t // sizeof=0xC
+{                                       // XREF: CM_TraceThroughBrush/r
+                                        // ?trace_sphere_through_brush@@YAXQBM0AAMMPBUcbrush_t@@QAMAAHPAUclipMap_t@@@Z/r
+    cplane_s *plane;                    // XREF: CM_TraceThroughBrush+659/w
+                                        // trace_sphere_through_brush(float const * const,float const * const,float &,float,cbrush_t const *,float * const,int &,clipMap_t *)+5E4/w
+    int cflags;                         // XREF: CM_TraceThroughBrush+608/w
+                                        // trace_sphere_through_brush(float const * const,float const * const,float &,float,cbrush_t const *,float * const,int &,clipMap_t *)+58D/w
+    int sflags;                         // XREF: CM_TraceThroughBrush+61E/w
+                                        // trace_sphere_through_brush(float const * const,float const * const,float &,float,cbrush_t const *,float * const,int &,clipMap_t *)+5A6/w
+};
+
+const struct __declspec(align(8)) cbrush_t // sizeof=0x60
+{                                       // XREF: .data:g_box_brush/r
+    float mins[3];
+    int contents;
+    float maxs[3];
+    unsigned int numsides;
+    cbrushside_t *sides;
+    int axial_cflags[2][3];
+    int axial_sflags[2][3];
+    unsigned int numverts;
+    float (*verts)[3];
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
 };
 
 int __cdecl XAnimTreeSize();

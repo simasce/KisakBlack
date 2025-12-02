@@ -1,5 +1,41 @@
 #pragma once
 
+struct BulletFireParams // sizeof=0x40
+{                                       // XREF: ?VEH_DebugAim@@YAXPAUgentity_s@@QBMH@Z/r
+                                        // ?Bullet_Fire@@YAXPAUgentity_s@@MPBUweaponParms@@PBU1@H@Z/r ...
+    int weaponEntIndex;                 // XREF: DrawBulletImpacts+13F7/w
+                                        // Bullet_Fire(gentity_s *,float,weaponParms const *,gentity_s const *,int)+176/w ...
+    int ignoreEntIndex;                 // XREF: DrawBulletImpacts+1407/w
+                                        // DrawBulletImpacts+1427/w ...
+    float damageMultiplier;             // XREF: DrawBulletImpacts+1436/w
+                                        // DrawBulletImpacts+159A/w ...
+    int methodOfDeath;                  // XREF: DrawBulletImpacts+1451/w
+                                        // Bullet_Fire(gentity_s *,float,weaponParms const *,gentity_s const *,int)+1C8/w
+    float origStart[3];                 // XREF: DrawBulletImpacts+14AF/w
+                                        // DrawBulletImpacts+14BC/w ...
+    float start[3];                     // XREF: FireBulletPenetrate+C3A/w
+                                        // FireBulletPenetrate+C4A/w ...
+    float end[3];                       // XREF: FireBulletPenetrate+C74/w
+                                        // FireBulletPenetrate+C8B/w ...
+    float dir[3];                       // XREF: FireBulletPenetrate+BF1/w
+                                        // FireBulletPenetrate+C08/w ...
+};
+
+struct BulletTraceResults // sizeof=0x50
+{                                       // XREF: Bullet_FireExtended/r
+    trace_t trace;                      // XREF: BulletTrace_Start(int,BulletFireParams *,uint,centity_s const *,float * const,bool,bool)+1C/w
+                                        // BulletTrace_Start(int,BulletFireParams *,uint,centity_s const *,float * const,bool,bool)+29/w ...
+    struct gentity_s *hitEnt;                  // XREF: Bullet_FireExtended:loc_5F3D1A/r
+                                        // Bullet_FireExtended+174/r ...
+    float hitPos[3];                    // XREF: FireBulletPenetrate+DE5/o
+                                        // FireBulletPenetrate+10E4/o ...
+    bool ignoreHitEnt;                  // XREF: Bullet_FireExtended+186/r
+    // padding byte
+    // padding byte
+    // padding byte
+    int depthSurfaceType;               // XREF: FireBulletPenetrate:loc_52B4A6/r
+};
+
 void __cdecl BG_LoadPenetrationDepthTable();
 void __cdecl BG_ParsePenetrationDepthTable(const char *penetrateType, float *depthTable, char *buffer);
 char __cdecl BG_AdvanceTrace(BulletFireParams *bp, BulletTraceResults *br, float dist);

@@ -106,6 +106,7 @@ void __cdecl CG_multi_trigger(centity_s *ent);
 void __cdecl CG_Touch_Multi(centity_s *self, centity_s *other);
 unsigned __int8 *__cdecl Hunk_AllocXAnimClient(unsigned int size);
 
+extern struct cgMedia_t cgMedia;
 
 extern const dvar_s *cg_loadScripts;
 extern const dvar_s *cg_usingClientScripts;
