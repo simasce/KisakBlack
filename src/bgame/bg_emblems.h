@@ -144,8 +144,7 @@ bool __cdecl BG_EmblemsReadString(const char *str, __int16 *background, Composit
 void __cdecl BG_EmblemsInit();
 void __cdecl BG_EmblemsPurchaseLayer_f();
 void __cdecl BG_EmblemsPurchaseIcon_f();
-const char *__cdecl Cmd_Argv(int argIndex);
-CmdArgs *__cdecl Cmd_Args();
+
 void __cdecl BG_EmblemsPurchaseBackgroundByID_f();
 void __cdecl BG_EmblemsPurchaseBackgroundByIndex_f();
 void __cdecl BG_EmblemsClearDefaults();

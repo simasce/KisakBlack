@@ -1,9 +1,74 @@
 #include "common.h"
 
 #include <string.h>
+#include <universal/mem_userhunk.h>
 
 const dvar_s *useFastFile;
 const dvar_s *sys_smp_allowed;
+const dvar_t *com_maxclients;
+const dvar_t *com_freemoveScale;
+const dvar_t *disconnected_ctrls;
+const dvar_t *com_first_time;
+const dvar_t *com_first_time_pc;
+const dvar_t *com_maxfps;
+const dvar_t *arcademode;
+const dvar_t *zombiemode;
+const dvar_t *legacy_zombiemode;
+const dvar_t *zombieStopSplitScreen;
+const dvar_t *zombietron;
+const dvar_t *zombietron_discovered;
+const dvar_t *zombiefive_discovered;
+const dvar_t *zombiefive_norandomchar;
+const dvar_t *blackopsmode;
+const dvar_t *spmode;
+const dvar_t *onlinegame;
+const dvar_t *xblive_rankedmatch;
+const dvar_t *xblive_privatematch;
+const dvar_t *useFastFile;
+const dvar_t *sys_lockThreads;
+const dvar_t *sys_smp_allowed;
+const dvar_t *com_developer;
+const dvar_t *com_developer_script;
+const dvar_t *com_script_debugger_smoke_test;
+const dvar_t *com_logfile;
+const dvar_t *com_statmon;
+const dvar_t *com_timescale;
+const dvar_t *dev_timescale;
+const dvar_t *com_fixedtime;
+const dvar_t *com_maxFrameTime;
+const dvar_t *long_blocking_call;
+const dvar_t *sv_network_warning;
+const dvar_t *cl_network_warning;
+const dvar_t *sv_paused;
+const dvar_t *cl_paused;
+const dvar_t *cl_paused_simple;
+const dvar_t *com_sv_running;
+const dvar_t *com_show_tty_timestamps;
+const dvar_t *com_voip_resume_time;
+const dvar_t *com_voip_bandwidth_restricted;
+const dvar_t *com_voip_disable_threshold;
+const dvar_t *com_filter_output;
+const dvar_t *com_introPlayed;
+const dvar_t *com_startupIntroPlayed;
+const dvar_t *com_desiredMenu;
+const dvar_t *com_skipMovies;
+const dvar_t *com_animCheck;
+const dvar_t *com_hiDef;
+const dvar_t *com_wideScreen;
+const dvar_t *doublesided_raycasts;
+const dvar_t *log_append;
+const dvar_t *com_waitForStreamer;
+const dvar_t *dec20_Enabled;
+const dvar_t *band_demosystem;
+const dvar_t *band_2players;
+const dvar_t *band_4players;
+const dvar_t *band_6players;
+const dvar_t *band_8players;
+const dvar_t *band_12players;
+const dvar_t *band_18players;
+const dvar_t *band_lotsplayers;
+const dvar_t *band_dedicated;
+
 
 void *__cdecl Com_LiveAllocate(unsigned int size)
 {
@@ -1647,7 +1712,9 @@ void __cdecl Com_Freeze_f()
 
 void __cdecl Com_Crash_f()
 {
-    MEMORY[0] = 305419896;
+    //MEMORY[0] = 305419896;
+    int *ptr = NULL;
+    *ptr = 0x12345678;
 }
 
 void __cdecl Com_Assert_f()

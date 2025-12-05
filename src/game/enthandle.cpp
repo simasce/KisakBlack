@@ -1,5 +1,15 @@
 #include "enthandle.h"
 
+#include <string.h>
+#include <qcommon/common.h>
+
+EntHandleInfo g_entHandleInfoArray[1024];
+EntHandleList g_entitiesHandleList[1024];
+unsigned int g_entHandleInfoHead;
+unsigned int g_usedEntHandle;
+
+EntHandleList g_sentientsHandleList[48];
+
 void __cdecl EntHandle::Init()
 {
     unsigned int i; // [esp+4h] [ebp-4h]
@@ -67,7 +77,8 @@ void __cdecl SentientHandle::Init()
 
 void __cdecl EntHandleDissociate(gentity_s *ent)
 {
-    EntHandleDissociateInternal((EntHandleList *)(2 * (ent - g_entities) + 63686360));
+    //EntHandleDissociateInternal((EntHandleList *)(2 * (ent - g_entities) + 63686360));
+    EntHandleDissociateInternal(&g_entitiesHandleList[ent - g_entities]);
 }
 
 void __cdecl EntHandleDissociateInternal(EntHandleList *entHandleList)

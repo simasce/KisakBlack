@@ -648,9 +648,9 @@ void __cdecl Live_UserSignedIn(int controllerIndex)
     if ( !xenonUserData[controllerIndex].signinState )
     {
         startTime = Sys_Milliseconds();
-        Gamer//Profile_LogInProfile(controllerIndex);
+        GamerProfile_LogInProfile(controllerIndex);
         v2 = Sys_Milliseconds();
-        Com_Printf(16, "Gamer//Profile_LogInProfile took %ims\n", v2 - startTime);
+        Com_Printf(16, "GamerProfile_LogInProfile took %ims\n", v2 - startTime);
     }
     netCodeVersion = 1044;
     LiveGroups_RegisterPlayer(controllerIndex);
@@ -1029,7 +1029,7 @@ bool __cdecl Live_UserSignedOut(int controllerIndex)
     int v1; // eax
     int localClientNum; // [esp+0h] [ebp-8h]
 
-    Gamer//Profile_LogOutProfile(controllerIndex);
+    GamerProfile_LogOutProfile(controllerIndex);
     byte_A61C02C[80 * controllerIndex] = 0;
     xenonUserData[controllerIndex].signinState = 0;
     byte_A61C058[80 * controllerIndex] = 0;

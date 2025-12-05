@@ -356,6 +356,8 @@ static const float colorWhiteFaded[4] = { 1.0, 1.0, 1.0, 0.75 }; // idb
 static const float colorGreenFaded[4] = { 0.0, 1.0, 0.0, 0.75 }; // idb
 static const float colorRedFaded[4] = { 0.75, 0.25, 0.0, 0.75 }; // idb
 
+#define	MAX_GENTITIES		(1024) // 0x400
+
 struct usercmd_s;
 
 unsigned __int8 __cdecl ColorIndex(unsigned __int8 c);

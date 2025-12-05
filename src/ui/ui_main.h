@@ -27,16 +27,16 @@ struct UILocalVarContext // sizeof=0xC00
         UILocalVar table[256];
 };
 
-struct cursor_t // sizeof=0x8
-{                                                                             // XREF: UiContext/r
-                                                                                // UiContext/r
-        float x;
-        float y;
-};
-
 struct BlurStackEntry // sizeof=0x40
 {                                                                             // XREF: UiContext/r
         char menuName[64];
+};
+
+struct serverFilter_s // sizeof=0x8
+{                                       // XREF: .rdata:serverFilter_s const * const serverFilters/r
+                                        // serverFilter_t/r
+    const char *description;            // XREF: UI_GetServerFilter(int)+33/r
+    const char *basedir;                // XREF: UI_GetServerFilter(int)+3A/r
 };
 
 struct rectDef_s // sizeof=0x18
@@ -276,6 +276,7 @@ struct ConversionArguments // sizeof=0x28
         const char *args[9];                                // XREF: CG_DrawWarText+325/w
 };
 
+struct Font_s;
 
 uiInfo_s *__cdecl UI_UIContext_GetInfo(int contextIndex);
 uiInfo_s *__cdecl UI_GetInfo(int localClientNum);
@@ -635,3 +636,73 @@ unsigned __int8 __cdecl UI_ToUpper_CodePage_1251(unsigned __int8 character);
 unsigned __int8 __cdecl UI_ToUpper_CodePage_1252(unsigned __int8 character);
 unsigned __int8 __cdecl UI_CharToUpper(unsigned __int8 character);
 char *__cdecl UI_ToUpper(const char *sourceString);
+
+
+extern const dvar_t *ui_animSpeedScale;
+extern const dvar_t *ui_customModeIndex;
+extern const dvar_t *ui_customModeName;
+extern const dvar_t *ui_customModeEditName;
+extern const dvar_t *ui_customModeEditDesc;
+extern const dvar_t *ui_customModeDesc;
+extern const dvar_t *ui_customClassName;
+extern const dvar_t *g_allowvote;
+extern const dvar_t *cg_brass;
+extern const dvar_t *fx_marks;
+extern const dvar_t *server1;
+extern const dvar_t *server2;
+extern const dvar_t *server3;
+extern const dvar_t *server4;
+extern const dvar_t *server5;
+extern const dvar_t *server6;
+extern const dvar_t *server7;
+extern const dvar_t *server8;
+extern const dvar_t *server9;
+extern const dvar_t *server10;
+extern const dvar_t *server11;
+extern const dvar_t *server12;
+extern const dvar_t *server13;
+extern const dvar_t *server14;
+extern const dvar_t *server15;
+extern const dvar_t *server16;
+extern const dvar_t *ui_netSource;
+extern const dvar_t *ui_smallFont;
+extern const dvar_t *ui_bigFont;
+extern const dvar_t *ui_extraBigFont;
+extern const dvar_t *ui_currentMap;
+extern const dvar_t *ui_gametype;
+extern const dvar_t *ui_mapname;
+extern const dvar_t *ui_demoname;
+extern const dvar_t *ui_currentRecentPlayer;
+extern const dvar_t *ui_serverStatusTimeOut;
+extern const dvar_t *ui_buildLocation;
+extern const dvar_t *ui_buildSize;
+extern const dvar_t *ui_showList;
+extern const dvar_t *ui_showMenuOnly;
+extern const dvar_t *ui_menuLvlNotify;
+extern const dvar_t *selectedFriendName;
+extern const dvar_t *selectedFriendClanTag;
+extern const dvar_t *selectedPlayerClanName;
+extern const dvar_t *selectedFriendIndex;
+extern const dvar_t *selectedStoreItemIndex;
+extern const dvar_t *selectedGroupIndex;
+extern const dvar_t *selectedPlayerXuid;
+extern const dvar_t *selectedMenuItemIndex;
+extern const dvar_t *highlightedPlayerXuid;
+extern const dvar_t *highlightedPlayerName;
+extern const dvar_t *highlightedPlayerClanTag;
+extern const dvar_t *splitscreen_lobbyPlayerCount;
+extern const dvar_t *splitscreen_partyPlayerCount;
+extern const dvar_t *tickerHeaderWidth;
+extern const dvar_t *ui_borderLowLightScale;
+extern const dvar_t *ui_cinematicsTimestamp;
+extern const dvar_t *ui_connectScreenTextGlowColor;
+extern const dvar_t *ui_drawCrosshair;
+extern const dvar_t *ui_onCloseArgs;
+extern const dvar_t *notice_onEscArg;
+extern const dvar_t *statusinfo_onEscArg;
+extern const dvar_t *ui_ethernetLinkActive;
+extern const dvar_t *ui_listboxIndex;
+extern const dvar_t *ui_readingSaveDevice;
+extern const dvar_t *ui_signedInToProfile;
+extern const dvar_t *emblem_scroll_delay_first;
+extern const dvar_t *emblem_scroll_delay_rest;

@@ -20,7 +20,6 @@ void __cdecl R_CalcPlaneFromCosSinPointDirs(
                 const float *lateral);
 void __cdecl R_GetBspLightSurfs(const GfxLight *visibleLights, int visibleCount);
 void __cdecl R_GetBspSpotLightSurfs(const GfxLight *light, int lightIndex, GfxBspDrawSurfData *surfData);
-void __cdecl R_EndCmdBuf(GfxDelayedCmdBuf *delayedCmdBuf);
 bool __cdecl R_SortBspLightSurfaces(GfxSurface *surface0, GfxSurface *surface1);
 int __cdecl R_AllowBspSpotLightShadows(int surfIndex);
 int __cdecl R_AllowBspSpotLight(int surfIndex, unsigned int *bspLightCallbackAsVoid);

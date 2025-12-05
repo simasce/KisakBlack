@@ -1,4 +1,119 @@
 #include "ui_shared.h"
+#include "ui_shared_obj.h"
+#include "ui_localvars.h"
+#include "ui_utils.h"
+#include <universal/q_parse.h>
+#include <universal/assertive.h>
+#include <stringed/stringed_hooks.h>
+#include <qcommon/common.h>
+
+#include <string.h>
+#include <gfx_d3d/r_material.h>
+#include <universal/com_expressions_eval.h>
+#include <win32/win_shared.h>
+#include <gfx_d3d/rb_draw3d.h>
+#include <gfx_d3d/r_rendercmds.h>
+#include <client_mp/cl_scrn_mp.h>
+#include "ui_feeders.h"
+#include <cgame_mp/cg_main_mp.h>
+#include <client/splitscreen.h>
+#include <universal/com_stringtable.h>
+#include <qcommon/com_clients.h>
+#include <client_mp/cl_cgame_mp.h>
+
+cmd_function_s UI_SetLocalVarBool_f_VAR;
+cmd_function_s UI_SetLocalVarInt_f_VAR;
+cmd_function_s UI_SetLocalVarFloat_f_VAR;
+cmd_function_s UI_SetLocalVarString_f_VAR;
+cmd_function_s UI_FadeItem_f_VAR;
+cmd_function_s UI_ShowItem_f_VAR;
+cmd_function_s UI_HideItem_f_VAR;
+cmd_function_s UI_ShowMenu_f_VAR;
+cmd_function_s UI_HideMenu_f_VAR;
+cmd_function_s UI_OpenMenu_f_VAR;
+cmd_function_s UI_CloseMenu_f_VAR;
+cmd_function_s UI_OpenMenuImmediate_f_VAR;
+cmd_function_s UI_CloseMenuImmediate_f_VAR;
+cmd_function_s UI_ChangeMenuOpenSlideDirection_f_VAR;
+cmd_function_s UI_ChangeMenuCloseSlideDirection_f_VAR;
+cmd_function_s UI_OpenToastPopup_f_VAR;
+cmd_function_s UI_FocusItem_f_VAR;
+cmd_function_s UI_PlaySound_f_VAR;
+cmd_function_s UI_MoveFeeder_f_VAR;
+cmd_function_s UI_AddToFeeder_f_VAR;
+cmd_function_s UI_AddToFeederExtended_f_VAR;
+cmd_function_s UI_ClearFeederWithoutResetCursor_f_VAR;
+cmd_function_s UI_ClearFeeder_f_VAR;
+cmd_function_s UI_RaiseFeederEvent_f_VAR;
+cmd_function_s UI_RefreshFeeder_f_VAR;
+cmd_function_s UI_RefreshFeederSelection_f_VAR;
+cmd_function_s UI_ChangeRowStatus_f_VAR;
+cmd_function_s UI_ValidatePrivateMatchGametype_f_VAR;
+cmd_function_s UI_SetActiveMenu_f_VAR;
+
+sharedUiInfo_t sharedUiInfo;
+
+struct commandDef_t // sizeof=0x8
+{                                       // XREF: .rdata:commandList/r
+    const char *name;                   // XREF: Item_RunScript+AC/r
+    void (__cdecl *handler)(int, UiContext *, itemDef_s *, const char **);
+};
+
+const commandDef_t commandList[50] =
+{
+  { "fadein", Script_FadeIn },
+  { "fadeout", Script_FadeOut },
+  { "show", Script_Show },
+  { "hide", Script_Hide },
+  { "showMenu", Script_ShowMenu },
+  { "hideMenu", Script_HideMenu },
+  { "setcolor", Script_SetColor },
+  { "open", Script_Open },
+  { "openImmediate", Script_OpenImmediate },
+  { "close", Script_Close },
+  { "closeImmediate", Script_CloseImmediate },
+  { "ingameopen", Script_InGameOpen },
+  { "ingameclose", Script_InGameClose },
+  { "setbackground", Script_SetBackground },
+  { "setitemcolor", Script_SetItemColor },
+  { "focusfirst", Script_FocusFirstInMenu },
+  { "setfocus", Script_SetFocus },
+  { "setfocusbydvar", Script_SetFocusByDvar },
+  { "changeState", Script_ChangeState },
+  { "setdvar", Script_SetDvar },
+  { "resetdvar", Script_ResetDvar },
+  { "exec", Script_Exec },
+  { "execdvar", Script_ExecDvar },
+  { "execnow", Script_ExecNow },
+  { "execkeyhandler", Script_ExecKeyHandler },
+  { "execkeypress", Script_ExecKeyPress },
+  { "execOnDvarStringValue", Script_ExecOnDvarStringValue },
+  { "execOnDvarIntValue", Script_ExecOnDvarIntValue },
+  { "execOnDvarFloatValue", Script_ExecOnDvarFloatValue },
+  { "execNowOnDvarStringValue", Script_ExecNowOnDvarStringValue },
+  { "execNowOnDvarIntValue", Script_ExecNowOnDvarIntValue },
+  { "execNowOnDvarFloatValue", Script_ExecNowOnDvarFloatValue },
+  { "play", Script_Play },
+  { "scriptmenuresponse", Script_ScriptMenuResponse },
+  { "scriptMenuRespondOnDvarStringValue", Script_RespondOnDvarStringValue },
+  { "scriptMenuRespondOnDvarIntValue", Script_RespondOnDvarIntValue },
+  { "scriptMenuRespondOnDvarFloatValue", Script_RespondOnDvarFloatValue },
+  { "setLocalVarBool", Script_SetLocalVarBool },
+  { "setLocalVarInt", Script_SetLocalVarInt },
+  { "setLocalVarFloat", Script_SetLocalVarFloat },
+  { "setLocalVarString", Script_SetLocalVarString },
+  { "feederTop", Script_FeederTop },
+  { "feederBottom", Script_FeederBottom },
+  { "setDvarFromLocString", Script_SetDvarFromLocString },
+  { "setUIVisibilityBit", Script_SetUIVisibilityBit },
+  { "setDvarStringUsingTable", Script_SetDvarStringUsingTable },
+  { "openforgametype", Script_OpenForGameType },
+  { "closeforgametype", Script_CloseForGameType },
+  { "activateblur", Script_ActivateBlur },
+  { "deactivateblur", Script_DeactivateBlur }
+};
+
+
 
 void __cdecl Menu_Setup(UiContext *dc)
 {
@@ -156,16 +271,16 @@ bool __cdecl Rect_ContainsPoint(int contextIndex, const rectDef_s *rect, float x
 
 itemDef_s *__cdecl Menu_GetMatchingItemByNumber(menuDef_t *menu, int index, char *name)
 {
-    int v3; // eax
+    char *v3; // eax
     int wildcard; // [esp+4h] [ebp-Ch]
     int i; // [esp+8h] [ebp-8h]
     int count; // [esp+Ch] [ebp-4h]
 
     count = 0;
     wildcard = -1;
-    strstr((unsigned __int8 *)name, "*");
+    v3 = strstr(name, "*");
     if ( v3 )
-        wildcard = v3 - (unsigned int)name;
+        wildcard = (unsigned int)v3 - (unsigned int)name;
     for ( i = 0; i < menu->itemCount; ++i )
     {
         if ( wildcard == -1 )
@@ -830,16 +945,16 @@ void __cdecl Item_SetColor(int contextIndex, itemDef_s *item, const char *name, 
 
 int __cdecl Menu_ItemsMatchingGroup(menuDef_t *menu, char *name)
 {
-    int v2; // eax
+    char *v2; // eax
     int wildcard; // [esp+4h] [ebp-Ch]
     int i; // [esp+8h] [ebp-8h]
     int count; // [esp+Ch] [ebp-4h]
 
     count = 0;
     wildcard = -1;
-    strstr((unsigned __int8 *)name, "*");
+    v2 = strstr(name, "*");
     if ( v2 )
-        wildcard = v2 - (unsigned int)name;
+        wildcard = (unsigned int)v2 - (unsigned int)name;
     for ( i = 0; i < menu->itemCount; ++i )
     {
         if ( wildcard == -1 )
@@ -902,13 +1017,13 @@ menuDef_t *__cdecl Menus_FindByName(const UiContext *dc, const char *p)
         if ( !I_stricmp(dc->Menus[i]->window.name, p) )
         {
             v3 = dc->Menus[i];
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //    D3DPERF_EndEvent();
             return v3;
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    D3DPERF_EndEvent();
     return 0;
 }
 
@@ -1023,12 +1138,12 @@ LABEL_56:
 LABEL_36:
         Menu_ClearFocus(localClientNum, dc, menu);
         Menus_ClearFlagsOnClose(localClientNum, dc, menu);
-        Menu_RunCloseScript((GenericEventHandler *)&savedregs, localClientNum, dc, menu);
+        Menu_RunCloseScript(localClientNum, dc, menu);
         hadFocus = Window_HasFocus(dc->contextIndex, &menu->window);
         Menus_RemoveFromStack(localClientNum, dc, menu);
         if ( hadFocus )
         {
-            Menu_RunLeaveFocusScript((GenericEventHandler *)&savedregs, localClientNum, dc, menu);
+            Menu_RunLeaveFocusScript(localClientNum, dc, menu);
             for ( menuNum = dc->openMenuCount - 1; menuNum >= 0; --menuNum )
             {
                 menuDef = dc->menuStack[menuNum].menu;
@@ -1074,7 +1189,6 @@ LABEL_36:
 }
 
 void    Menu_RunLeaveFocusScript(
-                GenericEventHandler *a1@<ebp>,
                 int localClientNum,
                 UiContext *dc,
                 menuDef_t *menu)
@@ -1083,8 +1197,8 @@ void    Menu_RunLeaveFocusScript(
     itemDef_s item; // [esp+0h] [ebp-110h]
     UIAnimInfo *retaddr; // [esp+110h] [ebp+0h]
 
-    item.onEvent = a1;
-    item.animInfo = retaddr;
+    //item.onEvent = a1;
+    //item.animInfo = retaddr;
     if ( !menu && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_shared.cpp", 789, 0, "%s", "menu") )
         __debugbreak();
     if ( menu->onEvent )
@@ -1172,7 +1286,7 @@ void __cdecl Menu_CallOnFocusDueToOpen(int localClientNum, UiContext *dc, menuDe
     anyFound = 0;
     if ( (Window_GetDynamicFlags(dc->contextIndex, &menu->window) & 0xA0000) == 0 )
     {
-        Menu_RunFocusScript((GenericEventHandler *)&savedregs, localClientNum, dc, menu);
+        Menu_RunFocusScript(localClientNum, dc, menu);
         for ( i = 0; i < menu->itemCount; ++i )
         {
             if ( Window_HasFocus(dc->contextIndex, &menu->items[i]->window) && Item_IsFocusDefType(menu->items[i]) )
@@ -1189,14 +1303,14 @@ void __cdecl Menu_CallOnFocusDueToOpen(int localClientNum, UiContext *dc, menuDe
     }
 }
 
-void    Menu_RunFocusScript(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu)
+void    Menu_RunFocusScript(int localClientNum, UiContext *dc, menuDef_t *menu)
 {
     int v4; // [esp-Ch] [ebp-11Ch] BYREF
     itemDef_s item; // [esp+0h] [ebp-110h]
     UIAnimInfo *retaddr; // [esp+110h] [ebp+0h]
 
-    item.onEvent = a1;
-    item.animInfo = retaddr;
+    //item.onEvent = a1;
+    //item.animInfo = retaddr;
     if ( !menu && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_shared.cpp", 775, 0, "%s", "menu") )
         __debugbreak();
     if ( menu->onEvent )
@@ -1207,14 +1321,14 @@ void    Menu_RunFocusScript(GenericEventHandler *a1@<ebp>, int localClientNum, U
     }
 }
 
-void    Menu_RunCloseScript(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu)
+void    Menu_RunCloseScript(int localClientNum, UiContext *dc, menuDef_t *menu)
 {
     int v4; // [esp-Ch] [ebp-11Ch] BYREF
     itemDef_s item; // [esp+0h] [ebp-110h]
     UIAnimInfo *retaddr; // [esp+110h] [ebp+0h]
 
-    item.onEvent = a1;
-    item.animInfo = retaddr;
+    //item.onEvent = a1;
+    //item.animInfo = retaddr;
     if ( !menu && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_shared.cpp", 1685, 0, "%s", "menu") )
         __debugbreak();
     if ( Window_IsVisible(dc->contextIndex, &menu->window) )
@@ -1298,7 +1412,7 @@ void __cdecl Menus_RemoveMenu(XAssetHeader header)
         uiInfo = UI_GetInfo(localClientNum);
         for ( i = 0; i < uiInfo->uiDC.menuCount; ++i )
         {
-            if ( header.xmodelPieces == (XModelPieces *)uiInfo->uiDC.Menus[i] )
+            if ( header.menu == uiInfo->uiDC.Menus[i] )
             {
                 memmove(
                     (unsigned __int8 *)&uiInfo->uiDC.Menus[i],
@@ -1941,7 +2055,7 @@ void __cdecl Script_InGameClose(int localClientNum, UiContext *dc, itemDef_s *it
     }
 }
 
-void __cdecl Script_FocusFirstInMenu(int localClientNum, UiContext *dc, itemDef_s *item)
+void __cdecl Script_FocusFirstInMenu(int localClientNum, UiContext *dc, itemDef_s *item, const char **args)
 {
     const char *name; // [esp+0h] [ebp-Ch]
     itemDef_s *focusItem; // [esp+8h] [ebp-4h]
@@ -2066,7 +2180,7 @@ void __cdecl Script_SetFocusByDvar(int localClientNum, UiContext *dc, itemDef_s 
             if ( focusItem->typeData.textDef && (focusItem->dvarFlags & 0x10) != 0 )
             {
                 if ( !focusItem->dvarTest )
-                    Com_Error(ERR_DROP, &byte_CFC454);
+                    Com_Error(ERR_DROP, "Script_SetFocusByDvar: Item's dvarTest field is empty.");
                 if ( !I_stricmp(focusItem->dvarTest, dvarName) )
                 {
                     if ( Item_EnableShowViaDvar(focusItem, 16) )
@@ -2165,7 +2279,7 @@ void __cdecl Script_ExecKeyHandler(int localClientNum, UiContext *dc, itemDef_s 
     if ( String_Parse(args, val, 1024) )
     {
         v4 = atoi(val);
-        Menu_CheckOnKey((int)&savedregs, localClientNum, dc, item->parent, v4);
+        Menu_CheckOnKey(localClientNum, dc, item->parent, v4);
     }
 }
 
@@ -2179,13 +2293,13 @@ void __cdecl Script_ExecKeyPress(int localClientNum, UiContext *dc, itemDef_s *i
     if ( String_Parse(args, val, 1024) )
     {
         v4 = atoi(val);
-        Menu_HandleKey((int)&savedregs, localClientNum, dc, item->parent, v4, 1);
+        Menu_HandleKey(localClientNum, dc, item->parent, v4, 1);
         v5 = atoi(val);
-        Menu_HandleKey((int)&savedregs, localClientNum, dc, item->parent, v5, 0);
+        Menu_HandleKey(localClientNum, dc, item->parent, v5, 0);
     }
 }
 
-void __cdecl Script_Exec(int localClientNum, UiContext *dc, itemDef_s *item, char **args)
+void __cdecl Script_Exec(int localClientNum, UiContext *dc, itemDef_s *item, const char **args)
 {
     int controllerIndex; // [esp+0h] [ebp-4h]
 
@@ -2200,7 +2314,7 @@ void __cdecl Script_Exec(int localClientNum, UiContext *dc, itemDef_s *item, cha
     {
         __debugbreak();
     }
-    Script_ExecHandler(localClientNum, controllerIndex, item, args, Script_AddTextWrapper);
+    Script_ExecHandler(localClientNum, controllerIndex, item, (char**)args, Script_AddTextWrapper);
 }
 
 void __cdecl Script_ExecHandler(
@@ -2224,7 +2338,7 @@ void __cdecl Script_AddTextWrapper(int localClientNum, int controllerIndex, item
     Cbuf_AddText(localClientNum, text);
 }
 
-void __cdecl Script_ExecNow(int localClientNum, UiContext *dc, itemDef_s *item, char **args)
+void __cdecl Script_ExecNow(int localClientNum, UiContext *dc, itemDef_s *item, const char **args)
 {
     int controllerIndex; // [esp+0h] [ebp-4h]
 
@@ -2243,7 +2357,7 @@ void __cdecl Script_ExecNow(int localClientNum, UiContext *dc, itemDef_s *item, 
         localClientNum,
         controllerIndex,
         item,
-        args,
+        (char**)args,
         (void (__cdecl *)(int, int, itemDef_s *, const char *))Cbuf_ExecuteBufferUI);
 }
 
@@ -2901,6 +3015,7 @@ void __cdecl UIAnimation_RunEventScript(
         }
     }
 }
+
 
 void __cdecl UI_RegisterCmds()
 {
@@ -4443,7 +4558,7 @@ void __cdecl Menus_PrintAllLoadedMenus(UiContext *dc)
     Com_Printf(16, "\n%i menus total\n", dc->menuCount);
 }
 
-int    Menu_CheckOnKey@<eax>(int a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu, int key)
+int    Menu_CheckOnKey(int localClientNum, UiContext *dc, menuDef_t *menu, int key)
 {
     focusItemDef_s *FocusItemDef; // [esp-Ch] [ebp-134h]
     itemDef_s *v7; // [esp-4h] [ebp-12Ch]
@@ -6940,9 +7055,9 @@ char __cdecl UI_GetSticksTranslatedString(int localClientNum, const char *comman
     {
         if ( Dvar_GetBool("gpad_enabled") )
         {
-            ProfileSettings = Gamer//Profile_GetProfileSettings(localClientNum);
+            ProfileSettings = GamerProfile_GetProfileSettings(localClientNum);
             if ( I_strcmp(ProfileSettings->gpadSticksConfig, "thumbstick_default")
-                && (v4 = Gamer//Profile_GetProfileSettings(localClientNum), I_strcmp(v4->gpadSticksConfig, "thumbstick_legacy")) )
+                && (v4 = GamerProfile_GetProfileSettings(localClientNum), I_strcmp(v4->gpadSticksConfig, "thumbstick_legacy")) )
             {
                 v6 = UI_SafeTranslateString("PLATFORM_RIGHT_STICK");
                 I_strncpyz(keys, v6, 256);
@@ -7062,7 +7177,7 @@ void __cdecl GetPlatformCommand(int localClientNum, const char *command, const c
         }
         else
         {
-            ProfileSettings = Gamer//Profile_GetProfileSettings(localClientNum);
+            ProfileSettings = GamerProfile_GetProfileSettings(localClientNum);
             if ( I_strcmp(ProfileSettings->gpadButtonsConfig, "buttons_charlie")
                 && (String = Dvar_GetString("gpad_buttonsConfig"), I_strcmp(String, "buttons_nomad"))
                 && (v5 = Dvar_GetString("gpad_buttonsConfig"), I_strcmp(v5, "buttons_nomad_alt"))

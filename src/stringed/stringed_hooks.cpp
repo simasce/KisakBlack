@@ -1,4 +1,33 @@
 #include "stringed_hooks.h"
+#include <universal/dvar.h>
+#include <universal/com_files.h>
+#include <qcommon/common.h>
+#include "stringed_ingame.h"
+
+const dvar_t *loc_language;
+const dvar_t *loc_forceEnglish;
+const dvar_t *loc_translate;
+const dvar_t *loc_warnings;
+const dvar_t *loc_warningsAsErrors;
+
+int g_currentAsian;
+
+languageInfo_t g_languages[13] =
+{
+  { "english", "en_", 0 },
+  { "french", "fr_", 0 },
+  { "frenchcan", "fc_", 0 },
+  { "german", "ge_", 0 },
+  { "austrian", "ge_", 0 },
+  { "italian", "it_", 0 },
+  { "spanish", "sp_", 0 },
+  { "british", "br_", 0 },
+  { "russian", "ru_", 0 },
+  { "polish", "po_", 0 },
+  { "korean", "ko_", 0 },
+  { "japanese", "ja_", 0 },
+  { "czech", "cz_", 0 }
+};
 
 int __cdecl SEH_GetCurrentLanguage()
 {

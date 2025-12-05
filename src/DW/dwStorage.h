@@ -1,4 +1,33 @@
 #pragma once
+#include <live/live_storage.h>
+
+struct __declspec(align(4)) dwFileTask // sizeof=0xE0
+{                                       // XREF: .data:s_fetchPlaylistsFileTask/r
+                                        // dwFileOperationInfo/r
+    dwFileTask();
+
+    char *m_filename;                   // XREF: SV_AP_GetControlFile(void)+31/w
+    // LiveStorage_FetchOnlineWAD(int)+16A/w
+    bdFileData m_fileData;              // XREF: _dynamic_atexit_destructor_for__s_finfo__+D/o
+    // _dynamic_atexit_destructor_for__s_onlineWADFileInfo__+D/o ...
+    bdLobbyErrorCode m_error;
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    unsigned __int64 m_fileID;
+    unsigned int m_fileSize;
+    unsigned int m_bufferSize;
+    bdFileInfo m_fileInfo;              // XREF: _dynamic_atexit_destructor_for__s_finfo__+3/o
+    // _dynamic_atexit_destructor_for__s_onlineWADFileInfo__+3/o ...
+    void *m_buffer;
+    bool m_optional;
+    // padding byte
+    // padding byte
+    // padding byte
+};
+//dwFileTask *__thiscall dwFileTask::dwFileTask(dwFileTask *this);
+
 
 void __cdecl dwReadFileFailure(TaskRecord *task);
 void __cdecl dwReadFileSuccess(TaskRecord *task);

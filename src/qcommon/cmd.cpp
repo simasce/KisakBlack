@@ -1,5 +1,40 @@
 #include "cmd.h"
 
+#include <stdlib.h>
+#include <win32/win_common.h>
+#include <clientscript/cscr_debugger.h>
+#include <clientscript/cscr_main.h>
+#include "common.h"
+#include <cstring>
+#include <game_mp/g_cmds_mp.h>
+#include <server_mp/sv_main_mp.h>
+
+#include <Windows.h>
+#include "threads.h"
+#include <stringed/stringed_hooks.h>
+#include <client/cl_keys.h>
+#include <universal/com_expressions_eval.h>
+#include <universal/com_files.h>
+#include "dvar_cmds.h"
+#include <universal/com_shared.h>
+#include <client/cl_console.h>
+#include <database/db_registry.h>
+#include <database/db_file_load.h>
+#include <client_mp/cl_main_mp.h>
+#include <server/sv_game.h>
+
+int cmd_wait;
+CmdText cmd_textArray[1];
+unsigned __int8 cmd_text_buf[1][65536];
+bool cmd_insideCBufExecute[1];
+CmdText sv_cmd_text;
+unsigned __int8 sv_cmd_text_buf[65536];
+cmd_function_s *sv_cmd_functions;
+CmdArgs sv_cmd_args;
+int com_inServerFrame;
+cmd_function_s *cmd_functions;
+CmdArgs g_cmd_args[2];
+
 void __cdecl Cmd_Wait_f()
 {
     const char *v0; // eax
@@ -46,10 +81,12 @@ void __cdecl Cbuf_AddText(int localClientNum, const char *text)
             ;
     }
     cmd_text = &cmd_textArray[localClientNum];
-    length = strlen_noncrt(text);
+    //length = strlen_noncrt(text);
+    length = strlen(text);
     if ( cmd_text->cmdsize + length < cmd_text->maxsize )
     {
-        memcpy_noncrt(&cmd_text->data[cmd_text->cmdsize], text, length + 1);
+        //memcpy_noncrt(&cmd_text->data[cmd_text->cmdsize], text, length + 1);
+        memcpy(&cmd_text->data[cmd_text->cmdsize], text, length + 1);
         cmd_text->cmdsize += length;
         Scr_MonitorCommand(text, SCRIPTINSTANCE_SERVER);
     }
@@ -116,7 +153,7 @@ void __cdecl Cmd_ExecuteServerString(char *text)
     cmd_function_s **prev; // [esp+8h] [ebp-8h]
     cmd_function_s *cmd; // [esp+Ch] [ebp-4h]
 
-    if ( !PbTrapPreExecCmd(text) )
+    //if ( !PbTrapPreExecCmd(text) )
     {
         SV_Cmd_TokenizeString(text);
         if ( SV_Cmd_Argc() )
@@ -368,8 +405,9 @@ void __cdecl Cbuf_Execute(int localClientNum, int controllerIndex)
     Cbuf_ExecuteInternal(localClientNum, controllerIndex);
     cmd_insideCBufExecute[localClientNum] = 0;
     Cbuf_SV_Execute();
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    D3DPERF_EndEvent();
 }
 
 void __cdecl Cbuf_ExecuteInternal(int localClientNum, int controllerIndex)
@@ -1114,7 +1152,7 @@ void __cdecl Cmd_ExecuteSingleCommandInternal(
     CmdArgs *v5; // eax
     const char *v6; // eax
     CmdArgs *v7; // eax
-    int v8; // eax
+    char *v8; // eax
     int v9; // eax
     CmdArgs *v10; // [esp-4h] [ebp-50h]
     char *arg0; // [esp+38h] [ebp-14h]
@@ -1134,7 +1172,7 @@ void __cdecl Cmd_ExecuteSingleCommandInternal(
     {
         __debugbreak();
     }
-    if ( !PbTrapPreExecCmd(text) )
+    //if ( !PbTrapPreExecCmd(text) )
     {
         restricted = 0;
         if ( !I_strnicmp(text, "#dcr#", 5) )
@@ -1157,7 +1195,7 @@ void __cdecl Cmd_ExecuteSingleCommandInternal(
             Cmd_ShiftArgs(2, v7);
         }
         arg0 = (char *)Cmd_Argv(0);
-        strchr((unsigned __int8 *)arg0, 0x20u);
+        v8 = strchr(arg0, 0x20u);
         if ( v8 )
         {
             Com_PrintError(1, "Command arg0 contains whitespace (\"%s\"), most likely an error: %s\n", arg0, text);
@@ -1236,6 +1274,12 @@ void __cdecl Cmd_List_f()
     }
     Com_Printf(0, "%i commands\n", i);
 }
+
+cmd_function_s Cmd_List_f_VAR;
+cmd_function_s Cmd_Exec_f_VAR;
+cmd_function_s Cmd_ExecAddText_f_VAR;
+cmd_function_s Cmd_Vstr_f_VAR;
+cmd_function_s Cmd_Wait_f_VAR;
 
 void __cdecl Cmd_Init()
 {
@@ -1369,3 +1413,67 @@ void __cdecl Cmd_ExecAddText_f()
     }
 }
 
+const char *__cdecl Cmd_Argv(int argIndex)
+{
+    CmdArgs *cmd_args; // [esp+8h] [ebp-4h]
+
+    cmd_args = Cmd_Args();
+    if (cmd_args->nesting >= 8u
+        && !Assert_MyHandler(
+            "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../qcommon/cmd.h",
+            228,
+            0,
+            "cmd_args->nesting doesn't index CMD_MAX_NESTING\n\t%i not in [0, %i)",
+            cmd_args->nesting,
+            8))
+    {
+        __debugbreak();
+    }
+    if (argIndex < 0
+        && !Assert_MyHandler(
+            "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../qcommon/cmd.h",
+            229,
+            0,
+            "%s\n\t(argIndex) = %i",
+            "(argIndex >= 0)",
+            argIndex))
+    {
+        __debugbreak();
+    }
+    if (argIndex >= cmd_args->argc[cmd_args->nesting])
+        return "";
+    else
+        return cmd_args->argv[cmd_args->nesting][argIndex];
+}
+
+CmdArgs *__cdecl Cmd_Args()
+{
+    CmdArgs *cmd_args; // [esp+0h] [ebp-4h]
+
+    cmd_args = (CmdArgs *)Sys_GetValue(4);
+    if (!cmd_args
+        && !Assert_MyHandler("c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../qcommon/cmd.h", 203, 0, "%s", "cmd_args != NULL"))
+    {
+        __debugbreak();
+    }
+    return cmd_args;
+}
+
+int __cdecl Cmd_Argc()
+{
+    CmdArgs *cmd_args; // [esp+4h] [ebp-4h]
+
+    cmd_args = Cmd_Args();
+    if (cmd_args->nesting >= 8u
+        && !Assert_MyHandler(
+            "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../qcommon/cmd.h",
+            212,
+            0,
+            "cmd_args->nesting doesn't index CMD_MAX_NESTING\n\t%i not in [0, %i)",
+            cmd_args->nesting,
+            8))
+    {
+        __debugbreak();
+    }
+    return cmd_args->argc[cmd_args->nesting];
+}

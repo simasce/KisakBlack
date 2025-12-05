@@ -1,16 +1,52 @@
 #pragma once
 
-void __cdecl EntHandle::Init();
-void __cdecl EntHandle::Shutdown();
-void __cdecl SentientHandle::Init();
+struct gentity_s;
+struct sentient_s;
+
+struct EntHandle // sizeof=0x4
+{                                       // XREF: entityShared_t/r
+                                        // gclient_s/r ...
+    static void Init();
+    static void Shutdown();
+
+    void setEnt(gentity_s *ent);
+    bool isDefined();
+    gentity_s *ent();
+
+    unsigned __int16 number;
+    unsigned __int16 infoIndex;
+};
+
+struct SentientHandle // sizeof=0x4
+{
+    static void Init();
+
+    void setSentient(sentient_s *sentient);
+    bool isDefined();
+    sentient_s *sentient();
+
+    unsigned __int16 number;
+    unsigned __int16 infoIndex;
+};
+
+struct EntHandleList // sizeof=0x2
+{                                       // XREF: .data:g_entitiesHandleList/r
+                                        // .data:g_sentientsHandleList/r
+    unsigned __int16 infoIndex;
+};
+
+struct EntHandleInfo // sizeof=0x8
+{                                       // XREF: .data:g_entHandleInfoArray/r
+    void *handle;
+    unsigned __int16 next;              // XREF: EntHandle::Init(void)+48/w
+                                        // RemoveEntHandleInfo+1F/r
+    unsigned __int16 prev;              // XREF: EntHandleDissociateInternal+E7/r
+                                        // AddEntHandleInfo+BD/w
+};
+
+
 void __cdecl EntHandleDissociate(gentity_s *ent);
 void __cdecl EntHandleDissociateInternal(EntHandleList *entHandleList);
 void __cdecl SentientHandleDissociate(sentient_s *sentient);
-void __thiscall EntHandle::setEnt(EntHandle *this, gentity_s *ent);
-bool __thiscall EntHandle::isDefined(EntHandle *this);
-gentity_s *__thiscall EntHandle::ent(EntHandle *this);
 void __cdecl RemoveEntHandleInfo(EntHandleList *entHandleList, unsigned int oldInfoIndex);
 unsigned int __cdecl AddEntHandleInfo(EntHandleList *entHandleList, void *handle);
-void __thiscall SentientHandle::setSentient(SentientHandle *this, sentient_s *sentient);
-bool __thiscall SentientHandle::isDefined(SentientHandle *this);
-sentient_s *__thiscall SentientHandle::sentient(SentientHandle *this);

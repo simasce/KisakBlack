@@ -1,4 +1,118 @@
 #include "ui_main.h"
+#include <universal/assertive.h>
+#include <qcommon/com_clients.h>
+#include <universal/com_files.h>
+#include <qcommon/common.h>
+#include <database/db_registry.h>
+#include <gfx_d3d/r_font.h>
+#include <universal/com_buildinfo.h>
+#include <client_mp/cl_cgame_mp.h>
+#include "ui_shared.h"
+#include <gfx_d3d/r_rendercmds.h>
+#include <client_mp/cl_main_mp.h>
+#include <ui_mp/ui_main_mp.h>
+#include "ui_server.h"
+#include <win32/win_shared.h>
+#include <client_mp/cl_scrn_mp.h>
+#include "ui_utils.h"
+#include "ui_main_pc.h"
+#include "ui_atoms.h"
+#include <cgame/cg_compass.h>
+#include <client/cl_keys.h>
+#include "ui_friends.h"
+#include <client/cl_main.h>
+#include <cgame/cg_camera.h>
+
+const dvar_t *ui_animSpeedScale;
+const dvar_t *ui_customModeIndex;
+const dvar_t *ui_customModeName;
+const dvar_t *ui_customModeEditName;
+const dvar_t *ui_customModeEditDesc;
+const dvar_t *ui_customModeDesc;
+const dvar_t *ui_customClassName;
+const dvar_t *g_allowvote;
+const dvar_t *cg_brass;
+const dvar_t *fx_marks;
+const dvar_t *server1;
+const dvar_t *server2;
+const dvar_t *server3;
+const dvar_t *server4;
+const dvar_t *server5;
+const dvar_t *server6;
+const dvar_t *server7;
+const dvar_t *server8;
+const dvar_t *server9;
+const dvar_t *server10;
+const dvar_t *server11;
+const dvar_t *server12;
+const dvar_t *server13;
+const dvar_t *server14;
+const dvar_t *server15;
+const dvar_t *server16;
+const dvar_t *ui_netSource;
+const dvar_t *ui_smallFont;
+const dvar_t *ui_bigFont;
+const dvar_t *ui_extraBigFont;
+const dvar_t *ui_currentMap;
+const dvar_t *ui_gametype;
+const dvar_t *ui_mapname;
+const dvar_t *ui_demoname;
+const dvar_t *ui_currentRecentPlayer;
+const dvar_t *ui_serverStatusTimeOut;
+const dvar_t *ui_buildLocation;
+const dvar_t *ui_buildSize;
+const dvar_t *ui_showList;
+const dvar_t *ui_showMenuOnly;
+const dvar_t *ui_menuLvlNotify;
+const dvar_t *selectedFriendName;
+const dvar_t *selectedFriendClanTag;
+const dvar_t *selectedPlayerClanName;
+const dvar_t *selectedFriendIndex;
+const dvar_t *selectedStoreItemIndex;
+const dvar_t *selectedGroupIndex;
+const dvar_t *selectedPlayerXuid;
+const dvar_t *selectedMenuItemIndex;
+const dvar_t *highlightedPlayerXuid;
+const dvar_t *highlightedPlayerName;
+const dvar_t *highlightedPlayerClanTag;
+const dvar_t *splitscreen_lobbyPlayerCount;
+const dvar_t *splitscreen_partyPlayerCount;
+const dvar_t *tickerHeaderWidth;
+const dvar_t *ui_borderLowLightScale;
+const dvar_t *ui_cinematicsTimestamp;
+const dvar_t *ui_connectScreenTextGlowColor;
+const dvar_t *ui_drawCrosshair;
+const dvar_t *ui_onCloseArgs;
+const dvar_t *notice_onEscArg;
+const dvar_t *statusinfo_onEscArg;
+const dvar_t *ui_ethernetLinkActive;
+const dvar_t *ui_listboxIndex;
+const dvar_t *ui_readingSaveDevice;
+const dvar_t *ui_signedInToProfile;
+const dvar_t *emblem_scroll_delay_first;
+const dvar_t *emblem_scroll_delay_rest;
+
+UiContext uiInfoArray;
+const serverFilter_s serverFilters[1];
+
+bool g_ingameMenusLoaded[1];
+
+const char *MonthAbbrev[12] =
+{
+  "EXE_MONTH_ABV_JANUARY",
+  "EXE_MONTH_ABV_FEBRUARY",
+  "EXE_MONTH_ABV_MARCH",
+  "EXE_MONTH_ABV_APRIL",
+  "EXE_MONTH_ABV_MAY",
+  "EXE_MONTH_ABV_JUN",
+  "EXE_MONTH_ABV_JULY",
+  "EXE_MONTH_ABV_AUGUST",
+  "EXE_MONTH_ABV_SEPTEMBER",
+  "EXE_MONTH_ABV_OCTOBER",
+  "EXE_MONTH_ABV_NOVEMBER",
+  "EXE_MONTH_ABV_DECEMBER"
+};
+
 
 uiInfo_s *__cdecl UI_UIContext_GetInfo(int contextIndex)
 {
@@ -58,22 +172,22 @@ const char *__cdecl UI_GetMonthAbbrev(unsigned int month)
 
 const char **__cdecl UI_GetServerFilter(const char **filter, int filtera)
 {
-    char *v2; // edx
+    const char *basedir; // edx
 
-    if ( filtera
+    if (filtera
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_main.cpp",
-                    369,
-                    0,
-                    "filter doesn't index numServerFilters\n\t%i not in [0, %i)",
-                    filtera,
-                    1) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_main.cpp",
+            369,
+            0,
+            "filter doesn't index numServerFilters\n\t%i not in [0, %i)",
+            filtera,
+            1))
     {
         __debugbreak();
     }
-    v2 = (&off_CF5DA0)[2 * filtera];
+    basedir = serverFilters[filtera].basedir;
     *filter = serverFilters[filtera].description;
-    filter[1] = v2;
+    filter[1] = basedir;
     return filter;
 }
 
@@ -91,6 +205,7 @@ char *__cdecl UI_GetMenuBuffer(char *filename)
         return GetMenuBuffer_LoadObj(filename);
 }
 
+char menuBuf2[32768];
 char *__cdecl GetMenuBuffer_LoadObj(char *filename)
 {
     int len; // [esp+0h] [ebp-8h]
@@ -124,9 +239,9 @@ char *__cdecl GetMenuBuffer_FastFile(const char *filename)
 {
     RawFile *rawfile; // [esp+4h] [ebp-4h]
 
-    rawfile = DB_FindXAssetHeader(ASSET_TYPE_RAWFILE, filename, 1, -1).rawfile;
+    rawfile = DB_FindXAssetHeader(ASSET_TYPE_RAWFILE, (char*)filename, 1, -1).rawfile;
     if ( rawfile )
-        return rawfile->buffer;
+        return (char*)rawfile->buffer;
     Com_PrintError(13, "menu file not found: %s, using default\n", filename);
     return 0;
 }
@@ -612,7 +727,6 @@ void __cdecl UI_Refresh(int localClientNum)
                     if ( (Window_GetDynamicFlags(contextIndex, &toastPopupMenu->window) & 0x42000) != 0 )
                     {
                         Menu_Paint(
-                            (GenericEventHandler *)&savedregs,
                             localClientNum,
                             &uiInfo->uiDC,
                             0,
@@ -629,7 +743,6 @@ void __cdecl UI_Refresh(int localClientNum)
                 else
                 {
                     Menu_Paint(
-                        (GenericEventHandler *)&savedregs,
                         localClientNum,
                         &uiInfo->uiDC,
                         0,
@@ -669,7 +782,6 @@ void __cdecl UI_Refresh(int localClientNum)
             {
                 Window_AddDynamicFlags(contextIndex, &toastPopupMenu->window, 4);
                 Menu_Paint(
-                    (GenericEventHandler *)&savedregs,
                     localClientNum,
                     &uiInfo->uiDC,
                     0,
@@ -3209,25 +3321,25 @@ void UI_RegisterDvars()
                                                         0,
                                                         "Description for the custom game mode while editing.");
     ui_customClassName = _Dvar_RegisterString("ui_customClassName", (char *)"", 0, "Custom Class name");
-    _Dvar_RegisterBool("g_allowvote", 1, 1u, 0);
-    _Dvar_RegisterBool("cg_brass", 1, 1u, 0);
-    _Dvar_RegisterBool("fx_marks", 1, 1u, 0);
-    _Dvar_RegisterString("server1", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server2", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server3", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server4", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server5", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server6", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server7", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server8", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server9", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server10", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server11", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server12", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server13", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server14", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server15", (char *)"", 1u, "Server display");
-    _Dvar_RegisterString("server16", (char *)"", 1u, "Server display");
+    g_allowvote = _Dvar_RegisterBool("g_allowvote", 1, 1u, 0);
+    cg_brass = _Dvar_RegisterBool("cg_brass", 1, 1u, 0);
+    fx_marks = _Dvar_RegisterBool("fx_marks", 1, 1u, 0);
+    server1 = _Dvar_RegisterString("server1", (char *)"", 1u, "Server display");
+    server2 = _Dvar_RegisterString("server2", (char *)"", 1u, "Server display");
+    server3 = _Dvar_RegisterString("server3", (char *)"", 1u, "Server display");
+    server4 = _Dvar_RegisterString("server4", (char *)"", 1u, "Server display");
+    server5 = _Dvar_RegisterString("server5", (char *)"", 1u, "Server display");
+    server6 = _Dvar_RegisterString("server6", (char *)"", 1u, "Server display");
+    server7 = _Dvar_RegisterString("server7", (char *)"", 1u, "Server display");
+    server8 = _Dvar_RegisterString("server8", (char *)"", 1u, "Server display");
+    server9 = _Dvar_RegisterString("server9", (char *)"", 1u, "Server display");
+    server10 = _Dvar_RegisterString("server10", (char *)"", 1u, "Server display");
+    server11 = _Dvar_RegisterString("server11", (char *)"", 1u, "Server display");
+    server12 = _Dvar_RegisterString("server12", (char *)"", 1u, "Server display");
+    server13 = _Dvar_RegisterString("server13", (char *)"", 1u, "Server display");
+    server14 = _Dvar_RegisterString("server14", (char *)"", 1u, "Server display");
+    server15 = _Dvar_RegisterString("server15", (char *)"", 1u, "Server display");
+    server16 = _Dvar_RegisterString("server16", (char *)"", 1u, "Server display");
     ui_netSource = _Dvar_RegisterInt(
                                      "ui_netSource",
                                      1,
@@ -3378,8 +3490,8 @@ void UI_RegisterDvars()
                                          (char *)"",
                                          0x40u,
                                          "Passes on close arguments to a menu.");
-    _Dvar_RegisterString("notice_onEscArg", (char *)"", 0x40u, "UI Notice EscArg");
-    _Dvar_RegisterString("statusinfo_onEscArg", (char *)"", 0x40u, "UI Statusinfo EscArg");
+    notice_onEscArg = _Dvar_RegisterString("notice_onEscArg", (char *)"", 0x40u, "UI Notice EscArg");
+    statusinfo_onEscArg =_Dvar_RegisterString("statusinfo_onEscArg", (char *)"", 0x40u, "UI Statusinfo EscArg");
     ui_ethernetLinkActive = _Dvar_RegisterBool(
                                                         "ui_ethernetLinkActive",
                                                         1,
@@ -3402,8 +3514,8 @@ void UI_RegisterDvars()
                                                      0,
                                                      0x40u,
                                                      "Whether or not the profile has been read.");
-    _Dvar_RegisterInt("emblem_scroll_delay_first", 150, 0, 1000, 0, "First repeat delay for emblem editor");
-    _Dvar_RegisterInt("emblem_scroll_delay_rest", 50, 0, 1000, 0, "Repeat delay for emblem editor");
+    emblem_scroll_delay_first = _Dvar_RegisterInt("emblem_scroll_delay_first", 150, 0, 1000, 0, "First repeat delay for emblem editor");
+    emblem_scroll_delay_rest = _Dvar_RegisterInt("emblem_scroll_delay_rest", 50, 0, 1000, 0, "Repeat delay for emblem editor");
     UI_Project_RegisterDvars();
     UI_FriendsRegisterDvars();
     UI_RegisterDvars_PC();

@@ -6649,7 +6649,7 @@ void __cdecl IsProfileSignedIn(int localClientNum, itemDef_s *item, OperandStack
     {
         __debugbreak();
     }
-    result.internals.intVal = controllerIndex < 0 || Gamer//Profile_IsProfileLoggedIn(controllerIndex);
+    result.internals.intVal = controllerIndex < 0 || GamerProfile_IsProfileLoggedIn(controllerIndex);
     AddOperandToStack(dataStack, &result);
 }
 

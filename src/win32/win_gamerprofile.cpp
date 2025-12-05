@@ -1,17 +1,20 @@
 #include "win_gamerprofile.h"
+#include <universal/dvar.h>
+#include <universal/assertive.h>
+#include <stringed/stringed_hooks.h>
 
 void __cdecl ResetCreateAClassNames(int controllerIndex)
 {
-    SetDvarFromLocString(controllerIndex, "customclass1", "CLASS_SLOT1_CAPS");
-    SetDvarFromLocString(controllerIndex, "customclass2", "CLASS_SLOT2_CAPS");
-    SetDvarFromLocString(controllerIndex, "customclass3", "CLASS_SLOT3_CAPS");
-    SetDvarFromLocString(controllerIndex, "customclass4", "CLASS_SLOT4_CAPS");
-    SetDvarFromLocString(controllerIndex, "customclass5", "CLASS_SLOT5_CAPS");
-    SetDvarFromLocString(controllerIndex, "prestigeclass1", "CLASS_PRESTIGE1");
-    SetDvarFromLocString(controllerIndex, "prestigeclass2", "CLASS_PRESTIGE2");
-    SetDvarFromLocString(controllerIndex, "prestigeclass3", "CLASS_PRESTIGE3");
-    SetDvarFromLocString(controllerIndex, "prestigeclass4", "CLASS_PRESTIGE4");
-    SetDvarFromLocString(controllerIndex, "prestigeclass5", "CLASS_PRESTIGE5");
+    SetDvarFromLocString(controllerIndex, "customclass1",   (char*)"CLASS_SLOT1_CAPS");
+    SetDvarFromLocString(controllerIndex, "customclass2",   (char*)"CLASS_SLOT2_CAPS");
+    SetDvarFromLocString(controllerIndex, "customclass3",   (char*)"CLASS_SLOT3_CAPS");
+    SetDvarFromLocString(controllerIndex, "customclass4",   (char*)"CLASS_SLOT4_CAPS");
+    SetDvarFromLocString(controllerIndex, "customclass5",   (char*)"CLASS_SLOT5_CAPS");
+    SetDvarFromLocString(controllerIndex, "prestigeclass1", (char*)"CLASS_PRESTIGE1");
+    SetDvarFromLocString(controllerIndex, "prestigeclass2", (char*)"CLASS_PRESTIGE2");
+    SetDvarFromLocString(controllerIndex, "prestigeclass3", (char*)"CLASS_PRESTIGE3");
+    SetDvarFromLocString(controllerIndex, "prestigeclass4", (char*)"CLASS_PRESTIGE4");
+    SetDvarFromLocString(controllerIndex, "prestigeclass5", (char*)"CLASS_PRESTIGE5");
 }
 
 void __cdecl SetDvarFromLocString(int controllerIndex, const char *dvarName, char *preLocalizedText)
@@ -35,7 +38,7 @@ void __cdecl SetDvarFromLocString(int controllerIndex, const char *dvarName, cha
         Dvar_SetCommand(dvarName, preLocalizedText);
 }
 
-GamerSettingState *__cdecl Gamer//Profile_GetProfileSettings(int controllerIndex)
+GamerSettingState *__cdecl GamerProfile_GetProfileSettings(int controllerIndex)
 {
     if ( controllerIndex
         && !Assert_MyHandler(
@@ -51,7 +54,7 @@ GamerSettingState *__cdecl Gamer//Profile_GetProfileSettings(int controllerIndex
     return &gamerSettings[controllerIndex];
 }
 
-bool __cdecl Gamer//Profile_IsProfileLoggedIn(int controllerIndex)
+bool __cdecl GamerProfile_IsProfileLoggedIn(int controllerIndex)
 {
     if ( controllerIndex
         && !Assert_MyHandler(
@@ -67,7 +70,7 @@ bool __cdecl Gamer//Profile_IsProfileLoggedIn(int controllerIndex)
     return gamerSettings[controllerIndex].isProfileLoggedIn;
 }
 
-bool __cdecl Gamer//Profile_WasErrorOnRead(int controllerIndex)
+bool __cdecl GamerProfile_WasErrorOnRead(int controllerIndex)
 {
     if ( controllerIndex
         && !Assert_MyHandler(
@@ -83,17 +86,17 @@ bool __cdecl Gamer//Profile_WasErrorOnRead(int controllerIndex)
     return gamerSettings[controllerIndex].errorOnRead;
 }
 
-int __cdecl Gamer//Profile_GetPlaylistNum(int controllerIndex)
+int __cdecl GamerProfile_GetPlaylistNum(int controllerIndex)
 {
     return gamerSettings[controllerIndex].playlist;
 }
 
-void __cdecl Gamer//Profile_SetPlaylistNum(int controllerIndex, int playlistNum)
+void __cdecl GamerProfile_SetPlaylistNum(int controllerIndex, int playlistNum)
 {
     gamerSettings[controllerIndex].playlist = playlistNum;
 }
 
-void __cdecl Gamer//Profile_ExecControllerBindings(int controllerIndex)
+void __cdecl GamerProfile_ExecControllerBindings(int controllerIndex)
 {
     GamerSettingState *v1; // eax
     char *v2; // eax
@@ -137,7 +140,7 @@ void __cdecl Gamer//Profile_ExecControllerBindings(int controllerIndex)
     }
 }
 
-void __cdecl Gamer//Profile_UpdateDvarsFromProfile(int controllerIndex)
+void __cdecl GamerProfile_UpdateDvarsFromProfile(int controllerIndex)
 {
     const char *v1; // eax
     const char *v2; // eax
@@ -232,7 +235,7 @@ void __cdecl Gamer//Profile_UpdateDvarsFromProfile(int controllerIndex)
         CL_SanitizeClanName();
         String = Dvar_GetString("clanName");
         I_strncpyz(gamerSettings[controllerIndex].clanPrefix, String, 5);
-        v4 = va("Gamer//Profile_UpdateDvarsFromProfile(%i):", controllerIndex);
+        v4 = va("GamerProfile_UpdateDvarsFromProfile(%i):", controllerIndex);
         DebugReportProfileDVars(v4);
     }
     else
@@ -269,7 +272,7 @@ void __cdecl ResetCreateAClassNames(int controllerIndex)
     SetDvarFromLocString_0(controllerIndex, "prestigeclass5", "CLASS_PRESTIGE5_CAPS");
 }
 
-void __cdecl Gamer//Profile_UpdateProfileFromDvars(int controllerIndex, profileWriteState_t profileWriteState)
+void __cdecl GamerProfile_UpdateProfileFromDvars(int controllerIndex, profileWriteState_t profileWriteState)
 {
     const char *v2; // eax
     const char *v3; // eax
@@ -307,7 +310,7 @@ void __cdecl Gamer//Profile_UpdateProfileFromDvars(int controllerIndex, profileW
     {
         __debugbreak();
     }
-    v2 = va("Gamer//Profile_UpdateProfileFromDvars(%i):", controllerIndex);
+    v2 = va("GamerProfile_UpdateProfileFromDvars(%i):", controllerIndex);
     DebugReportProfileDVars(v2);
     memcpy(&oldSettings, &gamerSettings[controllerIndex], sizeof(oldSettings));
     v3 = va("Updating profile %i from dvars.\n", controllerIndex);
@@ -343,7 +346,7 @@ void __cdecl Gamer//Profile_UpdateProfileFromDvars(int controllerIndex, profileW
         else
         {
             I_strncpyz(gamerSettings[controllerIndex].gpadSticksConfig, gpad_sticksConfig->current.string, 256);
-            Gamer//Profile_ExecControllerBindings(controllerIndex);
+            GamerProfile_ExecControllerBindings(controllerIndex);
             gamerSettings[controllerIndex].gpadButtonLStickDeflect = gpad_button_lstick_deflect_max->current.value;
             gamerSettings[controllerIndex].gpadButtonRStickDeflect = gpad_button_rstick_deflect_max->current.value;
             gamerSettings[controllerIndex].demoControllerConfig = demo_controllerConfig->current.integer;
@@ -405,10 +408,10 @@ void __cdecl Gamer//Profile_UpdateProfileFromDvars(int controllerIndex, profileW
     if ( gamerSettings[controllerIndex].isProfileLoggedIn && !gamerSettings[controllerIndex].errorOnRead )
     {
         if ( !writeProfile )
-            writeProfile = Gamer//Profile_IsNewLocalProfile(controllerIndex);
+            writeProfile = GamerProfile_IsNewLocalProfile(controllerIndex);
         if ( writeProfile )
         {
-            Gamer//Profile_SaveProfile(controllerIndex);
+            GamerProfile_SaveProfile(controllerIndex);
             gamerSettings[controllerIndex].loadoutDirty = 0;
         }
     }
@@ -425,7 +428,7 @@ void __cdecl Gamer//Profile_UpdateProfileFromDvars(int controllerIndex, profileW
     gamerSettings[controllerIndex].isInitialized = 1;
 }
 
-void __cdecl Gamer//Profile_SaveProfile(int controllerIndex)
+void __cdecl GamerProfile_SaveProfile(int controllerIndex)
 {
     if ( controllerIndex
         && !Assert_MyHandler(
@@ -458,12 +461,12 @@ void __cdecl Gamer//Profile_SaveProfile(int controllerIndex)
     {
         __debugbreak();
     }
-    Gamer//Profile_CreateExeBindingsConfig(controllerIndex);
-    Gamer//Profile_CreateCommonBindingsConfig(controllerIndex);
+    GamerProfile_CreateExeBindingsConfig(controllerIndex);
+    GamerProfile_CreateCommonBindingsConfig(controllerIndex);
     //BLOPS_NULLSUB();
 }
 
-void __cdecl Gamer//Profile_CreateExeBindingsConfig(int controllerIndex)
+void __cdecl GamerProfile_CreateExeBindingsConfig(int controllerIndex)
 {
     const char *v1; // eax
 
@@ -488,21 +491,21 @@ void __cdecl Gamer//Profile_CreateExeBindingsConfig(int controllerIndex)
     {
         __debugbreak();
     }
-    v1 = va("Gamer//Profile_CreateExeBindingsConfig( %i ):", controllerIndex);
+    v1 = va("GamerProfile_CreateExeBindingsConfig( %i ):", controllerIndex);
     DebugReportProfileDVars(v1);
     memset(
         (unsigned __int8 *)gamerSettings[controllerIndex].exeSettingsBuffer,
         0,
         sizeof(gamerSettings[controllerIndex].exeSettingsBuffer));
-    Gamer//Profile_AppendDvarListToConfig(gamerSettings[controllerIndex].exeSettingsBuffer, 0x3E8u, mpDvarList);
-    Gamer//Profile_AppendDvarListToConfig(gamerSettings[controllerIndex].exeSettingsBuffer, 0x3E8u, nonResetMPDvarList);
-    Gamer//Profile_AppendDvarListToConfig(gamerSettings[controllerIndex].exeSettingsBuffer, 0x3E8u, customClassDvars);
-    Gamer//Profile_AppendByteListToConfig(
+    GamerProfile_AppendDvarListToConfig(gamerSettings[controllerIndex].exeSettingsBuffer, 0x3E8u, mpDvarList);
+    GamerProfile_AppendDvarListToConfig(gamerSettings[controllerIndex].exeSettingsBuffer, 0x3E8u, nonResetMPDvarList);
+    GamerProfile_AppendDvarListToConfig(gamerSettings[controllerIndex].exeSettingsBuffer, 0x3E8u, customClassDvars);
+    GamerProfile_AppendByteListToConfig(
         gamerSettings[controllerIndex].exeSettingsBuffer,
         0x3E8u,
         gamerSettings[controllerIndex].classLoadouts[0],
         0xAAu);
-    Gamer//Profile_AppendByteListToConfig(
+    GamerProfile_AppendByteListToConfig(
         gamerSettings[controllerIndex].exeSettingsBuffer,
         0x3E8u,
         gamerSettings[controllerIndex].killstreaks,
@@ -510,7 +513,7 @@ void __cdecl Gamer//Profile_CreateExeBindingsConfig(int controllerIndex)
     gamerSettings[controllerIndex].exeSettingsBuffer[strlen(gamerSettings[controllerIndex].exeSettingsBuffer)] = 0;
 }
 
-void __cdecl Gamer//Profile_AppendDvarListToConfig(char *buffer, unsigned int size, const char **dvarNameList)
+void __cdecl GamerProfile_AppendDvarListToConfig(char *buffer, unsigned int size, const char **dvarNameList)
 {
     const char *v3; // eax
     char *stringToCopy; // [esp+50h] [ebp-21Ch]
@@ -567,7 +570,7 @@ void __cdecl Gamer//Profile_AppendDvarListToConfig(char *buffer, unsigned int si
     }
 }
 
-void __cdecl Gamer//Profile_AppendByteListToConfig(
+void __cdecl GamerProfile_AppendByteListToConfig(
                 char *buffer,
                 unsigned int bufSize,
                 unsigned __int8 *data,
@@ -619,7 +622,7 @@ void __cdecl Gamer//Profile_AppendByteListToConfig(
     }
 }
 
-void __cdecl Gamer//Profile_CreateCommonBindingsConfig(int controllerIndex)
+void __cdecl GamerProfile_CreateCommonBindingsConfig(int controllerIndex)
 {
     if ( controllerIndex
         && !Assert_MyHandler(
@@ -646,31 +649,31 @@ void __cdecl Gamer//Profile_CreateCommonBindingsConfig(int controllerIndex)
         (unsigned __int8 *)gamerSettings[controllerIndex].commonSettingsBuffer,
         0,
         sizeof(gamerSettings[controllerIndex].commonSettingsBuffer));
-    Gamer//Profile_AppendDvarListToConfig(gamerSettings[controllerIndex].commonSettingsBuffer, 0x3E8u, commonDvarList);
-    Gamer//Profile_AppendDvarListToConfig(
+    GamerProfile_AppendDvarListToConfig(gamerSettings[controllerIndex].commonSettingsBuffer, 0x3E8u, commonDvarList);
+    GamerProfile_AppendDvarListToConfig(
         gamerSettings[controllerIndex].commonSettingsBuffer,
         0x3E8u,
         commonXProfileDvarList);
     gamerSettings[controllerIndex].commonSettingsBuffer[strlen(gamerSettings[controllerIndex].commonSettingsBuffer)] = 0;
 }
 
-bool __cdecl Gamer//Profile_IsNewLocalProfile(int controllerIndex)
+bool __cdecl GamerProfile_IsNewLocalProfile(int controllerIndex)
 {
     return &gamerSettings[controllerIndex].exeSettingsBuffer[strlen(gamerSettings[controllerIndex].exeSettingsBuffer) + 1] == &gamerSettings[controllerIndex].exeSettingsBuffer[1]
             || &gamerSettings[controllerIndex].commonSettingsBuffer[strlen(gamerSettings[controllerIndex].commonSettingsBuffer)
                                                                                                                         + 1] == &gamerSettings[controllerIndex].commonSettingsBuffer[1];
 }
 
-void __cdecl Gamer//Profile_InitAllProfiles()
+void __cdecl GamerProfile_InitAllProfiles()
 {
     memset((unsigned __int8 *)gamerSettings, 0, sizeof(gamerSettings));
     //BLOPS_NULLSUB();
     //BLOPS_NULLSUB();
     //BLOPS_NULLSUB();
-    Gamer//Profile_UpdateProfileFromDvars(0, PROFILE_NO_WRITE);
+    GamerProfile_UpdateProfileFromDvars(0, PROFILE_NO_WRITE);
 }
 
-void __cdecl Gamer//Profile_LogInProfile(int controllerIndex)
+void __cdecl GamerProfile_LogInProfile(int controllerIndex)
 {
     if ( controllerIndex
         && !Assert_MyHandler(
@@ -687,7 +690,7 @@ void __cdecl Gamer//Profile_LogInProfile(int controllerIndex)
     gamerSettings[controllerIndex].errorOnRead = 0;
 }
 
-void __cdecl Gamer//Profile_LogOutProfile(int controllerIndex)
+void __cdecl GamerProfile_LogOutProfile(int controllerIndex)
 {
     if ( controllerIndex
         && !Assert_MyHandler(
@@ -702,6 +705,6 @@ void __cdecl Gamer//Profile_LogOutProfile(int controllerIndex)
     }
     Com_Printf(16, "Logging out gamerprofile on controller %i\n", controllerIndex);
     //BLOPS_NULLSUB();
-    Gamer//Profile_UpdateProfileFromDvars(controllerIndex, PROFILE_NO_WRITE);
+    GamerProfile_UpdateProfileFromDvars(controllerIndex, PROFILE_NO_WRITE);
 }
 

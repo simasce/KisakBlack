@@ -70,6 +70,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Users\M1911\Documents\kisak-COD\blops\kisakblack\src;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -419,6 +423,7 @@
     <ClCompile Include="src\gfx_d3d\rb_superflare.cpp" />
     <ClCompile Include="src\gfx_d3d\rb_tess.cpp" />
     <ClCompile Include="src\gfx_d3d\r_add_bsp.cpp" />
+    <ClCompile Include="src\gfx_d3d\r_add_cmdbuf.cpp" />
     <ClCompile Include="src\gfx_d3d\r_add_staticmodel.cpp" />
     <ClCompile Include="src\gfx_d3d\r_adszscale.cpp" />
     <ClCompile Include="src\gfx_d3d\r_bsp.cpp" />
@@ -1212,6 +1217,7 @@
     <ClInclude Include="src\clientscript\cscr_vm.h" />
     <ClInclude Include="src\clientscript\cscr_yacc.h" />
     <ClInclude Include="src\clientscript\scr_const.h" />
+    <ClInclude Include="src\client\client.h" />
     <ClInclude Include="src\client\cl_cin.h" />
     <ClInclude Include="src\client\cl_compositing.h" />
     <ClInclude Include="src\client\cl_console.h" />
@@ -1410,6 +1416,7 @@
     <ClInclude Include="src\gfx_d3d\rb_superflare.h" />
     <ClInclude Include="src\gfx_d3d\rb_tess.h" />
     <ClInclude Include="src\gfx_d3d\r_add_bsp.h" />
+    <ClInclude Include="src\gfx_d3d\r_add_cmdbuf.h" />
     <ClInclude Include="src\gfx_d3d\r_add_staticmodel.h" />
     <ClInclude Include="src\gfx_d3d\r_adszscale.h" />
     <ClInclude Include="src\gfx_d3d\r_bsp.h" />
@@ -1654,6 +1661,7 @@
     <ClInclude Include="src\ragdoll\ragdoll_controller.h" />
     <ClInclude Include="src\ragdoll\ragdoll_quat.h" />
     <ClInclude Include="src\ragdoll\ragdoll_update.h" />
+    <ClInclude Include="src\server\server.h" />
     <ClInclude Include="src\server\sv_autoplaylist.h" />
     <ClInclude Include="src\server\sv_game.h" />
     <ClInclude Include="src\server\sv_live_stats.h" />

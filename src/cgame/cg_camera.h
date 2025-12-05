@@ -1,4 +1,21 @@
 #pragma once
+#include "cg_weapons.h"
+
+enum CameraMode : __int32
+{                                       // XREF: Camera/r
+    CAM_NORMAL              = 0x0,
+    CAM_LINKED              = 0x1,
+    CAM_VEHICLE             = 0x2,
+    CAM_VEHICLE_THIRDPERSON = 0x3,
+    CAM_VEHICLE_GUNNER      = 0x4,
+    CAM_TURRET              = 0x5,
+    CAM_MISSILE             = 0x6,
+    CAM_EXTRACAM            = 0x7,
+    CAM_RADIANT             = 0x8,
+    CAM_TOP_DOWN            = 0x9,
+};
+
+struct cg_s;
 
 void __cdecl InterpolateAnglesSmooth(float *curAngles, float *initialAngles, float *targetAngles, float t);
 void __cdecl InterpolatePositionSmooth(float *curPos, const float *initialPos, const float *targetPos, float t);
@@ -72,8 +89,7 @@ void __cdecl CG_ExtraCamDebug_SaveView(int localClientNum);
 void __cdecl CG_CalcFov_ExtraCam(int localClientNum);
 void __cdecl CG_ExtraCam_GetViewOrigin(int localClientNum, float *out);
 bool __cdecl CG_ExtraCamIsActive(int localClientNum);
-clientActive_t *__cdecl CL_GetLocalClientGlobals(int localClientNum);
-int __cdecl CL_GetLocalClientConnectionState(int localClientNum);
+
 ExtraCamClientStateRestore *__thiscall ExtraCamClientStateRestore::ExtraCamClientStateRestore(
                 ExtraCamClientStateRestore *this,
                 int localClientNum);

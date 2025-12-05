@@ -1,8 +1,26 @@
 #include "cl_compositing.h"
+#include <gfx_d3d/r_material.h>
+#include <gfx_d3d/r_streamalloc.h>
+#include <gfx_d3d/r_stream.h>
+#include <qcommon/threads.h>
+#include <bgame/bg_emblems.h>
+#include <gfx_d3d/r_singlethreaded_device_pc.h>
+#include <gfx_d3d/rb_logfile.h>
+#include <gfx_d3d/r_dvars.h>
+#include <gfx_d3d/r_init.h>
+#include <qcommon/common.h>
+#include <gfx_d3d/rb_resource.h>
+#include <gfx_d3d/r_rendercmds.h>
+
+CompositeJob s_jobs[4];
+
+int s_jobID = 1;
+
+IDirect3DQuery9 *s_compositingFence;
 
 void __cdecl CL_CompositeSetupImageCallback(unsigned int *param)
 {
-    *param = CL_CompositeSetupImage();
+    *param = (unsigned int)CL_CompositeSetupImage();
 }
 
 GfxImage *__cdecl CL_CompositeSetupImage()
@@ -204,7 +222,7 @@ void __cdecl R_HW_InsertFence(IDirect3DQuery9 **fence)
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("(*fence)->Issue( (1 << 0) )\n");
     v2 = R_AcquireDXDeviceOwnership(0);
-    hr = (*fence)->Issue(*fence, 1u);
+    hr = (*fence)->Issue(1);
     if ( v2 )
         R_ReleaseDXDeviceOwnership();
     if ( hr < 0 )
@@ -368,7 +386,6 @@ void __cdecl CL_CompositeRender()
                 R_AddCmdProjectionSet2D();
                 R_AddCmdClearScreen(1, colorBlackBlank, 1.0, 0);
                 CL_CompositeDrawEmblemPhysical(
-                    (GfxColor)&savedregs,
                     0.0,
                     0.0,
                     256.0,

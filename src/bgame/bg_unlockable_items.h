@@ -187,7 +187,6 @@ void __cdecl BG_UnlockableItemsInit();
 void __cdecl BG_UnlockablesPurchaseClanTagFeatureCmd();
 void __cdecl BG_UnlockablesPurchaseCurrentItemAttachmentCmd();
 void __cdecl BG_UnlockablesPurchaseItemAttachmentPointCmd();
-int __cdecl Cmd_Argc();
 void __cdecl BG_UnlockablesPurchaseCurrentItemCmd();
 void __cdecl BG_UnlockablesPurchaseItemCmd();
 void __cdecl BG_UnlockablesSellCurrentItemCmd();

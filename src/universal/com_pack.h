@@ -12,6 +12,13 @@ union PackedUnitVec // sizeof=0x4
     unsigned __int8 array[4];
 };
 
+union PackedLightingCoords // sizeof=0x4
+{                                       // XREF: R_SkinXSurfaceStaticVerts+E1/w
+                                        // R_SkinXSurfaceStaticVerts+ED/r ...
+    unsigned int packed;
+    unsigned __int8 array[4];
+};
+
 PackedUnitVec __cdecl Vec3PackUnitVec(const float *unitVec);
 void __cdecl Vec3UnpackUnitVec(PackedUnitVec in, float *out);
 int __cdecl Vec4PackQuat(const float *in);

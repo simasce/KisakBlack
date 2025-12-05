@@ -217,6 +217,8 @@ float __cdecl Vec3NormalizeTo(const vec3r v, vec3r out);
 float __cdecl Vec2Normalize(float *v);
 void __cdecl Vec3Cross(const float *v0, const float *v1, float *cross);
 float __cdecl Vec3Dot(const vec3r a, const vec3r b);
+void __cdecl Vec3Min(const float *a, const float *b, float *result);
+void __cdecl Vec3Max(const float *a, const float *b, float *result);
 
 void __cdecl Vec4Lerp(const float *from, const float *to, float frac, float *result);
 float __cdecl Vec4Normalize(float *v);

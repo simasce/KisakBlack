@@ -884,3 +884,32 @@ void __cdecl Demo_DownloadFile(
                 bool isUserFile,
                 bool renderIt);
 //void __thiscall demoRecordedFileUploadInfo::~demoRecordedFileUploadInfo(demoRecordedFileUploadInfo *this);
+
+
+extern const dvar_t *demo_enabled;
+extern const dvar_t *demo_recordBasicTraining;
+extern const dvar_t *demo_recordPrivateMatch;
+extern const dvar_t *demo_filesizeLimit;
+extern const dvar_t *demo_debug;
+extern const dvar_t *demo_drawdebuginformation;
+extern const dvar_t *demo_errortitle;
+extern const dvar_t *demo_errormessage;
+extern const dvar_t *demo_client;
+extern const dvar_t *demo_recordingrate;
+extern const dvar_t *demo_keyframerate;
+extern const dvar_t *demo_pause;
+extern const dvar_t *demo_usefilesystem;
+extern const dvar_t *demo_save_smp;
+extern const dvar_t *demo_timescale;
+extern const dvar_t *demo_timeScaleRate;
+extern const dvar_t *demo_cmdNum;
+extern const dvar_t *demo_bookmarkEventThresholdTime;
+extern const dvar_t *demo_controllerConfig;
+extern const dvar_t *demo_defaultSegmentTag;
+extern const dvar_t *demo_selectedSegmentIndex;
+extern const dvar_t *demo_desiredTime;
+extern const dvar_t *demo_desiredClient;
+extern const dvar_t *demo_packetsPerSecondMin;
+extern const dvar_t *demo_bytesPerSecondMin;
+extern const dvar_t *demo_packetsPerSecondMax;
+extern const dvar_t *demo_bytesPerSecondMax;

@@ -1,11 +1,9 @@
 #include "r_add_bsp.h"
+#include "r_add_cmdbuf.h"
 
 void __cdecl R_InitBspDrawSurf(GfxSModelDrawSurfLightingData *surfData)
 {
-    surfData->delayedCmdBuf.primDrawSurfPos = -1;
-    surfData->delayedCmdBuf.primDrawSurfSize = 0;
-    *(unsigned int *)&surfData->delayedCmdBuf.drawSurfKey.fields = -1;
-    HIDWORD(surfData->delayedCmdBuf.drawSurfKey.packed) = -1;
+    R_InitDelayedCmdBuf(&surfData->delayedCmdBuf);
 }
 
 void __cdecl R_AddBspDrawSurfs(

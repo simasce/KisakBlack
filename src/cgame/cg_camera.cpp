@@ -2999,38 +2999,6 @@ bool __cdecl CG_ExtraCamIsActive(int localClientNum)
     return r_missile_cam_debug_display->current.integer != 0;
 }
 
-clientActive_t *__cdecl CL_GetLocalClientGlobals(int localClientNum)
-{
-    if ( localClientNum
-        && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\cgame\\../client/client.h",
-                    192,
-                    0,
-                    "%s\n\t(localClientNum) = %i",
-                    "(localClientNum == 0)",
-                    localClientNum) )
-    {
-        __debugbreak();
-    }
-    return clients;
-}
-
-int __cdecl CL_GetLocalClientConnectionState(int localClientNum)
-{
-    if ( localClientNum
-        && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\cgame\\../client/client.h",
-                    217,
-                    0,
-                    "%s\n\t(localClientNum) = %i",
-                    "(localClientNum == 0)",
-                    localClientNum) )
-    {
-        __debugbreak();
-    }
-    return dword_FB2C3C;
-}
-
 ExtraCamClientStateRestore *__thiscall ExtraCamClientStateRestore::ExtraCamClientStateRestore(
                 ExtraCamClientStateRestore *this,
                 int localClientNum)

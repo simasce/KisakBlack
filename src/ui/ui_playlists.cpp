@@ -1402,8 +1402,8 @@ void __cdecl Playlist_ValidatePlaylistNum()
     num = Playlist_GetPlaylistCount();
     for ( controllerIndex = 0; controllerIndex < 1; ++controllerIndex )
     {
-        if ( num <= Gamer//Profile_GetPlaylistNum(controllerIndex) || Gamer//Profile_GetPlaylistNum(controllerIndex) < 0 )
-            Gamer//Profile_SetPlaylistNum(controllerIndex, 0);
+        if ( num <= GamerProfile_GetPlaylistNum(controllerIndex) || GamerProfile_GetPlaylistNum(controllerIndex) < 0 )
+            GamerProfile_SetPlaylistNum(controllerIndex, 0);
     }
 }
 

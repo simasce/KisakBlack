@@ -1,4 +1,361 @@
 #pragma once
+#include "ui_main.h"
+#include <database/db_registry.h>
+#include <gfx_d3d/r_font.h>
+
+enum language_t : __int32
+{                                       // XREF: Item_ListBox_PaintTextElem/r
+                                        // Item_ListBox_LanguageScale/r
+    LANGUAGE_ENGLISH        = 0x0,
+    LANGUAGE_FRENCH         = 0x1,
+    LANGUAGE_FRENCHCANADIAN = 0x2,
+    LANGUAGE_GERMAN         = 0x3,
+    LANGUAGE_AUSTRIAN       = 0x4,
+    LANGUAGE_ITALIAN        = 0x5,
+    LANGUAGE_SPANISH        = 0x6,
+    LANGUAGE_BRITISH        = 0x7,
+    LANGUAGE_RUSSIAN        = 0x8,
+    LANGUAGE_POLISH         = 0x9,
+    LANGUAGE_KOREAN         = 0xA,
+    LANGUAGE_JAPANESE       = 0xB,
+    LANGUAGE_CZECH          = 0xC,
+    MAX_LANGUAGES           = 0xD,
+};
+
+enum itemGroup_t : __int32
+{                                       // XREF: itemInfo_t/r
+                                        // LiveStats_UpdateGroupStatsMilestones/r ...
+    ITEMGROUP_SMG                = 0x0,
+    ITEMGROUP_FIRST              = 0x0,
+    ITEMGROUP_ASSAULT            = 0x1,
+    ITEMGROUP_CQB                = 0x2,
+    ITEMGROUP_LMG                = 0x3,
+    ITEMGROUP_SNIPER             = 0x4,
+    ITEMGROUP_PISTOL             = 0x5,
+    ITEMGROUP_LAUNCHER           = 0x6,
+    ITEMGROUP_SPECIAL            = 0x7,
+    ITEMGROUP_SHOTGUN            = 0x8,
+    ITEMGROUP_EXPLOSIVE          = 0x9,
+    ITEMGROUP_GRENADE            = 0xA,
+    ITEMGROUP_MASTERKEY          = 0xB,
+    ITEMGROUP_GRENADELAUNCHER    = 0xC,
+    ITEMGROUP_FLAMETHROWER       = 0xD,
+    ITEMGROUP_SPECIALTY          = 0xE,
+    ITEMGROUP_SPECIALGRENADE     = 0xF,
+    ITEMGROUP_INVENTORY          = 0x10,
+    ITEMGROUP_HEAD               = 0x11,
+    ITEMGROUP_HEADGEAR           = 0x12,
+    ITEMGROUP_BODY               = 0x13,
+    ITEMGROUP_MISCWEAPON         = 0x14,
+    ITEMGROUP_FEATURE            = 0x15,
+    ITEMGROUP_DEATHSTREAK        = 0x16,
+    ITEMGROUP_GLOBAL_ITEMS_START = 0x17,
+    ITEMGROUP_KILLSTREAK         = 0x17,
+    ITEMGROUP_COUNT              = 0x18,
+    ITEMGROUP_INVALID            = 0xFFFFFFFF,
+};
+
+struct Material;
+struct Font_s;
+struct snd_alias_list_t;
+
+struct CachedAssets_t // sizeof=0x58
+{                                       // XREF: sharedUiInfo_t/r
+    Material *scrollBarArrowUp;         // XREF: UI_AssetCache+4E/w
+    Material *scrollBarArrowDown;       // XREF: UI_AssetCache+3A/w
+    Material *scrollBarArrowLeft;       // XREF: UI_AssetCache+62/w
+                                        // Item_ListBox_Paint+F4/r
+    Material *scrollBarArrowRight;      // XREF: UI_AssetCache+76/w
+                                        // Item_ListBox_Paint+1C5/r
+    Material *scrollBar;                // XREF: UI_AssetCache+26/w
+                                        // Item_ListBox_Paint+160/r ...
+    Material *scrollBarThumb;           // XREF: UI_AssetCache+8A/w
+                                        // Item_ListBox_Paint:loc_77292A/r ...
+    Material *sliderBar;                // XREF: UI_AssetCache+9E/w
+    Material *sliderThumb;              // XREF: UI_AssetCache+B2/w
+                                        // UI_DrawStatsMilestonesFeederProgressBar(int,int,rectDef_s const *,int,int)+2C7/r ...
+    Material *whiteMaterial;            // XREF: UI_FillRectPhysical(float,float,float,float,float const * const)+3/r
+                                        // UI_FillRectPhysical(float,float,float,float,float const * const)+C/r ...
+    Material *cursor;                   // XREF: UI_Refresh(int)+355/r
+                                        // UI_AssetCache+102/w
+    Material *dvarlistArrowLeft;        // XREF: UI_AssetCache+C6/w
+                                        // Item_Text_Paint+364/r
+    Material *dvarlistArrowRight;       // XREF: UI_AssetCache+DA/w
+                                        // Item_Text_Paint+3D3/r
+    Material *line;                     // XREF: UI_DrawPrettyLine(int,float * const,float * const,float,int,int,float * const)+24A/r
+                                        // UI_AssetCache+EE/w
+    Material *blur;                     // XREF: UI_Project_AssetCache(void)+12/w
+                                        // UI_DrawBlurMaterial+AB/r
+    Material *lineGraph;                // XREF: UI_Project_AssetCache(void)+26/w
+                                        // UI_DrawLineGraphSegment(int,float * const,float * const,rectDef_s *)+113/r
+    Font_s *bigFont;                    // XREF: UI_GetFontHandleDefault(float)+5E/r
+                                        // UI_GetFontHandle(ScreenPlacement const *,int,float)+A/r ...
+    Font_s *smallFont;                  // XREF: UI_GetFontHandleDefault(float)+1C/r
+                                        // UI_GetFontHandle(ScreenPlacement const *,int,float)+1A/r ...
+    Font_s *consoleFont;                // XREF: UI_GetFontHandle(ScreenPlacement const *,int,float)+3A/r
+                                        // UI_AssetCache+13E/w
+    Font_s *boldFont;                   // XREF: UI_GetFontHandle(ScreenPlacement const *,int,float)+BC/r
+                                        // UI_AssetCache+152/w
+    Font_s *textFont;                   // XREF: UI_GetFontHandleDefault(float):loc_745F05/r
+                                        // UI_GetFontHandle(ScreenPlacement const *,int,float)+2A/r ...
+    Font_s *extraBigFont;               // XREF: UI_GetFontHandleDefault(float)+3D/r
+                                        // UI_GetFontHandle(ScreenPlacement const *,int,float)+4A/r ...
+    snd_alias_list_t *itemFocusSound;
+};
+
+struct gameTypeInfo // sizeof=0x74
+{                                       // XREF: sharedUiInfo_t/r
+                                        // sharedUiInfo_t/r ...
+    char gameType[12];                  // XREF: UI_FeederItemText_CustomGametypes(int)+21/o
+                                        // UI_FeederItemText_GametypesBase(int,int,int,int,itemDef_s *,listBoxDef_s *,Material * *)+82/o ...
+    char gameTypeName[32];              // XREF: UI_GetGameTypeDisplayShortName(char const *)+44/o
+                                        // UI_GetGameTypesList_FastFile+165/o ...
+    char gameTypeShortName[32];         // XREF: UI_GetGameTypeDisplayNameCaps(char const *)+44/o
+                                        // UI_GetGameTypesList_FastFile+1EB/o ...
+    char gameTypeNameCaps[32];          // XREF: UI_LoadCustomMatchGameTypes(void)+13C/w
+                                        // UI_LoadCustomMatchGameTypes(void)+14E/w
+    int splitscreen;                    // XREF: UI_GetBasicTrainingGameTypeCount+30/r
+                                        // UI_GetBasicTrainingGametypeIdForNum+30/r ...
+    int basictraining;                  // XREF: UI_Project_FeederCount(int,int,float,listBoxDef_s *):$LN42_6/r
+};
+
+struct customGameTypeInfo // sizeof=0xF0
+{                                       // XREF: sharedUiInfo_t/r
+    char gameType[12];
+    char gameTypeName[32];
+    char gameTypeDesc[128];
+    char fileName[32];
+    char gameTypeNameCaps[32];
+    int splitscreen;                    // XREF: UI_Project_FeederCount(int,int,float,listBoxDef_s *):$LN41_9/r
+                                        // UI_Project_FeederCount(int,int,float,listBoxDef_s *):loc_734656/r ...
+};
+
+struct mapInfo // sizeof=0x130
+{                                       // XREF: sharedUiInfo_t/r
+    char mapName[32];                   // XREF: UI_GetMapLoadNameForCurrentIndex(int)+3B/o
+                                        // UI_GetMapLoadNameForCurrentIndex(int)+5C/o ...
+    char mapLoadName[24];               // XREF: UI_LoadArenas(void)+1C3/o
+                                        // UI_LoadMaps(void)+23F/o ...
+    char mapNameCaps[32];               // XREF: UI_LoadMaps(void)+27C/w
+                                        // UI_LoadMaps(void)+291/w
+    int splitscreen;                    // XREF: UI_FeederDoubleClickDlcMaps(int,int,int)+1E/o
+                                        // UI_LoadMaps(void)+1F9/o
+    char mapPackType[16];               // XREF: UI_FeederDoubleClickDlcMaps(int,int,int)+C/r
+                                        // UI_LoadMaps(void)+214/w
+    int mapPackTypeIndex;               // XREF: UI_LoadArenas(void)+20E/o
+                                        // UI_GetLevelShot(int)+38/o
+    char imageName[42];
+    // padding byte
+    // padding byte
+    const char *opponentName;
+    int teamMembers;                    // XREF: UI_LoadArenas(void)+25B/w
+                                        // UI_LoadArenas(void)+305/r ...
+    int typeBits;
+    int timeToBeat[32];                 // XREF: UI_LoadArenas(void)+1DD/w
+                                        // UI_GetLevelShot(int)+24/r ...
+    Material *levelShot;                // XREF: UI_GetListIndexFromMapIndex(int)+6E/r
+                                        // UI_MapCountByGameType(void)+3E/w ...
+    int active;                         // XREF: UI_LoadMaps(void)+105/o
+};
+
+struct contentPackInfo // sizeof=0x10
+{                                       // XREF: sharedUiInfo_t/r
+    char mapPackName[16];
+};
+
+struct modInfo_t // sizeof=0x8
+{                                       // XREF: sharedUiInfo_t/r
+    const char *modName;                // XREF: UI_FeederItemText_Mods+17/r
+                                        // UI_FeederItemText_Mods+24/r ...
+    const char *modDescr;               // XREF: UI_FeederCount(int,int,float,listBoxDef_s *):$LN22_13/r
+                                        // UI_FeederItemText_Mods+C/r ...
+};
+
+struct serverStatusInfo_s // sizeof=0x14A4
+{                                       // XREF: $D349527935E9920CD1D59819DFE4C1D2/r
+                                        // sharedUiInfo_t/r ...
+    char address[64];
+    const char *lines[128][8];          // XREF: UI_FeederCount(int,int,float,listBoxDef_s *):$LN19_12/r
+                                        // UI_FeederItemText_ServerStatus+C/r ...
+    char text[1024];
+    char pings[96];
+    int numLines;                       // XREF: UI_BuildFindPlayerList(void)+F6/r
+};
+
+struct pendingServerStatus_t // sizeof=0x8C4
+{                                       // XREF: sharedUiInfo_t/r
+    int num;
+    pendingServer_t server[16];         // XREF: UI_FeederCount(int,int,float,listBoxDef_s *):$LN18_16/r
+                                        // UI_FeederItemText_ServerStatusScoreboard+C/r ...
+};
+
+struct sharedUiInfo_t // sizeof=0x261D0
+{                                       // XREF: .data:sharedUiInfo_t sharedUiInfo/r
+    CachedAssets_t assets;              // XREF: UI_FillRectPhysical(float,float,float,float,float const * const)+3/r
+                                        // UI_FillRectPhysical(float,float,float,float,float const * const)+C/r ...
+    // padding byte                     // XREF: UI_FeederCount(int,int,float,listBoxDef_s *):loc_72DF92/r
+                                        // UI_BuildPlayerList+6A/w ...
+    // padding byte
+    // padding byte
+    // padding byte
+    int playerCount;                    // XREF: UI_BuildPlayerList+C9/o
+                                        // UI_BuildPlayerList+E0/o ...
+    char playerNames[32][32];
+    char teamNames[32][32];             // XREF: UI_BuildPlayerList+5D/o
+                                        // UI_BuildPlayerList+B3/w ...
+    int playerClientNums[32];           // XREF: UI_LoadArenas(void)+2CA/r
+                                        // UI_GetGameTypeDisplayName(char const *)+19/r ...
+    int numGameTypes;                   // XREF: UI_LoadArenas(void)+2D8/o
+                                        // UI_GetGameTypeDisplayName(char const *)+27/o ...
+    gameTypeInfo gameTypes[32];         // XREF: UI_OverrideCursorPos_CustomGametypes(int,listBoxDef_s *)+B/r
+                                        // UI_GetGameTypeDisplayName(char const *)+44/o ...
+    int numCustomGameTypes;
+    customGameTypeInfo customGameTypes[32];
+                                        // XREF: UI_Project_FeederCount(int,int,float,listBoxDef_s *):$LN41_9/r
+                                        // UI_Project_FeederCount(int,int,float,listBoxDef_s *):loc_734656/r ...
+    int numCustomMatchGameTypes;        // XREF: UI_FeederItemText_GametypesBase(int,int,int,int,itemDef_s *,listBoxDef_s *,Material * *)+109/o
+                                        // UI_FeederItemText_GametypesBase(int,int,int,int,itemDef_s *,listBoxDef_s *,Material * *)+17F/o ...
+    gameTypeInfo customMatchGameTypes[32];
+                                        // XREF: UI_GetBasicTrainingGameTypeCount+30/r
+                                        // UI_FeederItemText_CustomGametypes(int)+21/o ...
+    int gameTypeMapCount[32];           // XREF: UI_OwnerDrawWidth(int,Font_s *,float)+5C/r
+                                        // UI_JoinGameType_HandleKey(int,int):loc_7548AD/r ...
+    int numJoinGameTypes;               // XREF: UI_BuildServerDisplayList(int,uiInfo_s *,int)+784/o
+                                        // UI_GetGameTypesList(void)+29/o ...
+    gameTypeInfo joinGameTypes[32];     // XREF: UI_Project_FeederCount(int,int,float,listBoxDef_s *):$LN42_6/r
+                                        // UI_FeederItemText_Maps(int,itemDef_s *,int,int,Material * *)+65/r ...
+    int mapCount;                       // XREF: UI_FeederItemText_Maps(int,itemDef_s *,int,int,Material * *)+76/o
+                                        // UI_LoadArenas(void)+18F/o ...
+    mapInfo mapList[128];               // XREF: UI_FeederDoubleClickDlcMaps(int,int,int)+C/r
+                                        // UI_FeederDoubleClickDlcMaps(int,int,int)+1E/o ...
+    contentPackInfo contentPackList[8];
+    Material *serverHardwareIconList[10];
+                                        // XREF: UI_FeederItemText_Mods+43/r
+                                        // UI_RunMenuScript(int,int,char const * *,char const *)+5FE/r ...
+    modInfo_t modList[64];              // XREF: UI_FeederCount(int,int,float,listBoxDef_s *):$LN22_13/r
+                                        // UI_FeederItemText_Mods+C/r ...
+    int modCount;                       // XREF: UI_FeederSelection(int,int,float,int)+152/w
+                                        // UI_RunMenuScript(int,int,char const * *,char const *)+2DD/w ...
+    int modIndex;                       // XREF: BG_UnlockablesPurchaseCurrentItemAttachmentCmd+9/r
+                                        // BG_UnlockablesPurchaseCurrentItemCmd+3/r ...
+    int itemIndex;                      // XREF: UI_Project_FeederCount(int,int,float,listBoxDef_s *)+203/w
+                                        // UI_FeederItemText_ItemInSlot+B8/w ...
+    int itemNum;                        // XREF: UI_FeederItemText_CommonListColorHandler(int,bool,bool,int)+1B/w
+                                        // UI_FeederItemText_CommonListColorHandler(int,bool,bool,int)+63/w ...
+    float itemColor[4];                 // XREF: BG_UnlockablesPurchaseCurrentItemAttachmentCmd+3/r
+                                        // BG_UnlockablesEquipClassCurrentAttachmentCmd+B8/r ...
+    int attachmentNum;                  // XREF: UI_Project_FeederCount(int,int,float,listBoxDef_s *)+13F/w
+                                        // UI_Project_FeederCount(int,int,float,listBoxDef_s *)+144/r ...
+    int numAttachments;                 // XREF: UI_Project_FeederCount(int,int,float,listBoxDef_s *)+19D/w
+                                        // UI_Project_FeederCount(int,int,float,listBoxDef_s *)+1AC/r ...
+    int numItemsInSlot;                 // XREF: BG_UnlockablesPurchaseCurrentItemOptionCmd+D/r
+                                        // BG_UnlockablesEquipClassCurrentOptionCmd+C1/r ...
+    int optionIndex;                    // XREF: GetSortedStatsForFriendOrSelf+12A/r
+                                        // ChangeSortedStatsPivot+33/r ...
+    int sortedItemPivot;                // XREF: GetSortedStatsForFriendOrSelf+94/r
+                                        // GetSortedStatsForFriendOrSelf+ED/r ...
+    int numSortedItems;                 // XREF: BG_UnlockablesPurchaseClanTagFeatureCmd+3/r
+                                        // UI_FeederSelection(int,int,float,int)+1E4/w ...
+    int clanTagFeature;
+    //$A48C1D473939E002B61DABFCB910C7B1 ___u31;
+    union //$A48C1D473939E002B61DABFCB910C7B1 // sizeof=0x1566C
+    {                                       // XREF: UI_FeederCount(int,int,float,listBoxDef_s *)+E8/r
+                                            // UI_FeederCount(int,int,float,listBoxDef_s *):loc_72DF42/r ...
+        char serverStatus[82460];
+        struct
+        {
+            char serverStatusAddress[64];
+            char serverStatusSecurityID[8];
+            serverStatusInfo_s serverStatusInfo;
+        };
+        //$D349527935E9920CD1D59819DFE4C1D2 __s1;
+    };
+                                        // XREF: UI_FeederCount(int,int,float,listBoxDef_s *)+E8/r
+                                        // UI_FeederCount(int,int,float,listBoxDef_s *):loc_72DF42/r ...
+    serverStatusInfo_s serverStatusInfoScoreBoard;
+                                        // XREF: UI_FeederCount(int,int,float,listBoxDef_s *):$LN19_12/r
+                                        // UI_FeederItemText_ServerStatus+C/r ...
+    int nextServerStatusRefresh;
+    int nextServerStatusScoreBoardRefresh;
+    pendingServerStatus_t pendingServerStatus;
+                                        // XREF: UI_FeederCount(int,int,float,listBoxDef_s *):$LN18_16/r
+                                        // UI_FeederItemText_ServerStatusScoreboard+C/r ...
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    unsigned __int64 visibilityBits[1];
+    unsigned __int64 localVisibilityBits[1];
+    int contractIndex;
+    Material *loadingScreen;
+};
+
+struct cursor_t // sizeof=0x8
+{                                       // XREF: UiContext/r
+    float x;
+    float y;
+};
+
+struct scrollInfo_s // sizeof=0x20
+{                                       // XREF: .data:scrollInfo/r
+                                        // scrollInfo_t/r
+    int nextScrollTime;                 // XREF: Item_StartCapture+70/w
+    int nextAdjustTime;                 // XREF: Item_StartCapture+81/w
+    int adjustValue;                    // XREF: Item_StartCapture+86/w
+    int scrollKey;                      // XREF: Item_StartCapture+93/w
+                                        // Item_StartCapture+E3/w ...
+    float xStart;                       // XREF: Item_StartCapture+F9/w
+                                        // Item_StartCapture+180/w
+    float yStart;                       // XREF: Item_StartCapture+109/w
+                                        // Item_StartCapture+190/w
+    itemDef_s *item;                    // XREF: Item_StartCapture+B1/w
+                                        // Item_StartCapture+EB/w ...
+    int scrollDir;                      // XREF: Item_StartCapture+A8/w
+};
+
+struct UiContext // sizeof=0x1828
+{                                       // XREF: .data:uiInfo_s * uiInfoArray/r
+                                        // uiInfo_s/r ...
+    int contextIndex;
+    float bias;
+    int realTime;
+    int frameTime;
+    cursor_t cursor;
+    cursor_t prevCursor;
+    int isCursorVisible;
+    int screenWidth;
+    int screenHeight;
+    float screenAspect;
+    float FPS;
+    float blurRadiusOut;
+    BlurStackEntry blurMenuStack[8];
+    int blurMenuStackIndex;
+    menuDef_t *Menus[600];
+    int menuCount;
+    menuClientNum_t menuStack[16];
+    int openMenuCount;
+    bool enableSlideAndFadeEffectForMenu;
+    // padding byte
+    // padding byte
+    // padding byte
+    UILocalVarContext localVars;
+};
+
+struct __declspec(align(4)) nestingStackElem_t // sizeof=0xC
+{                                       // XREF: nestingStack_t/r
+    int constructID;
+    int blockID;
+    bool outcome;
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
+struct nestingStack_t // sizeof=0x304
+{                                       // XREF: ?Item_RunSingleEventScript@@YAXHPAUUiContext@@PAUitemDef_s@@PAUGenericEventScript@@@Z/r
+    int top;                            // XREF: Item_RunSingleEventScript(int,UiContext *,itemDef_s *,GenericEventScript *)+9/w
+    nestingStackElem_t members[64];
+};
 
 void __cdecl Menu_Setup(UiContext *dc);
 void __cdecl LerpColor(float *a, float *b, float *c, float t);
@@ -68,7 +425,6 @@ void __cdecl Menus_ShowByName(const UiContext *dc, const char *windowName);
 void __cdecl Menus_CloseByName(int localClientNum, UiContext *dc, const char *p);
 void __cdecl Menus_Close(int localClientNum, UiContext *dc, menuDef_t *menu);
 void    Menu_RunLeaveFocusScript(
-                GenericEventHandler *a1@<ebp>,
                 int localClientNum,
                 UiContext *dc,
                 menuDef_t *menu);
@@ -76,8 +432,8 @@ itemDef_s *__cdecl Menu_ClearFocus(int localClientNum, UiContext *dc, menuDef_t 
 int __cdecl Menus_RemoveFromStack(int localClientNum, UiContext *dc, menuDef_t *pMenu);
 void __cdecl Menu_GainFocusDueToClose(int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Menu_CallOnFocusDueToOpen(int localClientNum, UiContext *dc, menuDef_t *menu);
-void    Menu_RunFocusScript(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
-void    Menu_RunCloseScript(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
+void    Menu_RunFocusScript(int localClientNum, UiContext *dc, menuDef_t *menu);
+void    Menu_RunCloseScript(int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Menus_CompleteItemAnimations(int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Menus_ClearFlagsOnClose(int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Menus_CloseImmediateByName(int localClientNum, UiContext *dc, const char *p);
@@ -114,7 +470,7 @@ void __cdecl Script_Close(int localClientNum, UiContext *dc, itemDef_s *item, co
 void __cdecl Script_CloseImmediate(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_InGameOpen(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_InGameClose(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
-void __cdecl Script_FocusFirstInMenu(int localClientNum, UiContext *dc, itemDef_s *item);
+void __cdecl Script_FocusFirstInMenu(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 itemDef_s *__cdecl Menu_FocusFirstSelectableItem(int localClientNum, UiContext *dc, menuDef_t *menu);
 int __cdecl Menu_GetCursorItem(int contextIndex, menuDef_t *menu);
 void __cdecl Script_SetFocus(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
@@ -124,7 +480,7 @@ void __cdecl Script_SetDvar(int localClientNum, UiContext *dc, itemDef_s *item, 
 void __cdecl Script_ResetDvar(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_ExecKeyHandler(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_ExecKeyPress(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
-void __cdecl Script_Exec(int localClientNum, UiContext *dc, itemDef_s *item, char **args);
+void __cdecl Script_Exec(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_ExecHandler(
                 int localClientNum,
                 int controllerIndex,
@@ -132,7 +488,7 @@ void __cdecl Script_ExecHandler(
                 char **args,
                 void (__cdecl *textCallback)(int, int, itemDef_s *, const char *));
 void __cdecl Script_AddTextWrapper(int localClientNum, int controllerIndex, itemDef_s *__formal, const char *text);
-void __cdecl Script_ExecNow(int localClientNum, UiContext *dc, itemDef_s *item, char **args);
+void __cdecl Script_ExecNow(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_ExecDvar(int localClientNum, UiContext *dc, itemDef_s *item, const char **args);
 void __cdecl Script_ExecOnDvarStringValue(int localClientNum, UiContext *dc, itemDef_s *item, char **args);
 void __cdecl Script_ConditionalExecHandler(
@@ -252,7 +608,7 @@ void __cdecl Menus_AddToStack(int localClientNum, UiContext *dc, menuDef_t *pMen
 void __cdecl Menu_LoseFocusDueToOpen(int localClientNum, UiContext *dc, menuDef_t *menu);
 int __cdecl Menus_OpenByName(int localClientNum, UiContext *dc, const char *p);
 int __cdecl Menus_OpenImmediateByName(int localClientNum, UiContext *dc, const char *p);
-void    Menus_SetupOpenMenu(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
+void    Menus_SetupOpenMenu(int localClientNum, UiContext *dc, menuDef_t *menu);
 itemDef_s *__cdecl Menu_SetNextCursorItem(
                 int localClientNum,
                 UiContext *dc,
@@ -261,8 +617,8 @@ itemDef_s *__cdecl Menu_SetNextCursorItem(
                 int usedKeyboard);
 int __cdecl Item_HasFocusEvent(int localClientNum, UiContext *dc, itemDef_s *item);
 void __cdecl Menus_PrintAllLoadedMenus(UiContext *dc);
-int    Menu_CheckOnKey@<eax>(int a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu, int key);
-void    Menu_HandleKey(int a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu, int key, int down);
+int    Menu_CheckOnKey(int localClientNum, UiContext *dc, menuDef_t *menu, int key);
+void    Menu_HandleKey(int localClientNum, UiContext *dc, menuDef_t *menu, int key, int down);
 itemDef_s *__cdecl Item_LoseFocus(int localClientNum, UiContext *dc, itemDef_s *item);
 bool __cdecl Item_IsModal(itemDef_s *item);
 int __cdecl Item_ListBox_HandleKey(int localClientNum, UiContext *dc, itemDef_s *item, int key, int down, int force);
@@ -394,10 +750,9 @@ void __cdecl Item_Listbox_Mouse_Column_Set(int localClientNum, int contextIndex,
 void __cdecl Item_MouseLeave(int localClientNum, UiContext *dc, itemDef_s *item);
 void __cdecl Item_SetMouseOver(const UiContext *dc, itemDef_s *item, int focus);
 bool __cdecl IsVisible(char flags);
-char    Menu_IsVisible@<al>(GenericEventHandler *a1@<ebp>, int localClientNum, UiContext *dc, menuDef_t *menu);
+char    Menu_IsVisible(int localClientNum, UiContext *dc, menuDef_t *menu);
 void __cdecl Menu_PerformTransitionEffects(int localClientNum, UiContext *dc, menuDef_t *menu);
-char    Menu_Paint@<al>(
-                GenericEventHandler *a1@<ebp>,
+char    Menu_Paint(
                 int localClientNum,
                 UiContext *dc,
                 ScreenPlacementStack *scrPlaceViewStack,
@@ -484,3 +839,7 @@ int __cdecl UI_GetForcedMenuScreen();
 int __cdecl UI_GetMenuScreenForError();
 char __cdecl Menu_DoesMenuOrParentsHaveControlFlag(UiContext *dc, menuDef_t *menu, int controlFlag);
 void __cdecl UI_SetLoadingScreenMaterial();
+
+
+
+extern sharedUiInfo_t sharedUiInfo;

@@ -1,4 +1,7 @@
 #include "cl_cin.h"
+#include <gfx_d3d/r_cinematic.h>
+#include <universal/dvar.h>
+#include <universal/q_shared.h>
 
 void __cdecl SCR_DrawCinematic()
 {

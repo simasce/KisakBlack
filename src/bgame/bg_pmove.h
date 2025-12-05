@@ -163,8 +163,7 @@ void __thiscall colgeom_visitor_inlined_t<200>::update(
                 const float *mins,
                 const float *maxs,
                 int mask);
-void __cdecl Vec3Min(const float *a, const float *b, float *result);
-void __cdecl Vec3Max(const float *a, const float *b, float *result);
+
 void __thiscall colgeom_visitor_inlined_t<200>::update(
                 colgeom_visitor_inlined_t<200> *this,
                 const float *_mn,

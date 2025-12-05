@@ -1,5 +1,37 @@
 #pragma once
 
+enum HU_ALLOCATION_SCHEME : __int32
+{                                                                             // XREF: HunkUser/r
+    HU_SCHEME_DEFAULT = 0x0,
+    HU_SCHEME_DEBUG = 0x1,
+    HU_SCHEME_FIRSTFIT = 0x2,
+    HU_SCHEME_FIXED = 0x3,
+    HU_SCHEME_COUNT = 0x4,
+};
+
+struct HunkUser // sizeof=0x10
+{                                                                             // XREF: HunkUserDefault/r
+    HU_ALLOCATION_SCHEME scheme;
+    unsigned int flags;
+    const char *name;
+    int type;
+};
+
+struct __declspec(align(4)) HunkUserDefault // sizeof=0x2C
+{
+    HunkUser hunkUser;
+    HunkUserDefault *current;
+    HunkUserDefault *next;
+    int maxSize;
+    int end;
+    int pos;
+    int locked;
+    unsigned __int8 buf[1];
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
 HunkUser *__cdecl Hunk_UserDebugInit(
                 unsigned int *buffer,
                 int size,
@@ -20,9 +52,9 @@ HunkUser *__cdecl Hunk_UserDefaultInit(
                 void *scheme_specific_data,
                 const char *name,
                 int type);
-void __cdecl Hunk_UserDefaultReset(HunkUser *_user);
+void __cdecl Hunk_UserDefaultReset(HunkUserDefault *_user);
 void __cdecl Hunk_UserDefaultDestroy(HunkUser *_user);
-int __cdecl Hunk_UserDefaultAlloc(HunkUser *_user, unsigned int size, int alignment, const char *name);
+int __cdecl Hunk_UserDefaultAlloc(HunkUserDefault *_user, unsigned int size, int alignment, const char *name);
 void __cdecl Hunk_UserDefaultFree(HunkUser *user, void *ptr);
 void __cdecl Hunk_UserStartup();
 void __cdecl Hunk_UserShutdown();
@@ -45,5 +77,5 @@ void *__cdecl Hunk_UserAlloc(HunkUser *user, int size, int alignment, const char
 void __cdecl Hunk_UserFree(HunkUser *user, void *ptr);
 void __cdecl Hunk_UserReset(HunkUser *user);
 void __cdecl Hunk_UserDestroy(HunkUser *user);
-void __cdecl Hunk_UserSetPos(HunkUser *_user, const char **pos);
+void __cdecl Hunk_UserSetPos(HunkUserDefault *_user, const char **pos);
 char *__cdecl Hunk_CopyString(HunkUser *user, const char *in);

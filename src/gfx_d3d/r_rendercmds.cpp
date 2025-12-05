@@ -1,4 +1,9 @@
 #include "r_rendercmds.h"
+#include "r_pointlights.h"
+#include "r_dpvs.h"
+#include "r_model_lighting.h"
+
+GfxBackEndData *frontEndDataOut;
 
 void __cdecl R_InitRenderCommands()
 {

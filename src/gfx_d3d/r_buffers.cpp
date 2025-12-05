@@ -1,30 +1,19 @@
 #include "r_buffers.h"
+#include <universal/assertive.h>
+#include "r_singlethreaded_device_pc.h"
+#include "r_init.h"
+#include "r_dvars.h"
+#include <universal/q_shared.h>
+#include "rb_logfile.h"
+#include <qcommon/common.h>
+#include "r_utils.h"
+#include <qcommon/threads.h>
+#include "rb_resource.h"
+#include <universal/com_memory.h>
+#include "r_rendercmds.h"
+#include "r_water_sim.h"
 
-void __cdecl R_ReleaseAndSetNULL<IDirect3DIndexBuffer9>(
-                IDirect3DSurface9 *var,
-                const char *fn,
-                const char *filename,
-                int line)
-{
-    const char *v4; // eax
-    unsigned int useCount; // [esp+0h] [ebp-4h]
-
-    if ( !var && !Assert_MyHandler("c:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_types_d3d.h", 208, 0, "%s", "var") )
-        __debugbreak();
-    useCount = ((int (__thiscall *)(IDirect3DSurface9 *, IDirect3DSurface9 *))var->Release)(var, var);
-    if ( useCount )
-    {
-        v4 = va("%s (%i) %s->Release() failed: %i leak(s)!", filename, line, fn, useCount);
-        if ( !Assert_MyHandler(
-                        "c:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_types_d3d.h",
-                        220,
-                        0,
-                        "%s\n\t%s",
-                        "!useCount",
-                        v4) )
-            __debugbreak();
-    }
-}
+GfxBuffers gfxBuf;
 
 void *__cdecl R_LockVertexBuffer(
                 IDirect3DVertexBuffer9 *handle,
@@ -39,7 +28,7 @@ void *__cdecl R_LockVertexBuffer(
     if ( !handle && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_buffers.cpp", 134, 0, "%s", "handle") )
         __debugbreak();
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = handle->Lock(handle, offset, bytes, &bufferData, lockFlags);
+    hr = handle->Lock(offset, bytes, &bufferData, lockFlags);
     if ( hr < 0 )
         R_FatalLockError(hr);
     if ( semaphore )
@@ -54,7 +43,8 @@ void __cdecl R_UnlockVertexBuffer(IDirect3DVertexBuffer9 *handle)
     if ( !handle && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_buffers.cpp", 146, 0, "%s", "handle") )
         __debugbreak();
     semaphore = R_AcquireDXDeviceOwnership(0);
-    ((void (__thiscall *)(IDirect3DVertexBuffer9 *, IDirect3DVertexBuffer9 *))handle->Unlock)(handle, handle);
+    handle->Unlock();
+    //((void (__thiscall *)(IDirect3DVertexBuffer9 *, IDirect3DVertexBuffer9 *))handle->Unlock)(handle, handle);
     if ( semaphore )
         R_ReleaseDXDeviceOwnership();
 }
@@ -72,7 +62,7 @@ void *__cdecl R_LockIndexBuffer(
     if ( !handle && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_buffers.cpp", 157, 0, "%s", "handle") )
         __debugbreak();
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = handle->Lock(handle, offset, bytes, &bufferData, lockFlags);
+    hr = handle->Lock(offset, bytes, &bufferData, lockFlags);
     if ( hr < 0 )
         R_FatalLockError(hr);
     if ( semaphore )
@@ -87,7 +77,8 @@ void __cdecl R_UnlockIndexBuffer(IDirect3DIndexBuffer9 *handle)
     if ( !handle && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_buffers.cpp", 169, 0, "%s", "handle") )
         __debugbreak();
     semaphore = R_AcquireDXDeviceOwnership(0);
-    ((void (__thiscall *)(IDirect3DIndexBuffer9 *, IDirect3DIndexBuffer9 *))handle->Unlock)(handle, handle);
+    //((void (__thiscall *)(IDirect3DIndexBuffer9 *, IDirect3DIndexBuffer9 *))handle->Unlock)(handle, handle);
+    handle->Unlock();
     if ( semaphore )
         R_ReleaseDXDeviceOwnership();
 }
@@ -115,7 +106,7 @@ void *__cdecl R_AllocDynamicVertexBuffer(IDirect3DVertexBuffer9 **vb, int sizeIn
     if ( !r_loadForRenderer->current.enabled )
         return 0;
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = dx.device->CreateVertexBuffer(dx.device, sizeInBytes, 520u, 0, D3DPOOL_DEFAULT, vb, 0);
+    hr = dx.device->CreateVertexBuffer(sizeInBytes, 520u, 0, D3DPOOL_DEFAULT, vb, 0);
     if ( hr < 0 )
     {
         v3 = R_ErrorDescription(hr);
@@ -152,14 +143,14 @@ void *__cdecl R_AllocStaticVertexBuffer(IDirect3DVertexBuffer9 **vb, int sizeInB
         __debugbreak();
     }
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = dx.device->CreateVertexBuffer(dx.device, sizeInBytes, 8u, 0, D3DPOOL_DEFAULT, vb, 0);
+    hr = dx.device->CreateVertexBuffer(sizeInBytes, 8u, 0, D3DPOOL_DEFAULT, vb, 0);
     if ( hr < 0 )
     {
         v2 = R_ErrorDescription(hr);
         v3 = va("DirectX didn't create a %i-byte vertex buffer: %s\n", sizeInBytes, v2);
         R_FatalInitError(v3);
     }
-    hra = (*vb)->Lock(*vb, 0, 0, &vertexBufferData, 0);
+    hra = (*vb)->Lock(0, 0, &vertexBufferData, 0);
     if ( hra < 0 )
     {
         v4 = R_ErrorDescription(hra);
@@ -183,7 +174,8 @@ void __cdecl R_FinishStaticVertexBuffer(IDirect3DVertexBuffer9 *vb)
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("vb->Unlock()\n");
     v2 = R_AcquireDXDeviceOwnership(0);
-    hr = ((int (__thiscall *)(IDirect3DVertexBuffer9 *, IDirect3DVertexBuffer9 *))vb->Unlock)(vb, vb);
+    //hr = ((int (__thiscall *)(IDirect3DVertexBuffer9 *, IDirect3DVertexBuffer9 *))vb->Unlock)(vb, vb);
+    hr = vb->Unlock();
     if ( v2 )
         R_ReleaseDXDeviceOwnership();
     if ( hr < 0 )
@@ -232,7 +224,7 @@ void *__cdecl R_AllocDynamicIndexBuffer(IDirect3DIndexBuffer9 **ib, unsigned int
     if ( !r_loadForRenderer->current.enabled )
         return 0;
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = dx.device->CreateIndexBuffer(dx.device, sizeInBytes, 520u, D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0);
+    hr = dx.device->CreateIndexBuffer(sizeInBytes, 520u, D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0);
     if ( hr < 0 )
     {
         v3 = R_ErrorDescription(hr);
@@ -264,14 +256,15 @@ void *__cdecl R_AllocStaticIndexBuffer(IDirect3DIndexBuffer9 **ib, int sizeInByt
         __debugbreak();
     }
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = dx.device->CreateIndexBuffer(dx.device, sizeInBytes, 8u, D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0);
+    hr = dx.device->CreateIndexBuffer(sizeInBytes, 8u, D3DFMT_INDEX16, D3DPOOL_DEFAULT, ib, 0);
     if ( semaphore )
         R_ReleaseDXDeviceOwnership();
     if ( hr < 0 )
         return 0;
-    if ( (*ib)->Lock(*ib, 0, 0, &indexBufferData, 0) >= 0 )
+    if ( (*ib)->Lock(0, 0, &indexBufferData, 0) >= 0 )
         return indexBufferData;
-    (*ib)->Release(*ib);
+    //(*ib)->Release(*ib);
+    (*ib)->Release();
     return 0;
 }
 
@@ -287,7 +280,8 @@ void __cdecl R_FinishStaticIndexBuffer(IDirect3DIndexBuffer9 *ib)
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("ib->Unlock()\n");
     v2 = R_AcquireDXDeviceOwnership(0);
-    hr = ((int (__thiscall *)(IDirect3DIndexBuffer9 *, IDirect3DIndexBuffer9 *))ib->Unlock)(ib, ib);
+    //hr = ((int (__thiscall *)(IDirect3DIndexBuffer9 *, IDirect3DIndexBuffer9 *))ib->Unlock)(ib, ib);
+    hr = ib->Unlock();
     if ( v2 )
         R_ReleaseDXDeviceOwnership();
     if ( hr < 0 )
@@ -391,29 +385,29 @@ void __cdecl R_CreateDynamicBuffers()
     int bufferIterb; // [esp+0h] [ebp-8h]
     int bufferIterc; // [esp+0h] [ebp-8h]
 
-    for ( bufferIter = 0; bufferIter != 1; ++bufferIter )
+    for (bufferIter = 0; bufferIter != 1; ++bufferIter)
         R_InitDynamicVertexBufferState(&gfxBuf.dynamicVertexBufferPool[bufferIter], 0x100000);
     gfxBuf.dynamicVertexBuffer = gfxBuf.dynamicVertexBufferPool;
-    for ( bufferItera = 0; bufferItera != 2; ++bufferItera )
+    for (bufferItera = 0; bufferItera != 2; ++bufferItera)
     {
-        R_InitDynamicVertexBufferState(&gfxBuf.skinnedCacheVbPool[bufferItera], (int)&loc_800000);
+        R_InitDynamicVertexBufferState(&gfxBuf.skinnedCacheVbPool[bufferItera], 0x800000);
         gfxBuf.skinnedCacheVbPool[bufferItera].verts = (unsigned __int8 *)Z_VirtualAlloc(
-                                                                                                                                                gfxBuf.skinnedCacheVbPool[bufferItera].total,
-                                                                                                                                                "skinnedCacheVbPool",
-                                                                                                                                                19);
+            gfxBuf.skinnedCacheVbPool[bufferItera].total,
+            "skinnedCacheVbPool",
+            19);
     }
     R_InitTempSkinBuf();
     R_InitWaterSimulationVertexBuffers();
-    for ( bufferIterb = 0; bufferIterb != 1; ++bufferIterb )
+    for (bufferIterb = 0; bufferIterb != 1; ++bufferIterb)
         R_InitDynamicIndexBufferState(&gfxBuf.dynamicIndexBufferPool[bufferIterb], 0x100000);
     gfxBuf.dynamicIndexBuffer = gfxBuf.dynamicIndexBufferPool;
-    for ( bufferIterc = 0; bufferIterc != 2; ++bufferIterc )
+    for (bufferIterc = 0; bufferIterc != 2; ++bufferIterc)
     {
         R_InitDynamicIndexBufferState(&gfxBuf.preTessIndexBufferPool[bufferIterc], 0x100000);
         gfxBuf.preTessIndexBufferPool[bufferIterc].indices = (unsigned __int16 *)Z_VirtualAlloc(
-                                                                                                                                                             0x200000,
-                                                                                                                                                             "preTessIndexBuffer",
-                                                                                                                                                             19);
+            0x200000,
+            "preTessIndexBuffer",
+            19);
     }
     gfxBuf.preTessIndexBuffer = gfxBuf.preTessIndexBufferPool;
     gfxBuf.preTessBufferFrame = 0;

@@ -5,6 +5,7 @@
 #include <ui/ui_main.h>
 
 clientStatic_t cls;
+extern clientConnection_t *clientConnections;
 
 void __cdecl CL_AddReliableCommand(int localClientNum, const char *cmd)
 {
@@ -1264,9 +1265,9 @@ void __cdecl CL_UpdateProfileAfterGame(int controllerIndex)
     bool spectateThirdPerson; // [esp+3h] [ebp-1h]
 
     spectateThirdPerson = Dvar_GetInt(cg_spectateThirdPerson) != 0;
-    Gamer//Profile_UpdateDvarsFromProfile(controllerIndex);
+    GamerProfile_UpdateDvarsFromProfile(controllerIndex);
     Dvar_SetBool((dvar_s *)cg_spectateThirdPerson, spectateThirdPerson);
-    Gamer//Profile_UpdateProfileFromDvars(controllerIndex, PROFILE_WRITE_IF_CHANGED);
+    GamerProfile_UpdateProfileFromDvars(controllerIndex, PROFILE_WRITE_IF_CHANGED);
 }
 
 void __cdecl CL_CanNotConnect(int localClientNum, const char *msg)

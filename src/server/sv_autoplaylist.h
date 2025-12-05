@@ -1,4 +1,5 @@
 #pragma once
+#include <live/live_storage.h>
 
 void __cdecl SV_AP_DumpTable();
 bool __cdecl SV_AP_ParseControlFile(unsigned __int8 *controlFile);
@@ -18,4 +19,3 @@ void __cdecl SV_Groups_ParseGeos(const char *geoblob);
 void __cdecl SV_AP_Start();
 void __cdecl SV_AP_Frame();
 bool __cdecl SV_AP_ServerIsFull();
-dwFileTask *__thiscall dwFileTask::dwFileTask(dwFileTask *this);

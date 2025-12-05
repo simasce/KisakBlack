@@ -1,5 +1,21 @@
 #include "cl_main.h"
+#include <qcommon/com_clients.h>
+#include <live/live_win.h>
+#include <cgame/cg_compass.h>
+#include <flame/flame_system.h>
+#include <DW/dwMatchMaking.h>
+#include <cgame_mp/cg_consolecmds_mp.h>
+#include "splitscreen.h"
+#include <gfx_d3d/r_rendercmds.h>
+#include <client_mp/cl_main_pc_mp.h>
+#include <qcommon/cmd.h>
+#include <win32/win_gamerprofile.h>
 
+clientUIActive_t clientUIActives[1];
+
+bool s_dontUnlockControllers;
+
+static int g_doLiveFrameHack;
 void __cdecl CL_RunNetworkFrame(int localClientNum)
 {
     int i; // [esp+0h] [ebp-Ch]
@@ -147,23 +163,27 @@ void __cdecl CL_DrawFramedPicPhysical(
     R_AddCmdDrawFramed(x, y, w, h, thicknessW, thicknessH, thicknessTex, sides, color, material);
 }
 
+cmd_function_s CL_UpdateGamerProfile_VAR;
+cmd_function_s CL_CommitDvarToProfiles_VAR;
+cmd_function_s CL_UpdateDvarsFromProfile_VAR;
+cmd_function_s CL_UpdateProfileFromStats_VAR;
 void __cdecl CL_RegisterCommands()
 {
     CL_Platform_RegisterCommands();
-    Cmd_AddCommandInternal("updategamerprofile", CL_UpdateGamerProfile, &CL_UpdateGamer//Profile_VAR);
+    Cmd_AddCommandInternal("updategamerprofile", CL_UpdateGamerProfile, &CL_UpdateGamerProfile_VAR);
     Cmd_AddCommandInternal("commitdvartoprofiles", CL_CommitDvarToProfiles, &CL_CommitDvarToProfiles_VAR);
-    Cmd_AddCommandInternal("updatedvarsfromprofile", CL_UpdateDvarsFromProfile, &CL_UpdateDvarsFrom//Profile_VAR);
+    Cmd_AddCommandInternal("updatedvarsfromprofile", CL_UpdateDvarsFromProfile, &CL_UpdateDvarsFromProfile_VAR);
     Cmd_AddCommandInternal("updateprofilefromstats", CL_UpdateProfileFromStats, &CL_UpdateProfileFromStats_VAR);
 }
 
 void __cdecl CL_UpdateDvarsFromProfile()
 {
-    Gamer//Profile_UpdateDvarsFromProfile(0);
+    GamerProfile_UpdateDvarsFromProfile(0);
 }
 
 void __cdecl CL_UpdateGamerProfile()
 {
-    Gamer//Profile_UpdateProfileFromDvars(0, PROFILE_WRITE_IF_CHANGED);
+    GamerProfile_UpdateProfileFromDvars(0, PROFILE_WRITE_IF_CHANGED);
 }
 
 void __cdecl CL_CommitDvarToProfiles()
@@ -186,20 +206,20 @@ void __cdecl CL_CommitDvarToProfiles()
             dvarValue = dvar->current;
             if ( dvar->type == DVAR_TYPE_STRING )
                 I_strncpyz(dvarStringCopy, dvar->current.string, 1024);
-            Gamer//Profile_UpdateProfileFromDvars(originalControllerIndex, PROFILE_WRITE_IF_CHANGED);
+            GamerProfile_UpdateProfileFromDvars(originalControllerIndex, PROFILE_WRITE_IF_CHANGED);
             for ( controllerIndex = 0; controllerIndex < 1; ++controllerIndex )
             {
                 LocalClientNum = Com_ControllerIndex_GetLocalClientNum(controllerIndex);
                 if ( Com_LocalClient_IsBeingUsed(LocalClientNum) )
                 {
-                    Gamer//Profile_UpdateDvarsFromProfile(controllerIndex);
+                    GamerProfile_UpdateDvarsFromProfile(controllerIndex);
                     Dvar_SetDvarValueFromSource((dvar_s *)dvar, dvarValue, DVAR_SOURCE_INTERNAL);
                     if ( dvar->type == DVAR_TYPE_STRING )
                         Dvar_SetFromString((dvar_s *)dvar, dvarStringCopy);
-                    Gamer//Profile_UpdateProfileFromDvars(controllerIndex, PROFILE_WRITE_IF_CHANGED);
+                    GamerProfile_UpdateProfileFromDvars(controllerIndex, PROFILE_WRITE_IF_CHANGED);
                 }
             }
-            Gamer//Profile_UpdateDvarsFromProfile(originalControllerIndex);
+            GamerProfile_UpdateDvarsFromProfile(originalControllerIndex);
         }
     }
 }

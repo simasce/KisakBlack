@@ -1,6 +1,8 @@
 #include "devgui_util.h"
 
 #include <client_mp/cl_main_mp.h>
+#include <gfx_d3d/r_rendercmds.h>
+#include <gfx_d3d/r_font.h>
 
 unsigned int __cdecl DevGui_GetScreenWidth()
 {
@@ -251,95 +253,87 @@ void __cdecl DevGui_DrawQuad(const int (*vtxs)[2], const float *color)
     R_AddCmdDrawQuadPic(xy, color, cls.whiteMaterial);
 }
 
-void    DevGui_DrawLine(float a1@<ebp>, float *start, float *end, int width, const unsigned __int8 *color)
+void  DevGui_DrawLine(float *start, float *end, int width, const unsigned __int8 *color)
 {
-    float v5; // xmm0_4
-    float v6; // xmm0_4
-    float v7; // xmm0_4
-    float v8; // xmm0_4
-    double v9; // xmm0_8
-    long double v10; // [esp+2Ch] [ebp-7Ch] BYREF
-    float unpackedColor[4]; // [esp+38h] [ebp-70h]
-    float angle; // [esp+48h] [ebp-60h]
-    float v13; // [esp+4Ch] [ebp-5Ch]
-    float len; // [esp+50h] [ebp-58h] BYREF
-    float pos[2]; // [esp+54h] [ebp-54h]
-    float diff[3]; // [esp+5Ch] [ebp-4Ch]
-    float v17; // [esp+68h] [ebp-40h]
-    float v18; // [esp+6Ch] [ebp-3Ch]
-    float v19; // [esp+70h] [ebp-38h]
-    float br[3]; // [esp+74h] [ebp-34h]
-    float v21; // [esp+80h] [ebp-28h]
-    float v22; // [esp+84h] [ebp-24h]
-    float v23; // [esp+88h] [ebp-20h]
-    float v24; // [esp+8Ch] [ebp-1Ch]
-    float v25; // [esp+90h] [ebp-18h]
-    float tl[5]; // [esp+94h] [ebp-14h]
-    float retaddr; // [esp+A8h] [ebp+0h]
+    float h; // [esp+Ch] [ebp-C0h]
+    float x; // [esp+2Ch] [ebp-A0h]
+    float y; // [esp+30h] [ebp-9Ch]
+    float v7; // [esp+38h] [ebp-94h]
+    float v8; // [esp+3Ch] [ebp-90h]
+    float v9; // [esp+40h] [ebp-8Ch]
+    float v10; // [esp+44h] [ebp-88h]
+    float v11; // [esp+48h] [ebp-84h]
+    float v12; // [esp+4Ch] [ebp-80h]
+    float v13; // [esp+50h] [ebp-7Ch]
+    float v14; // [esp+54h] [ebp-78h]
+    float v15; // [esp+58h] [ebp-74h]
+    float v16; // [esp+70h] [ebp-5Ch]
+    float v17; // [esp+74h] [ebp-58h]
+    float v18; // [esp+78h] [ebp-54h]
+    float v19; // [esp+7Ch] [ebp-50h]
+    float v20; // [esp+80h] [ebp-4Ch]
+    float v21; // [esp+84h] [ebp-48h]
+    float v22; // [esp+88h] [ebp-44h]
+    float v23; // [esp+8Ch] [ebp-40h]
+    float pos; // [esp+90h] [ebp-3Ch]
+    float pos_4; // [esp+94h] [ebp-38h]
+    float diff[3]; // [esp+98h] [ebp-34h] BYREF
+    float tl[2]; // [esp+A4h] [ebp-28h]
+    float angle; // [esp+ACh] [ebp-20h]
+    float len; // [esp+B0h] [ebp-1Ch]
+    float br[2]; // [esp+B4h] [ebp-18h]
+    float unpackedColor[4]; // [esp+BCh] [ebp-10h] BYREF
 
-    tl[2] = a1;
-    tl[3] = retaddr;
-    tl[1] = *start;
-    tl[0] = *end;
-    if ( (float)(tl[0] - tl[1]) < 0.0 )
-        v5 = tl[0];
+    v22 = *start;
+    v23 = *end;
+    v15 = v23 - v22;
+    if (v15 < 0.0)
+        v14 = v23;
     else
-        v5 = tl[1];
-    v25 = v5;
-    v23 = v5;
-    v22 = start[1];
+        v14 = v22;
+    tl[0] = v14;
+    v20 = start[1];
     v21 = end[1];
-    if ( (float)(v21 - v22) < 0.0 )
-        v6 = v21;
+    v13 = v21 - v20;
+    if (v13 < 0.0)
+        v12 = v21;
     else
-        v6 = v22;
-    br[2] = v6;
-    v24 = v6;
-    br[1] = *start;
-    br[0] = *end;
-    if ( (float)(br[1] - br[0]) < 0.0 )
-        v7 = br[0];
+        v12 = v20;
+    tl[1] = v12;
+    v18 = *start;
+    v19 = *end;
+    v11 = v18 - v19;
+    if (v11 < 0.0)
+        v10 = v19;
     else
-        v7 = br[1];
-    v19 = v7;
-    v17 = v7;
-    diff[2] = start[1];
-    diff[1] = end[1];
-    if ( (float)(diff[2] - diff[1]) < 0.0 )
-        v8 = diff[1];
+        v10 = v18;
+    br[0] = v10;
+    v16 = start[1];
+    v17 = end[1];
+    v9 = v16 - v17;
+    if (v9 < 0.0)
+        v8 = v17;
     else
-        v8 = diff[2];
-    diff[0] = v8;
-    v18 = v8;
-    len = *end - *start;
-    pos[0] = end[1] - start[1];
-    pos[1] = 0.0f;
-    angle = (float)((float)(v17 - v23) / 2.0) + v23;
-    v13 = (float)((float)(v8 - v24) / 2.0) + v24;
-    unpackedColor[3] = Vec2Length(&len);
-    Vec3Normalize(&len);
-    unpackedColor[2] = len;
-    v9 = len;
-    __libm_sse2_acos(v10);
-    *(float *)&v9 = v9;
-    unpackedColor[1] = *(float *)&v9 * 57.295776;
-    if ( start[1] > end[1] )
-        LODWORD(unpackedColor[1]) ^= _mask__NegFloat_;
-    while ( unpackedColor[1] < 0.0 )
-        unpackedColor[1] = unpackedColor[1] + 360.0;
-    Byte4UnpackRgba(color, (float *)&v10);
-    R_AddCmdDrawStretchPicRotateXY(
-        angle - (float)(unpackedColor[3] / 2.0),
-        v13 - (float)(width / 2),
-        unpackedColor[3],
-        (float)width,
-        0.0,
-        0.0,
-        1.0,
-        1.0,
-        unpackedColor[1],
-        (const float *)&v10,
-        cls.whiteMaterial);
+        v8 = v16;
+    br[1] = v8;
+    diff[0] = *end - *start;
+    diff[1] = end[1] - start[1];
+    diff[2] = 0.0;
+    pos = (br[0] - tl[0]) / 2.0 + tl[0];
+    pos_4 = (v8 - tl[1]) / 2.0 + tl[1];
+    len = Vec2Length(diff);
+    Vec3Normalize(diff);
+    v7 = acos(diff[0]);
+    angle = v7 * 57.2957763671875;
+    if (start[1] > (double)end[1])
+        angle = -angle;
+    while (angle < 0.0)
+        angle = angle + 360.0;
+    Byte4UnpackRgba(color, unpackedColor);
+    h = (float)width;
+    y = pos_4 - (double)(width / 2);
+    x = pos - len / 2.0;
+    R_AddCmdDrawStretchPicRotateXY(x, y, len, h, 0.0, 0.0, 1.0, 1.0, angle, unpackedColor, cls.whiteMaterial);
 }
 
 void __cdecl DevGui_DrawFont(int x, int y, const unsigned __int8 *color, char *text, float xScale, float yScale)

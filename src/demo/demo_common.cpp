@@ -1,5 +1,36 @@
 #include "demo_common.h"
 
+#include <qcommon/cmd.h>
+
+const dvar_t *demo_enabled;
+const dvar_t *demo_recordBasicTraining;
+const dvar_t *demo_recordPrivateMatch;
+const dvar_t *demo_filesizeLimit;
+const dvar_t *demo_debug;
+const dvar_t *demo_drawdebuginformation;
+const dvar_t *demo_errortitle;
+const dvar_t *demo_errormessage;
+const dvar_t *demo_client;
+const dvar_t *demo_recordingrate;
+const dvar_t *demo_keyframerate;
+const dvar_t *demo_pause;
+const dvar_t *demo_usefilesystem;
+const dvar_t *demo_save_smp;
+const dvar_t *demo_timescale;
+const dvar_t *demo_timeScaleRate;
+const dvar_t *demo_cmdNum;
+const dvar_t *demo_bookmarkEventThresholdTime;
+const dvar_t *demo_controllerConfig;
+const dvar_t *demo_defaultSegmentTag;
+const dvar_t *demo_selectedSegmentIndex;
+const dvar_t *demo_desiredTime;
+const dvar_t *demo_desiredClient;
+const dvar_t *demo_packetsPerSecondMin;
+const dvar_t *demo_bytesPerSecondMin;
+const dvar_t *demo_packetsPerSecondMax;
+const dvar_t *demo_bytesPerSecondMax;
+
+
 void __cdecl Demo_RegisterDvars()
 {
     demo_enabled = _Dvar_RegisterBool("demo_enabled", 1, 0, "Used to turn the system on/off.");
@@ -147,6 +178,69 @@ void __cdecl Demo_RegisterDvars()
                                                          "Max amount of bytes to send per second before throttling.");
 }
 
+cmd_function_s Demo_StartRecord_f_VAR;
+cmd_function_s Demo_StartRecord_f_VAR_SERVER;
+cmd_function_s Demo_StopRecord_f_VAR;
+cmd_function_s Demo_StopRecord_f_VAR_SERVER;
+cmd_function_s Demo_Play_f_VAR;
+cmd_function_s Demo_Play_f_VAR_SERVER;
+cmd_function_s Demo_Stop_f_VAR;
+cmd_function_s Demo_Stop_f_VAR_SERVER;
+cmd_function_s Demo_Forward_f_VAR;
+cmd_function_s Demo_Forward_f_VAR_SERVER;
+cmd_function_s Demo_Back_f_VAR;
+cmd_function_s Demo_Back_f_VAR_SERVER;
+cmd_function_s Demo_Pause_f_VAR;
+cmd_function_s Demo_Pause_f_VAR_SERVER;
+cmd_function_s Demo_JumpToStart_f_VAR;
+cmd_function_s Demo_JumpToStart_f_VAR_SERVER;
+cmd_function_s Demo_TimeScale_f_VAR;
+cmd_function_s Demo_TimeScale_f_VAR_SERVER;
+cmd_function_s Demo_ToggleGameHud_f_VAR;
+cmd_function_s Demo_ToggleGameHud_f_VAR_SERVER;
+cmd_function_s Demo_ToggleDemoHud_f_VAR;
+cmd_function_s Demo_ToggleDemoHud_f_VAR_SERVER;
+cmd_function_s Demo_SwitchPlayer_f_VAR;
+cmd_function_s Demo_SwitchPlayer_f_VAR_SERVER;
+cmd_function_s Demo_SwitchCamera_f_VAR;
+cmd_function_s Demo_SwitchCamera_f_VAR_SERVER;
+cmd_function_s Demo_StartClipRecord_f_VAR;
+cmd_function_s Demo_StartClipRecord_f_VAR_SERVER;
+cmd_function_s Demo_PauseClipRecord_f_VAR;
+cmd_function_s Demo_PauseClipRecord_f_VAR_SERVER;
+cmd_function_s Demo_PreviewClip_f_VAR;
+cmd_function_s Demo_PreviewClip_f_VAR_SERVER;
+cmd_function_s Demo_DeleteClip_f_VAR;
+cmd_function_s Demo_DeleteClip_f_VAR_SERVER;
+cmd_function_s Demo_SaveAndUploadClip_f_VAR;
+cmd_function_s Demo_SaveAndUploadClip_f_VAR_SERVER;
+cmd_function_s Demo_SaveSegment_f_VAR;
+cmd_function_s Demo_SaveSegment_f_VAR_SERVER;
+cmd_function_s Demo_MoveSegment_f_VAR;
+cmd_function_s Demo_MoveSegment_f_VAR_SERVER;
+cmd_function_s Demo_DeleteSegment_f_VAR;
+cmd_function_s Demo_DeleteSegment_f_VAR_SERVER;
+cmd_function_s Demo_PreviewSegment_f_VAR;
+cmd_function_s Demo_PreviewSegment_f_VAR_SERVER;
+cmd_function_s Demo_SwitchDefaultSegmentTag_f_VAR;
+cmd_function_s Demo_SwitchDefaultSegmentTag_f_VAR_SERVER;
+cmd_function_s Demo_SwitchTransition_f_VAR;
+cmd_function_s Demo_SwitchTransition_f_VAR_SERVER;
+cmd_function_s Demo_Keyboard_f_VAR;
+cmd_function_s Demo_Keyboard_f_VAR_SERVER;
+cmd_function_s Demo_Screenshot_f_VAR;
+cmd_function_s Demo_Screenshot_f_VAR_SERVER;
+cmd_function_s Demo_SaveScreenshot_f_VAR;
+cmd_function_s Demo_SaveScreenshot_f_VAR_SERVER;
+cmd_function_s Demo_RenderMovie_f_VAR;
+cmd_function_s Demo_RenderMovie_f_VAR_SERVER;
+cmd_function_s Demo_SwitchControls_f_VAR;
+cmd_function_s Demo_SwitchControls_f_VAR_SERVER;
+cmd_function_s Demo_AddDemoClient_f_VAR;
+cmd_function_s Demo_AddDemoClient_f_VAR_SERVER;
+cmd_function_s Demo_RemoveDemoClient_f_VAR;
+cmd_function_s Demo_RemoveDemoClient_f_VAR_SERVER;
+
 void __cdecl Demo_RegisterCommands()
 {
     Cmd_AddCommandInternal("demo_startrecord", Cbuf_AddServerText_f, &Demo_StartRecord_f_VAR);
@@ -214,6 +308,7 @@ void __cdecl Demo_RegisterCommands()
     Cmd_AddServerCommandInternal("demo_adddemoclient", Demo_AddDemoClient_f, &Demo_AddDemoClient_f_VAR_SERVER);
     Cmd_AddCommandInternal("demo_removedemoclient", Cbuf_AddServerText_f, &Demo_RemoveDemoClient_f_VAR);
     Cmd_AddServerCommandInternal("demo_removedemoclient", Demo_RemoveDemoClient_f, &Demo_RemoveDemoClient_f_VAR_SERVER);
+
     Cmd_SetAutoComplete("demo_play", "demos", "demo");
 }
 

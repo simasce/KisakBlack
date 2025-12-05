@@ -1,4 +1,7 @@
 #include "cscr_debugger.h"
+#include <universal/assertive.h>
+
+scrDebuggerGlob_t gScrDebuggerGlob[2];
 
 void __cdecl Scr_AddManualBreakpoint(scriptInstance_t inst, unsigned __int8 *codePos)
 {

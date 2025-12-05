@@ -1,5 +1,236 @@
 #pragma once
 
+#include <game/teams.h>
+#include <universal/q_shared.h>
+
+struct __declspec(align(64)) level_locals_t // sizeof=0x3880
+{                                       // XREF: .data:level_locals_t level/r
+    struct gclient_s *clients;                 // XREF: MatchRecordMovement(void)+133/r
+                                        // MatchRecordMovement(void)+149/r ...
+    gentity_s *gentities;               // XREF: ClientEndFrame(gentity_s *)+C61/r
+                                        // ClientEndFrame(gentity_s *)+C87/r ...
+    int gentitySize;
+    int num_entities;                   // XREF: Cmd_EntityCount_f(gentity_s *):loc_612A72/r
+                                        // G_FreeEntities(bool)+2E/r ...
+    gentity_s *firstFreeEnt;            // XREF: DrawEntityCounts+B7/r
+                                        // G_FreeEntities(bool)+12A/w ...
+    gentity_s *lastFreeEnt;             // XREF: G_FreeEntities(bool)+134/w
+                                        // G_InitGame(int,int,int,int,int)+649/w ...
+    struct scr_vehicle_s *vehicles;            // XREF: G_RunFrameForEntity+34E/r
+                                        // G_InitScrVehicles(void):loc_66C758/w
+    gentity_s *firstFreeActor;
+    gentity_s *lastFreeActor;
+    int num_actors;
+    struct sentient_s *sentients;              // XREF: G_InitGame(int,int,int,int,int)+5DA/w
+                                        // turret_findBestTarget+165/r ...
+    struct actor_s *actors;                    // XREF: G_FreeEntities(bool):loc_626429/r
+                                        // G_FreeEntities(bool)+A3/r ...
+    int actorCorpseCount;               // XREF: G_InitGame(int,int,int,int,int)+325/w
+                                        // G_InitGame(int,int,int,int,int)+32A/r ...
+    struct TurretInfo *turrets;                // XREF: G_InitTurrets(void):loc_69F71E/w
+    int logFile;                        // XREF: G_InitGame(int,int,int,int,int)+1E9/o
+                                        // G_InitGame(int,int,int,int,int)+204/o ...
+    int initializing;                   // XREF: Cmd_Give_f(gentity_s *)+2E4/w
+                                        // Cmd_Give_f(gentity_s *)+31A/w ...
+    int clientIsSpawning;               // XREF: ClientSpawn(gentity_s *,float const * const,float const * const):loc_6017D0/w
+                                        // ClientSpawn(gentity_s *,float const * const,float const * const)+973/w ...
+    int maxclients;                     // XREF: MatchRecordMovement(void)+62/r
+                                        // MatchRecordMovement(void)+183/r ...
+    objective_t objectives[32];         // XREF: G_UpdateObjectiveToClients(void)+BD/o
+                                        // G_InitObjectives(void)+22/o ...
+    int objectivesClientMask[32][2];    // XREF: G_UpdateObjectiveToClients(void)+FB/r
+                                        // Scr_Objective_Add+75/w ...
+    int framenum;                       // XREF: G_RunFrame(int)+22/r
+                                        // G_RunFrame(int)+2A/w ...
+    int time;                           // XREF: GenerateBinaryMatchSummary+34/r
+                                        // GenerateBinaryBreadcrumbData+32/r ...
+    int previousTime;                   // XREF: G_RunFrame(int)+35/w
+                                        // G_RunFrame(int)+49/r ...
+    int frametime;                      // XREF: G_PlayerController(gentity_s const *,int * const):loc_5FCBD0/r
+                                        // G_RunFrame(int)+4F/w ...
+    int startTime;                      // XREF: G_InitGame(int,int,int,int,int)+1B4/w
+                                        // GScr_getStartTime+5/r
+    SpawnVar spawnVar;                  // XREF: G_SpawnItem(gentity_s *,gitem_s const *)+360/r
+                                        // G_CallSpawn(SpawnVar *):loc_684549/r ...
+    EntHandle droppedWeaponCue[32];
+    int savepersist;                    // XREF: G_GetSavePersist(void)+3/r
+                                        // G_SetSavePersist(int)+6/w ...
+    float fFogOpaqueDist;               // XREF: G_setfog(char const *)+1C/w
+                                        // G_setfog(char const *)+AF/w ...
+    float fFogOpaqueDistSqrd;           // XREF: G_setfog(char const *)+2C/w
+                                        // G_setfog(char const *)+C7/w ...
+    int bPlayerIgnoreRadiusDamage;      // XREF: G_RadiusDamage(float const * const,gentity_s *,gentity_s *,float,float,float,float,float * const,gentity_s *,int,int)+15B/r
+                                        // GScr_RadiusDamageInternal+ED/w ...
+    int bPlayerIgnoreRadiusDamageLatched;
+                                        // XREF: GScr_RadiusDamageInternal:loc_651777/r
+                                        // GScr_SetPlayerIgnoreRadiusDamage+F/w
+    int currentEntityThink;             // XREF: G_InitGame(int,int,int,int,int)+BD/w
+                                        // G_RunFrame(int)+711/r ...
+    int registerWeapons;                // XREF: SaveRegisteredWeapons(void)+2E/w
+                                        // G_RegisterWeapon(uint)+55/w ...
+    int bRegisterItems;                 // XREF: SaveRegisteredItems(void)+13/w
+                                        // G_RegisterWeapon(uint)+4B/w ...
+    cached_tag_mat_t cachedTagMat;      // XREF: GScr_GetTagOrigin(scr_entref_t)+34/o
+                                        // GScr_GetTagOrigin(scr_entref_t)+4B/o ...
+    cached_tag_mat_t cachedEntTargetTagMat;
+    trigger_info_t pendingTriggerList[256]; // XREF: G_RunFrame(int)+385/o
+                                        // G_Trigger(gentity_s *,gentity_s *)+B6/o
+    trigger_info_t currentTriggerList[256]; // XREF: G_RunFrame(int)+38A/o
+                                        // G_RunFrame(int)+3E9/o ...
+    int pendingTriggerListSize;         // XREF: G_RunFrame(int):loc_62B69B/r
+                                        // G_RunFrame(int)+397/r ...
+    int currentTriggerListSize;         // XREF: G_RunFrame(int)+34C/r
+                                        // G_RunFrame(int)+39D/w ...
+    int openScriptIOFileHandles[1];     // XREF: G_InitGame(int,int,int,int,int)+2D2/w
+                                        // G_ShutdownGame(int)+18A/r ...
+    char *openScriptIOFileBuffers[1];   // XREF: G_InitGame(int,int,int,int,int)+2E3/w
+                                        // G_ShutdownGame(int)+15A/r ...
+    com_parse_mark_t currentScriptIOLineMark[1];
+                                        // XREF: G_InitGame(int,int,int,int,int)+2F9/o
+                                        // GScr_OpenFile+1B8/w ...
+    int scriptPrintChannel;             // XREF: G_InitGame(int,int,int,int,int)+C7/w
+                                        // GScr_printChannelSet:loc_641EB0/r ...
+    float compassMapUpperLeft[2];       // XREF: GetWorldLocation+29/r
+                                        // GetWorldLocation+3B/r ...
+    float compassMapWorldSize[2];       // XREF: GetWorldLocation+4D/r
+                                        // GetWorldLocation+BE/r ...
+    float compassNorth[2];              // XREF: GetWorldLocation+5A/r
+                                        // GetWorldLocation+67/r ...
+    int finished;                       // XREF: GScr_MapRestart+4/r
+                                        // GScr_MapRestart+D/r ...
+    int manualNameChange;               // XREF: ClientUserinfoChanged(int)+12B/r
+                                        // GScr_SetClientNameMode+23/w ...
+    unsigned __int16 modelMap[512];
+    int numConnectedClients;            // XREF: Cmd_CallVote_f(gentity_s *):loc_611955/r
+                                        // CalculateRanks(void)+6/w ...
+    int sortedClients[32];              // XREF: CalculateRanks(void)+5A/w
+                                        // CalculateRanks(void)+C1/o ...
+    int bUpdateScoresForIntermission;   // XREF: CalculateRanks(void):loc_629FEB/w
+                                        // GScr_SetTeamScore:loc_654E53/w
+    int numVotingClients;               // XREF: CalculateRanks(void)+10/w
+                                        // CalculateRanks(void)+A0/r ...
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    MatchState matchState;              // XREF: G_GetMatchState(void)+3/o
+                                        // G_PopulateMatchState+3/w ...
+    int teamScores[4];                  // XREF: SaveTeamScores(void):loc_5AAA1E/r
+                                        // SaveTeamScores(void)+26/r ...
+    int lastTeammateHealthTime;         // XREF: CheckTeamStatus(void)+B/r
+                                        // CheckTeamStatus(void)+1B/w
+    unsigned int teamHasSpyplane[4];    // XREF: ClientEndFrame(gentity_s *)+68D/r
+                                        // G_GetNonPVSPlayerInfo(gentity_s *,float * const,int)+54/r ...
+    unsigned int teamHasSatellite[4];   // XREF: ClientEndFrame(gentity_s *)+656/r
+                                        // G_GetNonPVSPlayerInfo(gentity_s *,float * const,int)+35/r ...
+    char voteString[1024];              // XREF: Cmd_CallVote_f(gentity_s *)+39D/o
+                                        // Cmd_CallVote_f(gentity_s *)+568/o ...
+    char voteDisplayString[1024];       // XREF: Cmd_CallVote_f(gentity_s *)+5C1/o
+                                        // Cmd_CallVote_f(gentity_s *)+5E1/o ...
+    int voteTime;                       // XREF: Cmd_CallVote_f(gentity_s *)+B0/r
+                                        // Cmd_CallVote_f(gentity_s *)+BF4/w ...
+    int voteExecuteTime;                // XREF: Cmd_CallVote_f(gentity_s *):loc_611C7A/r
+                                        // Cmd_CallVote_f(gentity_s *)+393/w ...
+    int voteYes;                        // XREF: Cmd_CallVote_f(gentity_s *)+BFA/w
+                                        // Cmd_CallVote_f(gentity_s *)+CC8/r ...
+    int voteNo;                         // XREF: Cmd_CallVote_f(gentity_s *)+C04/w
+                                        // Cmd_CallVote_f(gentity_s *)+CE7/r ...
+    int currentActorClone;              // XREF: G_SpawnActorClone(void)+6/r
+                                        // G_SpawnActorClone(void)+1D/r ...
+    int iSearchFrame;                   // XREF: Path_AStarAlgorithm_CustomSearchInfo_FindCloseNode_:loc_90E0E9/r
+                                        // Path_AStarAlgorithm_CustomSearchInfo_FindCloseNode_+E2/w ...
+    int currentPlayerClone;             // XREF: G_SpawnPlayerClone(void)+6/r
+                                        // G_SpawnPlayerClone(void)+1D/r ...
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
 int __cdecl G_GetTime();
 void __cdecl G_RegisterConnectPaths();
 bool __cdecl G_OnlyConnectingPaths();
@@ -29,7 +260,7 @@ int __cdecl G_IsServerGameSystem(int clientNum);
 unsigned __int16 __cdecl G_GetWeaponAttachBone(clientInfo_t *ci, weapType_t weapType, weapInventoryType_t invType);
 void G_FreeAnimTreeInstances();
 void __cdecl    G_InitGame(int levelTime, int randomSeed, int restart, int registerDvars);
-const dvar_s *G_RegisterDvars();
+void G_RegisterDvars();
 void __cdecl G_CreateDObj(
                 DObjModel_s *dobjModels,
                 unsigned __int16 numModels,
@@ -80,3 +311,6 @@ void __cdecl G_EntityLinkFromPMove(unsigned int entityNum, int parentEntityNum, 
 void __cdecl G_AddDebugString(const float *xyz, const float *color, float scale, char *pszText, int duration);
 gclient_s *__thiscall gclient_s::gclient_s(gclient_s *this);
 void __cdecl G_SafeDObjFree(gentity_s *ent);
+
+
+extern gentity_s g_entities[MAX_GENTITIES];

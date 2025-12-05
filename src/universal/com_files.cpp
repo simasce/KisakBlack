@@ -1,4 +1,50 @@
 #include "com_files.h"
+#include "assertive.h"
+#include "q_shared.h"
+
+#include <ShlObj.h>
+#include <qcommon/threads.h>
+#include <qcommon/common.h>
+
+#include <qcommon/unzip.h>
+#include "com_fileaccess.h"
+
+#include <cstring>
+#include "com_memory.h"
+#include <stringed/stringed_hooks.h>
+#include "mem_userhunk.h"
+#include "com_shared.h"
+#include <qcommon/files.h>
+#include <win32/win_localize.h>
+
+searchpath_s *fs_searchpaths;
+int fs_numServerIwds;
+int fs_serverIwds[1024];
+
+fileHandleData_t fsh[70];
+
+const dvar_t *fs_debug;
+const dvar_t *fs_copyfiles;
+const dvar_t *fs_cdpath;
+const dvar_t *fs_basepath;
+const dvar_t *fs_basegame;
+const dvar_t *fs_gameDirVar;
+const dvar_t *fs_usermapDir;
+const dvar_t *fs_ignoreLocalized;
+const dvar_t *fs_homepath;
+const dvar_t *fs_userDocuments;
+const dvar_t *fs_restrict;
+const dvar_t *fs_usedevdir;
+
+char fs_gamedir[256];
+
+bool g_disablePureCheck;
+
+int fs_loadStack;
+
+int com_fileAccessed;
+
+int fs_fakeChkSum;
 
 char *__cdecl FS_GetOsFolderPath(int folder, char *ospath)
 {
@@ -107,105 +153,105 @@ int __cdecl FS_HandleForFile(const char *name, FsThread thread)
     int count; // [esp+8h] [ebp-8h]
     int first; // [esp+Ch] [ebp-4h]
 
-    switch ( thread )
+    switch (thread)
     {
-        case FS_THREAD_MAIN:
-            if ( !Sys_IsMainThread()
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                            1136,
-                            0,
-                            "%s",
-                            "Sys_IsMainThread()") )
-            {
-                __debugbreak();
-            }
-            first = 1;
-            count = 49;
-            break;
-        case FS_THREAD_STREAM:
-            if ( !Sys_IsStreamThread()
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                            1143,
-                            0,
-                            "%s",
-                            "Sys_IsStreamThread()") )
-            {
-                __debugbreak();
-            }
-            first = 50;
-            count = 11;
-            break;
-        case FS_THREAD_DATABASE:
-            if ( !Sys_IsDatabaseThread()
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                            1151,
-                            0,
-                            "%s",
-                            "Sys_IsDatabaseThread()") )
-            {
-                __debugbreak();
-            }
-            first = 61;
-            count = 1;
-            break;
-        case FS_THREAD_BACKEND:
-            if ( !Sys_IsRenderThread()
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                            1159,
-                            0,
-                            "%s",
-                            "Sys_IsRenderThread()") )
-            {
-                __debugbreak();
-            }
-            first = 62;
-            count = 1;
-            break;
-        case FS_THREAD_SERVER:
-            if ( !Sys_IsServerThread()
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                            1167,
-                            0,
-                            "%s",
-                            "Sys_IsServerThread()") )
-            {
-                __debugbreak();
-            }
-            first = 63;
-            count = 2;
-            break;
-        default:
-            if ( !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                            1178,
-                            0,
-                            "Does the FS need to support a new thread? ") )
-                __debugbreak();
-            first = 0;
-            count = 0;
-            break;
+    case FS_THREAD_MAIN:
+        if (!Sys_IsMainThread()
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+                1136,
+                0,
+                "%s",
+                "Sys_IsMainThread()"))
+        {
+            __debugbreak();
+        }
+        first = 1;
+        count = 49;
+        break;
+    case FS_THREAD_STREAM:
+        if (!Sys_IsStreamThread()
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+                1143,
+                0,
+                "%s",
+                "Sys_IsStreamThread()"))
+        {
+            __debugbreak();
+        }
+        first = 50;
+        count = 11;
+        break;
+    case FS_THREAD_DATABASE:
+        if (!Sys_IsDatabaseThread()
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+                1151,
+                0,
+                "%s",
+                "Sys_IsDatabaseThread()"))
+        {
+            __debugbreak();
+        }
+        first = 61;
+        count = 1;
+        break;
+    case FS_THREAD_BACKEND:
+        if (!Sys_IsRenderThread()
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+                1159,
+                0,
+                "%s",
+                "Sys_IsRenderThread()"))
+        {
+            __debugbreak();
+        }
+        first = 62;
+        count = 1;
+        break;
+    case FS_THREAD_SERVER:
+        if (!Sys_IsServerThread()
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+                1167,
+                0,
+                "%s",
+                "Sys_IsServerThread()"))
+        {
+            __debugbreak();
+        }
+        first = 63;
+        count = 2;
+        break;
+    default:
+        if (!Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+            1178,
+            0,
+            "Does the FS need to support a new thread? "))
+            __debugbreak();
+        first = 0;
+        count = 0;
+        break;
     }
-    for ( i = 0; i < count; ++i )
+    for (i = 0; i < count; ++i)
     {
-        if ( !fsh[i + first].handleFiles.file.o )
+        if (!fsh[i + first].handleFiles.file.o)
             return i + first;
     }
-    Com_PrintWarning(10, "FILE %2i: '%s' 0x%x\n", first, &byte_99D6E8C[284 * first], fsh[first].handleFiles.file.o);
+    Com_PrintWarning(10, "FILE %2i: '%s' 0x%x\n", first, fsh[first].name, fsh[first].handleFiles.file.o);
     Com_PrintWarning(10, "FS_HandleForFile: none free (%d)\n", thread);
-    for ( ia = 1; ia < 70; ++ia )
-        Com_Printf(10, "FILE %2i: '%s' 0x%x\n", ia, &byte_99D6E8C[284 * ia], fsh[ia].handleFiles.file.o);
-    if ( !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                    1197,
-                    0,
-                    "FS_HandleForFile: No free handles available") )
+    for (ia = 1; ia < 70; ++ia)
+        Com_Printf(10, "FILE %2i: '%s' 0x%x\n", ia, fsh[ia].name, fsh[ia].handleFiles.file.o);
+    if (!Assert_MyHandler(
+        "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+        1197,
+        0,
+        "FS_HandleForFile: No free handles available"))
         __debugbreak();
-    Com_Error(ERR_DROP, &byte_D064F0);
+    Com_Error(ERR_DROP, "FS_HandleForFile: none free");
     return 0;
 }
 
@@ -213,55 +259,55 @@ int __cdecl FS_HandleForFileCurrentThread(const char *filename)
 {
     FsThread CurrentThread; // eax
 
-    CurrentThread = FS_GetCurrentThread();
+    CurrentThread = (FsThread)FS_GetCurrentThread();
     return FS_HandleForFile(filename, CurrentThread);
 }
 
-int __cdecl FS_GetCurrentThread()
+FsThread __cdecl FS_GetCurrentThread()
 {
     if ( Sys_IsMainThread() )
-        return 0;
+        return FS_THREAD_MAIN;
     if ( Sys_IsDatabaseThread() )
-        return 2;
+        return FS_THREAD_DATABASE;
     if ( Sys_IsStreamThread() )
-        return 1;
+        return FS_THREAD_STREAM;
     if ( Sys_IsRenderThread() )
-        return 3;
+        return FS_THREAD_BACKEND;
     if ( Sys_IsServerThread() )
-        return 4;
-    return 6;
+        return FS_THREAD_SERVER;
+    return FS_THREAD_INVALID;
 }
 
-_iobuf *__cdecl FS_FileForHandle(int f)
+FILE *__cdecl FS_FileForHandle(int f)
 {
-    if ( (f <= 0 || f >= 70)
+    if ((f <= 0 || f >= 70)
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                    1251,
-                    0,
-                    "%s\n\t(f) = %i",
-                    "(f > 0 && f < (1 + 49 + 11 + 1 + 1 + 2 + 5 ))",
-                    f) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+            1251,
+            0,
+            "%s\n\t(f) = %i",
+            "(f > 0 && f < (1 + 49 + 11 + 1 + 1 + 2 + 5 ))",
+            f))
     {
         __debugbreak();
     }
-    if ( dword_99D6E84[71 * f]
+    if (fsh[f].zipFile
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                    1252,
-                    0,
-                    "%s",
-                    "!fsh[f].zipFile") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+            1252,
+            0,
+            "%s",
+            "!fsh[f].zipFile"))
     {
         __debugbreak();
     }
-    if ( !fsh[f].handleFiles.file.o
+    if (!fsh[f].handleFiles.file.o
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                    1253,
-                    0,
-                    "%s",
-                    "fsh[f].handleFiles.file.o") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+            1253,
+            0,
+            "%s",
+            "fsh[f].handleFiles.file.o"))
     {
         __debugbreak();
     }
@@ -270,13 +316,19 @@ _iobuf *__cdecl FS_FileForHandle(int f)
 
 int __cdecl FS_filelength(int f)
 {
-    _iobuf *h; // [esp+4h] [ebp-4h]
+    FILE *h; // [esp+4h] [ebp-4h]
 
-    if ( !f && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp", 1267, 0, "%s", "f") )
+    if (!f && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp", 1267, 0, "%s", "f"))
         __debugbreak();
+
     FS_CheckFileSystemStarted();
-    if ( dword_99D6E84[71 * f] )
-        return fsh[f].handleFiles.file.o[2]._cnt;
+
+    if (fsh[f].zipFile)
+    {
+        unz_s *zfi = (unz_s *)fsh[f].handleFiles.file.o;
+        return zfi->cur_file_info.uncompressed_size;
+    }
+
     h = FS_FileForHandle(f);
     return FS_FileGetFileSize(h);
 }
@@ -352,7 +404,7 @@ void __cdecl FS_BuildOSPathForThread(char *base, char *game, char *qpath, char *
             *ospath = 0;
             return;
         }
-        Com_Error(ERR_FATAL, &byte_D06640);
+        Com_Error(ERR_FATAL, "FS_BuildOSPath: os path length exceeded");
     }
     memcpy((unsigned __int8 *)ospath, (unsigned __int8 *)base, v7);
     ospath[v7] = 47;
@@ -368,8 +420,7 @@ int __cdecl FS_CreatePath(char *OSPath)
     int v2; // eax
     char *ofs; // [esp+0h] [ebp-4h]
 
-    strstr((unsigned __int8 *)OSPath, "..");
-    if ( v1 || (strstr((unsigned __int8 *)OSPath, "::"), v2) )
+    if (strstr(OSPath, "..") || strstr(OSPath, "::") )
     {
         Com_PrintWarning(10, "WARNING: refusing to create relative path \"%s\"\n", OSPath);
         return 1;
@@ -426,7 +477,7 @@ void __cdecl FS_CopyFile(char *fromOSPath, char *toOSPath)
         len = FS_FileGetFileSize(f);
         buf = (unsigned __int8 *)Z_Malloc(len, "FS_CopyFile", 3);
         if ( FS_FileRead(buf, len, f) != len )
-            Com_Error(ERR_FATAL, &byte_D066D4);
+            Com_Error(ERR_FATAL, "Short read in FS_CopyFile()");
         FS_FileClose(f);
         if ( FS_CreatePath(toOSPath) || (fa = FS_FileOpenWriteBinary(toOSPath)) == 0 )
         {
@@ -435,7 +486,7 @@ void __cdecl FS_CopyFile(char *fromOSPath, char *toOSPath)
         else
         {
             if ( FS_FileWrite(buf, len, fa) != len )
-                Com_Error(ERR_FATAL, &byte_D066B4);
+                Com_Error(ERR_FATAL, "Short write in FS_CopyFile()");
             FS_FileClose(fa);
             Z_Free((char *)buf, 3);
         }
@@ -453,49 +504,44 @@ void __cdecl FS_FCloseFile(int h)
     _iobuf *f; // [esp+0h] [ebp-4h]
 
     FS_CheckFileSystemStarted();
-    if ( dword_99D6E88[71 * h]
+    if (fsh[h].streamed
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                    1620,
-                    0,
-                    "%s",
-                    "!fsh[h].streamed") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+            1620,
+            0,
+            "%s",
+            "!fsh[h].streamed"))
     {
         __debugbreak();
     }
-    if ( fs_debug->current.integer )
+    if (fs_debug->current.integer)
     {
         CurrentThreadName = Sys_GetCurrentThreadName();
-        Com_Printf(
-            10,
-            "FS_FCloseFile from thread '%s', handle '%i', filename '%s'\n",
-            CurrentThreadName,
-            h,
-            &byte_99D6E8C[284 * h]);
+        Com_Printf(10, "FS_FCloseFile from thread '%s', handle '%i', filename '%s'\n", CurrentThreadName, h, fsh[h].name);
     }
-    if ( dword_99D6E84[71 * h] )
+    if (fsh[h].zipFile)
     {
         unzCloseCurrentFile(fsh[h].handleFiles.file.z);
-        if ( dword_99D6E74[71 * h] )
+        if (fsh[h].handleFiles.iwdIsClone)
         {
             unzClose(fsh[h].handleFiles.file.z);
         }
         else
         {
-            if ( !*(unsigned int *)(dword_99D6E84[71 * h] + 780)
+            if (!fsh[h].zipFile->hasOpenFile
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                            1640,
-                            0,
-                            "%s",
-                            "fsh[h].zipFile->hasOpenFile") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+                    1640,
+                    0,
+                    "%s",
+                    "fsh[h].zipFile->hasOpenFile"))
             {
                 __debugbreak();
             }
-            *(unsigned int *)(dword_99D6E84[71 * h] + 780) = 0;
+            fsh[h].zipFile->hasOpenFile = 0;
         }
     }
-    else if ( fsh[h].handleFiles.file.o )
+    else if (fsh[h].handleFiles.file.o)
     {
         f = FS_FileForHandle(h);
         FS_FileClose(f);
@@ -535,13 +581,13 @@ int __cdecl FS_GetHandleAndOpenFile(const char *filename, const char *ospath, Fs
     _iobuf *fp; // [esp+4h] [ebp-4h]
 
     fp = FS_FileOpenWriteBinary(ospath);
-    if ( !fp )
+    if (!fp)
         return 0;
     f = FS_HandleForFile(filename, thread);
-    dword_99D6E84[71 * f] = 0;
+    fsh[f].zipFile = 0;
     fsh[f].handleFiles.file.o = fp;
-    I_strncpyz(&byte_99D6E8C[284 * f], filename, 256);
-    dword_99D6E78[71 * f] = 0;
+    I_strncpyz(fsh[f].name, filename, 256);
+    fsh[f].handleSync = 0;
     return f;
 }
 
@@ -572,19 +618,19 @@ int __cdecl FS_FOpenTextFileWrite(char *filename)
     FS_CheckFileSystemStarted();
     basepath = fs_homepath->current.string;
     FS_BuildOSPath((char *)basepath, fs_gamedir, filename, ospath);
-    if ( fs_debug->current.integer )
+    if (fs_debug->current.integer)
         Com_Printf(10, "FS_FOpenTextFileWrite: %s\n", ospath);
-    if ( FS_CreatePath(ospath) )
+    if (FS_CreatePath(ospath))
         return 0;
     f = FS_FileOpenWriteText(ospath);
-    if ( !f )
+    if (!f)
         return 0;
     h = FS_HandleForFileCurrentThread(filename);
-    dword_99D6E84[71 * h] = 0;
+    fsh[h].zipFile = 0;
     fsh[h].handleFiles.file.o = f;
-    I_strncpyz(&byte_99D6E8C[284 * h], filename, 256);
-    dword_99D6E78[71 * h] = 0;
-    if ( !fsh[h].handleFiles.file.o )
+    I_strncpyz(fsh[h].name, filename, 256);
+    fsh[h].handleSync = 0;
+    if (!fsh[h].handleFiles.file.o)
     {
         FS_FCloseFile(h);
         return 0;
@@ -603,19 +649,19 @@ int __cdecl FS_FOpenFileAppend(char *filename)
     FS_CheckFileSystemStarted();
     basepath = fs_homepath->current.string;
     FS_BuildOSPath((char *)basepath, fs_gamedir, filename, ospath);
-    if ( fs_debug->current.integer )
+    if (fs_debug->current.integer)
         Com_Printf(10, "FS_FOpenFileAppend: %s\n", ospath);
-    if ( FS_CreatePath(ospath) )
+    if (FS_CreatePath(ospath))
         return 0;
     f = FS_FileOpenAppendText(ospath);
-    if ( !f )
+    if (!f)
         return 0;
     h = FS_HandleForFileCurrentThread(filename);
-    dword_99D6E84[71 * h] = 0;
-    I_strncpyz(&byte_99D6E8C[284 * h], filename, 256);
+    fsh[h].zipFile = 0;
+    I_strncpyz(fsh[h].name, filename, 256);
     fsh[h].handleFiles.file.o = f;
-    dword_99D6E78[71 * h] = 0;
-    if ( !fsh[h].handleFiles.file.o )
+    fsh[h].handleSync = 0;
+    if (!fsh[h].handleFiles.file.o)
     {
         FS_FCloseFile(h);
         return 0;
@@ -753,26 +799,26 @@ unsigned int __cdecl FS_FOpenFileReadForThread(const char *filename, int *file, 
                                     }
                                     if ( _InterlockedCompareExchange(&v14->hasOpenFile, 1, 0) == 1 )
                                     {
-                                        dword_99D6E74[71 * *file] = 1;
+                                        fsh[*file].handleFiles.iwdIsClone = 1;
                                         fsh[*file].handleFiles.file.o = (_iobuf *)unzReOpen(v14->iwdFilename, v14->handle);
-                                        if ( !fsh[*file].handleFiles.file.o )
+                                        if (!fsh[*file].handleFiles.file.o)
                                         {
-                                            if ( thread )
+                                            if (thread)
                                             {
                                                 FS_FCloseFile(*file);
                                                 *file = 0;
                                                 return -1;
                                             }
-                                            Com_Error(ERR_FATAL, &byte_D06994, v14);
+                                            Com_Error(ERR_FATAL, "Couldn't reopen %s", v14);
                                         }
                                     }
                                     else
                                     {
-                                        dword_99D6E74[71 * *file] = 0;
+                                        fsh[*file].handleFiles.iwdIsClone = 0;
                                         fsh[*file].handleFiles.file.o = (_iobuf *)v14->handle;
                                     }
-                                    I_strncpyz(&byte_99D6E8C[284 * *file], sanitizedName, 256);
-                                    dword_99D6E84[71 * *file] = (int)v14;
+                                    I_strncpyz(fsh[*file].name, sanitizedName, 256);
+                                    fsh[*file].zipFile = v14;
                                     zfi = (unz_s *)fsh[*file].handleFiles.file.o;
                                     filetemp = zfi->file;
                                     ziptemp = zfi->pfile_in_zip_read;
@@ -781,7 +827,7 @@ unsigned int __cdecl FS_FOpenFileReadForThread(const char *filename, int *file, 
                                     zfi->file = filetemp;
                                     zfi->pfile_in_zip_read = ziptemp;
                                     unzOpenCurrentFile(fsh[*file].handleFiles.file.z);
-                                    dword_99D6E80[71 * *file] = i->pos;
+                                    fsh[*file].zipFilePos = i->pos;
                                     if ( fs_debug->current.integer )
                                     {
                                         v8 = *file;
@@ -810,10 +856,10 @@ unsigned int __cdecl FS_FOpenFileReadForThread(const char *filename, int *file, 
                                 fsh[*file].handleFiles.file.o = FS_FileOpenReadBinary(netpath);
                                 if ( fsh[*file].handleFiles.file.o )
                                 {
-                                    if ( !search->bLocalized && !search->ignorePureCheck && !FS_PureIgnoreFiles(sanitizedName) )
+                                    if (!search->bLocalized && !search->ignorePureCheck && !FS_PureIgnoreFiles(sanitizedName))
                                         fs_fakeChkSum = rand() + 1;
-                                    I_strncpyz(&byte_99D6E8C[284 * *file], sanitizedName, 256);
-                                    dword_99D6E84[71 * *file] = 0;
+                                    I_strncpyz(fsh[*file].name, sanitizedName, 256);
+                                    fsh[*file].zipFile = 0;
                                     if ( fs_debug->current.integer )
                                     {
                                         gamedir = dir->gamedir;
@@ -1091,28 +1137,28 @@ unsigned int __cdecl FS_Read(unsigned __int8 *buffer, unsigned int len, int h)
     int read; // [esp+14h] [ebp-4h]
 
     FS_CheckFileSystemStarted();
-    if ( !h )
+    if (!h)
         return 0;
-    if ( dword_99D6E84[71 * h] )
+    if (fsh[h].zipFile)
         return unzReadCurrentFile(fsh[h].handleFiles.file.z, buffer, len);
     f = FS_FileForHandle(h);
     buf = buffer;
     remaining = len;
     tries = 0;
-    while ( remaining )
+    while (remaining)
     {
         read = FS_FileRead(buf, remaining, f);
-        if ( !read )
+        if (!read)
         {
-            if ( tries )
+            if (tries)
                 return len - remaining;
             tries = 1;
         }
-        if ( read == -1 )
+        if (read == -1)
         {
-            if ( h >= 50 && h < 61 )
+            if (h >= 50 && h < 61)
                 return -1;
-            Com_Error(ERR_FATAL, &byte_D06AC8);
+            Com_Error(ERR_FATAL, "FS_Read: -1 bytes read");
         }
         remaining -= read;
         buf += read;
@@ -1120,7 +1166,7 @@ unsigned int __cdecl FS_Read(unsigned __int8 *buffer, unsigned int len, int h)
     return len;
 }
 
-unsigned int __cdecl FS_Write(char *buffer, unsigned int len, int h)
+int __cdecl FS_Write(char *buffer, int len, int h)
 {
     int tries; // [esp+4h] [ebp-14h]
     unsigned int remaining; // [esp+8h] [ebp-10h]
@@ -1128,26 +1174,26 @@ unsigned int __cdecl FS_Write(char *buffer, unsigned int len, int h)
     _iobuf *f; // [esp+14h] [ebp-4h]
 
     FS_CheckFileSystemStarted();
-    if ( !h )
+    if (!h)
         return 0;
     f = FS_FileForHandle(h);
     remaining = len;
     tries = 0;
-    while ( remaining )
+    while (remaining)
     {
         written = FS_FileWrite(buffer, remaining, f);
-        if ( !written )
+        if (!written)
         {
-            if ( tries )
+            if (tries)
                 return 0;
             tries = 1;
         }
-        if ( written == -1 )
+        if (written == -1)
             return 0;
         remaining -= written;
         buffer += written;
     }
-    if ( dword_99D6E78[71 * h] )
+    if (fsh[h].handleSync)
         fflush(f);
     return len;
 }
@@ -1177,85 +1223,85 @@ int __cdecl FS_Seek(int f, int offset, int origin)
     unsigned int iZipOffset; // [esp+Ch] [ebp-4h]
 
     FS_CheckFileSystemStarted();
-    if ( dword_99D6E88[71 * f]
+    if (fsh[f].streamed
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                    3326,
-                    0,
-                    "%s",
-                    "!fsh[f].streamed") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+            3326,
+            0,
+            "%s",
+            "!fsh[f].streamed"))
     {
         __debugbreak();
     }
-    if ( !dword_99D6E84[71 * f] )
+    if (!fsh[f].zipFile)
     {
         v6 = FS_FileForHandle(f);
         return FS_FileSeek(v6, offset, origin);
     }
-    if ( !offset && origin == 2 )
+    if (!offset && origin == 2)
     {
-        unzSetCurrentFileInfoPosition(fsh[f].handleFiles.file.z, dword_99D6E80[71 * f]);
+        unzSetCurrentFileInfoPosition(fsh[f].handleFiles.file.z, fsh[f].zipFilePos);
         return unzOpenCurrentFile(fsh[f].handleFiles.file.z);
     }
-    if ( !offset && !origin )
+    if (!offset && !origin)
         return 0;
     iZipPos = unztell(fsh[f].handleFiles.file.z);
-    switch ( origin )
+    switch (origin)
     {
-        case 0:
-            if ( !offset
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
-                            3347,
-                            0,
-                            "%s",
-                            "offset != 0") )
-            {
-                __debugbreak();
-            }
-            if ( offset >= 0 )
-            {
-                CurrentFile = unzReadCurrentFile(fsh[f].handleFiles.file.z, 0, offset);
-            }
-            else
-            {
-                unzSetCurrentFileInfoPosition(fsh[f].handleFiles.file.z, dword_99D6E80[71 * f]);
-                unzOpenCurrentFile(fsh[f].handleFiles.file.z);
-                CurrentFile = unzReadCurrentFile(fsh[f].handleFiles.file.z, 0, offset + iZipPos);
-            }
-            goto LABEL_30;
-        case 1:
-            if ( offset + FS_filelength(f) >= iZipPos )
-            {
-                iZipOffset = offset + FS_filelength(f) - iZipPos;
-            }
-            else
-            {
-                unzSetCurrentFileInfoPosition(fsh[f].handleFiles.file.z, dword_99D6E80[71 * f]);
-                unzOpenCurrentFile(fsh[f].handleFiles.file.z);
-                iZipOffset = offset + FS_filelength(f);
-            }
-            CurrentFile = unzReadCurrentFile(fsh[f].handleFiles.file.z, 0, iZipOffset);
-            goto LABEL_30;
-        case 2:
-            if ( offset >= iZipPos )
-            {
-                CurrentFile = unzReadCurrentFile(fsh[f].handleFiles.file.z, 0, offset - iZipPos);
-            }
-            else
-            {
-                unzSetCurrentFileInfoPosition(fsh[f].handleFiles.file.z, dword_99D6E80[71 * f]);
-                unzOpenCurrentFile(fsh[f].handleFiles.file.z);
-                CurrentFile = unzReadCurrentFile(fsh[f].handleFiles.file.z, 0, offset);
-            }
-LABEL_30:
-            if ( CurrentFile )
-                return 0;
-            else
-                return -1;
+    case 0:
+        if (!offset
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp",
+                3347,
+                0,
+                "%s",
+                "offset != 0"))
+        {
+            __debugbreak();
+        }
+        if (offset >= 0)
+        {
+            CurrentFile = unzReadCurrentFile(fsh[f].handleFiles.file.z, 0, offset);
+        }
+        else
+        {
+            unzSetCurrentFileInfoPosition(fsh[f].handleFiles.file.z, fsh[f].zipFilePos);
+            unzOpenCurrentFile(fsh[f].handleFiles.file.z);
+            CurrentFile = unzReadCurrentFile(fsh[f].handleFiles.file.z, 0, offset + iZipPos);
+        }
+        goto LABEL_30;
+    case 1:
+        if (offset + FS_filelength(f) >= iZipPos)
+        {
+            iZipOffset = offset + FS_filelength(f) - iZipPos;
+        }
+        else
+        {
+            unzSetCurrentFileInfoPosition(fsh[f].handleFiles.file.z, fsh[f].zipFilePos);
+            unzOpenCurrentFile(fsh[f].handleFiles.file.z);
+            iZipOffset = offset + FS_filelength(f);
+        }
+        CurrentFile = unzReadCurrentFile(fsh[f].handleFiles.file.z, 0, iZipOffset);
+        goto LABEL_30;
+    case 2:
+        if (offset >= iZipPos)
+        {
+            CurrentFile = unzReadCurrentFile(fsh[f].handleFiles.file.z, 0, offset - iZipPos);
+        }
+        else
+        {
+            unzSetCurrentFileInfoPosition(fsh[f].handleFiles.file.z, fsh[f].zipFilePos);
+            unzOpenCurrentFile(fsh[f].handleFiles.file.z);
+            CurrentFile = unzReadCurrentFile(fsh[f].handleFiles.file.z, 0, offset);
+        }
+    LABEL_30:
+        if (CurrentFile)
+            return 0;
+        else
+            return -1;
     }
     v5 = va("Bad origin %i in FS_Seek", origin);
-    if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp", 3391, 0, v5) )
+    if (!Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_files.cpp", 3391, 0, v5))
         __debugbreak();
     return -1;
 }
@@ -1268,7 +1314,7 @@ int __cdecl FS_ReadFile(const char *qpath, void **buffer)
 
     FS_CheckFileSystemStarted();
     if ( !qpath || !*qpath )
-        Com_Error(ERR_FATAL, &byte_D06B00);
+        Com_Error(ERR_FATAL, "FS_ReadFile with empty name");
     len = FS_FOpenFileReadCurrentThread(qpath, &h);
     if ( h )
     {
@@ -1397,7 +1443,7 @@ int __cdecl FS_GetFileOsPath(const char *filename, char *ospath)
 
 int __cdecl FS_OpenFileOverwrite(const char *qpath)
 {
-    unsigned intFileAttributesA; // eax
+    DWORD FileAttributesA; // eax
     char ospath[256]; // [esp+4h] [ebp-108h] BYREF
     unsigned int attributes; // [esp+108h] [ebp-4h]
 
@@ -1890,7 +1936,7 @@ void __cdecl FS_DisplayPath(int bLanguageCull)
     for ( i = 1; i < 70; ++i )
     {
         if ( fsh[i].handleFiles.file.o )
-            Com_Printf(10, "handle %i: %s\n", i, &byte_99D6E8C[284 * i]);
+            Com_Printf(10, "handle %i: %s\n", i, fsh[i].name);
     }
 }
 
@@ -1954,7 +2000,7 @@ void __cdecl FS_AddIwdFilesForGameDirectory(char *path, char *pszGameFolder)
     v20 = v10;
     FS_BuildOSPath(path, pszGameFolder, (char *)"", &ospath);
     *((_BYTE *)&v12 + &v14[strlen(&ospath)] - v14 + 3) = 0;
-    list = (char **)Sys_ListFiles(&ospath, "iwd", 0, &numfiles, 0);
+    list = (char **)Sys_ListFiles(&ospath, (char*)"iwd", 0, &numfiles, 0);
     if ( numfiles > 1024 )
     {
         Com_PrintWarning(
@@ -2473,7 +2519,7 @@ void __cdecl FS_AddLocalizedGameDirectory(char *path, const char *dir)
     FS_AddGameDirectory(path, dir, 0, 0);
 }
 
-const dvar_s *__thiscall FS_RegisterDvars(jpeg_common_struct *cinfo)
+void FS_RegisterDvars()
 {
     char *v1; // eax
     char *v2; // eax
@@ -2505,9 +2551,7 @@ const dvar_s *__thiscall FS_RegisterDvars(jpeg_common_struct *cinfo)
                                              0x10u,
                                              "user documents path(screenshots).");
     fs_restrict = _Dvar_RegisterBool("fs_restrict", 0, 0x10u, "Restrict file access for demos etc.");
-    result = _Dvar_RegisterBool("fs_usedevdir", 1, 0x10u, "Use development directories.");
-    fs_usedevdir = result;
-    return result;
+    fs_usedevdir = _Dvar_RegisterBool("fs_usedevdir", 1, 0x10u, "Use development directories.");
 }
 
 void __cdecl FS_AddDevGameDirs(char *path, bool allow_devraw)
@@ -2710,50 +2754,47 @@ unsigned int __cdecl FS_FOpenFileByMode(char *qpath, int *f, fsMode_t mode)
 
     r = 6969;
     sync = 0;
-    switch ( mode )
+    switch (mode)
     {
-        case FS_READ:
-            r = FS_FOpenFileRead(qpath, f);
-            break;
-        case FS_WRITE:
-            *f = FS_FOpenFileWrite(qpath);
-            r = 0;
-            if ( !*f )
-                r = -1;
-            break;
-        case FS_APPEND:
-            goto $LN5_118;
-        case FS_APPEND_SYNC:
-            sync = 1;
-$LN5_118:
-            *f = FS_FOpenFileAppend(qpath);
-            r = 0;
-            if ( !*f )
-                r = -1;
-            break;
-        default:
-            Com_Error(ERR_FATAL, &byte_D0743C);
-            break;
+    case FS_READ:
+        r = FS_FOpenFileRead(qpath, f);
+        break;
+    case FS_WRITE:
+        *f = FS_FOpenFileWrite(qpath);
+        r = 0;
+        if (!*f)
+            r = -1;
+        break;
+    case FS_APPEND:
+        goto $LN5_118;
+    case FS_APPEND_SYNC:
+        sync = 1;
+    $LN5_118:
+        *f = FS_FOpenFileAppend(qpath);
+        r = 0;
+        if (!*f)
+            r = -1;
+        break;
+    default:
+        Com_Error(ERR_FATAL, "FSH_FOpenFile: bad mode");
+        break;
     }
-    if ( !f )
+    if (!f)
         return r;
-    if ( *f )
+    if (*f)
     {
-        dword_99D6E7C[71 * *f] = r;
-        dword_99D6E88[71 * *f] = 0;
+        fsh[*f].fileSize = r;
+        fsh[*f].streamed = 0;
     }
-    dword_99D6E78[71 * *f] = sync;
+    fsh[*f].handleSync = sync;
     return r;
 }
 
 unsigned int __cdecl FS_FTell(int f)
 {
-    _iobuf *v1; // eax
-
-    if ( dword_99D6E84[71 * f] )
+    if (fsh[f].zipFile)
         return unztell(fsh[f].handleFiles.file.z);
-    v1 = FS_FileForHandle(f);
-    return ftell(v1);
+    return ftell(FS_FileForHandle(f));
 }
 
 void __cdecl FS_Flush(int f)

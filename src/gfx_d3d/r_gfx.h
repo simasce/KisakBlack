@@ -24,6 +24,10 @@ struct __declspec(align(4)) GfxDrawMethod // sizeof=0x1C8
         // padding byte
 };
 
+struct GfxMatrix // sizeof=0x40
+{                                       // ...
+    float m[4][4];                      // ...
+};
 
 struct GfxDrawSurfFields // sizeof=0x8
 {                                                                             // XREF: GfxDrawSurf/r

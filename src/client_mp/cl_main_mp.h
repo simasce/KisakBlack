@@ -1195,3 +1195,4 @@ bool __cdecl CL_IsLocalClientInGame(int localClientNum);
 
 
 extern clientStatic_t cls;
+extern clientConnection_t *clientConnections;

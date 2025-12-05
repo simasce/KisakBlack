@@ -660,17 +660,4 @@ bool __cdecl SV_AP_ServerIsFull()
     return retval;
 }
 
-dwFileTask *__thiscall dwFileTask::dwFileTask(dwFileTask *this)
-{
-    this->m_filename = 0;
-    bdFileData::bdFileData(&this->m_fileData, 0, 0);
-    this->m_error = BD_NO_ERROR;
-    this->m_fileID = 0;
-    this->m_fileSize = 0;
-    this->m_bufferSize = 0;
-    bdFileInfo::bdFileInfo(&this->m_fileInfo);
-    this->m_buffer = 0;
-    this->m_optional = 0;
-    return this;
-}
 

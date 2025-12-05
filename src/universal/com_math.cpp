@@ -3262,3 +3262,49 @@ void __cdecl Vec4Lerp(const float *from, const float *to, float frac, float *res
     result[2] = (float)((float)(to[2] - from[2]) * frac) + from[2];
     result[3] = (float)((float)(to[3] - from[3]) * frac) + from[3];
 }
+
+void __cdecl Vec3Min(const float *a, const float *b, float *result)
+{
+    int v3; // [esp+0h] [ebp-Ch]
+    int v4; // [esp+4h] [ebp-8h]
+    int v5; // [esp+8h] [ebp-4h]
+
+    if (*b <= *a)
+        v5 = *(unsigned int *)b;
+    else
+        v5 = *(unsigned int *)a;
+    *(unsigned int *)result = v5;
+    if (b[1] <= a[1])
+        v4 = *((unsigned int *)b + 1);
+    else
+        v4 = *((unsigned int *)a + 1);
+    *((unsigned int *)result + 1) = v4;
+    if (b[2] <= a[2])
+        v3 = *((unsigned int *)b + 2);
+    else
+        v3 = *((unsigned int *)a + 2);
+    *((unsigned int *)result + 2) = v3;
+}
+
+void __cdecl Vec3Max(const float *a, const float *b, float *result)
+{
+    int v3; // [esp+0h] [ebp-Ch]
+    int v4; // [esp+4h] [ebp-8h]
+    int v5; // [esp+8h] [ebp-4h]
+
+    if (*a <= *b)
+        v5 = *(unsigned int *)b;
+    else
+        v5 = *(unsigned int *)a;
+    *(unsigned int *)result = v5;
+    if (a[1] <= b[1])
+        v4 = *((unsigned int *)b + 1);
+    else
+        v4 = *((unsigned int *)a + 1);
+    *((unsigned int *)result + 1) = v4;
+    if (a[2] <= b[2])
+        v3 = *((unsigned int *)b + 2);
+    else
+        v3 = *((unsigned int *)a + 2);
+    *((unsigned int *)result + 2) = v3;
+}

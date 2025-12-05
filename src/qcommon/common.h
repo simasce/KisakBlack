@@ -36,6 +36,22 @@ enum errorParm_t : __int32
         ERR_LOCALIZATION         = 0x6,
 };
 
+struct SpawnVar // sizeof=0xA0C
+{                                       // XREF: level_locals_t/r
+                                        // cg_level_locals_t/r ...
+    bool spawnVarsValid;                // XREF: CG_SpawnNode+6/r
+                                        // CG_InitTriggerWait+4/r ...
+    // padding byte
+    // padding byte
+    // padding byte
+    int numSpawnVars;                   // XREF: CScr_LoadStructs(void)+1FC/r
+                                        // CG_SpawnNode+7F/r ...
+    char *spawnVars[64][2];             // XREF: CScr_LoadStructs(void)+20C/r
+                                        // CScr_LoadStructs(void)+223/r ...
+    int numSpawnVarChars;
+    char spawnVarChars[2048];
+};
+
 struct __declspec(align(8)) SysInfo // sizeof=0x260
 {                                                                             // XREF: .data:sys_info/r
                                                                                 // ?Com_SetRecommended@@YAXHH@Z/r
@@ -207,3 +223,70 @@ const char *__cdecl Com_DisplayName(const char *name, const char *clanAbbrev, in
 const char *__cdecl CS_DisplayName(const clientState_s *cs, int type);
 int __cdecl Com_GetPrivateClients();
 void Com_Printf_NoFilter(char *fmt, ...);
+
+
+extern const dvar_s *useFastFile;
+extern const dvar_s *sys_smp_allowed;
+extern const dvar_t *com_maxclients;
+extern const dvar_t *com_freemoveScale;
+extern const dvar_t *disconnected_ctrls;
+extern const dvar_t *com_first_time;
+extern const dvar_t *com_first_time_pc;
+extern const dvar_t *com_maxfps;
+extern const dvar_t *arcademode;
+extern const dvar_t *zombiemode;
+extern const dvar_t *legacy_zombiemode;
+extern const dvar_t *zombieStopSplitScreen;
+extern const dvar_t *zombietron;
+extern const dvar_t *zombietron_discovered;
+extern const dvar_t *zombiefive_discovered;
+extern const dvar_t *zombiefive_norandomchar;
+extern const dvar_t *blackopsmode;
+extern const dvar_t *spmode;
+extern const dvar_t *onlinegame;
+extern const dvar_t *xblive_rankedmatch;
+extern const dvar_t *xblive_privatematch;
+extern const dvar_t *useFastFile;
+extern const dvar_t *sys_lockThreads;
+extern const dvar_t *sys_smp_allowed;
+extern const dvar_t *com_developer;
+extern const dvar_t *com_developer_script;
+extern const dvar_t *com_script_debugger_smoke_test;
+extern const dvar_t *com_logfile;
+extern const dvar_t *com_statmon;
+extern const dvar_t *com_timescale;
+extern const dvar_t *dev_timescale;
+extern const dvar_t *com_fixedtime;
+extern const dvar_t *com_maxFrameTime;
+extern const dvar_t *long_blocking_call;
+extern const dvar_t *sv_network_warning;
+extern const dvar_t *cl_network_warning;
+extern const dvar_t *sv_paused;
+extern const dvar_t *cl_paused;
+extern const dvar_t *cl_paused_simple;
+extern const dvar_t *com_sv_running;
+extern const dvar_t *com_show_tty_timestamps;
+extern const dvar_t *com_voip_resume_time;
+extern const dvar_t *com_voip_bandwidth_restricted;
+extern const dvar_t *com_voip_disable_threshold;
+extern const dvar_t *com_filter_output;
+extern const dvar_t *com_introPlayed;
+extern const dvar_t *com_startupIntroPlayed;
+extern const dvar_t *com_desiredMenu;
+extern const dvar_t *com_skipMovies;
+extern const dvar_t *com_animCheck;
+extern const dvar_t *com_hiDef;
+extern const dvar_t *com_wideScreen;
+extern const dvar_t *doublesided_raycasts;
+extern const dvar_t *log_append;
+extern const dvar_t *com_waitForStreamer;
+extern const dvar_t *dec20_Enabled;
+extern const dvar_t *band_demosystem;
+extern const dvar_t *band_2players;
+extern const dvar_t *band_4players;
+extern const dvar_t *band_6players;
+extern const dvar_t *band_8players;
+extern const dvar_t *band_12players;
+extern const dvar_t *band_18players;
+extern const dvar_t *band_lotsplayers;
+extern const dvar_t *band_dedicated;

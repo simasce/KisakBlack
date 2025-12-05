@@ -1,5 +1,9 @@
 #include "com_clients.h"
 
+#include <cstring>
+#include <universal/com_memory.h>
+#include <client/cl_main.h>
+
 ClientGameState clientGameStates[1];
 
 void __cdecl Com_InitClientGameStates()
@@ -87,10 +91,11 @@ void __cdecl SwapClients(int clientA, int clientB)
     connstate_t uiActiveTemp_8; // [esp+1Ch] [ebp-14h]
     int uiActiveTemp_12; // [esp+20h] [ebp-10h]
     unsigned __int8 *clientConnectionTemp; // [esp+24h] [ebp-Ch]
-    LargeLocal clientConnectionTemp_large_local; // [esp+28h] [ebp-8h] BYREF
+    LargeLocal clientConnectionTemp_large_local(720712); // [esp+28h] [ebp-8h] BYREF
 
-    LargeLocal::LargeLocal(&clientConnectionTemp_large_local, 720712);
-    clientConnectionTemp = LargeLocal::GetBuf(&clientConnectionTemp_large_local);
+    //LargeLocal::LargeLocal(&clientConnectionTemp_large_local, 720712);
+    //clientConnectionTemp = LargeLocal::GetBuf(&clientConnectionTemp_large_local);
+    clientConnectionTemp = clientConnectionTemp_large_local.GetBuf();
     v2 = &clientUIActives[clientA];
     uiActiveTemp = v2->flags;
     uiActiveTemp_4 = v2->keyCatchers;
@@ -123,9 +128,9 @@ void __cdecl SwapClients(int clientA, int clientB)
     v6->controllerIndex = clientGamestateTemp_8;
     v6->uiContextIndex = clientGamestateTemp_12;
     v6->networkID = clientGamestateTemp_16;
-    dword_3F6EEE4[5 * clientA] = clientA;
-    dword_3F6EEE4[5 * clientB] = clientB;
-    if ( clientConnections )
+    clientGameStates[clientA].localClientNum = clientA;
+    clientGameStates[clientB].localClientNum = clientB;
+    if (clientConnections)
     {
         memcpy(clientConnectionTemp, (unsigned __int8 *)&clientConnections[clientA], 0xAFF48u);
         memcpy(
@@ -134,7 +139,7 @@ void __cdecl SwapClients(int clientA, int clientB)
             sizeof(clientConnection_t));
         memcpy((unsigned __int8 *)&clientConnections[clientB], clientConnectionTemp, sizeof(clientConnection_t));
     }
-    LargeLocal::~LargeLocal(&clientConnectionTemp_large_local);
+    //LargeLocal::~LargeLocal(&clientConnectionTemp_large_local);
 }
 
 void __cdecl Com_LocalClients_AssignUIContextsForInGame()
@@ -143,8 +148,8 @@ void __cdecl Com_LocalClients_AssignUIContextsForInGame()
     int contextIndex; // [esp+4h] [ebp-4h]
 
     contextIndex = 0;
-    for ( cgsIndex = 0; cgsIndex < 1; ++cgsIndex )
-        dword_3F6EEEC[5 * cgsIndex] = contextIndex++;
+    for (cgsIndex = 0; cgsIndex < 1; ++cgsIndex)
+        clientGameStates[cgsIndex].uiContextIndex = contextIndex++;
 }
 
 void __cdecl Com_LocalClients_AssignUIContextsForFrontEnd()
@@ -153,9 +158,9 @@ void __cdecl Com_LocalClients_AssignUIContextsForFrontEnd()
     int contextIndex; // [esp+4h] [ebp-4h]
 
     contextIndex = 0;
-    for ( cgsIndex = 0; cgsIndex < 1; ++cgsIndex )
+    for (cgsIndex = 0; cgsIndex < 1; ++cgsIndex)
     {
-        dword_3F6EEEC[5 * cgsIndex] = 0;
+        clientGameStates[cgsIndex].uiContextIndex = 0;
         ++contextIndex;
     }
 }
@@ -164,23 +169,23 @@ int __cdecl Com_LocalClient_GetUIContextIndex(int localClientNum)
 {
     int cgsIndex; // [esp+0h] [ebp-4h]
 
-    if ( localClientNum
+    if (localClientNum
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
-                    162,
-                    0,
-                    "localClientNum doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
-                    localClientNum,
-                    1) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
+            162,
+            0,
+            "localClientNum doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
+            localClientNum,
+            1))
     {
         __debugbreak();
     }
-    for ( cgsIndex = 0; cgsIndex < 1; ++cgsIndex )
+    for (cgsIndex = 0; cgsIndex < 1; ++cgsIndex)
     {
-        if ( dword_3F6EEE4[5 * cgsIndex] == localClientNum )
-            return dword_3F6EEEC[5 * cgsIndex];
+        if (clientGameStates[cgsIndex].localClientNum == localClientNum)
+            return clientGameStates[cgsIndex].uiContextIndex;
     }
-    if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp", 171, 0, "%s", "0") )
+    if (!Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp", 171, 0, "%s", "0"))
         __debugbreak();
     return -1;
 }
@@ -189,23 +194,23 @@ int __cdecl Com_LocalClient_GetControllerIndex(int localClientNum)
 {
     int cgsIndex; // [esp+0h] [ebp-4h]
 
-    if ( localClientNum
+    if (localClientNum
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
-                    177,
-                    0,
-                    "localClientNum doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
-                    localClientNum,
-                    1) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
+            177,
+            0,
+            "localClientNum doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
+            localClientNum,
+            1))
     {
         __debugbreak();
     }
-    for ( cgsIndex = 0; cgsIndex < 1; ++cgsIndex )
+    for (cgsIndex = 0; cgsIndex < 1; ++cgsIndex)
     {
-        if ( dword_3F6EEE4[5 * cgsIndex] == localClientNum )
-            return dword_3F6EEE8[5 * cgsIndex];
+        if (clientGameStates[cgsIndex].localClientNum == localClientNum)
+            return clientGameStates[cgsIndex].controllerIndex;
     }
-    if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp", 186, 0, "%s", "0") )
+    if (!Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp", 186, 0, "%s", "0"))
         __debugbreak();
     return -1;
 }
@@ -214,41 +219,41 @@ int __cdecl Com_LocalClient_GetNetworkID(int localClientNum)
 {
     int cgsIndex; // [esp+0h] [ebp-4h]
 
-    if ( localClientNum
+    if (localClientNum
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
-                    192,
-                    0,
-                    "localClientNum doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
-                    localClientNum,
-                    1) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
+            192,
+            0,
+            "localClientNum doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
+            localClientNum,
+            1))
     {
         __debugbreak();
     }
-    for ( cgsIndex = 0; cgsIndex < 1; ++cgsIndex )
+    for (cgsIndex = 0; cgsIndex < 1; ++cgsIndex)
     {
-        if ( dword_3F6EEE4[5 * cgsIndex] == localClientNum )
-            return dword_3F6EEF0[5 * cgsIndex];
+        if (clientGameStates[cgsIndex].localClientNum == localClientNum)
+            return clientGameStates[cgsIndex].networkID;
     }
-    if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp", 201, 0, "%s", "0") )
+    if (!Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp", 201, 0, "%s", "0"))
         __debugbreak();
     return 2;
 }
 
 void __cdecl Com_LocalClient_SetControllerIndex(int localClientNum, int controllerIndex)
 {
-    if ( localClientNum
+    if (localClientNum
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
-                    208,
-                    0,
-                    "localClientNum doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
-                    localClientNum,
-                    1) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
+            208,
+            0,
+            "localClientNum doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
+            localClientNum,
+            1))
     {
         __debugbreak();
     }
-    dword_3F6EEE8[5 * localClientNum] = controllerIndex;
+    clientGameStates[localClientNum].controllerIndex = controllerIndex;
 }
 
 void __cdecl Com_LocalClient_SetPrimary(int localClientNum, bool primary)
@@ -385,23 +390,23 @@ int __cdecl Com_ControllerIndex_GetLocalClientNum(int controllerIndex)
 {
     int cgsIndex; // [esp+0h] [ebp-4h]
 
-    if ( controllerIndex
+    if (controllerIndex
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
-                    358,
-                    0,
-                    "controllerIndex doesn't index MAX_GPAD_COUNT\n\t%i not in [0, %i)",
-                    controllerIndex,
-                    1) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
+            358,
+            0,
+            "controllerIndex doesn't index MAX_GPAD_COUNT\n\t%i not in [0, %i)",
+            controllerIndex,
+            1))
     {
         __debugbreak();
     }
-    for ( cgsIndex = 0; cgsIndex < 1; ++cgsIndex )
+    for (cgsIndex = 0; cgsIndex < 1; ++cgsIndex)
     {
-        if ( dword_3F6EEE8[5 * cgsIndex] == controllerIndex )
-            return dword_3F6EEE4[5 * cgsIndex];
+        if (clientGameStates[cgsIndex].controllerIndex == controllerIndex)
+            return clientGameStates[cgsIndex].localClientNum;
     }
-    if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp", 369, 0, "%s", "0") )
+    if (!Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp", 369, 0, "%s", "0"))
         __debugbreak();
     return -1;
 }
@@ -410,23 +415,23 @@ int __cdecl Com_ControllerIndex_GetUIContextIndex(int controllerIndex)
 {
     int cgsIndex; // [esp+0h] [ebp-4h]
 
-    if ( controllerIndex
+    if (controllerIndex
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
-                    395,
-                    0,
-                    "controllerIndex doesn't index MAX_GPAD_COUNT\n\t%i not in [0, %i)",
-                    controllerIndex,
-                    1) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
+            395,
+            0,
+            "controllerIndex doesn't index MAX_GPAD_COUNT\n\t%i not in [0, %i)",
+            controllerIndex,
+            1))
     {
         __debugbreak();
     }
-    for ( cgsIndex = 0; cgsIndex < 1; ++cgsIndex )
+    for (cgsIndex = 0; cgsIndex < 1; ++cgsIndex)
     {
-        if ( dword_3F6EEE8[5 * cgsIndex] == controllerIndex )
-            return dword_3F6EEEC[5 * cgsIndex];
+        if (clientGameStates[cgsIndex].controllerIndex == controllerIndex)
+            return clientGameStates[cgsIndex].uiContextIndex;
     }
-    if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp", 405, 0, "%s", "0") )
+    if (!Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp", 405, 0, "%s", "0"))
         __debugbreak();
     return -1;
 }

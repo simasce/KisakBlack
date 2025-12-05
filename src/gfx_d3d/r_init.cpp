@@ -1,5 +1,29 @@
 #include "r_init.h"
 #include <win32/win_main.h>
+#include <qcommon/common.h>
+
+#include <dxerr.h>
+#include <d3d9.h>
+#include "rb_backend.h"
+#include "r_dvars.h"
+#include <database/db_registry.h>
+#include "r_singlethreaded_device_pc.h"
+#include "rb_logfile.h"
+#include "r_buffers.h"
+#include "r_rendertarget.h"
+#include "r_model_lighting.h"
+#include "r_staticmodelcache.h"
+#include "r_utils.h"
+#include "r_rendercmds.h"
+
+GfxConfiguration gfxCfg;
+vidConfig_t vidConfig;
+DxGlobals dx;
+
+const dvar_t *r_mode;
+const dvar_t *r_displayRefresh;
+
+int g_disableRendering;
 
 void __cdecl    R_FatalInitError(const char *msg)
 {
@@ -12,11 +36,11 @@ void __cdecl    R_FatalInitError(const char *msg)
 
 void __cdecl    R_FatalLockError(HRESULT hr)
 {
-    const char *v1; // eax
+    const char *unitScaleValue; // eax
 
     Com_Printf(8, "********** DirectX failed a call to lock a vertex buffer or an index buffer **********\n");
-    v1 = R_ErrorDescription(hr);
-    Com_Printf(8, "********** error information:    %s\n", v1);
+    unitScaleValue = R_ErrorDescription(hr);
+    Com_Printf(8, "********** error information:    %s\n", unitScaleValue);
     Sys_DirectXFatalError();
 }
 
@@ -38,56 +62,28 @@ void __cdecl R_SetColorMappings()
 
 void __cdecl R_CalcGammaRamp(GfxGammaRamp *gammaRamp)
 {
-    long double v1; // [esp+8h] [ebp-24h]
-    long double v2; // [esp+10h] [ebp-1Ch]
-    unsigned __int16 adjustedColorValue; // [esp+1Ch] [ebp-10h]
-    unsigned __int16 colorTableIndex; // [esp+20h] [ebp-Ch]
-    float exponent; // [esp+24h] [ebp-8h]
-    float unitScaleValue; // [esp+28h] [ebp-4h]
+    float unitScaleValue; // [esp+8h] [ebp-30h]
+    float v2; // [esp+Ch] [ebp-2Ch]
+    float v3; // [esp+18h] [ebp-20h]
+    unsigned __int16 adjustedColorValue; // [esp+28h] [ebp-10h]
+    unsigned __int16 colorTableIndex; // [esp+2Ch] [ebp-Ch]
+    float exponent; // [esp+30h] [ebp-8h]
 
-    if ( !gammaRamp
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 1127, 0, "%s", "gammaRamp") )
-    {
-        __debugbreak();
-    }
-    if ( r_gamma->current.value <= 0.0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp",
-                    1128,
-                    0,
-                    "%s\n\t(r_gamma->current.value) = %g",
-                    "(r_gamma->current.value > 0)",
-                    r_gamma->current.value) )
-    {
-        __debugbreak();
-    }
+    iassert(gammaRamp);
+    iassert(r_gamma->current.value > 0);
     exponent = 1.0 / r_gamma->current.value;
-    for ( colorTableIndex = 0; colorTableIndex < 0x100u; ++colorTableIndex )
+    for (colorTableIndex = 0; colorTableIndex < 0x100u; ++colorTableIndex)
     {
-        if ( exponent == 1.0 )
+        if (exponent == 1.0)
         {
             adjustedColorValue = 257 * colorTableIndex;
         }
         else
         {
-            __libm_sse2_pow(v1, v2);
-            unitScaleValue = (float)colorTableIndex / 255.0;
-            if ( (unitScaleValue < 0.0 || unitScaleValue >= 1.0000076)
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp",
-                            1141,
-                            0,
-                            "%s\n\t(unitScaleValue) = %g",
-                            "(unitScaleValue >= 0 && unitScaleValue < 1 + 0.5f / 65535)",
-                            unitScaleValue) )
-            {
-                __debugbreak();
-            }
-            *((float *)&v1 + 1) = 65535.0 * unitScaleValue;
-            HIDWORD(v2) = LODWORD(DOUBLE_9_313225746154785eN10);
-            LODWORD(v2) = (int)((float)(65535.0 * unitScaleValue) + 9.313225746154785e-10);
-            LODWORD(v1) = LODWORD(v2);
-            adjustedColorValue = LOWORD(v2);
+            v2 = (double)colorTableIndex / 255.0;
+            unitScaleValue = pow(v2, exponent);
+            iassert(unitScaleValue >= 0 && unitScaleValue < 1 + 0.5f / 65535);
+            adjustedColorValue = (int)(unitScaleValue * 65535.0f);
         }
         gammaRamp->entries[colorTableIndex] = adjustedColorValue;
     }
@@ -105,7 +101,7 @@ void __cdecl R_MakeDedicated(const GfxConfiguration *config)
 
 void __cdecl SetGfxConfig(const GfxConfiguration *config)
 {
-    const char *v1; // eax
+    const char *unitScaleValue; // eax
 
     if ( !config && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 1192, 0, "%s", "config") )
         __debugbreak();
@@ -123,14 +119,14 @@ void __cdecl SetGfxConfig(const GfxConfiguration *config)
     }
     if ( config->critSectCount != 75 )
     {
-        v1 = va("%d != %d", config->critSectCount, 75);
+        unitScaleValue = va("%d != %d", config->critSectCount, 75);
         if ( !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp",
                         1195,
                         0,
                         "%s\n\t%s",
                         "config->critSectCount == CRITSECT_COUNT",
-                        v1) )
+                        unitScaleValue) )
             __debugbreak();
     }
     memcpy(&gfxCfg, config, sizeof(gfxCfg));
@@ -264,7 +260,7 @@ void __cdecl R_UpdateGpuSyncType()
 
 char __cdecl R_CreateDevice(const GfxWindowParms *wndParms)
 {
-    const char *v1; // eax
+    const char *unitScaleValue; // eax
     _D3DPRESENT_PARAMETERS_ d3dpp; // [esp+0h] [ebp-44h] BYREF
     HWND__ *hwnd; // [esp+38h] [ebp-Ch]
     HRESULT hr; // [esp+3Ch] [ebp-8h]
@@ -309,8 +305,8 @@ char __cdecl R_CreateDevice(const GfxWindowParms *wndParms)
     }
     else
     {
-        v1 = R_ErrorDescription(hr);
-        Com_Printf(8, "Couldn't create a Direct3D device: %s\n", v1);
+        unitScaleValue = R_ErrorDescription(hr);
+        Com_Printf(8, "Couldn't create a Direct3D device: %s\n", unitScaleValue);
         return 0;
     }
 }
@@ -468,7 +464,7 @@ bool __cdecl R_GetMonitorDimensions(int *width, int *height)
     tagMONITORINFO mi; // [esp+0h] [ebp-2Ch] BYREF
     HMONITOR__ *adapterMonitor; // [esp+28h] [ebp-4h]
 
-    adapterMonitor = dx.d3d9->GetAdapterMonitor(dx.d3d9, dx.adapterIndex);
+    adapterMonitor = dx.d3d9->GetAdapterMonitor(dx.adapterIndex);
     mi.cbSize = 40;
     if ( GetMonitorInfoA(adapterMonitor, &mi) )
     {
@@ -487,20 +483,19 @@ bool __cdecl R_GetMonitorDimensions(int *width, int *height)
 int __cdecl R_GetDeviceType()
 {
     unsigned int v0; // eax
-    int v1; // eax
     _D3DADAPTER_IDENTIFIER9 id; // [esp+4h] [ebp-458h] BYREF
     unsigned int Adapter; // [esp+458h] [ebp-4h]
 
     dx.adapterIndex = 0;
     for ( Adapter = 0; ; ++Adapter )
     {
-        v0 = dx.d3d9->GetAdapterCount(dx.d3d9);
+        v0 = dx.d3d9->GetAdapterCount();
         if ( Adapter >= v0 )
             break;
-        if ( dx.d3d9->GetAdapterIdentifier(dx.d3d9, Adapter, 0, &id) >= 0 )
+        if ( dx.d3d9->GetAdapterIdentifier(Adapter, 0, &id) >= 0 )
         {
-            strstr((unsigned __int8 *)id.Description, "PerfHUD");
-            if ( v1 )
+            ;
+            if (strstr(id.Description, "PerfHUD"))
             {
                 dx.adapterIndex = Adapter;
                 return 2;
@@ -597,7 +592,7 @@ void __cdecl R_ResizeWindow()
 
 void __cdecl R_StoreWindowSettings(const GfxWindowParms *wndParms)
 {
-    const char *v1; // eax
+    const char *unitScaleValue; // eax
     bool v2; // [esp+0h] [ebp-3Ch]
     int monitorHeight; // [esp+2Ch] [ebp-10h]
     int monitorWidth; // [esp+30h] [ebp-Ch]
@@ -651,8 +646,8 @@ void __cdecl R_StoreWindowSettings(const GfxWindowParms *wndParms)
             vidConfig.aspectRatioWindow = FLOAT_1_7777778;
             break;
         default:
-            v1 = va("unhandled case, aspectRatio = %i\n", r_aspectRatio->current.integer);
-            if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 521, 1, v1) )
+            unitScaleValue = va("unhandled case, aspectRatio = %i\n", r_aspectRatio->current.integer);
+            if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 521, 1, unitScaleValue) )
                 __debugbreak();
             break;
     }
@@ -1080,7 +1075,7 @@ void __cdecl R_SetShadowmapFormats_DX(unsigned int adapterIndex)
 
 void __cdecl R_EnumDisplayModes(unsigned int adapterIndex)
 {
-    const char *v1; // eax
+    const char *unitScaleValue; // eax
     int v2; // eax
     int v3; // eax
     int refreshRateCount; // [esp+0h] [ebp-C30h]
@@ -1096,12 +1091,11 @@ void __cdecl R_EnumDisplayModes(unsigned int adapterIndex)
     int refreshRateIndex; // [esp+C28h] [ebp-8h]
     int defaultResolutionIndex; // [esp+C2Ch] [ebp-4h]
 
-    modeCountReported = dx.d3d9->GetAdapterModeCount(dx.d3d9, adapterIndex, D3DFMT_X8R8G8B8);
+    modeCountReported = dx.d3d9->GetAdapterModeCount(adapterIndex, D3DFMT_X8R8G8B8);
     dx.displayModeCount = 0;
     for ( modeIndex = 0; modeIndex < modeCountReported && dx.displayModeCount < 0x100; ++modeIndex )
     {
         hr = dx.d3d9->EnumAdapterModes(
-                     dx.d3d9,
                      adapterIndex,
                      D3DFMT_X8R8G8B8,
                      modeIndex,
@@ -1131,8 +1125,8 @@ void __cdecl R_EnumDisplayModes(unsigned int adapterIndex)
     modeText = dx.modeText;
     if ( !resolutionCount )
     {
-        v1 = va("No valid resolutions of %i x %i or above found", 800, 600);
-        R_FatalInitError(v1);
+        unitScaleValue = va("No valid resolutions of %i x %i or above found", 800, 600);
+        R_FatalInitError(unitScaleValue);
     }
     defaultResolutionIndex = 0;
     for ( resolutionIndex = 0; resolutionIndex < resolutionCount; ++resolutionIndex )
@@ -1240,16 +1234,16 @@ unsigned int __cdecl R_ChooseAdapter()
 
     desiredMonitor = R_ChooseMonitor();
     foundAdapterIndex = 0;
-    adapterCount = dx.d3d9->GetAdapterCount(dx.d3d9);
+    adapterCount = dx.d3d9->GetAdapterCount();
     for ( adapterIndex = 0; adapterIndex < adapterCount; ++adapterIndex )
     {
         if ( desiredMonitor )
         {
-            if ( dx.d3d9->GetAdapterMonitor(dx.d3d9, adapterIndex) != desiredMonitor )
+            if ( dx.d3d9->GetAdapterMonitor(adapterIndex) != desiredMonitor )
                 continue;
             foundAdapterIndex = adapterIndex;
         }
-        if ( dx.d3d9->GetAdapterIdentifier(dx.d3d9, adapterIndex, 0, &id) >= 0
+        if ( dx.d3d9->GetAdapterIdentifier(adapterIndex, 0, &id) >= 0
             && !strcmp(id.Description, "NVIDIA NVPerfHUD") )
         {
             return adapterIndex;
@@ -1855,7 +1849,7 @@ void __cdecl R_ConfigureRenderer(const GfxConfiguration *config)
 
 char __cdecl R_ReleaseLostDeviceAssets2()
 {
-    int v1; // [esp+0h] [ebp-Ch]
+    int unitScaleValue; // [esp+0h] [ebp-Ch]
     int v2; // [esp+4h] [ebp-8h]
     int semaphore; // [esp+8h] [ebp-4h]
 
@@ -1873,9 +1867,9 @@ char __cdecl R_ReleaseLostDeviceAssets2()
     {
         if ( r_glob.isRenderingRemoteUpdate )
             Sys_LeaveCriticalSection(CRITSECT_DBHASH);
-        v1 = R_AcquireDXDeviceOwnership(0);
+        unitScaleValue = R_AcquireDXDeviceOwnership(0);
         RB_Resource_Update(5);
-        if ( v1 )
+        if ( unitScaleValue )
             R_ReleaseDXDeviceOwnership();
         NET_Sleep(1u);
         if ( r_glob.isRenderingRemoteUpdate )

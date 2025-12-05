@@ -2,6 +2,6 @@
 
 char *__cdecl Clan_GetName(int controllerIndex)
 {
-    return Gamer//Profile_GetProfileSettings(controllerIndex)->clanPrefix;
+    return GamerProfile_GetProfileSettings(controllerIndex)->clanPrefix;
 }
 

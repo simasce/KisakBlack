@@ -4,6 +4,7 @@
 #include <xanim/xanim.h>
 #include <universal/q_shared.h>
 #include <qcommon/cm_trace.h>
+#include <qcommon/statmonitor.h>
 
 #define SURF_TYPECOUNT 31
 
@@ -79,7 +80,7 @@ struct colgeom_visitor_inlined_t : colgeom_visitor_t // sizeof=0x6B8
 
     colgeom_visitor_inlined_t &operator=(const colgeom_visitor_inlined_t *that)
     {
-        colgeom_visitor_t::operator=(that);
+        colgeom_visitor_t::operator=((colgeom_visitor_t*)that);
         this->nprims = that->nprims;
         this->overflow = that->overflow;
 
@@ -123,10 +124,16 @@ struct colgeom_visitor_inlined_t : colgeom_visitor_t // sizeof=0x6B8
         this->m_mn.vec.v[1] = 9.9999997e37;
         this->m_mn.vec.v[2] = 9.9999997e37;
 
-        this->m_mask.vec.v[0] = -9.9999997e37;
-        this->m_mask.vec.v[1] = -9.9999997e37;
-        this->m_mask.vec.v[2] = -9.9999997e37;
+        this->m_mx.vec.v[0] = -9.9999997e37;
+        this->m_mx.vec.v[1] = -9.9999997e37;
+        this->m_mx.vec.v[2] = -9.9999997e37;
     }
+
+    void intersect_box(float *mn, float *mx, int mask);
+    void intersect_box_brushes(cLeaf_s *leaf);
+    void intersect_box_brushnode(cLeafBrushNode_s *node);
+    void intersect_box_partitions(cLeaf_s *leaf);
+    void intersect_box_partitions_r(CollisionAabbTree *aabbTree);
 
     void update(
         const float *_mn,
@@ -165,7 +172,7 @@ struct colgeom_visitor_inlined_t : colgeom_visitor_t // sizeof=0x6B8
             intersect_box(mn, mx, mask);
             if (this->nprims == NUM_PRIMS)
             {
-                StatMon_Warning(8, 3000, "code_warning_collision");
+                StatMon_Warning(8, 3000, (char*)"code_warning_collision");
                 this->nprims = 0;
                 this->overflow = 1;
             }

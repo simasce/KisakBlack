@@ -1,4 +1,32 @@
 #include "g_main_mp.h"
+#include <universal/dvar.h>
+#include <gfx_d3d/r_reflection_probe.h>
+#include <universal/assertive.h>
+#include <game/teams.h>
+#include <demo/demo_common.h>
+#include <game/pathnode.h>
+#include <universal/com_memory.h>
+#include <clientscript/cscr_stringlist.h>
+#include <bgame/bg_misc.h>
+#include <bgame/bg_weapons.h>
+#include <clientscript/scr_const.h>
+#include <qcommon/common.h>
+#include <qcommon/threads.h>
+#include <qcommon/cm_load.h>
+#include <game/enthandle.h>
+#include <game/g_helicopter1.h>
+#include <game/turret.h>
+#include <game/g_missile.h>
+#include <turret/turret_placement.h>
+#include <DynEntity/DynEntity_server.h>
+#include <qcommon/dobj_management.h>
+
+const dvar_t *g_connectpaths;
+const dvar_t *g_loadScripts;
+
+level_locals_t level;
+
+gentity_s g_entities[MAX_GENTITIES];
 
 int __cdecl G_GetTime()
 {
@@ -369,7 +397,7 @@ void __cdecl    G_InitGame(int levelTime, int randomSeed, int restart, int regis
     }
     //PIXBeginNamedEvent(-1, "G_InitGame");
     Com_Printf(15, "------- Game Initialization -------\n");
-    Com_Printf(15, "gamename: %s\n", aCallOfDuty_0);
+    Com_Printf(15, "gamename: %s\n", "Call of Duty®");
     Com_Printf(15, "gamedate: %s\n", "Nov    5 2010");
     Rope_InitRopes();
     Swap_Init();
@@ -388,7 +416,216 @@ void __cdecl    G_InitGame(int levelTime, int randomSeed, int restart, int regis
     GScr_LoadConsts();
 }
 
-const dvar_s *G_RegisterDvars()
+const dvar_t *g_cheats;
+const dvar_t *g_erroronpathsnotconnected;
+const dvar_t *sv_mapname;
+const dvar_t *g_gametype;
+const dvar_t *g_synchronousClients;
+const dvar_t *g_log;
+const dvar_t *g_logTimeStampInSeconds;
+const dvar_t *g_logSync;
+const dvar_t *g_password;
+const dvar_t *g_banIPs;
+const dvar_t *g_speed;
+const dvar_t *g_knockback;
+const dvar_t *g_maxDroppedWeapons;
+const dvar_t *g_inactivity;
+const dvar_t *g_debugDamage;
+const dvar_t *g_debugBullets;
+const dvar_t *g_vehicleDrawPath;
+const dvar_t *ai_enableBadPlaces;
+const dvar_t *g_ai;
+const dvar_t *g_spawnai;
+const dvar_t *g_dumpAIEvents;
+const dvar_t *ai_turnRate;
+const dvar_t *ai_useFacingTranslation;
+const dvar_t *ai_useLeanRunAnimations;
+const dvar_t *ai_useBetterLookahead;
+const dvar_t *ai_slowdownMinYawDiff;
+const dvar_t *ai_slowdownMaxYawDiff;
+const dvar_t *ai_slowdownMinRate;
+const dvar_t *ai_slowdownRateBlendFactor;
+const dvar_t *ai_angularYawEnabled;
+const dvar_t *ai_angularYawAccelRate;
+const dvar_t *ai_angularYawDecelFactor;
+const dvar_t *ai_corpseCount;
+const dvar_t *ai_showNodes;
+const dvar_t *ai_showNodesDist;
+const dvar_t *ai_showNearestNode;
+const dvar_t *ai_showVisData;
+const dvar_t *ai_showVisDataDist;
+const dvar_t *ai_showPaths;
+const dvar_t *ai_debugFindPath;
+const dvar_t *ai_debugFindPathDirect;
+const dvar_t *ai_debugFindPathWidth;
+const dvar_t *ai_debugFindPathLock;
+const dvar_t *ai_debugClaimedNodes;
+const dvar_t *ai_disableSpawn;
+const dvar_t *ai_moveOrientMode;
+const dvar_t *ai_pathNegotiationOverlapCost;
+const dvar_t *ai_showPotentialThreatDir;
+const dvar_t *ai_debugCoverEntityNum;
+const dvar_t *ai_showBadPlaces;
+const dvar_t *ai_showDodge;
+const dvar_t *ai_noDodge;
+const dvar_t *ai_pathMomentum;
+const dvar_t *ai_debugMayMove;
+const dvar_t *ai_showVolume;
+const dvar_t *ai_debugAnimDeltas;
+const dvar_t *ai_debugThreatSelection;
+const dvar_t *ai_debugMeleeAttackSpots;
+const dvar_t *ai_debugEntIndex;
+const dvar_t *ai_eventDistFootstep;
+const dvar_t *ai_eventDistFootstepLite;
+const dvar_t *ai_eventDistNewEnemy;
+const dvar_t *ai_eventDistReact;
+const dvar_t *ai_eventDistPain;
+const dvar_t *ai_eventDistDeath;
+const dvar_t *ai_eventDistExplosion;
+const dvar_t *ai_eventDistGrenadePing;
+const dvar_t *ai_eventDistProjPing;
+const dvar_t *ai_eventDistGunShot;
+const dvar_t *ai_eventDistSilencedShot;
+const dvar_t *ai_eventDistBullet;
+const dvar_t *ai_eventDistBulletRunning;
+const dvar_t *ai_eventDistProjImpact;
+const dvar_t *ai_eventDistBadPlace;
+const dvar_t *ai_playerNearAccuracy;
+const dvar_t *ai_playerNearRange;
+const dvar_t *ai_playerFarAccuracy;
+const dvar_t *ai_playerFarRange;
+const dvar_t *ai_threatUpdateInterval;
+const dvar_t *ai_foliageIngoreDist;
+const dvar_t *ai_friendlySuppression;
+const dvar_t *ai_friendlySuppressionDist;
+const dvar_t *ai_meleeRange;
+const dvar_t *ai_meleeWidth;
+const dvar_t *ai_meleeHeight;
+const dvar_t *ai_meleeDamage;
+const dvar_t *ai_maxAttackerCount;
+const dvar_t *ai_noPathToEnemyGiveupTime;
+const dvar_t *bullet_penetrationEnabled;
+const dvar_t *g_entinfo;
+const dvar_t *g_entinfo_type;
+const dvar_t *g_entinfo_AItext;
+const dvar_t *g_entinfo_maxdist;
+const dvar_t *g_entinfo_scale;
+const dvar_t *g_debugPlayerAnimScript;
+const dvar_t *g_motd;
+const dvar_t *g_playerCollisionEjectSpeed;
+const dvar_t *g_dropForwardSpeed;
+const dvar_t *g_dropUpSpeedBase;
+const dvar_t *g_dropUpSpeedRand;
+const dvar_t *g_dropHorzSpeedRand;
+const dvar_t *g_clonePlayerMaxVelocity;
+const dvar_t *voice_global;
+const dvar_t *voice_localEcho;
+const dvar_t *voice_deadChat;
+const dvar_t *g_allowVote;
+const dvar_t *g_allow_teamchange;
+const dvar_t *g_listEntity;
+const dvar_t *g_listEntityCounts;
+const dvar_t *g_entsInSnapshot;
+const dvar_t *g_maxEntsInSnapshot;
+const dvar_t *g_deadChat;
+const dvar_t *g_voiceChatTalkingDuration;
+const dvar_t *g_TeamIcon_Axis;
+const dvar_t *g_TeamIcon_Allies;
+const dvar_t *g_TeamIcon_Free;
+const dvar_t *g_TeamIcon_Spectator;
+const dvar_t *g_ScoresColor_MyTeam;
+const dvar_t *g_ScoresColor_EnemyTeam;
+const dvar_t *g_ScoresColor_Spectator;
+const dvar_t *g_ScoresColor_Free;
+const dvar_t *g_ScoresColor_Allies;
+const dvar_t *g_ScoresColor_Axis;
+const dvar_t *g_ScoresPing_Interval;
+const dvar_t *g_TeamName_Allies;
+const dvar_t *g_TeamName_Axis;
+const dvar_t *g_TeamColor_Allies;
+const dvar_t *g_TeamColor_Axis;
+const dvar_t *g_TeamColor_MyTeam;
+const dvar_t *g_TeamColor_EnemyTeam;
+const dvar_t *g_TeamColor_MyTeamAlt;
+const dvar_t *g_TeamColor_EnemyTeamAlt;
+const dvar_t *g_TeamColor_Squad;
+const dvar_t *g_TeamColor_Spectator;
+const dvar_t *g_TeamColor_Free;
+const dvar_t *g_debugLocDamage;
+const dvar_t *g_debugLocHit;
+const dvar_t *g_debugLocHitTime;
+const dvar_t *g_smoothClients;
+const dvar_t *g_antilag;
+const dvar_t *g_oldVoting;
+const dvar_t *g_voteAbstainWeight;
+const dvar_t *g_NoScriptSpam;
+const dvar_t *g_friendlyfireDist;
+const dvar_t *g_friendlyNameDist;
+const dvar_t *melee_debug;
+const dvar_t *radius_damage_debug;
+const dvar_t *player_throwbackInnerRadius;
+const dvar_t *player_throwbackOuterRadius;
+const dvar_t *player_useRadius;
+const dvar_t *player_MGUseRadius;
+const dvar_t *vehicle_useRadius;
+const dvar_t *g_minGrenadeDamageSpeed;
+const dvar_t *g_compassShowEnemies;
+const dvar_t *pickupPrints;
+const dvar_t *g_revive;
+const dvar_t *g_dumpAnims;
+const dvar_t *g_useholdtime;
+const dvar_t *g_useholdspawndelay;
+const dvar_t *g_redCrosshairs;
+const dvar_t *g_mantleBlockTimeBuffer;
+const dvar_t *g_vehicleDebug;
+const dvar_t *vehGunnerSplashDamage;
+const dvar_t *turretPlayerAvoidScale;
+const dvar_t *g_enableAttachWeaponFix;
+const dvar_t *anim_deltas_debug;
+const dvar_t *g_destructibleDraw;
+const dvar_t *g_debugServerAiming;
+const dvar_t *g_fogColorReadOnly;
+const dvar_t *g_fogStartDistReadOnly;
+const dvar_t *g_fogHalfDistReadOnly;
+const dvar_t *vehPlaneRollDeadZone;
+const dvar_t *vehPlaneRollAccel;
+const dvar_t *vehPlanePitchAccel;
+const dvar_t *vehPlaneYawSpeed;
+const dvar_t *vehPlaneYawFromRollScale;
+const dvar_t *vehPlaneLiftForce;
+const dvar_t *vehPlaneFakeLiftForce;
+const dvar_t *vehPlaneLowSpeed;
+const dvar_t *vehPlaneGravityForce;
+const dvar_t *vehicle_switch_seat_delay;
+const dvar_t *vehicle_damage_max_shielding;
+const dvar_t *vehicle_damage_zone_front;
+const dvar_t *vehicle_damage_zone_side;
+const dvar_t *vehicle_damage_zone_rear;
+const dvar_t *vehicle_damage_zone_under;
+const dvar_t *vehicle_damage_bullet;
+const dvar_t *vehicle_damage_grenade;
+const dvar_t *vehicle_damage_projectile;
+const dvar_t *vehicle_damage_bouncing_betty;
+const dvar_t *vehicle_damage_satchel_charge;
+const dvar_t *vehicle_damage_sticky_grenade;
+const dvar_t *vehicle_piece_damagesfx_threshold;
+const dvar_t *vehicle_destructible_damage_grenade;
+const dvar_t *vehicle_destructible_damage_bouncing_betty;
+const dvar_t *vehicle_destructible_damage_satchel_charge;
+const dvar_t *vehicle_destructible_damage_sticky_grenade;
+const dvar_t *vehicle_destructible_damage_grenade_radius;
+const dvar_t *vehicle_destructible_damage_bouncing_betty_radius;
+const dvar_t *vehicle_destructible_damage_satchel_charge_radius;
+const dvar_t *vehicle_destructible_damage_sticky_grenade_radius;
+const dvar_t *vehicle_destructible_damage_projectile_radius;
+const dvar_t *vehicle_perk_leadfoot_speed_increase;
+const dvar_t *g_turretServerPitchMin;
+const dvar_t *g_turretServerPitchMax;
+const dvar_t *g_turretBipodOffset;
+
+
+
+void G_RegisterDvars()
 {
     const dvar_s *result; // eax
 
@@ -398,7 +635,7 @@ const dvar_s *G_RegisterDvars()
                                                                  1,
                                                                  0x80u,
                                                                  "Errors out during load if paths are not connected.");
-    _Dvar_RegisterString("sv_mapname", (char *)"", 0x44u, "The current map name");
+    sv_mapname = _Dvar_RegisterString("sv_mapname", (char *)"", 0x44u, "The current map name");
     g_gametype = _Dvar_RegisterString("g_gametype", "tdm", 0x24u, "The current campaign");
     g_synchronousClients = _Dvar_RegisterBool(
                                                      "g_synchronousClients",
@@ -1458,15 +1695,13 @@ const dvar_s *G_RegisterDvars()
                                                          50.0,
                                                          0x80u,
                                                          "Limit turret pitch range on server (visual only)");
-    result = _Dvar_RegisterFloat(
-                         "g_turretBipodOffset",
-                         17.0,
-                         -50.0,
-                         50.0,
-                         0x80u,
-                         "Offset bipod mount position on gun by this distance");
-    g_turretBipodOffset = result;
-    return result;
+    g_turretBipodOffset = _Dvar_RegisterFloat(
+        "g_turretBipodOffset",
+        17.0,
+        -50.0,
+        50.0,
+        0x80u,
+        "Offset bipod mount position on gun by this distance");
 }
 
 void __cdecl G_CreateDObj(

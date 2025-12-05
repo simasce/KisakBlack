@@ -3768,24 +3768,6 @@ void __cdecl BG_UnlockablesPurchaseItemAttachmentPointCmd()
     }
 }
 
-int __cdecl Cmd_Argc()
-{
-    CmdArgs *cmd_args; // [esp+4h] [ebp-4h]
-
-    cmd_args = Cmd_Args();
-    if ( cmd_args->nesting >= 8u
-        && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../qcommon/cmd.h",
-                    212,
-                    0,
-                    "cmd_args->nesting doesn't index CMD_MAX_NESTING\n\t%i not in [0, %i)",
-                    cmd_args->nesting,
-                    8) )
-    {
-        __debugbreak();
-    }
-    return cmd_args->argc[cmd_args->nesting];
-}
 
 void __cdecl BG_UnlockablesPurchaseCurrentItemCmd()
 {

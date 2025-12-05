@@ -66,3 +66,15 @@ struct clientState_s // sizeof=0xD0
         score_s score;
         int clientUIVisibilityFlags;
 };
+
+struct clientActive_t;
+
+extern clientActive_t *clients;
+
+inline clientActive_t *__cdecl CL_GetLocalClientGlobals(int localClientNum)
+{
+    iassert(clients);
+    iassert(localClientNum == 0);
+
+    return &clients[localClientNum];
+}

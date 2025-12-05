@@ -444,6 +444,12 @@ struct __declspec(align(4)) cmd_function_s // sizeof=0x18
         // padding byte
 };
 
+struct CmdText // sizeof=0xC
+{                                       // XREF: .data:sv_cmd_text/r
+    unsigned __int8 *data;              // XREF: Cbuf_Init(void)+38/w
+    int maxsize;                        // XREF: Cbuf_Init(void)+44/w
+    int cmdsize;                        // XREF: Cbuf_Init(void)+54/w
+};
 
 void __cdecl Cmd_Wait_f();
 void __cdecl Cbuf_Init();
@@ -527,3 +533,7 @@ char __cdecl Cmd_ExecFromDisk(int localClientNum, int controllerIndex, const cha
 char __cdecl Cmd_ExecFromDiskAddText(int localClientNum, int controllerIndex, const char *filename);
 char __cdecl Cmd_ExecFromFastFile(int localClientNum, int controllerIndex, char *filename);
 void __cdecl Cmd_ExecAddText_f();
+
+const char *__cdecl Cmd_Argv(int argIndex);
+CmdArgs *__cdecl Cmd_Args();
+int __cdecl Cmd_Argc();

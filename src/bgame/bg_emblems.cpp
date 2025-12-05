@@ -1058,52 +1058,6 @@ void __cdecl BG_EmblemsPurchaseIcon_f()
     BG_EmblemsPurchaseIcon(0, v1);
 }
 
-const char *__cdecl Cmd_Argv(int argIndex)
-{
-    CmdArgs *cmd_args; // [esp+8h] [ebp-4h]
-
-    cmd_args = Cmd_Args();
-    if ( cmd_args->nesting >= 8u
-        && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../qcommon/cmd.h",
-                    228,
-                    0,
-                    "cmd_args->nesting doesn't index CMD_MAX_NESTING\n\t%i not in [0, %i)",
-                    cmd_args->nesting,
-                    8) )
-    {
-        __debugbreak();
-    }
-    if ( argIndex < 0
-        && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../qcommon/cmd.h",
-                    229,
-                    0,
-                    "%s\n\t(argIndex) = %i",
-                    "(argIndex >= 0)",
-                    argIndex) )
-    {
-        __debugbreak();
-    }
-    if ( argIndex >= cmd_args->argc[cmd_args->nesting] )
-        return "";
-    else
-        return cmd_args->argv[cmd_args->nesting][argIndex];
-}
-
-CmdArgs *__cdecl Cmd_Args()
-{
-    CmdArgs *cmd_args; // [esp+0h] [ebp-4h]
-
-    cmd_args = (CmdArgs *)Sys_GetValue(4);
-    if ( !cmd_args
-        && !Assert_MyHandler("c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../qcommon/cmd.h", 203, 0, "%s", "cmd_args != NULL") )
-    {
-        __debugbreak();
-    }
-    return cmd_args;
-}
-
 void __cdecl BG_EmblemsPurchaseBackgroundByID_f()
 {
     const char *v0; // eax

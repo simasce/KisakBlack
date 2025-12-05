@@ -23,6 +23,16 @@ struct ScreenPlacement // sizeof=0x78
         float subScreen[2];
 };
 
+struct ScreenPlacementStack // sizeof=0xF8
+{                                       // XREF: ?Menu_PaintAll@@YAXHPAUUiContext@@@Z/r
+                                        // DrawSingleHudElem2d/r
+    ScreenPlacement stack[2];
+    int size;                           // XREF: DrawSingleHudElem2d+9B/w
+                                        // Menu_PaintAll(int,UiContext *)+1E/w
+    int contextIndex;                   // XREF: DrawSingleHudElem2d+A5/w
+                                        // Menu_PaintAll(int,UiContext *)+2E/w
+};
+
 double __cdecl ScrPlace_HiResGetScale();
 void __cdecl ScrPlace_HiResApplyRect(float *x, float *y, float *w, float *h);
 void __cdecl ScrPlace_SetupUI3DForFullscreen(ScreenPlacement *ui3DScrPlace, ScreenPlacement *fullScrPlace);
