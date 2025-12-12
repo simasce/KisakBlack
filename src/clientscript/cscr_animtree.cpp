@@ -3,13 +3,108 @@
 #include <universal/q_parse.h>
 #include "cscr_parser.h"
 #include "cscr_variable.h"
+#include "cscr_stringlist.h"
+#include "cscr_memorytree.h"
 
+#include <Windows.h>
+#include <qcommon/common.h>
+#include <xanim/xanim.h>
+#include <universal/com_memory.h>
+#include <bgame/bg_local.h>
+
+#undef GetObject
+
+const char *VALUES_ROOT_NAME =
+"valueRoot";
+const char *NODE_ROOT_NAME =
+"nodeRoot";
+const char *EXPRESSION_ROOT_NAME =
+"exprRoot";
+const char *PARAMETER_ROOT_NAME =
+"paramRoot";
+const char *VALUE_PARAM_INDEX =
+"valueindex";
+const char *PARAM_CLASS =
+"class";
+const char *PARAM_EXPR_INDEX =
+"index";
+const char *PARAM_TYPE =
+"type";
+const char *OPTION_NAME =
+"name";
+const char *OPTION_EXPR_INDEX =
+"index";
+const char *EXPR_OPERATOR_NAME =
+"command";
+const char *EXPR_VALUE_TYPE =
+"type";
+const char *EXPR_VALUE_NAME =
+"value";
+const char *EXPR_OPERAND_NAME =
+"operand";
+
+
+const ExpressionOperatorData g_ExprOperatorList[10] =
+{
+  { 2, "+", false, EqualTypeSameResult, OP_ADD_VALUES },
+  { 2, "-", false, EqualTypeSameResult, OP_SUBTRACT_2_FROM_1 },
+  { 2, "*", false, EqualTypeAllowScalar, OP_MULTIPLY_VALUES },
+  { 2, "/", false, EqualTypeAllowScalar, OP_DIVIDE_2_FROM_1 },
+  { 0, "(", false, NULL, MAX_NUM_OPCODES },
+  { 0, ")", false, NULL, MAX_NUM_OPCODES },
+  { 2, "vec2", true, FloatsToVec, OP_CONSTRUCT_VEC2 },
+  { 3, "vec3", true, FloatsToVec, OP_CONSTRUCT_VEC3 },
+  { 2, "dot", true, VecsToFloat, OP_DOT_PRODUCT },
+  { 2, "cross", true, Vec3ToVec3, OP_CROSS_PRODUCT }
+};
+
+
+struct StandardParams // sizeof=0x8
+{                                       // XREF: .data:g_stdParamList/r
+    const char *strParamName;           // XREF: GetStdParamIx+2C/r
+    XExpr::MathTypes eType;             // XREF: ParseStdParameter+55/r
+};
+
+StandardParams g_stdParamList[1] =
+{ { "currTimeSec", NUMBER } };
+
+
+using namespace XExpr;
+
+
+const char *propertyNames[7] =
+{
+  "loopsync",
+  "nonloopsync",
+  "complete",
+  "additive",
+  "client",
+  "separate",
+  "forceload"
+};
+
+
+
+
+const char *g_strParamTypeToName[8] =
+{ "float", "nfloat", "vec2", "nvec2", "uvec2", "vec3", "nvec3", "uvec3" };
+const char *g_strAccessClassNames[3] =
+{ "external", "inte", "client" };
+
+
+
+
+ClientTreeStorage *g_pCurrClientData;
+
+ClientTreeStorage gGScrXAnimTreesForClient[2][128];
 scrAnimGlob_t gScrAnimGlob[2];
 scrAnimPub_t gScrAnimPub[2];
 
 static int iFoo_0;
 static int iFoo_1;
 static int iFoo_2;
+
+thread_local bool g_bChangeChecksum;
 
 XExpr::MathTypes __cdecl EqualTypeSameResult(const ParseValue *params, int iNumParams, scriptInstance_t inst)
 {
@@ -70,7 +165,7 @@ XExpr::MathTypes __cdecl EqualTypeAllowScalar(const ParseValue *params, int iNum
     }
 }
 
-int __cdecl FloatsToVec(const ParseValue *params, int iNumParams, scriptInstance_t inst)
+XExpr::MathTypes __cdecl FloatsToVec(const ParseValue *params, int iNumParams, scriptInstance_t inst)
 {
     const char *v3; // eax
     const char *v5; // eax
@@ -84,20 +179,20 @@ int __cdecl FloatsToVec(const ParseValue *params, int iNumParams, scriptInstance
             {
                 v5 = va("Parameter number %i should be a number. Instead, it is %i.", iLoop, params[iLoop].exprType);
                 AnimTreeCompileError(inst, v5);
-                return 3;
+                return (XExpr::MathTypes)3;
             }
         }
-        return iNumParams - 1;
+        return (XExpr::MathTypes)(iNumParams - 1);
     }
     else
     {
         v3 = va("Cannot determine type due to parameter number. Expected %i, received %i.", 2, iNumParams);
         AnimTreeCompileError(inst, v3);
-        return 3;
+        return (XExpr::MathTypes)3;
     }
 }
 
-int __cdecl VecsToFloat(const ParseValue *params, int iNumParams, scriptInstance_t inst)
+XExpr::MathTypes __cdecl VecsToFloat(const ParseValue *params, int iNumParams, scriptInstance_t inst)
 {
     const char *v3; // eax
     const char *v5; // eax
@@ -119,26 +214,26 @@ int __cdecl VecsToFloat(const ParseValue *params, int iNumParams, scriptInstance
                                  eType,
                                  params[1].exprType);
                     AnimTreeCompileError(inst, v5);
-                    return 3;
+                    return (XExpr::MathTypes)3;
                 }
             }
-            return 0;
+            return (XExpr::MathTypes)0;
         }
         else
         {
             AnimTreeCompileError(inst, "Parameter number 0 should be a vector type. It is instead a number.");
-            return 3;
+            return (XExpr::MathTypes)3;
         }
     }
     else
     {
         v3 = va("Cannot determine type due to parameter number. Expected at least 1, received %i.", iNumParams);
         AnimTreeCompileError(inst, v3);
-        return 3;
+        return (XExpr::MathTypes)3;
     }
 }
 
-int __cdecl Vec3ToVec3(const ParseValue *params, int iNumParams, scriptInstance_t inst)
+XExpr::MathTypes __cdecl Vec3ToVec3(const ParseValue *params, int iNumParams, scriptInstance_t inst)
 {
     const char *v3; // eax
 
@@ -148,25 +243,25 @@ int __cdecl Vec3ToVec3(const ParseValue *params, int iNumParams, scriptInstance_
         {
             if ( params[1].exprType == XExpr::VECTOR_3D )
             {
-                return 2;
+                return (XExpr::MathTypes)2;
             }
             else
             {
                 AnimTreeCompileError(inst, "Parameter number 1 should be a vec3 type.");
-                return 3;
+                return (XExpr::MathTypes)3;
             }
         }
         else
         {
             AnimTreeCompileError(inst, "Parameter number 0 should be a vec3 type.");
-            return 3;
+            return (XExpr::MathTypes)3;
         }
     }
     else
     {
         v3 = va("Needs 2 parameters, received %i.", iNumParams);
         AnimTreeCompileError(inst, v3);
-        return 3;
+        return (XExpr::MathTypes)3;
     }
 }
 
@@ -186,7 +281,7 @@ void __cdecl Scr_EmitAnimation(scriptInstance_t inst, char *pos, unsigned int an
 void __cdecl Scr_EmitAnimationInternal(scriptInstance_t inst, char *pos, unsigned int animName, unsigned int names)
 {
     unsigned int NewVariable; // eax
-    VariableValueInternal::<unnamed_type_u> *VariableValueAddress; // eax
+    VariableValueInternal_u *VariableValueAddress; // eax
     unsigned int animId; // [esp+10h] [ebp-Ch]
     VariableValue tempValue; // [esp+14h] [ebp-8h] BYREF
 
@@ -332,18 +427,18 @@ void __cdecl RemoveRefToValue(scriptInstance_t inst, int type, VariableUnion u)
 
 void __cdecl RemoveRefToVector(scriptInstance_t inst, const float *vectorValue)
 {
-    if ( !*((_BYTE *)vectorValue - 1) )
+    if (!*((_BYTE *)vectorValue - 1))
     {
-        _InterlockedExchangeAdd(&MEMORY[0xA05ABF0][29 * inst], 0xFFFFFFFF);
-        if ( gScrStringDebugGlob[inst] )
+        _InterlockedExchangeAdd(&gScrVarPub[inst].totalVectorRefCount, 0xFFFFFFFF);
+        if (gScrStringDebugGlob[inst])
         {
-            if ( gScrStringDebugGlob[inst]->refCount[((char *)(vectorValue - 1) - gScrMemTreePub[inst].mt_buffer) / 16] < 0
+            if (gScrStringDebugGlob[inst]->refCount[((char *)(vectorValue - 1) - gScrMemTreePub[inst].mt_buffer) / 16] < 0
                 && !Assert_MyHandler(
-                            "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
-                            388,
-                            0,
-                            "%s",
-                            "gScrStringDebugGlob[inst]->refCount[((char *)vectorValue - 4 - gScrMemTreePub[inst].mt_buffer) / MT_NODE_SIZE] >= 0") )
+                    "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
+                    388,
+                    0,
+                    "%s",
+                    "gScrStringDebugGlob[inst]->refCount[((char *)vectorValue - 4 - gScrMemTreePub[inst].mt_buffer) / MT_NODE_SIZE] >= 0"))
             {
                 __debugbreak();
             }
@@ -351,12 +446,17 @@ void __cdecl RemoveRefToVector(scriptInstance_t inst, const float *vectorValue)
                 &gScrStringDebugGlob[inst]->refCount[((char *)(vectorValue - 1) - gScrMemTreePub[inst].mt_buffer) / 16],
                 0xFFFFFFFF);
         }
-        if ( *((_WORD *)vectorValue - 2) )
+        if (*((_WORD *)vectorValue - 2))
             --*((_WORD *)vectorValue - 2);
         else
             MT_Free((_BYTE *)vectorValue - 4, 16, inst);
     }
 }
+
+const char *EXPR_TYPE =
+"exprType";
+const char *EXPR_DATA =
+"exprData";
 
 unsigned int __cdecl StoreExprInList(scriptInstance_t inst, unsigned int exprDataArray, ParseValue exprData)
 {
@@ -412,6 +512,13 @@ unsigned int __cdecl StoreValueInList(scriptInstance_t inst, unsigned int valueD
     return iEntryIndex;
 }
 
+const char *VALUE_DATA_FIELD =
+"valueData";
+const char *VALUE_DATA_TYPE =
+"valueType";
+const char *VALUE_DATA_NAME =
+"valueName";
+
 unsigned int __cdecl ParseValueFromValueList(ScriptTokenizer *tokenizer, scriptInstance_t inst, unsigned int valueName)
 {
     char *v3; // eax
@@ -423,7 +530,8 @@ unsigned int __cdecl ParseValueFromValueList(ScriptTokenizer *tokenizer, scriptI
 
     if ( DetermineValueType(tokenizer) )
         AnimTreeCompileError(inst, "Values can currently only be numbers.");
-    v3 = ScriptTokenizer::PopToken(tokenizer);
+    //v3 = tokenizer->PopToken();
+    v3 = tokenizer->PopToken();
     fValue = atof(v3);
     theValue = Scr_AllocArray(inst);
     SetFloatVariable(inst, theValue, fValue, (char *)VALUE_DATA_FIELD);
@@ -436,17 +544,17 @@ unsigned int __cdecl ParseValueFromValueList(ScriptTokenizer *tokenizer, scriptI
     return theValue;
 }
 
-char *__thiscall ScriptTokenizer::PopToken(ScriptTokenizer *this)
+char *__thiscall ScriptTokenizer::PopToken()
 {
     if ( !this->m_iNumInStack )
-        ScriptTokenizer::PushNextToken(this);
+        ScriptTokenizer::PushNextToken();
     if ( this->m_iNumInStack )
-        return ScriptTokenizer::GetAndRemoveToken(this);
+        return ScriptTokenizer::GetAndRemoveToken();
     else
         return 0;
 }
 
-void __thiscall ScriptTokenizer::PushNextToken(ScriptTokenizer *this)
+void __thiscall ScriptTokenizer::PushNextToken()
 {
     parseInfo_t *strString; // [esp+18h] [ebp-4h]
 
@@ -460,14 +568,14 @@ void __thiscall ScriptTokenizer::PushNextToken(ScriptTokenizer *this)
     {
         __debugbreak();
     }
-    if ( dword_9CF4A1C[259 * this->inst] )
+    if (gScrAnimGlob[this->inst].pos)
     {
-        strString = Com_Parse((const char **)&dword_9CF4A1C[259 * this->inst]);
-        ScriptTokenizer::ParseIntoTokens(this, strString->token);
+        strString = Com_Parse(&gScrAnimGlob[this->inst].pos);
+        ScriptTokenizer::ParseIntoTokens(strString->token);
     }
 }
 
-char *__thiscall ScriptTokenizer::GetAndRemoveToken(ScriptTokenizer *this)
+char *__thiscall ScriptTokenizer::GetAndRemoveToken()
 {
     if ( this->m_iNumInStack <= 0
         && !Assert_MyHandler(
@@ -482,7 +590,7 @@ char *__thiscall ScriptTokenizer::GetAndRemoveToken(ScriptTokenizer *this)
     return this->m_stack[--this->m_iNumInStack];
 }
 
-void __thiscall ScriptTokenizer::ParseIntoTokens(ScriptTokenizer *this, char *strString)
+void __thiscall ScriptTokenizer::ParseIntoTokens(char *strString)
 {
     char cPrev; // [esp+Ah] [ebp-12h]
     char cCurr; // [esp+Bh] [ebp-11h]
@@ -549,11 +657,11 @@ LABEL_2:
         break;
     }
     if ( *strPos )
-        ScriptTokenizer::ParseIntoTokens(this, strPos);
+        ScriptTokenizer::ParseIntoTokens((char*)strPos);
     iLen = strPos - strString;
     if ( strPos != strString )
     {
-        strncpy((unsigned __int8 *)this->m_stack[this->m_iNumInStack], (unsigned __int8 *)strString, iLen);
+        strncpy(this->m_stack[this->m_iNumInStack], strString, iLen);
         this->m_stack[this->m_iNumInStack][iLen] = 0;
         if ( this->m_stack[this->m_iNumInStack][0] )
             ++this->m_iNumInStack;
@@ -582,7 +690,7 @@ int __cdecl DetermineValueType(ScriptTokenizer *tokenizer)
     int iChar; // [esp+28h] [ebp-8h]
     char *strToken; // [esp+2Ch] [ebp-4h]
 
-    strToken = ScriptTokenizer::PeekToken(tokenizer);
+    strToken = tokenizer->PeekToken();
     v2 = strlen(strToken);
     bFoundDecimal = 0;
     for ( iChar = 0; iChar < v2; ++iChar )
@@ -596,7 +704,7 @@ int __cdecl DetermineValueType(ScriptTokenizer *tokenizer)
     }
     if ( iChar == v2 )
         return 0;
-    token = ScriptTokenizer::PeekToken(tokenizer);
+    token = tokenizer->PeekToken();
     if ( token )
         IsIdentifier = Scr_IsIdentifier(token);
     else
@@ -607,10 +715,10 @@ int __cdecl DetermineValueType(ScriptTokenizer *tokenizer)
         return 2;
 }
 
-char *__thiscall ScriptTokenizer::PeekToken(ScriptTokenizer *this)
+char *__thiscall ScriptTokenizer::PeekToken()
 {
     if ( !this->m_iNumInStack )
-        ScriptTokenizer::PushNextToken(this);
+        ScriptTokenizer::PushNextToken();
     if ( this->m_iNumInStack )
         return this->m_stack[this->m_iNumInStack - 1];
     else
@@ -621,60 +729,56 @@ int __cdecl Scr_GetAnimsIndex(const XAnim_s *anims, scriptInstance_t inst)
 {
     int i; // [esp+4h] [ebp-4h]
 
-    for ( i = MEMORY[0x9CF6640][263 * inst]; i && (const XAnim_s *)MEMORY[0x9CF643C][263 * inst + i] != anims; --i )
+    for (i = gScrAnimPub[inst].xanim_num[1]; i && gScrAnimPub[inst].xanim_lookup[1][i].anims != anims; --i)
         ;
     return i;
 }
 
 XAnim_s *__cdecl Scr_GetClientAnims(unsigned int index, scriptInstance_t inst)
 {
-    if ( (!index || index > MEMORY[0x9CF663C][263 * inst])
+    if ((!index || index > gScrAnimPub[inst].xanim_num[0])
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                    1979,
-                    0,
-                    "index not in [1, gScrAnimPub[inst].xanim_num[SCR_XANIM_CLIENT]]\n\t%i not in [%i, %i]",
-                    index,
-                    1,
-                    MEMORY[0x9CF663C][263 * inst]) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+            1979,
+            0,
+            "index not in [1, gScrAnimPub[inst].xanim_num[SCR_XANIM_CLIENT]]\n\t%i not in [%i, %i]",
+            index,
+            1,
+            gScrAnimPub[inst].xanim_num[0]))
     {
         __debugbreak();
     }
-    return (XAnim_s *)MEMORY[0x9CF623C][263 * inst + index];
+    return gScrAnimPub[inst].xanim_lookup[0][index].anims;
 }
 
 XAnim_s *__cdecl Scr_GetAnims(unsigned int index, scriptInstance_t inst)
 {
-    if ( (!index || index > MEMORY[0x9CF6640][263 * inst])
+    if ((!index || index > gScrAnimPub[inst].xanim_num[1])
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                    1987,
-                    0,
-                    "index not in [1, gScrAnimPub[inst].xanim_num[SCR_XANIM_SERVER]]\n\t%i not in [%i, %i]",
-                    index,
-                    1,
-                    MEMORY[0x9CF6640][263 * inst]) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+            1987,
+            0,
+            "index not in [1, gScrAnimPub[inst].xanim_num[SCR_XANIM_SERVER]]\n\t%i not in [%i, %i]",
+            index,
+            1,
+            gScrAnimPub[inst].xanim_num[1]))
     {
         __debugbreak();
     }
-    return (XAnim_s *)MEMORY[0x9CF643C][263 * inst + index];
+    return gScrAnimPub[inst].xanim_lookup[1][index].anims;
 }
 
 void __cdecl Scr_UsingTree(scriptInstance_t inst, const char *filename, unsigned int sourcePos)
 {
-    if ( com_sv_running->current.enabled )
+    if (com_sv_running->current.enabled)
     {
-        if ( inst == SCRIPTINSTANCE_CLIENT )
+        if (inst == SCRIPTINSTANCE_CLIENT)
         {
             Scr_ClientUsingTree(SCRIPTINSTANCE_CLIENT, filename);
         }
-        else if ( Scr_IsIdentifier(filename) )
+        else if (Scr_IsIdentifier(filename))
         {
-            MEMORY[0x9CF6238][263 * inst] = Scr_UsingTreeInternal(
-                                                                                inst,
-                                                                                filename,
-                                                                                (unsigned int *)&MEMORY[0x9CF6644][263 * inst],
-                                                                                1);
+            gScrAnimPub[inst].animTreeNames = Scr_UsingTreeInternal(inst, filename, &gScrAnimPub[inst].animTreeIndex, 1);
         }
         else
         {
@@ -697,47 +801,47 @@ unsigned int __cdecl Scr_UsingTreeInternal(scriptInstance_t inst, const char *fi
     unsigned int id; // [esp+14h] [ebp-4h]
     unsigned int ida; // [esp+14h] [ebp-4h]
 
-    if ( !MEMORY[0x9CF6648][1052 * inst]
+    if (!gScrAnimPub[inst].animtree_loading
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                    2335,
-                    0,
-                    "%s",
-                    "gScrAnimPub[inst].animtree_loading") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+            2335,
+            0,
+            "%s",
+            "gScrAnimPub[inst].animtree_loading"))
     {
         __debugbreak();
     }
-    if ( !Scr_IsIdentifier(filename)
+    if (!Scr_IsIdentifier(filename)
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                    2336,
-                    0,
-                    "%s",
-                    "Scr_IsIdentifier( filename )") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+            2336,
+            0,
+            "%s",
+            "Scr_IsIdentifier( filename )"))
     {
         __debugbreak();
     }
     name = Scr_CreateCanonicalFilename(inst, filename);
     id = FindVariable(inst, gScrAnimPub[inst].animtrees, name);
-    if ( id )
+    if (id)
     {
         fileId = FindObject(inst, id);
         *index = 0;
-        for ( i = 1; i <= MEMORY[0x9CF663C][263 * inst + user]; ++i )
+        for (i = 1; i <= gScrAnimPub[inst].xanim_num[user]; ++i)
         {
-            if ( *((unsigned int *)&unk_9CF4A20 + 259 * inst + 128 * user + i) == id )
+            if (gScrAnimGlob[inst].using_xanim_lookup[user][i] == id)
             {
                 *index = i;
                 break;
             }
         }
-        if ( !*index
+        if (!*index
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                        2367,
-                        0,
-                        "%s",
-                        "*index") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+                2367,
+                0,
+                "%s",
+                "*index"))
         {
             __debugbreak();
         }
@@ -746,26 +850,26 @@ unsigned int __cdecl Scr_UsingTreeInternal(scriptInstance_t inst, const char *fi
     {
         ida = GetNewVariable(inst, gScrAnimPub[inst].animtrees, name);
         fileId = GetObject(inst, ida);
-        if ( (unsigned int)++MEMORY[0x9CF663C][263 * inst + user] >= 0x80
+        if (++gScrAnimPub[inst].xanim_num[user] >= 0x80
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                        2347,
-                        0,
-                        "%s",
-                        "gScrAnimPub[inst].xanim_num[user] < MAX_XANIMTREE_NUM") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+                2347,
+                0,
+                "%s",
+                "gScrAnimPub[inst].xanim_num[user] < MAX_XANIMTREE_NUM"))
         {
             __debugbreak();
         }
-        *((unsigned int *)&unk_9CF4A20 + 259 * inst + 128 * user + MEMORY[0x9CF663C][263 * inst + user]) = ida;
-        *index = MEMORY[0x9CF663C][263 * inst + user];
+        gScrAnimGlob[inst].using_xanim_lookup[user][gScrAnimPub[inst].xanim_num[user]] = ida;
+        *index = gScrAnimPub[inst].xanim_num[user];
     }
-    if ( FindVariable(inst, fileId, 1u)
+    if (FindVariable(inst, fileId, 1u)
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                    2370,
-                    0,
-                    "%s",
-                    "!FindVariable( inst, fileId, ANIMTREE_XANIM )") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+            2370,
+            0,
+            "%s",
+            "!FindVariable( inst, fileId, ANIMTREE_XANIM )"))
     {
         __debugbreak();
     }
@@ -777,20 +881,16 @@ unsigned int __cdecl Scr_UsingTreeInternal(scriptInstance_t inst, const char *fi
 
 void __cdecl Scr_ClientUsingTree(scriptInstance_t inst, const char *filename)
 {
-    if ( Scr_IsIdentifier(filename) )
-        MEMORY[0x9CF6238][263 * inst] = Scr_UsingTreeInternal(
-                                                                            inst,
-                                                                            filename,
-                                                                            (unsigned int *)&MEMORY[0x9CF6644][263 * inst],
-                                                                            0);
+    if (Scr_IsIdentifier(filename))
+        gScrAnimPub[inst].animTreeNames = Scr_UsingTreeInternal(inst, filename, &gScrAnimPub[inst].animTreeIndex, 0);
 }
 
 void __cdecl Scr_LoadAnimTreeAtIndex(
-                scriptInstance_t inst,
-                unsigned int index,
-                void *(__cdecl *Alloc)(int),
-                int user,
-                bool modCheckSum)
+    scriptInstance_t inst,
+    unsigned int index,
+    void *(__cdecl *Alloc)(int),
+    int user,
+    bool modCheckSum)
 {
     ClientTreeStorage *v5; // edx
     char *v6; // eax
@@ -800,7 +900,7 @@ void __cdecl Scr_LoadAnimTreeAtIndex(
     const char *v10; // eax
     char *v11; // eax
     unsigned int Variable; // eax
-    unsigned int v13; // [esp-8h] [ebp-98h]
+    unsigned int animtree_node; // [esp-8h] [ebp-98h]
     VariableValue insertValue; // [esp+4Ch] [ebp-44h] BYREF
     int iValueCount; // [esp+54h] [ebp-3Ch]
     unsigned int nodeVariable; // [esp+58h] [ebp-38h]
@@ -816,70 +916,70 @@ void __cdecl Scr_LoadAnimTreeAtIndex(
     VariableValue tempValue; // [esp+84h] [ebp-Ch] BYREF
     unsigned int id; // [esp+8Ch] [ebp-4h]
 
-    id = *((unsigned int *)&unk_9CF4A20 + 259 * inst + 128 * user + index);
-    if ( !MEMORY[0x9CF6648][1052 * inst]
+    id = gScrAnimGlob[inst].using_xanim_lookup[user][index];
+    if (!gScrAnimPub[inst].animtree_loading
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                    2588,
-                    0,
-                    "%s",
-                    "gScrAnimPub[inst].animtree_loading") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+            2588,
+            0,
+            "%s",
+            "gScrAnimPub[inst].animtree_loading"))
     {
         __debugbreak();
     }
     Hunk_CheckTempMemoryClear();
     Hunk_CheckTempMemoryHighClear();
-    if ( GetVariableName(inst, id) >= 0x10000
+    if (GetVariableName(inst, id) >= 0x10000
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                    2592,
-                    0,
-                    "%s",
-                    "GetVariableName( inst, id ) < SL_MAX_STRING_INDEX") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+            2592,
+            0,
+            "%s",
+            "GetVariableName( inst, id ) < SL_MAX_STRING_INDEX"))
     {
         __debugbreak();
     }
     filenameId = GetVariableName(inst, id);
     fileId = FindObject(inst, id);
-    if ( !fileId
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp", 2597, 0, "%s", "fileId") )
+    if (!fileId
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp", 2597, 0, "%s", "fileId"))
     {
         __debugbreak();
     }
-    if ( !FindVariable(inst, fileId, 1u) )
+    if (!FindVariable(inst, fileId, 1u))
     {
         animtree.anims = 0;
         names = FindVariable(inst, fileId, 0);
-        if ( names )
+        if (names)
         {
             names = FindObject(inst, names);
-            if ( !names
+            if (!names
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                            2614,
-                            0,
-                            "%s",
-                            "names") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+                    2614,
+                    0,
+                    "%s",
+                    "names"))
             {
                 __debugbreak();
             }
-            if ( inst != SCRIPTINSTANCE_CLIENT )
+            if (inst != SCRIPTINSTANCE_CLIENT)
             {
                 g_pCurrClientData = &gGScrXAnimTreesForClient[user][index];
-                if ( MEMORY[0x9CF6234][263 * inst]
+                if (gScrAnimPub[inst].animtree_node
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                                2632,
-                                0,
-                                "%s",
-                                "!gScrAnimPub[inst].animtree_node") )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+                        2632,
+                        0,
+                        "%s",
+                        "!gScrAnimPub[inst].animtree_node"))
                 {
                     __debugbreak();
                 }
-                MEMORY[0x9CF6234][263 * inst] = Scr_AllocArray(inst);
-                v13 = MEMORY[0x9CF6234][263 * inst];
+                gScrAnimPub[inst].animtree_node = Scr_AllocArray(inst);
+                animtree_node = gScrAnimPub[inst].animtree_node;
                 v8 = SL_ConvertToString(filenameId, inst);
-                if ( !Scr_LoadAnimTreeInternal(inst, v8, v13, names) )
+                if (!Scr_LoadAnimTreeInternal(inst, v8, animtree_node, names))
                 {
                     v9 = SL_ConvertToString(filenameId, inst);
                     v10 = va("unknown anim tree '%s'", v9);
@@ -888,20 +988,20 @@ void __cdecl Scr_LoadAnimTreeAtIndex(
                 Hunk_CheckTempMemoryClear();
                 Hunk_CheckTempMemoryHighClear();
                 rootName = SL_GetString_(inst, (char *)NODE_ROOT_NAME, 2u, 4);
-                nodeVariable = FindVariable(inst, MEMORY[0x9CF6234][263 * inst], rootName);
+                nodeVariable = FindVariable(inst, gScrAnimPub[inst].animtree_node, rootName);
                 nodeData = GetArray(inst, nodeVariable);
                 size = Scr_GetAnimTreeSize(inst, nodeData);
-                if ( !size
+                if (!size
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                                2647,
-                                0,
-                                "%s",
-                                "size") )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+                        2647,
+                        0,
+                        "%s",
+                        "size"))
                 {
                     __debugbreak();
                 }
-                iValueCount = Scr_GetAnimTreeValueCount(inst, MEMORY[0x9CF6234][263 * inst]);
+                iValueCount = Scr_GetAnimTreeValueCount(inst, gScrAnimPub[inst].animtree_node);
                 g_pCurrClientData->pTreeNameMap = (TreeNameMap *)Hunk_Alloc(84 * size, "Client AnimScript", 16);
                 memset((unsigned __int8 *)g_pCurrClientData->pTreeNameMap, 0, 84 * size);
                 g_pCurrClientData->numIndices = size;
@@ -910,33 +1010,32 @@ void __cdecl Scr_LoadAnimTreeAtIndex(
                 name = SL_GetString_(inst, "root", 0, 4);
                 ConnectScriptToAnim(inst, names, 0, filenameId, name, index);
                 SL_RemoveRefToString(inst, name);
-                if ( !useFastFile->current.enabled )
+                if (!useFastFile->current.enabled)
                     Scr_PrecacheAnimationTree(inst, nodeData);
-                *(_BYTE *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8232) = sv.state != SS_GAME
-                                                                                                                                                                                            && modCheckSum;
+                g_bChangeChecksum = sv.state != SS_GAME && modCheckSum;
                 size2 = Scr_CreateAllAnimTreeData(
-                                    inst,
-                                    MEMORY[0x9CF6234][263 * inst],
-                                    names,
-                                    &animtree,
-                                    filenameId,
-                                    index,
-                                    Alloc);
-                *(_BYTE *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8232) = 1;
-                if ( size != size2
+                    inst,
+                    gScrAnimPub[inst].animtree_node,
+                    names,
+                    &animtree,
+                    filenameId,
+                    index,
+                    Alloc);
+                g_bChangeChecksum = 1;
+                if (size != size2
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                                2683,
-                                0,
-                                "%s",
-                                "size == size2") )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+                        2683,
+                        0,
+                        "%s",
+                        "size == size2"))
                 {
                     __debugbreak();
                 }
                 Scr_CheckAnimsDefined(inst, names, filenameId);
                 RemoveVariable(inst, fileId, 0);
-                RemoveRefToObject(inst, MEMORY[0x9CF6234][263 * inst]);
-                MEMORY[0x9CF6234][263 * inst] = 0;
+                RemoveRefToObject(inst, gScrAnimPub[inst].animtree_node);
+                gScrAnimPub[inst].animtree_node = 0;
                 tempValue.type = 7;
                 tempValue.u.intValue = (int)animtree.anims;
                 Variable = GetVariable(inst, fileId, 1u);
@@ -944,16 +1043,16 @@ void __cdecl Scr_LoadAnimTreeAtIndex(
                 XAnimSetupSyncNodes(animtree.anims);
             }
             v6 = SL_ConvertToString(filenameId, SCRIPTINSTANCE_CLIENT);
-            MEMORY[0x9CF623C][128 * user + 263 + index] = (int)CScr_RetrieveAnimTree(v6, names, filenameId, index).anims;
+            gScrAnimPub[1].xanim_lookup[user][index] = CScr_RetrieveAnimTree(v6, names, filenameId, index);
             insertValue.type = 7;
-            insertValue.u.intValue = MEMORY[0x9CF623C][128 * user + 263 + index];
+            insertValue.u.intValue = (int)gScrAnimPub[1].xanim_lookup[user][index].anims;
             v7 = GetVariable(SCRIPTINSTANCE_CLIENT, fileId, 1u);
             SetVariableValue(SCRIPTINSTANCE_CLIENT, v7, &insertValue);
         }
         else
         {
-            MEMORY[0x9CF623C][263 * inst + 128 * user + index] = (int)animtree.anims;
-            if ( inst == SCRIPTINSTANCE_SERVER )
+            gScrAnimPub[inst].xanim_lookup[user][index] = animtree;
+            if (inst == SCRIPTINSTANCE_SERVER)
             {
                 v5 = &gGScrXAnimTreesForClient[user][index];
                 v5->strName = 0;
@@ -1162,7 +1261,7 @@ void __cdecl ConnectScriptToAnim(
     scr_anim_s anim; // [esp+8h] [ebp-14h]
     char *codePos; // [esp+Ch] [ebp-10h]
     unsigned int animId; // [esp+10h] [ebp-Ch]
-    VariableValueInternal::<unnamed_type_u> *value; // [esp+14h] [ebp-8h]
+    VariableValueInternal_u *value; // [esp+14h] [ebp-8h]
     const char *nextCodePos; // [esp+18h] [ebp-4h]
 
     animId = FindVariable(inst, names, name);
@@ -1173,7 +1272,7 @@ void __cdecl ConnectScriptToAnim(
         {
             v7 = SL_ConvertToString(filename, inst);
             v6 = SL_ConvertToString(name, inst);
-            Com_Error(ERR_DROP, &byte_D22A0C, v6, v7);
+            Com_Error(ERR_DROP, "duplicate animation '%s' in 'animtrees/%s.atr'", v6, v7);
         }
         if ( inst == SCRIPTINSTANCE_SERVER )
         {
@@ -1198,7 +1297,7 @@ void __cdecl Scr_CheckAnimsDefined(scriptInstance_t inst, unsigned int names, un
     unsigned int name; // [esp+1Ch] [ebp-10h]
     char *msg; // [esp+20h] [ebp-Ch]
     unsigned int animId; // [esp+24h] [ebp-8h]
-    VariableValueInternal::<unnamed_type_u> *value; // [esp+28h] [ebp-4h]
+    VariableValueInternal_u *value; // [esp+28h] [ebp-4h]
 
     for ( animId = FindFirstSibling(inst, names); animId; animId = FindNextSibling(inst, animId) )
     {
@@ -1222,7 +1321,7 @@ void __cdecl Scr_CheckAnimsDefined(scriptInstance_t inst, unsigned int names, un
             if ( Scr_IsInOpcodeMemory(inst, value->u.codePosValue) )
                 CompileError2(inst, (char *)value->next, "%s", msg);
             else
-                Com_Error(ERR_DROP, off_C5DB40, msg);
+                Com_Error(ERR_DROP, "%s", msg);
         }
     }
 }
@@ -1307,9 +1406,9 @@ bool __cdecl Scr_LoadAnimTreeInternal(
 void __cdecl Scr_AnimTreeParse(scriptInstance_t inst, const char *pos, unsigned int parentNode, unsigned int names)
 {
     Com_BeginParseSession("Scr_AnimTreeParse");
-    dword_9CF4A1C[259 * inst] = (int)pos;
+    gScrAnimGlob[inst].pos = pos;
     gScrAnimGlob[inst].start = pos;
-    if ( !AnimTreeParseInternal(inst, parentNode, names, 1, 0, 0) )
+    if (!AnimTreeParseInternal(inst, parentNode, names, 1, 0, 0))
         AnimTreeCompileError(inst, "bad token");
     Com_EndParseSession();
 }
@@ -1343,15 +1442,17 @@ char __cdecl AnimTreeParseInternal(
     GetVariable(inst, parentNode, v14);
     v11 = SL_GetString_(inst, (char *)PARAMETER_ROOT_NAME, 2u, 4);
     GetVariable(inst, parentNode, v11);
+
     do
         ParseNode(&tokenizer, inst, parentNodea, parentNode, names, bLoop, bComplete);
-    while ( !ScriptTokenizer::IsAtEnd(&tokenizer) );
+    while ( !tokenizer.IsAtEnd() );
+
     if ( !GetArraySize(inst, parentNodea) )
     {
         if ( bLoop )
-            v6 = SL_GetString_(inst, "void_loop", 0, 4);
+            v6 = SL_GetString_(inst, (char*)"void_loop", 0, 4);
         else
-            v6 = SL_GetString_(inst, "void", 0, 4);
+            v6 = SL_GetString_(inst, (char*)"void", 0, 4);
         stringValue = v6;
         GetVariable(inst, parentNodea, v6);
         SL_RemoveRefToString(inst, stringValue);
@@ -1359,10 +1460,10 @@ char __cdecl AnimTreeParseInternal(
     return 1;
 }
 
-bool __thiscall ScriptTokenizer::IsAtEnd(ScriptTokenizer *this)
+bool __thiscall ScriptTokenizer::IsAtEnd()
 {
-    ScriptTokenizer::PeekToken(this);
-    return !this->m_iNumInStack && dword_9CF4A1C[259 * this->inst] == 0;
+    ScriptTokenizer::PeekToken();
+    return !this->m_iNumInStack && gScrAnimGlob[this->inst].pos == 0;
 }
 
 char __cdecl ParseNode(
@@ -1447,43 +1548,43 @@ char __cdecl ParseNode(
     animName = 0;
     flags = 0;
     bIgnore = 0;
-    if ( ScriptTokenizer::IsAtEnd(tokenizer) )
+    if ( tokenizer->IsAtEnd() )
         return 1;
-    v8 = ScriptTokenizer::PeekToken(tokenizer);
+    v8 = tokenizer->PeekToken();
     if ( I_strcmp(v8, "param") )
     {
-        token = ScriptTokenizer::PeekToken(tokenizer);
+        token = tokenizer->PeekToken();
         if ( token )
             IsIdentifier = Scr_IsIdentifier(token);
         else
             IsIdentifier = 0;
         if ( !IsIdentifier )
         {
-            v27 = ScriptTokenizer::PeekToken(tokenizer);
+            v27 = tokenizer->PeekToken();
             v28 = va("bad token: '%s'", v27);
             AnimTreeCompileError(inst, v28);
-            return ScriptTokenizer::IsAtEnd(tokenizer);
+            return tokenizer->IsAtEnd();
         }
-        v9 = ScriptTokenizer::PopToken(tokenizer);
+        v9 = tokenizer->PopToken();
         animName = SL_GetLowercaseString_(v9, 2u, 4, inst);
         if ( FindVariable(inst, parentNode, animName) )
             AnimTreeCompileError(inst, "duplicate animation");
         currentAnim = GetVariable(inst, parentNode, animName);
-        v30 = !bComplete && !FindVariable(inst, names, animName) && !dword_9CF4E20[259 * inst];
+        v30 = !bComplete && !FindVariable(inst, names, animName) && !gScrAnimGlob[inst].bAnimCheck;
         bIgnore = v30;
         flags = 0;
         iNumOptions = 0;
         iValueCount = 0;
-        v62 = ScriptTokenizer::PeekToken(tokenizer);
+        v62 = tokenizer->PeekToken();
         if ( v62 && *v62 == 91 && !v62[1] )
         {
-            ScriptTokenizer::PopToken(tokenizer);
+            tokenizer->PopToken();
             while ( 1 )
             {
-                v60 = ScriptTokenizer::PeekToken(tokenizer);
+                v60 = tokenizer->PeekToken();
                 if ( v60 && *v60 == 93 && !v60[1] )
                     break;
-                v58 = ScriptTokenizer::PeekToken(tokenizer);
+                v58 = tokenizer->PeekToken();
                 if ( v58 )
                     v57 = Scr_IsIdentifier(v58);
                 else
@@ -1500,41 +1601,41 @@ char __cdecl ParseNode(
                 {
                     __debugbreak();
                 }
-                v10 = ScriptTokenizer::PopToken(tokenizer);
+                v10 = tokenizer->PopToken();
                 valueData[iValueCount].valueName = SL_GetLowercaseString_(v10, 2u, 4, inst);
-                v56 = ScriptTokenizer::PeekToken(tokenizer);
+                v56 = tokenizer->PeekToken();
                 if ( !v56 || *v56 != 61 || v56[1] )
                     AnimTreeCompileError(inst, "Operator options must have an '=' sign after the name.");
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
                 valueData[iValueCount].theValue = ParseValueFromValueList(tokenizer, inst, valueData[iValueCount].valueName);
                 ++iValueCount;
-                v54 = ScriptTokenizer::PeekToken(tokenizer);
+                v54 = tokenizer->PeekToken();
                 if ( v54 && *v54 == 44 && !v54[1] )
                 {
-                    ScriptTokenizer::PopToken(tokenizer);
+                    tokenizer->PopToken();
                 }
                 else
                 {
-                    v52 = ScriptTokenizer::PeekToken(tokenizer);
+                    v52 = tokenizer->PeekToken();
                     if ( !v52 || *v52 != 93 || v52[1] )
                         AnimTreeCompileError(inst, "The list of values is not properly comma delimited.");
                 }
             }
-            ScriptTokenizer::PopToken(tokenizer);
+            tokenizer->PopToken();
         }
-        v50 = ScriptTokenizer::PeekToken(tokenizer);
+        v50 = tokenizer->PeekToken();
         if ( v50 && *v50 == 60 && !v50[1] )
         {
             if ( iValueCount )
                 AnimTreeCompileError(inst, "An element in the tree cannot have both operators and values.");
 LABEL_68:
-            ScriptTokenizer::PopToken(tokenizer);
+            tokenizer->PopToken();
             while ( 1 )
             {
-                v48 = ScriptTokenizer::PeekToken(tokenizer);
+                v48 = tokenizer->PeekToken();
                 if ( v48 && *v48 == 62 && !v48[1] )
                     break;
-                v46 = ScriptTokenizer::PeekToken(tokenizer);
+                v46 = tokenizer->PeekToken();
                 if ( v46 )
                     v45 = Scr_IsIdentifier(v46);
                 else
@@ -1551,54 +1652,54 @@ LABEL_68:
                 {
                     __debugbreak();
                 }
-                v11 = ScriptTokenizer::PopToken(tokenizer);
+                v11 = tokenizer->PopToken();
                 LowercaseString = SL_GetLowercaseString_(v11, 2u, 4, inst);
                 optionData[iNumOptions].optionName = LowercaseString;
-                v44 = ScriptTokenizer::PeekToken(tokenizer);
+                v44 = tokenizer->PeekToken();
                 if ( !v44 || *v44 != 61 || v44[1] )
                     AnimTreeCompileError(inst, "Operator options must have an '=' sign after the name.");
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
                 v13 = ParseTopRankExpr(tokenizer, inst, rootData);
                 v65 = v13;
-                v13.exprType = 12 * iNumOptions;
+                v13.exprType = (XExpr::MathTypes)(12 * iNumOptions);
                 *(unsigned int *)((char *)&optionData[0].theValue.scriptExprData + v13.exprType) = v13.scriptExprData;
                 *(XExpr::MathTypes *)((char *)&optionData[0].theValue.exprType + v13.exprType) = v65.exprType;
                 if ( !optionData[iNumOptions].theValue.scriptExprData )
                     AnimTreeCompileError(inst, "No expression provided for the option.");
                 ++iNumOptions;
-                v42 = ScriptTokenizer::PeekToken(tokenizer);
+                v42 = tokenizer->PeekToken();
                 if ( v42 && *v42 == 44 && !v42[1] )
                     goto LABEL_68;
-                v40 = ScriptTokenizer::PeekToken(tokenizer);
+                v40 = tokenizer->PeekToken();
                 if ( !v40 || *v40 != 62 || v40[1] )
                     AnimTreeCompileError(inst, "The list of options is not properly comma delimited.");
             }
-            ScriptTokenizer::PopToken(tokenizer);
+            tokenizer->PopToken();
         }
         iNumComponents = 0;
-        v38 = ScriptTokenizer::PeekToken(tokenizer);
+        v38 = tokenizer->PeekToken();
         if ( v38 && *v38 == 58 && !v38[1] )
         {
-            ScriptTokenizer::PopToken(tokenizer);
+            tokenizer->PopToken();
             flags = GetAnimTreeParseProperties(tokenizer);
         }
         if ( iNumComponents )
             ++iFoo_1;
-        v36 = ScriptTokenizer::PeekToken(tokenizer);
+        v36 = tokenizer->PeekToken();
         if ( v36 && *v36 == 123 && !v36[1] )
         {
-            ScriptTokenizer::PopToken(tokenizer);
+            tokenizer->PopToken();
             currentAnimArray = GetArray(inst, currentAnim);
             ArraySize = GetArraySize(inst, currentAnimArray);
             iInitialSize = ArraySize - iNumComponents;
             while ( 1 )
             {
-                v34 = ScriptTokenizer::PeekToken(tokenizer);
+                v34 = tokenizer->PeekToken();
                 if ( v34 && *v34 == 125 && !v34[1] )
                     break;
-                if ( ScriptTokenizer::IsAtEnd(tokenizer) )
+                if ( tokenizer->IsAtEnd() )
                 {
-                    v15 = ScriptTokenizer::PeekToken(tokenizer);
+                    v15 = tokenizer->PeekToken();
                     v16 = va("bad token: '%s'", v15);
                     AnimTreeCompileError(inst, v16);
                 }
@@ -1624,9 +1725,9 @@ LABEL_68:
                 if ( iInitialSize != v19 - iNumComponents )
                     bIgnore = 0;
             }
-            v32 = ScriptTokenizer::PeekToken(tokenizer);
+            v32 = tokenizer->PeekToken();
             if ( v32 && *v32 == 125 && !v32[1] )
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
             v20 = GetArraySize(inst, currentAnimArray);
             if ( iInitialSize != v20 - iNumComponents )
             {
@@ -1686,7 +1787,7 @@ LABEL_166:
                             RemoveRefToObject(inst, valueData[j].theValue);
                     }
                 }
-                return ScriptTokenizer::IsAtEnd(tokenizer);
+                return tokenizer->IsAtEnd();
             }
             if ( !bIgnore )
             {
@@ -1712,9 +1813,9 @@ LABEL_166:
         RemoveVariable(inst, parentNode, animName);
         goto LABEL_166;
     }
-    ScriptTokenizer::PopToken(tokenizer);
+    tokenizer->PopToken();
     ParseParameterDef(tokenizer, inst, rootData);
-    return ScriptTokenizer::IsAtEnd(tokenizer);
+    return tokenizer->IsAtEnd();
 }
 
 ParseValue __cdecl ParseTopRankExpr(ScriptTokenizer *tokenizer, scriptInstance_t inst, unsigned int rootData)
@@ -1728,7 +1829,7 @@ ParseValue __cdecl ParseTopRankExpr(ScriptTokenizer *tokenizer, scriptInstance_t
                 (unsigned int)eParseType <= ET_MINUS;
                 eParseType = DetermineParseType(tokenizer) )
     {
-        ScriptTokenizer::PopToken(tokenizer);
+        tokenizer->PopToken();
         params[0] = firstParam;
         params[1] = ParseRank2Expr(tokenizer, inst, rootData);
         firstParam = BuildExpr(eParseType, params, 2, inst);
@@ -1736,7 +1837,7 @@ ParseValue __cdecl ParseTopRankExpr(ScriptTokenizer *tokenizer, scriptInstance_t
     return firstParam;
 }
 
-int __cdecl DetermineParseType(ScriptTokenizer *tokenizer)
+ExpressionParseTypes __cdecl DetermineParseType(ScriptTokenizer *tokenizer)
 {
     char *v2; // eax
     signed int v3; // [esp+0h] [ebp-44h]
@@ -1748,14 +1849,14 @@ int __cdecl DetermineParseType(ScriptTokenizer *tokenizer)
     int iChar; // [esp+3Ch] [ebp-8h]
     char *strToken; // [esp+40h] [ebp-4h]
 
-    v7 = ScriptTokenizer::PeekToken(tokenizer);
+    v7 = tokenizer->PeekToken();
     if ( v7 && *v7 == 44 && !v7[1] )
-        return 13;
-    strToken = ScriptTokenizer::PeekToken(tokenizer);
+        return ETS_COMMA;
+    strToken = tokenizer->PeekToken();
     for ( iExpr = 0; iExpr < 0xA; ++iExpr )
     {
         if ( !I_strcmp(g_ExprOperatorList[iExpr].strValue, strToken) )
-            return iExpr;
+            return (ExpressionParseTypes)iExpr;
     }
     v3 = strlen(strToken);
     bFoundDecimal = 0;
@@ -1769,19 +1870,19 @@ int __cdecl DetermineParseType(ScriptTokenizer *tokenizer)
         }
     }
     if ( iChar == v3 )
-        return 10;
-    token = ScriptTokenizer::PeekToken(tokenizer);
+        return ET_SINGLE_VALUE;
+    token = tokenizer->PeekToken();
     if ( token )
         IsIdentifier = Scr_IsIdentifier(token);
     else
         IsIdentifier = 0;
     if ( !IsIdentifier )
-        return 14;
-    v2 = ScriptTokenizer::PeekToken(tokenizer);
+        return NUM_EXPR_TYPES;
+    v2 = tokenizer->PeekToken();
     if ( IsStandardParam(v2) )
-        return 12;
+        return ET_GET_STD_PARAM;
     else
-        return 11;
+        return ET_GET_PARAMETER;
 }
 
 bool __cdecl IsStandardParam(const char *strParamName)
@@ -1867,7 +1968,7 @@ ParseValue __cdecl ParseRank2Expr(ScriptTokenizer *tokenizer, scriptInstance_t i
                 eParseType >= END_OF_RANK1 && eParseType < END_OF_RANK2;
                 eParseType = DetermineParseType(tokenizer) )
     {
-        ScriptTokenizer::PopToken(tokenizer);
+        tokenizer->PopToken();
         params[0] = firstParam;
         params[1] = ParseBottomRankExpr(tokenizer, inst, rootData);
         firstParam = BuildExpr(eParseType, params, 2, inst);
@@ -1885,12 +1986,14 @@ ParseValue __cdecl ParseBottomRankExpr(ScriptTokenizer *tokenizer, scriptInstanc
     float fValue; // [esp+58h] [ebp-8h]
     ExpressionParseTypes eParseType; // [esp+5Ch] [ebp-4h]
 
-    eParseType = DetermineParseType(tokenizer);
+    eParseType = (ExpressionParseTypes)DetermineParseType(tokenizer);
     if ( eParseType == ET_SINGLE_VALUE )
     {
-        v3 = ScriptTokenizer::PopToken(tokenizer);
+        v3 = tokenizer->PopToken();
         fValue = atof(v3);
-        ret = (ParseValue)Scr_AllocArray(inst);
+        //ret = (ParseValue)Scr_AllocArray(inst);
+        ret.scriptExprData = Scr_AllocArray(inst);
+        ret.exprType = NUMBER;
         SetIntVariable(inst, ret.scriptExprData, 10, (char *)EXPR_OPERATOR_NAME);
         SetFloatVariable(inst, ret.scriptExprData, fValue, (char *)EXPR_VALUE_NAME);
         SetIntVariable(inst, ret.scriptExprData, 0, (char *)EXPR_VALUE_TYPE);
@@ -1898,7 +2001,7 @@ ParseValue __cdecl ParseBottomRankExpr(ScriptTokenizer *tokenizer, scriptInstanc
     }
     else if ( eParseType < ET_SINGLE_VALUE && g_ExprOperatorList[eParseType].isFunction )
     {
-        ScriptTokenizer::PopToken(tokenizer);
+        tokenizer->PopToken();
         return ParseFunctionCall(eParseType, tokenizer, inst, rootData);
     }
     else
@@ -1906,7 +2009,7 @@ ParseValue __cdecl ParseBottomRankExpr(ScriptTokenizer *tokenizer, scriptInstanc
         switch ( eParseType )
         {
             case END_OF_RANK2:
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
                 v7 = ParseTopRankExpr(tokenizer, inst, rootData);
                 RequireParseTypePopOrError(tokenizer, inst, ET_RIGHT_PAREN);
                 return v7;
@@ -1918,7 +2021,9 @@ ParseValue __cdecl ParseBottomRankExpr(ScriptTokenizer *tokenizer, scriptInstanc
                 v5 = ConvertParseTypeToStr(eParseType);
                 v6 = va("Bad Token in Expression: '%s'", v5);
                 AnimTreeCompileError(inst, v6);
-                return 0;
+                ret.scriptExprData = 0;
+                ret.exprType = NUMBER;
+                //return 0;
         }
     }
 }
@@ -1957,7 +2062,7 @@ void __cdecl RequireParseTypePopOrError(ScriptTokenizer *tokenizer, scriptInstan
     const char *v5; // [esp-4h] [ebp-10h]
     ExpressionParseTypes eParseType; // [esp+8h] [ebp-4h]
 
-    eParseType = DetermineParseType(tokenizer);
+    eParseType = (ExpressionParseTypes)DetermineParseType(tokenizer);
     if ( eTest != eParseType )
     {
         v5 = ConvertParseTypeToStr(eParseType);
@@ -1965,7 +2070,7 @@ void __cdecl RequireParseTypePopOrError(ScriptTokenizer *tokenizer, scriptInstan
         v4 = va("Unexpected symbol in expression: Required '%s', got '%s'", v3, v5);
         AnimTreeCompileError(inst, v4);
     }
-    ScriptTokenizer::PopToken(tokenizer);
+    tokenizer->PopToken();
 }
 
 ParseValue __cdecl ParseFunctionCall(
@@ -2011,11 +2116,11 @@ ParseValue __cdecl ParseStdParameter(ScriptTokenizer *tokenizer, scriptInstance_
     int iParam; // [esp+8h] [ebp-Ch]
     ParseValue ret; // [esp+Ch] [ebp-8h]
 
-    v2 = ScriptTokenizer::PeekToken(tokenizer);
+    v2 = tokenizer->PeekToken();
     iParam = GetStdParamIx(v2);
     if ( iParam == 1 )
     {
-        v3 = ScriptTokenizer::PeekToken(tokenizer);
+        v3 = tokenizer->PeekToken();
         v4 = va("The parameter '%s' was supposed to be standard, but isn't.", v3);
         AnimTreeCompileError(inst, v4);
     }
@@ -2046,7 +2151,7 @@ ParseValue __cdecl ParseParameter(ScriptTokenizer *tokenizer, scriptInstance_t i
     unsigned int optionNameVar; // [esp+2Ch] [ebp-8h]
     XExpr::ParamTypes eType; // [esp+30h] [ebp-4h]
 
-    v3 = ScriptTokenizer::PopToken(tokenizer);
+    v3 = tokenizer->PopToken();
     paramName = SL_GetLowercaseString_(v3, 2u, 4, inst);
     String = SL_GetString_(inst, (char *)PARAMETER_ROOT_NAME, 2u, 4);
     paramDataVar = FindVariable(inst, rootData, String);
@@ -2065,7 +2170,7 @@ ParseValue __cdecl ParseParameter(ScriptTokenizer *tokenizer, scriptInstance_t i
         AnimTreeCompileError(inst, v8);
     }
     paramData = GetArray(inst, paramVar);
-    eType = GetNamedArrayVarInt(inst, paramData, (char *)PARAM_TYPE);
+    eType = (XExpr::ParamTypes)GetNamedArrayVarInt(inst, paramData, (char *)PARAM_TYPE);
     ret.scriptExprData = Scr_AllocArray(inst);
     if ( eType >= PT_VEC2 )
     {
@@ -2086,6 +2191,17 @@ ParseValue __cdecl ParseParameter(ScriptTokenizer *tokenizer, scriptInstance_t i
     theVar.u.intValue = paramName;
     SetNewVariableValue(inst, optionNameVar, &theVar);
     return ret;
+}
+
+unsigned int __cdecl GetNamedArrayVarInt_0(scriptInstance_t inst, unsigned int theArray, unsigned int varName)
+{
+    unsigned int theVariable; // [esp+4h] [ebp-4h]
+
+    theVariable = FindVariable(inst, theArray, varName);
+    if (theVariable)
+        return GetVariableValueAddress(inst, theVariable)->next;
+    else
+        return -1;
 }
 
 unsigned int __cdecl GetNamedArrayVarInt(scriptInstance_t inst, unsigned int theArray, char *strVarName)
@@ -2111,13 +2227,13 @@ int __cdecl GetAnimTreeParseProperties(ScriptTokenizer *tokenizer)
     flags = 0;
     while ( 1 )
     {
-        token = ScriptTokenizer::PeekToken(tokenizer);
+        token = tokenizer->PeekToken();
         if ( !(token ? Scr_IsIdentifier(token) : 0) )
             break;
         for ( i = 0; i < 7; ++i )
         {
             v5 = propertyNames[i];
-            v1 = ScriptTokenizer::PeekToken(tokenizer);
+            v1 = tokenizer->PeekToken();
             if ( !I_stricmp(v1, v5) )
                 break;
         }
@@ -2125,34 +2241,34 @@ int __cdecl GetAnimTreeParseProperties(ScriptTokenizer *tokenizer)
         {
             case 0u:
                 flags |= 1u;
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
                 break;
             case 1u:
                 flags |= 2u;
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
                 break;
             case 2u:
                 flags |= 8u;
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
                 break;
             case 3u:
                 flags |= 0x10u;
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
                 break;
             case 4u:
                 flags |= 0x20u;
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
                 break;
             case 5u:
                 flags |= 0x40u;
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
                 break;
             case 6u:
                 flags |= 0x88u;
-                ScriptTokenizer::PopToken(tokenizer);
+                tokenizer->PopToken();
                 break;
             default:
-                v2 = ScriptTokenizer::PeekToken(tokenizer);
+                v2 = tokenizer->PeekToken();
                 v3 = va("Unknown XAnimTree anim property: \"%s\"", v2);
                 AnimTreeCompileError(inst, v3);
                 break;
@@ -2235,14 +2351,14 @@ void __cdecl ParseParameterDef(ScriptTokenizer *tokenizer, scriptInstance_t inst
     int iClass; // [esp+84h] [ebp-8h]
     unsigned int theParam; // [esp+88h] [ebp-4h]
 
-    strClass = ScriptTokenizer::PeekToken(tokenizer);
+    strClass = tokenizer->PeekToken();
     for ( iClass = 0; iClass < 3 && I_strcmp(g_strAccessClassNames[iClass], strClass); ++iClass )
         ;
     if ( iClass == 3 )
         iClass = 0;
     else
-        ScriptTokenizer::PopToken(tokenizer);
-    strType = ScriptTokenizer::PeekToken(tokenizer);
+        tokenizer->PopToken();
+    strType = tokenizer->PeekToken();
     for ( iType = 0; iType < 8 && I_strcmp(g_strParamTypeToName[iType], strType); ++iType )
         ;
     if ( iType == 8 )
@@ -2250,19 +2366,19 @@ void __cdecl ParseParameterDef(ScriptTokenizer *tokenizer, scriptInstance_t inst
         v3 = va("A parameter was given a type '%s' that is not a valid type.", strType);
         AnimTreeCompileError(inst, v3);
     }
-    ScriptTokenizer::PopToken(tokenizer);
-    token = ScriptTokenizer::PeekToken(tokenizer);
+    tokenizer->PopToken();
+    token = tokenizer->PeekToken();
     if ( token )
         IsIdentifier = Scr_IsIdentifier(token);
     else
         IsIdentifier = 0;
     if ( !IsIdentifier )
     {
-        v4 = ScriptTokenizer::PeekToken(tokenizer);
+        v4 = tokenizer->PeekToken();
         v5 = va("The parameter was given a name '%s' that is not a valid name.", v4);
         AnimTreeCompileError(inst, v5);
     }
-    v6 = ScriptTokenizer::PopToken(tokenizer);
+    v6 = tokenizer->PopToken();
     paramName = SL_GetLowercaseString_(v6, 2u, 4, inst);
     String = SL_GetString_(inst, (char *)PARAMETER_ROOT_NAME, 2u, 4);
     paramDataVar = FindVariable(inst, rootData, String);
@@ -2275,14 +2391,14 @@ void __cdecl ParseParameterDef(ScriptTokenizer *tokenizer, scriptInstance_t inst
         v9 = va("The parameter '%s' was defined multiple times.", v8);
         AnimTreeCompileError(inst, v9);
     }
-    v23 = ScriptTokenizer::PeekToken(tokenizer);
+    v23 = tokenizer->PeekToken();
     if ( !v23 || *v23 != 61 || v23[1] )
     {
         v10 = SL_ConvertToString(paramName, inst);
         v11 = va("The parameter '%s' must have an expression.", v10);
         AnimTreeCompileError(inst, v11);
     }
-    ScriptTokenizer::PopToken(tokenizer);
+    tokenizer->PopToken();
     theExpr = ParseTopRankExpr(tokenizer, inst, rootData);
     if ( !theExpr.scriptExprData )
     {
@@ -2307,14 +2423,14 @@ void __cdecl ParseParameterDef(ScriptTokenizer *tokenizer, scriptInstance_t inst
         v15 = va("The expression of parameter '%s' does not match its type.", v14);
         AnimTreeCompileError(inst, v15);
     }
-    v20 = ScriptTokenizer::PeekToken(tokenizer);
+    v20 = tokenizer->PeekToken();
     if ( !v20 || *v20 != 59 || v20[1] )
     {
         v16 = SL_ConvertToString(paramName, inst);
         v17 = va("The parameter '%s' must end in a semicolon.", v16);
         AnimTreeCompileError(inst, v17);
     }
-    ScriptTokenizer::PopToken(tokenizer);
+    tokenizer->PopToken();
     v18 = SL_GetString_(inst, (char *)EXPRESSION_ROOT_NAME, 2u, 4);
     exprDataVar = FindVariable(inst, rootData, v18);
     if ( !exprDataVar )
@@ -2349,19 +2465,19 @@ int __cdecl Scr_CreateAllAnimTreeData(
 }
 
 int __cdecl Scr_CreateAnimationTree(
-                scriptInstance_t inst,
-                unsigned int parentNode,
-                unsigned int rootData,
-                unsigned int names,
-                XAnim_s *anims,
-                unsigned int childIndex,
-                const char *parentName,
-                unsigned int parentIndex,
-                unsigned int filename,
-                int treeIndex,
-                unsigned __int16 flags,
-                void *(__cdecl *Alloc)(int),
-                unsigned int paramMap)
+    scriptInstance_t inst,
+    unsigned int parentNode,
+    unsigned int rootData,
+    unsigned int names,
+    XAnim_s *anims,
+    unsigned int childIndex,
+    const char *parentName,
+    unsigned int parentIndex,
+    unsigned int filename,
+    int treeIndex,
+    unsigned __int16 flags,
+    void *(__cdecl *Alloc)(int),
+    unsigned int paramMap)
 {
     unsigned int ValueType; // eax
     char *v14; // eax
@@ -2382,130 +2498,137 @@ int __cdecl Scr_CreateAnimationTree(
     int parentIndexa; // [esp+84h] [ebp+24h]
 
     size = 0;
-    for ( nodeRef = FindFirstSibling(inst, parentNode); nodeRef; nodeRef = FindNextSibling(inst, nodeRef) )
+    for (nodeRef = FindFirstSibling(inst, parentNode); nodeRef; nodeRef = FindNextSibling(inst, nodeRef))
     {
-        if ( GetVariableName(inst, nodeRef) < 0x10000 )
+        if (GetVariableName(inst, nodeRef) < 0x10000)
             ++size;
     }
-    if ( parentIndex != (unsigned __int16)parentIndex
+    if (parentIndex != (unsigned __int16)parentIndex
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                    2044,
-                    0,
-                    "%s",
-                    "parentIndex == (unsigned short)parentIndex") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+            2044,
+            0,
+            "%s",
+            "parentIndex == (unsigned short)parentIndex"))
     {
         __debugbreak();
     }
-    if ( childIndex != (unsigned __int16)childIndex
+    if (childIndex != (unsigned __int16)childIndex
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                    2045,
-                    0,
-                    "%s",
-                    "childIndex == (unsigned short)childIndex") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+            2045,
+            0,
+            "%s",
+            "childIndex == (unsigned short)childIndex"))
     {
         __debugbreak();
     }
-    if ( size != (unsigned __int16)size
+    if (size != (unsigned __int16)size
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                    2046,
-                    0,
-                    "%s",
-                    "size == (unsigned short)size") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+            2046,
+            0,
+            "%s",
+            "size == (unsigned short)size"))
     {
         __debugbreak();
     }
-    if ( *(_BYTE *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8232) )
+    if (g_bChangeChecksum)
     {
-        MEMORY[0xA05ABB8][29 * inst] *= 31;
-        MEMORY[0xA05ABB8][29 * inst] += parentIndex;
-        MEMORY[0xA05ABB8][29 * inst] *= 31;
-        MEMORY[0xA05ABB8][29 * inst] += childIndex;
-        MEMORY[0xA05ABB8][29 * inst] *= 31;
-        MEMORY[0xA05ABB8][29 * inst] += size;
-        MEMORY[0xA05ABB8][29 * inst] *= 31;
-        MEMORY[0xA05ABB8][29 * inst] += flags;
+        gScrVarPub[inst].checksum *= 31;
+        gScrVarPub[inst].checksum += parentIndex;
+        gScrVarPub[inst].checksum *= 31;
+        gScrVarPub[inst].checksum += childIndex;
+        gScrVarPub[inst].checksum *= 31;
+        gScrVarPub[inst].checksum += size;
+        gScrVarPub[inst].checksum *= 31;
+        gScrVarPub[inst].checksum += flags;
     }
     XAnimBlend(anims, parentIndex, parentName, childIndex, size, flags);
     parentIndexa = childIndex;
     childIndexa = size + childIndex;
     processAdditive = 0;
 LABEL_18:
-    if ( processAdditive <= 1 )
+    if (processAdditive <= 1)
     {
-        for ( nodeRefa = FindFirstSibling(inst, parentNode); ; nodeRefa = FindNextSibling(inst, nodeRefa) )
+        for (nodeRefa = FindFirstSibling(inst, parentNode); ; nodeRefa = FindNextSibling(inst, nodeRefa))
         {
-            if ( !nodeRefa )
+            if (!nodeRefa)
             {
                 ++processAdditive;
                 goto LABEL_18;
             }
             name = GetVariableName(inst, nodeRefa);
-            if ( name < 0x10000 )
+            if (name < 0x10000)
             {
                 ValueType = GetValueType(inst, nodeRefa);
                 bHasChildren = ValueType == 1;
-                if ( ValueType == 1 )
+                if (ValueType == 1)
                 {
                     nodea = FindObject(inst, nodeRefa);
                     flagsId = FindArrayVariable(inst, nodea, 1u);
                     bHasChildren = flagsId && GetVariableValueAddress(inst, flagsId)->next;
                 }
-                if ( bHasChildren )
+                if (bHasChildren)
                 {
                     node = FindObject(inst, nodeRefa);
                     flagsIda = FindArrayVariable(inst, node, 0);
-                    if ( flagsIda )
+
+                    if (flagsIda)
+                    {
                         next = GetVariableValueAddress(inst, flagsIda)->next;
+                    }
                     else
-                        LOWORD(next) = 0;
-                    if ( ((next & 0x10) != 0) != processAdditive )
+                    {
+                        //LOWORD(next) = 0;
+                        next = 0;
+                    }
+
+                    if (((next & 0x10) != 0) != processAdditive)
                         continue;
                     v14 = SL_ConvertToString(name, inst);
                     childIndexa = Scr_CreateAnimationTree(
-                                                    inst,
-                                                    node,
-                                                    rootData,
-                                                    names,
-                                                    anims,
-                                                    childIndexa,
-                                                    v14,
-                                                    parentIndexa,
-                                                    filename,
-                                                    treeIndex,
-                                                    next,
-                                                    Alloc,
-                                                    paramMap);
+                        inst,
+                        node,
+                        rootData,
+                        names,
+                        anims,
+                        childIndexa,
+                        v14,
+                        parentIndexa,
+                        filename,
+                        treeIndex,
+                        next,
+                        Alloc,
+                        paramMap);
                 }
                 else
                 {
-                    if ( processAdditive )
+                    if (processAdditive)
                         continue;
-                    if ( parentIndexa != (unsigned __int16)parentIndexa
+                    if (parentIndexa != (unsigned __int16)parentIndexa
                         && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
-                                    2108,
-                                    0,
-                                    "%s",
-                                    "parentIndex == (unsigned short)parentIndex") )
+                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",
+                            2108,
+                            0,
+                            "%s",
+                            "parentIndex == (unsigned short)parentIndex"))
                     {
                         __debugbreak();
                     }
-                    if ( *(_BYTE *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8232) )
+                    if (g_bChangeChecksum)
                     {
-                        MEMORY[0xA05ABB8][29 * inst] *= 31;
-                        MEMORY[0xA05ABB8][29 * inst] += parentIndexa;
+                        gScrVarPub[inst].checksum *= 31;
+                        gScrVarPub[inst].checksum += parentIndexa;
                     }
                     v15 = SL_ConvertToString(name, inst);
                     XAnimCreate(anims, parentIndexa, v15);
                 }
-                if ( GetValueType(inst, nodeRefa) == 1 )
+                if (GetValueType(inst, nodeRefa) == 1)
                 {
                     nodeb = FindObject(inst, nodeRefa);
                     Scr_ProcessNodeValues(inst, anims, name, rootData, parentIndexa, nodeb);
-                    if ( FindArrayVariable(inst, nodeb, 2u) )
+                    if (FindArrayVariable(inst, nodeb, 2u))
                         ++iFoo_2;
                 }
                 ConnectScriptToAnim(inst, names, parentIndexa++, filename, (unsigned __int16)name, treeIndex);
@@ -2580,10 +2703,10 @@ double __cdecl GetNamedArrayVarFloat(scriptInstance_t inst, unsigned int theArra
 }
 
 scr_animtree_t __cdecl CScr_RetrieveAnimTree(
-                const char *strAnimTreeName,
-                unsigned int names,
-                unsigned int filename,
-                unsigned __int16 iOurTreeIx)
+    const char *strAnimTreeName,
+    unsigned int names,
+    unsigned int filename,
+    unsigned __int16 iOurTreeIx)
 {
     const char *v4; // eax
     const char *v5; // eax
@@ -2598,57 +2721,57 @@ scr_animtree_t __cdecl CScr_RetrieveAnimTree(
     int iNumValuesa; // [esp+38h] [ebp-4h]
 
     iSource = 1;
-    iNumValues = MEMORY[0x9CF6640][0] + 1;
-    for ( iTreeIx = 0;
-                iTreeIx < iNumValues
-         && (!gGScrXAnimTreesForClient[1][iTreeIx].strName
+    iNumValues = gScrAnimPub[0].xanim_num[1] + 1;
+    for (iTreeIx = 0;
+        iTreeIx < iNumValues
+        && (!gGScrXAnimTreesForClient[1][iTreeIx].strName
             || I_strcmp(strAnimTreeName, gGScrXAnimTreesForClient[1][iTreeIx].strName));
-                ++iTreeIx )
+        ++iTreeIx)
     {
         ;
     }
-    if ( iTreeIx == iNumValues )
+    if (iTreeIx == iNumValues)
     {
         iSource = 0;
-        iNumValuesa = MEMORY[0x9CF663C][0] + 1;
-        for ( iTreeIx = 0;
-                    iTreeIx < iNumValuesa
-             && (!gGScrXAnimTreesForClient[0][iTreeIx].strName
+        iNumValuesa = gScrAnimPub[0].xanim_num[0] + 1;
+        for (iTreeIx = 0;
+            iTreeIx < iNumValuesa
+            && (!gGScrXAnimTreesForClient[0][iTreeIx].strName
                 || I_strcmp(strAnimTreeName, gGScrXAnimTreesForClient[0][iTreeIx].strName));
-                    ++iTreeIx )
+            ++iTreeIx)
         {
             ;
         }
-        if ( iTreeIx == iNumValuesa )
+        if (iTreeIx == iNumValuesa)
         {
             v4 = va("Couldn't find animtree '%s' on the server.", strAnimTreeName);
             Com_Error(ERR_DROP, v4);
         }
     }
     pCurrTree = &gGScrXAnimTreesForClient[iSource][iTreeIx];
-    for ( nodeRef = FindFirstSibling(SCRIPTINSTANCE_CLIENT, names);
-                nodeRef;
-                nodeRef = FindNextSibling(SCRIPTINSTANCE_CLIENT, nodeRef) )
+    for (nodeRef = FindFirstSibling(SCRIPTINSTANCE_CLIENT, names);
+        nodeRef;
+        nodeRef = FindNextSibling(SCRIPTINSTANCE_CLIENT, nodeRef))
     {
         name = GetVariableName(SCRIPTINSTANCE_CLIENT, nodeRef);
-        if ( name < 0x10000 )
+        if (name < 0x10000)
         {
             strName = SL_ConvertToString(name, SCRIPTINSTANCE_CLIENT);
-            for ( iAnimIx = 0;
-                        iAnimIx < pCurrTree->numIndices
-                 && (!pCurrTree->pTreeNameMap[iAnimIx].strName[0] || I_stricmp(
-                                                                                                                             pCurrTree->pTreeNameMap[iAnimIx].strName,
-                                                                                                                             strName));
-                        ++iAnimIx )
+            for (iAnimIx = 0;
+                iAnimIx < pCurrTree->numIndices
+                && (!pCurrTree->pTreeNameMap[iAnimIx].strName[0] || I_stricmp(
+                    pCurrTree->pTreeNameMap[iAnimIx].strName,
+                    strName));
+                ++iAnimIx)
             {
                 ;
             }
-            if ( iAnimIx == pCurrTree->numIndices )
+            if (iAnimIx == pCurrTree->numIndices)
             {
                 v5 = va(
-                             "Client Script uses anim '%s' from tree '%s' that doesn't exist on the server.",
-                             strName,
-                             strAnimTreeName);
+                    "Client Script uses anim '%s' from tree '%s' that doesn't exist on the server.",
+                    strName,
+                    strAnimTreeName);
                 Com_Error(ERR_DROP, v5);
             }
             ConnectScriptToAnim(SCRIPTINSTANCE_CLIENT, names, iAnimIx, filename, name, iOurTreeIx);
@@ -2784,69 +2907,69 @@ void __cdecl AddRefToObject(scriptInstance_t inst, unsigned int id)
 {
     VariableValueInternal *v2; // [esp+0h] [ebp-4h]
 
-    if ( (!id || id >= 0x7FFE)
+    if ((!id || id >= 0x7FFE)
         && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
-                    343,
-                    0,
-                    "%s",
-                    "id >= 1 && id < VARIABLELIST_PARENT_SIZE(inst)") )
+            "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
+            343,
+            0,
+            "%s",
+            "id >= 1 && id < VARIABLELIST_PARENT_SIZE(inst)"))
     {
         __debugbreak();
     }
-    ++MEMORY[0xA05ABEC][29 * inst];
-    if ( gScrVarDebugPub[inst] )
+    ++gScrVarPub[inst].totalObjectRefCount;
+    if (gScrVarDebugPub[inst])
     {
-        if ( !gScrVarDebugPub[inst]->leakCount[id + 1]
+        if (!gScrVarDebugPub[inst]->leakCount[id + 1]
             && !Assert_MyHandler(
-                        "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
-                        348,
-                        0,
-                        "%s",
-                        "(gScrVarDebugPub[inst]->leakCount[VARIABLELIST_PARENT_BEGIN(inst)+ id])") )
+                "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
+                348,
+                0,
+                "%s",
+                "(gScrVarDebugPub[inst]->leakCount[VARIABLELIST_PARENT_BEGIN(inst)+ id])"))
         {
             __debugbreak();
         }
         ++gScrVarDebugPub[inst]->leakCount[id + 1];
     }
-    if ( (gScrVarGlob[inst].variableList[id + 1].w.status & 0x60) == 0
+    if ((gScrVarGlob[inst].variableList[id + 1].w.status & 0x60) == 0
         && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
-                    353,
-                    0,
-                    "%s",
-                    "(gScrVarGlob[inst].variableList[VARIABLELIST_PARENT_BEGIN(inst)+ id].w.status & VAR_STAT_MASK) != VAR_STAT_FREE") )
+            "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
+            353,
+            0,
+            "%s",
+            "(gScrVarGlob[inst].variableList[VARIABLELIST_PARENT_BEGIN(inst)+ id].w.status & VAR_STAT_MASK) != VAR_STAT_FREE"))
     {
         __debugbreak();
     }
     v2 = &gScrVarGlob[inst].variableList[id + 1];
-    if ( (v2->w.status & 0x60) == 0
+    if ((v2->w.status & 0x60) == 0
         && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
-                    323,
-                    0,
-                    "%s",
-                    "(entryValue->w.status & VAR_STAT_MASK) != VAR_STAT_FREE") )
+            "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
+            323,
+            0,
+            "%s",
+            "(entryValue->w.status & VAR_STAT_MASK) != VAR_STAT_FREE"))
     {
         __debugbreak();
     }
-    if ( (v2->w.status & 0x1F) < 0xD
+    if ((v2->w.status & 0x1F) < 0xD
         && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
-                    354,
-                    0,
-                    "%s",
-                    "IsObject( &gScrVarGlob[inst].variableList[VARIABLELIST_PARENT_BEGIN(inst)+ id] )") )
+            "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
+            354,
+            0,
+            "%s",
+            "IsObject( &gScrVarGlob[inst].variableList[VARIABLELIST_PARENT_BEGIN(inst)+ id] )"))
     {
         __debugbreak();
     }
-    if ( !++gScrVarGlob[inst].variableList[id + 1].u.o.refCount
+    if (!++gScrVarGlob[inst].variableList[id + 1].u.o.refCount
         && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
-                    356,
-                    0,
-                    "%s",
-                    "gScrVarGlob[inst].variableList[VARIABLELIST_PARENT_BEGIN(inst)+ id].u.o.refCount") )
+            "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
+            356,
+            0,
+            "%s",
+            "gScrVarGlob[inst].variableList[VARIABLELIST_PARENT_BEGIN(inst)+ id].u.o.refCount"))
     {
         __debugbreak();
     }
@@ -2854,18 +2977,18 @@ void __cdecl AddRefToObject(scriptInstance_t inst, unsigned int id)
 
 void __cdecl AddRefToVector(scriptInstance_t inst, const float *vectorValue)
 {
-    if ( !*((_BYTE *)vectorValue - 1) )
+    if (!*((_BYTE *)vectorValue - 1))
     {
-        _InterlockedExchangeAdd(&MEMORY[0xA05ABF0][29 * inst], 1u);
-        if ( gScrStringDebugGlob[inst] )
+        _InterlockedExchangeAdd(&gScrVarPub[inst].totalVectorRefCount, 1u);
+        if (gScrStringDebugGlob[inst])
         {
-            if ( gScrStringDebugGlob[inst]->refCount[((char *)(vectorValue - 1) - gScrMemTreePub[inst].mt_buffer) / 16] < 0
+            if (gScrStringDebugGlob[inst]->refCount[((char *)(vectorValue - 1) - gScrMemTreePub[inst].mt_buffer) / 16] < 0
                 && !Assert_MyHandler(
-                            "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
-                            371,
-                            0,
-                            "%s",
-                            "gScrStringDebugGlob[inst]->refCount[((char *)vectorValue - 4 - gScrMemTreePub[inst].mt_buffer) / MT_NODE_SIZE] >= 0") )
+                    "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
+                    371,
+                    0,
+                    "%s",
+                    "gScrStringDebugGlob[inst]->refCount[((char *)vectorValue - 4 - gScrMemTreePub[inst].mt_buffer) / MT_NODE_SIZE] >= 0"))
             {
                 __debugbreak();
             }
@@ -2873,13 +2996,13 @@ void __cdecl AddRefToVector(scriptInstance_t inst, const float *vectorValue)
                 &gScrStringDebugGlob[inst]->refCount[((char *)(vectorValue - 1) - gScrMemTreePub[inst].mt_buffer) / 16],
                 1u);
         }
-        if ( !++*((_WORD *)vectorValue - 2)
+        if (!++ * ((_WORD *)vectorValue - 2)
             && !Assert_MyHandler(
-                        "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
-                        377,
-                        0,
-                        "%s",
-                        "((unsigned short *)vectorValue)[-2]") )
+                "c:\\projects_pc\\cod\\codsrc\\src\\clientscript\\scr_variable.h",
+                377,
+                0,
+                "%s",
+                "((unsigned short *)vectorValue)[-2]"))
         {
             __debugbreak();
         }

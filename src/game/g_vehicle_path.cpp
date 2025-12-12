@@ -1914,7 +1914,7 @@ void __cdecl GScr_GetVehicleNode()
 
     name = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
     key = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
-    offset = Scr_GetOffset(3u, key, SCRIPTINSTANCE_SERVER).intValue;
+    offset = Scr_GetOffset(3u, key, SCRIPTINSTANCE_SERVER);
     if ( offset >= 0 )
     {
         if ( (unsigned int)offset >= 0xB

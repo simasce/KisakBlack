@@ -83,14 +83,35 @@ struct __declspec(align(4)) VariableStackBuffer // sizeof=0x10
 
 union VariableUnion // sizeof=0x4
 {                                                                             // XREF: Scr_EmitAnimationInternal+8E/w
-        int intValue;
-        float floatValue;
-        unsigned int stringValue;
-        const float *vectorValue;
-        const char *codePosValue;
-        unsigned int pointerValue;
-        VariableStackBuffer *stackValue;
-        unsigned int entityOffset;
+    VariableUnion(float f)
+    {
+        floatValue = f;
+    }
+    VariableUnion(int i)
+    {
+        intValue = i;
+    }
+    VariableUnion(char *str)
+    {
+        codePosValue = str;
+    }
+    VariableUnion(const char *str)
+    {
+        codePosValue = str;
+    }
+    VariableUnion()
+    {
+        intValue = 0;
+    }
+
+    int intValue;
+    float floatValue;
+    unsigned int stringValue;
+    const float *vectorValue;
+    const char *codePosValue;
+    unsigned int pointerValue;
+    VariableStackBuffer *stackValue;
+    unsigned int entityOffset;
 };
 
 union VariableValueInternal_u // sizeof=0x8
@@ -153,6 +174,17 @@ struct scr_entref_t // sizeof=0x6
         unsigned __int16 entnum;                        // XREF: CScr_PlaySoundOnEntity+12/r
         unsigned __int16 classnum;                    // XREF: CScr_PlaySoundOnEntity+6/r
         unsigned __int16 client;                        // XREF: CScr_PlaySoundOnEntity:loc_4EB534/r
+
+        scr_entref_t()
+        {
+            entnum = 0;
+            classnum = 0;
+        }
+        scr_entref_t(int i)
+        {
+            entnum = i;
+            classnum = i;
+        }
 };
 
 struct scrVarPub_t // sizeof=0x74
@@ -552,7 +584,7 @@ void __cdecl Scr_FreeObjects(scriptInstance_t inst);
 void __cdecl Scr_SetClassMap(scriptInstance_t inst, unsigned int classnum);
 void __cdecl Scr_RemoveClassMap(scriptInstance_t inst, unsigned int classnum);
 void __cdecl Scr_AddClassField(unsigned int classnum, char *name, unsigned int offset, scriptInstance_t inst);
-VariableUnion __cdecl Scr_GetOffset(unsigned int classnum, char *name, scriptInstance_t inst);
+int __cdecl Scr_GetOffset(unsigned int classnum, char *name, scriptInstance_t inst);
 unsigned int __cdecl FindEntityId(scriptInstance_t inst, unsigned int entnum, unsigned int classnum, int clientNum);
 unsigned int __cdecl Scr_GetEntityId(scriptInstance_t inst, unsigned int entnum, unsigned int classnum, int clientNum);
 unsigned int __cdecl AllocEntity(

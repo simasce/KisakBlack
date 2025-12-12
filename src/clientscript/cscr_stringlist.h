@@ -14,7 +14,7 @@ struct scrStringDebugGlob_t // sizeof=0x40008
 
 char *__cdecl SL_ConvertToString(unsigned int stringValue, scriptInstance_t inst);
 RefString *__cdecl GetRefString(scriptInstance_t inst, unsigned int stringValue);
-char *__cdecl SL_DebugConvertToString(unsigned int stringValue, scriptInstance_t inst);
+const char *__cdecl SL_DebugConvertToString(unsigned int stringValue, scriptInstance_t inst);
 int __cdecl SL_GetStringLen(scriptInstance_t inst, unsigned int stringValue);
 int __cdecl SL_GetRefStringLen(RefString *refString);
 int __cdecl SL_ConvertFromString(scriptInstance_t inst, char *str);
@@ -39,6 +39,11 @@ unsigned int __cdecl SL_GetStringOfSize(
                 unsigned int len,
                 int type);
 unsigned int __cdecl SL_GetString_(scriptInstance_t inst, char *str, unsigned int user, int type);
+inline unsigned int __cdecl SL_GetString_(scriptInstance_t inst, const char *str, unsigned int user, int type)
+{
+    return SL_GetString_(inst, (char *)str, user, type);
+}
+
 unsigned int __cdecl SL_GetString(char *str, unsigned int user, scriptInstance_t inst);
 unsigned int __cdecl SL_GetLowercaseString_(const char *str, unsigned int user, int type, scriptInstance_t inst);
 unsigned int __cdecl SL_GetLowercaseStringOfSize(
@@ -74,3 +79,4 @@ void __cdecl CreateCanonicalFilename(char *newFilename, const char *filename, in
 
 
 extern scrStringDebugGlob_t *gScrStringDebugGlob[2];
+extern scrStringGlob_t gScrStringGlob[2];

@@ -575,49 +575,16 @@ void __cdecl Hunk_UserDestroy(HunkUser *user)
     g_HunkUserAllocationSchemeMap[user->scheme].Destroy(user);
 }
 
-void __cdecl Hunk_UserSetPos(HunkUserDefault *_user, const char **pos)
+void __cdecl Hunk_UserSetPos(HunkUser *_user, unsigned char *pos)
 {
-    if (_user->hunkUser.scheme
-        && !Assert_MyHandler(
-            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\mem_userhunk.cpp",
-            446,
-            0,
-            "%s",
-            "_user->scheme==HU_SCHEME_DEFAULT"))
-    {
-        __debugbreak();
-    }
-    if ((_user->hunkUser.flags & 4) == 0
-        && !Assert_MyHandler(
-            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\mem_userhunk.cpp",
-            447,
-            0,
-            "%s",
-            "(user->hunkUser.flags & HF_FIXEDSIZE)!=0"))
-    {
-        __debugbreak();
-    }
-    if (pos < (const char **)_user->buf
-        && !Assert_MyHandler(
-            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\mem_userhunk.cpp",
-            448,
-            0,
-            "%s",
-            "pos >= user->buf"))
-    {
-        __debugbreak();
-    }
-    if ((int)pos > _user->pos
-        && !Assert_MyHandler(
-            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\mem_userhunk.cpp",
-            449,
-            0,
-            "%s",
-            "(psize_int)pos <= user->pos"))
-    {
-        __debugbreak();
-    }
-    _user->pos = (int)pos;
+    iassert(_user->scheme == HU_SCHEME_DEFAULT);
+
+    HunkUserDefault *user = (HunkUserDefault *)_user;
+    iassert((user->hunkUser.flags & HF_FIXEDSIZE) != 0);
+    iassert(pos >= user->buf);
+    iassert((psize_int)pos <= user->pos);
+
+    user->pos = (int)pos;
 }
 
 char *__cdecl Hunk_CopyString(HunkUser *user, const char *in)

@@ -4905,7 +4905,7 @@ void __cdecl CScr_GetEnt()
     localClientNum = CScr_GetLocalClientNum(0).intValue;
     pName = Scr_GetString(1u, SCRIPTINSTANCE_CLIENT);
     key = Scr_GetString(2u, SCRIPTINSTANCE_CLIENT);
-    offset = Scr_GetOffset(0, key, SCRIPTINSTANCE_CLIENT).intValue;
+    offset = Scr_GetOffset(0, key, SCRIPTINSTANCE_CLIENT);
     if ( offset >= 0 )
         CScr_GetGenericEnt(localClientNum, offset, pName);
 }
@@ -5061,7 +5061,7 @@ void __cdecl CScr_GetEntArray()
         hash = Scr_GetHashCode(SCRIPTINSTANCE_CLIENT, pName, strlen(pName));
         name = SL_FindString(pName, SCRIPTINSTANCE_CLIENT);
         key = Scr_GetString(2u, SCRIPTINSTANCE_CLIENT);
-        offset = Scr_GetOffset(0, key, SCRIPTINSTANCE_CLIENT).intValue;
+        offset = Scr_GetOffset(0, key, SCRIPTINSTANCE_CLIENT);
         if ( offset >= 0 )
         {
             if ( offset >= 24

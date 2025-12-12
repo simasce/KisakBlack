@@ -138,6 +138,9 @@ typedef ull                         uint64;
 #define _LONGLONG __int128
 #endif
 
+// Cod4 specific types
+#define psize_int uintptr_t
+
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
 #endif

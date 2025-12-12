@@ -731,7 +731,7 @@ void __cdecl Scr_GetNode()
 
     name = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
     key = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
-    offset = Scr_GetOffset(2u, key, SCRIPTINSTANCE_SERVER).intValue;
+    offset = Scr_GetOffset(2u, key, SCRIPTINSTANCE_SERVER);
     if ( offset >= 0 )
     {
         if ( (unsigned int)offset >= 0xB
@@ -775,7 +775,7 @@ void __cdecl Scr_GetNodeArray()
 
     name = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
     key = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
-    offset = Scr_GetOffset(2u, key, SCRIPTINSTANCE_SERVER).intValue;
+    offset = Scr_GetOffset(2u, key, SCRIPTINSTANCE_SERVER);
     if ( offset < 0 )
     {
         v0 = va("key '%s' does not internally belong to nodes", key);

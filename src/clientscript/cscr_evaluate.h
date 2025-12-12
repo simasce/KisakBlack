@@ -148,3 +148,7 @@ bool __cdecl Scr_RefMethod(scriptInstance_t inst, sval_u expr, sval_u params);
 bool __cdecl Scr_RefBinaryOperatorExpression(scriptInstance_t inst, sval_u expr1, sval_u expr2);
 bool __cdecl Scr_RefVector(scriptInstance_t inst, sval_u expr1, sval_u expr2, sval_u expr3);
 void __cdecl Scr_FreeDebugExprValue(scriptInstance_t inst, sval_u val);
+
+
+extern int g_script_error_level[2];
+extern int g_script_error[2][33][16];

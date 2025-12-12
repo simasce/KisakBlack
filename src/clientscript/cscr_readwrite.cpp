@@ -1,4 +1,6 @@
 #include "cscr_readwrite.h"
+#include "cscr_variable.h"
+#include <universal/assertive.h>
 
 unsigned int __cdecl FindLastSibling(scriptInstance_t inst, unsigned int parentId)
 {

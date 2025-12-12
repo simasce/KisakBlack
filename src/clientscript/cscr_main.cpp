@@ -18,8 +18,6 @@
 
 #undef GetObject
 
-scrStringGlob_t gScrStringGlob[2];
-
 thread_local unsigned int gScriptHighRefMark;
 thread_local unsigned int gScriptIndentLevel;
 thread_local unsigned int gScriptHighIndentMark;

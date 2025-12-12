@@ -1,5 +1,6 @@
 #pragma once
 #include "cscr_main.h"
+#include "cscr_variable.h"
 
 struct scr_localVar_t // sizeof=0x8
 {                                       // XREF: scr_block_s/r
@@ -262,9 +263,18 @@ public:
                                         // Scr_DisplayDebuggerRemote+116/r
 };
 
-class Scr_ScriptWindow : UI_LinesComponent // sizeof=0x20
+class Scr_ScriptWindow : public UI_LinesComponent // sizeof=0x20
 {
 public:
+    void *operator new(unsigned int size)
+    {
+        return Hunk_UserAlloc(g_DebugHunkUser, size, 4, "Scr_ScriptWindow");
+    }
+    void operator delete(void *ptr)
+    {
+        Hunk_UserFree(g_DebugHunkUser, ptr);
+    }
+
     unsigned int bufferIndex;
     int currentTopLine;
     const char *currentBufPos;
@@ -312,7 +322,7 @@ struct Scr_SourcePos2_t // sizeof=0x8
     unsigned int sourcePos;             // XREF: Scr_DisplayDebuggerRemote+146/r
 };
 
-class Scr_ScriptCallStack : UI_LinesComponent
+class Scr_ScriptCallStack : public UI_LinesComponent
 {
 public:
     Scr_SourcePos2_t stack[33];
@@ -581,3 +591,8 @@ int __cdecl CompareThreadIndices(unsigned int *arg1, unsigned int *arg2);
 
 extern scrDebuggerGlob_t gScrDebuggerGlob[2];
 extern scriptInstance_t gDebuggerInstance;
+
+extern thread_local int g_breakonExpr;
+extern thread_local unsigned int g_breakonString;
+extern thread_local int g_breakonHit;
+extern thread_local unsigned int g_breakonObject;

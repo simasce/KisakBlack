@@ -79,7 +79,8 @@ struct __declspec(align(4)) RefString // sizeof=0x8
                         unsigned __int32 user : 8;
                         unsigned __int32 byteLen : 8;
                 };
-                volatile int data;
+                //volatile int data;
+                volatile unsigned int data;
         };
         char str[1];
         // padding byte
@@ -128,6 +129,42 @@ namespace XExpr
         };
 }
 
+enum ExpressionParseTypes : __int32
+{                                       // XREF: ParseTopRankExpr/r
+                                        // BuildExpr/r ...
+    ET_PLUS = 0x0,
+    ET_MINUS = 0x1,
+    END_OF_RANK1 = 0x2,
+    ET_MULTIPLY = 0x2,
+    ET_DIVIDE = 0x3,
+    END_OF_RANK2 = 0x4,
+    ET_LEFT_PAREN = 0x4,
+    ET_RIGHT_PAREN = 0x5,
+    ET_VEC2_CONST = 0x6,
+    ET_VEC3_CONST = 0x7,
+    ET_DOT_PROD_FUNC = 0x8,
+    ET_CROSS_PROD_FUNC = 0x9,
+    ET_SINGLE_VALUE = 0xA,
+    ET_GET_PARAMETER = 0xB,
+    ET_GET_STD_PARAM = 0xC,
+    END_OF_RANK3 = 0xD,
+    ETS_COMMA = 0xD,
+    NUM_EXPR_TYPES = 0xE,
+};
+
+struct ExpressionOperatorData // sizeof=0x14
+{                                       // XREF: .rdata:g_ExprOperatorList/r
+    int iArity;
+    const char *strValue;               // XREF: DetermineParseType+76/r
+    // ConvertParseTypeToStr+10/r
+    bool isFunction;                    // XREF: ParseBottomRankExpr+B5/r
+    // padding byte
+    // padding byte
+    // padding byte
+    XExpr::MathTypes(__cdecl *FuncTypeTesting)(const ParseValue *, int, scriptInstance_t);
+    XExpr::MathOpcodes eMathType;
+};
+
 const struct ParseValue // sizeof=0x8
 {                                                                             // XREF: ParseTopRankExpr+89/w
                                                                                 // ParseRank2Expr+89/w ...
@@ -135,6 +172,22 @@ const struct ParseValue // sizeof=0x8
         // ParseNode+637/w ...
         XExpr::MathTypes exprType;                    // XREF: StoreExprInList(scriptInstance_t,uint,ParseValue)+4A/r
         // ParseNode+644/w ...
+};
+
+struct ValueEntry // sizeof=0x8
+{                                       // XREF: ParseNode/r
+    unsigned int valueName;             // XREF: ParseNode+2CB/w
+    // ParseNode+343/r
+    unsigned int theValue;              // XREF: ParseNode+361/w
+    // ParseNode+D72/r ...
+};
+
+struct ParseEntry // sizeof=0xC
+{                                       // XREF: ParseNode/r
+    ParseValue theValue;                // XREF: ParseNode+637/w
+    // ParseNode+644/w ...
+    unsigned int optionName;            // XREF: ParseNode+59D/w
+    // ParseNode+CA2/r
 };
 
 union HashEntry_u // sizeof=0x4

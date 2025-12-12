@@ -50,6 +50,157 @@ struct scrCompilePub_t // sizeof=0x21038
                                         // AddFunction+C5/w ...
 };
 
+struct CaseStatementInfo // sizeof=0x10
+{
+    unsigned int name;
+    const char *codePos;
+    unsigned int sourcePos;
+    CaseStatementInfo *next;
+};
+
+struct BreakStatementInfo // sizeof=0xC
+{
+    const char *codePos;
+    const char *nextCodePos;
+    BreakStatementInfo *next;
+};
+
+struct ContinueStatementInfo // sizeof=0xC
+{
+    const char *codePos;
+    const char *nextCodePos;
+    ContinueStatementInfo *next;
+};
+
+struct scrCompileGlob_t
+{
+    unsigned __int8 *codePos;
+    unsigned __int8 *prevOpcodePos;
+    unsigned int filePosId;
+    unsigned int fileCountId;
+    int cumulOffset;
+    int maxOffset;
+    int maxCallOffset;
+    bool bConstRefCount;
+    bool in_developer_thread;
+    unsigned int developer_thread_sourcePos;
+    bool firstThread[2];
+    CaseStatementInfo *currentCaseStatement;
+    bool bCanBreak;
+    BreakStatementInfo *currentBreakStatement;
+    bool bCanContinue;
+    ContinueStatementInfo *currentContinueStatement;
+    scr_block_s **breakChildBlocks;
+    int *breakChildCount;
+    scr_block_s *breakBlock;
+    scr_block_s **continueChildBlocks;
+    int *continueChildCount;
+    bool forceNotCreate;
+    PrecacheEntry *precachescriptList;
+    VariableCompileValue value_start[32];
+};
+
+enum $BB7F4801BC8A3FB836B39ECFF8B5BEFB : __int32
+{
+    FUNC_SCOPE_LOCAL = 0x0,
+    FUNC_SCOPE_FAR   = 0x1,
+};
+
+enum $4595A41124E79A03522668AB0CFC531F : __int32
+{
+    ENUM_NOP                       = 0x0,
+    ENUM_program                   = 0x1,
+    ENUM_assignment                = 0x2,
+    ENUM_unknown_variable          = 0x3,
+    ENUM_duplicate_variable        = 0x4,
+    ENUM_local_variable            = 0x5,
+    ENUM_local_variable_frozen     = 0x6,
+    ENUM_duplicate_expression      = 0x7,
+    ENUM_primitive_expression      = 0x8,
+    ENUM_integer                   = 0x9,
+    ENUM_float                     = 0xA,
+    ENUM_minus_integer             = 0xB,
+    ENUM_minus_float               = 0xC,
+    ENUM_string                    = 0xD,
+    ENUM_istring                   = 0xE,
+    ENUM_array_variable            = 0xF,
+    ENUM_unknown_field             = 0x10,
+    ENUM_field_variable            = 0x11,
+    ENUM_field_variable_frozen     = 0x12,
+    ENUM_variable                  = 0x13,
+    ENUM_function                  = 0x14,
+    ENUM_call_expression           = 0x15,
+    ENUM_local_function            = 0x16,
+    ENUM_far_function              = 0x17,
+    ENUM_function_pointer          = 0x18,
+    ENUM_call                      = 0x19,
+    ENUM_method                    = 0x1A,
+    ENUM_call_expression_statement = 0x1B,
+    ENUM_script_call               = 0x1C,
+    ENUM_return                    = 0x1D,
+    ENUM_return2                   = 0x1E,
+    ENUM_wait                      = 0x1F,
+    ENUM_script_thread_call        = 0x20,
+    ENUM_undefined                 = 0x21,
+    ENUM_self                      = 0x22,
+    ENUM_self_frozen               = 0x23,
+    ENUM_level                     = 0x24,
+    ENUM_game                      = 0x25,
+    ENUM_anim                      = 0x26,
+    ENUM_if                        = 0x27,
+    ENUM_if_else                   = 0x28,
+    ENUM_while                     = 0x29,
+    ENUM_for                       = 0x2A,
+    ENUM_inc                       = 0x2B,
+    ENUM_dec                       = 0x2C,
+    ENUM_binary_equals             = 0x2D,
+    ENUM_statement_list            = 0x2E,
+    ENUM_developer_statement_list  = 0x2F,
+    ENUM_expression_list           = 0x30,
+    ENUM_bool_or                   = 0x31,
+    ENUM_bool_and                  = 0x32,
+    ENUM_binary                    = 0x33,
+    ENUM_bool_not                  = 0x34,
+    ENUM_bool_complement           = 0x35,
+    ENUM_size_field                = 0x36,
+    ENUM_self_field                = 0x37,
+    ENUM_precachetree              = 0x38,
+    ENUM_waittill                  = 0x39,
+    ENUM_waittillmatch             = 0x3A,
+    ENUM_waittillFrameEnd          = 0x3B,
+    ENUM_notify                    = 0x3C,
+    ENUM_endon                     = 0x3D,
+    ENUM_switch                    = 0x3E,
+    ENUM_case                      = 0x3F,
+    ENUM_default                   = 0x40,
+    ENUM_break                     = 0x41,
+    ENUM_continue                  = 0x42,
+    ENUM_expression                = 0x43,
+    ENUM_empty_array               = 0x44,
+    ENUM_animation                 = 0x45,
+    ENUM_thread                    = 0x46,
+    ENUM_begin_developer_thread    = 0x47,
+    ENUM_end_developer_thread      = 0x48,
+    ENUM_usingtree                 = 0x49,
+    ENUM_false                     = 0x4A,
+    ENUM_true                      = 0x4B,
+    ENUM_animtree                  = 0x4C,
+    ENUM_breakon                   = 0x4D,
+    ENUM_breakpoint                = 0x4E,
+    ENUM_prof_begin                = 0x4F,
+    ENUM_prof_end                  = 0x50,
+    ENUM_vector                    = 0x51,
+    ENUM_object                    = 0x52,
+    ENUM_thread_object             = 0x53,
+    ENUM_local                     = 0x54,
+    ENUM_statement                 = 0x55,
+    ENUM_bad_expression            = 0x56,
+    ENUM_bad_statement             = 0x57,
+    ENUM_include                   = 0x58,
+    ENUM_argument                  = 0x59,
+};
+
+
 void (__cdecl *__cdecl GetFunction(scriptInstance_t inst, const char **pName, int *type))();
 void (__cdecl *__cdecl GetMethod(scriptInstance_t inst, const char **pName, int *type))(scr_entref_t);
 int __cdecl GetExpressionCount(sval_u exprlist);

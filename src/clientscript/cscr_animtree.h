@@ -2,11 +2,51 @@
 
 #include "cscr_main.h"
 #include "cscr_variable.h"
+#include <cstddef>
 
 struct XAnim_s;
 
+struct scr_anim_s // sizeof=0x4
+{                                                                             // XREF: bgsAnim_s::<unnamed_type_generic_human>/r
+        //$3FF2EDC1867ACEA597C8BFA34C9C0852 ___u0;
+                                                                                // XREF: CScr_GetAnimLength(void)+20/w
+                                                                                // CScr_GetAnimLength(void)+25/r ...
+    union //$3FF2EDC1867ACEA597C8BFA34C9C0852 // sizeof=0x4
+    {                                                                             // XREF: CScr_GetAnimLength(void)+20/w
+                                                                                    // CScr_GetAnimLength(void)+25/r ...
+            //$6CB7272563F4458FB40A4A5E123C4ABA __s0;
+        struct //$6CB7272563F4458FB40A4A5E123C4ABA // sizeof=0x4
+        {                                                                             // XREF: $3FF2EDC1867ACEA597C8BFA34C9C0852/r
+            unsigned __int16 index;
+            unsigned __int16 tree;
+        };
+        const char *linkPointer;
+    };
+
+    scr_anim_s()
+    {
+        linkPointer = NULL;
+    }
+    scr_anim_s(int i)
+    {
+        linkPointer = (const char *)i; // KISAKHACK
+    }
+};
+
 struct scr_animtree_t // sizeof=0x4
 {                                                                             // XREF: animScriptData_t/r
+    scr_animtree_t(XAnim_s *_anims)
+    {
+        anims = _anims;
+    }
+    scr_animtree_t(int val)
+    {
+        anims = (XAnim_s *)val;
+    }
+    scr_animtree_t()
+    {
+        anims = NULL; 
+    }
     XAnim_s *anims;                                         // XREF: BG_FindAnimTree+1A/w
 };
 
@@ -51,6 +91,13 @@ struct __declspec(align(4)) scrAnimPub_t // sizeof=0x41C
 
 struct ScriptTokenizer // sizeof=0x2808
 {                                       // XREF: AnimTreeParseInternal/r
+    enum TokenType : __int32
+    {                                       // XREF: ?ParseIntoTokens@ScriptTokenizer@@AAEXPBD@Z/r
+        TOK_IDENTIFIER = 0x0,
+        TOK_SYMBOL     = 0x1,
+        TOK_NUMBER     = 0x2,
+        TOK_UNKNOWN    = 0x3,
+    };
     scriptInstance_t inst;              // XREF: AnimTreeParseInternal+10/w
     int m_iNumInStack;                  // XREF: AnimTreeParseInternal+16/w
     char m_stack[40][256];
@@ -63,14 +110,29 @@ struct ScriptTokenizer // sizeof=0x2808
     bool __thiscall  IsAtEnd();
 };
 
+struct TreeNameMap // sizeof=0x54
+{
+    int animIndex;
+    char strName[80];
+};
+
+struct ClientTreeStorage // sizeof=0x10
+{                                       // XREF: .data:gGScrXAnimTreesForClient/r
+    char *strName;                      // XREF: Scr_LoadAnimTreeAtIndex(scriptInstance_t,uint,void * (*)(int),int,bool)+69A/w
+                                        // Scr_LoadAnimTreeAtIndex(scriptInstance_t,uint,void * (*)(int),int,bool)+6EE/r ...
+    scr_animtree_t animTree;            // XREF: Scr_LoadAnimTreeAtIndex(scriptInstance_t,uint,void * (*)(int),int,bool)+634/w
+                                        // CScr_RetrieveAnimTree+244/r
+    int numIndices;
+    TreeNameMap *pTreeNameMap;
+};
 
 
 XExpr::MathTypes __cdecl EqualTypeSameResult(const ParseValue *params, int iNumParams, scriptInstance_t inst);
 void __cdecl AnimTreeCompileError(scriptInstance_t inst, const char *msg);
 XExpr::MathTypes __cdecl EqualTypeAllowScalar(const ParseValue *params, int iNumParams, scriptInstance_t inst);
-int __cdecl FloatsToVec(const ParseValue *params, int iNumParams, scriptInstance_t inst);
-int __cdecl VecsToFloat(const ParseValue *params, int iNumParams, scriptInstance_t inst);
-int __cdecl Vec3ToVec3(const ParseValue *params, int iNumParams, scriptInstance_t inst);
+XExpr::MathTypes __cdecl FloatsToVec(const ParseValue *params, int iNumParams, scriptInstance_t inst);
+XExpr::MathTypes __cdecl VecsToFloat(const ParseValue *params, int iNumParams, scriptInstance_t inst);
+XExpr::MathTypes __cdecl Vec3ToVec3(const ParseValue *params, int iNumParams, scriptInstance_t inst);
 void __cdecl SetAnimCheck(int bAnimCheck, scriptInstance_t inst);
 void __cdecl Scr_EmitAnimation(scriptInstance_t inst, char *pos, unsigned int animName, unsigned int sourcePos);
 void __cdecl Scr_EmitAnimationInternal(scriptInstance_t inst, char *pos, unsigned int animName, unsigned int names);
@@ -133,7 +195,7 @@ char __cdecl ParseNode(
                 bool bLoop,
                 bool bComplete);
 ParseValue __cdecl ParseTopRankExpr(ScriptTokenizer *tokenizer, scriptInstance_t inst, unsigned int rootData);
-int __cdecl DetermineParseType(ScriptTokenizer *tokenizer);
+ExpressionParseTypes __cdecl DetermineParseType(ScriptTokenizer *tokenizer);
 bool __cdecl IsStandardParam(const char *strParamName);
 int __cdecl GetStdParamIx(const char *strParamName);
 ParseValue __cdecl BuildExpr(ExpressionParseTypes eCurrType, ParseValue *params, int iNumParams, scriptInstance_t inst);

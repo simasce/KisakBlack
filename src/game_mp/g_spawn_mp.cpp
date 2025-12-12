@@ -1122,7 +1122,7 @@ void __cdecl Scr_GetEnt()
 
     name = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
     key = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
-    offset = Scr_GetOffset(0, key, SCRIPTINSTANCE_SERVER).intValue;
+    offset = Scr_GetOffset(0, key, SCRIPTINSTANCE_SERVER);
     if ( offset >= 0 )
     {
         if ( offset >= 15
@@ -1179,7 +1179,7 @@ void __cdecl Scr_GetEntArray()
     {
         name = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
         key = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
-        offset = Scr_GetOffset(0, key, SCRIPTINSTANCE_SERVER).intValue;
+        offset = Scr_GetOffset(0, key, SCRIPTINSTANCE_SERVER);
         if ( offset >= 0 )
         {
             if ( offset >= 15

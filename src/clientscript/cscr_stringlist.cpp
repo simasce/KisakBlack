@@ -1,7 +1,17 @@
 #include "cscr_stringlist.h"
 #include <universal/assertive.h>
+#include "cscr_memorytree.h"
+#include <ctype.h>
+#include <win32/win_common.h>
+#include <cstring>
+#include "cscr_instance.h"
+#include <qcommon/common.h>
+
+#include <Windows.h>
+#include "cscr_variable.h"
 
 scrStringDebugGlob_t *gScrStringDebugGlob[2];
+scrStringGlob_t gScrStringGlob[2];
 
 char *__cdecl SL_ConvertToString(unsigned int stringValue, scriptInstance_t inst)
 {
@@ -49,7 +59,7 @@ RefString *__cdecl GetRefString(scriptInstance_t inst, unsigned int stringValue)
     return (RefString *)&gScrMemTreePub[inst].mt_buffer[16 * stringValue];
 }
 
-char *__cdecl SL_DebugConvertToString(unsigned int stringValue, scriptInstance_t inst)
+const char *__cdecl SL_DebugConvertToString(unsigned int stringValue, scriptInstance_t inst)
 {
     int len; // [esp+0h] [ebp-10h]
     int i; // [esp+8h] [ebp-8h]
@@ -58,7 +68,7 @@ char *__cdecl SL_DebugConvertToString(unsigned int stringValue, scriptInstance_t
     if ( !stringValue )
         return "<NULL>";
     refString = GetRefString(inst, stringValue);
-    len = (unsigned __int8)(HIBYTE(*(unsigned int *)&refString->0) - 1);
+    len = (unsigned __int8)(HIBYTE(refString->data) - 1);
     if ( refString->str[len] )
         return "<BINARY>";
     for ( i = 0; i < len; ++i )
@@ -87,13 +97,29 @@ int __cdecl SL_GetStringLen(scriptInstance_t inst, unsigned int stringValue)
     return SL_GetRefStringLen(refString);
 }
 
-int __cdecl SL_GetRefStringLen(RefString *refString)
+int SL_GetRefStringLen(RefString *refString)
 {
-    int len; // [esp+0h] [ebp-4h]
+    int len = refString->byteLen - 1;
 
-    for ( len = (unsigned __int8)(HIBYTE(*(unsigned int *)&refString->0) - 1); refString->str[len]; len += 256 )
-        ;
+    while (refString->str[len])
+        len += 256;
+
     return len;
+}
+
+RefString *__cdecl GetRefString_0(scriptInstance_t inst, char *str)
+{
+    if ((str < gScrMemTreePub[inst].mt_buffer || str >= gScrMemTreePub[inst].mt_buffer + 0x100000)
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
+            162,
+            0,
+            "%s",
+            "str >= gScrMemTreePub[inst].mt_buffer && str < gScrMemTreePub[inst].mt_buffer + MT_SIZE"))
+    {
+        __debugbreak();
+    }
+    return (RefString *)(str - 4);
 }
 
 int __cdecl SL_ConvertFromString(scriptInstance_t inst, char *str)
@@ -140,13 +166,13 @@ void __cdecl SL_Init(scriptInstance_t inst)
     HashEntry *entry; // [esp+4h] [ebp-8h]
     unsigned int prev; // [esp+8h] [ebp-4h]
 
-    if ( byte_E13A04[256 * inst]
+    if (gScrStringGlob[inst].inited
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
-                    292,
-                    0,
-                    "%s",
-                    "!gScrStringGlob[inst].inited") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
+            292,
+            0,
+            "%s",
+            "!gScrStringGlob[inst].inited"))
     {
         __debugbreak();
     }
@@ -154,15 +180,15 @@ void __cdecl SL_Init(scriptInstance_t inst)
     Sys_EnterCriticalSection(CRITSECT_SCRIPT_STRING);
     gScrStringGlob[inst].hashTable->status_next = 0;
     prev = 0;
-    for ( hash = 1; hash < (inst != SCRIPTINSTANCE_SERVER ? 0x4000 : 0x8000); ++hash )
+    for (hash = 1; hash < (inst != SCRIPTINSTANCE_SERVER ? 0x4000 : 0x8000); ++hash)
     {
-        if ( (hash & 0x30000) != 0
+        if ((hash & 0x30000) != 0
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
-                        313,
-                        0,
-                        "%s",
-                        "!(hash & HASH_STAT_MASK)") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
+                313,
+                0,
+                "%s",
+                "!(hash & HASH_STAT_MASK)"))
         {
             __debugbreak();
         }
@@ -172,21 +198,21 @@ void __cdecl SL_Init(scriptInstance_t inst)
         entry->u.prev = prev;
         prev = hash;
     }
-    if ( (unsigned __int16)gScrStringGlob[inst].hashTable[prev].status_next
+    if ((unsigned __int16)gScrStringGlob[inst].hashTable[prev].status_next
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
-                    321,
-                    0,
-                    "%s",
-                    "!(gScrStringGlob[inst].hashTable[prev].status_next & HASH_NEXT_MASK)") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
+            321,
+            0,
+            "%s",
+            "!(gScrStringGlob[inst].hashTable[prev].status_next & HASH_NEXT_MASK)"))
     {
         __debugbreak();
     }
     gScrStringGlob[inst].hashTable->u.prev = prev;
     SL_InitCheckLeaks(inst);
-    dword_E13A0C[64 * inst] = 0;
-    memset((unsigned __int8 *)&dword_E13A10[64 * inst], 0, 0x80u);
-    byte_E13A04[256 * inst] = 1;
+    gScrStringGlob[inst].indentLevel = 0;
+    memset((unsigned __int8 *)gScrStringGlob[inst].stringsUsed, 0, sizeof(gScrStringGlob[inst].stringsUsed));
+    gScrStringGlob[inst].inited = 1;
     Sys_LeaveCriticalSection(CRITSECT_SCRIPT_STRING);
 }
 
@@ -199,16 +225,15 @@ void __cdecl SL_InitCheckLeaks(scriptInstance_t inst)
 
 void __cdecl SL_Shutdown(scriptInstance_t inst)
 {
-    if ( byte_E13A04[256 * inst] )
+    if (gScrStringGlob[inst].inited)
     {
-        byte_E13A04[256 * inst] = 0;
+        gScrStringGlob[inst].inited = 0;
         SL_CheckLeaks(inst);
     }
 }
 
 void __cdecl SL_CheckLeaks(scriptInstance_t inst)
 {
-    char *v1; // eax
     volatile int v2; // [esp-8h] [ebp-Ch]
     unsigned int i; // [esp+0h] [ebp-4h]
 
@@ -221,8 +246,7 @@ void __cdecl SL_CheckLeaks(scriptInstance_t inst)
                 if ( gScrStringDebugGlob[inst]->refCount[i] )
                 {
                     v2 = gScrStringDebugGlob[inst]->refCount[i];
-                    v1 = SL_DebugConvertToString(i, inst);
-                    Com_PrintError(1, "leaked string = '%s', refcount = %i, i = %i\n", v1, v2, i);
+                    Com_PrintError(1, "leaked string = '%s', refcount = %i, i = %i\n", SL_DebugConvertToString(i, inst), v2, i);
                 }
             }
             if ( gScrStringDebugGlob[inst]->totalRefCount
@@ -267,7 +291,8 @@ LABEL_32:
         return 0;
     }
     refStr = GetRefString(inst, entry->u.prev);
-    if ( (unsigned __int8)HIBYTE(*(unsigned int *)&refStr->0) != (unsigned __int8)len || memcmp(refStr->str, str, len) )
+    //if ( (unsigned __int8)HIBYTE(*(unsigned int *)&refStr->0) != (unsigned __int8)len || memcmp(refStr->str, str, len) )
+    if ( refStr->byteLen != (unsigned __int8)len || memcmp(refStr->str, str, len) )
     {
         prev = hash;
         newIndex = (unsigned __int16)entry->status_next;
@@ -286,7 +311,8 @@ LABEL_32:
                 __debugbreak();
             }
             refStra = GetRefString(inst, newEntry->u.prev);
-            if ( (unsigned __int8)HIBYTE(*(unsigned int *)&refStra->0) == (unsigned __int8)len && !memcmp(refStra->str, str, len) )
+            //if ( (unsigned __int8)HIBYTE(*(unsigned int *)&refStra->0) == (unsigned __int8)len && !memcmp(refStra->str, str, len) )
+            if ( refStra->byteLen == (unsigned __int8)len && !memcmp(refStra->str, str, len) )
             {
                 gScrStringGlob[inst].hashTable[prev].status_next = (unsigned __int16)newEntry->status_next
                                                                                                                  | gScrStringGlob[inst].hashTable[prev].status_next & 0x30000;
@@ -411,53 +437,59 @@ void __cdecl SL_AddUser(unsigned int stringValue, unsigned int user, scriptInsta
 
 void __cdecl SL_AddUserInternal(scriptInstance_t inst, RefString *refStr, unsigned int user)
 {
-    char *v3; // eax
     char *v4; // eax
     signed __int32 v5; // [esp+4h] [ebp-14h]
     int str; // [esp+14h] [ebp-4h]
 
-    if ( ((unsigned __int8)user & (unsigned __int8)BYTE2(*(unsigned int *)&refStr->0)) == 0 )
+    //if ( ((unsigned __int8)user & (unsigned __int8)BYTE2(*(unsigned int *)&refStr->0)) == 0 )
+    if (((unsigned __int8)user & refStr->user) == 0)
     {
         str = SL_ConvertFromRefString(inst, refStr);
         if ( gScrStringDebugGlob[inst] )
         {
             if ( gScrStringDebugGlob[inst]->refCount[str] >= 0x10000 )
             {
-                v3 = SL_DebugConvertToString(str, inst);
                 if ( !Assert_MyHandler(
                                 "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
                                 513,
                                 0,
                                 "%s\n\t(SL_DebugConvertToString( str, inst )) = %s",
                                 "(gScrStringDebugGlob[inst]->refCount[str] < 65536)",
-                                v3) )
+                    SL_DebugConvertToString(str, inst)) )
                     __debugbreak();
             }
             if ( gScrStringDebugGlob[inst]->refCount[str] < 0 )
             {
-                v4 = SL_DebugConvertToString(str, inst);
                 if ( !Assert_MyHandler(
                                 "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
                                 514,
                                 0,
                                 "%s\n\t(SL_DebugConvertToString( str, inst )) = %s",
                                 "(gScrStringDebugGlob[inst]->refCount[str] >= 0)",
-                                v4) )
+                    SL_DebugConvertToString(str, inst)) )
                     __debugbreak();
             }
             _InterlockedExchangeAdd(&gScrStringDebugGlob[inst]->totalRefCount, 1u);
             _InterlockedExchangeAdd(&gScrStringDebugGlob[inst]->refCount[str], 1u);
         }
+
+        //do
+        //    v5 = (signed __int32)refStr->0;
+        //while ( _InterlockedCompareExchange((volatile signed __int32 *)refStr, v5 | (user << 16), v5) != v5 );
+        //_InterlockedExchangeAdd((volatile signed __int32 *)refStr, 1u);
+
+        volatile int Comperand;
         do
-            v5 = (signed __int32)refStr->0;
-        while ( _InterlockedCompareExchange((volatile signed __int32 *)refStr, v5 | (user << 16), v5) != v5 );
-        _InterlockedExchangeAdd((volatile signed __int32 *)refStr, 1u);
+            Comperand = refStr->data;
+        while (InterlockedCompareExchange(&refStr->data, Comperand | (user << 16), Comperand) != Comperand);
+        InterlockedIncrement(&refStr->data);
     }
 }
 
 unsigned int __cdecl SL_GetUser(unsigned int stringValue, scriptInstance_t inst)
 {
-    return (unsigned __int8)BYTE2(*(unsigned int *)&GetRefString(inst, stringValue)->0);
+    //return (unsigned __int8)BYTE2(*(unsigned int *)&GetRefString(inst, stringValue)->0);
+    return GetRefString(inst, stringValue)->user;
 }
 
 unsigned int __cdecl SL_GetStringOfSize(
@@ -498,7 +530,8 @@ unsigned int __cdecl SL_GetStringOfSize(
     if ( (entry->status_next & 0x30000) == 0x20000 )
     {
         refStr = GetRefString(inst, entry->u.prev);
-        if ( (unsigned __int8)HIBYTE(*(unsigned int *)&refStr->0) == (unsigned __int8)len && !memcmp(refStr->str, str, len) )
+        //if ( (unsigned __int8)HIBYTE(*(unsigned int *)&refStr->0) == (unsigned __int8)len && !memcmp(refStr->str, str, len) )
+        if ( refStr->byteLen == (unsigned __int8)len && !memcmp(refStr->str, str, len) )
         {
             SL_AddUserInternal(inst, refStr, user);
             if ( (entry->status_next & 0x30000) == 0
@@ -542,7 +575,8 @@ unsigned int __cdecl SL_GetStringOfSize(
                 __debugbreak();
             }
             refStr_ = GetRefString(inst, newEntry->u.prev);
-            if ( (unsigned __int8)HIBYTE(*(unsigned int *)&refStr_->0) == (unsigned __int8)len && !memcmp(refStr_->str, str, len) )
+            //if ( (unsigned __int8)HIBYTE(*(unsigned int *)&refStr_->0) == (unsigned __int8)len && !memcmp(refStr_->str, str, len) )
+            if ( refStr_->byteLen == (unsigned __int8)len && !memcmp(refStr_->str, str, len) )
             {
                 gScrStringGlob[inst].hashTable[prev].status_next = (unsigned __int16)newEntry->status_next
                                                                                                                  | gScrStringGlob[inst].hashTable[prev].status_next & 0x30000;
@@ -592,7 +626,7 @@ unsigned int __cdecl SL_GetStringOfSize(
         {
             Scr_DumpScriptThreads(inst);
             Scr_DumpScriptVariablesDefault(inst);
-            Com_Error(ERR_DROP, &byte_D2778C);
+            Com_Error(ERR_DROP, "exceeded maximum number of script strings (increase STRINGLIST_SIZE)");
         }
         stringValue = MT_AllocIndex(inst, len + 4, type);
         newEntrya = &gScrStringGlob[inst].hashTable[newIndexa];
@@ -649,7 +683,7 @@ unsigned int __cdecl SL_GetStringOfSize(
             {
                 Scr_DumpScriptThreads(inst);
                 Scr_DumpScriptVariablesDefault(inst);
-                Com_Error(ERR_DROP, &byte_D2778C);
+                Com_Error(ERR_DROP, "exceeded maximum number of script strings");
             }
             stringValue = MT_AllocIndex(inst, len + 4, type);
             newEntryb = &gScrStringGlob[inst].hashTable[newIndexb];
@@ -692,7 +726,7 @@ unsigned int __cdecl SL_GetStringOfSize(
         }
         entry->status_next = hash | 0x20000;
     }
-    ++dword_E13A10[64 * inst + dword_E13A0C[64 * inst]];
+    ++gScrStringGlob[inst].stringsUsed[gScrStringGlob[inst].indentLevel];
     if ( !stringValue
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
@@ -706,21 +740,25 @@ unsigned int __cdecl SL_GetStringOfSize(
     entry->u.prev = stringValue;
     refStrb = GetRefString(inst, stringValue);
     memcpy((unsigned __int8 *)refStrb->str, (unsigned __int8 *)str, len);
-    refStrb->0 = ($119B815E6C15BED54461C272BD343858)(((unsigned __int8)user << 16) | *(unsigned int *)&refStrb->0 & 0xFF00FFFF);
-    if ( (unsigned __int8)BYTE2(*(unsigned int *)&refStrb->0) != user
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
-                    717,
-                    0,
-                    "%s",
-                    "refStr->user == user") )
-    {
-        __debugbreak();
-    }
-    refStrb->0 = ($119B815E6C15BED54461C272BD343858)(*(unsigned int *)&refStrb->0 & 0xFFFF0000 | 1);
-    refStrb->0 = ($119B815E6C15BED54461C272BD343858)(((unsigned __int8)len << 24)
-                                                                                                 | (unsigned int)&cls.rankedServers[711].game[34]
-                                                                                                 & *(unsigned int *)&refStrb->0);
+    //refStrb->0 = ($119B815E6C15BED54461C272BD343858)(((unsigned __int8)user << 16) | *(unsigned int *)&refStrb->0 & 0xFF00FFFF);
+    refStrb->data = ((unsigned __int8)user << 16) | refStrb->data & 0xFF00FFFF;
+    iassert(refStr->user == user);
+    //if ( (unsigned __int8)BYTE2(*(unsigned int *)&refStrb->0) != user
+    //    && !Assert_MyHandler(
+    //                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
+    //                717,
+    //                0,
+    //                "%s",
+    //                "refStr->user == user") )
+    //{
+    //    __debugbreak();
+    //}
+
+    //refStrb->0 = ($119B815E6C15BED54461C272BD343858)(*(unsigned int *)&refStrb->0 & 0xFFFF0000 | 1);
+    refStrb->data = refStrb->data & 0xFFFF0000 | 1;
+    //refStrb->0 = ($119B815E6C15BED54461C272BD343858)(((unsigned __int8)len << 24) | *(_DWORD *)&refStrb->0 & 0xFFFFFF);
+    refStrb->data = ((unsigned __int8)len << 24) | refStrb->data & 0xFFFFFF;
+
     if ( gScrStringDebugGlob[inst] )
     {
         _InterlockedExchangeAdd(&gScrStringDebugGlob[inst]->totalRefCount, 1u);
@@ -823,52 +861,37 @@ void __cdecl SL_TransferRefToUser(scriptInstance_t inst, unsigned int stringValu
     char *v4; // eax
     signed __int32 v5; // [esp+4h] [ebp-14h]
     RefString *refStr; // [esp+14h] [ebp-4h]
+    volatile LONG Comperand; // [esp+20h] [ebp-28h]
 
     refStr = GetRefString(inst, stringValue);
-    if ( ((unsigned __int8)user & (unsigned __int8)BYTE2(*(unsigned int *)&refStr->0)) != 0 )
+    //if ( ((unsigned __int8)user & (unsigned __int8)BYTE2(*(unsigned int *)&refStr->0)) != 0 )
+    if ((user & refStr->user) != 0)
     {
-        if ( (unsigned __int16)*(unsigned int *)&refStr->0 <= 1u )
-        {
-            v3 = SL_DebugConvertToString(stringValue, inst);
-            if ( !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
-                            830,
-                            0,
-                            "%s\n\t(SL_DebugConvertToString( stringValue, inst )) = %s",
-                            "(refStr->refCount > 1)",
-                            v3) )
-                __debugbreak();
-        }
+        iassert(refStr->refCount > 1);
+
         if ( gScrStringDebugGlob[inst] )
         {
-            if ( !gScrStringDebugGlob[inst]->refCount[stringValue] )
-            {
-                v4 = SL_DebugConvertToString(stringValue, inst);
-                if ( !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
-                                835,
-                                0,
-                                "%s\n\t(SL_DebugConvertToString( stringValue, inst )) = %s",
-                                "(gScrStringDebugGlob[inst]->refCount[stringValue])",
-                                v4) )
-                    __debugbreak();
-            }
+            iassert((gScrStringDebugGlob[inst]->refCount[stringValue]));
+
             _InterlockedExchangeAdd(&gScrStringDebugGlob[inst]->totalRefCount, 0xFFFFFFFF);
             _InterlockedExchangeAdd(&gScrStringDebugGlob[inst]->refCount[stringValue], 0xFFFFFFFF);
         }
-        _InterlockedExchangeAdd((volatile signed __int32 *)refStr, 0xFFFFFFFF);
+        _InterlockedExchangeAdd(&refStr->data, 0xFFFFFFFF);
     }
     else
     {
+        //do
+        //    v5 = (signed __int32)refStr->0;
+        //while ( _InterlockedCompareExchange((volatile signed __int32 *)refStr, v5 | (user << 16), v5) != v5 );
         do
-            v5 = (signed __int32)refStr->0;
-        while ( _InterlockedCompareExchange((volatile signed __int32 *)refStr, v5 | (user << 16), v5) != v5 );
+            Comperand = refStr->data;
+        while (InterlockedCompareExchange(&refStr->data, Comperand | (user << 16), Comperand) != Comperand);
     }
 }
 
 void __cdecl SL_CheckExists(scriptInstance_t inst, unsigned int stringValue)
 {
-    char *v2; // eax
+    const char *v2; // eax
     const char *v3; // eax
 
     if ( gScrStringDebugGlob[inst] && !gScrStringDebugGlob[inst]->refCount[stringValue] )
@@ -927,24 +950,9 @@ void __cdecl SL_AddRefToString(unsigned int stringValue, scriptInstance_t inst)
         _InterlockedExchangeAdd(&gScrStringDebugGlob[inst]->refCount[stringValue], 1u);
     }
     refStr = GetRefString(inst, stringValue);
-    _InterlockedExchangeAdd((volatile signed __int32 *)refStr, 1u);
-    if ( !(unsigned __int16)*(unsigned int *)&refStr->0 )
-    {
-        if ( gScrStringDebugGlob[inst] )
-            v7 = gScrStringDebugGlob[inst]->refCount[stringValue];
-        else
-            v7 = 0;
-        v5 = SL_DebugConvertToString(stringValue, inst);
-        v6 = va("string: '%s', refCount: %d", v5, v7);
-        if ( !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
-                        881,
-                        0,
-                        "%s\n\t%s",
-                        "refStr->refCount",
-                        v6) )
-            __debugbreak();
-    }
+    _InterlockedExchangeAdd(&refStr->data, 1u);
+
+    iassert(refStr->refCount);
 }
 
 void __cdecl SL_RemoveRefToString(scriptInstance_t inst, unsigned int stringValue)
@@ -959,16 +967,16 @@ void __cdecl SL_RemoveRefToString(scriptInstance_t inst, unsigned int stringValu
 
 void __cdecl SL_RemoveRefToStringOfSize(scriptInstance_t inst, unsigned int stringValue, unsigned int len)
 {
-    char *v3; // eax
+    const char *v3; // eax
     const char *v4; // eax
-    char *v5; // eax
-    char *v6; // eax
+    const char *v5; // eax
+    const char *v6; // eax
     const char *v7; // eax
-    char *v8; // eax
+    const char *v8; // eax
     RefString *refStr; // [esp+10h] [ebp-4h]
 
     refStr = GetRefString(inst, stringValue);
-    if ( _InterlockedDecrement((volatile signed __int32 *)refStr) << 16 )
+    if ( _InterlockedDecrement(&refStr->data) << 16 )
     {
         if ( gScrStringDebugGlob[inst] )
         {
@@ -1061,26 +1069,31 @@ void __cdecl SL_FreeString(scriptInstance_t inst, unsigned int stringValue, RefS
 
     index = GetHashCode(inst, refStr->str, len);
     Sys_EnterCriticalSection(CRITSECT_SCRIPT_STRING);
-    if ( (unsigned __int16)*(unsigned int *)&refStr->0 )
+    //if ( (unsigned __int16)*(unsigned int *)&refStr->0 )
+    if (refStr->refCount)
     {
         Sys_LeaveCriticalSection(CRITSECT_SCRIPT_STRING);
+        return;
     }
     else
     {
         entry = &gScrStringGlob[inst].hashTable[index];
-        if ( (unsigned __int8)BYTE2(*(unsigned int *)&refStr->0) )
-        {
-            v4 = SL_DebugConvertToString(stringValue, inst);
-            if ( !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
-                            928,
-                            0,
-                            "%s\n\t(SL_DebugConvertToString( stringValue, inst )) = %s",
-                            "(!refStr->user)",
-                            v4) )
-                __debugbreak();
-        }
+        iassert(!refStr->user);
+        //if ( (unsigned __int8)BYTE2(*(unsigned int *)&refStr->0) )
+        //{
+        //    v4 = SL_DebugConvertToString(stringValue, inst);
+        //    if ( !Assert_MyHandler(
+        //                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
+        //                    928,
+        //                    0,
+        //                    "%s\n\t(SL_DebugConvertToString( stringValue, inst )) = %s",
+        //                    "(!refStr->user)",
+        //                    v4) )
+        //        __debugbreak();
+        //}
         MT_FreeIndex(inst, stringValue, len + 4);
+
+
         if ( (entry->status_next & 0x30000) != 0x20000
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_stringlist.cpp",
@@ -1092,12 +1105,13 @@ void __cdecl SL_FreeString(scriptInstance_t inst, unsigned int stringValue, RefS
         {
             __debugbreak();
         }
+
         newIndex = (unsigned __int16)entry->status_next;
         newEntry = &gScrStringGlob[inst].hashTable[newIndex];
-        if ( entry->u.prev == stringValue )
+        if (entry->u.prev == stringValue)
         {
-            --dword_E13A10[64 * inst + dword_E13A0C[64 * inst]];
-            if ( newEntry == entry )
+            --gScrStringGlob[inst].stringsUsed[gScrStringGlob[inst].indentLevel];
+            if (newEntry == entry)
             {
                 newEntry = entry;
                 newIndex = index;
@@ -1106,7 +1120,7 @@ void __cdecl SL_FreeString(scriptInstance_t inst, unsigned int stringValue, RefS
             {
                 entry->status_next = (unsigned __int16)newEntry->status_next | 0x20000;
                 entry->u.prev = newEntry->u.prev;
-                dword_E13A08[64 * inst] = (int)entry;
+                gScrStringGlob[inst].nextFreeEntry = entry;
             }
         }
         else
@@ -1199,7 +1213,7 @@ void __cdecl Scr_SetStringLiveUpdateSafe(unsigned __int16 *to, char *value, scri
                 }
             }
             refStr = GetRefString(inst, *to);
-            if ( (*(unsigned int *)&refStr->0 & 0x40000) == 0 )
+            if ( (refStr->data & 0x40000) == 0 )
                 SL_RemoveRefToString(inst, *to);
             *to = SL_GetString(value, 0, inst);
         }
@@ -1285,14 +1299,16 @@ void __cdecl SL_ShutdownSystem(scriptInstance_t inst, unsigned int user)
             if ( (entry->status_next & 0x30000) == 0 )
                 break;
             refStr = GetRefString(inst, entry->u.prev);
-            if ( ((unsigned __int8)user & (unsigned __int8)BYTE2(*(unsigned int *)&refStr->0)) == 0 )
+            //if ( ((unsigned __int8)user & (unsigned __int8)BYTE2(*(unsigned int *)&refStr->0)) == 0 )
+            //    break;
+            if (((unsigned __int8)user & refStr->user) == 0)
                 break;
-            refStr->0 = ($119B815E6C15BED54461C272BD343858)(((unsigned __int8)(~(_BYTE)user & HIWORD(*(unsigned int *)&refStr->0)) << 16)
-                                                                                                        | *(unsigned int *)&refStr->0 & 0xFF00FFFF);
-            dword_E13A08[64 * inst] = 0;
+            //refStr->0 = ($119B815E6C15BED54461C272BD343858)(((unsigned __int8)(~(_BYTE)user & HIWORD(*(unsigned int *)&refStr->0)) << 16) | *(unsigned int *)&refStr->0 & 0xFF00FFFF);
+            refStr->data = ((unsigned __int8)(~(BYTE)user & HIWORD(refStr->data)) << 16) | refStr->data & 0xFF00FFFF;
+
+            gScrStringGlob[inst].nextFreeEntry = 0;
             SL_RemoveRefToString(inst, entry->u.prev);
-        }
-        while ( dword_E13A08[64 * inst] );
+        } while (gScrStringGlob[inst].nextFreeEntry);
     }
     Sys_LeaveCriticalSection(CRITSECT_SCRIPT_STRING);
 }
@@ -1325,12 +1341,13 @@ void __cdecl SL_TransferSystem(unsigned int from, unsigned int to, scriptInstanc
         if ( (entry->status_next & 0x30000) != 0 )
         {
             refStr = GetRefString(inst, entry->u.prev);
-            if ( ((unsigned __int8)from & (unsigned __int8)BYTE2(*(unsigned int *)&refStr->0)) != 0 )
+            //if ( ((unsigned __int8)from & (unsigned __int8)BYTE2(*(unsigned int *)&refStr->0)) != 0 )
+            if (((unsigned __int8)from & refStr->user) != 0)
             {
-                refStr->0 = ($119B815E6C15BED54461C272BD343858)(((unsigned __int8)(~(_BYTE)from & HIWORD(*(unsigned int *)&refStr->0)) << 16)
-                                                                                                            | *(unsigned int *)&refStr->0 & 0xFF00FFFF);
-                refStr->0 = ($119B815E6C15BED54461C272BD343858)(((unsigned __int8)(to | HIWORD(*(unsigned int *)&refStr->0)) << 16)
-                                                                                                            | *(unsigned int *)&refStr->0 & 0xFF00FFFF);
+                //refStr->0 = ($119B815E6C15BED54461C272BD343858)(((unsigned __int8)(~(_BYTE)from & HIWORD(*(unsigned int *)&refStr->0)) << 16) | *(unsigned int *)&refStr->0 & 0xFF00FFFF);
+                refStr->data = ((unsigned __int8)(~(BYTE)from & HIWORD(refStr->data)) << 16) | refStr->data & 0xFF00FFFF;
+                //refStr->0 = ($119B815E6C15BED54461C272BD343858)(((unsigned __int8)(to | HIWORD(*(unsigned int *)&refStr->0)) << 16) | *(unsigned int *)&refStr->0 & 0xFF00FFFF);
+                refStr->data = ((unsigned __int8)(to | HIWORD(refStr->data)) << 16) | refStr->data & 0xFF00FFFF;
             }
         }
     }
@@ -1367,7 +1384,7 @@ void __cdecl CreateCanonicalFilename(char *newFilename, const char *filename, in
         {
             *newFilename++ = tolower(c);
             if ( !--count )
-                Com_Error(ERR_DROP, &byte_D27AEC, filename, 0);
+                Com_Error(ERR_DROP, "Filename '%s' exceeds maximum length of %d", filename, 0);
             if ( c == 47 )
                 break;
             c = *filename++;

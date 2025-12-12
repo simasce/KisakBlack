@@ -823,24 +823,6 @@ struct __declspec(align(4)) clientInfo_t // sizeof=0x5C8
         // padding byte
 };
 
-struct scr_anim_s // sizeof=0x4
-{                                                                             // XREF: bgsAnim_s::<unnamed_type_generic_human>/r
-        //$3FF2EDC1867ACEA597C8BFA34C9C0852 ___u0;
-                                                                                // XREF: CScr_GetAnimLength(void)+20/w
-                                                                                // CScr_GetAnimLength(void)+25/r ...
-        union //$3FF2EDC1867ACEA597C8BFA34C9C0852 // sizeof=0x4
-        {                                                                             // XREF: CScr_GetAnimLength(void)+20/w
-                                                                                        // CScr_GetAnimLength(void)+25/r ...
-                //$6CB7272563F4458FB40A4A5E123C4ABA __s0;
-                struct //$6CB7272563F4458FB40A4A5E123C4ABA // sizeof=0x4
-                {                                                                             // XREF: $3FF2EDC1867ACEA597C8BFA34C9C0852/r
-                        unsigned __int16 index;
-                        unsigned __int16 tree;
-                };
-                const char *linkPointer;
-        };
-};
-
 
 struct loadAnim_t // sizeof=0x48
 {                                                                             // XREF: playerAnims_t/r

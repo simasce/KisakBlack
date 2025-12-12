@@ -112,6 +112,16 @@ union XAssetHeader // sizeof=0x4
     struct TextureList *textureList;
     struct EmblemSet *emblemSet;
     void *data;
+
+    XAssetHeader()
+    {
+        data = NULL;
+    }
+
+    XAssetHeader(void *p)
+    {
+        data = p;
+    }
 };
 
 struct XAsset // sizeof=0x8

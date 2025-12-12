@@ -5725,7 +5725,7 @@ void __cdecl Scr_AddClassField(unsigned int classnum, char *name, unsigned int o
     entryValuea->u.next = (unsigned __int16)offset;
 }
 
-VariableUnion __cdecl Scr_GetOffset(unsigned int classnum, char *name, scriptInstance_t inst)
+int __cdecl Scr_GetOffset(unsigned int classnum, char *name, scriptInstance_t inst)
 {
     unsigned int v3; // eax
     unsigned int classId; // [esp+0h] [ebp-8h]
@@ -5735,9 +5735,9 @@ VariableUnion __cdecl Scr_GetOffset(unsigned int classnum, char *name, scriptIns
     v3 = SL_ConvertFromString(inst, name);
     fieldId = FindVariable(inst, classId, v3);
     if ( fieldId )
-        return gScrVarGlob[inst].variableList[fieldId + 0x8000].u.u;
+        return gScrVarGlob[inst].variableList[fieldId + 0x8000].u.u.entityOffset;
     else
-        return (VariableUnion)-1;
+        return -1;
 }
 
 unsigned int __cdecl FindEntityId(scriptInstance_t inst, unsigned int entnum, unsigned int classnum, int clientNum)

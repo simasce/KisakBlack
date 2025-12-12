@@ -10,11 +10,24 @@
 #include "cscr_stringlist.h"
 #include "cscr_evaluate.h"
 #include "cscr_parsetree.h"
+#include <win32/win_common.h>
+#include <qcommon/threads.h>
+#include <qcommon/cmd.h>
+#include <client/cl_console.h>
 
 scrDebuggerGlob_t gScrDebuggerGlob[2];
 scriptInstance_t gDebuggerInstance;
 
 Scr_Breakpoint *g_breakpointsHead;
+
+scriptInstance_t sortInst;
+
+Scr_Breakpoint g_breakpoints[128];
+
+thread_local int g_breakonExpr;
+thread_local unsigned int g_breakonString;
+thread_local int g_breakonHit;
+thread_local unsigned int g_breakonObject;
 
 void __cdecl Scr_AddManualBreakpoint(scriptInstance_t inst, unsigned __int8 *codePos)
 {
@@ -891,13 +904,15 @@ void __thiscall Scr_ScriptList::AddFile(
 {
     Scr_ScriptWindow *scriptWindow; // [esp+Ch] [ebp-4h]
 
-    scriptWindow = (Scr_ScriptWindow *)Scr_ScriptWindow::operator new(0x20u);
+    //scriptWindow = (Scr_ScriptWindow *)Scr_ScriptWindow::operator new(0x20u);
+    scriptWindow = new Scr_ScriptWindow();
     this->scriptWindows[info->to] = scriptWindow;
     //Scr_ScriptWindow::SetScriptFile(scriptWindow, inst, filename);
     scriptWindow->SetScriptFile(inst, filename);
     if ( scriptWindow->bufferIndex == -1 )
     {
-        Scr_ScriptWindow::operator delete(scriptWindow);
+        //Scr_ScriptWindow::operator delete(scriptWindow);
+        delete scriptWindow;
         --this->numLines;
     }
     else
@@ -941,7 +956,7 @@ void __thiscall Scr_ScriptList::Init(scriptInstance_t inst)
     this->scriptWindows = (Scr_ScriptWindow **)Scr_AllocDebugMem(inst, 4 * this->numLines, "Scr_ScriptList::Init2");
     memset(&info, 0, sizeof(info));
     Hunk_CheckTempMemoryHighClear();
-    Scr_AddSourceBuffer(inst, 0, "scriptdebugger/help.txt", 0, 0);
+    Scr_AddSourceBuffer(inst, 0, (char*)"scriptdebugger/help.txt", 0, 0);
     Hunk_ClearTempMemoryHigh();
     Scr_ScriptList::AddFile(inst, "scriptdebugger/help.txt", &info);
     if ( info.to )
@@ -978,8 +993,11 @@ void __thiscall Scr_ScriptList::Shutdown(scriptInstance_t inst)
         __debugbreak();
     }
     Hunk_UserFree(g_DebugHunkUser, gScrDebuggerGlob[inst].colBuf);
-    for ( i = 0; i < this->numLines; ++i )
-        Scr_ScriptWindow::operator delete(this->scriptWindows[i]);
+    for (i = 0; i < this->numLines; ++i)
+    {
+        //Scr_ScriptWindow::operator delete(this->scriptWindows[i]);
+        delete this->scriptWindows[i];
+    }
     Scr_AbstractScriptList::Shutdown(inst);
 }
 
@@ -1405,7 +1423,6 @@ void __thiscall Scr_ScriptWatch::FreeWatchElement(
 }
 
 void __thiscall Scr_ScriptWatch::EvaluateWatchChildren(
-    Scr_ScriptWatch *this,
     scriptInstance_t inst,
     Scr_WatchElement_s *parentElement)
 {
@@ -1921,18 +1938,28 @@ VariableValue __cdecl Scr_GetArrayIndexValue(scriptInstance_t inst, unsigned int
     iassert(name);
 
     if (name < 0x10000)
-        return (VariableValue)((unsigned __int16)name | 0x200000000LL);
+    {
+        // return (VariableValue)((unsigned __int16)name | 0x200000000LL);
+        value.type = VAR_STRING;
+        value.u.stringValue = (unsigned short)name;
+        return value;
+    }
 
-    if (name >= 0x17FFE)
-    {
-        value.type = 6;
-        value.u.intValue = name - 0x800000;
-    }
+    unsigned int limit;
+    if (inst == 0)
+        limit = 0x17FFE;
     else
+        limit = 0x17FFD;
+
+    if (name < limit)
     {
-        value.type = 1;
-        value.u.intValue = name - 0x10000;
+        value.type = VAR_POINTER;
+        value.u.pointerValue = name - 0x10000;
+        return value;
     }
+
+    value.type = VAR_INTEGER;
+    value.u.intValue = name - 0x800000;
     return value;
 }
 
@@ -2058,13 +2085,13 @@ void __cdecl Scr_SetNonFieldElementRefText(scriptInstance_t inst, Scr_WatchEleme
             ReplaceString(&element->refText, (char *)parentElement->valueText, "Scr_SetNonFieldElementRefText", 0, inst);
             break;
         case 2u:
-            ReplaceString(&element->refText, "<endons>", "Scr_SetNonFieldElementRefText", 0, inst);
+            ReplaceString(&element->refText, (char*)"<endons>", "Scr_SetNonFieldElementRefText", 0, inst);
             element->endonList = 1;
             break;
         case 3u:
             if ( !strcmp(parentElement->refText, "<locals>") )
             {
-                ReplaceString(&element->refText, "self", "Scr_SetNonFieldElementRefText", 0, inst);
+                ReplaceString(&element->refText, (char *)"self", "Scr_SetNonFieldElementRefText", 0, inst);
             }
             else
             {
@@ -2073,7 +2100,7 @@ void __cdecl Scr_SetNonFieldElementRefText(scriptInstance_t inst, Scr_WatchEleme
             }
             break;
         case 4u:
-            ReplaceString(&element->refText, "<threads>", "Scr_SetNonFieldElementRefText", 0, inst);
+            ReplaceString(&element->refText, (char *)"<threads>", "Scr_SetNonFieldElementRefText", 0, inst);
             element->threadList = 1;
             break;
         default:
@@ -2338,29 +2365,28 @@ int __cdecl CompareThreadElements(int *arg1, int *arg2)
 }
 
 char __thiscall Scr_ScriptWatch::PostEvaluateWatchElement(
-                Scr_ScriptWatch *this,
-                scriptInstance_t inst,
-                Scr_WatchElement_s *element,
-                VariableValue *value)
+    scriptInstance_t inst,
+    Scr_WatchElement_s *element,
+    VariableValue *value)
 {
     int type; // ecx
     unsigned int intValue; // [esp+0h] [ebp-128h]
     char valueText[268]; // [esp+18h] [ebp-110h] BYREF
 
-    if ( !MEMORY[0xA05AB88][116 * inst]
+    if (!gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6061,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6061,
+            0,
+            "%s",
+            "gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
     Scr_RemoveValue(inst, element);
-    if ( MEMORY[0xA05AB8C][29 * inst] )
+    if (gScrVarPub[inst].error_message)
     {
-        Com_sprintf(valueText, 0x101u, "<%s>", (const char *)MEMORY[0xA05AB8C][29 * inst]);
+        Com_sprintf(valueText, 0x101u, "<%s>", gScrVarPub[inst].error_message);
         ReplaceString(&element->valueText, valueText, "PostEvaluateWatchElement", 0, inst);
         element->objectId = 0;
         Scr_ClearErrorMessage(inst);
@@ -2371,12 +2397,12 @@ char __thiscall Scr_ScriptWatch::PostEvaluateWatchElement(
     {
         Scr_GetValueString(inst, this->localId, value, 257, valueText);
         ReplaceString(&element->valueText, valueText, "PostEvaluateWatchElement", 0, inst);
-        if ( value->type == 1 )
+        if (value->type == 1)
             intValue = value->u.intValue;
         else
             intValue = 0;
         element->objectId = intValue;
-        if ( element->objectId || element->breakpointType == 1 || element->breakpointType == 3 )
+        if (element->objectId || element->breakpointType == 1 || element->breakpointType == 3)
         {
             element->valueDefined = 1;
             type = value->type;
@@ -2392,144 +2418,141 @@ char __thiscall Scr_ScriptWatch::PostEvaluateWatchElement(
 }
 
 char __thiscall Scr_ScriptWatch::EvaluateWatchChildElement(
-                Scr_ScriptWatch *this,
-                scriptInstance_t inst,
-                Scr_WatchElement_s *element,
-                unsigned int fieldName,
-                Scr_WatchElement_s *childElement,
-                bool hardcodedField)
+    scriptInstance_t inst,
+    Scr_WatchElement_s *element,
+    unsigned int fieldName,
+    Scr_WatchElement_s *childElement,
+    bool hardcodedField)
 {
     unsigned __int8 objectType; // [esp+4h] [ebp-2Ch]
     VariableValue value; // [esp+28h] [ebp-8h] BYREF
 
-    if ( element->breakpoint
+    if (element->breakpoint
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6108,
-                    0,
-                    "%s",
-                    "!element->breakpoint") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6108,
+            0,
+            "%s",
+            "!element->breakpoint"))
     {
         __debugbreak();
     }
-    if ( !MEMORY[0xA05AB88][116 * inst]
+    if (!gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6110,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6110,
+            0,
+            "%s",
+            "gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
     childElement->fieldName = fieldName;
-    if ( hardcodedField )
+    if (hardcodedField)
     {
         value.type = 1;
         value.u.intValue = element->objectId;
-        switch ( fieldName )
+        switch (fieldName)
         {
-            case 0u:
-                AddRefToObject(inst, value.u.stringValue);
-                Scr_EvalSizeValue(inst, &value);
-                break;
-            case 1u:
-                break;
-            case 2u:
-            case 4u:
-                value.type = 0;
-                break;
-            case 3u:
-                value.u.stringValue = Scr_GetSelf(inst, value.u.stringValue).nextEntId;
-                break;
-            default:
-                value.u.intValue = fieldName - 5;
-                if ( fieldName == 5
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                                6166,
-                                0,
-                                "%s",
-                                "value.u.pointerValue") )
-                {
-                    __debugbreak();
-                }
-                break;
+        case 0u:
+            AddRefToObject(inst, value.u.stringValue);
+            Scr_EvalSizeValue(inst, &value);
+            break;
+        case 1u:
+            break;
+        case 2u:
+        case 4u:
+            value.type = 0;
+            break;
+        case 3u:
+            value.u.stringValue = Scr_GetSelf(inst, value.u.stringValue);
+            break;
+        default:
+            value.u.intValue = fieldName - 5;
+            if (fieldName == 5
+                && !Assert_MyHandler(
+                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                    6166,
+                    0,
+                    "%s",
+                    "value.u.pointerValue"))
+            {
+                __debugbreak();
+            }
+            break;
         }
         AddRefToValue(inst, value.type, value.u);
     }
     else
     {
         objectType = element->objectType;
-        switch ( objectType )
+        switch (objectType)
         {
-            case 0x14u:
-                value = Scr_GetArrayIndexValue(inst, fieldName);
-                AddRefToValue(inst, value.type, value.u);
-                Scr_EvalArrayVariable(inst, element->objectId, &value);
-                break;
-            case 0x17u:
-                value.u.intValue = fieldName;
-                value.type = 1;
-                AddRefToObject(inst, fieldName);
-                break;
-            case 0x18u:
-                value.u.intValue = fieldName;
-                value.type = 2;
-                SL_AddRefToString(fieldName, inst);
-                break;
-            default:
-                Scr_EvalFieldVariable(inst, (unsigned __int16)fieldName, &value, element->objectId);
-                break;
+        case 0x14u:
+            value = Scr_GetArrayIndexValue(inst, fieldName);
+            AddRefToValue(inst, value.type, value.u);
+            Scr_EvalArrayVariable(inst, element->objectId, &value);
+            break;
+        case 0x17u:
+            value.u.intValue = fieldName;
+            value.type = 1;
+            AddRefToObject(inst, fieldName);
+            break;
+        case 0x18u:
+            value.u.intValue = fieldName;
+            value.type = 2;
+            SL_AddRefToString(fieldName, inst);
+            break;
+        default:
+            Scr_EvalFieldVariable(inst, (unsigned __int16)fieldName, &value, element->objectId);
+            break;
         }
     }
-    return Scr_ScriptWatch::PostEvaluateWatchElement(this, inst, childElement, &value);
+    return Scr_ScriptWatch::PostEvaluateWatchElement(inst, childElement, &value);
 }
 
 void __thiscall Scr_ScriptWatch::EvaluateWatchElementExpression(
-                Scr_ScriptWatch *this,
-                scriptInstance_t inst,
-                Scr_WatchElement_s *element,
-                VariableValue *value)
+    scriptInstance_t inst,
+    Scr_WatchElement_s *element,
+    VariableValue *value)
 {
-    if ( element->breakpoint
+    if (element->breakpoint
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6191,
-                    0,
-                    "%s",
-                    "!element->breakpoint") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6191,
+            0,
+            "%s",
+            "!element->breakpoint"))
     {
         __debugbreak();
     }
-    if ( !element->expr.exprHead
+    if (!element->expr.exprHead
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6194,
-                    0,
-                    "%s",
-                    "expr->exprHead") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6194,
+            0,
+            "%s",
+            "expr->exprHead"))
     {
         __debugbreak();
     }
-    if ( !MEMORY[0xA05AB88][116 * inst]
+    if (!gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6196,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6196,
+            0,
+            "%s",
+            "gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    if ( element->valueDefined && (element->breakpointType == 1 || element->breakpointType == 3) )
+    if (element->valueDefined && (element->breakpointType == 1 || element->breakpointType == 3))
         Scr_EvalScriptExpression(inst, &element->expr, this->localId, value, 1, 0);
     else
         Scr_EvalScriptExpression(inst, &element->expr, this->localId, value, 0, 0);
 }
 
 void __thiscall Scr_ScriptWatch::EvaluateWatchElement(
-                Scr_ScriptWatch *this,
                 scriptInstance_t inst,
                 Scr_WatchElement_s *element)
 {
@@ -2539,7 +2562,7 @@ void __thiscall Scr_ScriptWatch::EvaluateWatchElement(
     VariableValue value; // [esp+14h] [ebp-118h] BYREF
     char oldValueText[268]; // [esp+1Ch] [ebp-110h] BYREF
 
-    Scr_ScriptWatch::EvaluateWatchElementExpression(this, inst, element, &value);
+    Scr_ScriptWatch::EvaluateWatchElementExpression(inst, element, &value);
     valueText = element->valueText;
     v4 = oldValueText;
     do
@@ -2548,14 +2571,13 @@ void __thiscall Scr_ScriptWatch::EvaluateWatchElement(
         *v4++ = *valueText++;
     }
     while ( v3 );
-    Scr_ScriptWatch::PostEvaluateWatchElement(this, inst, element, &value);
+    Scr_ScriptWatch::PostEvaluateWatchElement(inst, element, &value);
     Scr_PostSetText(inst, element);
     Scr_DeltaElementValueText(element, oldValueText);
-    Scr_ScriptWatch::EvaluateWatchChildren(this, inst, element);
+    Scr_ScriptWatch::EvaluateWatchChildren(inst, element);
 }
 
 Scr_WatchElement_s *__thiscall Scr_ScriptWatch::CreateWatchElement(
-                Scr_ScriptWatch *this,
                 scriptInstance_t inst,
                 char *text,
                 Scr_WatchElement_s **prevElem,
@@ -2596,56 +2618,55 @@ Scr_WatchElement_s *__cdecl Scr_CreateWatchElement(
 }
 
 void __thiscall Scr_ScriptWatch::AddElement(
-                Scr_ScriptWatch *this,
-                scriptInstance_t inst,
-                Scr_WatchElement_s *element,
-                char *text)
+    scriptInstance_t inst,
+    Scr_WatchElement_s *element,
+    char *text)
 {
     unsigned __int8 v4; // [esp+0h] [ebp-18h]
     ScriptExpression_t scriptExpr; // [esp+8h] [ebp-10h] BYREF
     ScriptExpression_t *expr; // [esp+14h] [ebp-4h]
 
-    if ( !element
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp", 6347, 0, "%s", "element") )
+    if (!element
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp", 6347, 0, "%s", "element"))
     {
         __debugbreak();
     }
-    if ( !element->breakpoint )
+    if (!element->breakpoint)
     {
         scriptExpr.exprHead = 0;
         Scr_CompileText(inst, text, &scriptExpr);
         v4 = *(_BYTE *)scriptExpr.parseData.stringValue;
-        if ( *(_BYTE *)scriptExpr.parseData.stringValue == 85 )
+        if (*(_BYTE *)scriptExpr.parseData.stringValue == 85)
         {
-            if ( !MEMORY[0xA05AB88][116 * inst]
+            if (!gScrVarPub[inst].evaluate
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            6362,
-                            0,
-                            "%s",
-                            "gScrVarPub[inst].evaluate") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                    6362,
+                    0,
+                    "%s",
+                    "gScrVarPub[inst].evaluate"))
             {
                 __debugbreak();
             }
-            MEMORY[0xA05AB88][116 * inst] = 0;
+            gScrVarPub[inst].evaluate = 0;
             Scr_ExecCode(inst, *(char **)(scriptExpr.parseData.stringValue + 4), this->localId);
-            MEMORY[0xA05AB88][116 * inst] = 1;
+            gScrVarPub[inst].evaluate = 1;
             SL_ShutdownSystem(inst, 2u);
             Scr_FreeDebugExpr(inst, &scriptExpr);
-            Scr_ScriptWatch::Evaluate(this, inst);
+            Scr_ScriptWatch::Evaluate(inst);
         }
-        else if ( v4 > 0x55u && v4 <= 0x57u )
+        else if (v4 > 0x55u && v4 <= 0x57u)
         {
             Scr_FreeDebugExpr(inst, &scriptExpr);
         }
-        else if ( element->parent )
+        else if (element->parent)
         {
             Com_Printf(24, "Cannot change child element\n");
             Scr_FreeDebugExpr(inst, &scriptExpr);
         }
         else
         {
-            if ( Sys_IsRemoteDebugServer() )
+            if (Sys_IsRemoteDebugServer())
             {
                 Sys_WriteDebugSocketMessageType(5u);
                 Scr_WriteElement(element);
@@ -2657,8 +2678,8 @@ void __thiscall Scr_ScriptWatch::AddElement(
             ReplaceString(&element->refText, text, "Scr_ScriptWatch::AddElement", 0, inst);
             element->expr = scriptExpr;
             Scr_RemoveValue(inst, element);
-            Scr_ScriptWatch::EvaluateWatchElement(this, inst, element);
-            if ( Sys_IsRemoteDebugServer() )
+            Scr_ScriptWatch::EvaluateWatchElement(inst, element);
+            if (Sys_IsRemoteDebugServer())
             {
                 Sys_WriteDebugSocketMessageType(0x25u);
                 Sys_EndWriteDebugSocket();
@@ -2668,7 +2689,6 @@ void __thiscall Scr_ScriptWatch::AddElement(
 }
 
 Scr_WatchElement_s *__thiscall Scr_ScriptWatch::CloneElement(
-                Scr_ScriptWatch *this,
                 scriptInstance_t inst,
                 Scr_WatchElement_s *element)
 {
@@ -2677,9 +2697,8 @@ Scr_WatchElement_s *__thiscall Scr_ScriptWatch::CloneElement(
     Scr_WatchElement_s *newElement; // [esp+4h] [ebp-4h]
 
     ElementRoot = Scr_GetElementRoot(element);
-    ElementRef = Scr_ScriptWatch::GetElementRef(this, ElementRoot);
+    ElementRef = Scr_ScriptWatch::GetElementRef(ElementRoot);
     newElement = Scr_ScriptWatch::CreateWatchElement(
-                                 this,
                                  inst,
                                  (char *)element->refText,
                                  ElementRef,
@@ -2688,211 +2707,219 @@ Scr_WatchElement_s *__thiscall Scr_ScriptWatch::CloneElement(
     return newElement;
 }
 
-void __thiscall Scr_ScriptWatch::Evaluate(Scr_ScriptWatch *this, scriptInstance_t inst)
+void __thiscall Scr_ScriptWatch::Evaluate(scriptInstance_t inst)
 {
     Scr_WatchElement_s *element; // [esp+4h] [ebp-4h]
 
-    if ( !MEMORY[0xA05AB88][116 * inst]
+    if (!gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6602,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6602,
+            0,
+            "%s",
+            "gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    if ( MEMORY[0xA05ACA4][4298 * inst]
+    if (gScrVmPub[inst].outparamcount
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6603,
-                    0,
-                    "%s",
-                    "!gScrVmPub[inst].outparamcount") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6603,
+            0,
+            "%s",
+            "!gScrVmPub[inst].outparamcount"))
     {
         __debugbreak();
     }
-    if ( MEMORY[0xA05ACA0][4298 * inst]
+    if (gScrVmPub[inst].inparamcount
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6604,
-                    0,
-                    "%s",
-                    "!gScrVmPub[inst].inparamcount") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6604,
+            0,
+            "%s",
+            "!gScrVmPub[inst].inparamcount"))
     {
         __debugbreak();
     }
-    for ( element = this->elementHead; element; element = element->next )
+    for (element = this->elementHead; element; element = element->next)
     {
-        if ( !element->breakpoint )
-            Scr_ScriptWatch::EvaluateWatchElement(this, inst, element);
+        if (!element->breakpoint)
+            Scr_ScriptWatch::EvaluateWatchElement(inst, element);
     }
 }
 
 void __cdecl Scr_Evaluate(scriptInstance_t inst)
 {
-    Scr_ScriptWatch::Evaluate(&gScrDebuggerGlob[inst].scriptWatch, inst);
+    //Scr_ScriptWatch::Evaluate(&gScrDebuggerGlob[inst].scriptWatch, inst);
+    gScrDebuggerGlob[inst].scriptWatch.Evaluate(inst);
 }
 
 void __cdecl Scr_CheckBreakonNotify(
-                scriptInstance_t inst,
-                unsigned int notifyListOwnerId,
-                unsigned int stringValue,
-                VariableValue *top,
-                const char *pos,
-                unsigned int localId)
+    scriptInstance_t inst,
+    unsigned int notifyListOwnerId,
+    unsigned int stringValue,
+    VariableValue *top,
+    const char *pos,
+    unsigned int localId)
 {
     int hitBreakpoint; // [esp+10h] [ebp-18h]
     bool updateBreakpoints; // [esp+17h] [ebp-11h]
     Scr_WatchElement_s *element; // [esp+1Ch] [ebp-Ch]
     VariableValue newValue; // [esp+20h] [ebp-8h] BYREF
 
-    if ( MEMORY[0xA05ACA0][4298 * inst]
+    if (gScrVmPub[inst].inparamcount
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6715,
-                    0,
-                    "%s",
-                    "!gScrVmPub[inst].inparamcount") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6715,
+            0,
+            "%s",
+            "!gScrVmPub[inst].inparamcount"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AC98][4298 * inst] = (int)top;
+    gScrVmPub[inst].top = top;
     gScrDebuggerGlob[inst].scriptWatch.localId = 0;
-    *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8248) = notifyListOwnerId;
-    *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8236) = stringValue;
-    if ( MEMORY[0xA05AB88][116 * inst]
+    g_breakonObject = notifyListOwnerId;
+    g_breakonString = stringValue;
+    if (gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6723,
-                    0,
-                    "%s",
-                    "!gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6723,
+            0,
+            "%s",
+            "!gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 1;
+    gScrVarPub[inst].evaluate = 1;
     gScrDebuggerGlob[inst].scriptWatch.localId = 0;
     updateBreakpoints = 0;
     hitBreakpoint = 0;
 retry_13:
-    for ( element = gScrDebuggerGlob[inst].scriptWatch.elementHead; element; element = element->next )
+    for (element = gScrDebuggerGlob[inst].scriptWatch.elementHead; element; element = element->next)
     {
-        if ( !element->expr.breakonExpr )
+        if (!element->expr.breakonExpr)
             continue;
-        if ( element->breakpoint
+        if (element->breakpoint
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        6736,
-                        0,
-                        "%s",
-                        "!element->breakpoint") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                6736,
+                0,
+                "%s",
+                "!element->breakpoint"))
         {
             __debugbreak();
         }
-        if ( !element->expr.exprHead
+        if (!element->expr.exprHead
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        6738,
-                        0,
-                        "%s",
-                        "expr->exprHead") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                6738,
+                0,
+                "%s",
+                "expr->exprHead"))
         {
             __debugbreak();
         }
-        *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8244) = 0;
-        if ( Scr_EvalScriptExpression(inst, &element->expr, 0, &newValue, 1, 1) && !updateBreakpoints )
+        g_breakonHit = 0;
+        if (Scr_EvalScriptExpression(inst, &element->expr, 0, &newValue, 1, 1) && !updateBreakpoints)
         {
             Scr_ClearErrorMessage(inst);
             RemoveRefToValue(inst, newValue.type, newValue.u);
-retry2:
+        retry2:
             updateBreakpoints = 1;
-            Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
+            //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
+            gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 0);
             goto retry_13;
         }
-        if ( MEMORY[0xA05AB8C][29 * inst] )
+        if (gScrVarPub[inst].error_message)
         {
             Scr_ClearErrorMessage(inst);
             RemoveRefToValue(inst, newValue.type, newValue.u);
-            if ( !element->valueDefined )
+            if (!element->valueDefined)
                 continue;
-            if ( !updateBreakpoints )
+            if (!updateBreakpoints)
                 goto retry2;
         }
-        else if ( !*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8244) )
+        //else if (!NtCurrentTeb()->ThreadLocalStoragePointer[_tls_index]->g_breakonHit)
+        else if (!g_breakonHit)
         {
             continue;
         }
-        if ( pos )
+        if (pos)
         {
-            if ( element->breakpointType == 1 )
+            if (element->breakpointType == 1)
             {
                 Scr_WatchElementHitBreakpoint(element, 1);
                 hitBreakpoint = 1;
             }
         }
     }
-    if ( updateBreakpoints )
-        Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
-    if ( !MEMORY[0xA05AB88][116 * inst]
+    if (updateBreakpoints)
+    {
+        //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
+        gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 1);
+    }
+    if (!gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6781,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6781,
+            0,
+            "%s",
+            "gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 0;
-    *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8248) = 0;
-    *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8236) = 0;
-    if ( hitBreakpoint )
+    gScrVarPub[inst].evaluate = 0;
+    //NtCurrentTeb()->ThreadLocalStoragePointer[_tls_index]->g_breakonObject = 0;
+    g_breakonObject = 0;
+    //NtCurrentTeb()->ThreadLocalStoragePointer[_tls_index]->g_breakonString = 0;
+    g_breakonString = 0;
+    if (hitBreakpoint)
         Scr_SpecialBreakpoint(inst, top, pos, localId, 121, 16);
 }
 
 void __cdecl Scr_SpecialBreakpoint(
-                scriptInstance_t inst,
-                VariableValue *top,
-                const char *pos,
-                unsigned int localId,
-                int opcode,
-                int type)
+    scriptInstance_t inst,
+    VariableValue *top,
+    const char *pos,
+    unsigned int localId,
+    int opcode,
+    int type)
 {
-    if ( !pos
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp", 6678, 0, "%s", "pos") )
+    if (!pos
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp", 6678, 0, "%s", "pos"))
     {
         __debugbreak();
     }
-    if ( MEMORY[0xA05ACA0][4298 * inst]
+    if (gScrVmPub[inst].inparamcount
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    6679,
-                    0,
-                    "%s",
-                    "!gScrVmPub[inst].inparamcount") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            6679,
+            0,
+            "%s",
+            "!gScrVmPub[inst].inparamcount"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05ACA4][4298 * inst] = 0;
-    if ( gScrDebuggerGlob[inst].nextBreakpointCodePos )
+    gScrVmPub[inst].outparamcount = 0;
+    if (gScrDebuggerGlob[inst].nextBreakpointCodePos)
     {
         Scr_RemoveManualBreakpoint(inst, (unsigned __int8 *)gScrDebuggerGlob[inst].nextBreakpointCodePos);
         gScrDebuggerGlob[inst].nextBreakpointCodePos = 0;
     }
-    if ( Scr_AllowBreakpoint(inst) )
+    if (Scr_AllowBreakpoint(inst))
     {
         gScrDebuggerGlob[inst].breakpointTop = top;
         gScrDebuggerGlob[inst].breakpointCodePos = pos - 1;
         gScrDebuggerGlob[inst].breakpointOpcode = opcode;
         gScrDebuggerGlob[inst].scriptWatch.localId = localId;
-        if ( !Scr_GetSourcePosOfType(inst, pos - 1, type, &gScrDebuggerGlob[inst].breakpointPos)
+        if (!Scr_GetSourcePosOfType(inst, pos - 1, type, &gScrDebuggerGlob[inst].breakpointPos)
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        6700,
-                        0,
-                        "%s",
-                        "hasSourcePos") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                6700,
+                0,
+                "%s",
+                "hasSourcePos"))
         {
             __debugbreak();
         }
@@ -2906,25 +2933,23 @@ bool __cdecl Scr_AllowBreakpoint(scriptInstance_t inst)
 }
 
 void __thiscall Scr_ScriptWatch::DisplayThreadPos(
-                Scr_ScriptWatch *this,
-                scriptInstance_t inst,
-                Scr_WatchElement_s *element)
+    scriptInstance_t inst,
+    Scr_WatchElement_s *element)
 {
     unsigned int bufferIndex; // [esp+4h] [ebp-10h]
     unsigned int lineNum; // [esp+8h] [ebp-Ch]
     char *codePos; // [esp+Ch] [ebp-8h]
     unsigned int sourcePos; // [esp+10h] [ebp-4h]
 
-    if ( MEMORY[0xA05AB88][116 * inst]
-        && (element->objectType == 21 || element->objectType == 13 && element->directObject) )
+    if (gScrVarPub[inst].evaluate && (element->objectType == 21 || element->objectType == 13 && element->directObject))
     {
         codePos = Scr_GetElementThreadPos(inst, element);
-        if ( codePos )
+        if (codePos)
         {
             bufferIndex = Scr_GetSourceBuffer(inst, codePos - 1);
             sourcePos = Scr_GetPrevSourcePos(inst, codePos - 1, 0);
             lineNum = Scr_GetLineNum(inst, bufferIndex, sourcePos);
-            if ( Sys_IsRemoteDebugServer() )
+            if (Sys_IsRemoteDebugServer())
             {
                 Sys_WriteDebugSocketMessageType(0x28u);
                 Sys_WriteDebugSocketInt(bufferIndex);
@@ -2982,55 +3007,55 @@ bool __cdecl Scr_RefToVariable(scriptInstance_t inst, unsigned int id, int isObj
     VariableValue value; // [esp+20h] [ebp-8h] BYREF
     unsigned int ida; // [esp+34h] [ebp+Ch]
 
-    if ( !id )
+    if (!id)
         return 0;
-    if ( isObject )
+    if (isObject)
         ida = id + 1;
     else
         ida = id + 0x8000;
-    if ( gScrDebuggerGlob[inst].removeId )
+    if (gScrDebuggerGlob[inst].removeId)
         return gScrDebuggerGlob[inst].removeId == ida;
-    if ( !gScrDebuggerGlob[inst].currentElement
+    if (!gScrDebuggerGlob[inst].currentElement
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    7005,
-                    0,
-                    "%s",
-                    "gScrDebuggerGlob[inst].currentElement") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            7005,
+            0,
+            "%s",
+            "gScrDebuggerGlob[inst].currentElement"))
     {
         __debugbreak();
     }
-    if ( !gScrDebuggerGlob[inst].variableBreakpoints
+    if (!gScrDebuggerGlob[inst].variableBreakpoints
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    7007,
-                    0,
-                    "%s",
-                    "gScrDebuggerGlob[inst].variableBreakpoints") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            7007,
+            0,
+            "%s",
+            "gScrDebuggerGlob[inst].variableBreakpoints"))
     {
         __debugbreak();
     }
     breakpoints = gScrDebuggerGlob[inst].variableBreakpoints[ida];
-    if ( !breakpoints )
+    if (!breakpoints)
     {
-        if ( !gScrDebuggerGlob[inst].add )
+        if (!gScrDebuggerGlob[inst].add)
             return 0;
         breakpoints = (Scr_WatchElementDoubleNode_t *)Scr_AllocDebugMem(inst, 8, "Scr_RefToVariable1");
         breakpoints->list = 0;
         breakpoints->removedList = 0;
         gScrDebuggerGlob[inst].variableBreakpoints[ida] = breakpoints;
-        if ( isObject )
+        if (isObject)
             AddRefToObject(inst, ida - 1);
     }
-    for ( pElementNode = &breakpoints->list;
-                *pElementNode && (*pElementNode)->element != gScrDebuggerGlob[inst].currentElement;
-                pElementNode = &(*pElementNode)->next )
+    for (pElementNode = &breakpoints->list;
+        *pElementNode && (*pElementNode)->element != gScrDebuggerGlob[inst].currentElement;
+        pElementNode = &(*pElementNode)->next)
     {
         ;
     }
-    if ( gScrDebuggerGlob[inst].add )
+    if (gScrDebuggerGlob[inst].add)
     {
-        if ( *pElementNode )
+        if (*pElementNode)
             return 0;
         elementNodec = Scr_AllocDebugMem(inst, 8, "Scr_RefToVariable2");
         *elementNodec = (unsigned int)gScrDebuggerGlob[inst].currentElement;
@@ -3040,39 +3065,43 @@ bool __cdecl Scr_RefToVariable(scriptInstance_t inst, unsigned int id, int isObj
     else
     {
         elementNode = *pElementNode;
-        if ( !*pElementNode )
+        if (!*pElementNode)
             return 0;
-        if ( elementNode->element != gScrDebuggerGlob[inst].currentElement
+        if (elementNode->element != gScrDebuggerGlob[inst].currentElement
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        7045,
-                        0,
-                        "%s",
-                        "elementNode->element == gScrDebuggerGlob[inst].currentElement") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                7045,
+                0,
+                "%s",
+                "elementNode->element == gScrDebuggerGlob[inst].currentElement"))
         {
             __debugbreak();
         }
         *pElementNode = elementNode->next;
         elementNode->next = breakpoints->removedList;
         breakpoints->removedList = elementNode;
-        if ( !breakpoints->list )
+        if (!breakpoints->list)
         {
-            if ( isObject )
+            if (isObject)
             {
-                if ( MEMORY[0xA05AB88][116 * inst] && (!Scr_GetRefCountToObject(inst, ida - 1) || !IsFieldObject(inst, ida - 1)) )
+                if (gScrVarPub[inst].evaluate && (!Scr_GetRefCountToObject(inst, ida - 1) || !IsFieldObject(inst, ida - 1)))
                 {
-                    for ( elementNodea = breakpoints->removedList; elementNodea; elementNodea = elementNodea->next )
+                    for (elementNodea = breakpoints->removedList; elementNodea; elementNodea = elementNodea->next)
                     {
                         gScrDebuggerGlob[inst].removeId = ida;
                         element = elementNodea->element;
-                        if ( Scr_RefScriptExpression(inst, &elementNodea->element->expr) )
+                        if (Scr_RefScriptExpression(inst, &elementNodea->element->expr))
                         {
-                            Scr_ScriptWatch::EvaluateWatchElementExpression(
-                                &gScrDebuggerGlob[inst].scriptWatch,
+                            //Scr_ScriptWatch::EvaluateWatchElementExpression(
+                            //    &gScrDebuggerGlob[inst].scriptWatch,
+                            //    inst,
+                            //    element,
+                            //    &value);
+                                gScrDebuggerGlob[inst].scriptWatch.EvaluateWatchElementExpression(
                                 inst,
                                 element,
                                 &value);
-                            if ( MEMORY[0xA05AB8C][29 * inst] )
+                            if (gScrVarPub[inst].error_message)
                                 Scr_ClearErrorMessage(inst);
                             RemoveRefToValue(inst, value.type, value.u);
                         }
@@ -3081,7 +3110,7 @@ bool __cdecl Scr_RefToVariable(scriptInstance_t inst, unsigned int id, int isObj
                 }
                 RemoveRefToObject(inst, ida - 1);
             }
-            for ( elementNodeb = breakpoints->removedList; elementNodeb; elementNodeb = elementNodeNext )
+            for (elementNodeb = breakpoints->removedList; elementNodeb; elementNodeb = elementNodeNext)
             {
                 elementNodeNext = elementNodeb->next;
                 Scr_FreeDebugMem(inst, (char *)elementNodeb);
@@ -3093,7 +3122,7 @@ bool __cdecl Scr_RefToVariable(scriptInstance_t inst, unsigned int id, int isObj
     return 0;
 }
 
-void __thiscall Scr_ScriptWatch::UpdateBreakpoints(Scr_ScriptWatch *this, scriptInstance_t inst, bool add)
+void __thiscall Scr_ScriptWatch::UpdateBreakpoints(scriptInstance_t inst, bool add)
 {
     Scr_WatchElement_s *element; // [esp+8h] [ebp-4h]
     Scr_WatchElement_s *elementa; // [esp+8h] [ebp-4h]
@@ -3171,7 +3200,6 @@ void __cdecl Scr_AddAssignmentBreakpoint(scriptInstance_t inst, unsigned __int8 
 }
 
 Scr_WatchElement_s *__thiscall Scr_ScriptWatch::AddBreakpoint(
-                Scr_ScriptWatch *this,
                 scriptInstance_t inst,
                 Scr_WatchElement_s *element,
                 unsigned __int8 type)
@@ -3187,13 +3215,12 @@ Scr_WatchElement_s *__thiscall Scr_ScriptWatch::AddBreakpoint(
         __debugbreak();
     }
     if ( element->parent )
-        element = Scr_ScriptWatch::CloneElement(this, inst, element);
+        element = Scr_ScriptWatch::CloneElement(inst, element);
     element->breakpointType = type;
     return element;
 }
 
 Scr_WatchElement_s *__thiscall Scr_ScriptWatch::RemoveBreakpoint(
-                Scr_ScriptWatch *this,
                 scriptInstance_t inst,
                 Scr_WatchElement_s *element)
 {
@@ -3213,7 +3240,6 @@ Scr_WatchElement_s *__thiscall Scr_ScriptWatch::RemoveBreakpoint(
 }
 
 void __thiscall Scr_ScriptWatch::ToggleWatchElementBreakpoint(
-                Scr_ScriptWatch *this,
                 scriptInstance_t inst,
                 Scr_WatchElement_s *element,
                 unsigned __int8 type)
@@ -3223,20 +3249,19 @@ void __thiscall Scr_ScriptWatch::ToggleWatchElementBreakpoint(
 
     if ( element->breakpointType == type )
     {
-        elementa = Scr_ScriptWatch::RemoveBreakpoint(this, inst, element);
+        elementa = Scr_ScriptWatch::RemoveBreakpoint(inst, element);
         Scr_FreeDebugExpr(inst, &elementa->expr);
         Scr_CompileText(inst, elementa->refText, &elementa->expr);
     }
     else
     {
-        elementa = Scr_ScriptWatch::AddBreakpoint(this, inst, element, type);
+        elementa = Scr_ScriptWatch::AddBreakpoint(inst, element, type);
     }
     ElementRoot = Scr_GetElementRoot(elementa);
-    Scr_ScriptWatch::EvaluateWatchElement(this, inst, ElementRoot);
+    Scr_ScriptWatch::EvaluateWatchElement(inst, ElementRoot);
 }
 
 void __thiscall Scr_ScriptWatch::ToggleBreakpointInternal(
-                Scr_ScriptWatch *this,
                 scriptInstance_t inst,
                 Scr_WatchElement_s *element,
                 unsigned __int8 type)
@@ -3266,7 +3291,7 @@ void __thiscall Scr_ScriptWatch::ToggleBreakpointInternal(
                     }
                     else if ( type == 3 )
                     {
-                        Scr_ScriptWatch::DeleteElementInternal(this, inst, element);
+                        Scr_ScriptWatch::DeleteElementInternal(inst, element);
                     }
                     break;
                 case 6u:
@@ -3323,19 +3348,19 @@ void __thiscall Scr_ScriptWatch::ToggleBreakpointInternal(
                     }
                     else if ( type == 1 )
                     {
-                        Scr_ScriptWatch::DeleteElementInternal(this, inst, element);
+                        Scr_ScriptWatch::DeleteElementInternal(inst, element);
                     }
                     break;
             }
         }
         else if ( type != 6 && type != 7 )
         {
-            Scr_ScriptWatch::ToggleWatchElementBreakpoint(this, inst, element, type);
+            Scr_ScriptWatch::ToggleWatchElementBreakpoint(inst, element, type);
         }
     }
 }
 
-void __thiscall Scr_ScriptWatch::SortHitBreakpointsTop(Scr_ScriptWatch *this, scriptInstance_t inst)
+void __thiscall Scr_ScriptWatch::SortHitBreakpointsTop(scriptInstance_t inst)
 {
     Scr_WatchElement_s **pElement; // [esp+4h] [ebp-14h]
     Scr_WatchElement_s **pInsertPoint; // [esp+8h] [ebp-10h]
@@ -3376,7 +3401,7 @@ void __thiscall Scr_ScriptWatch::SortHitBreakpointsTop(Scr_ScriptWatch *this, sc
 
 void __cdecl Scr_InitDebuggerMain(scriptInstance_t inst)
 {
-    if ( MEMORY[0xA05AB86][116 * inst] )
+    if (gScrVarPub[inst].developer)
     {
         if ( gScrDebuggerGlob[inst].debugger_inited_main
             && !Assert_MyHandler(
@@ -3409,7 +3434,7 @@ void __cdecl Scr_ShutdownDebuggerMain(scriptInstance_t inst)
     unsigned int j; // [esp+0h] [ebp-8h]
     Scr_OpcodeList_s *opcodeElement; // [esp+4h] [ebp-4h]
 
-    if ( MEMORY[0xA05AB86][116 * inst] && gScrDebuggerGlob[inst].debugger_inited_main )
+    if (gScrVarPub[inst].developer && gScrDebuggerGlob[inst].debugger_inited_main)
     {
         gScrDebuggerGlob[inst].debugger_inited_main = 0;
         if ( gScrDebuggerGlob[inst].variableBreakpoints )
@@ -3441,7 +3466,7 @@ void __cdecl Scr_ShutdownDebuggerMain(scriptInstance_t inst)
 
 void __cdecl Scr_InitDebugger(scriptInstance_t inst)
 {
-    if ( MEMORY[0xA05AB86][116 * inst] && gScrCompilePub[inst].script_loading )
+    if (gScrVarPub[inst].developer && gScrCompilePub[inst].script_loading)
     {
         if ( gScrDebuggerGlob[inst].debugger_inited
             && !Assert_MyHandler(
@@ -3459,19 +3484,19 @@ void __cdecl Scr_InitDebugger(scriptInstance_t inst)
                                                                                                      4,
                                                                                                      "gScrDebuggerGlob[inst].breakpoints");
         memset((unsigned __int8 *)gScrDebuggerGlob[inst].breakpoints, 0x7Fu, gScrCompilePub[inst].programLen);
-        Scr_ScriptList::Init(&gScrDebuggerGlob[inst].scriptList, inst);
-        Scr_AbstractScriptList::Init(&gScrDebuggerGlob[inst].openScriptList, inst);
+        gScrDebuggerGlob[inst].scriptList.Init(inst);
+        gScrDebuggerGlob[inst].openScriptList.Init(inst);
         gScrDebuggerGlob[inst].debugger_inited = 1;
     }
 }
 
 void __cdecl Scr_ShutdownDebugger(scriptInstance_t inst)
 {
-    if ( MEMORY[0xA05AB86][116 * inst] && gScrDebuggerGlob[inst].debugger_inited )
+    if (gScrVarPub[inst].developer && gScrDebuggerGlob[inst].debugger_inited)
     {
         gScrDebuggerGlob[inst].debugger_inited = 0;
-        Scr_AbstractScriptList::Shutdown(&gScrDebuggerGlob[inst].openScriptList, inst);
-        Scr_ScriptList::Shutdown(&gScrDebuggerGlob[inst].scriptList, inst);
+        gScrDebuggerGlob[inst].openScriptList.Shutdown(inst);
+        gScrDebuggerGlob[inst].scriptList.Shutdown(inst);
         if ( gScrDebuggerGlob[inst].breakpoints )
         {
             Hunk_UserFree(g_DebugHunkUser, gScrDebuggerGlob[inst].breakpoints);
@@ -3483,15 +3508,15 @@ void __cdecl Scr_ShutdownDebugger(scriptInstance_t inst)
 
 void __cdecl Scr_InitDebuggerSystem(scriptInstance_t inst)
 {
-    if ( MEMORY[0xA05AB86][116 * inst] )
+    if (gScrVarPub[inst].developer)
     {
-        if ( gScrDebuggerGlob[inst].debugger_inited_system
+        if (gScrDebuggerGlob[inst].debugger_inited_system
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        7828,
-                        0,
-                        "%s",
-                        "!gScrDebuggerGlob[inst].debugger_inited_system") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                7828,
+                0,
+                "%s",
+                "!gScrDebuggerGlob[inst].debugger_inited_system"))
         {
             __debugbreak();
         }
@@ -3499,38 +3524,44 @@ void __cdecl Scr_InitDebuggerSystem(scriptInstance_t inst)
         gScrDebuggerGlob[inst].nextBreakpointCodePos = 0;
         gScrDebuggerGlob[inst].killThreadCodePos = 0;
         gScrDebuggerGlob[inst].breakpointCount = 0;
-        if ( MEMORY[0xA05AB88][116 * inst]
+        if (gScrVarPub[inst].evaluate
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        7843,
-                        0,
-                        "%s",
-                        "!gScrVarPub[inst].evaluate") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                7843,
+                0,
+                "%s",
+                "!gScrVarPub[inst].evaluate"))
         {
             __debugbreak();
         }
-        MEMORY[0xA05AB88][116 * inst] = 1;
+        gScrVarPub[inst].evaluate = 1;
         gScrDebuggerGlob[inst].assignBreakpointSet = 0;
         gScrDebuggerGlob[inst].breakpointPos.bufferIndex = -1;
         gScrDebuggerGlob[inst].atBreakpoint = 0;
         gScrDebuggerGlob[inst].run_debugger = 0;
-        Scr_ScriptWatch::Init(&gScrDebuggerGlob[inst].scriptWatch, inst);
-        if ( !MEMORY[0xA05AB88][116 * inst]
+        //Scr_ScriptWatch::Init(&gScrDebuggerGlob[inst].scriptWatch, inst);
+        gScrDebuggerGlob[inst].scriptWatch.Init(inst);
+        if (!gScrVarPub[inst].evaluate
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        7868,
-                        0,
-                        "%s",
-                        "gScrVarPub[inst].evaluate") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                7868,
+                0,
+                "%s",
+                "gScrVarPub[inst].evaluate"))
         {
             __debugbreak();
         }
-        MEMORY[0xA05AB88][116 * inst] = 0;
+        gScrVarPub[inst].evaluate = 0;
         gScrDebuggerGlob[inst].debugger_inited_system = 1;
-        if ( Sys_IsRemoteDebugServer() && (Scr_SendSource(inst), Sys_IsRemoteDebugServer()) )
+        if (Sys_IsRemoteDebugServer() && (Scr_SendSource(inst), Sys_IsRemoteDebugServer()))
+        {
             Scr_RunDebugger(inst);
+        }
         else
-            Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
+        {
+            //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
+            gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 1);
+        }
     }
 }
 
@@ -3555,29 +3586,30 @@ void Scr_InitBreakpoints()
 
 void __cdecl Scr_ShutdownDebuggerSystem(scriptInstance_t inst)
 {
-    if ( MEMORY[0xA05AB86][116 * inst] && gScrDebuggerGlob[inst].debugger_inited_system )
+    if (gScrVarPub[inst].developer && gScrDebuggerGlob[inst].debugger_inited_system)
     {
         gScrDebuggerGlob[inst].debugger_inited_system = 0;
-        MEMORY[0xA05AB88][116 * inst] = 0;
-        Scr_ScriptWatch::Shutdown(&gScrDebuggerGlob[inst].scriptWatch, inst);
-        if ( gScrDebuggerGlob[inst].nextBreakpointCodePos )
+        gScrVarPub[inst].evaluate = 0;
+        //Scr_ScriptWatch::Shutdown(&gScrDebuggerGlob[inst].scriptWatch, inst);
+        gScrDebuggerGlob[inst].scriptWatch.Shutdown(inst);
+        if (gScrDebuggerGlob[inst].nextBreakpointCodePos)
         {
             Scr_RemoveManualBreakpoint(inst, (unsigned __int8 *)gScrDebuggerGlob[inst].nextBreakpointCodePos);
             gScrDebuggerGlob[inst].nextBreakpointCodePos = 0;
         }
-        if ( gScrDebuggerGlob[inst].killThreadCodePos )
+        if (gScrDebuggerGlob[inst].killThreadCodePos)
         {
             Scr_RemoveManualBreakpoint(inst, (unsigned __int8 *)gScrDebuggerGlob[inst].killThreadCodePos);
             gScrDebuggerGlob[inst].killThreadCodePos = 0;
         }
-        if ( gScrDebuggerGlob[inst].breakpointCount )
+        if (gScrDebuggerGlob[inst].breakpointCount)
         {
-            if ( !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            7959,
-                            0,
-                            "%s",
-                            "!gScrDebuggerGlob[inst].breakpointCount") )
+            if (!Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                7959,
+                0,
+                "%s",
+                "!gScrDebuggerGlob[inst].breakpointCount"))
                 __debugbreak();
         }
     }
@@ -3585,17 +3617,17 @@ void __cdecl Scr_ShutdownDebuggerSystem(scriptInstance_t inst)
 
 void __cdecl Scr_ConnectRemote(scriptInstance_t inst)
 {
-    if ( Sys_StartRemoteDebugServer() && gScrDebuggerGlob[inst].debugger_inited_system )
+    if (Sys_StartRemoteDebugServer() && gScrDebuggerGlob[inst].debugger_inited_system)
     {
-        if ( MEMORY[0xA05AB88][116 * inst] )
+        if (gScrVarPub[inst].evaluate
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                7973,
+                0,
+                "%s",
+                "!gScrVarPub[inst].evaluate"))
         {
-            if ( !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            7973,
-                            0,
-                            "%s",
-                            "!gScrVarPub[inst].evaluate") )
-                __debugbreak();
+            __debugbreak();
         }
         Scr_ShutdownDebuggerSystem(inst);
         Scr_InitDebuggerSystem(inst);
@@ -3606,17 +3638,17 @@ void __cdecl Scr_AddAssignmentPos(scriptInstance_t inst, char *codePos)
 {
     Scr_OpcodeList_s *opcodeElement; // [esp+0h] [ebp-4h]
 
-    if ( !MEMORY[0xA05AB86][116 * inst]
+    if (!gScrVarPub[inst].developer
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    7998,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].developer") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            7998,
+            0,
+            "%s",
+            "gScrVarPub[inst].developer"))
     {
         __debugbreak();
     }
-    if ( gScrCompilePub[inst].developer_statement != 2 && gScrDebuggerGlob[inst].assignHeadCodePos != codePos )
+    if (gScrCompilePub[inst].developer_statement != 2 && gScrDebuggerGlob[inst].assignHeadCodePos != codePos)
     {
         gScrDebuggerGlob[inst].assignHeadCodePos = codePos;
         opcodeElement = (Scr_OpcodeList_s *)Hunk_UserAlloc(g_DebugHunkUser, 8, 4, "Scr_AddAssignmentPos");
@@ -3633,38 +3665,38 @@ void __cdecl Scr_ResetAbortDebugger(scriptInstance_t inst)
 
 void __cdecl Scr_RunDebugger(scriptInstance_t inst)
 {
-    if ( MEMORY[0xA05AB86][116 * inst] )
+    if (gScrVarPub[inst].developer)
     {
         Scr_ResetAbortDebugger(inst);
-        if ( !Scr_IsStackClear(inst)
+        if (!Scr_IsStackClear(inst)
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        8377,
-                        0,
-                        "%s",
-                        "Scr_IsStackClear(inst)") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                8377,
+                0,
+                "%s",
+                "Scr_IsStackClear(inst)"))
         {
             __debugbreak();
         }
-        if ( MEMORY[0xA05AC90][4298 * inst]
+        if (gScrVmPub[inst].function_count
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        8379,
-                        0,
-                        "%s",
-                        "!gScrVmPub[inst].function_count") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                8379,
+                0,
+                "%s",
+                "!gScrVmPub[inst].function_count"))
         {
             __debugbreak();
         }
         gScrDebuggerGlob[inst].scriptWatch.localId = 0;
         Scr_DisplayDebugger(inst);
-        if ( !Scr_IsStackClear(inst)
+        if (!Scr_IsStackClear(inst)
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        8383,
-                        0,
-                        "%s",
-                        "Scr_IsStackClear(inst)") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                8383,
+                0,
+                "%s",
+                "Scr_IsStackClear(inst)"))
         {
             __debugbreak();
         }
@@ -3673,10 +3705,15 @@ void __cdecl Scr_RunDebugger(scriptInstance_t inst)
 
 void __cdecl Scr_DisplayDebugger(scriptInstance_t inst)
 {
-    if ( gScrDebuggerGlob[inst].atBreakpoint )
-        Scr_ScriptCallStack::UpdateStack(&gScrDebuggerGlob[inst].scriptCallStack, inst);
-    if ( !Sys_IsRemoteDebugServer() || (Scr_DisplayDebuggerRemote(inst), !Sys_IsRemoteDebugServer()) )
+    if (gScrDebuggerGlob[inst].atBreakpoint)
+    {
+        //Scr_ScriptCallStack::UpdateStack(&gScrDebuggerGlob[inst].scriptCallStack, inst);
+        gScrDebuggerGlob[inst].scriptCallStack.UpdateStack(inst);
+    }
+    if (!Sys_IsRemoteDebugServer() || (Scr_DisplayDebuggerRemote(inst), !Sys_IsRemoteDebugServer()))
+    {
         Scr_ResumeBreakpoints(inst);
+    }
 }
 
 void __cdecl Scr_DisplayDebuggerRemote(scriptInstance_t inst)
@@ -3684,36 +3721,37 @@ void __cdecl Scr_DisplayDebuggerRemote(scriptInstance_t inst)
     const char *varUsagePos; // [esp+0h] [ebp-8h]
     int line; // [esp+4h] [ebp-4h]
 
-    if ( !Sys_IsRemoteDebugServer()
+    if (!Sys_IsRemoteDebugServer()
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8075,
-                    0,
-                    "%s",
-                    "Sys_IsRemoteDebugServer()") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8075,
+            0,
+            "%s",
+            "Sys_IsRemoteDebugServer()"))
     {
         __debugbreak();
     }
-    varUsagePos = (const char *)MEMORY[0xA05ABE4][29 * inst];
-    MEMORY[0xA05ABE4][29 * inst] = (int)"<script debugger variable>";
-    if ( MEMORY[0xA05AB88][116 * inst]
+    varUsagePos = gScrVarPub[inst].varUsagePos;
+    gScrVarPub[inst].varUsagePos = "<script debugger variable>";
+    if (gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8090,
-                    0,
-                    "%s",
-                    "!gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8090,
+            0,
+            "%s",
+            "!gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 1;
-    Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
+    gScrVarPub[inst].evaluate = 1;
+    //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
+    gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 0);
     Scr_Evaluate(inst);
-    if ( gScrDebuggerGlob[inst].atBreakpoint )
+    if (gScrDebuggerGlob[inst].atBreakpoint)
     {
         Sys_WriteDebugSocketMessageType(0x24u);
         Sys_WriteDebugSocketInt(*(&gScrDebuggerGlob[0].scriptCallStack.numLines + 113 * inst));
-        for ( line = 0; line < *(&gScrDebuggerGlob[0].scriptCallStack.numLines + 113 * inst); ++line )
+        for (line = 0; line < *(&gScrDebuggerGlob[0].scriptCallStack.numLines + 113 * inst); ++line)
         {
             Sys_WriteDebugSocketInt(gScrDebuggerGlob[inst].scriptCallStack.stack[line].bufferIndex);
             Sys_WriteDebugSocketInt(gScrDebuggerGlob[inst].scriptCallStack.stack[line].sourcePos);
@@ -3724,27 +3762,28 @@ void __cdecl Scr_DisplayDebuggerRemote(scriptInstance_t inst)
     {
         gScrDebuggerGlob[inst].atBreakpoint = 1;
     }
-    if ( !MEMORY[0xA05AB88][116 * inst]
+    if (!gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8113,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8113,
+            0,
+            "%s",
+            "gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 0;
-    Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
-    MEMORY[0xA05ABE4][29 * inst] = (int)varUsagePos;
-    if ( Sys_IsMainThread() )
+    gScrVarPub[inst].evaluate = 0;
+    //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
+    gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 1);
+    gScrVarPub[inst].varUsagePos = varUsagePos;
+    if (Sys_IsMainThread())
     {
         Scr_DisplayDebuggerRemoteInternal(inst);
     }
     else
     {
         gScrDebuggerGlob[inst].disableDebuggerRemote = 1;
-        while ( gScrDebuggerGlob[inst].disableDebuggerRemote )
+        while (gScrDebuggerGlob[inst].disableDebuggerRemote)
             ;
     }
 }
@@ -3753,38 +3792,39 @@ void __cdecl Scr_DisplayDebuggerRemoteInternal(scriptInstance_t inst)
 {
     const char *varUsagePos; // [esp+0h] [ebp-4h]
 
-    if ( !Sys_IsMainThread()
+    if (!Sys_IsMainThread()
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8027,
-                    0,
-                    "%s",
-                    "Sys_IsMainThread()") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8027,
+            0,
+            "%s",
+            "Sys_IsMainThread()"))
     {
         __debugbreak();
     }
-    varUsagePos = (const char *)MEMORY[0xA05ABE4][29 * inst];
-    MEMORY[0xA05ABE4][29 * inst] = (int)"<script debugger variable>";
-    if ( MEMORY[0xA05AB88][116 * inst]
+    varUsagePos = gScrVarPub[inst].varUsagePos;
+    gScrVarPub[inst].varUsagePos = "<script debugger variable>";
+    if (gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8034,
-                    0,
-                    "%s",
-                    "!gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8034,
+            0,
+            "%s",
+            "!gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 1;
-    Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
-    while ( gScrDebuggerGlob[inst].atBreakpoint )
+    gScrVarPub[inst].evaluate = 1;
+    //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
+    gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 0);
+    while (gScrDebuggerGlob[inst].atBreakpoint)
     {
-        if ( !Sys_IsRemoteDebugServer() )
+        if (!Sys_IsRemoteDebugServer())
         {
             Scr_ResumeBreakpoints(inst);
             break;
         }
-        if ( gScrDebuggerGlob[inst].abort )
+        if (gScrDebuggerGlob[inst].abort)
         {
             gScrDebuggerGlob[inst].step_mode = 0;
             Scr_Step(inst);
@@ -3792,59 +3832,60 @@ void __cdecl Scr_DisplayDebuggerRemoteInternal(scriptInstance_t inst)
         Scr_ProcessDebugMessages(inst);
         Sys_FlushDebugSocketData();
     }
-    Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
-    if ( !MEMORY[0xA05AB88][116 * inst]
+    //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
+    gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 1);
+    if (!gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8059,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8059,
+            0,
+            "%s",
+            "gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 0;
-    MEMORY[0xA05ABE4][29 * inst] = (int)varUsagePos;
+    gScrVarPub[inst].evaluate = 0;
+    gScrVarPub[inst].varUsagePos = varUsagePos;
 }
 
 void __cdecl Scr_Step(scriptInstance_t inst)
 {
-    char evaluate; // [esp+3h] [ebp-9h]
+    bool evaluate; // [esp+3h] [ebp-9h]
     unsigned int localId; // [esp+4h] [ebp-8h] BYREF
     const char *codePos; // [esp+8h] [ebp-4h]
 
-    if ( Sys_IsRemoteDebugServer() && gScrDebuggerGlob[inst].atBreakpoint )
+    if (Sys_IsRemoteDebugServer() && gScrDebuggerGlob[inst].atBreakpoint)
         Scr_ResumeBreakpoints(inst);
-    if ( gScrDebuggerGlob[inst].step_mode && MEMORY[0xA05AC90][4298 * inst] )
+    if (gScrDebuggerGlob[inst].step_mode && gScrVmPub[inst].function_count)
     {
-        if ( gScrDebuggerGlob[inst].step_mode == 3 )
+        if (gScrDebuggerGlob[inst].step_mode == 3)
         {
             gScrDebuggerGlob[inst].step_mode = 1;
             codePos = Scr_GetReturnPos(inst, &localId);
         }
         else
         {
-            evaluate = MEMORY[0xA05AB88][116 * inst];
-            MEMORY[0xA05AB88][116 * inst] = 1;
-            if ( gScrDebuggerGlob[inst].breakpointOpcode < 0
+            evaluate = gScrVarPub[inst].evaluate;
+            gScrVarPub[inst].evaluate = 1;
+            if (gScrDebuggerGlob[inst].breakpointOpcode < 0
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            1333,
-                            0,
-                            "%s\n\t(gScrDebuggerGlob[inst].breakpointOpcode) = %i",
-                            "(gScrDebuggerGlob[inst].breakpointOpcode >= 0)",
-                            gScrDebuggerGlob[inst].breakpointOpcode) )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                    1333,
+                    0,
+                    "%s\n\t(gScrDebuggerGlob[inst].breakpointOpcode) = %i",
+                    "(gScrDebuggerGlob[inst].breakpointOpcode >= 0)",
+                    gScrDebuggerGlob[inst].breakpointOpcode))
             {
                 __debugbreak();
             }
             codePos = Scr_GetNextCodepos(
-                                    inst,
-                                    gScrDebuggerGlob[inst].breakpointTop,
-                                    gScrDebuggerGlob[inst].breakpointCodePos,
-                                    gScrDebuggerGlob[inst].breakpointOpcode,
-                                    gScrDebuggerGlob[inst].step_mode,
-                                    &localId);
-            MEMORY[0xA05AB88][116 * inst] = evaluate;
+                inst,
+                gScrDebuggerGlob[inst].breakpointTop,
+                gScrDebuggerGlob[inst].breakpointCodePos,
+                gScrDebuggerGlob[inst].breakpointOpcode,
+                gScrDebuggerGlob[inst].step_mode,
+                &localId);
+            gScrVarPub[inst].evaluate = evaluate;
         }
         Scr_SetTempBreakpoint(inst, (char *)codePos, localId);
     }
@@ -3872,7 +3913,8 @@ void __cdecl Scr_WatchElementHitBreakpoint(Scr_WatchElement_s *element, bool ena
 
 void __cdecl Scr_HitBreakpointInternal(scriptInstance_t inst)
 {
-    Scr_ScriptWatch::SortHitBreakpointsTop(&gScrDebuggerGlob[inst].scriptWatch, inst);
+    //Scr_ScriptWatch::SortHitBreakpointsTop(&gScrDebuggerGlob[inst].scriptWatch, inst);
+    gScrDebuggerGlob[inst].scriptWatch.SortHitBreakpointsTop(inst);
     if ( Sys_IsRemoteDebugServer() )
         Scr_DisplayHitBreakpointRemote(inst);
     Scr_DisplayDebugger(inst);
@@ -3918,11 +3960,11 @@ void __cdecl Scr_DisplayHitBreakpointRemote(scriptInstance_t inst)
 }
 
 int __cdecl Scr_HitBreakpoint(
-                scriptInstance_t inst,
-                VariableValue *top,
-                const char *pos,
-                unsigned int localId,
-                int hitBreakpoint)
+    scriptInstance_t inst,
+    VariableValue *top,
+    const char *pos,
+    unsigned int localId,
+    int hitBreakpoint)
 {
     Scr_Breakpoint *breakpoint; // [esp+0h] [ebp-24h]
     bool hitStepBreakpoint; // [esp+Bh] [ebp-19h]
@@ -3932,43 +3974,43 @@ int __cdecl Scr_HitBreakpoint(
     Scr_WatchElement_s *element; // [esp+1Ch] [ebp-8h]
     bool existsBreakpoint; // [esp+23h] [ebp-1h]
 
-    if ( !MEMORY[0xA05AB86][116 * inst]
+    if (!gScrVarPub[inst].developer
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8550,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].developer") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8550,
+            0,
+            "%s",
+            "gScrVarPub[inst].developer"))
     {
         __debugbreak();
     }
-    if ( !MEMORY[0xA05AC90][4298 * inst]
+    if (!gScrVmPub[inst].function_count
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8554,
-                    0,
-                    "%s",
-                    "gScrVmPub[inst].function_count") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8554,
+            0,
+            "%s",
+            "gScrVmPub[inst].function_count"))
     {
         __debugbreak();
     }
-    if ( gScrDebuggerGlob[inst].breakpointPos.bufferIndex != -1
+    if (gScrDebuggerGlob[inst].breakpointPos.bufferIndex != -1
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8555,
-                    0,
-                    "%s",
-                    "gScrDebuggerGlob[inst].breakpointPos.bufferIndex == NO_BUFFER_INDEX") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8555,
+            0,
+            "%s",
+            "gScrDebuggerGlob[inst].breakpointPos.bufferIndex == NO_BUFFER_INDEX"))
     {
         __debugbreak();
     }
-    if ( gScrDebuggerGlob[inst].atBreakpoint
+    if (gScrDebuggerGlob[inst].atBreakpoint
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8556,
-                    0,
-                    "%s",
-                    "!gScrDebuggerGlob[inst].atBreakpoint") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8556,
+            0,
+            "%s",
+            "!gScrDebuggerGlob[inst].atBreakpoint"))
     {
         __debugbreak();
     }
@@ -3976,27 +4018,27 @@ int __cdecl Scr_HitBreakpoint(
     opcode = (unsigned __int8)*Scr_FindBreakpointInfo(inst, pos - 1);
     hitStepBreakpoint = 0;
     existsBreakpoint = 0;
-    if ( gScrDebuggerGlob[inst].nextBreakpointCodePos == pos - 1 )
+    if (gScrDebuggerGlob[inst].nextBreakpointCodePos == pos - 1)
     {
-        if ( gScrDebuggerGlob[inst].nextBreakpointThreadId && localId != gScrDebuggerGlob[inst].nextBreakpointThreadId )
+        if (gScrDebuggerGlob[inst].nextBreakpointThreadId && localId != gScrDebuggerGlob[inst].nextBreakpointThreadId)
             existsBreakpoint = 1;
         else
             hitStepBreakpoint = 1;
     }
     kill_thread = gScrDebuggerGlob[inst].kill_thread;
-    if ( kill_thread )
+    if (kill_thread)
     {
         gScrDebuggerGlob[inst].kill_thread = 0;
         opcode = 0;
-        if ( gScrDebuggerGlob[inst].killThreadCodePos )
+        if (gScrDebuggerGlob[inst].killThreadCodePos)
         {
-            if ( gScrDebuggerGlob[inst].killThreadCodePos != codePos
+            if (gScrDebuggerGlob[inst].killThreadCodePos != codePos
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            8581,
-                            0,
-                            "%s",
-                            "gScrDebuggerGlob[inst].killThreadCodePos == codePos") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                    8581,
+                    0,
+                    "%s",
+                    "gScrDebuggerGlob[inst].killThreadCodePos == codePos"))
             {
                 __debugbreak();
             }
@@ -4005,74 +4047,74 @@ int __cdecl Scr_HitBreakpoint(
             existsBreakpoint = 1;
         }
     }
-    else if ( gScrDebuggerGlob[inst].killThreadCodePos
-                 && !Assert_MyHandler(
-                             "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                             8590,
-                             0,
-                             "%s",
-                             "!gScrDebuggerGlob[inst].killThreadCodePos") )
-    {
-        __debugbreak();
-    }
-    MEMORY[0xA05AC98][4298 * inst] = (int)top;
-    if ( MEMORY[0xA05AB88][116 * inst]
+    else if (gScrDebuggerGlob[inst].killThreadCodePos
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8595,
-                    0,
-                    "%s",
-                    "!gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8590,
+            0,
+            "%s",
+            "!gScrDebuggerGlob[inst].killThreadCodePos"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 1;
-    for ( element = gScrDebuggerGlob[inst].scriptWatch.elementHead; element; element = element->next )
+    gScrVmPub[inst].top = top;
+    if (gScrVarPub[inst].evaluate
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8595,
+            0,
+            "%s",
+            "!gScrVarPub[inst].evaluate"))
+    {
+        __debugbreak();
+    }
+    gScrVarPub[inst].evaluate = 1;
+    for (element = gScrDebuggerGlob[inst].scriptWatch.elementHead; element; element = element->next)
     {
         breakpoint = element->breakpoint;
-        if ( breakpoint && breakpoint->codePos == codePos )
+        if (breakpoint && breakpoint->codePos == codePos)
         {
             existsBreakpoint = 1;
-            if ( Scr_ConditionalExpression(inst, element, localId) )
+            if (Scr_ConditionalExpression(inst, element, localId))
                 hitBreakpoint = 1;
         }
     }
-    if ( !MEMORY[0xA05AB88][116 * inst]
+    if (!gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8612,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8612,
+            0,
+            "%s",
+            "gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 0;
-    if ( !hitBreakpoint && !hitStepBreakpoint && existsBreakpoint )
+    gScrVarPub[inst].evaluate = 0;
+    if (!hitBreakpoint && !hitStepBreakpoint && existsBreakpoint)
         return opcode;
-    if ( gScrDebuggerGlob[inst].nextBreakpointCodePos )
+    if (gScrDebuggerGlob[inst].nextBreakpointCodePos)
     {
         Scr_RemoveManualBreakpoint(inst, (unsigned __int8 *)gScrDebuggerGlob[inst].nextBreakpointCodePos);
         gScrDebuggerGlob[inst].nextBreakpointCodePos = 0;
     }
-    if ( !Scr_AllowBreakpoint(inst) )
+    if (!Scr_AllowBreakpoint(inst))
         return opcode;
     gScrDebuggerGlob[inst].breakpointTop = top;
     gScrDebuggerGlob[inst].breakpointCodePos = codePos;
     gScrDebuggerGlob[inst].breakpointOpcode = opcode;
-    if ( Scr_GetSourcePosOfType(inst, codePos, !kill_thread, &gScrDebuggerGlob[inst].breakpointPos)
+    if (Scr_GetSourcePosOfType(inst, codePos, !kill_thread, &gScrDebuggerGlob[inst].breakpointPos)
         && (!hitStepBreakpoint
-         || gScrDebuggerGlob[inst].step_mode == 4
-         || gScrDebuggerGlob[inst].prevBreakpointLineNum != gScrDebuggerGlob[inst].breakpointPos.lineNum) )
+            || gScrDebuggerGlob[inst].step_mode == 4
+            || gScrDebuggerGlob[inst].prevBreakpointLineNum != gScrDebuggerGlob[inst].breakpointPos.lineNum))
     {
-        *(unsigned int *)MEMORY[0xA05AC94][4298 * inst] = pos;
+        gScrVmPub[inst].function_frame->fs.pos = pos;
         gScrDebuggerGlob[inst].scriptWatch.localId = localId;
         Scr_HitBreakpointInternal(inst);
         return opcode;
     }
     else
     {
-        if ( !hitStepBreakpoint )
+        if (!hitStepBreakpoint)
             gScrDebuggerGlob[inst].step_mode = 4;
         Scr_Step(inst);
         gScrDebuggerGlob[inst].breakpointPos.bufferIndex = -1;
@@ -4082,198 +4124,198 @@ int __cdecl Scr_HitBreakpoint(
 
 bool __cdecl Scr_ConditionalExpression(scriptInstance_t inst, Scr_WatchElement_s *element, unsigned int localId)
 {
-    ObjectInfo::<unnamed_type_u> Self; // eax
+    unsigned int Self; // eax
     bool v5; // [esp+0h] [ebp-20h]
     Scr_WatchElement_s *conditionalElement; // [esp+8h] [ebp-18h]
     Scr_WatchElement_s *conditionalElementa; // [esp+8h] [ebp-18h]
     VariableValue newValue; // [esp+18h] [ebp-8h] BYREF
 
-    for ( conditionalElement = element->next; ; conditionalElement = conditionalElement->next )
+    for (conditionalElement = element->next; ; conditionalElement = conditionalElement->next)
     {
-        if ( !conditionalElement || conditionalElement->breakpointType != 2 )
+        if (!conditionalElement || conditionalElement->breakpointType != 2)
         {
             v5 = element->breakpointType == 1 || element->breakpointType == 5 || element->breakpointType == 6;
             Scr_WatchElementHitBreakpoint(element, v5);
-            for ( conditionalElementa = element->next;
-                        conditionalElementa && conditionalElementa->breakpointType == 2;
-                        conditionalElementa = conditionalElementa->next )
+            for (conditionalElementa = element->next;
+                conditionalElementa && conditionalElementa->breakpointType == 2;
+                conditionalElementa = conditionalElementa->next)
             {
                 Scr_WatchElementHitBreakpoint(conditionalElementa, v5);
             }
             return v5;
         }
-        if ( conditionalElement->breakpoint
+        if (conditionalElement->breakpoint
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        8452,
-                        0,
-                        "%s",
-                        "!conditionalElement->breakpoint") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                8452,
+                0,
+                "%s",
+                "!conditionalElement->breakpoint"))
         {
             __debugbreak();
         }
-        if ( !conditionalElement->expr.exprHead
+        if (!conditionalElement->expr.exprHead
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        8454,
-                        0,
-                        "%s",
-                        "expr->exprHead") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                8454,
+                0,
+                "%s",
+                "expr->exprHead"))
         {
             __debugbreak();
         }
         Scr_EvalScriptExpression(inst, &conditionalElement->expr, localId, &newValue, 0, 1);
-        if ( newValue.type == 1 )
+        if (newValue.type == 1)
             break;
         Scr_CastBool(inst, &newValue);
-        if ( MEMORY[0xA05AB8C][29 * inst] )
+        if (gScrVarPub[inst].error_message)
         {
             Scr_ClearErrorMessage(inst);
             return 0;
         }
-        if ( newValue.type != 6
+        if (newValue.type != 6
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        8490,
-                        0,
-                        "%s",
-                        "newValue.type == VAR_INTEGER") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                8490,
+                0,
+                "%s",
+                "newValue.type == VAR_INTEGER"))
         {
             __debugbreak();
         }
-        if ( !newValue.u.intValue )
+        if (!newValue.u.intValue)
             return 0;
-LABEL_2:
+    LABEL_2:
         ;
     }
     RemoveRefToObject(inst, newValue.u.stringValue);
-    switch ( GetObjectType(inst, newValue.u.stringValue) )
+    switch (GetObjectType(inst, newValue.u.stringValue))
     {
-        case 0xDu:
-        case 0xEu:
-        case 0xFu:
-        case 0x10u:
-            if ( newValue.u.intValue == localId )
+    case 0xDu:
+    case 0xEu:
+    case 0xFu:
+    case 0x10u:
+        if (newValue.u.intValue == localId)
+            goto LABEL_2;
+        break;
+    case 0x11u:
+    case 0x12u:
+    case 0x13u:
+        if (localId)
+        {
+            Self = Scr_GetSelf(inst, localId);
+            if (newValue.u.intValue == Self)
                 goto LABEL_2;
-            break;
-        case 0x11u:
-        case 0x12u:
-        case 0x13u:
-            if ( localId )
-            {
-                Self = Scr_GetSelf(inst, localId);
-                if ( newValue.u.intValue == Self.nextEntId )
-                    goto LABEL_2;
-            }
-            break;
-        default:
-            return 0;
+        }
+        break;
+    default:
+        return 0;
     }
     return 0;
 }
 
 void __cdecl Scr_HitBuiltinBreakpoint(
-                scriptInstance_t inst,
-                VariableValue *top,
-                const char *pos,
-                unsigned int localId,
-                int opcode,
-                int builtinIndex,
-                unsigned int outparamcount)
+    scriptInstance_t inst,
+    VariableValue *top,
+    const char *pos,
+    unsigned int localId,
+    int opcode,
+    int builtinIndex,
+    unsigned int outparamcount)
 {
     Scr_Breakpoint *breakpoint; // [esp+0h] [ebp-10h]
     bool hitBreakpoint; // [esp+7h] [ebp-9h]
     Scr_WatchElement_s *element; // [esp+8h] [ebp-8h]
     bool existsBreakpoint; // [esp+Fh] [ebp-1h]
 
-    if ( !MEMORY[0xA05AB86][116 * inst]
+    if (!gScrVarPub[inst].developer
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8657,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].developer") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8657,
+            0,
+            "%s",
+            "gScrVarPub[inst].developer"))
     {
         __debugbreak();
     }
-    if ( !MEMORY[0xA05AC90][4298 * inst]
+    if (!gScrVmPub[inst].function_count
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8661,
-                    0,
-                    "%s",
-                    "gScrVmPub[inst].function_count") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8661,
+            0,
+            "%s",
+            "gScrVmPub[inst].function_count"))
     {
         __debugbreak();
     }
-    if ( gScrDebuggerGlob[inst].breakpointPos.bufferIndex != -1
+    if (gScrDebuggerGlob[inst].breakpointPos.bufferIndex != -1
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8662,
-                    0,
-                    "%s",
-                    "gScrDebuggerGlob[inst].breakpointPos.bufferIndex == NO_BUFFER_INDEX") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8662,
+            0,
+            "%s",
+            "gScrDebuggerGlob[inst].breakpointPos.bufferIndex == NO_BUFFER_INDEX"))
     {
         __debugbreak();
     }
-    if ( gScrDebuggerGlob[inst].atBreakpoint
+    if (gScrDebuggerGlob[inst].atBreakpoint
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8663,
-                    0,
-                    "%s",
-                    "!gScrDebuggerGlob[inst].atBreakpoint") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8663,
+            0,
+            "%s",
+            "!gScrDebuggerGlob[inst].atBreakpoint"))
     {
         __debugbreak();
     }
     hitBreakpoint = 0;
     existsBreakpoint = 0;
-    MEMORY[0xA05AC98][4298 * inst] = (int)top;
-    MEMORY[0xA05ACA4][4298 * inst] = 0;
-    MEMORY[0xA05ACA8][4298 * inst] = outparamcount;
-    if ( MEMORY[0xA05AB88][116 * inst]
+    gScrVmPub[inst].top = top;
+    gScrVmPub[inst].outparamcount = 0;
+    gScrVmPub[inst].breakpointOutparamcount = outparamcount;
+    if (gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8672,
-                    0,
-                    "%s",
-                    "!gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8672,
+            0,
+            "%s",
+            "!gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 1;
-    for ( element = gScrDebuggerGlob[inst].scriptWatch.elementHead; element; element = element->next )
+    gScrVarPub[inst].evaluate = 1;
+    for (element = gScrDebuggerGlob[inst].scriptWatch.elementHead; element; element = element->next)
     {
         breakpoint = element->breakpoint;
-        if ( breakpoint && !breakpoint->codePos && breakpoint->builtinIndex == builtinIndex )
+        if (breakpoint && !breakpoint->codePos && breakpoint->builtinIndex == builtinIndex)
         {
             existsBreakpoint = 1;
-            if ( Scr_ConditionalExpression(inst, element, localId) )
+            if (Scr_ConditionalExpression(inst, element, localId))
                 hitBreakpoint = 1;
         }
     }
-    if ( !MEMORY[0xA05AB88][116 * inst]
+    if (!gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8691,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8691,
+            0,
+            "%s",
+            "gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 0;
-    if ( !existsBreakpoint
+    gScrVarPub[inst].evaluate = 0;
+    if (!existsBreakpoint
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8694,
-                    0,
-                    "%s",
-                    "existsBreakpoint") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8694,
+            0,
+            "%s",
+            "existsBreakpoint"))
     {
         __debugbreak();
     }
-    if ( hitBreakpoint )
+    if (hitBreakpoint)
         Scr_SpecialBreakpoint(inst, top, pos, localId, opcode, 8);
 }
 
@@ -4285,67 +4327,67 @@ void __cdecl Scr_DebugKillThread(scriptInstance_t inst, unsigned int threadId, c
     Scr_WatchElementNode_s *elementNode; // [esp+Ch] [ebp-8h]
     Scr_WatchElement_s *element; // [esp+10h] [ebp-4h]
 
-    if ( !gScrDebuggerGlob[inst].variableBreakpoints
+    if (!gScrDebuggerGlob[inst].variableBreakpoints
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    8710,
-                    0,
-                    "%s",
-                    "gScrDebuggerGlob[inst].variableBreakpoints") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            8710,
+            0,
+            "%s",
+            "gScrDebuggerGlob[inst].variableBreakpoints"))
     {
         __debugbreak();
     }
     breakpoints = gScrDebuggerGlob[inst].variableBreakpoints[threadId + 1];
-    if ( breakpoints && MEMORY[0xA05AB88][116 * inst] )
+    if (breakpoints && gScrVarPub[inst].evaluate)
     {
         hitBreakpoint = 0;
-        for ( elementNode = breakpoints->list; elementNode; elementNode = elementNode->next )
+        for (elementNode = breakpoints->list; elementNode; elementNode = elementNode->next)
         {
             element = elementNode->element;
-            if ( !elementNode->element->breakpointType
+            if (!elementNode->element->breakpointType
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            8723,
-                            0,
-                            "%s",
-                            "element->breakpointType != SCR_BREAKPOINT_NONE") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                    8723,
+                    0,
+                    "%s",
+                    "element->breakpointType != SCR_BREAKPOINT_NONE"))
             {
                 __debugbreak();
             }
-            if ( (element->breakpointType == 1 || element->breakpointType == 3) && element->objectId == threadId )
+            if ((element->breakpointType == 1 || element->breakpointType == 3) && element->objectId == threadId)
             {
                 enabled = element->breakpointType == 1;
                 Scr_WatchElementHitBreakpoint(element, enabled);
                 element->deadCodePos = codePos;
-                if ( enabled )
+                if (enabled)
                     hitBreakpoint = 1;
             }
         }
-        if ( hitBreakpoint )
+        if (hitBreakpoint)
         {
-            if ( MEMORY[0xA05AC90][4298 * inst] )
+            if (gScrVmPub[inst].function_count)
             {
-                if ( gScrDebuggerGlob[inst].killThreadCodePos )
+                if (gScrDebuggerGlob[inst].killThreadCodePos)
                 {
-                    if ( gScrDebuggerGlob[inst].killThreadCodePos != *(char **)MEMORY[0xA05AC94][4298 * inst]
+                    if (gScrDebuggerGlob[inst].killThreadCodePos != gScrVmPub[inst].function_frame->fs.pos
                         && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                                    8749,
-                                    0,
-                                    "%s",
-                                    "gScrDebuggerGlob[inst].killThreadCodePos == gScrVmPub[inst].function_frame->fs.pos") )
+                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                            8749,
+                            0,
+                            "%s",
+                            "gScrDebuggerGlob[inst].killThreadCodePos == gScrVmPub[inst].function_frame->fs.pos"))
                     {
                         __debugbreak();
                     }
                     Scr_RemoveManualBreakpoint(inst, (unsigned __int8 *)gScrDebuggerGlob[inst].killThreadCodePos);
                     gScrDebuggerGlob[inst].killThreadCodePos = 0;
                 }
-                if ( gScrDebuggerGlob[inst].nextBreakpointCodePos )
+                if (gScrDebuggerGlob[inst].nextBreakpointCodePos)
                     Scr_RemoveManualBreakpoint(inst, (unsigned __int8 *)gScrDebuggerGlob[inst].nextBreakpointCodePos);
-                gScrDebuggerGlob[inst].nextBreakpointCodePos = *(char **)MEMORY[0xA05AC94][4298 * inst];
+                gScrDebuggerGlob[inst].nextBreakpointCodePos = (char *)gScrVmPub[inst].function_frame->fs.pos;
                 Scr_AddManualBreakpoint(inst, (unsigned __int8 *)gScrDebuggerGlob[inst].nextBreakpointCodePos);
                 gScrDebuggerGlob[inst].prevBreakpointLineNum = -1;
-                gScrDebuggerGlob[inst].nextBreakpointThreadId = *(unsigned int *)(MEMORY[0xA05AC94][4298 * inst] + 4);
+                gScrDebuggerGlob[inst].nextBreakpointThreadId = gScrVmPub[inst].function_frame->fs.localId;
             }
             else
             {
@@ -4359,34 +4401,33 @@ void __cdecl Scr_DebugTerminateThread(scriptInstance_t inst, int topThread)
 {
     Scr_DebugKillThread(
         inst,
-        MEMORY[0xA05ACB4][4298 * inst + 6 * topThread],
-        (const char *)MEMORY[0xA05ACB0][4298 * inst + 6 * topThread]);
-    if ( topThread == MEMORY[0xA05AC90][4298 * inst] )
+        gScrVmPub[inst].function_frame_start[topThread].fs.localId,
+        gScrVmPub[inst].function_frame_start[topThread].fs.pos);
+    if (topThread == gScrVmPub[inst].function_count)
     {
-        if ( !gScrDebuggerGlob[inst].kill_thread )
+        if (!gScrDebuggerGlob[inst].kill_thread)
         {
             gScrDebuggerGlob[inst].kill_thread = 1;
-            if ( gScrDebuggerGlob[inst].killThreadCodePos
+            if (gScrDebuggerGlob[inst].killThreadCodePos
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            8778,
-                            0,
-                            "%s",
-                            "!gScrDebuggerGlob[inst].killThreadCodePos") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                    8778,
+                    0,
+                    "%s",
+                    "!gScrDebuggerGlob[inst].killThreadCodePos"))
             {
                 __debugbreak();
             }
-            if ( **(unsigned __int8 **)MEMORY[0xA05AC94][4298 * inst] != 135
-                && **(unsigned __int8 **)MEMORY[0xA05AC94][4298 * inst] != 137 )
+            if (*gScrVmPub[inst].function_frame->fs.pos != 135 && *gScrVmPub[inst].function_frame->fs.pos != 137)
             {
-                gScrDebuggerGlob[inst].killThreadCodePos = *(char **)MEMORY[0xA05AC94][4298 * inst];
+                gScrDebuggerGlob[inst].killThreadCodePos = (char *)gScrVmPub[inst].function_frame->fs.pos;
                 Scr_AddManualBreakpoint(inst, (unsigned __int8 *)gScrDebuggerGlob[inst].killThreadCodePos);
             }
         }
     }
     else
     {
-        MEMORY[0xA05ACB0][4298 * inst + 6 * topThread] = (int)&g_EndPos;
+        gScrVmPub[inst].function_frame_start[topThread].fs.pos = &g_EndPos;
     }
 }
 
@@ -4473,18 +4514,19 @@ void __cdecl Scr_ToggleBreakpointRemote(scriptInstance_t inst)
     overwrite = Sys_ReadDebugSocketInt() != 0;
     breakpointType = Sys_ReadDebugSocketInt();
     user = Sys_ReadDebugSocketInt() != 0;
-    if ( !Sys_IsRemoteDebugServer()
+    if (!Sys_IsRemoteDebugServer()
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    1168,
-                    0,
-                    "%s",
-                    "Sys_IsRemoteDebugServer()") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            1168,
+            0,
+            "%s",
+            "Sys_IsRemoteDebugServer()"))
     {
         __debugbreak();
     }
     Sys_WriteDebugSocketMessageType(0x15u);
-    Scr_ScriptWindow::ToggleBreakpointInternal(scriptWindow, inst, element, force, overwrite, breakpointType, user);
+    //Scr_ScriptWindow::ToggleBreakpointInternal(scriptWindow, inst, element, force, overwrite, breakpointType, user);
+    scriptWindow->ToggleBreakpointInternal(inst, element, force, overwrite, breakpointType, user);
     Sys_EndWriteDebugSocket();
 }
 
@@ -4500,7 +4542,8 @@ void __cdecl Scr_RunToCursorRemote(scriptInstance_t inst)
 
     scriptWindow = (&gScrDebuggerGlob[0].scriptList.scriptWindows)[113 * inst][Sys_ReadDebugSocketInt()];
     scriptWindow->selectedLine = Sys_ReadDebugSocketInt();
-    Scr_ScriptWindow::RunToCursor(scriptWindow, inst);
+    //Scr_ScriptWindow::RunToCursor(scriptWindow, inst);
+    scriptWindow->RunToCursor(inst);
 }
 
 void __cdecl Scr_EnterCallRemote(scriptInstance_t inst)
@@ -4509,7 +4552,8 @@ void __cdecl Scr_EnterCallRemote(scriptInstance_t inst)
 
     scriptWindow = (&gScrDebuggerGlob[0].scriptList.scriptWindows)[113 * inst][Sys_ReadDebugSocketInt()];
     scriptWindow->selectedLine = Sys_ReadDebugSocketInt();
-    Scr_ScriptWindow::EnterCallInternal(scriptWindow, inst);
+    //Scr_ScriptWindow::EnterCallInternal(scriptWindow, inst);
+    scriptWindow->EnterCallInternal(inst);
 }
 
 void __cdecl Scr_ExpandElementRemote(scriptInstance_t inst)
@@ -4519,8 +4563,11 @@ void __cdecl Scr_ExpandElementRemote(scriptInstance_t inst)
 
     element = Scr_ReadElement(inst);
     expand = Sys_ReadDebugSocketInt() != 0;
-    if ( element )
-        Scr_ScriptWatch::ExpandElement(&gScrDebuggerGlob[inst].scriptWatch, inst, element, expand);
+    if (element)
+    {
+        //Scr_ScriptWatch::ExpandElement(&gScrDebuggerGlob[inst].scriptWatch, inst, element, expand);
+        gScrDebuggerGlob[inst].scriptWatch.ExpandElement(inst, element, expand);
+    }
 }
 
 void __cdecl Scr_PasteElementRemote(scriptInstance_t inst)
@@ -4544,14 +4591,13 @@ void __cdecl Scr_PasteElementRemote(scriptInstance_t inst)
         Sys_WriteDebugSocketInt(user);
         Sys_EndWriteDebugSocket();
     }
-    newElement = Scr_ScriptWatch::PasteNonBreakpointElement(
-                                 &gScrDebuggerGlob[inst].scriptWatch,
+    newElement = gScrDebuggerGlob[inst].scriptWatch.PasteNonBreakpointElement(
                                  inst,
                                  element,
                                  text,
                                  user);
     if ( Sys_IsRemoteDebugServer() && type )
-        Scr_ScriptWatch::ToggleBreakpointInternal(&gScrDebuggerGlob[inst].scriptWatch, inst, newElement, type);
+        gScrDebuggerGlob[inst].scriptWatch.ToggleBreakpointInternal(inst, newElement, type);
     FreeString(text, 0, inst);
 }
 
@@ -4566,8 +4612,7 @@ void __cdecl Scr_InsertElementRemote(scriptInstance_t inst)
         Scr_WriteElement(element);
         Sys_EndWriteDebugSocket();
     }
-    Scr_ScriptWatch::PasteNonBreakpointElement(
-        &gScrDebuggerGlob[inst].scriptWatch,
+        gScrDebuggerGlob[inst].scriptWatch.PasteNonBreakpointElement(
         inst,
         element,
         (char *)"",
@@ -4587,7 +4632,8 @@ void __cdecl Scr_DeleteElementRemote(scriptInstance_t inst)
             Scr_WriteElement(element);
             Sys_EndWriteDebugSocket();
         }
-        Scr_ScriptWatch::DeleteElementInternal(&gScrDebuggerGlob[inst].scriptWatch, inst, element);
+        //Scr_ScriptWatch::DeleteElementInternal(&gScrDebuggerGlob[inst].scriptWatch, inst, element);
+        gScrDebuggerGlob[inst].scriptWatch.DeleteElementInternal(inst, element);
     }
 }
 
@@ -4604,7 +4650,8 @@ void __cdecl Scr_BackspaceElementRemote(scriptInstance_t inst)
             Scr_WriteElement(element);
             Sys_EndWriteDebugSocket();
         }
-        Scr_ScriptWatch::BackspaceElementInternal(&gScrDebuggerGlob[inst].scriptWatch, inst, element);
+        //Scr_ScriptWatch::BackspaceElementInternal(&gScrDebuggerGlob[inst].scriptWatch, inst, element);
+        gScrDebuggerGlob[inst].scriptWatch.BackspaceElementInternal(inst, element);
     }
 }
 
@@ -4617,7 +4664,8 @@ void __cdecl Scr_AddTextRemote(scriptInstance_t inst)
     if ( element )
     {
         text = Sys_ReadDebugSocketString();
-        Scr_ScriptWatch::AddElement(&gScrDebuggerGlob[inst].scriptWatch, inst, element, text);
+        //Scr_ScriptWatch::AddElement(&gScrDebuggerGlob[inst].scriptWatch, inst, element, text);
+        gScrDebuggerGlob[inst].scriptWatch.AddElement(inst, element, text);
         FreeString(text, 0, inst);
     }
 }
@@ -4636,9 +4684,13 @@ void __cdecl Scr_CloneElementRemote(scriptInstance_t inst)
             Scr_WriteElement(element);
             Sys_EndWriteDebugSocket();
         }
-        elementa = Scr_ScriptWatch::CloneElement(&gScrDebuggerGlob[inst].scriptWatch, inst, element);
-        if ( Sys_IsRemoteDebugServer() )
-            Scr_ScriptWatch::EvaluateWatchElement(&gScrDebuggerGlob[inst].scriptWatch, inst, elementa);
+        //elementa = Scr_ScriptWatch::CloneElement(&gScrDebuggerGlob[inst].scriptWatch, inst, element);
+        elementa = gScrDebuggerGlob[inst].scriptWatch.CloneElement(inst, element);
+        if (Sys_IsRemoteDebugServer())
+        {
+            //Scr_ScriptWatch::EvaluateWatchElement(&gScrDebuggerGlob[inst].scriptWatch, inst, elementa);
+            gScrDebuggerGlob[inst].scriptWatch.EvaluateWatchElement(inst, elementa);
+        }
     }
 }
 
@@ -4648,7 +4700,7 @@ void __cdecl Scr_DisplayThreadPosRemote(scriptInstance_t inst)
 
     element = Scr_ReadElement(inst);
     if ( element )
-        Scr_ScriptWatch::DisplayThreadPos(&gScrDebuggerGlob[inst].scriptWatch, inst, element);
+        gScrDebuggerGlob[inst].scriptWatch.DisplayThreadPos(inst, element);
 }
 
 void __cdecl Scr_ToggleWatchElementBreakpointRemote(scriptInstance_t inst)
@@ -4659,7 +4711,7 @@ void __cdecl Scr_ToggleWatchElementBreakpointRemote(scriptInstance_t inst)
     element = Scr_ReadElement(inst);
     type = Sys_ReadDebugSocketInt();
     if ( element )
-        Scr_ScriptWatch::ToggleBreakpointInternal(&gScrDebuggerGlob[inst].scriptWatch, inst, element, type);
+        gScrDebuggerGlob[inst].scriptWatch.ToggleBreakpointInternal(inst, element, type);
 }
 
 void __cdecl Scr_KeepAliveRemote(scriptInstance_t inst)
@@ -4766,19 +4818,19 @@ void __cdecl Sys_ConsolePrintRemote(scriptInstance_t inst, int localClientNum)
 
 void __cdecl Scr_UpdateRemoteDebugger(scriptInstance_t inst)
 {
-    if ( !Sys_IsMainThread()
+    if (!Sys_IsMainThread()
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    9144,
-                    0,
-                    "%s",
-                    "Sys_IsMainThread()") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            9144,
+            0,
+            "%s",
+            "Sys_IsMainThread()"))
     {
         __debugbreak();
     }
-    if ( MEMORY[0xA05AB86][116 * inst] && gScrDebuggerGlob[inst].debugger_inited_system && Sys_IsRemoteDebugServer() )
+    if (gScrVarPub[inst].developer && gScrDebuggerGlob[inst].debugger_inited_system && Sys_IsRemoteDebugServer())
     {
-        if ( gScrDebuggerGlob[inst].disableDebuggerRemote )
+        if (gScrDebuggerGlob[inst].disableDebuggerRemote)
         {
             Scr_DisplayDebuggerRemoteInternal(inst);
             gScrDebuggerGlob[inst].disableDebuggerRemote = 0;
@@ -4793,127 +4845,130 @@ void __cdecl Scr_UpdateDebugger(scriptInstance_t inst)
     Scr_WatchElement_s *element; // [esp+1Ch] [ebp-Ch]
     VariableValue newValue; // [esp+20h] [ebp-8h] BYREF
 
-    if ( !MEMORY[0xA05AB86][116 * inst] || !gScrDebuggerGlob[inst].debugger_inited_system )
+    if (!gScrVarPub[inst].developer || !gScrDebuggerGlob[inst].debugger_inited_system)
         return;
-    if ( gScrDebuggerGlob[inst].atBreakpoint
+    if (gScrDebuggerGlob[inst].atBreakpoint
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    9182,
-                    0,
-                    "%s",
-                    "!gScrDebuggerGlob[inst].atBreakpoint") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            9182,
+            0,
+            "%s",
+            "!gScrDebuggerGlob[inst].atBreakpoint"))
     {
         __debugbreak();
     }
-    if ( !Scr_IsStackClear(inst)
+    if (!Scr_IsStackClear(inst)
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    9183,
-                    0,
-                    "%s",
-                    "Scr_IsStackClear(inst)") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            9183,
+            0,
+            "%s",
+            "Scr_IsStackClear(inst)"))
     {
         __debugbreak();
     }
-    if ( !Scr_AllowBreakpoint(inst) )
+    if (!Scr_AllowBreakpoint(inst))
         return;
-    if ( MEMORY[0xA05AB88][116 * inst]
+    if (gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    9203,
-                    0,
-                    "%s",
-                    "!gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            9203,
+            0,
+            "%s",
+            "!gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 1;
+    gScrVarPub[inst].evaluate = 1;
     gScrDebuggerGlob[inst].scriptWatch.localId = 0;
     updateBreakpoints = 0;
     hitBreakpoint = 0;
 retry_14:
-    for ( element = gScrDebuggerGlob[inst].scriptWatch.elementHead; element; element = element->next )
+    for (element = gScrDebuggerGlob[inst].scriptWatch.elementHead; element; element = element->next)
     {
-        if ( element->breakpointType == 1 && element->objectType != 13 && element->objectType != 21 )
+        if (element->breakpointType == 1 && element->objectType != 13 && element->objectType != 21)
         {
-            if ( element->breakpoint
+            if (element->breakpoint
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            9218,
-                            0,
-                            "%s",
-                            "!element->breakpoint") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                    9218,
+                    0,
+                    "%s",
+                    "!element->breakpoint"))
             {
                 __debugbreak();
             }
-            if ( !element->expr.exprHead
+            if (!element->expr.exprHead
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            9220,
-                            0,
-                            "%s",
-                            "expr->exprHead") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                    9220,
+                    0,
+                    "%s",
+                    "expr->exprHead"))
             {
                 __debugbreak();
             }
-            if ( Scr_EvalScriptExpression(inst, &element->expr, 0, &newValue, 1, 1) && !updateBreakpoints )
+            if (Scr_EvalScriptExpression(inst, &element->expr, 0, &newValue, 1, 1) && !updateBreakpoints)
             {
                 Scr_ClearErrorMessage(inst);
                 RemoveRefToValue(inst, newValue.type, newValue.u);
-retry2_0:
+            retry2_0:
                 updateBreakpoints = 1;
-                Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
+                //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
+                gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 0);
                 goto retry_14;
             }
-            if ( MEMORY[0xA05AB8C][29 * inst] )
+            if (gScrVarPub[inst].error_message)
             {
                 Scr_ClearErrorMessage(inst);
                 RemoveRefToValue(inst, newValue.type, newValue.u);
-                if ( !element->valueDefined )
+                if (!element->valueDefined)
                     continue;
-                if ( !updateBreakpoints )
+                if (!updateBreakpoints)
                     goto retry2_0;
             }
-            else if ( Scr_WatchElementHasSameValue(inst, element, &newValue) )
+            else if (Scr_WatchElementHasSameValue(inst, element, &newValue))
             {
                 continue;
             }
-            if ( Scr_ConditionalExpression(inst, element, 0) )
+            if (Scr_ConditionalExpression(inst, element, 0))
                 hitBreakpoint = 1;
         }
     }
-    if ( Sys_IsRemoteDebugServer() )
+    if (Sys_IsRemoteDebugServer())
     {
-        if ( !updateBreakpoints )
+        if (!updateBreakpoints)
         {
             updateBreakpoints = 1;
-            Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
+            //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
+            gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 0);
         }
         Scr_Evaluate(inst);
-        if ( Sys_IsRemoteDebugServer() )
+        if (Sys_IsRemoteDebugServer())
             Scr_ProcessDebugMessages(inst);
     }
-    if ( updateBreakpoints )
-        Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
-    if ( !MEMORY[0xA05AB88][116 * inst]
+    if (updateBreakpoints)
+        gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 1);
+    if (!gScrVarPub[inst].evaluate
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    9274,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].evaluate") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            9274,
+            0,
+            "%s",
+            "gScrVarPub[inst].evaluate"))
     {
         __debugbreak();
     }
-    MEMORY[0xA05AB88][116 * inst] = 0;
-    if ( hitBreakpoint )
+    gScrVarPub[inst].evaluate = 0;
+    if (hitBreakpoint)
     {
-LABEL_51:
+    LABEL_51:
         Scr_StackClear(inst);
-        Scr_ScriptWatch::SortHitBreakpointsTop(&gScrDebuggerGlob[inst].scriptWatch, inst);
+        //Scr_ScriptWatch::SortHitBreakpointsTop(&gScrDebuggerGlob[inst].scriptWatch, inst);
+        gScrDebuggerGlob[inst].scriptWatch.SortHitBreakpointsTop(inst);
         Scr_RunDebugger(inst);
     }
-    else if ( gScrDebuggerGlob[inst].run_debugger )
+    else if (gScrDebuggerGlob[inst].run_debugger)
     {
         gScrDebuggerGlob[inst].run_debugger = 0;
         goto LABEL_51;
@@ -4935,7 +4990,7 @@ char __cdecl Scr_WatchElementHasSameValue(scriptInstance_t inst, Scr_WatchElemen
     oldValue.type = type;
     AddRefToValue(inst, type, oldValue.u);
     Scr_EvalEquality(inst, &oldValue, newValue);
-    if ( MEMORY[0xA05AB8C][29 * inst] )
+    if (gScrVarPub[inst].error_message)
     {
         Scr_ClearErrorMessage(inst);
     }
@@ -4973,11 +5028,11 @@ char __cdecl Scr_WatchElementHasSameValue(scriptInstance_t inst, Scr_WatchElemen
 }
 
 int __cdecl Scr_HitAssignmentBreakpoint(
-                scriptInstance_t inst,
-                VariableValue *top,
-                const char *pos,
-                unsigned int localId,
-                int forceBreak)
+    scriptInstance_t inst,
+    VariableValue *top,
+    const char *pos,
+    unsigned int localId,
+    int forceBreak)
 {
     char *BreakpointInfo; // ecx
     VariableUnion v7; // [esp+4h] [ebp-50h]
@@ -4993,23 +5048,23 @@ int __cdecl Scr_HitAssignmentBreakpoint(
     Scr_WatchElement_s *elementa; // [esp+48h] [ebp-Ch]
     VariableValue newValue; // [esp+4Ch] [ebp-8h] BYREF
 
-    if ( !MEMORY[0xA05AB86][116 * inst]
+    if (!gScrVarPub[inst].developer
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    9307,
-                    0,
-                    "%s",
-                    "gScrVarPub[inst].developer") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            9307,
+            0,
+            "%s",
+            "gScrVarPub[inst].developer"))
     {
         __debugbreak();
     }
-    if ( gScrDebuggerGlob[inst].atBreakpoint
+    if (gScrDebuggerGlob[inst].atBreakpoint
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    9308,
-                    0,
-                    "%s",
-                    "!gScrDebuggerGlob[inst].atBreakpoint") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            9308,
+            0,
+            "%s",
+            "!gScrDebuggerGlob[inst].atBreakpoint"))
     {
         __debugbreak();
     }
@@ -5017,249 +5072,251 @@ int __cdecl Scr_HitAssignmentBreakpoint(
     updateBreakpoints = 0;
     hitBreakpoint = 0;
 retry_15:
-    if ( !gScrDebuggerGlob[inst].variableBreakpoints
+    if (!gScrDebuggerGlob[inst].variableBreakpoints
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                    9315,
-                    0,
-                    "%s",
-                    "gScrDebuggerGlob[inst].variableBreakpoints") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+            9315,
+            0,
+            "%s",
+            "gScrDebuggerGlob[inst].variableBreakpoints"))
     {
         __debugbreak();
     }
     breakpoints = gScrDebuggerGlob[inst].variableBreakpoints[gScrDebuggerGlob[inst].objectId];
-    if ( breakpoints )
+    if (breakpoints)
     {
-        if ( MEMORY[0xA05AB88][116 * inst]
+        if (gScrVarPub[inst].evaluate
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                        9319,
-                        0,
-                        "%s",
-                        "!gScrVarPub[inst].evaluate") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                9319,
+                0,
+                "%s",
+                "!gScrVarPub[inst].evaluate"))
         {
             __debugbreak();
         }
-        MEMORY[0xA05AB88][116 * inst] = 1;
-        MEMORY[0xA05AC98][4298 * inst] = (int)top;
-        for ( elementNode = breakpoints->list; ; elementNode = elementNode->next )
+        gScrVarPub[inst].evaluate = 1;
+        gScrVmPub[inst].top = top;
+        for (elementNode = breakpoints->list; ; elementNode = elementNode->next)
         {
-            if ( !elementNode )
+            if (!elementNode)
             {
-                if ( !MEMORY[0xA05AB88][116 * inst]
+                if (!gScrVarPub[inst].evaluate
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                                9378,
-                                0,
-                                "%s",
-                                "gScrVarPub[inst].evaluate") )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                        9378,
+                        0,
+                        "%s",
+                        "gScrVarPub[inst].evaluate"))
                 {
                     __debugbreak();
                 }
-                MEMORY[0xA05AB88][116 * inst] = 0;
+                gScrVarPub[inst].evaluate = 0;
                 break;
             }
             element = elementNode->element;
-            if ( !elementNode->element->breakpointType
+            if (!elementNode->element->breakpointType
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            9327,
-                            0,
-                            "%s",
-                            "element->breakpointType != SCR_BREAKPOINT_NONE") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                    9327,
+                    0,
+                    "%s",
+                    "element->breakpointType != SCR_BREAKPOINT_NONE"))
             {
                 __debugbreak();
             }
-            if ( element->breakpointType == 1
+            if (element->breakpointType == 1
                 && element->objectType != 13
                 && element->objectType != 21
-                && !element->expr.breakonExpr )
+                && !element->expr.breakonExpr)
             {
-                if ( element->breakpoint
+                if (element->breakpoint
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                                9335,
-                                0,
-                                "%s",
-                                "!element->breakpoint") )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                        9335,
+                        0,
+                        "%s",
+                        "!element->breakpoint"))
                 {
                     __debugbreak();
                 }
-                if ( !element->expr.exprHead
+                if (!element->expr.exprHead
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                                9337,
-                                0,
-                                "%s",
-                                "expr->exprHead") )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                        9337,
+                        0,
+                        "%s",
+                        "expr->exprHead"))
                 {
                     __debugbreak();
                 }
-                if ( Scr_EvalScriptExpression(inst, &element->expr, 0, &newValue, 1, 1) && !updateBreakpoints )
+                if (Scr_EvalScriptExpression(inst, &element->expr, 0, &newValue, 1, 1) && !updateBreakpoints)
                 {
                     Scr_ClearErrorMessage(inst);
                     RemoveRefToValue(inst, newValue.type, newValue.u);
-retry2_1:
+                retry2_1:
                     updateBreakpoints = 1;
-                    Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
-                    Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
-                    if ( !MEMORY[0xA05AB88][116 * inst]
+                    //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 0);
+                    gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 0);
+                    //Scr_ScriptWatch::UpdateBreakpoints(&gScrDebuggerGlob[inst].scriptWatch, inst, 1);
+                    gScrDebuggerGlob[inst].scriptWatch.UpdateBreakpoints(inst, 1);
+                    if (!gScrVarPub[inst].evaluate
                         && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                                    9350,
-                                    0,
-                                    "%s",
-                                    "gScrVarPub[inst].evaluate") )
+                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                            9350,
+                            0,
+                            "%s",
+                            "gScrVarPub[inst].evaluate"))
                     {
                         __debugbreak();
                     }
-                    MEMORY[0xA05AB88][116 * inst] = 0;
+                    gScrVarPub[inst].evaluate = 0;
                     goto retry_15;
                 }
-                if ( MEMORY[0xA05AB8C][29 * inst] )
+                if (gScrVarPub[inst].error_message)
                 {
                     Scr_ClearErrorMessage(inst);
                     RemoveRefToValue(inst, newValue.type, newValue.u);
-                    if ( !element->valueDefined )
+                    if (!element->valueDefined)
                         continue;
-                    if ( !updateBreakpoints )
+                    if (!updateBreakpoints)
                         goto retry2_1;
                 }
-                else if ( Scr_WatchElementHasSameValue(inst, element, &newValue) )
+                else if (Scr_WatchElementHasSameValue(inst, element, &newValue))
                 {
                     continue;
                 }
-                if ( Scr_ConditionalExpression(inst, element, localId) )
+                if (Scr_ConditionalExpression(inst, element, localId))
                     hitBreakpoint = 1;
             }
         }
     }
     BreakpointInfo = Scr_FindBreakpointInfo(inst, pos - 1);
     opcode = (unsigned __int8)*BreakpointInfo;
-    switch ( *BreakpointInfo )
+    switch (*BreakpointInfo)
     {
-        case 0:
-        case 1:
-            gScrDebuggerGlob[inst].objectId = 1;
-            if ( !gScrDebuggerGlob[inst].variableBreakpoints
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            9391,
-                            0,
-                            "%s",
-                            "gScrDebuggerGlob[inst].variableBreakpoints") )
+    case 0:
+    case 1:
+        gScrDebuggerGlob[inst].objectId = 1;
+        if (!gScrDebuggerGlob[inst].variableBreakpoints
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                9391,
+                0,
+                "%s",
+                "gScrDebuggerGlob[inst].variableBreakpoints"))
+        {
+            __debugbreak();
+        }
+        breakpointsa = gScrDebuggerGlob[inst].variableBreakpoints[localId + 1];
+        if (breakpointsa)
+        {
+            for (elementNodea = breakpointsa->list; elementNodea; elementNodea = elementNodea->next)
             {
-                __debugbreak();
-            }
-            breakpointsa = gScrDebuggerGlob[inst].variableBreakpoints[localId + 1];
-            if ( breakpointsa )
-            {
-                for ( elementNodea = breakpointsa->list; elementNodea; elementNodea = elementNodea->next )
+                elementa = elementNodea->element;
+                if (!elementNodea->element->breakpointType
+                    && !Assert_MyHandler(
+                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                        9398,
+                        0,
+                        "%s",
+                        "element->breakpointType != SCR_BREAKPOINT_NONE"))
                 {
-                    elementa = elementNodea->element;
-                    if ( !elementNodea->element->breakpointType
-                        && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                                    9398,
-                                    0,
-                                    "%s",
-                                    "element->breakpointType != SCR_BREAKPOINT_NONE") )
-                    {
-                        __debugbreak();
-                    }
-                    if ( (elementa->breakpointType == 1 || elementa->breakpointType == 3) && elementa->objectId == localId )
-                    {
-                        enabled = elementa->breakpointType == 1;
-                        Scr_WatchElementHitBreakpoint(elementa, enabled);
-                        elementa->deadCodePos = pos;
-                        if ( enabled )
-                            hitBreakpoint = 1;
-                    }
+                    __debugbreak();
+                }
+                if ((elementa->breakpointType == 1 || elementa->breakpointType == 3) && elementa->objectId == localId)
+                {
+                    enabled = elementa->breakpointType == 1;
+                    Scr_WatchElementHitBreakpoint(elementa, enabled);
+                    elementa->deadCodePos = pos;
+                    if (enabled)
+                        hitBreakpoint = 1;
                 }
             }
-            break;
-        case 13:
-        case 43:
-        case 56:
-            gScrDebuggerGlob[inst].objectId = MEMORY[0xA05ABA0][29 * inst] + 1;
-            break;
-        case 14:
-        case 44:
-        case 58:
-            gScrDebuggerGlob[inst].objectId = MEMORY[0xA05ABA8][29 * inst] + 1;
-            break;
-        case 20:
-            gScrDebuggerGlob[inst].objectId = MEMORY[0xA05ABA4][29 * inst] + 0x8000;
-            break;
-        case 33:
-        case 34:
-        case 48:
-        case 49:
-        case 50:
-        case 51:
-        case 54:
-        case 55:
-        case 60:
-        case 61:
-            gScrDebuggerGlob[inst].objectId = localId + 1;
-            break;
-        case 35:
-        case 36:
-        case 46:
-        case 47:
-            break;
-        case 38:
-        case 45:
-        case 59:
-            gScrDebuggerGlob[inst].objectId = *(unsigned int *)&Scr_GetSelf(inst, localId) + 1;
-            break;
-        case 69:
-        case 70:
-        case 71:
-        case 72:
-        case 73:
-        case 74:
-        case 75:
-        case 89:
-            if ( top->type == 1 )
-                v7.intValue = (int)top->u;
-            else
-                v7.intValue = 0;
-            gScrDebuggerGlob[inst].objectId = v7.intValue + 1;
-            break;
-        case 90:
-            if ( MEMORY[0xA05AB88][116 * inst]
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            9451,
-                            0,
-                            "%s",
-                            "!gScrVarPub[inst].evaluate") )
-            {
-                __debugbreak();
-            }
-            MEMORY[0xA05AB88][116 * inst] = 1;
-            gScrDebuggerGlob[inst].objectId = Scr_EvalVariableObject(
-                                                                                    inst,
-                                                                                    gScrVmPub[inst].localVars[-*(unsigned __int8 *)pos])
-                                                                            + 1;
-            if ( !MEMORY[0xA05AB88][116 * inst]
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
-                            9454,
-                            0,
-                            "%s",
-                            "gScrVarPub[inst].evaluate") )
-            {
-                __debugbreak();
-            }
-            MEMORY[0xA05AB88][116 * inst] = 0;
-            break;
-        default:
-            gScrDebuggerGlob[inst].objectId = 1;
-            break;
+        }
+        break;
+    case 13:
+    case 43:
+    case 56:
+        gScrDebuggerGlob[inst].objectId = gScrVarPub[inst].levelId + 1;
+        break;
+    case 14:
+    case 44:
+    case 58:
+        gScrDebuggerGlob[inst].objectId = gScrVarPub[inst].animId + 1;
+        break;
+    case 20:
+        gScrDebuggerGlob[inst].objectId = gScrVarPub[inst].gameId + 0x8000;
+        break;
+    case 33:
+    case 34:
+    case 48:
+    case 49:
+    case 50:
+    case 51:
+    case 54:
+    case 55:
+    case 60:
+    case 61:
+        gScrDebuggerGlob[inst].objectId = localId + 1;
+        break;
+    case 35:
+    case 36:
+    case 46:
+    case 47:
+        break;
+    case 38:
+    case 45:
+    case 59:
+        gScrDebuggerGlob[inst].objectId = Scr_GetSelf(inst, localId) + 1;
+        break;
+    case 69:
+    case 70:
+    case 71:
+    case 72:
+    case 73:
+    case 74:
+    case 75:
+    case 89:
+        if (top->type == 1)
+            v7.intValue = (int)top->u.intValue;
+        else
+            v7.intValue = 0;
+        gScrDebuggerGlob[inst].objectId = v7.intValue + 1;
+        break;
+    case 90:
+        if (gScrVarPub[inst].evaluate
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                9451,
+                0,
+                "%s",
+                "!gScrVarPub[inst].evaluate"))
+        {
+            __debugbreak();
+        }
+        gScrVarPub[inst].evaluate = 1;
+        gScrDebuggerGlob[inst].objectId = Scr_EvalVariableObject(
+            inst,
+            gScrVmPub[inst].localVars[-*(unsigned __int8 *)pos])
+            + 1;
+        if (!gScrVarPub[inst].evaluate
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_debugger.cpp",
+                9454,
+                0,
+                "%s",
+                "gScrVarPub[inst].evaluate"))
+        {
+            __debugbreak();
+        }
+        gScrVarPub[inst].evaluate = 0;
+        break;
+    default:
+        gScrDebuggerGlob[inst].objectId = 1;
+        break;
     }
-    if ( hitBreakpoint || forceBreak )
+    if (hitBreakpoint || forceBreak)
         return Scr_HitBreakpoint(inst, top, pos, localId, hitBreakpoint);
     else
         return opcode;

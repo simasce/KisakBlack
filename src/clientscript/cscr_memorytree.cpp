@@ -140,7 +140,6 @@ int __cdecl MT_GetSubTreeSize(scriptInstance_t inst, int nodeNum)
 
 const char *__cdecl MT_NodeInfoString(scriptInstance_t inst, unsigned int nodeNum)
 {
-    char *v2; // eax
     int v4; // [esp-4h] [ebp-Ch]
     int type; // [esp+4h] [ebp-4h]
 
@@ -148,8 +147,7 @@ const char *__cdecl MT_NodeInfoString(scriptInstance_t inst, unsigned int nodeNu
     if ( !gScrMemTreeDebugGlob[inst].mt_usage[nodeNum] )
         return "<FREE>";
     v4 = (unsigned __int8)byte_9D4A088[0x20000 * inst + nodeNum];
-    v2 = SL_DebugConvertToString(nodeNum, inst);
-    return va("%s: '%s' (%d)", mt_type_names[type], v2, v4);
+    return va("%s: '%s' (%d)", mt_type_names[type], SL_DebugConvertToString(nodeNum, inst), v4);
 }
 
 int __cdecl Scr_GetStringUsage(scriptInstance_t inst)

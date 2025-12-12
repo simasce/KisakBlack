@@ -16,12 +16,18 @@ struct yy_buffer_state // sizeof=0x28
     int yy_buffer_status;
 };
 
+struct stype_t // sizeof=0x8
+{                                       // XREF: .data:stype_t yylval/r
+    sval_u val;                         // XREF: yyparse(void)+381/r
+    unsigned int pos;                   // XREF: yyparse(void)+67/w
+};
+
 int __cdecl yyparse();
 unsigned int __cdecl LowerCase(unsigned int stringValue);
 void __cdecl _yy_memcpy(char *to, char *from, unsigned int count);
 int __cdecl yylex();
 void __cdecl TextValue(char *str, int len);
-sval_u __cdecl HashValue(char *str, int len);
+unsigned int __cdecl HashValue(char *str, int len);
 int __cdecl StringValue(char *str, int len);
 void __cdecl IntegerValue(char *str);
 void __cdecl FloatValue(char *str);

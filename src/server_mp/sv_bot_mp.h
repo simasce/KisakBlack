@@ -9,7 +9,7 @@ void __cdecl Bot_ClearThreat(bot_info_t *botInfo);
 void __cdecl SV_BotPressUseButton(const client_t *bot, int msec);
 void __cdecl SV_BotSetAttacker(const client_t *bot, const gentity_s *attacker);
 void __cdecl SV_BotThink(client_t *bot, usercmd_s *cmd);
-int __cdecl Com_HashString(const char *fname, int len);
+int __cdecl Com_HashString(const char *fname, int len); // KISAKTODO: move somewhere in qcommon
 void __cdecl Bot_UpdateTimedAction(int *timedAction);
 void __cdecl Bot_UpdateSight(bot_info_t *botInfo, const client_t *bot);
 void __cdecl Bot_UpdateThreat(bot_info_t *botInfo, const client_t *bot);

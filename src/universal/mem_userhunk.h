@@ -1,5 +1,7 @@
 #pragma once
 
+#define HF_FIXEDSIZE 4
+
 enum HU_ALLOCATION_SCHEME : __int32
 {                                                                             // XREF: HunkUser/r
     HU_SCHEME_DEFAULT = 0x0,
@@ -77,7 +79,7 @@ void *__cdecl Hunk_UserAlloc(HunkUser *user, int size, int alignment, const char
 void __cdecl Hunk_UserFree(HunkUser *user, void *ptr);
 void __cdecl Hunk_UserReset(HunkUser *user);
 void __cdecl Hunk_UserDestroy(HunkUser *user);
-void __cdecl Hunk_UserSetPos(HunkUserDefault *_user, const char **pos);
+void __cdecl Hunk_UserSetPos(HunkUser *_user, unsigned char *pos);
 char *__cdecl Hunk_CopyString(HunkUser *user, const char *in);
 
 

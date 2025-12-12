@@ -15,11 +15,6 @@
 
 scrEvaluateGlob_t gScrEvaluateGlob[2];
 
-thread_local int g_breakonExpr;
-thread_local unsigned int g_breakonString;
-thread_local int g_breakonHit;
-thread_local unsigned int g_breakonObject;
-
 int g_script_error_level[2];
 int g_script_error[2][33][16];
 
