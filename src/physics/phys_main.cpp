@@ -1266,10 +1266,10 @@ PhysObjUserData * Phys_CreateBodyFromState@<eax>(
             v42 = LODWORD(com_offset.z) ^ _mask__NegFloat_;
             v41 = LODWORD(com_offset.w) ^ _mask__NegFloat_;
             v38 = LODWORD(com_offset.y) ^ _mask__NegFloat_;
-            LODWORD(v39) = LODWORD(com_offset.z) ^ _mask__NegFloat_;
-            LODWORD(v40) = LODWORD(com_offset.w) ^ _mask__NegFloat_;
+            v39 = -com_offset.z;
+            v40 = -com_offset.w;
             p_w = &v102->cg2rb.w;
-            LODWORD(v102->cg2rb.w.x) = LODWORD(com_offset.y) ^ _mask__NegFloat_;
+            v102->cg2rb.w.x = -com_offset.y;
             p_w->y = v39;
             p_w->z = v40;
             phys_full_inverse((int)v118, (phys_mat44 *)&rb2w.w.y, &v102->cg2rb);
@@ -1423,9 +1423,9 @@ void    phys_full_inverse(int a1@<ebp>, phys_mat44 *dest, const phys_mat44 *sour
     {
         phys_transpose(dest, source);
         v10 = phys_multiply(&v11, dest, &source->w);
-        LODWORD(v9) = LODWORD(v10->x) ^ _mask__NegFloat_;
-        LODWORD(v8) = LODWORD(v10->y) ^ _mask__NegFloat_;
-        LODWORD(v7) = LODWORD(v10->z) ^ _mask__NegFloat_;
+        v9 = -v10->x;
+        v8 = -v10->y;
+        v7 = -v10->z;
         v5 = v8;
         v6 = v7;
         p_w = &dest->w;
@@ -5095,7 +5095,7 @@ rigid_body_constraint_ragdoll * Phys_CreateSwivel@<eax>(
         limit = v47->z;
         rigid_body_constraint_ragdoll::set(rbc_ragdoll, (const phys_vec3 *)v64, (const phys_vec3 *)v60);
         min_angle = FLOAT_1_2;
-        LODWORD(v42) = LODWORD(FLOAT_1_2) ^ _mask__NegFloat_;
+        v42 = -FLOAT_1_2;
         if ( *lowStops <= COERCE_FLOAT(LODWORD(FLOAT_1_2) ^ _mask__NegFloat_) )
             v13 = v42;
         else
@@ -5111,9 +5111,9 @@ rigid_body_constraint_ragdoll * Phys_CreateSwivel@<eax>(
         v37 = LODWORD(v44) ^ _mask__NegFloat_;
         v36 = LODWORD(v45) ^ _mask__NegFloat_;
         v35 = LODWORD(limit) ^ _mask__NegFloat_;
-        LODWORD(v34.x) = LODWORD(v44) ^ _mask__NegFloat_;
-        LODWORD(v34.y) = LODWORD(v45) ^ _mask__NegFloat_;
-        LODWORD(v34.z) = LODWORD(limit) ^ _mask__NegFloat_;
+        v34.x = -v44;
+        v34.y = -v45;
+        v34.z = -limit;
         v33 = LODWORD(x) ^ _mask__NegFloat_;
         v32 = LODWORD(y) ^ _mask__NegFloat_;
         v31 = LODWORD(z) ^ _mask__NegFloat_;

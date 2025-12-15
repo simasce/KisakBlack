@@ -2000,7 +2000,7 @@ void gjk_cylinder_t::get_feature(gjk_cylinder_t *this@<ecx>, int a2@<ebp>, phys_
                 __debugbreak();
             }
         }
-        LODWORD(v45[v40]) = LODWORD(v63->halfHeight) ^ _mask__NegFloat_;
+        v45[v40] = -v63->halfHeight;
         v39 = &v63->xform;
         v12 = &v63->xform.w;
         v5 = phys_multiply(&v38, &v63->xform, (const phys_vec3 *)v45);
@@ -2768,7 +2768,7 @@ void __cdecl create_xmodel_gjk_geom(
                                 if ( (i & (1 << j)) != 0 )
                                     obj = geom->halfLengths[j];
                                 else
-                                    LODWORD(v7) = LODWORD(geom->halfLengths[j]) ^ _mask__NegFloat_;
+                                    v7 = -geom->halfLengths[j];
                                 v[j] = obj;
                             }
                             MatrixTransformVector(v, geom->orientation, trasformed_v);
@@ -2848,9 +2848,9 @@ void __cdecl create_xmodel_gjk_geom(
         XModelGetBounds(model, mins, maxs);
         if ( mins[0] == maxs[0] || mins[1] == maxs[1] || mins[2] == maxs[2] )
         {
-            LODWORD(mins[0]) = LODWORD(r_0) ^ _mask__NegFloat_;
-            LODWORD(mins[1]) = LODWORD(r_0) ^ _mask__NegFloat_;
-            LODWORD(mins[2]) = LODWORD(r_0) ^ _mask__NegFloat_;
+            mins[0] = -r_0;
+            mins[1] = -r_0;
+            mins[2] = -r_0;
             maxs[0] = r_0;
             maxs[1] = r_0;
             maxs[2] = r_0;

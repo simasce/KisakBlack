@@ -255,7 +255,7 @@ void __userpurge debug_brush_info_t::add_brush(
         v65.y = 0.0f;
         v65.z = 0.0f;
         v65.w = v71;
-        LODWORD(v66) = LODWORD(v82.x) ^ _mask__NegFloat_;
+        v66 = -v82.x;
         v64 = phys_static_array<plane_lt,512>::add(&v79, 0, "phys array add overflow.");
         phys_vec3::operator=(&v64->n, &v65);
         v64->d = v66;
@@ -267,7 +267,7 @@ void __userpurge debug_brush_info_t::add_brush(
         v57.y = -1.0f;
         v57.z = 0.0f;
         v57.w = v63;
-        LODWORD(v58) = LODWORD(v82.y) ^ _mask__NegFloat_;
+        v58 = -v82.y;
         v56 = phys_static_array<plane_lt,512>::add(&v79, 0, "phys array add overflow.");
         phys_vec3::operator=(&v56->n, &v57);
         v56->d = v58;
@@ -279,7 +279,7 @@ void __userpurge debug_brush_info_t::add_brush(
         v49.y = 0.0f;
         v49.z = -1.0f;
         v49.w = v55;
-        LODWORD(v50) = LODWORD(v82.z) ^ _mask__NegFloat_;
+        v50 = -v82.z;
         v48 = phys_static_array<plane_lt,512>::add(&v79, 0, "phys array add overflow.");
         phys_vec3::operator=(&v48->n, &v49);
         v48->d = v50;
@@ -2464,9 +2464,9 @@ void __cdecl render_collision_tree(const CollisionAabbTree *tree, const float *c
         center[0] = 0.33333334 * center[0];
         center[1] = 0.33333334 * center[1];
         center[2] = 0.33333334 * center[2];
-        LODWORD(mins[0]) = LODWORD(rad) ^ _mask__NegFloat_;
-        LODWORD(mins[1]) = LODWORD(rad) ^ _mask__NegFloat_;
-        LODWORD(mins[2]) = LODWORD(rad) ^ _mask__NegFloat_;
+        mins[0] = -rad;
+        mins[1] = -rad;
+        mins[2] = -rad;
         maxs[0] = rad;
         maxs[1] = rad;
         maxs[2] = rad;

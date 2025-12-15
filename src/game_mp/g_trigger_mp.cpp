@@ -157,8 +157,8 @@ void __cdecl SP_trigger_radius(gentity_s *ent, SpawnVar *spawnVar)
 
 void __cdecl init_trigger_radius(gentity_s *ent, float radius, float height)
 {
-    LODWORD(ent->r.mins[0]) = LODWORD(radius) ^ _mask__NegFloat_;
-    LODWORD(ent->r.mins[1]) = LODWORD(radius) ^ _mask__NegFloat_;
+    ent->r.mins[0] = -radius;
+    ent->r.mins[1] = -radius;
     ent->r.mins[2] = 0.0f;
     ent->r.maxs[0] = radius;
     ent->r.maxs[1] = radius;
@@ -205,8 +205,8 @@ void __cdecl SP_trigger_disk(gentity_s *ent, SpawnVar *spawnVar)
     {
         ent->handler = 4;
         radius = radius + 64.0;
-        LODWORD(ent->r.mins[0]) = LODWORD(radius) ^ _mask__NegFloat_;
-        LODWORD(ent->r.mins[1]) = LODWORD(radius) ^ _mask__NegFloat_;
+        ent->r.mins[0] = -radius;
+        ent->r.mins[1] = -radius;
         ent->r.mins[2] = FLOAT_N100000_0;
         ent->r.maxs[0] = radius;
         ent->r.maxs[1] = radius;

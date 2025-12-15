@@ -683,7 +683,7 @@ void __cdecl VEH_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float *
         if ( (float)(COERCE_FLOAT(LODWORD(maxSpeed) ^ _mask__NegFloat_) - v20) < 0.0 )
             v10 = v21;
         else
-            LODWORD(v10) = LODWORD(maxSpeed) ^ _mask__NegFloat_;
+            v10 = -maxSpeed;
         tgtVel[i] = v10;
         bodyAccel[i] = (float)(tgtVel[i] - veh->phys.bodyVel[i]) / 0.050000001;
         v18 = bodyAccel[i];
@@ -694,7 +694,7 @@ void __cdecl VEH_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float *
         if ( (float)(COERCE_FLOAT(LODWORD(accel) ^ _mask__NegFloat_) - v18) < 0.0 )
             v9 = v19;
         else
-            LODWORD(v9) = LODWORD(accel) ^ _mask__NegFloat_;
+            v9 = -accel;
         bodyAccel[i] = v9;
     }
     if ( move[2] <= 0 )
@@ -717,7 +717,7 @@ void __cdecl VEH_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float *
         if ( (float)(COERCE_FLOAT(LODWORD(info->rotRate) ^ _mask__NegFloat_) - tgtRotVel[1]) < 0.0 )
             v7 = rotRate;
         else
-            LODWORD(v7) = LODWORD(info->rotRate) ^ _mask__NegFloat_;
+            v7 = -info->rotRate;
         tgtRotVel[1] = v7;
         rotAccel[1] = (float)(v7 - veh->phys.rotVel[1]) / 0.050000001;
         v14 = rotAccel[1];
@@ -728,7 +728,7 @@ void __cdecl VEH_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float *
         if ( (float)(COERCE_FLOAT(LODWORD(info->rotAccel) ^ _mask__NegFloat_) - v14) < 0.0 )
             v6 = v15;
         else
-            LODWORD(v6) = LODWORD(info->rotAccel) ^ _mask__NegFloat_;
+            v6 = -info->rotAccel;
         rotAccel[1] = v6;
     }
     else
@@ -762,7 +762,7 @@ void __cdecl VEH_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float *
         if ( (float)(COERCE_FLOAT(LODWORD(info->rotRate) ^ _mask__NegFloat_) - tgtRotVel[1]) < 0.0 )
             v8 = v17;
         else
-            LODWORD(v8) = LODWORD(info->rotRate) ^ _mask__NegFloat_;
+            v8 = -info->rotRate;
         tgtRotVel[1] = v8;
         rotAccel[1] = (float)(v8 - veh->phys.rotVel[1]) / 0.050000001;
     }
@@ -775,7 +775,7 @@ void __cdecl VEH_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float *
     if ( (float)(COERCE_FLOAT(LODWORD(info->rotAccel) ^ _mask__NegFloat_) - *rotAccel) < 0.0 )
         v5 = v13;
     else
-        LODWORD(v5) = LODWORD(info->rotAccel) ^ _mask__NegFloat_;
+        v5 = -info->rotAccel;
     *rotAccel = v5;
     tgtRotVel[2] = 0.0f;
     rotAccel[2] = (float)(0.0 - veh->phys.rotVel[2]) / 0.050000001;
@@ -787,7 +787,7 @@ void __cdecl VEH_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float *
     if ( (float)(COERCE_FLOAT(LODWORD(info->rotAccel) ^ _mask__NegFloat_) - v11) < 0.0 )
         v4 = v12;
     else
-        LODWORD(v4) = LODWORD(info->rotAccel) ^ _mask__NegFloat_;
+        v4 = -info->rotAccel;
     rotAccel[2] = v4;
 }
 
@@ -1123,9 +1123,9 @@ bool __cdecl VEH_ClampPointToBoundingBox(gentity_s *vehicle, const float *point,
     playerOrigin[1] = playerOrigin[1] - vehicle->r.currentOrigin[1];
     playerOrigin[2] = playerOrigin[2] - vehicle->r.currentOrigin[2];
     AnglesToQuat(vehicle->r.currentAngles, vehicleQuat);
-    LODWORD(vehicleInvQuat[0]) = LODWORD(vehicleQuat[0]) ^ _mask__NegFloat_;
-    LODWORD(vehicleInvQuat[1]) = LODWORD(vehicleQuat[1]) ^ _mask__NegFloat_;
-    LODWORD(vehicleInvQuat[2]) = LODWORD(vehicleQuat[2]) ^ _mask__NegFloat_;
+    vehicleInvQuat[0] = -vehicleQuat[0];
+    vehicleInvQuat[1] = -vehicleQuat[1];
+    vehicleInvQuat[2] = -vehicleQuat[2];
     vehicleInvQuat[3] = vehicleQuat[3];
     QuatToAxis(vehicleInvQuat, vehicleInvAxis);
     localPlayerOrigin[0] = (float)(playerOrigin[1] * vehicleInvAxis[1][0])
@@ -1506,9 +1506,9 @@ void __cdecl VEH_SetLinkAngleClamps(
         else if ( info->turretClampPlayerView )
         {
             client->linkAnglesMaxClamp[0] = info->turretViewLimits.vertSpanDown;
-            LODWORD(client->linkAnglesMinClamp[0]) = LODWORD(info->turretViewLimits.vertSpanUp) ^ _mask__NegFloat_;
+            client->linkAnglesMinClamp[0] = -info->turretViewLimits.vertSpanUp;
             client->linkAnglesMaxClamp[1] = info->turretViewLimits.horizSpanLeft;
-            LODWORD(client->linkAnglesMinClamp[1]) = LODWORD(info->turretViewLimits.horizSpanRight) ^ _mask__NegFloat_;
+            client->linkAnglesMinClamp[1] = -info->turretViewLimits.horizSpanRight;
             G_UpdateViewAngleClamp(client, vehicleAngles);
         }
     }
@@ -3846,7 +3846,7 @@ void __cdecl Scr_Vehicle_Init(gentity_s *pSelf)
                     minHeight = minHeight - (float)(0.5 * (float)(radius - diff));
                 }
                 mins = phys->mins;
-                LODWORD(phys->mins[0]) = LODWORD(radius) ^ _mask__NegFloat_;
+                phys->mins[0] = -radius;
                 *((unsigned int *)mins + 1) = LODWORD(radius) ^ _mask__NegFloat_;
                 mins[2] = minHeight;
                 maxs = phys->maxs;
@@ -3875,7 +3875,7 @@ void __cdecl Scr_Vehicle_Init(gentity_s *pSelf)
         }
         radius = sqrtf(radius) + 1.0;
         phys_mins = phys->mins;
-        LODWORD(phys->mins[0]) = LODWORD(radius) ^ _mask__NegFloat_;
+        phys->mins[0] = -radius;
         *((unsigned int *)phys_mins + 1) = LODWORD(radius) ^ _mask__NegFloat_;
         phys_mins[2] = 0.0f;
         phys_maxs = phys->maxs;
@@ -5276,7 +5276,7 @@ void __cdecl VEH_UpdateGunnerAim(gentity_s *ent, int gunnerIndex)
                     if ( (float)(COERCE_FLOAT(LODWORD(weapDef->topArc) ^ _mask__NegFloat_) - pitch) < 0.0 )
                         v7 = bottomArc;
                     else
-                        LODWORD(v7) = LODWORD(weapDef->topArc) ^ _mask__NegFloat_;
+                        v7 = -weapDef->topArc;
                     pitch = v7;
                     pitch = AngleNormalize180(v7 + info->gunnerRestAngles[gunnerIndex][0]);
                     yaw = AngleNormalize180(yaw - info->gunnerRestAngles[gunnerIndex][1]);
@@ -5287,7 +5287,7 @@ void __cdecl VEH_UpdateGunnerAim(gentity_s *ent, int gunnerIndex)
                     if ( (float)(COERCE_FLOAT(LODWORD(weapDef->rightArc) ^ _mask__NegFloat_) - yaw) < 0.0 )
                         v6 = leftArc;
                     else
-                        LODWORD(v6) = LODWORD(weapDef->rightArc) ^ _mask__NegFloat_;
+                        v6 = -weapDef->rightArc;
                     yaw = v6;
                     yaw = AngleNormalize180(v6 + info->gunnerRestAngles[gunnerIndex][1]);
                 }
@@ -5505,9 +5505,9 @@ LABEL_13:
         G_DObjGetWorldBoneIndexMatrix(ent, veh->boneIndex.gunnerTags[gunnerIndex].flash, barrelMtx);
         if ( veh->joltTime == 0.0 || veh->joltTime < 0.64999998 )
         {
-            LODWORD(joltDir[0]) = LODWORD(barrelMtx[0][0]) ^ _mask__NegFloat_;
-            LODWORD(joltDir[1]) = LODWORD(barrelMtx[0][1]) ^ _mask__NegFloat_;
-            LODWORD(joltDir[2]) = LODWORD(barrelMtx[0][2]) ^ _mask__NegFloat_;
+            joltDir[0] = -barrelMtx[0][0];
+            joltDir[1] = -barrelMtx[0][1];
+            joltDir[2] = -barrelMtx[0][2];
             VEH_JoltBody(ent, joltDir, 0.2, 0.0, 0.0);
         }
     }
@@ -6722,7 +6722,7 @@ void __cdecl VEH_UpdateMoveToGoal(gentity_s *ent, const float *goalPos)
         if ( accelVec[2] <= accelMaxDt )
         {
             if ( COERCE_FLOAT(LODWORD(accelMaxDt) ^ _mask__NegFloat_) > accelVec[2] )
-                LODWORD(accelVec[2]) = LODWORD(accelMaxDt) ^ _mask__NegFloat_;
+                accelVec[2] = -accelMaxDt;
         }
         else
         {
@@ -6946,7 +6946,7 @@ void __cdecl VEH_UpdateMoveOrientation(gentity_s *ent, float *desiredDir)
         0.0,
         &veh->phys);
     perpDir[0] = bodyDir_4;
-    LODWORD(perpDir[1]) = LODWORD(bodyDir) ^ _mask__NegFloat_;
+    perpDir[1] = -bodyDir;
     VEH_UpdateAngleAndAngularVel(
         2,
         (float)(veh->phys.maxRollAngle
@@ -7216,7 +7216,7 @@ void __cdecl VEH_CheckHorizontalVelocityToGoal(
         else
         {
             perpDir[0] = phys->vel[1];
-            LODWORD(perpDir[1]) = LODWORD(phys->vel[0]) ^ _mask__NegFloat_;
+            perpDir[1] = -phys->vel[0];
             if ( horizontalDist == 0.0
                 && !Assert_MyHandler(
                             "C:\\projects_pc\\cod\\codsrc\\src\\game\\g_scr_vehicle.cpp",
@@ -7319,7 +7319,7 @@ void __cdecl VEH_CheckVerticalVelocityToGoal(scr_vehicle_s *veh, float verticalD
                 if ( (float)(COERCE_FLOAT(LODWORD(accelerationCap) ^ _mask__NegFloat_) - breakingAccel) < 0.0 )
                     v3 = v4;
                 else
-                    LODWORD(v3) = LODWORD(accelerationCap) ^ _mask__NegFloat_;
+                    v3 = -accelerationCap;
                 veh->phys.vel[2] = (float)(v3 - accelVec[2]) + veh->phys.vel[2];
                 accelVec[2] = v3;
             }
@@ -8909,7 +8909,7 @@ void __cdecl CMD_VEH_SetViewClamp()
             v4 = v12;
         else
             v4 = 0.0f;
-        LODWORD(user->client->linkAnglesMinClamp[1]) = LODWORD(v4) ^ _mask__NegFloat_;
+        user->client->linkAnglesMinClamp[1] = -v4;
         if ( numParam <= 2 )
             v9 = user->client->linkAnglesMaxClamp[1];
         else
@@ -8935,7 +8935,7 @@ void __cdecl CMD_VEH_SetViewClamp()
             v2 = v8;
         else
             v2 = 0.0f;
-        LODWORD(user->client->linkAnglesMinClamp[0]) = LODWORD(v2) ^ _mask__NegFloat_;
+        user->client->linkAnglesMinClamp[0] = -v2;
         if ( numParam <= 4 )
             v5 = user->client->linkAnglesMaxClamp[0];
         else
@@ -9839,9 +9839,9 @@ void __cdecl CMD_VEH_FireWeapon(scr_entref_t entref)
             Scr_Error(v6, 0);
         }
         G_DObjGetWorldBoneIndexMatrix(ent, veh->boneIndex.barrel, barrelMtx);
-        LODWORD(joltDir[0]) = LODWORD(barrelMtx[0][0]) ^ _mask__NegFloat_;
-        LODWORD(joltDir[1]) = LODWORD(barrelMtx[0][1]) ^ _mask__NegFloat_;
-        LODWORD(joltDir[2]) = LODWORD(barrelMtx[0][2]) ^ _mask__NegFloat_;
+        joltDir[0] = -barrelMtx[0][0];
+        joltDir[1] = -barrelMtx[0][1];
+        joltDir[2] = -barrelMtx[0][2];
         VEH_JoltBody(ent, joltDir, 1.0, 0.0, 0.0);
     }
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
@@ -9906,7 +9906,7 @@ void __cdecl CMD_VEH_FireWeapon(scr_entref_t entref)
             if ( (float)(COERCE_FLOAT(LODWORD(wp.weapDef->aimPadding) ^ _mask__NegFloat_) - diffAngles[0]) < 0.0 )
                 v12 = aimPadding;
             else
-                LODWORD(v12) = LODWORD(wp.weapDef->aimPadding) ^ _mask__NegFloat_;
+                v12 = -wp.weapDef->aimPadding;
             diffAngles[0] = v12;
             if ( (float)(diffAngles[1] - wp.weapDef->aimPadding) < 0.0 )
                 v14 = diffAngles[1];
@@ -9915,7 +9915,7 @@ void __cdecl CMD_VEH_FireWeapon(scr_entref_t entref)
             if ( (float)(COERCE_FLOAT(LODWORD(wp.weapDef->aimPadding) ^ _mask__NegFloat_) - diffAngles[1]) < 0.0 )
                 v11 = v14;
             else
-                LODWORD(v11) = LODWORD(wp.weapDef->aimPadding) ^ _mask__NegFloat_;
+                v11 = -wp.weapDef->aimPadding;
             diffAngles[1] = v11;
             diffAngles[2] = 0.0f;
             AnglesSubtract(gunAngles, diffAngles, gunAngles);
@@ -9936,7 +9936,7 @@ void __cdecl CMD_VEH_FireWeapon(scr_entref_t entref)
         wp.up[2] = flashMtx[2][2];
         if ( (veh->turret.flags & 1) != 0 )
         {
-            LODWORD(v13) = LODWORD(veh->turret.barrelOffset) ^ _mask__NegFloat_;
+            v13 = -veh->turret.barrelOffset;
             wp.muzzleTrace[0] = (float)(v13 * wp.gunForward[0]) + flashMtx[3][0];
             wp.muzzleTrace[1] = (float)(v13 * wp.gunForward[1]) + flashMtx[3][1];
             wp.muzzleTrace[2] = (float)(v13 * wp.gunForward[2]) + flashMtx[3][2];

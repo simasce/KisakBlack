@@ -821,8 +821,8 @@ void __cdecl BG_CalculateWeaponMovement_Sway(weaponState_t *ws)
         }
         else
         {
-            //LODWORD(v2) = LODWORD(swayMaxAngle) ^ _mask__NegFloat_;
-            //LODWORD(v2) = LODWORD(swayMaxAngle) ^ _mask__NegFloat_;
+            //v2 = -swayMaxAngle;
+            //v2 = -swayMaxAngle;
             v2 = -swayMaxAngle;
         }
         deltaViewAngles[0] = v2;
@@ -839,7 +839,7 @@ void __cdecl BG_CalculateWeaponMovement_Sway(weaponState_t *ws)
         }
         else
         {
-            //LODWORD(v1) = LODWORD(swayMaxAngle) ^ _mask__NegFloat_;
+            //v1 = -swayMaxAngle;
             v1 = -swayMaxAngle;
         }
 

@@ -200,7 +200,7 @@ void __userpurge phys_gjk_cache_info::update_swapped(phys_gjk_cache_info *this@<
         m_flags = v8->m_flags;
         if ( (v8->m_flags & 4) != 0 )
         {
-            LODWORD(v6) = LODWORD(v8->m_support_dir.x) ^ _mask__NegFloat_;
+            v6 = -v8->m_support_dir.x;
             v5 = LODWORD(v8->m_support_dir.y) ^ _mask__NegFloat_;
             v4 = LODWORD(v8->m_support_dir.z) ^ _mask__NegFloat_;
             *(float *)&v3[48] = v6;
@@ -2396,7 +2396,7 @@ bool    is_walkable@<al>(
     for ( j = 0; j < 3; ++j )
     {
         LODWORD(v27) = *((unsigned int *)&hit_point_loc->x + j) ^ _mask__NegFloat_;
-        LODWORD(v26) = LODWORD(brush->mins[j]) ^ _mask__NegFloat_;
+        v26 = -brush->mins[j];
         LODWORD(v25) = *((unsigned int *)&up_loc->x + j) ^ _mask__NegFloat_;
         v24 = FLOAT_0_99900001;
         v23 = v27 >= (float)(0.99900001 * v26) || (float)(v24 * v27) >= v26;

@@ -987,7 +987,7 @@ void __cdecl CM_ClipMoveToEntities_r(
                     if ( diff < 0.0 )
                         v7 = p[node->tree.axis] - node->tree.dist;
                     else
-                        LODWORD(v7) = LODWORD(t1) ^ _mask__NegFloat_;
+                        v7 = -t1;
                     frac2 = (float)(v7 - offset) * (float)(1.0 / absDiff);
                     frac = (float)(v7 + offset) * (float)(1.0 / absDiff);
                     side = diff >= 0.0;
@@ -1116,7 +1116,7 @@ int __cdecl CM_ClipSightTraceToEntities_r(
             if ( diff < 0.0 )
                 v7 = p[node->tree.axis] - node->tree.dist;
             else
-                LODWORD(v7) = LODWORD(t1) ^ _mask__NegFloat_;
+                v7 = -t1;
             frac2 = (float)(v7 - offset) * (float)(1.0 / absDiff);
             frac = (float)(v7 + offset) * (float)(1.0 / absDiff);
             side = diff >= 0.0;

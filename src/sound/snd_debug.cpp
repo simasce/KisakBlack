@@ -259,7 +259,7 @@ void __cdecl RelativeToListener(const snd_listener *listener, float yaw, float p
     float sndDir[3]; // [esp+Ch] [ebp-18h] BYREF
     float clientAngles[3]; // [esp+18h] [ebp-Ch] BYREF
 
-    LODWORD(inputAngles[0]) = LODWORD(pitch) ^ _mask__NegFloat_;
+    inputAngles[0] = -pitch;
     inputAngles[2] = 0.0f;
     AxisToAngles(listener->orient.axis, clientAngles);
     inputAngles[1] = COERCE_FLOAT(LODWORD(yaw) ^ _mask__NegFloat_) + clientAngles[1];

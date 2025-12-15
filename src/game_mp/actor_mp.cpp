@@ -3719,7 +3719,7 @@ bool __fastcall Actor_FindPathToGoalDirectInternal(actor_s *self)
     if ( !pNodeTo )
         return 0;
     perp[0] = self->Path.lookaheadDir[1];
-    LODWORD(perp[1]) = LODWORD(self->Path.lookaheadDir[0]) ^ _mask__NegFloat_;
+    perp[1] = -self->Path.lookaheadDir[0];
     if ( self->sideMove < 0.0 )
         LODWORD(sideMove) ^= _mask__NegFloat_;
     vNewGoalPos[0] = (float)(sideMove * perp[0]) + self->codeGoal.pos[0];
@@ -4721,7 +4721,7 @@ void __fastcall Actor_UpdateMoveHistory(actor_s *self)
     else
         v1 = moveHistoryIndex - 1;
     index3 = v1 - 1;
-    LODWORD(perp_4) = LODWORD(self->moveHistory[index2][0]) ^ _mask__NegFloat_;
+    perp_4 = -self->moveHistory[index2][0];
     if ( (float)((float)((float)(self->moveHistory[index2][1] * *((float *)&self->pCloseEnt.infoIndex + 2 * v1))
                                          + (float)(perp_4 * self->moveHistory[v1 - 1][1]))
                          * (float)((float)(self->moveHistory[index2][1] * self->moveHistory[index][0])
@@ -4911,7 +4911,7 @@ void __userpurge Path_UpdateMovementDelta(actor_s *self@<ecx>, float fMoveDist)
     if ( self_->sideMove != 0.0 && !Path_CompleteLookahead(pPath_) )
     {
         vNewDir[1] = perp[1];
-        LODWORD(vNewDir[2]) = LODWORD(perp[0]) ^ _mask__NegFloat_;
+        vNewDir[2] = -perp[0];
         vNewDir[0] = pPath_->fLookaheadDist;
         maxSideMove[0] = vNewDir[0] * perp[0];
         maxSideMove[1] = vNewDir[0] * perp[1];

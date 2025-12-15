@@ -3078,8 +3078,8 @@ char    BG_CheckProne(
         LODWORD(vMins[0]) = &loc_810011;
     if ( !isAlreadyProne )
     {
-        LODWORD(vMaxs[0]) = LODWORD(fSize) ^ _mask__NegFloat_;
-        LODWORD(vMaxs[1]) = LODWORD(fSize) ^ _mask__NegFloat_;
+        vMaxs[0] = -fSize;
+        vMaxs[1] = -fSize;
         vMaxs[2] = 0.0f;
         vStart[0] = fSize;
         vStart[1] = fSize;

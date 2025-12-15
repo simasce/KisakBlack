@@ -430,8 +430,8 @@ void __cdecl CG_SP_trigger_radius(int localClientNum, centity_s *ent, char spawn
     }
     if ( CG_InitTrigger(localClientNum, ent) )
     {
-        LODWORD(ent->pose.turret.barrelPitch) = LODWORD(radius) ^ _mask__NegFloat_;
-        LODWORD(ent->pose.player.waterHeight) = LODWORD(radius) ^ _mask__NegFloat_;
+        ent->pose.turret.barrelPitch = -radius;
+        ent->pose.player.waterHeight = -radius;
         ent->pose.player.nextWaterHeightCheck = 0;
         ent->pose.turret.firingOffset = radius;
         ent->pose.general.maxs[1] = radius;

@@ -43,7 +43,7 @@ void __cdecl P_DamageFeedback(gentity_s *player)
             if ( client->damage_fromWorld )
             {
                 client->v_dmg_roll = 0.0f;
-                LODWORD(client->v_dmg_pitch) = LODWORD(kick) ^ _mask__NegFloat_;
+                client->v_dmg_pitch = -kick;
                 client->ps.damagePitch = 255;
                 client->ps.damageYaw = 255;
                 client->damage_fromWorld = 0;
@@ -1161,8 +1161,8 @@ void __cdecl G_PlayerVehiclePositionAndBlend(gentity_s *ent, gentity_s *pTurretE
                             v12[1] = ent->r.currentOrigin[1];
                             v12[2] = ent->r.currentOrigin[2];
                             BG_PlayerStateToEntityState(&ent->client->ps, &ent->s, 1, 1u);
-                            LODWORD(ent->r.mins[0]) = LODWORD(gunnerXYradius) ^ _mask__NegFloat_;
-                            LODWORD(ent->r.mins[1]) = LODWORD(gunnerXYradius) ^ _mask__NegFloat_;
+                            ent->r.mins[0] = -gunnerXYradius;
+                            ent->r.mins[1] = -gunnerXYradius;
                             ent->r.mins[2] = 0.0f;
                             ent->r.maxs[0] = gunnerXYradius;
                             ent->r.maxs[1] = gunnerXYradius;

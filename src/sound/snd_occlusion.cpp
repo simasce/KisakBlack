@@ -48,7 +48,7 @@ double __cdecl SND_LosOcclusionTrace(bool fancy, int *cache, const float *listen
         if ( Vec3Normalize(to) >= 0.0000152879 )
         {
             side[0] = to[1];
-            LODWORD(side[1]) = LODWORD(to[0]) ^ _mask__NegFloat_;
+            side[1] = -to[0];
             side[2] = 0.0f;
             Snd_LosOcclusionMultiTrace(
                 cache,

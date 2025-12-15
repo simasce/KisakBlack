@@ -868,7 +868,7 @@ LABEL_16:
         *p2 = (float)(l1 * v[0]) + *p1;
         p2[1] = (float)(l1 * v[1]) + p1[1];
         p2[2] = (float)(l1 * v[2]) + p1[2];
-        LODWORD(v2) = LODWORD(l1) ^ _mask__NegFloat_;
+        v2 = -l1;
         *p1 = (float)(COERCE_FLOAT(LODWORD(l1) ^ _mask__NegFloat_) * v[0]) + temp;
         p1[1] = (float)(v2 * v[1]) + temp_4;
         p1[2] = (float)(v2 * v[2]) + temp_8;

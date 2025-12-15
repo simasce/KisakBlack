@@ -102,7 +102,7 @@ void __cdecl CM_BuildAxialPlanes(const cbrush_t *brush, float (*axialPlanes)[4])
     float v6; // [esp+24h] [ebp-8h]
     float v7; // [esp+28h] [ebp-4h]
 
-    LODWORD(v7) = LODWORD(brush->mins[0]) ^ _mask__NegFloat_;
+    v7 = -brush->mins[0];
     (*axialPlanes)[0] = -1.0f;
     (*axialPlanes)[1] = 0.0f;
     (*axialPlanes)[2] = 0.0f;
@@ -112,7 +112,7 @@ void __cdecl CM_BuildAxialPlanes(const cbrush_t *brush, float (*axialPlanes)[4])
     (*axialPlanes)[5] = 0.0f;
     (*axialPlanes)[6] = 0.0f;
     (*axialPlanes)[7] = v6;
-    LODWORD(v5) = LODWORD(brush->mins[1]) ^ _mask__NegFloat_;
+    v5 = -brush->mins[1];
     (*axialPlanes)[8] = 0.0f;
     (*axialPlanes)[9] = -1.0f;
     (*axialPlanes)[10] = 0.0f;
@@ -122,7 +122,7 @@ void __cdecl CM_BuildAxialPlanes(const cbrush_t *brush, float (*axialPlanes)[4])
     (*axialPlanes)[13] = 1.0f;
     (*axialPlanes)[14] = 0.0f;
     (*axialPlanes)[15] = v4;
-    LODWORD(v3) = LODWORD(brush->mins[2]) ^ _mask__NegFloat_;
+    v3 = -brush->mins[2];
     (*axialPlanes)[16] = 0.0f;
     (*axialPlanes)[17] = 0.0f;
     (*axialPlanes)[18] = -1.0f;

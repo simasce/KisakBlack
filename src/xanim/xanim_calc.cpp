@@ -780,7 +780,7 @@ void __cdecl XAnimCalcNonLoopEnd(
                                                                  + (float)(0.0 * rotTransArray[modelPartIndex].quat[1]))
                                                  + (float)(frameVec.v[2] * rotTransArray[modelPartIndex].quat[2]))
                                  + (float)(frameVec.v[3] * rotTransArray[modelPartIndex].quat[3])) < 0.0 )
-                LODWORD(scale) = LODWORD(weightScale) ^ _mask__NegFloat_;
+                scale = -weightScale;
             Vec4Mad(rotTransArray[modelPartIndex].quat, scale, frameVec.v, rotTransArray[modelPartIndex].quat);
         }
         ++animPartIndex;
@@ -826,7 +826,7 @@ void __cdecl XAnimCalcNonLoopEnd(
                                                                  + (float)(v32 * rotTransArray[modelPartIndex].quat[1]))
                                                  + (float)(v33 * rotTransArray[modelPartIndex].quat[2]))
                                  + (float)(v34 * rotTransArray[modelPartIndex].quat[3])) < 0.0 )
-                LODWORD(v13) = LODWORD(weightScale) ^ _mask__NegFloat_;
+                v13 = -weightScale;
             Vec4Mad(rotTransArray[modelPartIndex].quat, v13, &dir, rotTransArray[modelPartIndex].quat);
         }
         ++animPartIndex;
@@ -858,7 +858,7 @@ void __cdecl XAnimCalcNonLoopEnd(
                                                                  + (float)(0.0 * rotTransArray[modelPartIndex].quat[1]))
                                                  + (float)(v29 * rotTransArray[modelPartIndex].quat[2]))
                                  + (float)(v30 * rotTransArray[modelPartIndex].quat[3])) < 0.0 )
-                LODWORD(v12) = LODWORD(weightScale) ^ _mask__NegFloat_;
+                v12 = -weightScale;
             Vec4Mad(rotTransArray[modelPartIndex].quat, v12, v28, rotTransArray[modelPartIndex].quat);
         }
         ++animPartIndex;
@@ -890,7 +890,7 @@ void __cdecl XAnimCalcNonLoopEnd(
                                                                  + (float)(v25 * rotTransArray[modelPartIndex].quat[1]))
                                                  + (float)(v26 * rotTransArray[modelPartIndex].quat[2]))
                                  + (float)(v27 * rotTransArray[modelPartIndex].quat[3])) < 0.0 )
-                LODWORD(v11) = LODWORD(weightScale) ^ _mask__NegFloat_;
+                v11 = -weightScale;
             Vec4Mad(rotTransArray[modelPartIndex].quat, v11, &v24, rotTransArray[modelPartIndex].quat);
         }
         ++animPartIndex;
@@ -1185,10 +1185,10 @@ void __cdecl XAnimMadRotTransArray(
             }
             else
             {
-                LODWORD(addQuat) = LODWORD(rotTrans->quat[0]) ^ _mask__NegFloat_;
-                LODWORD(addQuat_4) = LODWORD(rotTrans->quat[1]) ^ _mask__NegFloat_;
-                LODWORD(addQuat_8) = LODWORD(rotTrans->quat[2]) ^ _mask__NegFloat_;
-                LODWORD(addQuat_12) = LODWORD(rotTrans->quat[3]) ^ _mask__NegFloat_;
+                addQuat = -rotTrans->quat[0];
+                addQuat_4 = -rotTrans->quat[1];
+                addQuat_8 = -rotTrans->quat[2];
+                addQuat_12 = -rotTrans->quat[3];
             }
             *(float *)&r = Vec4LengthSq(rotTrans->quat);
             if ( *(float *)&r != 0.0 )

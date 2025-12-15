@@ -703,8 +703,8 @@ gentity_s * Weapon_RocketLauncher_Fire@<eax>(
     LODWORD(kickBack[0]) = G_FireRocket(ent, weaponIndex, &kickBack[1], &v17, gunVel, target, targetOffset);
     if ( ent->client && wp->weapDef->fireType )
     {
-        LODWORD(v12) = LODWORD(wp->forward[1]) ^ _mask__NegFloat_;
-        LODWORD(v13) = LODWORD(wp->forward[2]) ^ _mask__NegFloat_;
+        v12 = -wp->forward[1];
+        v13 = -wp->forward[2];
         if ( v13 > 0.0 )
             v13 = 0.0f;
         velocity = ent->client->ps.velocity;
@@ -1460,8 +1460,8 @@ void __cdecl DeployWeapon(gentity_s *ent)
             traceEnd[0] = tracedLedgePos[0];
             traceEnd[1] = tracedLedgePos[1];
             traceEnd[2] = tracedLedgePos[2] - traceOffset;
-            LODWORD(mins[0]) = LODWORD(traceWidth) ^ _mask__NegFloat_;
-            LODWORD(mins[1]) = LODWORD(traceWidth) ^ _mask__NegFloat_;
+            mins[0] = -traceWidth;
+            mins[1] = -traceWidth;
             mins[2] = 0.0f;
             maxs[0] = traceWidth;
             maxs[1] = traceWidth;
@@ -1504,8 +1504,8 @@ void __cdecl DeployWeapon(gentity_s *ent)
             }
             if ( trace.fraction <= 0.0 || trace.fraction >= 1.0 )
             {
-                LODWORD(mins[0]) = LODWORD(traceOffset) ^ _mask__NegFloat_;
-                LODWORD(mins[1]) = LODWORD(traceOffset) ^ _mask__NegFloat_;
+                mins[0] = -traceOffset;
+                mins[1] = -traceOffset;
                 mins[2] = 0.0f;
                 maxs[0] = traceOffset;
                 maxs[1] = traceOffset;

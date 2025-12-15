@@ -3219,7 +3219,7 @@ void __userpurge gjk_polygon_cylinder_t::support(
         {
             LODWORD(support_ind->x) = LODWORD(foot_or_head_z) + 12;
             si_ = COERCE_FLOAT(LODWORD(disc_z->m_half_height) ^ _mask__NegFloat_) + disc_z->m_foot_offset;
-            LODWORD(co_) = LODWORD(disc_z->m_half_height) ^ _mask__NegFloat_;
+            co_ = -disc_z->m_half_height;
             v20 = 25;
         }
         else
@@ -3537,7 +3537,7 @@ void __userpurge gjk_polygon_cylinder_t::calc_aabb(
     *(float *)&v37[1] = v39;
     v37[2] = LODWORD(top.w);
     v36 = &xform->z;
-    LODWORD(v35) = LODWORD(v43->m_half_height) ^ _mask__NegFloat_;
+    v35 = -v43->m_half_height;
     v34 = v35 * xform->z.x;
     v33 = v35 * xform->z.y;
     v32 = v35 * xform->z.z;
@@ -3627,9 +3627,9 @@ void __cdecl gjk_polygon_cylinder_t::calc_disc_aabb(
     aabb_max->x = radius * sqrtf(v7 + v6);
     aabb_max->y = radius * sqrtf(v8 + v6);
     aabb_max->z = radius * sqrtf(v8 + v7);
-    LODWORD(v4) = LODWORD(aabb_max->y) ^ _mask__NegFloat_;
-    LODWORD(v5) = LODWORD(aabb_max->z) ^ _mask__NegFloat_;
-    LODWORD(aabb_min->x) = LODWORD(aabb_max->x) ^ _mask__NegFloat_;
+    v4 = -aabb_max->y;
+    v5 = -aabb_max->z;
+    aabb_min->x = -aabb_max->x;
     aabb_min->y = v4;
     aabb_min->z = v5;
 }
@@ -4349,7 +4349,7 @@ int __cdecl PM_SlideMove(pmove_t *pm, pml_t *pml, int gravity)
                 if ( into < 0.1 )
                 {
                     if ( COERCE_FLOAT(LODWORD(into) ^ _mask__NegFloat_) > pml->impactSpeed )
-                        LODWORD(pml->impactSpeed) = LODWORD(into) ^ _mask__NegFloat_;
+                        pml->impactSpeed = -into;
                     PM_ClipVelocity(ps->velocity, planes[permutation[0]], clipVelocity);
                     PM_ClipVelocity(endVelocity, planes[permutation[0]], endClipVelocity);
                     for ( j = 1; j < numplanes; ++j )

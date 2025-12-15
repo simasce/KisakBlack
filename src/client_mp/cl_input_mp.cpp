@@ -42,7 +42,7 @@ void __cdecl IN_CenterView()
     if ( CL_GetLocalClientConnectionState(0) >= 6 )
     {
         LocalClientGlobals = CL_GetLocalClientGlobals(0);
-        LODWORD(LocalClientGlobals->viewangles[0]) = LODWORD(LocalClientGlobals->snap.ps.delta_angles[0]) ^ _mask__NegFloat_;
+        LocalClientGlobals->viewangles[0] = -LocalClientGlobals->snap.ps.delta_angles[0];
     }
 }
 
@@ -961,7 +961,7 @@ void __cdecl CL_MouseMove(int localClientNum, usercmd_s *cmd)
                         if ( (float)(COERCE_FLOAT(LODWORD(cap) ^ _mask__NegFloat_) - v9) < 0.0 )
                             v5 = v9;
                         else
-                            LODWORD(v5) = LODWORD(cap) ^ _mask__NegFloat_;
+                            v5 = -cap;
                         delta = v5;
                     }
                     LocalClientGlobals->viewangles[1] = LocalClientGlobals->viewangles[1] - delta;
@@ -984,7 +984,7 @@ void __cdecl CL_MouseMove(int localClientNum, usercmd_s *cmd)
                         if ( (float)(COERCE_FLOAT(LODWORD(cap) ^ _mask__NegFloat_) - v8) < 0.0 )
                             v3 = v8;
                         else
-                            LODWORD(v3) = LODWORD(cap) ^ _mask__NegFloat_;
+                            v3 = -cap;
                         deltaa = v3;
                     }
                     LocalClientGlobals->viewangles[0] = LocalClientGlobals->viewangles[0] + deltaa;

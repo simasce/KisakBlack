@@ -700,7 +700,7 @@ void __cdecl FX_AnglesToOrientedAxis(float *anglesInRad, const orientation_t *or
     sr = sin(v3);
     localDir[0] = cp * cy;
     localDir[1] = cp * sy;
-    LODWORD(localDir[2]) = LODWORD(v9) ^ _mask__NegFloat_;
+    localDir[2] = -v9;
     FX_OrientationDirToWorldDir(orient, localDir, (float *)axisOut);
     localDir[0] = (float)((float)(sr * v9) * cy) - (float)(cr * sy);
     localDir[1] = (float)((float)(sr * v9) * sy) + (float)(cr * cy);

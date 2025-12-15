@@ -330,7 +330,7 @@ void __thiscall NitrousVehicleController::UpdateControlsStrafeMode(
         }
         else
         {
-            LODWORD(forwardPreference) = LODWORD(vec[0]) ^ _mask__NegFloat_;
+            forwardPreference = -vec[0];
         }
     }
     if ( rbveh->m_vehicle_info->type != 2 )

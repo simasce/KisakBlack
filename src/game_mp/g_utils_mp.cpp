@@ -1244,9 +1244,9 @@ void __cdecl G_SetPlayerFixedLink(gentity_s *ent)
             if ( client->prevLinkAnglesSet )
             {
                 QuatMultiply(client->prevLinkedInvQuat, worldQuat, linkChangeQuat);
-                LODWORD(client->prevLinkedInvQuat[0]) = LODWORD(worldQuat[0]) ^ _mask__NegFloat_;
-                LODWORD(client->prevLinkedInvQuat[1]) = LODWORD(worldQuat[1]) ^ _mask__NegFloat_;
-                LODWORD(client->prevLinkedInvQuat[2]) = LODWORD(worldQuat[2]) ^ _mask__NegFloat_;
+                client->prevLinkedInvQuat[0] = -worldQuat[0];
+                client->prevLinkedInvQuat[1] = -worldQuat[1];
+                client->prevLinkedInvQuat[2] = -worldQuat[2];
                 client->prevLinkedInvQuat[3] = worldQuat[3];
                 memset(identQuat, 0, 12);
                 identQuat[3] = 1.0f;
@@ -1255,9 +1255,9 @@ void __cdecl G_SetPlayerFixedLink(gentity_s *ent)
             else
             {
                 client->prevLinkAnglesSet = 1;
-                LODWORD(client->prevLinkedInvQuat[0]) = LODWORD(worldQuat[0]) ^ _mask__NegFloat_;
-                LODWORD(client->prevLinkedInvQuat[1]) = LODWORD(worldQuat[1]) ^ _mask__NegFloat_;
-                LODWORD(client->prevLinkedInvQuat[2]) = LODWORD(worldQuat[2]) ^ _mask__NegFloat_;
+                client->prevLinkedInvQuat[0] = -worldQuat[0];
+                client->prevLinkedInvQuat[1] = -worldQuat[1];
+                client->prevLinkedInvQuat[2] = -worldQuat[2];
                 client->prevLinkedInvQuat[3] = worldQuat[3];
                 memset(linkChangeQuat, 0, 12);
                 linkChangeQuat[3] = 1.0f;

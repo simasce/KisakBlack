@@ -1798,7 +1798,7 @@ void __cdecl R_WaterSimulationSimpleDisplace(const float *hitpos, float radius, 
         if ( (float)(COERCE_FLOAT(LODWORD(max_plop_height) ^ _mask__NegFloat_) - height) < 0.0 )
             v3 = v5;
         else
-            LODWORD(v3) = LODWORD(max_plop_height) ^ _mask__NegFloat_;
+            v3 = -max_plop_height;
         size = (int)(float)(v4 / config.gridScale);
         heighta = v3 / config.gridScale;
         if ( ConvertWorldToGrid(hitpos, &sx, &sy) )

@@ -158,7 +158,7 @@ void    R_SetLightProperties(
         sAdd = 1.0 / (float)(sMul - farEdge);
     v71 = sAdd;
     if ( farEdge == sMul )
-        LODWORD(v6) = LODWORD(farEdge) ^ _mask__NegFloat_;
+        v6 = -farEdge;
     else
         v6 = COERCE_FLOAT(LODWORD(farEdge) ^ _mask__NegFloat_) * (float)(1.0 / (float)(sMul - farEdge));
     eMul = v6;

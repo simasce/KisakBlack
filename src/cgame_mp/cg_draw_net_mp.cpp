@@ -50,7 +50,7 @@ void __cdecl CG_DrawLagometer(int localClientNum)
             {
                 if ( v < 0.0 )
                 {
-                    LODWORD(va) = LODWORD(v) ^ _mask__NegFloat_;
+                    va = -v;
                     if ( va > range )
                         va = 48.0 / 3.0;
                     CL_DrawStretchPic(

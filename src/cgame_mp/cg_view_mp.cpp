@@ -998,7 +998,7 @@ void __cdecl CG_UpdateVehicleKillCam(int localClientNum)
     v2[2] = delta[2];
     Vec3Cross(cgameGlob->refdef.viewaxis[0], cgameGlob->refdef.viewaxis[1], cgameGlob->refdef.viewaxis[2]);
     Vec3Normalize(cgameGlob->refdef.viewaxis[2]);
-    LODWORD(v1) = LODWORD(info->killcamDist) ^ _mask__NegFloat_;
+    v1 = -info->killcamDist;
     origin[0] = (float)(v1 * delta[0]) + origin[0];
     origin[1] = (float)(v1 * delta[1]) + origin[1];
     origin[2] = (float)(v1 * delta[2]) + origin[2];
@@ -1287,7 +1287,7 @@ void __cdecl CG_UpdateDestructibleKillCam(int localClientNum)
     v6[2] = delta[2];
     v4 = cgameGlob->refdef.viewaxis[1];
     v5 = cgameGlob->refdef.viewaxis[0][0];
-    LODWORD(cgameGlob->refdef.viewaxis[1][0]) = LODWORD(cgameGlob->refdef.viewaxis[0][1]) ^ _mask__NegFloat_;
+    cgameGlob->refdef.viewaxis[1][0] = -cgameGlob->refdef.viewaxis[0][1];
     v4[1] = v5;
     v4[2] = 0.0f;
     if ( cgameGlob->refdef.viewaxis[1][0] == 0.0 && cgameGlob->refdef.viewaxis[1][1] == 0.0 )
@@ -1401,7 +1401,7 @@ void __cdecl CG_UpdateArtilleryKillCam(int localClientNum)
     delta[1] = lookAt[1] - bombOrigin[1];
     delta[2] = lookAt[2] - bombOrigin[2];
     Vec3Normalize(delta);
-    LODWORD(left[0]) = LODWORD(delta[1]) ^ _mask__NegFloat_;
+    left[0] = -delta[1];
     left[1] = delta[0];
     left[2] = 0.0f;
     if ( COERCE_FLOAT(LODWORD(delta[1]) ^ _mask__NegFloat_) == 0.0 && left[1] == 0.0 )
@@ -1600,7 +1600,7 @@ void __cdecl CG_UpdateArtilleryKillCam(int localClientNum)
     distance = Vec3Normalize(cgameGlob->refdef.viewaxis[0]);
     v6 = cgameGlob->refdef.viewaxis[1];
     v7 = cgameGlob->refdef.viewaxis[0][0];
-    LODWORD(cgameGlob->refdef.viewaxis[1][0]) = LODWORD(cgameGlob->refdef.viewaxis[0][1]) ^ _mask__NegFloat_;
+    cgameGlob->refdef.viewaxis[1][0] = -cgameGlob->refdef.viewaxis[0][1];
     v6[1] = v7;
     v6[2] = 0.0f;
     if ( cgameGlob->refdef.viewaxis[1][0] == 0.0 && cgameGlob->refdef.viewaxis[1][1] == 0.0 )
@@ -1725,7 +1725,7 @@ void __cdecl CG_UpdateDogKillCam(int localClientNum)
     v6[2] = delta[2];
     v4 = cgameGlob->refdef.viewaxis[1];
     v5 = cgameGlob->refdef.viewaxis[0][0];
-    LODWORD(cgameGlob->refdef.viewaxis[1][0]) = LODWORD(cgameGlob->refdef.viewaxis[0][1]) ^ _mask__NegFloat_;
+    cgameGlob->refdef.viewaxis[1][0] = -cgameGlob->refdef.viewaxis[0][1];
     v4[1] = v5;
     v4[2] = 0.0f;
     if ( cgameGlob->refdef.viewaxis[1][0] == 0.0 && cgameGlob->refdef.viewaxis[1][1] == 0.0 )
@@ -2999,7 +2999,7 @@ void __cdecl CG_UpdateExplosiveKillCam(int localClientNum, KillCamEntityType kil
                         v3) )
             __debugbreak();
     }
-    LODWORD(left[0]) = LODWORD(delta[1]) ^ _mask__NegFloat_;
+    left[0] = -delta[1];
     left[1] = delta[0];
     left[2] = 0.0f;
     if ( COERCE_FLOAT(LODWORD(delta[1]) ^ _mask__NegFloat_) == 0.0 && left[1] == 0.0 )

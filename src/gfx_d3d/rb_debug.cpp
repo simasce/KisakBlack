@@ -557,11 +557,11 @@ void __cdecl RB_DrawDebugStrings(trDebugString_t *strings, int stringCount)
         for ( stringIndex = 0; stringIndex < stringCount; ++stringIndex )
         {
             R_ConvertColorToBytes(strings[stringIndex].color, (unsigned __int8 *)&color);
-            LODWORD(v3) = LODWORD(strings[stringIndex].scale) ^ _mask__NegFloat_;
+            v3 = -strings[stringIndex].scale;
             xStep[0] = v3 * gfxCmdBufSourceState.shadowLookupMatrix.m[0][3];
             xStep[1] = v3 * gfxCmdBufSourceState.shadowLookupMatrix.m[1][0];
             xStep[2] = v3 * gfxCmdBufSourceState.shadowLookupMatrix.m[1][1];
-            LODWORD(v2) = LODWORD(strings[stringIndex].scale) ^ _mask__NegFloat_;
+            v2 = -strings[stringIndex].scale;
             yStep[0] = v2 * gfxCmdBufSourceState.shadowLookupMatrix.m[1][2];
             yStep[1] = v2 * gfxCmdBufSourceState.shadowLookupMatrix.m[1][3];
             yStep[2] = v2 * gfxCmdBufSourceState.shadowLookupMatrix.m[2][0];

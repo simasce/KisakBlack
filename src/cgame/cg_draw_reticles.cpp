@@ -562,9 +562,9 @@ void __cdecl CG_DrawFrameOverlay(
     screenHeight = (float)displayHeight;
     if ( R_StereoActivated() )
     {
-        LODWORD(screenLeft) = LODWORD(screenWidth) ^ _mask__NegFloat_;
+        screenLeft = -screenWidth;
         screenRight = 2.0 * screenWidth;
-        LODWORD(screenTop) = LODWORD(screenHeight) ^ _mask__NegFloat_;
+        screenTop = -screenHeight;
         screenBottom = 2.0 * screenHeight;
     }
     else

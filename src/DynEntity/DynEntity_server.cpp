@@ -671,7 +671,7 @@ void __cdecl DynEntSv_ClipMoveTrace_r(
                     if ( diff < 0.0 )
                         v7 = p[sector->tree.axis] - sector->tree.dist;
                     else
-                        LODWORD(v7) = LODWORD(t1) ^ _mask__NegFloat_;
+                        v7 = -t1;
                     frac = (float)(v7 + offset) * (float)(1.0 / absDiff);
                     frac2 = (float)(v7 - offset) * (float)(1.0 / absDiff);
                     side = diff >= 0.0;

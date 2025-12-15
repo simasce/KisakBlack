@@ -899,9 +899,9 @@ void __cdecl Flame_Phys_Update_Items_PerStream(bool is_server, int nitems, flame
     mn[0] = FLT_MAX;
     mn[1] = FLT_MAX;
     mn[2] = FLT_MAX;
-    LODWORD(mx[0]) = LODWORD(FLT_MAX) ^ _mask__NegFloat_;
-    LODWORD(mx[1]) = LODWORD(FLT_MAX) ^ _mask__NegFloat_;
-    LODWORD(mx[2]) = LODWORD(FLT_MAX) ^ _mask__NegFloat_;
+    mx[0] = -FLT_MAX;
+    mx[1] = -FLT_MAX;
+    mx[2] = -FLT_MAX;
     if ( nitems <= 0
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\flame\\flame_physics.cpp", 711, 0, "%s", "nitems > 0") )
     {

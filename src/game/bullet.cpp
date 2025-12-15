@@ -1036,9 +1036,9 @@ void __cdecl Bullet_FirePenetrate(
                     break;
                 traceHit = Bullet_Trace(bp, weapVariantDef, attacker, &br, br.depthSurfaceType);
                 Com_Memcpy(&revBp, bp, 64);
-                LODWORD(revBp.dir[0]) = LODWORD(bp->dir[0]) ^ _mask__NegFloat_;
-                LODWORD(revBp.dir[1]) = LODWORD(bp->dir[1]) ^ _mask__NegFloat_;
-                LODWORD(revBp.dir[2]) = LODWORD(bp->dir[2]) ^ _mask__NegFloat_;
+                revBp.dir[0] = -bp->dir[0];
+                revBp.dir[1] = -bp->dir[1];
+                revBp.dir[2] = -bp->dir[2];
                 revBp.start[0] = bp->end[0];
                 revBp.start[1] = bp->end[1];
                 revBp.start[2] = bp->end[2];

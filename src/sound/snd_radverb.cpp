@@ -220,9 +220,9 @@ void __cdecl SND_RvFrameParam(snd_rv_params *params, snd_rv_state *state, unsign
     state->lateReflectionCoefs[0][0] = smootha;
     state->lateReflectionCoefs[0][1] = dba;
     state->lateReflectionCoefs[1][0] = dba;
-    //LODWORD(state->lateReflectionCoefs[1][1]) = LODWORD(smootha) ^ _mask__NegFloat_;
+    //state->lateReflectionCoefs[1][1] = -smootha;
     state->lateReflectionCoefs[1][1] = -smootha;
-    //LODWORD(state->lateReflectionCoefs[2][2]) = LODWORD(smootha) ^ _mask__NegFloat_;
+    //state->lateReflectionCoefs[2][2] = -smootha;
     state->lateReflectionCoefs[2][2] = -smootha;
     state->lateReflectionCoefs[2][3] = dba;
     state->lateReflectionCoefs[3][2] = dba;

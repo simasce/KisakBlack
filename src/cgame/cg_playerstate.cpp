@@ -124,7 +124,7 @@ void __cdecl CG_DamageFeedback(int localClientNum, int yawByte, int pitchByte, i
     if ( yawByte == 255 && pitchByte == 255 )
     {
         cgameGlob->v_dmg_roll = 0.0f;
-        LODWORD(cgameGlob->v_dmg_pitch) = LODWORD(kick) ^ _mask__NegFloat_;
+        cgameGlob->v_dmg_pitch = -kick;
     }
     else
     {

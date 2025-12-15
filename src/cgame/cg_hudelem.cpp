@@ -2124,7 +2124,7 @@ void    DrawOffscreenViewableWaypoint(int a1@<ebp>, int localClientNum, const hu
                     pointerHeight = pointerHeight * angle;
                     pointerDistance = pointerDistance * angle;
                     screenPosArrow[1] = colorArrow[2];
-                    LODWORD(screenPosArrow[0]) = LODWORD(colorArrow[3]) ^ _mask__NegFloat_;
+                    screenPosArrow[0] = -colorArrow[3];
                     v4 = colorArrow[2];
                     __libm_sse2_atan2(v6, v7);
                     *(float *)&v4 = v4;

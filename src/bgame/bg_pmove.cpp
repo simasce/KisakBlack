@@ -686,7 +686,7 @@ void __cdecl PM_UpdateLean(
                 if ( leanofs > COERCE_FLOAT(LODWORD(fLeanMax) ^ _mask__NegFloat_) )
                     leanofs = leanofs - (float)((float)(msec / 350.0) * fLeanMax);
                 if ( COERCE_FLOAT(LODWORD(fLeanMax) ^ _mask__NegFloat_) > leanofs )
-                    LODWORD(leanofs) = LODWORD(fLeanMax) ^ _mask__NegFloat_;
+                    leanofs = -fLeanMax;
             }
             else
             {
@@ -5104,9 +5104,9 @@ void __cdecl PM_CheckLadderMove(pmove_t *pm, pml_t *pml)
         fellOffLadderInAir = v2;
         if ( v2 )
         {
-            LODWORD(vLadderCheckDir[0]) = LODWORD(ps->vLadderVec[0]) ^ _mask__NegFloat_;
-            LODWORD(vLadderCheckDir[1]) = LODWORD(ps->vLadderVec[1]) ^ _mask__NegFloat_;
-            LODWORD(vLadderCheckDir[2]) = LODWORD(ps->vLadderVec[2]) ^ _mask__NegFloat_;
+            vLadderCheckDir[0] = -ps->vLadderVec[0];
+            vLadderCheckDir[1] = -ps->vLadderVec[1];
+            vLadderCheckDir[2] = -ps->vLadderVec[2];
         }
         else
         {
@@ -5179,9 +5179,9 @@ void __cdecl PM_CheckLadderMove(pmove_t *pm, pml_t *pml)
                 vLadderVec = ps->vLadderVec;
                 LODWORD(ps->vLadderVec[0]) = trace.normal.vec.u[0];
                 *(_QWORD *)(vLadderVec + 1) = *(_QWORD *)&trace.normal.vec.unitVec[1].packed;
-                LODWORD(vLadderCheckDir[0]) = LODWORD(ps->vLadderVec[0]) ^ _mask__NegFloat_;
-                LODWORD(vLadderCheckDir[1]) = LODWORD(ps->vLadderVec[1]) ^ _mask__NegFloat_;
-                LODWORD(vLadderCheckDir[2]) = LODWORD(ps->vLadderVec[2]) ^ _mask__NegFloat_;
+                vLadderCheckDir[0] = -ps->vLadderVec[0];
+                vLadderCheckDir[1] = -ps->vLadderVec[1];
+                vLadderCheckDir[2] = -ps->vLadderVec[2];
                 spot[0] = (float)(tracedist * vLadderCheckDir[0]) + ps->origin[0];
                 spot[1] = (float)(tracedist * vLadderCheckDir[1]) + ps->origin[1];
                 spot[2] = (float)(tracedist * vLadderCheckDir[2]) + ps->origin[2];
@@ -5310,7 +5310,7 @@ void __cdecl PM_LadderMove(pmove_t *pm, pml_t *pml)
             if ( fSideSpeed != 0.0 )
             {
                 velocity = ps->velocity;
-                LODWORD(v13) = LODWORD(fSideSpeed) ^ _mask__NegFloat_;
+                v13 = -fSideSpeed;
                 v14 = ps->velocity;
                 ps->velocity[0] = (float)(COERCE_FLOAT(LODWORD(fSideSpeed) ^ _mask__NegFloat_) * vSideDir[0]) + ps->velocity[0];
                 velocity[1] = (float)(v13 * vSideDir[1]) + v14[1];
@@ -5338,7 +5338,7 @@ void __cdecl PM_LadderMove(pmove_t *pm, pml_t *pml)
             fSideSpeed = (float)(ps->vLadderVec[0] * ps->velocity[0]) + (float)(ps->vLadderVec[1] * ps->velocity[1]);
             v6 = ps->velocity;
             vLadderVec = ps->vLadderVec;
-            LODWORD(v8) = LODWORD(fSideSpeed) ^ _mask__NegFloat_;
+            v8 = -fSideSpeed;
             v9 = ps->velocity;
             ps->velocity[0] = (float)(COERCE_FLOAT(LODWORD(fSideSpeed) ^ _mask__NegFloat_) * ps->vLadderVec[0])
                                             + ps->velocity[0];

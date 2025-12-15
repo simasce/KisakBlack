@@ -1159,7 +1159,7 @@ void __cdecl CG_UpdateMinigunSpin(int localClientNum, cg_s *cgameGlob, centity_s
                     v7 = 1.0 / (float)weaponDef->iSpinDownTime;
                 else
                     v7 = 1.0f;
-                LODWORD(lerpRate) = LODWORD(v7) ^ _mask__NegFloat_;
+                lerpRate = -v7;
             }
             if ( (LODWORD(lerpRate) & 0x7F800000) == 0x7F800000
                 && !Assert_MyHandler(
@@ -1779,9 +1779,9 @@ void __cdecl FireBulletPenetrate(
             break;
         traceHitb = BulletTrace(localClientNum, bp, weapDef, attacker, br, br->depthSurfaceType);
         Com_Memcpy(&revBp, bp, 64);
-        LODWORD(revBp.dir[0]) = LODWORD(bp->dir[0]) ^ _mask__NegFloat_;
-        LODWORD(revBp.dir[1]) = LODWORD(bp->dir[1]) ^ _mask__NegFloat_;
-        LODWORD(revBp.dir[2]) = LODWORD(bp->dir[2]) ^ _mask__NegFloat_;
+        revBp.dir[0] = -bp->dir[0];
+        revBp.dir[1] = -bp->dir[1];
+        revBp.dir[2] = -bp->dir[2];
         revBp.start[0] = bp->end[0];
         revBp.start[1] = bp->end[1];
         revBp.start[2] = bp->end[2];
@@ -4746,7 +4746,7 @@ void __cdecl CG_VehicleJolt(centity_s *cent, float *origin, float *dir)
         && cent->nitrousVeh->m_phys_user_data
         && BG_GetWeaponDef(cent->nextState.weapon)->weapType == WEAPTYPE_PROJECTILE )
     {
-        LODWORD(v3) = LODWORD(force) ^ _mask__NegFloat_;
+        v3 = -force;
         *dir = COERCE_FLOAT(LODWORD(force) ^ _mask__NegFloat_) * *dir;
         dir[1] = v3 * dir[1];
         dir[2] = v3 * dir[2];

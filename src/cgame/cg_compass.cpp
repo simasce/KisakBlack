@@ -1397,7 +1397,7 @@ void __cdecl CG_CompassDrawPlayerEastCoord(
     {
         CG_CompassCalcDimensions(compassType, cgameGlob, parentRect, rect, &x, &y, &w, &h);
         east[0] = cgameGlob->compassNorth[1];
-        LODWORD(east[1]) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
+        east[1] = -cgameGlob->compassNorth[0];
         coord = (float)((float)(1.0 / compassCoords->current.vector[2])
                                     * (float)((float)(east[0] * cgameGlob->refdef.vieworg[0])
                                                     + (float)(east[1] * cgameGlob->refdef.vieworg[1])))
@@ -1575,7 +1575,7 @@ void __cdecl CG_CompassDrawPlayerECoordScroll(
     {
         CG_CompassCalcDimensions(compassType, cgameGlob, parentRect, rect, &x, &y, &w, &h);
         east[0] = cgameGlob->compassNorth[1];
-        LODWORD(east[1]) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
+        east[1] = -cgameGlob->compassNorth[0];
         coord = (float)((float)((float)((float)(east[0] * cgameGlob->refdef.vieworg[0])
                                                                     + (float)(east[1] * cgameGlob->refdef.vieworg[1]))
                                                     / compassCoords->current.vector[2])
@@ -1692,9 +1692,9 @@ void __cdecl CG_CompassDrawStatic(
         {
             CG_ScaleCompass();
             east[0] = cgameGlob->compassNorth[1];
-            LODWORD(east[1]) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
-            LODWORD(south[0]) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
-            LODWORD(south[1]) = LODWORD(cgameGlob->compassNorth[1]) ^ _mask__NegFloat_;
+            east[1] = -cgameGlob->compassNorth[0];
+            south[0] = -cgameGlob->compassNorth[0];
+            south[1] = -cgameGlob->compassNorth[1];
             delta = cgameGlob->refdef.vieworg[0] - cgameGlob->compassMapUpperLeft[0];
             delta_4 = cgameGlob->refdef.vieworg[1] - cgameGlob->compassMapUpperLeft[1];
             texCenter = (float)((float)(delta * east[0]) + (float)(delta_4 * east[1])) / cgameGlob->compassMapWorldSize[0];
@@ -1848,9 +1848,9 @@ void __cdecl CG_CompassDrawScrambler(
         {
             CG_ScaleCompass();
             east[0] = cgameGlob->compassNorth[1];
-            LODWORD(east[1]) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
-            LODWORD(south[0]) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
-            LODWORD(south[1]) = LODWORD(cgameGlob->compassNorth[1]) ^ _mask__NegFloat_;
+            east[1] = -cgameGlob->compassNorth[0];
+            south[0] = -cgameGlob->compassNorth[0];
+            south[1] = -cgameGlob->compassNorth[1];
             delta = cgameGlob->refdef.vieworg[0] - cgameGlob->compassMapUpperLeft[0];
             delta_4 = cgameGlob->refdef.vieworg[1] - cgameGlob->compassMapUpperLeft[1];
             texCenter = (float)((float)(delta * east[0]) + (float)(delta_4 * east[1])) / cgameGlob->compassMapWorldSize[0];
@@ -2041,9 +2041,9 @@ void __cdecl CG_CompassDrawPlayerMap(
         {
             CG_ScaleCompass();
             east[0] = cgameGlob->compassNorth[1];
-            LODWORD(east[1]) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
-            LODWORD(south[0]) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
-            LODWORD(south[1]) = LODWORD(cgameGlob->compassNorth[1]) ^ _mask__NegFloat_;
+            east[1] = -cgameGlob->compassNorth[0];
+            south[0] = -cgameGlob->compassNorth[0];
+            south[1] = -cgameGlob->compassNorth[1];
             delta = mapCenter[0] - cgameGlob->compassMapUpperLeft[0];
             delta_4 = mapCenter[1] - cgameGlob->compassMapUpperLeft[1];
             texCenter = (float)((float)(delta * east[0]) + (float)(delta_4 * east[1])) / cgameGlob->compassMapWorldSize[0];

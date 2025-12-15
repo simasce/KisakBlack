@@ -4824,7 +4824,7 @@ void    R_SetDLightsConstants(
         sAdd = 1.0 / (float)(*(float *)&scale[132] - farEdge);
     x = sAdd;
     if ( farEdge == *(float *)&scale[132] )
-        LODWORD(v5) = LODWORD(farEdge) ^ _mask__NegFloat_;
+        v5 = -farEdge;
     else
         v5 = COERCE_FLOAT(LODWORD(farEdge) ^ _mask__NegFloat_) * (float)(1.0 / (float)(*(float *)&scale[132] - farEdge));
     eMul = v5;

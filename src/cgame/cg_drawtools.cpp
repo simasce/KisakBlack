@@ -408,9 +408,9 @@ void __cdecl CG_MiniMapChanged(int localClientNum)
     v4 = Com_Parse(&string);
     lowerRight[1] = atof(v4);
     east[0] = cgameGlob->compassNorth[1];
-    LODWORD(east[1]) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
-    LODWORD(south[0]) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
-    LODWORD(south[1]) = LODWORD(cgameGlob->compassNorth[1]) ^ _mask__NegFloat_;
+    east[1] = -cgameGlob->compassNorth[0];
+    south[0] = -cgameGlob->compassNorth[0];
+    south[1] = -cgameGlob->compassNorth[1];
     toLR[0] = lowerRight[0] - cgameGlob->compassMapUpperLeft[0];
     toLR[1] = lowerRight[1] - cgameGlob->compassMapUpperLeft[1];
     cgameGlob->compassMapWorldSize[0] = (float)(toLR[0] * east[0]) + (float)(toLR[1] * east[1]);

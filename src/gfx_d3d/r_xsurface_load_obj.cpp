@@ -1193,9 +1193,9 @@ void __cdecl XModelReadSurface_BuildCollisionTree(
     {
         __debugbreak();
     }
-    LODWORD(tree->trans[0]) = LODWORD(globalMins[0]) ^ _mask__NegFloat_;
-    LODWORD(tree->trans[1]) = LODWORD(globalMins[1]) ^ _mask__NegFloat_;
-    LODWORD(tree->trans[2]) = LODWORD(globalMins[2]) ^ _mask__NegFloat_;
+    tree->trans[0] = -globalMins[0];
+    tree->trans[1] = -globalMins[1];
+    tree->trans[2] = -globalMins[2];
     globalDelta[0] = globalMaxs[0] - globalMins[0];
     globalDelta[1] = globalMaxs[1] - globalMins[1];
     globalDelta[2] = globalMaxs[2] - globalMins[2];

@@ -117,7 +117,7 @@ void __cdecl FX_PostLight_GenerateVerts(FxPostLightInfo *postLightInfoAddr, FxSy
                 unitOffset = (float)(s * ortho0[0]) + (float)(c * ortho1[0]);
                 unitOffset_4 = (float)(s * ortho0[1]) + (float)(c * ortho1[1]);
                 unitOffset_8 = (float)(s * ortho0[2]) + (float)(c * ortho1[2]);
-                LODWORD(v6) = LODWORD(radius) ^ _mask__NegFloat_;
+                v6 = -radius;
                 v7 = radius * POLYGON_RADIUS_GROW;
                 verts->xyz[0] = (float)((float)(COERCE_FLOAT(LODWORD(radius) ^ _mask__NegFloat_) * normalizedDelta[0])
                                                             + postLight->begin[0])

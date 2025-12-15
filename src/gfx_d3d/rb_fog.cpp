@@ -87,7 +87,7 @@ void    R_SetFrameFog(float a1@<ebp>, GfxCmdBufInput *input, const GfxViewInfo *
                 v9 = v10;
             }
             v11[0] = v9;
-            LODWORD(fogColorVec[3]) = LODWORD(parms2[1]) ^ _mask__NegFloat_;
+            fogColorVec[3] = -parms2[1];
             v17 = parms2[2] * startAng->fogStart;
             __libm_sse2_log(v7);
             parms[0] = COERCE_FLOAT(LODWORD(startAng->heightDensity) ^ _mask__NegFloat_) * (float)2.0;

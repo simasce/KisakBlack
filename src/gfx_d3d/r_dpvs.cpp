@@ -2473,7 +2473,7 @@ LABEL_20:
             }
             if ( r_showCullXModels->current.enabled )
             {
-                LODWORD(v10) = LODWORD(sceneModel->radius) ^ _mask__NegFloat_;
+                v10 = -sceneModel->radius;
                 mins[0] = sceneModel->placement.base.origin[0] + v10;
                 mins[1] = sceneModel->placement.base.origin[1] + v10;
                 mins[2] = sceneModel->placement.base.origin[2] + v10;
@@ -2845,7 +2845,7 @@ void __cdecl R_VisitPortalsNoFrustum(const GfxCell *cell)
         portal->writable.hullPoints = 0;
         if ( hullPointCount )
         {
-            LODWORD(v7) = LODWORD(portal->plane.coeffs[3]) ^ _mask__NegFloat_;
+            v7 = -portal->plane.coeffs[3];
             hullOrigin[0] = v7 * portal->plane.coeffs[0];
             hullOrigin[1] = v7 * portal->plane.coeffs[1];
             hullOrigin[2] = v7 * portal->plane.coeffs[2];
@@ -4276,9 +4276,9 @@ void __cdecl R_SetupWorldSurfacesDpvs(const GfxViewParms *viewParms, unsigned in
     zfar = R_GetFarPlaneDist();
     if ( zfar > 0.0 )
     {
-        LODWORD(dpvsGlob.farPlane.coeffs[0]) = LODWORD(viewParms->axis[0][0]) ^ _mask__NegFloat_;
-        LODWORD(dpvsGlob.farPlane.coeffs[1]) = LODWORD(viewParms->axis[0][1]) ^ _mask__NegFloat_;
-        LODWORD(dpvsGlob.farPlane.coeffs[2]) = LODWORD(viewParms->axis[0][2]) ^ _mask__NegFloat_;
+        dpvsGlob.farPlane.coeffs[0] = -viewParms->axis[0][0];
+        dpvsGlob.farPlane.coeffs[1] = -viewParms->axis[0][1];
+        dpvsGlob.farPlane.coeffs[2] = -viewParms->axis[0][2];
         dpvsGlob.farPlane.coeffs[3] = zfar
                                                                 - (float)((float)((float)(dpvsGlob.farPlane.coeffs[0] * dpvsGlob.viewOrg[0])
                                                                                                 + (float)(dpvsGlob.farPlane.coeffs[1] * dpvsGlob.viewOrg[1]))
@@ -4884,7 +4884,7 @@ void __cdecl R_VisitPortals(const GfxCell *cell, const DpvsPlane *parentPlane, D
                                 v4) )
                     __debugbreak();
             }
-            LODWORD(v11) = LODWORD(portal->plane.coeffs[3]) ^ _mask__NegFloat_;
+            v11 = -portal->plane.coeffs[3];
             hullOrigin[0] = v11 * portal->plane.coeffs[0];
             hullOrigin[1] = v11 * portal->plane.coeffs[1];
             hullOrigin[2] = v11 * portal->plane.coeffs[2];

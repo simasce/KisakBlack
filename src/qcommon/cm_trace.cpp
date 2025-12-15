@@ -1083,7 +1083,7 @@ void __cdecl CM_TraceThroughLeafBrushNode_r(
                     if ( diff < 0.0 )
                         v7 = t1;
                     else
-                        LODWORD(v7) = LODWORD(t1) ^ _mask__NegFloat_;
+                        v7 = -t1;
                     invDist = 1.0 / absDiff;
                     frac2 = (float)(v7 - offset) * (float)(1.0 / absDiff);
                     frac = (float)(v7 + offset) * (float)(1.0 / absDiff);
@@ -1937,7 +1937,7 @@ void __cdecl CM_TraceThroughTree(const traceWork_t *tw, int num, const float *p1
                     if ( diff < 0.0 )
                         v7 = t1;
                     else
-                        LODWORD(v7) = LODWORD(t1) ^ _mask__NegFloat_;
+                        v7 = -t1;
                     invDist = 1.0 / absDiff;
                     frac2 = (float)(v7 - offset) * (float)(1.0 / absDiff);
                     frac = (float)(v7 + offset) * (float)(1.0 / absDiff);
@@ -2909,7 +2909,7 @@ int __cdecl CM_SightTraceThroughTree(const traceWork_t *tw, int num, const float
             if ( diff < 0.0 )
                 v8 = t1;
             else
-                LODWORD(v8) = LODWORD(t1) ^ _mask__NegFloat_;
+                v8 = -t1;
             invDist = 1.0 / absDiff;
             frac2 = (float)(v8 - offset) * (float)(1.0 / absDiff);
             frac = (float)(v8 + offset) * (float)(1.0 / absDiff);
@@ -3094,7 +3094,7 @@ LABEL_19:
                     if ( diff < 0.0 )
                         v8 = t1;
                     else
-                        LODWORD(v8) = LODWORD(t1) ^ _mask__NegFloat_;
+                        v8 = -t1;
                     invDist = 1.0 / absDiff;
                     frac2 = (float)(v8 - offset) * (float)(1.0 / absDiff);
                     frac = (float)(v8 + offset) * (float)(1.0 / absDiff);

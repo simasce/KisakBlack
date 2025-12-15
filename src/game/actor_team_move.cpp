@@ -710,7 +710,7 @@ bool __cdecl Actor_TeamMoveTryDodge(team_move_context_t *context, team_move_othe
     if ( context->bFailedLookahead )
         return 1;
     context_other->fScale = context_other->fScale / context->fVelSelfSqrd;
-    LODWORD(v4) = LODWORD(context_other->fScale) ^ _mask__NegFloat_;
+    v4 = -context_other->fScale;
     context_other->vPerp[0] = (float)(v4 * context->vVelSelf[0]) + context_other->vDelta[0];
     context_other->vPerp[1] = (float)(v4 * context->vVelSelf[1]) + context_other->vDelta[1];
     maintainMotion = 0;
@@ -773,7 +773,7 @@ bool __cdecl Actor_TeamMoveTryDodge(team_move_context_t *context, team_move_othe
                                                 + (float)(pPath->forwardLookaheadDir2D[1] * context_other->vDelta[1]);
     if ( context_other->fScale <= 0.0 )
         return 0;
-    LODWORD(v3) = LODWORD(context_other->fScale) ^ _mask__NegFloat_;
+    v3 = -context_other->fScale;
     context_other->vPerp[0] = (float)(v3 * pPath->forwardLookaheadDir2D[0]) + context_other->vDelta[0];
     context_other->vPerp[1] = (float)(v3 * pPath->forwardLookaheadDir2D[1]) + context_other->vDelta[1];
     return (float)((float)(context_other->vPerp[0] * context_other->vPerp[0])

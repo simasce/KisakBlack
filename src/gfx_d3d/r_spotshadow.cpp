@@ -180,7 +180,7 @@ void    R_SetViewParmsForLight(
     v15 = retaddr;
     v13 = viewParms->axis[0];
     *(unsigned int *)&v12[136] = light->dir;
-    LODWORD(viewParms->axis[0][0]) = LODWORD(light->dir[0]) ^ _mask__NegFloat_;
+    viewParms->axis[0][0] = -light->dir[0];
     *((unsigned int *)v13 + 1) = *(unsigned int *)(*(unsigned int *)&v12[136] + 4) ^ _mask__NegFloat_;
     *((unsigned int *)v13 + 2) = *(unsigned int *)(*(unsigned int *)&v12[136] + 8) ^ _mask__NegFloat_;
     PerpendicularVector(viewParms->axis[0], viewParms->axis[2]);

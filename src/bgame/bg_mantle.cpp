@@ -342,9 +342,9 @@ void __cdecl Mount_CheckProne(pmove_t *pm)
         traceEnd[0] = traceStart[0];
         traceEnd[1] = traceStart[1];
         traceEnd[2] = traceStart[2] - heightTestDist;
-        //LODWORD(dropMins[0]) = LODWORD(dropTraceWidth) ^ _mask__NegFloat_;
+        //dropMins[0] = -dropTraceWidth;
         dropMins[0] = -dropTraceWidth;
-        //LODWORD(dropMins[1]) = LODWORD(dropTraceWidth) ^ _mask__NegFloat_;
+        //dropMins[1] = -dropTraceWidth;
         dropMins[1] = -dropTraceWidth;
         dropMins[2] = 0.0f;
         dropMaxs[0] = dropTraceWidth;
@@ -402,9 +402,9 @@ char __cdecl Mantle_CheckLedge(pmove_t *pm, pml_t *pml, MantleResults *mresults,
         __debugbreak();
     v4 = va("Checking for ledge at %f units", height);
     Mantle_DebugPrint(v4);
-    //LODWORD(mins[0]) = LODWORD(playerMaxs[0]) ^ _mask__NegFloat_;
+    //mins[0] = -playerMaxs[0];
     mins[0] = -playerMaxs[0];
-    //LODWORD(mins[1]) = LODWORD(playerMaxs[0]) ^ _mask__NegFloat_;
+    //mins[1] = -playerMaxs[0];
     mins[1] = -playerMaxs[0];
     mins[2] = 0.0f;
     maxs[0] = playerMaxs[0];
@@ -955,7 +955,7 @@ char    Mantle_FindMantleSurface(pmove_t *pm, pml_t *pml, trace_t *trace, float 
     v14 = pml->forward[1];
     v15 = 0.0f;
     Vec3Normalize(&start[2]);
-    LODWORD(start[1]) = LODWORD(traceDir[1]) ^ _mask__NegFloat_;
+    start[1] = -traceDir[1];
     LODWORD(start[0]) = ps->origin;
     end[1] = (float)(COERCE_FLOAT(LODWORD(traceDir[1]) ^ _mask__NegFloat_) * start[2]) + ps->origin[0];
     end[2] = (float)(COERCE_FLOAT(LODWORD(traceDir[1]) ^ _mask__NegFloat_) * v14) + ps->origin[1];

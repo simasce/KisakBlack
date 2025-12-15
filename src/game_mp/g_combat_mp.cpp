@@ -889,7 +889,7 @@ double __cdecl CanDamage(
         forward[2] = 0.0f;
 
         Vec3Normalize(forward);
-        LODWORD(right[0]) = LODWORD(forward[1]) ^ _mask__NegFloat_;
+        right[0] = -forward[1];
         right[1] = forward[0];
         right[2] = forward[2];
         dest[0][0] = eyeOrigin[0] + targ->r.currentOrigin[0];
@@ -1016,7 +1016,7 @@ double __cdecl CanDamage(
             v0[1] = 0.0f;
             v0[2] = 0.0f;
         }
-        LODWORD(v1[0]) = LODWORD(v0[1]) ^ _mask__NegFloat_;
+        v1[0] = -v0[1];
         v1[1] = v0[0];
         v1[2] = 0.0f;
         Vec3Normalize(v1);

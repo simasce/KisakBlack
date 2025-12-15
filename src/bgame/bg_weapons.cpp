@@ -780,7 +780,7 @@ void __cdecl PM_UpdateAimDownSightLerp(pmove_t *pm, pml_t *pml)
                 }
                 else
                 {
-                    //LODWORD(lerpRate) = LODWORD(weapVariantDef->fOOPosAnimLength[1]) ^ _mask__NegFloat_;
+                    //lerpRate = -weapVariantDef->fOOPosAnimLength[1];
                     lerpRate = -weapVariantDef->fOOPosAnimLength[1];
                 }
                 if ( (ps->perks[0] & 0x4000) != 0

@@ -129,9 +129,9 @@ void __cdecl G_SpawnHelicopter(gentity_s *ent, gentity_s *owner, char *vehicleIn
     {
         __debugbreak();
     }
-    LODWORD(veh->phys.mins[0]) = LODWORD(50.0f) ^ _mask__NegFloat_;
-    LODWORD(veh->phys.mins[1]) = LODWORD(50.0f) ^ _mask__NegFloat_;
-    LODWORD(veh->phys.mins[2]) = LODWORD(50.0f) ^ _mask__NegFloat_;
+    veh->phys.mins[0] = -50.0f;
+    veh->phys.mins[1] = -50.0f;
+    veh->phys.mins[2] = -50.0f;
     veh->phys.maxs[0] = 50.0f;
     veh->phys.maxs[1] = 50.0f;
     veh->phys.maxs[2] = 50.0f;

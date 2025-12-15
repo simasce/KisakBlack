@@ -354,7 +354,7 @@ void __cdecl RB_GenerateGaussianFilter2D(
     {
         for ( x = 0; x < 2; ++x )
         {
-            LODWORD(filterPass->tapOffsetsAndWeights[2 * tapIndex][0]) = LODWORD(tapOffsetsX[x]) ^ _mask__NegFloat_;
+            filterPass->tapOffsetsAndWeights[2 * tapIndex][0] = -tapOffsetsX[x];
             filterPass->tapOffsetsAndWeights[2 * tapIndex][1] = tapOffsetsY[y];
             filterPass->tapOffsetsAndWeights[2 * tapIndex][2] = 0.0f;
             filterPass->tapOffsetsAndWeights[2 * tapIndex][3] = tapWeightsX[x] * tapWeightsY[y];

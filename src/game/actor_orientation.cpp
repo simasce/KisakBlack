@@ -212,7 +212,7 @@ void __fastcall Actor_UpdateBodyAngle(actor_s *self)
         if ( delta <= (float)(v1 / 20.0) )
         {
             if ( COERCE_FLOAT(LODWORD(maxTurnRate) ^ _mask__NegFloat_) > delta )
-                LODWORD(delta) = LODWORD(maxTurnRate) ^ _mask__NegFloat_;
+                delta = -maxTurnRate;
         }
         else
         {

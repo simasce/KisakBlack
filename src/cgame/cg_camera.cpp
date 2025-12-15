@@ -1037,7 +1037,7 @@ void __cdecl CG_CalculateGunnerOffset_Sway(
         if ( (float)(COERCE_FLOAT(LODWORD(swayMaxAngle) ^ _mask__NegFloat_) - deltaAngles[0]) < 0.0 )
             v8 = v10;
         else
-            LODWORD(v8) = LODWORD(swayMaxAngle) ^ _mask__NegFloat_;
+            v8 = -swayMaxAngle;
         deltaAngles[0] = v8;
         if ( (float)(deltaAngles[1] - swayMaxAngle) < 0.0 )
             v9 = deltaAngles[1];
@@ -1046,7 +1046,7 @@ void __cdecl CG_CalculateGunnerOffset_Sway(
         if ( (float)(COERCE_FLOAT(LODWORD(swayMaxAngle) ^ _mask__NegFloat_) - deltaAngles[1]) < 0.0 )
             v7 = v9;
         else
-            LODWORD(v7) = LODWORD(swayMaxAngle) ^ _mask__NegFloat_;
+            v7 = -swayMaxAngle;
         deltaAngles[1] = v7;
         deltaOffset_8 = deltaAngles[0] * swayVertScalea;
         swayOffset[1] = DiffTrack(v7 * swayHorizScalea, swayOffset[1], swayLerpSpeed, dt);
@@ -1860,7 +1860,7 @@ void __cdecl CG_CalcVehicleViewValues(int localClientNum)
                 {
                     frametime = (float)cgameGlob->frametime;
                     v15 = AngleNormalize180(vehicle->pose.angles[1] - temp[1]) * lerpRate * frametime * 0.001;
-                    LODWORD(v16) = LODWORD(maxLerpRate) ^ _mask__NegFloat_;
+                    v16 = -maxLerpRate;
                     v17 = maxLerpRate;
                     if ( maxLerpRate <= COERCE_FLOAT(LODWORD(maxLerpRate) ^ _mask__NegFloat_)
                         && !Assert_MyHandler("c:\\projects_pc\\cod\\codsrc\\src\\universal\\com_math.h", 730, 0, "%s", "min < max") )
@@ -1881,7 +1881,7 @@ void __cdecl CG_CalcVehicleViewValues(int localClientNum)
                     temp[1] = temp[1] + v14;
                     v3 = (float)cgameGlob->frametime;
                     v11 = AngleNormalize180(vehicle->pose.angles[0] - temp[0]) * lerpRate * v3 * 0.001;
-                    LODWORD(v12) = LODWORD(maxLerpRate) ^ _mask__NegFloat_;
+                    v12 = -maxLerpRate;
                     v13 = maxLerpRate;
                     if ( maxLerpRate <= COERCE_FLOAT(LODWORD(maxLerpRate) ^ _mask__NegFloat_)
                         && !Assert_MyHandler("c:\\projects_pc\\cod\\codsrc\\src\\universal\\com_math.h", 730, 0, "%s", "min < max") )
@@ -1926,13 +1926,13 @@ void __cdecl CG_CalcVehicleViewValues(int localClientNum)
             {
                 MatrixMultiply(viewAxis, cgameGlob->prevVehicleInvAxis, mtx);
                 AxisToAngles(mtx, temp);
-                LODWORD(ps->viewangles[2]) = LODWORD(temp[2]) ^ _mask__NegFloat_;
+                ps->viewangles[2] = -temp[2];
             }
             else if ( info->type == 1 )
             {
                 MatrixMultiply(viewAxis, cgameGlob->prevVehicleInvAxis, mtx);
                 AxisToAngles(mtx, temp);
-                LODWORD(v8) = LODWORD(rollFrac) ^ _mask__NegFloat_;
+                v8 = -rollFrac;
                 v2 = AngleNormalize180(temp[2] - 0.0);
                 ps->viewangles[2] = v2 * v8 + 0.0;
             }
@@ -2157,7 +2157,7 @@ void __cdecl CG_Calc3rdPersonVehicleViewValues(int localClientNum)
             newLookDir[2] = axis[0][2];
         }
         vectoangles(newLookDir, newLookAngles);
-        LODWORD(minpitch) = LODWORD(info->thirdPersonCameraMinPitchClamp) ^ _mask__NegFloat_;
+        minpitch = -info->thirdPersonCameraMinPitchClamp;
         maxpitch = info->thirdPersonCameraMaxPitchClamp;
         vehiclePitchOffset = GetPitchOffsetRelativeToADirection(vehicle->pose.angles, newLookDir);
         normalizedPitch = AngleNormalize180(newLookAngles[0]);
@@ -2217,7 +2217,7 @@ void __cdecl CG_Calc3rdPersonVehicleViewValues(int localClientNum)
                 }
                 else
                 {
-                    LODWORD(v16) = LODWORD(maxLerpRate) ^ _mask__NegFloat_;
+                    v16 = -maxLerpRate;
                 }
                 newLookAngles[1] = newLookAngles[1] + v16;
             }
@@ -2241,7 +2241,7 @@ void __cdecl CG_Calc3rdPersonVehicleViewValues(int localClientNum)
             }
             else
             {
-                LODWORD(v14) = LODWORD(maxLerpRate) ^ _mask__NegFloat_;
+                v14 = -maxLerpRate;
             }
             newLookAngles[0] = newLookAngles[0] + v14;
         }
@@ -2305,7 +2305,7 @@ void __cdecl CG_Calc3rdPersonVehicleViewValues(int localClientNum)
             }
             else
             {
-                LODWORD(ratioOffset) = LODWORD(maxSpringOffset) ^ _mask__NegFloat_;
+                ratioOffset = -maxSpringOffset;
             }
             cgameGlob->cameraData.lastSpringOffset = (float)((float)(1.0 - speedRatioTimed)
                                                                                                          * cgameGlob->cameraData.lastSpringOffset)
@@ -2493,7 +2493,7 @@ void __cdecl CG_OffsetVehicleView(int localClientNum, CameraMode camMode)
             }
             else
             {
-                LODWORD(pitchOffset) = LODWORD(30.0f) ^ _mask__NegFloat_;
+                pitchOffset = -30.0f;
             }
             cgameGlob->refdefViewAngles[0] = cgameGlob->refdefViewAngles[0] + pitchOffset;
         }

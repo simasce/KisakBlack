@@ -3818,7 +3818,7 @@ LABEL_28:
         else
             fOrigLength = nextPathPt->fOrigLength;
         prevLength = fOrigLength;
-        LODWORD(v16) = LODWORD(pPath->fLookaheadDistToNextNode) ^ _mask__NegFloat_;
+        v16 = -pPath->fLookaheadDistToNextNode;
         prevLookaheadPos[0] = (float)(v16 * nextPathPt->fDir2D[0]) + nextPathPt->vOrigPoint[0];
         prevLookaheadPos[1] = (float)(v16 * nextPathPt->fDir2D[1]) + nextPathPt->vOrigPoint[1];
         prevLookaheadPos[2] = (float)(v16 * nextPathPt->fOrigLength) + nextPathPt->vOrigPoint[2];

@@ -51,9 +51,9 @@ void __cdecl R_SetupSunShadowMaps(const GfxViewParms *viewParms, GfxSunShadow *s
         snappedViewOrgInClipSpace,
         partitionFraction,
         sunShadowPartitionRes);
-    LODWORD(sunOrigin[0]) = LODWORD(sunShadow->sunProj.viewMatrix[3][0]) ^ _mask__NegFloat_;
-    LODWORD(sunOrigin[1]) = LODWORD(sunShadow->sunProj.viewMatrix[3][1]) ^ _mask__NegFloat_;
-    LODWORD(sunOrigin[2]) = LODWORD(sunShadow->sunProj.viewMatrix[3][2]) ^ _mask__NegFloat_;
+    sunOrigin[0] = -sunShadow->sunProj.viewMatrix[3][0];
+    sunOrigin[1] = -sunShadow->sunProj.viewMatrix[3][1];
+    sunOrigin[2] = -sunShadow->sunProj.viewMatrix[3][2];
     R_GetSceneExtentsAlongDir(sunOrigin, sunAxis[0], &nearClip, &farClip);
     sunProj = &sunShadow->sunProj;
     for ( partitionIndex = 0; partitionIndex < 2; ++partitionIndex )
@@ -62,7 +62,7 @@ void __cdecl R_SetupSunShadowMaps(const GfxViewParms *viewParms, GfxSunShadow *s
         shadowViewParms = &partition->shadowViewParms;
         memset((unsigned __int8 *)partition, 0xB0u, 0x140u);
         origin = shadowViewParms->origin;
-        LODWORD(shadowViewParms->origin[0]) = LODWORD(sunAxis[0][0]) ^ _mask__NegFloat_;
+        shadowViewParms->origin[0] = -sunAxis[0][0];
         *((unsigned int *)origin + 1) = LODWORD(sunAxis[0][1]) ^ _mask__NegFloat_;
         *((unsigned int *)origin + 2) = LODWORD(sunAxis[0][2]) ^ _mask__NegFloat_;
         shadowViewParms->origin[3] = 0.0f;

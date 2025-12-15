@@ -410,7 +410,7 @@ void __thiscall UIViewer::CameraParams::SetRefDef(UIViewer::CameraParams *this, 
     angles[2] = 0.0f;
     angles[1] = 0.0f;
     AnglesToAxis(angles, refdef->viewaxis);
-    LODWORD(v4) = LODWORD(this->dist) ^ _mask__NegFloat_;
+    v4 = -this->dist;
     refdef->vieworg[0] = (float)(v4 * refdef->viewaxis[0][0]) + this->lookAt[0];
     refdef->vieworg[1] = (float)(v4 * refdef->viewaxis[0][1]) + this->lookAt[1];
     refdef->vieworg[2] = (float)(v4 * refdef->viewaxis[0][2]) + this->lookAt[2];

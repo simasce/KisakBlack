@@ -134,7 +134,7 @@ void __cdecl DevGui_UpdateScrollInputs(int localClientNum)
     if ( s_input.gamePadIndex < 0 && Key_IsDown(localClientNum, 200) )
     {
         lx = s_input.mousePos[0];
-        //LODWORD(ly) = LODWORD(s_input.mousePos[1]) ^ _mask__NegFloat_;
+        //ly = -s_input.mousePos[1];
         ly = -s_input.mousePos[1];
     }
     s_input.mousePos[0] = 0.0f;

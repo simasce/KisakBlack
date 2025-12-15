@@ -1230,7 +1230,7 @@ void __cdecl CG_ClipMoveToEntities_r(
                     if ( diff < 0.0 )
                         v8 = p[sector->tree.axis] - sector->tree.dist;
                     else
-                        LODWORD(v8) = LODWORD(t1) ^ _mask__NegFloat_;
+                        v8 = -t1;
                     frac = (float)(v8 + offset) * (float)(1.0 / absDiff);
                     frac2 = (float)(v8 - offset) * (float)(1.0 / absDiff);
                     side = diff >= 0.0;

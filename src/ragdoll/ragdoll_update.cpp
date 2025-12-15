@@ -1385,10 +1385,10 @@ void __cdecl Ragdoll_EstimateInitialVelocities(RagdollBody *body)
                 }
                 else
                 {
-                    //LODWORD(prevRot[0]) = LODWORD(prevOrientation->orientation[0]) ^ _mask__NegFloat_;
-                    //LODWORD(prevRot[1]) = LODWORD(prevOrientation->orientation[1]) ^ _mask__NegFloat_;
-                    //LODWORD(prevRot[2]) = LODWORD(prevOrientation->orientation[2]) ^ _mask__NegFloat_;
-                    //LODWORD(prevRot[3]) = LODWORD(prevOrientation->orientation[3]) ^ _mask__NegFloat_;
+                    //prevRot[0] = -prevOrientation->orientation[0];
+                    //prevRot[1] = -prevOrientation->orientation[1];
+                    //prevRot[2] = -prevOrientation->orientation[2];
+                    //prevRot[3] = -prevOrientation->orientation[3];
                     prevRot[0] = -prevOrientation->orientation[0];
                     prevRot[1] = -prevOrientation->orientation[1];
                     prevRot[2] = -prevOrientation->orientation[2];

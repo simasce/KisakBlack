@@ -130,7 +130,7 @@ char __fastcall Actor_Exposed_ReacquireStepMove(actor_s *self, float fDist)
     Vec2Normalize(forward);
     forward[2] = 0.0f;
     vStepDir[0] = forward[1];
-    LODWORD(vStepDir[1]) = LODWORD(forward[0]) ^ _mask__NegFloat_;
+    vStepDir[1] = -forward[0];
     vStepDir[2] = 0.0f;
     Actor_GetEyePosition(self, vEyePos);
     v4 = self->ent->r.currentOrigin;

@@ -173,7 +173,7 @@ void __cdecl Actor_UpdateLookAt(actor_s *self)
             }
             else
             {
-                LODWORD(fLookYawTarget) = LODWORD(fLookYawLimit) ^ _mask__NegFloat_;
+                fLookYawTarget = -fLookYawLimit;
             }
         }
         fYawDelta = fLookYawTarget - self->lookAtInfo.fLookAtTurnAngle;

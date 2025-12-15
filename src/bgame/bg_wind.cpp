@@ -565,7 +565,7 @@ void CG_UpdateWind(int cur_time)
                                         g_GrassWind[n][k].pos[0] = LocalClientGlobals->refdef.vieworg[0] + rot[1];
                                         g_GrassWind[n][k].pos[1] = LocalClientGlobals->refdef.vieworg[1] + rot[2];
                                         Vec3Normalize(&rot[1]);
-                                        //LODWORD(v24) = LODWORD(rot[2]) ^ _mask__NegFloat_;
+                                        //v24 = -rot[2];
                                         v24 = -rot[2];
                                         v25 = rot[1];
                                         //v26 = *(float *)&FLOAT_0_0;

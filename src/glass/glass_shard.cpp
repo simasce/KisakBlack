@@ -146,9 +146,9 @@ void __userpurge GlassPhysics::CreateAxis(
     v32 = LODWORD(v37) ^ _mask__NegFloat_;
     v31 = LODWORD(center.w) ^ _mask__NegFloat_;
     v30 = LODWORD(center.z) ^ _mask__NegFloat_;
-    LODWORD(rb2m.w.y) = LODWORD(v37) ^ _mask__NegFloat_;
-    LODWORD(rb2m.w.z) = LODWORD(center.w) ^ _mask__NegFloat_;
-    LODWORD(rb2m.w.w) = LODWORD(center.z) ^ _mask__NegFloat_;
+    rb2m.w.y = -v37;
+    rb2m.w.z = -center.w;
+    rb2m.w.w = -center.z;
     phys_vec3::operator=((phys_vec3 *)&cg2rb.z.y, (const phys_vec3 *)&rb2m.w.y);
     phys_full_inverse((int)v76, (phys_mat44 *)&rb2w.w.y, (const phys_mat44 *)v44);
     phys_full_multiply_mat((int)v76, (phys_mat44 *)v27, (const phys_mat44 *)v57, (phys_mat44 *)&rb2w.w.y);
@@ -1063,8 +1063,8 @@ void __thiscall GlassShard::Outline::Reverse(GlassShard::Outline *this)
             v1 = this->numVerts - 1;
         else
             v1 = j1 - 1;
-        LODWORD(dir) = LODWORD(this->verts[v1].edge.dir[0]) ^ _mask__NegFloat_;
-        LODWORD(dir_4) = LODWORD(this->verts[v1].edge.dir[1]) ^ _mask__NegFloat_;
+        dir = -this->verts[v1].edge.dir[0];
+        dir_4 = -this->verts[v1].edge.dir[1];
         v3 = &tmpVerts[i];
         len = this->verts[v1].edge.len;
         v5 = &this->verts[j1];

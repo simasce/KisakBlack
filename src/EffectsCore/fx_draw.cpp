@@ -295,7 +295,7 @@ void __cdecl FX_DrawElem_BillboardSprite_NoCull(FxDrawState *draw)
             binormal[0] = 0.0f;
             binormal[1] = 0.0f;
             binormal[2] = 1.0f;
-            LODWORD(tangent[0]) = LODWORD(normal[1]) ^ _mask__NegFloat_;
+            tangent[0] = -normal[1];
             tangent[1] = normal[0];
             tangent[2] = 0.0f;
             Vec3Normalize(tangent);
@@ -320,13 +320,13 @@ void __cdecl FX_DrawElem_BillboardSprite_NoCull(FxDrawState *draw)
         if ( v4 == 0x80000 )
         {
             v3 = draw->camera;
-            LODWORD(normal[0]) = LODWORD(v3->axis[0][0]) ^ _mask__NegFloat_;
-            LODWORD(normal[1]) = LODWORD(v3->axis[0][1]) ^ _mask__NegFloat_;
-            LODWORD(normal[2]) = LODWORD(v3->axis[0][2]) ^ _mask__NegFloat_;
+            normal[0] = -v3->axis[0][0];
+            normal[1] = -v3->axis[0][1];
+            normal[2] = -v3->axis[0][2];
             binormal[0] = 0.0f;
             binormal[1] = 0.0f;
             binormal[2] = 1.0f;
-            LODWORD(tangent[0]) = LODWORD(normal[1]) ^ _mask__NegFloat_;
+            tangent[0] = -normal[1];
             tangent[1] = normal[0];
             tangent[2] = 0.0f;
             Vec3Normalize(tangent);
@@ -921,7 +921,7 @@ void __cdecl FX_DrawElem_Tail_Main(FxDrawState *draw)
     float deltaCamera[3]; // [esp+30h] [ebp-18h] BYREF
     float tangent[3]; // [esp+3Ch] [ebp-Ch] BYREF
 
-    LODWORD(v2) = LODWORD(draw->visState.size[1]) ^ _mask__NegFloat_;
+    v2 = -draw->visState.size[1];
     draw->posWorld[0] = (float)(v2 * draw->velDirWorld[0]) + draw->posWorld[0];
     draw->posWorld[1] = (float)(v2 * draw->velDirWorld[1]) + draw->posWorld[1];
     draw->posWorld[2] = (float)(v2 * draw->velDirWorld[2]) + draw->posWorld[2];

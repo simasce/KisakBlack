@@ -203,13 +203,13 @@ void __cdecl SP_light(gentity_s *self, SpawnVar *spawnVar)
         self->s.lerp.u.turret.gunAngles[2] = light->radius;
         self->s.lerp.u.primaryLight.cosHalfFovOuter = light->cosHalfFovOuter;
         self->s.lerp.u.turret.heatVal = light->cosHalfFovInner;
-        LODWORD(facingDir[0]) = LODWORD(light->dir[0]) ^ _mask__NegFloat_;
-        LODWORD(facingDir[1]) = LODWORD(light->dir[1]) ^ _mask__NegFloat_;
-        LODWORD(facingDir[2]) = LODWORD(light->dir[2]) ^ _mask__NegFloat_;
+        facingDir[0] = -light->dir[0];
+        facingDir[1] = -light->dir[1];
+        facingDir[2] = -light->dir[2];
         vectoangles(facingDir, facingAngles);
         G_SetAngle(self, facingAngles);
         G_SetOrigin(self, light->origin);
-        LODWORD(v3) = LODWORD(light->radius) ^ _mask__NegFloat_;
+        v3 = -light->radius;
         self->r.mins[0] = v3;
         self->r.mins[1] = v3;
         self->r.mins[2] = v3;

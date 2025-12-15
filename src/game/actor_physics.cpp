@@ -574,7 +574,7 @@ LABEL_23:
                 if ( fInto < 0.1 )
                 {
                     if ( COERCE_FLOAT(LODWORD(fInto) ^ _mask__NegFloat_) > g_apl.fImpactSpeed )
-                        LODWORD(g_apl.fImpactSpeed) = LODWORD(fInto) ^ _mask__NegFloat_;
+                        g_apl.fImpactSpeed = -fInto;
                     AIPhys_ClipVelocity(pPhys->vVelocity, planes[i], isWalkable[i], vClipVelocity, 1.001);
                     AIPhys_ClipVelocity(vEndVelocity, planes[i], isWalkable[i], vEndClipVelocity, 1.001);
                     for ( j = 0; j < iNumPlanes; ++j )

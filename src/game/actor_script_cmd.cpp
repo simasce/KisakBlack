@@ -1091,8 +1091,8 @@ void __cdecl ActorCmd_GetHitYaw(scr_entref_t entref)
     self = Actor_Get(entref);
     if ( self->Physics.iHitEntnum == 1023 )
         Scr_Error("nothing was hit", 0);
-    LODWORD(normal[0]) = LODWORD(self->Physics.vHitNormal[0]) ^ _mask__NegFloat_;
-    LODWORD(normal[1]) = LODWORD(self->Physics.vHitNormal[1]) ^ _mask__NegFloat_;
+    normal[0] = -self->Physics.vHitNormal[0];
+    normal[1] = -self->Physics.vHitNormal[1];
     normal[2] = 0.0f;
     value = vectoyaw(normal);
     Scr_AddFloat(value, SCRIPTINSTANCE_SERVER);

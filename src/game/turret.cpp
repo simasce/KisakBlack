@@ -1351,7 +1351,7 @@ int __cdecl turret_UpdateTargetAngles(gentity_s *self, const float *desiredAngle
             if ( COERCE_FLOAT(LODWORD(fSpeed[i]) ^ _mask__NegFloat_) > fDelta )
             {
                 bComplete = 0;
-                LODWORD(fDelta) = LODWORD(fSpeed[i]) ^ _mask__NegFloat_;
+                fDelta = -fSpeed[i];
             }
         }
         else
@@ -2278,8 +2278,8 @@ void __cdecl turret_find_max_angles(gentity_s *pOwner, gentity_s *pTurret)
     ps = &pOwner->client->ps;
     minTurretArc = pTurretInfo->arcmin[1];
     maxTurretArc = pTurretInfo->arcmax[1];
-    LODWORD(dropMins[0]) = LODWORD(dropTraceWidth) ^ _mask__NegFloat_;
-    LODWORD(dropMins[1]) = LODWORD(dropTraceWidth) ^ _mask__NegFloat_;
+    dropMins[0] = -dropTraceWidth;
+    dropMins[1] = -dropTraceWidth;
     dropMins[2] = 0.0f;
     dropMaxs[0] = dropTraceWidth;
     dropMaxs[1] = dropTraceWidth;

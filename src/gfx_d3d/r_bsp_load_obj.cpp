@@ -4863,7 +4863,7 @@ int R_LoadPortals()
         p_plane->coeffs[0] = plane->normal[0];
         p_plane->coeffs[1] = plane->normal[1];
         p_plane->coeffs[2] = plane->normal[2];
-        LODWORD(out[portalIndex].plane.coeffs[3]) = LODWORD(plane->dist) ^ _mask__NegFloat_;
+        out[portalIndex].plane.coeffs[3] = -plane->dist;
         R_SetDpvsPlaneSides(p_plane);
         if ( in[portalIndex].cellIndex >= (unsigned int)s_world.dpvsPlanes.cellCount
             && !Assert_MyHandler(

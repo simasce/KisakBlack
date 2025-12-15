@@ -1660,7 +1660,7 @@ void __cdecl Path_DrawDebugFindPath(const float *vOrigin)
                     delta[0] = vStartPos[0] - vGoalPos[0];
                     delta[1] = *(float *)&dword_A07A074 - *(float *)&dword_A07A064;
                     Vec2Normalize(delta);
-                    LODWORD(perp[0]) = LODWORD(delta[1]) ^ _mask__NegFloat_;
+                    perp[0] = -delta[1];
                     dword_A07A058 = LODWORD(delta[0]);
                 }
                 LODWORD(startPos[2]) = dword_A07A068;

@@ -477,10 +477,9 @@ void __cdecl VEH_UpdateClientChopper(gentity_s *ent)
             move[1] = usercmd->rightmove;
             if ( bitarray<51>::testBit(&usercmd->button_bits, 0xBu) && vehHelicopterFreeLook->current.enabled )
             {
-                LODWORD(player->client->linkAnglesMinClamp[1]) = LODWORD(info->turretViewLimits.horizSpanRight)
-                                                                                                             ^ _mask__NegFloat_;
+                player->client->linkAnglesMinClamp[1] = -info->turretViewLimits.horizSpanRight;
                 player->client->linkAnglesMaxClamp[1] = info->turretViewLimits.horizSpanLeft;
-                LODWORD(player->client->linkAnglesMinClamp[0]) = LODWORD(info->turretViewLimits.vertSpanUp) ^ _mask__NegFloat_;
+                player->client->linkAnglesMinClamp[0] = -info->turretViewLimits.vertSpanUp;
                 player->client->linkAnglesMaxClamp[0] = info->turretViewLimits.vertSpanDown;
             }
             else
@@ -539,7 +538,7 @@ void __cdecl VEH_UpdateClientChopper(gentity_s *ent)
                     if ( (float)(COERCE_FLOAT(LODWORD(viewDiffInfleunce) ^ _mask__NegFloat_) - (float)(fraction * 128.0)) < 0.0 )
                         v10 = v24;
                     else
-                        LODWORD(v10) = LODWORD(viewDiffInfleunce) ^ _mask__NegFloat_;
+                        v10 = -viewDiffInfleunce;
                     viewDiffMove = v10;
                     controllerMove = 0.0f;
                     if ( (player->client->ps.pm_flags & 0xC00) == 0 )
@@ -862,7 +861,7 @@ void __cdecl HELI_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float 
         if ( (float)(COERCE_FLOAT(LODWORD(maxAccel[axis]) ^ _mask__NegFloat_) - v25) < 0.0 )
             v12 = v26;
         else
-            LODWORD(v12) = LODWORD(maxAccel[axis]) ^ _mask__NegFloat_;
+            v12 = -maxAccel[axis];
         bodyAccel[axis] = v12;
         v23 = newDecel[axis];
         if ( (float)(v23 - maxAccel[axis]) < 0.0 )
@@ -872,7 +871,7 @@ void __cdecl HELI_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float 
         if ( (float)(COERCE_FLOAT(LODWORD(maxAccel[axis]) ^ _mask__NegFloat_) - v23) < 0.0 )
             v11 = v24;
         else
-            LODWORD(v11) = LODWORD(maxAccel[axis]) ^ _mask__NegFloat_;
+            v11 = -maxAccel[axis];
         newDecel[axis] = v11;
         v21 = newAccel[axis];
         if ( (float)(v21 - maxAccel[axis]) < 0.0 )
@@ -882,7 +881,7 @@ void __cdecl HELI_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float 
         if ( (float)(COERCE_FLOAT(LODWORD(maxAccel[axis]) ^ _mask__NegFloat_) - v21) < 0.0 )
             v10 = v22;
         else
-            LODWORD(v10) = LODWORD(maxAccel[axis]) ^ _mask__NegFloat_;
+            v10 = -maxAccel[axis];
         newAccel[axis] = v10;
     }
     nextState = DiffTrack(tgtVel[2], phys->bodyVel[2], track[2], 0.050000001);
@@ -895,7 +894,7 @@ void __cdecl HELI_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float 
     if ( (float)(COERCE_FLOAT(LODWORD(maxAccel[2]) ^ _mask__NegFloat_) - v19) < 0.0 )
         v9 = v20;
     else
-        LODWORD(v9) = LODWORD(maxAccel[2]) ^ _mask__NegFloat_;
+        v9 = -maxAccel[2];
     bodyAccel[2] = v9;
     if ( info->rotRate <= 0.0
         && !Assert_MyHandler(
@@ -918,7 +917,7 @@ void __cdecl HELI_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float 
     if ( (float)(COERCE_FLOAT(LODWORD(info->rotRate) ^ _mask__NegFloat_) - tgtYawVel) < 0.0 )
         tgt = rotRate;
     else
-        LODWORD(tgt) = LODWORD(info->rotRate) ^ _mask__NegFloat_;
+        tgt = -info->rotRate;
     tgtYawVel = tgt;
     nextState = DiffTrack(tgt, phys->rotVel[1], track[3], 0.050000001);
     rotAccel[1] = (float)(nextState - phys->rotVel[1]) / 0.050000001;
@@ -930,7 +929,7 @@ void __cdecl HELI_CalcAccel(gentity_s *ent, char *move, float *bodyAccel, float 
     if ( (float)(COERCE_FLOAT(LODWORD(info->accel) ^ _mask__NegFloat_) - v16) < 0.0 )
         v7 = accel;
     else
-        LODWORD(v7) = LODWORD(info->accel) ^ _mask__NegFloat_;
+        v7 = -info->accel;
     rotAccel[1] = v7;
     for ( axis = 0; axis < 2; ++axis )
     {
@@ -1548,10 +1547,9 @@ void __cdecl VEH_UpdateClientPlane(gentity_s *ent)
             if ( bitarray<51>::testBit(&usercmd->button_bits, 0xBu) )
             {
                 player->client->linkAnglesFrac = 1.0f;
-                LODWORD(player->client->linkAnglesMinClamp[1]) = LODWORD(info->turretViewLimits.horizSpanRight)
-                                                                                                             ^ _mask__NegFloat_;
+                player->client->linkAnglesMinClamp[1] = -info->turretViewLimits.horizSpanRight;
                 player->client->linkAnglesMaxClamp[1] = info->turretViewLimits.horizSpanLeft;
-                LODWORD(player->client->linkAnglesMinClamp[0]) = LODWORD(info->turretViewLimits.vertSpanUp) ^ _mask__NegFloat_;
+                player->client->linkAnglesMinClamp[0] = -info->turretViewLimits.vertSpanUp;
                 player->client->linkAnglesMaxClamp[0] = info->turretViewLimits.vertSpanDown;
             }
             else

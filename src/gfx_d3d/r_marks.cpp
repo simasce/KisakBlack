@@ -1532,9 +1532,9 @@ char __cdecl R_MarkFragments_EntBrushes(MarkInfo *markInfo)
         if ( anyMarks )
         {
             MatrixTranspose(poseMatrix, invPoseMatrix);
-            LODWORD(negatedPoseOrigin[0]) = LODWORD(poseMatrix[3][0]) ^ _mask__NegFloat_;
-            LODWORD(negatedPoseOrigin[1]) = LODWORD(poseMatrix[3][1]) ^ _mask__NegFloat_;
-            LODWORD(negatedPoseOrigin[2]) = LODWORD(poseMatrix[3][2]) ^ _mask__NegFloat_;
+            negatedPoseOrigin[0] = -poseMatrix[3][0];
+            negatedPoseOrigin[1] = -poseMatrix[3][1];
+            negatedPoseOrigin[2] = -poseMatrix[3][2];
             MatrixTransformVector(negatedPoseOrigin, invPoseMatrix, invPoseMatrix[3]);
             MatrixTransformVector43(markInfo->origin, invPoseMatrix, transformedOrigin);
             MatrixTransposeTransformVector(markInfo->axis[1], poseMatrix, transformedTexCoordAxis);

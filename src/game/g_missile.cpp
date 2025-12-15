@@ -335,8 +335,8 @@ void __cdecl G_MissileTrace(
     {
         plantableSize = missilePlantableSize->current.value;
         col_context_t::col_context_t(&context);
-        LODWORD(mins[0]) = LODWORD(plantableSize) ^ _mask__NegFloat_;
-        LODWORD(mins[1]) = LODWORD(plantableSize) ^ _mask__NegFloat_;
+        mins[0] = -plantableSize;
+        mins[1] = -plantableSize;
         mins[2] = 0.0f;
         maxs[0] = plantableSize;
         maxs[1] = plantableSize;
@@ -633,7 +633,7 @@ void    G_ExplodeMissile(cStaticModel_s *a1@<ebp>, gentity_s *ent)
                     LODWORD(impact_normal) = &ent->item[1].clipAmmoCount;
                     LODWORD(endpos[1]) = ent->item[1].clipAmmoCount ^ _mask__NegFloat_;
                     LODWORD(endpos[2]) = ent->item[1].index ^ _mask__NegFloat_;
-                    LODWORD(endpos[3]) = LODWORD(ent->trigger.exposureLerpToLighter) ^ _mask__NegFloat_;
+                    endpos[3] = -ent->trigger.exposureLerpToLighter;
                     LODWORD(endpos[0]) = ent->r.currentOrigin;
                     v20 = ent->r.currentOrigin[0];
                     v21 = ent->r.currentOrigin[1];
@@ -2123,7 +2123,7 @@ bool    BounceMissile@<eax>(cStaticModel_s *a1@<ebp>, gentity_s *ent, trace_t *t
     if ( v55 )
     {
         trDelta = ent->s.lerp.pos.trDelta;
-        LODWORD(v52) = LODWORD(v56) ^ _mask__NegFloat_;
+        v52 = -v56;
         ent->s.lerp.pos.trDelta[0] = (float)(COERCE_FLOAT(LODWORD(v56) ^ _mask__NegFloat_) * trace->normal.vec.v[0])
                                                              + *(float *)&shouldRoll;
         trDelta[1] = (float)(v52 * trace->normal.vec.v[1]) + v58;
@@ -3341,7 +3341,7 @@ void    Missile_ApplyAttractorsRepulsors(float a1@<ebp>, gentity_s *missile)
                                      + (float)(forwardDist * forceVector[2]);
             if ( perpDelta[1] > 0.0 )
             {
-                LODWORD(perpDelta[0]) = LODWORD(perpDelta[1]) ^ _mask__NegFloat_;
+                perpDelta[0] = -perpDelta[1];
                 perpDir[0] = (float)(COERCE_FLOAT(LODWORD(perpDelta[1]) ^ _mask__NegFloat_) * forceVector[0]) + perpDelta[2];
                 perpDir[1] = (float)(COERCE_FLOAT(LODWORD(perpDelta[1]) ^ _mask__NegFloat_) * forceVector[1]) + v18;
                 perpDir[2] = (float)(COERCE_FLOAT(LODWORD(perpDelta[1]) ^ _mask__NegFloat_) * forceVector[2]) + forwardDist;
@@ -3700,7 +3700,7 @@ void __cdecl GuidedMissileSteering(gentity_s *ent)
         {
             currentHorzSpeed = Vec2NormalizeTo(ent->s.lerp.pos.trDelta, currentHorzDir);
             currentRight[0] = currentHorzDir[1];
-            LODWORD(currentRight[1]) = LODWORD(currentHorzDir[0]) ^ _mask__NegFloat_;
+            currentRight[1] = -currentHorzDir[0];
             tvGuided = 0;
             maxAccel = 0.0f;
             if ( weapDef->guidedMissileType == MISSILE_GUIDANCE_TVGUIDED )
@@ -3974,7 +3974,7 @@ void __cdecl MissileHorzSteerToTarget(
         {
             if ( toTargetRelative[1] <= 0.0 )
             {
-                LODWORD(v9) = LODWORD(weapDef->maxSteeringAccel) ^ _mask__NegFloat_;
+                v9 = -weapDef->maxSteeringAccel;
                 *steer = v9 * *currentRight;
                 v6 = v9 * currentRight[1];
             }
@@ -4003,7 +4003,7 @@ void __cdecl MissileHorzSteerToTarget(
         if ( tightestRadius > fabs(radius) )
         {
             if ( radius <= 0.0 )
-                LODWORD(radius) = LODWORD(tightestRadius) ^ _mask__NegFloat_;
+                radius = -tightestRadius;
             else
                 radius = tightestRadius;
         }
@@ -4020,7 +4020,7 @@ void __cdecl MissileHorzSteerToTarget(
         if ( (float)(COERCE_FLOAT(LODWORD(weapDef->maxSteeringAccel) ^ _mask__NegFloat_) - accel) < 0.0 )
             v8 = v11;
         else
-            LODWORD(v8) = LODWORD(weapDef->maxSteeringAccel) ^ _mask__NegFloat_;
+            v8 = -weapDef->maxSteeringAccel;
         accel = v8;
         *steer = v8 * *currentRight;
         steer[1] = accel * currentRight[1];
@@ -4156,7 +4156,7 @@ void __cdecl MissileVerticalSteerToTarget(
         if ( (float)(COERCE_FLOAT(LODWORD(weapDef->maxSteeringAccel) ^ _mask__NegFloat_) - v7) < 0.0 )
             v6 = maxSteeringAccel;
         else
-            LODWORD(v6) = LODWORD(weapDef->maxSteeringAccel) ^ _mask__NegFloat_;
+            v6 = -weapDef->maxSteeringAccel;
         steer[2] = v6;
     }
 }

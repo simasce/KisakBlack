@@ -792,7 +792,7 @@ void    CG_Vehicle_PreControllers(
                             v16[2] = (float)(40.0 * v15[2]) + trace_points[5][1][2];
                             contents_mask = (int)trace_points[(int)gunnerViewTags[3]];
                             LODWORD(expand_vec[2]) = axis[1];
-                            LODWORD(expand_vec[1]) = LODWORD(axis[3][0]) ^ _mask__NegFloat_;
+                            expand_vec[1] = -axis[3][0];
                             *(float *)contents_mask = (float)(COERCE_FLOAT(LODWORD(axis[3][0]) ^ _mask__NegFloat_) * axis[1][0])
                                                                             + trace_points[5][1][0];
                             *(float *)(contents_mask + 4) = (float)(expand_vec[1] * *(float *)(LODWORD(expand_vec[2]) + 4))
@@ -1767,19 +1767,19 @@ void __cdecl CG_UpdateTurretAndOverheatSounds(
                     if ( vehSeat )
                     {
                         gunYaw = (float)cent->currentState.u.vehicle.gunnerAngles[vehSeat - 1].yaw * 0.0054931641;
-                        LODWORD(yawMin) = LODWORD(pWeapon->rightArc) ^ _mask__NegFloat_;
+                        yawMin = -pWeapon->rightArc;
                         yawMax = pWeapon->leftArc;
                         gunPitch = (float)*(__int16 *)&cent->currentState.u.primaryLight.colorAndExp[4 * vehSeat + 4] * 0.0054931641;
-                        LODWORD(pitchMin) = LODWORD(pWeapon->topArc) ^ _mask__NegFloat_;
+                        pitchMin = -pWeapon->topArc;
                         pitchMax = pWeapon->bottomArc;
                     }
                     else
                     {
                         gunYaw = (float)cent->currentState.u.vehicle.gunYaw * 0.0054931641;
-                        LODWORD(yawMin) = LODWORD(info->turretViewLimits.horizSpanRight) ^ _mask__NegFloat_;
+                        yawMin = -info->turretViewLimits.horizSpanRight;
                         yawMax = info->turretViewLimits.horizSpanLeft;
                         gunPitch = (float)cent->currentState.u.vehicle.gunPitch * 0.0054931641;
-                        LODWORD(pitchMin) = LODWORD(info->turretViewLimits.vertSpanUp) ^ _mask__NegFloat_;
+                        pitchMin = -info->turretViewLimits.vertSpanUp;
                         pitchMax = info->turretViewLimits.vertSpanDown;
                     }
                     yawLockFade = 1.0f;

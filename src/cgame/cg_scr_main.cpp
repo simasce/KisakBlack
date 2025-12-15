@@ -6184,9 +6184,9 @@ void __cdecl CScrCmd_MakeLight(scr_entref_t entref)
     pSelf->currentState.u.turret.gunAngles[2] = light->radius;
     pSelf->currentState.u.primaryLight.cosHalfFovOuter = light->cosHalfFovOuter;
     pSelf->currentState.u.turret.heatVal = light->cosHalfFovInner;
-    LODWORD(facingDir[0]) = LODWORD(light->dir[0]) ^ _mask__NegFloat_;
-    LODWORD(facingDir[1]) = LODWORD(light->dir[1]) ^ _mask__NegFloat_;
-    LODWORD(facingDir[2]) = LODWORD(light->dir[2]) ^ _mask__NegFloat_;
+    facingDir[0] = -light->dir[0];
+    facingDir[1] = -light->dir[1];
+    facingDir[2] = -light->dir[2];
     vectoangles(facingDir, facingAngles);
     CG_SetAngle(pSelf, facingAngles);
     CG_SetOrigin(pSelf, light->origin);

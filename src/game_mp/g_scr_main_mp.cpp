@@ -2634,7 +2634,7 @@ void __cdecl ScrCmd_PlayerLinkToDelta(scr_entref_t entref)
         v5 = v14;
     else
         v5 = 0.0f;
-    LODWORD(ent->client->linkAnglesMinClamp[1]) = LODWORD(v5) ^ _mask__NegFloat_;
+    ent->client->linkAnglesMinClamp[1] = -v5;
     if ( numParam <= 4 )
         v11 = 180.0f;
     else
@@ -2660,7 +2660,7 @@ void __cdecl ScrCmd_PlayerLinkToDelta(scr_entref_t entref)
         v3 = v10;
     else
         v3 = 0.0f;
-    LODWORD(ent->client->linkAnglesMinClamp[0]) = LODWORD(v3) ^ _mask__NegFloat_;
+    ent->client->linkAnglesMinClamp[0] = -v3;
     if ( numParam <= 6 )
         v7 = 180.0f;
     else

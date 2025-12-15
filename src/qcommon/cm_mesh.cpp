@@ -205,11 +205,11 @@ void __cdecl CM_TraceCapsuleThroughTriangle(
         *(_QWORD *)sphereStart = *(_QWORD *)tw->extents.start.vec.v;
         sphereStart[2] = tw->extents.start.vec.v[2];
         if ( normal[2] < 0.0 )
-            LODWORD(offsetZ) = LODWORD(tw->offsetZ) ^ _mask__NegFloat_;
+            offsetZ = -tw->offsetZ;
         else
             offsetZ = tw->offsetZ;
         sphereStart[2] = sphereStart[2] - offsetZ;
-        LODWORD(v11) = LODWORD(tw->radius) ^ _mask__NegFloat_;
+        v11 = -tw->radius;
         shiftedStart[0] = (float)(v11 * normal[0]) + sphereStart[0];
         shiftedStart[1] = (float)(v11 * normal[1]) + sphereStart[1];
         shiftedStart[2] = (float)(v11 * normal[2]) + sphereStart[2];
