@@ -62,16 +62,16 @@ int __fastcall Actor_Death_Think(actor_s *self)
             self->ent->r.contents = self->deathContents;
             SV_LinkEntity((int)&savedregs, self->ent);
         }
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 0;
     }
     else
     {
         if ( self->eSubState[self->stateLevel] == STATE_DEATH_PRECLEANUP )
             Actor_Death_Cleanup(self);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 2;
     }
 }

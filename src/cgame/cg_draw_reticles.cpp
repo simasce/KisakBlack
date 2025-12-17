@@ -295,8 +295,8 @@ void __cdecl CG_DrawCrosshair(int localClientNum)
                                         }
                                         CG_DrawReticleCenter(localClientNum, weapDef, color, centerX, centerY, centerW, transScale);
                                         CG_DrawReticleSides(localClientNum, weapIndex, color, centerX, centerY, centerW, transScale);
-                                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                            D3DPERF_EndEvent();
+                                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                            //D3DPERF_EndEvent();
                                         return;
                                     }
                                     if ( GetCurrentThreadId() != g_DXDeviceThread )
@@ -306,7 +306,7 @@ void __cdecl CG_DrawCrosshair(int localClientNum)
                                 {
                                     return;
                                 }
-                                D3DPERF_EndEvent();
+                                //D3DPERF_EndEvent();
                                 return;
                             }
                             if ( g_DXDeviceThread != GetCurrentThreadId() )
@@ -317,7 +317,7 @@ void __cdecl CG_DrawCrosshair(int localClientNum)
                     {
                         return;
                     }
-                    D3DPERF_EndEvent();
+                    //D3DPERF_EndEvent();
                     return;
                 }
                 if ( GetCurrentThreadId() != g_DXDeviceThread )
@@ -329,7 +329,7 @@ void __cdecl CG_DrawCrosshair(int localClientNum)
             return;
         }
 LABEL_46:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
     weapIndex = CG_PlayerTurretWeaponIdx(localClientNum);
@@ -354,7 +354,7 @@ LABEL_46:
     }
     if ( drawHud && ps->viewlocked_entNum != 1023 )
         CG_DrawTurretCrossHair(localClientNum);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
         goto LABEL_46;
 }
 

@@ -125,11 +125,11 @@ void __cdecl R_MergeAndEmitDrawSurfLists(unsigned int firstStage, unsigned int s
         if ( g_DXDeviceThread != GetCurrentThreadId() )
             return;
 LABEL_31:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
     }
-    else if ( GetCurrentThreadId() == g_DXDeviceThread )
+    else //if ( GetCurrentThreadId() == g_DXDeviceThread )
     {
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
     }
 }
 

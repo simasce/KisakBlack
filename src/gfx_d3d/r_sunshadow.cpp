@@ -974,8 +974,8 @@ void __cdecl R_SunShadowMaps()
         }
         R_AddWorldSurfacesFrustumOnly(viewIndex);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_MergeAndEmitSunShadowMapsSurfs(GfxViewInfo *viewInfo)
@@ -1026,7 +1026,7 @@ void __cdecl R_MergeAndEmitSunShadowMapsSurfs(GfxViewInfo *viewInfo)
         viewInfo->drawList[partitionIndex + 8].drawSurfCount = frontEndDataOut->drawSurfCount - firstDrawSurf;
         sunShadow->partition[partitionIndex].partitionIndex = partitionIndex;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 

@@ -3028,8 +3028,8 @@ void __cdecl CL_RunOncePerClientFrame(int localClientNum, int msec)
     if ( frame_msec > 0xC8 )
         frame_msec = 200;
     old_com_frameTime = com_frameTime;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CL_Frame(int localClientNum, int msec)

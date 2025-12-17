@@ -170,7 +170,7 @@ void __fastcall Actor_UpdateThreat(actor_s *self)
     {
         if ( level.time < self->threatUpdateTime )
         {
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_98;
             return;
         }
@@ -193,7 +193,7 @@ void __fastcall Actor_UpdateThreat(actor_s *self)
                 Sentient_SetEnemy(self->sentient, 0, 1);
             }
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
             goto LABEL_98;
         return;
     }
@@ -202,7 +202,7 @@ void __fastcall Actor_UpdateThreat(actor_s *self)
         v2 = va("scripted enemy (%0.3f)", 1.0);
         DebugThreatStringSimple(self, scriptTargetEnt, v2, colorGreen);
         Sentient_SetEnemy(self->sentient, scriptTargetEnt, 1);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
             goto LABEL_98;
         return;
     }
@@ -322,9 +322,9 @@ LABEL_77:
         DebugThreatStringSimple(self, pScariestEnemy, "enemy", colorGreen);
     }
     Sentient_SetEnemy(self->sentient, pScariestEnemy, 1);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_98:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl DebugThreatStringSimple(const actor_s *self, gentity_s *enemy, char *string, const float *color)

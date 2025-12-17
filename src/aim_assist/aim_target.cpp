@@ -831,8 +831,8 @@ LABEL_23:
     }
     //PIXBeginNamedEvent(-1, "aim assist epilog");
     //BLOPS_NULLSUB();
-    //if ( g_DXDeviceThread == GetCurrentThreadId() )
-    //    D3DPERF_EndEvent();
+    ////if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //    //D3DPERF_EndEvent();
 }
 
 void __cdecl AimTarget_ClearTargetList(int localClientNum)

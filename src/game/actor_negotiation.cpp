@@ -55,8 +55,8 @@ int __fastcall Actor_Negotiation_Think(actor_s *pSelf)
         Actor_PreThink(pSelf);
         Actor_UpdateOriginAndAngles(pSelf);
         BG_Dog_UpdateAnimationState(-1, &pSelf->ent->s, &level_bgs.actorinfo[pSelf - level.actors]);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 0;
     }
     else
@@ -97,8 +97,8 @@ int __fastcall Actor_Negotiation_Think(actor_s *pSelf)
         YawVectors2D(pSelf->fDesiredBodyYaw, pSelf->prevMoveDir, 0);
         Actor_RecalcPath(pSelf);
         Actor_PopState(pSelf);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 1;
     }
 }

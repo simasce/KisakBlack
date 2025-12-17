@@ -18,8 +18,8 @@ void __cdecl RB_DrawComposites()
             return;
         goto LABEL_5;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_5:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 

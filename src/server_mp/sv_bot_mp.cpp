@@ -176,7 +176,7 @@ void __cdecl SV_BotThink(client_t *bot, usercmd_s *cmd)
         if ( GetCurrentThreadId() != g_DXDeviceThread )
             return;
 LABEL_41:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
     if ( G_GetClientArchiveTime(clientNum) )
@@ -218,7 +218,7 @@ LABEL_41:
             bitarray<51>::setBit(&cmd->button_bits, 5u);
         }
         bot->header.deltaMessage = bot->header.netchan.outgoingSequence - 1;
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
             goto LABEL_41;
     }
     else
@@ -260,7 +260,7 @@ LABEL_41:
             bitarray<51>::resetBit(&cmd->button_bits, 0xCu);
         }
         bot->header.deltaMessage = bot->header.netchan.outgoingSequence - 1;
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
             goto LABEL_41;
     }
 }
@@ -314,7 +314,7 @@ void __cdecl Bot_UpdateSight(bot_info_t *botInfo, const client_t *bot)
         else if ( botInfo->threat.dot < 0.69999999 )
         {
             botInfo->sightHitNum = -1;
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_41;
             return;
         }
@@ -382,14 +382,14 @@ void __cdecl Bot_UpdateSight(bot_info_t *botInfo, const client_t *bot)
         {
             botInfo->threat.lastSightTime = svs.time;
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
             goto LABEL_41;
         return;
     }
     botInfo->sightHitNum = -1;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_41:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Bot_UpdateThreat(bot_info_t *botInfo, const client_t *bot)
@@ -412,8 +412,8 @@ void __cdecl Bot_UpdateThreat(bot_info_t *botInfo, const client_t *bot)
     if ( botTeam == 3 )
     {
         Bot_ClearThreat(botInfo);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return;
     }
     memset((unsigned __int8 *)threats, 0, sizeof(threats));
@@ -515,9 +515,9 @@ void __cdecl Bot_UpdateThreat(bot_info_t *botInfo, const client_t *bot)
         ++enemy;
     }
     Bot_UpdateBestThreat(botInfo, threats, 32);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_82:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 bool __cdecl Bot_IsEnemyHuman(const gentity_s *enemy)
@@ -558,22 +558,22 @@ bool __cdecl Bot_IsFacingEnemy(const client_t *bot, const gentity_s *enemy, floa
         if ( distSq >= 3025.0 )
         {
             v5 = *dot > g_botFovCos;
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return v5;
         }
         else
         {
             v6 = *dot > 0.69999999;
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return v6;
         }
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -591,21 +591,21 @@ char __cdecl Bot_IsInRangeOfEnemy(const client_t *bot, const gentity_s *enemy, f
         {
             weapDef = BG_GetWeaponDef(bot->gentity->client->ps.weapon);
             v4 = (float)(weapDef->fMinDamageRange * weapDef->fMinDamageRange) > *distSq;
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return v4;
         }
         else
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 1;
         }
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -723,14 +723,14 @@ bool __cdecl Bot_ThreatSightCheck(const client_t *bot, const gentity_s *enemy, f
         context.mask = (int)&cls.recentServers[7647].hostName[20];
         SV_SightTracePoint(&hitNum, botOrigin, enemyOrigin, &context);
         v6 = hitNum == 0;
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return v6;
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -832,9 +832,9 @@ void __cdecl Bot_UpdateWeapon(const bot_info_t *botInfo, const client_t *bot, us
             }
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_59:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Bot_UpdateMovement(bot_info_t *botInfo, const client_t *bot, usercmd_s *cmd)
@@ -899,9 +899,9 @@ void __cdecl Bot_UpdateMovement(bot_info_t *botInfo, const client_t *bot, usercm
         cmd->forwardmove = 0;
         cmd->rightmove = 0;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_31:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Bot_RandomInput(bot_info_t *botInfo, usercmd_s *cmd)
@@ -976,9 +976,9 @@ void __cdecl Bot_GetStrafeInput(const client_t *bot, bot_info_t *botInfo, usercm
         botInfo->threat.strafeEndTime = svs.time
                                                                     + irand(sv_botMinStrafeTime->current.integer, sv_botMaxStrafeTime->current.integer);
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_21:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Bot_RandomStrafe(const playerState_s *ps, usercmd_s *cmd)
@@ -1081,9 +1081,9 @@ void __cdecl Bot_UpdatePath(bot_info_t *botInfo, const client_t *bot)
             }
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_46:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 char __cdecl Bot_IsMovingFoward(const bot_info_t *botInfo, const client_t *bot, const playerState_s *ps)
@@ -1095,26 +1095,26 @@ char __cdecl Bot_IsMovingFoward(const bot_info_t *botInfo, const client_t *bot, 
     //PIXBeginNamedEvent(-1, "Bot_IsMovingFoward");
     if ( (botInfo->flags & 0x10) != 0 )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else if ( (botInfo->flags & 0x100) != 0 )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else if ( (ps->pm_flags & 4) != 0 || (ps->pm_flags & 0x4000) != 0 )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else if ( Bot_IsThrowingGrenade(botInfo, bot) )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else
@@ -1123,8 +1123,8 @@ char __cdecl Bot_IsMovingFoward(const bot_info_t *botInfo, const client_t *bot, 
         vDot = (float)((float)(ps->velocity[0] * vForward[0]) + (float)(ps->velocity[1] * vForward[1]))
                  + (float)(ps->velocity[2] * vForward[2]);
         v4 = fabs(vDot) > 1.0;
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return v4;
     }
 }
@@ -1143,14 +1143,14 @@ char __cdecl Bot_PointInGoal(const float *point, const path_t *path, float goalR
         goalRadius = sv_botGoalRadius->current.value;
     if ( Path_Exists(path) && goalRadius * goalRadius > Vec3DistanceSq(point, (const float *)path) )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -1169,8 +1169,8 @@ bool __cdecl Bot_GetPathToGoal(const client_t *bot, const float *goal, path_t *p
         Path_FindPath(path, TEAM_FREE, bot->gentity->r.currentOrigin, goal, 0);
     }
     v5 = Path_Exists(path);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return v5;
 }
 
@@ -1203,8 +1203,8 @@ char __cdecl Bot_PathValid(const gentity_s *bot, const path_t *path)
                         ++traverseCount;
                     if ( traverseCount > 1 )
                     {
-                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                            D3DPERF_EndEvent();
+                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                            //D3DPERF_EndEvent();
                         return 0;
                     }
                 }
@@ -1244,28 +1244,28 @@ char __cdecl Bot_PathValid(const gentity_s *bot, const path_t *path)
                 &context);
             if ( ((unsigned int)&cls.rankedServers[711].game[35] & trace.cflags) != 0 )
             {
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 return 1;
             }
             else
             {
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 return 0;
             }
         }
         else
         {
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             return 1;
         }
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -1291,8 +1291,8 @@ char __cdecl Bot_IsAtNegotiationNode(bot_info_t *botInfo, const client_t *bot, p
                 || distSq >= 4096.0
                 || fabs(end_z - bot->gentity->r.currentOrigin[2]) >= 5.0 )
             {
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 return 1;
             }
             else
@@ -1304,15 +1304,15 @@ char __cdecl Bot_IsAtNegotiationNode(bot_info_t *botInfo, const client_t *bot, p
                 goal[1] = path->pts[0].vOrigPoint[1];
                 goal[2] = path->pts[0].vOrigPoint[2];
                 Bot_GetPathToGoal(bot, goal, path, 0);
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 return 0;
             }
         }
         else
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 1;
         }
     }
@@ -1326,8 +1326,8 @@ char __cdecl Bot_IsAtNegotiationNode(bot_info_t *botInfo, const client_t *bot, p
                 {
                     if ( Vec3DistanceSq(bot->gentity->r.currentOrigin, path->pts[path->wNegotiationStartNode].vOrigPoint) >= 256.0 )
                     {
-                        if ( GetCurrentThreadId() == g_DXDeviceThread )
-                            D3DPERF_EndEvent();
+                        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                            //D3DPERF_EndEvent();
                         return 0;
                     }
                     else
@@ -1335,36 +1335,36 @@ char __cdecl Bot_IsAtNegotiationNode(bot_info_t *botInfo, const client_t *bot, p
                         botInfo->flags |= 0x80u;
                         botInfo->flags |= 0x100u;
                         botInfo->flags |= 0x200u;
-                        if ( GetCurrentThreadId() == g_DXDeviceThread )
-                            D3DPERF_EndEvent();
+                        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                            //D3DPERF_EndEvent();
                         return 1;
                     }
                 }
                 else
                 {
-                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                        D3DPERF_EndEvent();
+                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //D3DPERF_EndEvent();
                     return 0;
                 }
             }
             else
             {
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 return 0;
             }
         }
         else
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
     }
     else
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -1377,36 +1377,36 @@ char __cdecl Bot_UpdateScriptGoal(bot_info_t *botInfo, const client_t *bot)
         if ( Bot_PointInGoal(bot->gentity->r.currentOrigin, &botInfo->path, botInfo->scriptGoalRadius) )
         {
             Scr_Notify(bot->gentity, scr_const.goal, 0);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 1;
         }
         else if ( Path_Exists(&botInfo->path)
                      && Bot_PointInGoal(botInfo->scriptGoal, &botInfo->path, botInfo->scriptGoalRadius) )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 1;
         }
         else if ( Bot_GetPathToGoal(bot, botInfo->scriptGoal, &botInfo->path, 1) )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 1;
         }
         else
         {
             Scr_Notify(bot->gentity, scr_const.bad_path, 0);
             SV_BotClearScriptGoal(bot);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
     }
     else
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -1426,45 +1426,45 @@ char __cdecl Bot_UpdateScriptEnemy(bot_info_t *botInfo, const client_t *bot)
                 if ( enemy && enemy->scr_vehicle )
                 {
                     Path_Clear(&botInfo->path);
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     return 1;
                 }
                 else if ( Bot_GetPathToGoal(bot, botInfo->threat.enemy->r.currentOrigin, &botInfo->path, 1) )
                 {
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     return 1;
                 }
                 else
                 {
                     Scr_Notify(bot->gentity, scr_const.bad_path, 0);
                     SV_BotClearScriptEnemy(bot);
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     return 0;
                 }
             }
             else
             {
                 SV_BotClearScriptEnemy(bot);
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 return 0;
             }
         }
         else
         {
             SV_BotClearScriptEnemy(bot);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
     }
     else
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -1542,9 +1542,9 @@ void __cdecl Bot_UpdateDirection(bot_info_t *botInfo, const client_t *bot, userc
         cmd->angles[0] = bot->lastUsercmd.angles[0];
         cmd->angles[1] = bot->lastUsercmd.angles[1];
         cmd->angles[2] = 0;
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_4:
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
     }
     else
     {
@@ -1580,7 +1580,7 @@ LABEL_4:
                         cmd->angles[0] = bot->lastUsercmd.angles[0];
                         cmd->angles[1] = bot->lastUsercmd.angles[1];
                         cmd->angles[2] = 0;
-                        if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
                             goto LABEL_4;
                         return;
                     }
@@ -1715,14 +1715,14 @@ LABEL_4:
                                                                                                         * 182.04445);
             cmd->angles[1] = (unsigned __int16)(int)(float)((float)(yaw - bot->gentity->client->ps.delta_angles[1]) * 182.04445);
             cmd->angles[2] = (unsigned __int16)(int)(float)(bot->gentity->client->ps.delta_angles[2] * 182.04445);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return;
         }
         cmd->angles[0] = bot->lastUsercmd.angles[0];
         cmd->angles[1] = bot->lastUsercmd.angles[1];
         cmd->angles[2] = 0;
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
             goto LABEL_4;
     }
 }
@@ -1751,8 +1751,8 @@ double __cdecl Bot_UpdatePitch(float currentPitch, float targetPitch, bool force
     else
         v4 = rate;
     v6 = DiffTrackAngle(targetPitch, currentPitch, v4, 0.050000001);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     return v6;
 }
 
@@ -1798,8 +1798,8 @@ double __cdecl Bot_UpdateYaw(float currentYaw, float targetYaw, bool forceSlow, 
         v4 = botInfo->flags | 0x10;
     botInfo->flags = v4;
     v9 = DiffTrackAngle(targetYaw, currentYaw, rateb, 0.050000001);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     return v9;
 }
 
@@ -1820,7 +1820,7 @@ void __cdecl Bot_UpdateMantle(bot_info_t *botInfo, const client_t *bot, usercmd_
         if ( GetCurrentThreadId() != g_DXDeviceThread )
             return;
 LABEL_22:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
     if ( !Bot_IsAtNegotiationNode(botInfo, bot, &botInfo->path) )
@@ -1853,7 +1853,7 @@ LABEL_21:
     }
     cmd->forwardmove = 0;
     cmd->rightmove = 0;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
         goto LABEL_22;
 }
 
@@ -1935,8 +1935,8 @@ void __cdecl Bot_UpdateSpeed(bot_info_t *botInfo, const client_t *bot, usercmd_s
         if ( botInfo->sightHitNum && botInfo->threat.lastSightTime && svs.time - botInfo->threat.lastSightTime < 5000 )
             Bot_StrafeOnPath(&ps->ps, &botInfo->path, cmd);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Bot_StrafeOnPath(const playerState_s *ps, const path_t *path, usercmd_s *cmd)
@@ -1993,8 +1993,8 @@ void __cdecl Bot_UpdateStance(bot_info_t *botInfo, const client_t *bot, usercmd_
     {
         Bot_SetTimedAction(9u, &botInfo->crouchEndTime, sv_botMinCrouchTime, sv_botMaxCrouchTime, cmd, &bot->lastUsercmd);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Bot_UpdateSprint(bot_info_t *botInfo, const client_t *bot, usercmd_s *cmd)
@@ -2039,8 +2039,8 @@ void __cdecl Bot_UpdateSprint(bot_info_t *botInfo, const client_t *bot, usercmd_
                 }
                 if ( (ps->pm_flags & 0x8000) != 0 && ps->damageCount > 1 && random() < 0.30000001 )
                     bitarray<51>::setBit(&cmd->button_bits, 0x2Cu);
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 return;
             }
             if ( g_DXDeviceThread != GetCurrentThreadId() )
@@ -2050,12 +2050,12 @@ void __cdecl Bot_UpdateSprint(bot_info_t *botInfo, const client_t *bot, usercmd_
         {
             return;
         }
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_12:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 bool __cdecl Bot_IsFlashbanged(const client_t *bot)
@@ -2089,8 +2089,8 @@ void __cdecl Bot_UpdateReload(bot_info_t *botInfo, const client_t *bot, usercmd_
         if ( (float)((float)v3 * weapDef->lowAmmoWarningThreshold) >= (float)v4 && (botInfo->sightHitNum || random() < 0.1) )
             bitarray<51>::setBit(&cmd->button_bits, 5u);
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Bot_UpdateGlassSmash(const client_t *bot, usercmd_s *cmd)
@@ -2122,7 +2122,7 @@ void __cdecl Bot_UpdateCombat(bot_info_t *botInfo, const client_t *bot, usercmd_
         if ( GetCurrentThreadId() != g_DXDeviceThread )
             return;
 LABEL_98:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
     if ( ps->ps.throwBackGrenadeTimeLeft > 0 && random() < 0.89999998 )
@@ -2256,7 +2256,7 @@ LABEL_95:
     if ( bitarray<51>::testBit(&cmd->button_bits, 0) )
         botInfo->weaponDelayEndTime = svs.time
                                                                 + irand(sv_botMinFireTime->current.integer, sv_botMaxFireTime->current.integer);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
         goto LABEL_98;
 }
 
@@ -2267,28 +2267,28 @@ char __cdecl Bot_UpdateMelee(bot_info_t *botInfo, const client_t *bot, usercmd_s
     {
         if ( botInfo->sightHitNum )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
         else if ( (float)(40.0 * 40.0) <= botInfo->threat.distSq || random() >= 0.75 )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
         else
         {
             bitarray<51>::setBit(&cmd->button_bits, 2u);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 1;
         }
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -2332,8 +2332,8 @@ char __cdecl Bot_UpdateGrenadeThrow(bot_info_t *botInfo, const client_t *bot, us
                 weapDef = BG_GetWeaponDef(offHandIndex);
                 if ( offhandSlot == OFFHAND_SLOT_LETHAL_GRENADE && (float)weapDef->iExplosionRadius > range )
                 {
-                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                        D3DPERF_EndEvent();
+                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //D3DPERF_EndEvent();
                     return 0;
                 }
                 else
@@ -2371,22 +2371,22 @@ char __cdecl Bot_UpdateGrenadeThrow(bot_info_t *botInfo, const client_t *bot, us
                                 botInfo->flags |= 0x800u;
                                 bitarray<51>::setBit(&cmd->button_bits, 0xFu);
                             }
-                            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                D3DPERF_EndEvent();
+                            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                //D3DPERF_EndEvent();
                             return 1;
                         }
                         else
                         {
                             botInfo->grenadeTime = svs.time + 2000;
-                            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                D3DPERF_EndEvent();
+                            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                //D3DPERF_EndEvent();
                             return 0;
                         }
                     }
                     else
                     {
-                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                            D3DPERF_EndEvent();
+                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                            //D3DPERF_EndEvent();
                         return 0;
                     }
                 }
@@ -2394,22 +2394,22 @@ char __cdecl Bot_UpdateGrenadeThrow(bot_info_t *botInfo, const client_t *bot, us
             else
             {
                 botInfo->grenadeTime = svs.time + 2000;
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 return 0;
             }
         }
         else
         {
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             return 0;
         }
     }
     else
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -2444,14 +2444,14 @@ char __cdecl Bot_GrenadeSightTrace(const client_t *bot, float projectileSpeed, f
     context.mask = 1;
     if ( SV_SightTracePoint(&hit, vStart, vEnd, &context) )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -2508,8 +2508,8 @@ char __cdecl Bot_GrenadeInRange(
     if ( (float)(g * range) == 0.0 )
     {
         *outPitch = 0.0f;
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
     else
@@ -2521,15 +2521,15 @@ char __cdecl Bot_GrenadeInRange(
         if ( (*(unsigned int *)outPitch & 0x7F800000) == 0x7F800000 )
         {
             *outPitch = 0.0f;
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
         else
         {
             *outPitch = (float)(*outPitch * 57.295776) * -1.0;
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 1;
         }
     }
@@ -2563,15 +2563,15 @@ char __cdecl Bot_GrenadePickType(const bot_info_t *botInfo, const playerState_s 
     }
     if ( offHandIndex )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else
     {
         *slot = OFFHAND_SLOT_NONE;
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -2596,8 +2596,8 @@ char __cdecl Bot_ShouldThrowGrenade(bot_info_t *botInfo, const client_t *bot)
         ps = G_GetPlayerState(bot->gentity->s.number);
         if ( ps->ps.weaponstate )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
         else if ( botInfo->threat.enemy )
@@ -2607,8 +2607,8 @@ char __cdecl Bot_ShouldThrowGrenade(bot_info_t *botInfo, const client_t *bot)
                 enemy = botInfo->threat.enemy;
                 if ( enemy && enemy->scr_vehicle )
                 {
-                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                        D3DPERF_EndEvent();
+                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //D3DPERF_EndEvent();
                     return 0;
                 }
                 else if ( !botInfo->sightHitNum
@@ -2640,14 +2640,14 @@ char __cdecl Bot_ShouldThrowGrenade(bot_info_t *botInfo, const client_t *bot)
                                         if ( random() >= 0.75 )
                                         {
                                             botInfo->grenadeTime = svs.time + 2000;
-                                            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                                D3DPERF_EndEvent();
+                                            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                                //D3DPERF_EndEvent();
                                             return 0;
                                         }
                                         else
                                         {
-                                            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                                D3DPERF_EndEvent();
+                                            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                                //D3DPERF_EndEvent();
                                             return 1;
                                         }
                                     }
@@ -2670,98 +2670,98 @@ char __cdecl Bot_ShouldThrowGrenade(bot_info_t *botInfo, const client_t *bot)
                                                 {
                                                     if ( botInfo->sightHitNum && ps->ps.damageCount )
                                                     {
-                                                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                                            D3DPERF_EndEvent();
+                                                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                                            //D3DPERF_EndEvent();
                                                         return 1;
                                                     }
                                                     else
                                                     {
-                                                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                                            D3DPERF_EndEvent();
+                                                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                                            //D3DPERF_EndEvent();
                                                         return 0;
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                                        D3DPERF_EndEvent();
+                                                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                                        //D3DPERF_EndEvent();
                                                     return 1;
                                                 }
                                             }
                                             else
                                             {
-                                                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                                    D3DPERF_EndEvent();
+                                                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                                    //D3DPERF_EndEvent();
                                                 return 1;
                                             }
                                         }
                                         else
                                         {
-                                            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                                D3DPERF_EndEvent();
+                                            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                                //D3DPERF_EndEvent();
                                             return 1;
                                         }
                                     }
                                     else
                                     {
-                                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                            D3DPERF_EndEvent();
+                                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                            //D3DPERF_EndEvent();
                                         return 1;
                                     }
                                 }
                                 else
                                 {
-                                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                        D3DPERF_EndEvent();
+                                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                        //D3DPERF_EndEvent();
                                     return 0;
                                 }
                             }
                             else
                             {
-                                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                    D3DPERF_EndEvent();
+                                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                    //D3DPERF_EndEvent();
                                 return 1;
                             }
                         }
                         else
                         {
-                            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                                D3DPERF_EndEvent();
+                            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                //D3DPERF_EndEvent();
                             return 0;
                         }
                     }
                     else
                     {
-                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                            D3DPERF_EndEvent();
+                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                            //D3DPERF_EndEvent();
                         return 0;
                     }
                 }
                 else
                 {
-                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                        D3DPERF_EndEvent();
+                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //D3DPERF_EndEvent();
                     return 0;
                 }
             }
             else
             {
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 return 0;
             }
         }
         else
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -2771,8 +2771,8 @@ void __cdecl Bot_Clear(bot_info_t *botInfo)
     //PIXBeginNamedEvent(-1, "Bot_Clear");
     memset((unsigned __int8 *)botInfo, 0, sizeof(bot_info_t));
     Path_Clear(&botInfo->path);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl SV_BotRegisterDvars()

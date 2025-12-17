@@ -1094,8 +1094,8 @@ void __cdecl DObjTracelinePartBits(DObj *obj, int *partBits)
         }
     }
     DObjCompleteHierarchyBits(obj, partBits);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl DObjTraceline(DObj *obj, float *start, float *end, unsigned __int8 *priorityMap, DObjTrace_s *trace)
@@ -1184,7 +1184,7 @@ void __cdecl DObjTraceline(DObj *obj, float *start, float *end, unsigned __int8 
         if ( GetCurrentThreadId() != g_DXDeviceThread )
             return;
 LABEL_6:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
     invL2 = 1.0 / deltaLengthSq;
@@ -1502,7 +1502,7 @@ LABEL_25:
                                                                 v6) )
                                                     __debugbreak();
                                             }
-                                            if ( g_DXDeviceThread == GetCurrentThreadId() )
+                                            //if ( g_DXDeviceThread == GetCurrentThreadId() )
                                                 goto LABEL_151;
                                             return;
                                         }
@@ -1597,9 +1597,9 @@ LABEL_29:
         trace->normal[1] = hitSign * v9[1];
         trace->normal[2] = hitSign * v9[2];
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_151:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl InvMatrixTransformVectorQuatTrans(const float *in, const DObjAnimMat *mat, float *out)
@@ -1696,8 +1696,8 @@ void __cdecl DObjGeomTraceline(DObj *obj, float *localStart, float *localEnd, in
     results->sflags = trace.sflags;
     *(_QWORD *)results->normal = *(_QWORD *)trace.normal.vec.v;
     LODWORD(results->normal[2]) = trace.normal.vec.u[2];
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl DObjGeomTracelinePartBits(DObj *obj, int contentmask, int *partBits)
@@ -1724,8 +1724,8 @@ void __cdecl DObjGeomTracelinePartBits(DObj *obj, int contentmask, int *partBits
         boneIndex += model->numBones;
     }
     DObjCompleteHierarchyBits(obj, partBits);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 int __cdecl DObjHasContents(DObj *obj, int contentmask)

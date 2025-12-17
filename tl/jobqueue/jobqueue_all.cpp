@@ -1,6 +1,33 @@
 #include "jobqueue_all.h"
 
-unsigned int __cdecl tlAtomicAdd(volatile signed __int32 *var, unsigned int value)
+#include <Windows.h>
+#include "../tl_system.h"
+#include <universal/q_shared.h>
+
+thread_local jqBatch *jqCurBatch;
+thread_local jqWorker *jqCurWorker;
+
+unsigned __int64 jqMainThreadID;
+
+jqBatchPool jqPool;
+
+void(__cdecl *jqWorkerInitFn)(int);
+HANDLE jqNewJobAdded;
+bool jqStopSignal;
+int jqPoolLock;
+jqQueue jqGlobalQueue;
+jqWorker jqMainThreadWorker;
+
+int jqKeepWorkersAwakeCount;
+int jqSleepingWorkersCount;
+int jqNextAvailTempWorker;
+int jqBatchPoolExternallyLockedCount;
+int jqNWorkers;
+jqWorker *jqWorkers;
+
+const char *jqCheckContext;
+
+unsigned int __cdecl tlAtomicAdd(volatile unsigned __int32 *var, unsigned int value)
 {
   volatile signed __int32 i; // ecx
 
@@ -53,7 +80,7 @@ unsigned __int64 __cdecl tlAtomicOr(volatile unsigned __int64 *var, unsigned __i
   return value | v;
 }
 
-void __thiscall tlAtomicMutex::Unlock(tlAtomicMutex *this)
+void tlAtomicMutex::Unlock()
 {
   int Target; // [esp+4h] [ebp-4h] BYREF
 
@@ -66,13 +93,42 @@ void __thiscall tlAtomicMutex::Unlock(tlAtomicMutex *this)
   }
 }
 
-void __thiscall tlSharedAtomicMutex::Lock(tlSharedAtomicMutex *this)
+char __thiscall tlAtomicMutex::TryLock(tlAtomicMutex *this)
 {
-  unsigned intCurrentThreadId; // ebx
+    int Target; // [esp+1Ch] [ebp-10h] BYREF
+    tlAtomicMutex *ThisPtr; // [esp+20h] [ebp-Ch]
+    unsigned __int64 CurThread; // [esp+24h] [ebp-8h]
+
+    CurThread = GetCurrentThreadId();
+    if (this->ThreadId == CurThread)
+    {
+        ++this->LockCount;
+        return 1;
+    }
+    else
+    {
+        ThisPtr = this->ThisPtr;
+        if (_InterlockedCompareExchange64((volatile signed __int64 *)ThisPtr, CurThread, 0))
+        {
+            return 0;
+        }
+        else
+        {
+            Target = 0;
+            InterlockedExchange(&Target, 0);
+            this->LockCount = 1;
+            return 1;
+        }
+    }
+}
+
+void tlSharedAtomicMutex::Lock()
+{
+  unsigned int CurrentThreadId; // ebx
   tlSharedAtomicMutex *ThisPtr; // eax
   int ThreadId; // ecx
   int ThreadId_high; // eax
-  unsigned intCurThread; // [esp+8h] [ebp-Ch]
+  unsigned int CurThread; // [esp+8h] [ebp-Ch]
   int Target; // [esp+10h] [ebp-4h] BYREF
 
   CurrentThreadId = GetCurrentThreadId();
@@ -97,7 +153,7 @@ void __thiscall tlSharedAtomicMutex::Lock(tlSharedAtomicMutex *this)
   }
 }
 
-bool __thiscall jqAtomicHeap::GetAvailableBlock(jqAtomicHeap *this, jqAtomicHeap::LevelInfo *FitLevel, int *FitSlot)
+bool jqAtomicHeap::GetAvailableBlock(jqAtomicHeap::LevelInfo *FitLevel, int *FitSlot)
 {
   int NCells; // edx
   int v4; // eax
@@ -138,11 +194,11 @@ bool __thiscall jqAtomicHeap::GetAvailableBlock(jqAtomicHeap *this, jqAtomicHeap
            v5) == v5;
 }
 
-char __thiscall jqAtomicHeap::AllocBlock(jqAtomicHeap *this, jqAtomicHeap::LevelInfo **FitLevel, int *FitSlot)
+char jqAtomicHeap::AllocBlock(jqAtomicHeap::LevelInfo **FitLevel, int *FitSlot)
 {
   if ( *FitLevel >= &this->Levels[this->NLevels] )
     return 0;
-  while ( !jqAtomicHeap::GetAvailableBlock(this, *FitLevel, FitSlot) )
+  while ( !jqAtomicHeap::GetAvailableBlock(*FitLevel, FitSlot) )
   {
     if ( ++*FitLevel >= &this->Levels[this->NLevels] )
       return 0;
@@ -150,8 +206,7 @@ char __thiscall jqAtomicHeap::AllocBlock(jqAtomicHeap *this, jqAtomicHeap::Level
   return 1;
 }
 
-int __thiscall jqAtomicHeap::SplitBlock(
-        jqAtomicHeap *this,
+int jqAtomicHeap::SplitBlock(
         jqAtomicHeap::LevelInfo *Level,
         int Slot,
         jqAtomicHeap::LevelInfo *LevelTo)
@@ -167,7 +222,7 @@ int __thiscall jqAtomicHeap::SplitBlock(
   return Slot;
 }
 
-unsigned __int8 *__thiscall jqAtomicHeap::AllocLevel(jqAtomicHeap *this, int LevelIdx)
+unsigned __int8 *jqAtomicHeap::AllocLevel(int LevelIdx)
 {
   jqAtomicHeap::LevelInfo *v3; // edi
   int v5; // ebx
@@ -176,15 +231,15 @@ unsigned __int8 *__thiscall jqAtomicHeap::AllocLevel(jqAtomicHeap *this, int Lev
   v3 = &this->Levels[LevelIdx];
   FitLevel = v3;
   LevelIdx = 0;
-  if ( !jqAtomicHeap::AllocBlock(this, &FitLevel, &LevelIdx) )
+  if ( !jqAtomicHeap::AllocBlock(&FitLevel, &LevelIdx) )
     return 0;
-  v5 = jqAtomicHeap::SplitBlock(this, FitLevel, LevelIdx, v3);
-  tlAtomicAdd((volatile signed __int32 *)&this->ThisPtr->TotalBlocks, 1u);
-  tlAtomicAdd((volatile signed __int32 *)&this->ThisPtr->TotalUsed, v3->BlockSize);
+  v5 = jqAtomicHeap::SplitBlock(FitLevel, LevelIdx, v3);
+  tlAtomicAdd(&this->ThisPtr->TotalBlocks, 1u);
+  tlAtomicAdd(&this->ThisPtr->TotalUsed, v3->BlockSize);
   return &this->HeapBase[v5 * v3->BlockSize];
 }
 
-int __thiscall jqAtomicHeap::FindLevelForSize(jqAtomicHeap *this, unsigned int Size)
+int jqAtomicHeap::FindLevelForSize(unsigned int Size)
 {
   unsigned int BlockSize; // ecx
 
@@ -202,7 +257,7 @@ int __thiscall jqAtomicHeap::FindLevelForSize(jqAtomicHeap *this, unsigned int S
        + (BlockSize << 10 < Size);
 }
 
-unsigned __int8 *__thiscall jqAtomicHeap::Alloc(jqAtomicHeap *this, unsigned int Size, unsigned int Align)
+unsigned __int8 *jqAtomicHeap::Alloc(unsigned int Size, unsigned int Align)
 {
   tlAtomicMutex *p_Mutex; // edi
   unsigned int v5; // eax
@@ -212,14 +267,17 @@ unsigned __int8 *__thiscall jqAtomicHeap::Alloc(jqAtomicHeap *this, unsigned int
   unsigned __int8 *v10; // esi
 
   p_Mutex = &this->Mutex;
-  tlAtomicMutex::Lock(&this->Mutex);
+  //tlAtomicMutex::Lock(&this->Mutex);
+  this->Mutex.Lock();
   v5 = Size;
   if ( Size < Align )
     v5 = Align;
   if ( v5 <= this->HeapSize )
   {
-    LevelForSize = jqAtomicHeap::FindLevelForSize(this, v5);
-    v8 = jqAtomicHeap::AllocLevel(this, LevelForSize);
+    //LevelForSize = jqAtomicHeap::FindLevelForSize(this, v5);
+    LevelForSize = this->FindLevelForSize(v5);
+    //v8 = jqAtomicHeap::AllocLevel(this, LevelForSize);
+    v8 = this->AllocLevel(LevelForSize);
     v9 = p_Mutex->LockCount-- == 1;
     v10 = v8;
     if ( v9 )
@@ -238,8 +296,7 @@ unsigned __int8 *__thiscall jqAtomicHeap::Alloc(jqAtomicHeap *this, unsigned int
   }
 }
 
-void __thiscall jqAtomicHeap::FindAllocatedBlock(
-        jqAtomicHeap *this,
+void jqAtomicHeap::FindAllocatedBlock(
         unsigned int Offset,
         jqAtomicHeap::LevelInfo **FitLevel,
         int *FitSlot)
@@ -262,7 +319,7 @@ void __thiscall jqAtomicHeap::FindAllocatedBlock(
       *FitLevel = v5;
     }
     while ( v5 < &v6->Levels[v6->NLevels] );
-    this = v6;
+    //this = v6;
   }
   if ( *FitLevel >= &this->Levels[this->NLevels] )
   {
@@ -277,7 +334,7 @@ void __thiscall jqAtomicHeap::FindAllocatedBlock(
   }
 }
 
-void __thiscall jqAtomicHeap::MergeBlocks(jqAtomicHeap *this, jqAtomicHeap::LevelInfo **FitLevel, int *FitSlot)
+void jqAtomicHeap::MergeBlocks(jqAtomicHeap::LevelInfo **FitLevel, int *FitSlot)
 {
   jqAtomicHeap::LevelInfo **v3; // edi
   int *v4; // ecx
@@ -324,7 +381,7 @@ LABEL_3:
   }
 }
 
-void __thiscall jqAtomicHeap::Free(jqAtomicHeap *this, jqAtomicHeap::LevelInfo *Ptr)
+void jqAtomicHeap::Free(jqAtomicHeap::LevelInfo *Ptr)
 {
   tlAtomicMutex *p_Mutex; // edi
   jqAtomicHeap::LevelInfo *v4; // ebx
@@ -452,12 +509,14 @@ unsigned __int64 __cdecl jqGetMainThreadID()
 
 jqBatch *__cdecl jqGetCurrentBatch()
 {
-  return *(jqBatch **)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8316);
+  //return *(jqBatch **)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8316);
+  return jqCurBatch;
 }
 
 jqWorker *__cdecl jqGetCurrentWorker()
 {
-  return *(jqWorker **)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8312);
+  //return *(jqWorker **)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8312);
+    return jqCurWorker;
 }
 
 jqQueue *__cdecl jqGetWorkerQueue(int worker)
@@ -563,12 +622,14 @@ void __cdecl jqLetWorkersSleep()
 
 unsigned __int8 *__cdecl jqAllocBatchData(unsigned int Size)
 {
-  return jqAtomicHeap::Alloc(&jqPool.BatchDataHeap, Size, 0x10u);
+  //return jqAtomicHeap::Alloc(&jqPool.BatchDataHeap, Size, 0x10u);
+    return jqPool.BatchDataHeap.Alloc(Size, 0x10);
 }
 
 void __cdecl jqFreeBatchData(jqAtomicHeap::LevelInfo *Ptr)
 {
-  jqAtomicHeap::Free(&jqPool.BatchDataHeap, Ptr);
+  //jqAtomicHeap::Free(&jqPool.BatchDataHeap, Ptr);
+    jqPool.BatchDataHeap.Free(Ptr);
 }
 
 unsigned int __cdecl jqGetBatchDataAvailable()
@@ -785,7 +846,7 @@ void __cdecl jqAlertWorkers()
   PulseEvent(jqNewJobAdded);
 }
 
-void __thiscall jqLockBatchPoolInternal(void *this)
+void jqLockBatchPoolInternal(void *this)
 {
   int Target; // [esp+0h] [ebp-4h] BYREF
 
@@ -813,7 +874,7 @@ void __cdecl jqKeepWorkersAwake()
     PulseEvent(jqNewJobAdded);
 }
 
-void __thiscall jqLockBatchPool(void *this)
+void jqLockBatchPool(void *this)
 {
   jqLockBatchPoolInternal(this);
   _InterlockedExchangeAdd(&jqBatchPoolExternallyLockedCount, 1u);
@@ -1021,7 +1082,7 @@ char __cdecl jqPopNextBatchFromQueue(jqQueue *Worker, jqBatchGroup *Queue, jqBat
   jqQueue *p_Group; // eax
   jqAtomicQueue<jqBatch,32>::NodeType **FreeListPtr; // eax
   jqAtomicQueue<jqBatch,32>::NodeType *v9; // esi
-  tlSharedAtomicMutex *ThisPtr; // eax
+  Ptr; // eax
   bool v11; // zf
   tlSharedAtomicMutex *v12; // eax
   int v13; // eax
@@ -1824,7 +1885,7 @@ void __cdecl jqStart()
   _jqStart();
 }
 
-void __thiscall jqAtomicQueue<jqBatch,32>::AllocateNodeBlock(jqAtomicQueue<jqBatch,32> *this, int Count)
+void jqAtomicQueue<jqBatch,32>::AllocateNodeBlock(jqAtomicQueue<jqBatch,32> *this, int Count)
 {
   int v2; // esi
   jqAtomicQueue<jqBatch,32>::NodeType *v4; // eax
@@ -1854,13 +1915,13 @@ void __thiscall jqAtomicQueue<jqBatch,32>::AllocateNodeBlock(jqAtomicQueue<jqBat
   *this->FreeListPtr = v4;
 }
 
-jqAtomicQueue<jqBatch,32>::NodeType *__thiscall jqAtomicQueue<jqBatch,32>::AllocateNode(
+jqAtomicQueue<jqBatch,32>::NodeType *jqAtomicQueue<jqBatch,32>::AllocateNode(
         jqAtomicQueue<jqBatch,32> *this)
 {
   tlSharedAtomicMutex *p_FreeLock; // ebx
   jqAtomicQueue<jqBatch,32>::NodeType **FreeListPtr; // eax
   jqAtomicQueue<jqBatch,32>::NodeType *v4; // esi
-  tlSharedAtomicMutex *ThisPtr; // eax
+  Ptr; // eax
   tlSharedAtomicMutex *v7; // ebx
   int Target; // [esp+Ch] [ebp-4h] BYREF
 
@@ -1887,13 +1948,13 @@ jqAtomicQueue<jqBatch,32>::NodeType *__thiscall jqAtomicQueue<jqBatch,32>::Alloc
   return v4;
 }
 
-void __thiscall tlAtomicMutex::~tlAtomicMutex(tlAtomicMutex *this)
+void tlAtomicMutex::~tlAtomicMutex(tlAtomicMutex *this)
 {
   this->ThreadId = 0;
   this->ThisPtr = 0;
 }
 
-void __thiscall jqAtomicHeap::~jqAtomicHeap(jqAtomicHeap *this)
+void jqAtomicHeap::~jqAtomicHeap(jqAtomicHeap *this)
 {
   unsigned __int8 *LevelData; // eax
 
@@ -1905,7 +1966,7 @@ void __thiscall jqAtomicHeap::~jqAtomicHeap(jqAtomicHeap *this)
   this->Mutex.ThisPtr = 0;
 }
 
-void __thiscall jqAtomicHeap::Init(
+void jqAtomicHeap::Init(
         jqAtomicHeap *this,
         unsigned __int8 *_HeapBase,
         unsigned int _HeapSize,
@@ -1997,7 +2058,7 @@ void __thiscall jqAtomicHeap::Init(
   v16[1] = 0;
 }
 
-void __thiscall jqAtomicQueue<jqBatch,32>::Init(
+void jqAtomicQueue<jqBatch,32>::Init(
         jqAtomicQueue<jqBatch,32> *this,
         jqAtomicQueue<jqBatch,32> *SharedFreeList)
 {
@@ -2042,7 +2103,7 @@ LABEL_6:
   this->Head = Node;
 }
 
-void __thiscall jqAtomicQueue<jqBatch,32>::Push(jqAtomicQueue<jqBatch,32> *this, jqBatch *Data)
+void jqAtomicQueue<jqBatch,32>::Push(jqAtomicQueue<jqBatch,32> *this, jqBatch *Data)
 {
   jqAtomicQueue<jqBatch,32>::NodeType *Node; // edi
 
@@ -2061,13 +2122,13 @@ void __thiscall jqAtomicQueue<jqBatch,32>::Push(jqAtomicQueue<jqBatch,32> *this,
   }
 }
 
-char __thiscall jqAtomicQueue<jqBatch,32>::Pop(jqAtomicQueue<jqBatch,32> *this, jqBatch *p)
+char jqAtomicQueue<jqBatch,32>::Pop(jqAtomicQueue<jqBatch,32> *this, jqBatch *p)
 {
   tlAtomicMutex *p_HeadLock; // edi
   jqAtomicQueue<jqBatch,32>::NodeType *Next; // ebx
   bool v5; // zf
   jqAtomicQueue<jqBatch,32>::NodeType *v7; // eax
-  tlSharedAtomicMutex *ThisPtr; // eax
+  Ptr; // eax
   tlSharedAtomicMutex *v9; // edi
   jqAtomicQueue<jqBatch,32>::NodeType *Node; // [esp+Ch] [ebp-8h] BYREF
   int Target; // [esp+10h] [ebp-4h] BYREF
@@ -2118,7 +2179,7 @@ char __thiscall jqAtomicQueue<jqBatch,32>::Pop(jqAtomicQueue<jqBatch,32> *this, 
   }
 }
 
-void __thiscall jqQueue::~jqQueue(jqQueue *this)
+void jqQueue::~jqQueue(jqQueue *this)
 {
   this->Queue.TailLock.ThreadId = 0;
   this->Queue.TailLock.ThisPtr = 0;
@@ -2126,7 +2187,7 @@ void __thiscall jqQueue::~jqQueue(jqQueue *this)
   this->Queue.HeadLock.ThisPtr = 0;
 }
 
-void __thiscall jqBatchPool::~jqBatchPool(jqBatchPool *this)
+void jqBatchPool::~jqBatchPool(jqBatchPool *this)
 {
   jqAtomicHeap::~jqAtomicHeap(&this->BatchDataHeap);
   this->BaseQueue.Queue.TailLock.ThreadId = 0;

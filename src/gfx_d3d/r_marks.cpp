@@ -937,7 +937,7 @@ void __cdecl R_MarkFragments_Go(
     {
         return;
     }
-    D3DPERF_EndEvent();
+    //D3DPERF_EndEvent();
 }
 
 bool __cdecl R_MarkFragments_Brushes(MarkInfo *markInfo)
@@ -994,8 +994,8 @@ char __cdecl R_MarkFragments_WorldBrushes(MarkInfo *markInfo)
                         surfaces[surfIndex],
                         &anyMarks) )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
     }
@@ -1024,8 +1024,8 @@ char __cdecl R_MarkFragments_WorldBrushes(MarkInfo *markInfo)
     {
         __debugbreak();
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     return 1;
 }
 
@@ -1524,8 +1524,8 @@ char __cdecl R_MarkFragments_EntBrushes(MarkInfo *markInfo)
             if ( R_Mark_MaterialAllowsMarks(surface->material, markInfo->material)
                 && !R_MarkFragments_BrushSurface(markInfo, &markContext, &clipPlanes, markDir, surface, &anyMarks) )
             {
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 return 0;
             }
         }
@@ -1553,8 +1553,8 @@ char __cdecl R_MarkFragments_EntBrushes(MarkInfo *markInfo)
             markInfo->usedPointCount = 0;
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     return 1;
 }
 
@@ -1627,8 +1627,8 @@ char __cdecl R_MarkFragments_Glass(MarkInfo *markInfo)
             if ( R_Mark_MaterialAllowsMarks(surface->material, markInfo->material)
                 && !R_MarkFragments_BrushSurface(markInfo, &markContext, &clipPlanes, markDir, surface, &anyMarks) )
             {
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 return 0;
             }
         }
@@ -1662,8 +1662,8 @@ char __cdecl R_MarkFragments_Glass(MarkInfo *markInfo)
             markInfo->usedPointCount = 0;
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     return 1;
 }
 
@@ -1735,8 +1735,8 @@ char __cdecl R_MarkFragments_SceneDObjs(MarkInfo *markInfo)
 LABEL_2:
     if ( sceneDObjCollidedIndex == markInfo->sceneDObjCollidedCount )
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else
@@ -1779,8 +1779,8 @@ LABEL_2:
             boneIndex += model->numBones;
             boneMtxList += model->numBones;
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -2081,8 +2081,8 @@ char __cdecl R_MarkFragments_StaticModels(MarkInfo *markInfo)
                         smodelDraw->placement.scale,
                         &markContext) )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
         if ( markInfo->usedTriCount || markInfo->usedPointCount )
@@ -2112,8 +2112,8 @@ char __cdecl R_MarkFragments_StaticModels(MarkInfo *markInfo)
     {
         __debugbreak();
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     return 1;
 }
 

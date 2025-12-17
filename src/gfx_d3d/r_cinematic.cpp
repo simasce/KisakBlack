@@ -886,8 +886,8 @@ char __cdecl R_Cinematic_Advance(bool force_wait)
                 BinkNextFrame(cinematicGlob.binkTextureSet.bink_buffers.cRcBBufferWidth);
                 BinkDoFrame(cinematicGlob.binkTextureSet.bink_buffers.cRcBBufferWidth);
             }
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             if ( Sys_IsRenderThread() )
             {
                 Unlock_Bink_textures2(dx.device, (BINKTEXTURESET *)&cinematicGlob.binkTextureSet.bink_buffers.cRcBBufferHeight);
@@ -1764,12 +1764,12 @@ void __cdecl R_Cinematic_UpdateFrame(bool force_wait)
             }
         }
         while ( force_wait );
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
-    else if ( g_DXDeviceThread == GetCurrentThreadId() )
+    else //if ( g_DXDeviceThread == GetCurrentThreadId() )
     {
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
     }
 }
 

@@ -869,16 +869,16 @@ char __cdecl R_StreamUpdate(const float *viewPos)
     }
     if ( r_reflectionProbeGenerate->current.enabled )
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 0;
     }
     else
     {
         if ( r_stream->current.integer > 0 )
             updateCalled = R_StreamUpdate_FindImageAndOptimize(viewPos);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return updateCalled;
     }
 }
@@ -983,8 +983,8 @@ void __cdecl R_StreamUpdate_EndQuery()
     }
     //PIXBeginNamedEvent(-1, "wait r_stream_sort");
     Sys_WaitWorkerCmdInternal(&r_stream_sortWorkerCmd);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     dword_ADD7010 = 0;
     R_StreamAlloc_Lock();
     R_StreamUpdate_EndQuery_Internal();
@@ -1029,7 +1029,7 @@ LABEL_3:
             result = GetCurrentThreadId();
             if ( result != g_DXDeviceThread )
                 return result;
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
         }
         while ( sortedIndex < list_count )
         {
@@ -1059,7 +1059,7 @@ LABEL_3:
                                     goto LABEL_3;
                                 result = GetCurrentThreadId();
                                 if ( result == g_DXDeviceThread )
-                                    return D3DPERF_EndEvent();
+                                    return //D3DPERF_EndEvent();
                             }
                             else
                             {
@@ -1069,7 +1069,7 @@ LABEL_3:
                                 {
                                     result = 0;
                                     if ( !HIDWORD(g_DXDeviceThread) )
-                                        return D3DPERF_EndEvent();
+                                        return //D3DPERF_EndEvent();
                                 }
                             }
                             return result;
@@ -1085,7 +1085,7 @@ LABEL_3:
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }
@@ -1317,8 +1317,8 @@ char __cdecl R_StreamUpdate_FindImageAndOptimize(const float *viewPos)
                 }
             }
             Sys_LeaveCriticalSection(CRITSECT_STREAM_SYNC_COMMAND);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             return 1;
         }
         else
@@ -1334,8 +1334,8 @@ char __cdecl R_StreamUpdate_FindImageAndOptimize(const float *viewPos)
             Sys_AddWorkerCmdInternal(&r_stream_sortWorkerCmd, (unsigned __int8 *)&sortCmd, 0);
             dword_ADD700C = -1;
             Sys_LeaveCriticalSection(CRITSECT_STREAM_SYNC_COMMAND);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             return 1;
         }
     }
@@ -1436,8 +1436,8 @@ void __cdecl R_StreamUpdate_AddForcedImages(float forceImportance, float touchIm
         (unsigned __int8 *)&streamFrontendGlob.sortedImages[132 * (streamFrontendGlob.sortedImages[345] ^ 1) + 81],
         0,
         0x210u);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void R_StreamUpdatePreventedMaterials()
@@ -1750,8 +1750,8 @@ void __cdecl R_StreamUpdatePerClient(const float *viewPos)
             R_StreamUpdateDynamicModels(viewPos, maxDistSq, streamFrontendGlob.frame, distanceScale);
             ++dword_ADD700C;
             Sys_LeaveCriticalSection(CRITSECT_STREAM_SYNC_COMMAND);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
         }
         else
         {
@@ -2040,8 +2040,8 @@ void __cdecl R_Stream_UpdateStaticModelsCmd(char *data)
     s_viewPos = *(float4 *)(data + 4);
     for ( instId = 0; instId < g_worldDpvs->smodelCount; ++instId )
         R_StreamUpdateStaticModel(instId, (const float *)data + 1, *((float *)data + 4), (float *)data + 5);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_StreamUpdateStaticModel(
@@ -2096,8 +2096,8 @@ void __cdecl R_Stream_UpdateStaticSurfacesCmd(char *data)
     s_viewPos = *(float4 *)(data + 4);
     for ( surfId = 0; surfId < g_worldDpvs->staticSurfaceCount; ++surfId )
         R_StreamUpdateWorldSurface(surfId, (const float *)data + 1, *((float *)data + 4), (float *)data + 5);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_StreamUpdateWorldSurface(int surfId, const float *viewPos, float maxDistSq, float *distanceScale)
@@ -2228,8 +2228,8 @@ void __cdecl R_Stream_SortCmd(_BYTE *data)
 {
     //PIXBeginNamedEvent(-1, "R_Stream_SortCmd");
     R_StreamUpdate_EndQuerySort(data[4]);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_StreamUpdate_EndQuerySort(bool diskOrder)
@@ -2279,16 +2279,16 @@ void __cdecl R_StreamUpdate_EndQuerySort(bool diskOrder)
     {
         importance_merge_sort((void **)&streamFrontendGlob.sortedImages[352], list_count);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_Stream_CombineCmd()
 {
     //PIXBeginNamedEvent(-1, "R_Stream_CombineCmd");
     R_StreamUpdate_CombineImportance();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 unsigned intR_StreamUpdate_CombineImportance()
@@ -2346,8 +2346,8 @@ unsigned intR_StreamUpdate_CombineImportance()
             R_StreamUpdateForXModel(&modelb->entry, streamFrontendGlob.dynamicModelDistance[modelIndex]);
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "R_Stream combine materials");
     for ( materialIndex = 0; materialIndex < 0x1000; ++materialIndex )
     {
@@ -2367,7 +2367,7 @@ unsigned intR_StreamUpdate_CombineImportance()
     }
     result = GetCurrentThreadId();
     if ( result == g_DXDeviceThread )
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     return result;
 }
 
@@ -2506,7 +2506,7 @@ void __cdecl R_StreamUpdateStatic(const float *viewPos, float maxDistSq, float *
     *(_QWORD *)&s_viewPos.unitVec[2].packed = *((_QWORD *)viewPos + 1);
     if ( rgp.world->streamInfo.aabbTreeCount > 0 )
         R_StreamUpdateAabbNode_r_0_(0, viewPos, maxDistSq, distanceScale);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 

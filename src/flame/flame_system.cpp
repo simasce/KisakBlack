@@ -506,8 +506,8 @@ void __cdecl CG_Flame_Age_All_Objects(int time)
     Flame_Class_Smoke_Age(0, time);
     Flame_Class_Stream_Age(0);
     Flame_Class_Drips_Age(0, time);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl SV_Flame_Age_All_Objects(int time)
@@ -519,8 +519,8 @@ void __cdecl SV_Flame_Age_All_Objects(int time)
     Flame_Class_Smoke_Age(1, time);
     Flame_Class_Stream_Age(1);
     Flame_Class_Drips_Age(1, time);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 flameSource_t *__cdecl Flame_Source_Alloc(int entityNum)
@@ -652,7 +652,7 @@ int __cdecl Flame_GetLocalClientFlameSource(int localClientNum, int EntNum)
     return EntNum;
 }
 
-unsigned __int8 __cdecl Flame_GetLocalClientSourceRange()
+bool __cdecl Flame_GetLocalClientSourceRange(const char *__formal)
 {
     return 1;
 }
@@ -1006,8 +1006,8 @@ void __cdecl Flame_Generate_Verts(int localClientNum)
             Flame_Class_Drips_Render_Local_List(localClientNum, (flameDrips_t *)flameVarList[i].dripsList);
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_Flame_Update_ViewModel(int localClientNum, centity_s *cent)

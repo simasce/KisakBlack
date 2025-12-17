@@ -1,4 +1,5 @@
 #include "mem_fixed.h"
+#include "assertive.h"
 
 _fixed_heapnode *__cdecl Hunk_FixedInit(
                 _fixed_heapnode *buffer,
@@ -118,7 +119,7 @@ void __cdecl Hunk_FixedFree(HunkUser *_user, char *ptr)
         }
         else
         {
-            *(unsigned int *)ptr = _user[1].name;
+            *(unsigned int *)ptr = (unsigned int)_user[1].name;
             _user[1].name = ptr;
         }
     }

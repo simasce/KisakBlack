@@ -376,8 +376,8 @@ void __cdecl R_Set2D(GfxCmdBufSourceState *source)
         source->skinnedPlacement.scale = 1.0f;
         R_GetViewport(source, &viewport);
         R_CmdBufSet2D((GfxViewParms *)&savedregs, source, &viewport);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -491,8 +491,8 @@ void __cdecl R_Set3D(GfxCmdBufSourceState *source)
         source->skinnedPlacement.scale = 1.0f;
         R_CmdBufSet3D(source);
         UpdateVPosToWorld(source);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 

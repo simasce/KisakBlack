@@ -1,85 +1,20 @@
 #include "snd_dsp.h"
-
-double __cdecl sqrtf(float val)
-{
-    return (float)sqrt(val);
-}
-
-double __cdecl cosf(float _X)
-{
-    return (float)cos(_X);
-}
-
-double __cdecl sinf(float _X)
-{
-    return (float)sin(_X);
-}
-
-bool __cdecl IS_NAN(float x)
-{
-    return (LODWORD(x) & 0x7F800000) == 2139095040;
-}
-
-double __cdecl I_fmax(float x, float y)
-{
-    if ( (float)(x - y) < 0.0 )
-        return y;
-    else
-        return x;
-}
-
-double __cdecl I_fmin(float x, float y)
-{
-    if ( (float)(y - x) < 0.0 )
-        return y;
-    else
-        return x;
-}
+#include <universal/com_math.h>
+#include "snd.h"
 
 void __cdecl SND_DspMul(unsigned int count, const float *a, const float *b, float *c)
 {
-    float *v5; // ecx
-    const float *v6; // eax
-    unsigned int v7; // edx
-    unsigned int i; // [esp+18h] [ebp+Ch]
+    iassert((count & 3) == 0);
+    iassert(((uintptr_t)a & 15) == 0);
+    iassert(((uintptr_t)b & 15) == 0);
+    iassert(((uintptr_t)c & 15) == 0);
 
-    if ( (count & 3) != 0
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 128, 0, "%s", "(count&3) == 0") )
+    for (unsigned int i = 0; i < count; i += 4)
     {
-        __debugbreak();
-    }
-    if ( ((unsigned __int8)a & 0xF) != 0
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 129, 0, "%s", "(((int)a)&15) == 0") )
-    {
-        __debugbreak();
-    }
-    if ( ((unsigned __int8)b & 0xF) != 0
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 130, 0, "%s", "(((int)b)&15) == 0") )
-    {
-        __debugbreak();
-    }
-    if ( ((unsigned __int8)c & 0xF) != 0
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 131, 0, "%s", "(((int)c)&15) == 0") )
-    {
-        __debugbreak();
-    }
-    i = 0;
-    if ( count )
-    {
-        v5 = c + 2;
-        v6 = b + 1;
-        do
-        {
-            *(v5 - 2) = a[i] * *(v6 - 1);
-            *(float *)((char *)v6 + (char *)c - (char *)b) = *(const float *)((char *)v6 + (char *)a - (char *)b) * *v6;
-            v7 = i;
-            i += 4;
-            *v5 = *(float *)((char *)v5 + (char *)a - (char *)c) * v6[1];
-            v5[1] = a[v7 + 3] * v6[2];
-            v5 += 4;
-            v6 += 4;
-        }
-        while ( i < count );
+        c[i + 0] = a[i + 0] * b[i + 0];
+        c[i + 1] = a[i + 1] * b[i + 1];
+        c[i + 2] = a[i + 2] * b[i + 2];
+        c[i + 3] = a[i + 3] * b[i + 3];
     }
 }
 
@@ -196,43 +131,17 @@ void __cdecl SND_DspScale(unsigned int count, float a, const float *b, float *c)
 
 void __cdecl SND_DspSum(unsigned int count, const float *a, float *c)
 {
-    float *v3; // edx
-    float *v4; // eax
-    unsigned int v5; // ecx
+    iassert((count & 3) == 0);
+    iassert(((uintptr_t)a & 15) == 0);
+    iassert(((uintptr_t)c & 15) == 0);
+    iassert(a != c);
 
-    if ( (count & 3) != 0
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 263, 0, "%s", "(count&3) == 0") )
+    for (unsigned int i = 0; i < count; i += 4)
     {
-        __debugbreak();
-    }
-    if ( ((unsigned __int8)a & 0xF) != 0
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 264, 0, "%s", "(((int)a)&15) == 0") )
-    {
-        __debugbreak();
-    }
-    if ( ((unsigned __int8)c & 0xF) != 0
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 265, 0, "%s", "(((int)c)&15) == 0") )
-    {
-        __debugbreak();
-    }
-    if ( a == c && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 266, 0, "%s", "a != c") )
-        __debugbreak();
-    if ( count )
-    {
-        v3 = (float *)(a + 3);
-        v4 = c + 1;
-        v5 = ((count - 1) >> 2) + 1;
-        do
-        {
-            *(v4 - 1) = *(v3 - 3) + *(v4 - 1);
-            *v4 = *(float *)((char *)v4 + (char *)a - (char *)c) + *v4;
-            v4[1] = *(v3 - 1) + v4[1];
-            v4[2] = v4[2] + *v3;
-            v4 += 4;
-            v3 += 4;
-            --v5;
-        }
-        while ( v5 );
+        c[i + 0] += a[i + 0];
+        c[i + 1] += a[i + 1];
+        c[i + 2] += a[i + 2];
+        c[i + 3] += a[i + 3];
     }
 }
 
@@ -327,11 +236,6 @@ void __cdecl SND_OcclusionLpfCoef(float occlusionLevel, float occlusionRatio, fl
         if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 450, 0, "%s", "!IS_NAN(*a1)") )
             __debugbreak();
     }
-}
-
-double __cdecl powf(float _X, float _Y)
-{
-    return (float)pow(_X, _Y);
 }
 
 double __cdecl I_fclamp(float val, float min, float max)
@@ -920,7 +824,8 @@ void __cdecl SND_DspFutzMono(
         }
         SND_DspScale(count, param->pregain, input, tempa);
         SND_DspPolyDistortion(count, param->distortion, tempa, tempb);
-        SND_DspClip(count, tempa, COERCE_FLOAT(LODWORD(param->preclip) ^ _mask__NegFloat_), param->preclip);
+        //SND_DspClip(count, tempa, COERCE_FLOAT(LODWORD(param->preclip) ^ _mask__NegFloat_), param->preclip);
+        SND_DspClip(count, tempa, -param->preclip, param->preclip);
         SND_DspBiquadBpf(rate, param->bpfF, param->bpfQ, &bpf);
         SND_DspBiquadInPlace(&bpf, &state->bpf, count, tempa);
         SND_DspBiquadLShelve(rate, param->lsG, param->lsF, param->lsQ, &ls);
@@ -929,7 +834,8 @@ void __cdecl SND_DspFutzMono(
         SND_DspScale(count, param->postgain * param->blend, tempa);
         SND_DspScale(count, 1.0 - param->blend, input);
         SND_DspSum(count, tempa, input);
-        SND_DspClip(count, input, COERCE_FLOAT(LODWORD(param->postclip) ^ _mask__NegFloat_), param->postclip);
+        //SND_DspClip(count, input, COERCE_FLOAT(LODWORD(param->postclip) ^ _mask__NegFloat_), param->postclip);
+        SND_DspClip(count, input, -param->postclip, param->postclip);
     }
 }
 
@@ -1225,7 +1131,7 @@ void __cdecl SND_DspFxSourceMono(
         //PIXBeginNamedEvent((int)&cls.rankedServers[711].game[34], "lpf");
         SND_OcclusionLpfCoef(v7->lpfAttenuation, v7->lpfRatio, v7->frameRate, &b0, (float *)&params);
         SND_DspOnePoleFilterMono(frameCount, frames, b0, *(float *)&params, &v6->lpfy);
-        PIXEndNamedEvent();
+        //PIXEndNamedEvent();
     }
     blend = v7->futz.blend;
     params = &v7->futz;
@@ -1233,7 +1139,7 @@ void __cdecl SND_DspFxSourceMono(
     {
         //PIXBeginNamedEvent((int)&cls.rankedServers[711].game[34], "futz");
         SND_DspFutzMono(params, &v6->futz, v7->frameRate, frameCount, frames, tempa, tempb);
-        PIXEndNamedEvent();
+        //PIXEndNamedEvent();
     }
 }
 
@@ -1321,7 +1227,7 @@ void __cdecl SND_DspFxMasterNoVoiceSingleChannel(
         if ( fabs(params->compMG - 1.0) > 0.0000152879 )
             SND_DspScale(frameCount, params->compMG, frames);
     }
-    PIXEndNamedEvent();
+    //PIXEndNamedEvent();
 }
 
 void __cdecl SND_DspFxMasterSingleChannel(
@@ -1386,7 +1292,7 @@ void __cdecl SND_DspFxMasterSingleChannel(
         SND_DspBiquadDenormal(&state->hi);
         SND_DspBiquadNanCheck(&state->hi);
     }
-    PIXEndNamedEvent();
+    //PIXEndNamedEvent();
     //PIXBeginNamedEvent(-1, "limit");
     if ( params->limitE > 0.0000152879 )
     {
@@ -1405,6 +1311,6 @@ void __cdecl SND_DspFxMasterSingleChannel(
         if ( fabs(params->limitMG - 1.0) > 0.0000152879 )
             SND_DspScale(frameCount, params->limitMG, frames);
     }
-    PIXEndNamedEvent();
+    //PIXEndNamedEvent();
 }
 

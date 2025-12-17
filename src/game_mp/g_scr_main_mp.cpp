@@ -1,7 +1,12 @@
 #include "g_scr_main_mp.h"
 #include <clientscript/cscr_vm.h>
+#include "g_main_mp.h"
 
 scr_data_t g_scr_data;
+
+int g_scr_faceeventnotify;
+int g_scr_levelnotify;
+int g_scr_glasssmash;
 
 void assertCmd()
 {
@@ -160,24 +165,26 @@ void __cdecl GScr_LoadGameTypeScript()
                                                                                     "maps/mp/gametypes/_callbacksetup",
                                                                                     "CodeCallback_PlayerLastStand",
                                                                                     1);
-    dword_3EDB4DC = GScr_LoadScriptAndLabel(
+
+    // LWSS: these were added after cod4... idk the names, they show up as dword_***
+    g_scr_levelnotify = GScr_LoadScriptAndLabel(
                                         SCRIPTINSTANCE_SERVER,
                                         "maps/mp/gametypes/_callbacksetup",
                                         "CodeCallback_LevelNotify",
                                         1);
-    handle = GScr_LoadScriptAndLabel(
+    g_scr_faceeventnotify = GScr_LoadScriptAndLabel(
                          SCRIPTINSTANCE_SERVER,
                          "maps/mp/gametypes/_callbacksetup",
                          "CodeCallback_FaceEventNotify",
                          0);
-    dword_3EDB4EC = GScr_LoadScriptAndLabel(
+    g_scr_glasssmash = GScr_LoadScriptAndLabel(
                                         SCRIPTINSTANCE_SERVER,
                                         "maps/mp/gametypes/_callbacksetup",
                                         "CodeCallback_GlassSmash",
                                         0);
 }
 
-int __cdecl GScr_LoadScriptAndLabel(scriptInstance_t inst, char *filename, const char *label, int bEnforceExists)
+int __cdecl GScr_LoadScriptAndLabel(scriptInstance_t inst, const char *filename, const char *label, int bEnforceExists)
 {
     int func; // [esp+4h] [ebp-4h]
 
@@ -2968,8 +2975,8 @@ void __cdecl ScrCmd_IsTouching(scr_entref_t entref)
     ExpandBoundsToWidth(vMins, vMaxs);
     bTouching = SV_EntityContact(vMins, vMaxs, pOther);
     Scr_AddInt(bTouching, SCRIPTINSTANCE_SERVER);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl ScrCmd_IsTouchingSwept(scr_entref_t entref)
@@ -3095,8 +3102,8 @@ void __cdecl ScrCmd_IsTouchingSwept(scr_entref_t entref)
     ExpandBoundsToWidth(vMins, vMaxs);
     bTouching = SV_EntityContact(vMins, vMaxs, pOther);
     Scr_AddInt(bTouching, SCRIPTINSTANCE_SERVER);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void ScrCmd_SoundExists()
@@ -3240,9 +3247,9 @@ void __cdecl ScrCmd_PlaySoundToTeam(scr_entref_t entref)
         }
         ++clientEnt;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_21:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl ScrCmd_PlayBattleChatterToTeam(scr_entref_t entref)
@@ -3664,13 +3671,13 @@ $LN9_44:
                 dflags |= 0x10u;
             }
             G_Damage(ent, inflictor, attacker, dir, source, (int)damage, dflags, mod, weapon, hitLoc, 0, 0, 0);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             break;
         default:
             Scr_Error("Usage: doDamage( <health>, <source position>, <attacker>, <inflictor>, <mod> )\n", 0);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             break;
     }
 }
@@ -3947,8 +3954,8 @@ void __cdecl GScr_ShootTurret(scr_entref_t entref)
         Scr_Error(v2, 0);
     }
     turret_shoot(ent);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl GScr_StopShootTurret(scr_entref_t entref)
@@ -6341,7 +6348,7 @@ unsigned intScr_BulletTrace()
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }
@@ -9949,9 +9956,9 @@ void __cdecl GScr_ShellShock(scr_entref_t entref)
             __debugbreak();
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_18:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl GScr_StopShellShock(scr_entref_t entref)
@@ -11217,7 +11224,7 @@ unsigned intGScr_SetPlayerStatsForMatchRecording()
     MatchRecordSetPlayerStat(ent->client, statName, statValue);
     result = GetCurrentThreadId();
     if ( result == g_DXDeviceThread )
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     return result;
 }
 
@@ -14100,9 +14107,9 @@ void __cdecl GScr_AddSphereInfluencer()
         }
         goto LABEL_29;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_29:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl InfluencerTypeValidation(int type, gentity_s *ent, const char *function_name)
@@ -15855,8 +15862,8 @@ void __cdecl GScr_SetAnim(scr_entref_t entref)
 {
     //PIXBeginNamedEvent(-1, "SetAnim");
     GScr_SetAnimInternal(entref, 1);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl GScr_SetAnimInternal(scr_entref_t entref, char flags)
@@ -16651,7 +16658,7 @@ void __cdecl GScr_Gdt_Update(char *asset, char *keyValue)
     Scr_AddString(keyValue, SCRIPTINSTANCE_SERVER);
     Scr_AddString(asset, SCRIPTINSTANCE_SERVER);
     Scr_AddString("gdt_update", SCRIPTINSTANCE_SERVER);
-    t = Scr_ExecThread(SCRIPTINSTANCE_SERVER, dword_3EDB4DC, 3u);
+    t = Scr_ExecThread(SCRIPTINSTANCE_SERVER, g_scr_levelnotify, 3u);
     Scr_FreeThread(t, SCRIPTINSTANCE_SERVER);
 }
 
@@ -16659,11 +16666,11 @@ void __cdecl Scr_GlassSmash(float *pos, float *dir)
 {
     unsigned __int16 t; // [esp+0h] [ebp-4h]
 
-    if ( dword_3EDB4EC )
+    if ( g_scr_glasssmash )
     {
         Scr_AddVector(dir, SCRIPTINSTANCE_SERVER);
         Scr_AddVector(pos, SCRIPTINSTANCE_SERVER);
-        t = Scr_ExecThread(SCRIPTINSTANCE_SERVER, dword_3EDB4EC, 2u);
+        t = Scr_ExecThread(SCRIPTINSTANCE_SERVER, g_scr_glasssmash, 2u);
         Scr_FreeThread(t, SCRIPTINSTANCE_SERVER);
     }
 }

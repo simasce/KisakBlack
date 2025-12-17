@@ -259,8 +259,8 @@ void __fastcall Sentient_GetEyePosition(const sentient_s *self, float *vEyePosOu
         Actor_GetEyePosition(self->ent->actor, vEyePosOut);
     else
         G_GetPlayerViewOrigin(&self->ent->client->ps, vEyePosOut);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __fastcall Sentient_GetThirdPersonEyePosition(const sentient_s *self, float *vEyePosOut)

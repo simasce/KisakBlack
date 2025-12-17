@@ -23,8 +23,8 @@ void __cdecl RB_SpotShadowMaps(const GfxBackEndData *data, const GfxViewInfo *vi
     //PIXBeginNamedEvent(-1, "RB_SpotShadowMaps");
     if ( pixelCostMode )
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     else
     {
@@ -36,10 +36,10 @@ void __cdecl RB_SpotShadowMaps(const GfxBackEndData *data, const GfxViewInfo *vi
         R_InitContext(data, &cmdBuf);
         //PIXBeginNamedEvent(-1, "Spot Shadow Maps");
         R_DrawSpotShadowMapArray((int)&savedregs, viewInfo, &cmdBuf);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
 }
 

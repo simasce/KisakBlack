@@ -1,4 +1,5 @@
 #include "cl_input_mp.h"
+#include "cl_main_mp.h"
 
 void __cdecl CL_SetStance(int localClientNum, StanceState stance)
 {

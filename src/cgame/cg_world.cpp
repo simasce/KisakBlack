@@ -430,7 +430,7 @@ void __cdecl CG_PointTraceToEntity(const pointtrace_t *clip, unsigned int entInd
                 if ( GetCurrentThreadId() != g_DXDeviceThread )
                     return;
 LABEL_97:
-                D3DPERF_EndEvent();
+                //D3DPERF_EndEvent();
                 return;
             }
         }
@@ -464,26 +464,26 @@ LABEL_97:
             }
             if ( (char *)p_nextState->solid == &cls.rankedServers[711].game[34] && (p_nextState->lerp.eFlags & 1) != 0 )
             {
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
                     goto LABEL_97;
                 return;
             }
             contents = CG_GetEntityBModelContents(cent);
             if ( (clip->contentmask & contents) == 0 )
             {
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
                     goto LABEL_97;
                 return;
             }
             if ( !intersect_extents_aabb(&clip->extents, cent->pose.absmin, cent->pose.absmax, results->fraction) )
             {
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
                     goto LABEL_97;
                 return;
             }
@@ -504,18 +504,18 @@ LABEL_97:
                 {
                     if ( !DObjHasCollmap(v5) )
                     {
-                        if ( GetCurrentThreadId() == g_DXDeviceThread )
-                            D3DPERF_EndEvent();
-                        if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                            //D3DPERF_EndEvent();
+                        //if ( GetCurrentThreadId() == g_DXDeviceThread )
                             goto LABEL_97;
                         return;
                     }
                     geoms = DObjGetCollmap(v5);
                     if ( !geoms )
                     {
-                        if ( GetCurrentThreadId() == g_DXDeviceThread )
-                            D3DPERF_EndEvent();
-                        if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                            //D3DPERF_EndEvent();
+                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
                             goto LABEL_97;
                         return;
                     }
@@ -550,20 +550,20 @@ LABEL_97:
                 angles);
             if ( results->fraction >= oldFraction )
             {
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 if ( g_DXDeviceThread != GetCurrentThreadId() )
                     return;
 LABEL_117:
-                D3DPERF_EndEvent();
+                //D3DPERF_EndEvent();
                 return;
             }
             results->modelIndex = 0;
             results->partName = 0;
             results->partGroup = 0;
             results->boneIndex = 254;
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
 LABEL_113:
             number = p_nextState->number;
             if ( !results
@@ -605,18 +605,18 @@ LABEL_113:
             contents = 0x8000;
         if ( (clip->contentmask & contents) == 0 )
         {
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
                 goto LABEL_97;
             return;
         }
         if ( !intersect_extents_aabb(&clip->extents, absMins, absMaxs, results->fraction) )
         {
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             return;
         }
         cgameGlob = CG_GetLocalClientGlobals(localClientNum);
@@ -649,10 +649,10 @@ LABEL_113:
 LABEL_57:
                 if ( objTrace.fraction >= results->fraction )
                 {
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     return;
                 }
                 results->fraction = objTrace.fraction;
@@ -664,15 +664,15 @@ LABEL_57:
                 *(_QWORD *)results->normal.vec.v = *(_QWORD *)objTrace.normal;
                 results->normal.vec.u[2] = LODWORD(objTrace.normal[2]);
                 results->walkable = results->normal.vec.v[2] >= 0.69999999;
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 goto LABEL_113;
             }
         }
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         goto LABEL_57;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
         goto LABEL_97;
 }
 
@@ -715,8 +715,8 @@ void __cdecl CG_PointTraceToEntities(const pointtrace_t *clip, trace_t *results)
     HIDWORD(start[1]) = 0;
     HIDWORD(end[1]) = LODWORD(results->fraction);
     CG_PointTraceToEntities_r(clip, 1u, (const float *)start, (const float *)end, results);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_PointTraceToEntities_r(
@@ -984,8 +984,8 @@ void __cdecl CG_TraceCapsule(
     }
     if ( results->fraction == 0.0 )
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     else
     {
@@ -1020,8 +1020,8 @@ void __cdecl CG_TraceCapsule(
         CM_CalcTraceExtents(&clip.extents);
         CG_ClipMoveToEntities(&clip, results);
         GlassCl_ClipMoveTrace(&clip, results);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -1064,8 +1064,8 @@ void __cdecl CG_ClipMoveToEntities(const moveclip_t *clip, trace_t *results)
     HIDWORD(start[1]) = 0;
     HIDWORD(end[1]) = LODWORD(results->fraction);
     CG_ClipMoveToEntities_r(clip, 1u, (const float *)start, (const float *)end, results);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_ClipMoveToEntities_r(
@@ -1567,8 +1567,8 @@ void __cdecl CG_TracePoint(
     }
     if ( results->fraction == 0.0 )
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     else
     {
@@ -1588,8 +1588,8 @@ void __cdecl CG_TracePoint(
         }
         if ( results->fraction == 0.0 )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
         }
         else
         {
@@ -1620,8 +1620,8 @@ LABEL_34:
                 Rope_Trace(start, _end);
                 GlassCl_TracePoint(&clip, results);
             }
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
         }
     }
 }
@@ -1842,8 +1842,8 @@ int __cdecl CG_AreaEntities(const float *mins, const float *maxs, int *entityLis
     areaParms.count = 0;
     CG_AreaEntities_r(1u, &areaParms);
     count = areaParms.count;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return count;
 }
 

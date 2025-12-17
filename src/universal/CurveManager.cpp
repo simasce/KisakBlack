@@ -1,4 +1,8 @@
 #include "CurveManager.h"
+#include <win32/win_common.h>
+#include "assertive.h"
+
+// really dont see much point to this class, guys ..i.,
 
 int __cdecl cCurveManager::GetFreeCurve()
 {
@@ -46,7 +50,8 @@ void __cdecl cCurveManager::AddNodeToCurve(unsigned int curve, float *p)
     {
         __debugbreak();
     }
-    cCurve::AddNode(&cCurveManager::mCurves[curve], p);
+    //cCurve::AddNode(&cCurveManager::mCurves[curve], p);
+    mCurves[curve].AddNode(p);
 }
 
 void __cdecl cCurveManager::AddNodeToCurve(unsigned int curve, float *p, float t)
@@ -71,7 +76,8 @@ void __cdecl cCurveManager::AddNodeToCurve(unsigned int curve, float *p, float t
     {
         __debugbreak();
     }
-    cCurve::AddNode(&cCurveManager::mCurves[curve], p, t);
+    //cCurve::AddNode(&cCurveManager::mCurves[curve], p, t);
+    mCurves[curve].AddNode(p, t);
 }
 
 void __cdecl cCurveManager::SortCurve(unsigned int curve, float *p, bool is_increasing_sort_order)
@@ -96,7 +102,8 @@ void __cdecl cCurveManager::SortCurve(unsigned int curve, float *p, bool is_incr
     {
         __debugbreak();
     }
-    cCurve::Sort(&cCurveManager::mCurves[curve], p, is_increasing_sort_order);
+    //cCurve::Sort(&cCurveManager::mCurves[curve], p, is_increasing_sort_order);
+    mCurves[curve].Sort(p, is_increasing_sort_order);
 }
 
 void __cdecl cCurveManager::BuildCurve(unsigned int curve)
@@ -121,7 +128,8 @@ void __cdecl cCurveManager::BuildCurve(unsigned int curve)
     {
         __debugbreak();
     }
-    cCurve::Build(&cCurveManager::mCurves[curve]);
+    //cCurve::Build(&cCurveManager::mCurves[curve]);
+    mCurves[curve].Build();
 }
 
 void __cdecl cCurveManager::FreeCurve(unsigned int curve)
@@ -146,7 +154,8 @@ void __cdecl cCurveManager::FreeCurve(unsigned int curve)
     {
         __debugbreak();
     }
-    cCurve::Reset(&cCurveManager::mCurves[curve]);
+    //cCurve::Reset(&cCurveManager::mCurves[curve]);
+    mCurves[curve].Reset();
 }
 
 void __cdecl cCurveManager::SetCurveBSpline(unsigned int curve)
@@ -171,8 +180,13 @@ void __cdecl cCurveManager::SetCurveBSpline(unsigned int curve)
     {
         __debugbreak();
     }
-    if ( cCurveManager::mCurves[curve].mCurveType != CURVE_BSPLINE )
-        cCurveManager::mCurves[curve].mCurveType = CURVE_BSPLINE;
+
+    //if ( cCurveManager::mCurves[curve].mCurveType != CURVE_BSPLINE )
+    //    cCurveManager::mCurves[curve].mCurveType = CURVE_BSPLINE;
+    if (mCurves[curve].mCurveType != cCurve::eCurveType::CURVE_BSPLINE)
+    {
+        cCurveManager::mCurves[curve].mCurveType = cCurve::eCurveType::CURVE_BSPLINE;
+    }
 }
 
 void __cdecl cCurveManager::SetCurveDraw(unsigned int curve, const float *color)
@@ -197,7 +211,8 @@ void __cdecl cCurveManager::SetCurveDraw(unsigned int curve, const float *color)
     {
         __debugbreak();
     }
-    cCurve::SetDraw(&cCurveManager::mCurves[curve], color);
+    //cCurve::SetDraw(&cCurveManager::mCurves[curve], color);
+    mCurves[curve].SetDraw(color);
 }
 
 void __cdecl cCurveManager::GetPos(unsigned int curve, float t, float *p)
@@ -222,7 +237,8 @@ void __cdecl cCurveManager::GetPos(unsigned int curve, float t, float *p)
     {
         __debugbreak();
     }
-    cCurve::GetPos(&cCurveManager::mCurves[curve], t, p);
+    //cCurve::GetPos(&cCurveManager::mCurves[curve], t, p);
+    mCurves[curve].GetPos(t, p);
     if ( ((*(unsigned int *)p & 0x7F800000) == 0x7F800000
          || ((unsigned int)p[1] & 0x7F800000) == 0x7F800000
          || ((unsigned int)p[2] & 0x7F800000) == 0x7F800000)
@@ -259,6 +275,8 @@ double __cdecl cCurveManager::GetCurveLength(unsigned int curve)
     {
         __debugbreak();
     }
-    return cCurve::GetLength(&cCurveManager::mCurves[curve]);
+    //return cCurve::GetLength(&cCurveManager::mCurves[curve]);
+
+    return mCurves[curve].GetLength();
 }
 

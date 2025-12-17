@@ -234,6 +234,8 @@ level_locals_t level;
 
 gentity_s g_entities[MAX_GENTITIES];
 
+playerState_s g_defaultPlayerState;
+
 int __cdecl G_GetTime()
 {
     return level.time;
@@ -2660,8 +2662,8 @@ void    G_RunFrame(__m128 a1@<xmm0>, int levelTime)
         ++i;
         ++ent;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( onlinegame->current.enabled && com_sv_running->current.enabled )
         MatchRecordMovement();
     G_DebugTimedDamage();
@@ -2679,8 +2681,8 @@ void    G_RunFrame(__m128 a1@<xmm0>, int levelTime)
         ++i;
         ++ent;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     memset(entIndex, 0, 0x400u);
     index = 0;
     //PIXBeginNamedEvent(-1, "G_TriggerChecks");
@@ -2750,8 +2752,8 @@ void    G_RunFrame(__m128 a1@<xmm0>, int levelTime)
         }
         //PIXBeginNamedEvent(-1, "Scr_RunCurrentThreads");
         Scr_RunCurrentThreads(SCRIPTINSTANCE_SERVER);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     while ( bMoreTriggered );
     if ( level.currentTriggerListSize
@@ -2764,8 +2766,8 @@ void    G_RunFrame(__m128 a1@<xmm0>, int levelTime)
     {
         __debugbreak();
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     ent = g_entities;
     i = 0;
     while ( i < level.maxclients )
@@ -2784,8 +2786,8 @@ void    G_RunFrame(__m128 a1@<xmm0>, int levelTime)
         ++i;
         ++ent;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     Scr_IncTime(SCRIPTINSTANCE_SERVER);
     SV_ResetSkeletonCache();
     //PIXBeginNamedEvent(-1, "G_RunFrameForEntity");
@@ -2812,16 +2814,16 @@ void    G_RunFrame(__m128 a1@<xmm0>, int levelTime)
         ++ent;
     }
     level.currentEntityThink = -1;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "G_UpdateObjectiveToClients");
     G_UpdateObjectiveToClients();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "G_UpdateHudElemsToClients");
     G_UpdateHudElemsToClients();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "ClientEndFrame");
     ent = g_entities;
     i = 0;
@@ -2866,12 +2868,12 @@ void    G_RunFrame(__m128 a1@<xmm0>, int levelTime)
         ++i;
         ++ent;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "CheckTeamStatus");
     CheckTeamStatus();
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( g_oldVoting->current.enabled )
         CheckVote();
     if ( g_listEntity->current.enabled )

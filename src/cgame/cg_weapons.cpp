@@ -1669,8 +1669,8 @@ void __cdecl FireBulletPenetrate(
             wayOutThere[2] = wayOutThere[2] + bp->start[2];
             CG_SoundWhizby(localClientNum, weapDef, bp->start, bp->dir, wayOutThere);
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return;
     }
     traceHitEntityId = Trace_GetEntityHitId(&br->trace);
@@ -1682,8 +1682,8 @@ void __cdecl FireBulletPenetrate(
     if ( sv_hitFXFrustumCutoff
         && R_CullPoint(br->hitPos, COERCE_FLOAT(sv_hitFXFrustumCutoff->current.integer ^ _mask__NegFloat_)) )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return;
     }
     effectFlags = 0;
@@ -1962,9 +1962,9 @@ void __cdecl FireBulletPenetrate(
         if ( !traceHitb )
             break;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_147:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 char __cdecl BulletTrace(
@@ -2053,14 +2053,14 @@ char __cdecl BulletTrace(
         {
             br->depthSurfaceType = lastSurfaceType;
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }
@@ -5007,15 +5007,15 @@ void __cdecl CG_FireWeapon(
                 entMatrix[0],
                 weaponDef->weapClass == WEAPCLASS_GAS);
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     else
     {
         Com_Error(ERR_DROP, &byte_C955DC);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_5:
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -5083,8 +5083,8 @@ void __cdecl DrawBulletImpacts(
         BG_GetSpreadForWeapon(ps, weaponDef, &minSpread, &maxSpread);
         if ( !CG_GetPlayerViewOrigin(localClientNum, ps, origin) )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return;
         }
         viewang[0] = cgameGlob->gunPitch;
@@ -5099,7 +5099,7 @@ void __cdecl DrawBulletImpacts(
                 if ( g_DXDeviceThread != GetCurrentThreadId() )
                     return;
 LABEL_66:
-                D3DPERF_EndEvent();
+                //D3DPERF_EndEvent();
                 return;
             }
             if ( !FX_GetBoneOrientation(localClientNum, dobjNumber, boneIndex, &gunOrient) )
@@ -5176,7 +5176,7 @@ LABEL_66:
                 if ( GetCurrentThreadId() != g_DXDeviceThread )
                     return;
 LABEL_36:
-                D3DPERF_EndEvent();
+                //D3DPERF_EndEvent();
                 return;
             }
             if ( !FX_GetBoneOrientation(localClientNum, dobjNumber, boneIndex, &orient) )
@@ -5243,8 +5243,8 @@ LABEL_94:
                 v41.damageMultiplier = 1.0f;
                 BulletTrace_Start(localClientNum, &v41, weapon, ent, tracerStart, drawTracers, isPlayer);
             }
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             return;
         case 0xB:
             minSpread = weaponDef->playerSpread;
@@ -5406,8 +5406,8 @@ LABEL_52:
             goto LABEL_94;
     }
     Com_PrintError(14, "Unknown eType %i in CG_DrawBulletImpacts()\n", ent->nextState.eType);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_BulletEndpos(
@@ -5808,9 +5808,9 @@ void __cdecl CG_SndWeaponFire(snd_weapon_shot *shot)
             return;
         goto LABEL_28;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_28:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_SndWeaponFakeFire(snd_weapon_shot *shot, const WeaponDef *weaponDef)
@@ -5926,8 +5926,8 @@ void __cdecl CG_WeaponFireSingle(
     weaponDef = BG_GetWeaponDef(weapon);
     if ( weaponDef->fireType == WEAPON_FIRETYPE_MINIGUN )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     else
     {
@@ -5960,8 +5960,8 @@ void __cdecl CG_WeaponFireSingle(
             CG_SndPingAutoSim(&shot);
         else
             CG_SndWeaponFire(&shot);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -6039,8 +6039,8 @@ void __cdecl CG_SndPingAutoSim(snd_weapon_shot *shot)
         Com_Printf(9, "WARNING: ran out of automatic sims???\n");
         CG_SndWeaponFire(shot);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_WeaponFireFake(

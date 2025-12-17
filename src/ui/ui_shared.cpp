@@ -1017,13 +1017,13 @@ menuDef_t *__cdecl Menus_FindByName(const UiContext *dc, const char *p)
         if ( !I_stricmp(dc->Menus[i]->window.name, p) )
         {
             v3 = dc->Menus[i];
-            //if ( GetCurrentThreadId() == g_DXDeviceThread )
-            //    D3DPERF_EndEvent();
+            ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //    //D3DPERF_EndEvent();
             return v3;
         }
     }
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-    //    D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -8122,15 +8122,15 @@ char    Menu_Paint@<al>(
     //PIXBeginNamedEvent(-1, "Menu_IsVisible");
     if ( !Menu_IsVisible((GenericEventHandler *)&dummyDef.onEvent, localClientNum, dc, menu) )
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
 LABEL_20:
         ScopedScrPlaceViewStack::~ScopedScrPlaceViewStack(&v15);
         R_UI3DStack_Pop(v16);
         return 0;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "Menu_AnyItemsVisible");
     v14 = 0;
     for ( i = 0; i < menu->itemCount && !v14; ++i )
@@ -8143,12 +8143,12 @@ LABEL_20:
     }
     if ( menu->itemCount > 0 && !v14 )
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         goto LABEL_20;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     if ( menu->soundName && !CL_IsLocalClientInGame(localClientNum) )
         UI_PlaySound(dc->contextIndex, (char *)menu->soundName);
     if ( menu->blurRadius != 0.0 && !zombietron->current.enabled )
@@ -8160,8 +8160,8 @@ LABEL_20:
         if ( menu->items[j]->animInfo && menu->items[j]->animInfo->animating )
             Item_UpdateAnimation(localClientNum, dc, menu->items[j]);
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     Menu_PerformTransitionEffects(localClientNum, dc, menu);
     //PIXBeginNamedEvent(-1, "Menu_UpdatePosition");
     if ( menu->rectXExp.filename )
@@ -8169,8 +8169,8 @@ LABEL_20:
     if ( menu->rectYExp.filename )
         menu->window.rect.y = GetExpressionFloat(localClientNum, (itemDef_s *)&v22, &menu->rectYExp);
     Menu_UpdatePosition(dc->contextIndex, menu);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     if ( menu->fullScreen )
     {
         if ( menu->window.background )
@@ -8187,8 +8187,8 @@ LABEL_20:
                 Rect->vertAlign,
                 0,
                 menu->window.background);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
         }
     }
     //PIXBeginNamedEvent(-1, "Window_Paint");
@@ -8202,8 +8202,8 @@ LABEL_20:
         (float)menu->fadeCycle,
         -1,
         0);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     v7 = va("Item_Paint (%d)", menu->itemCount);
     //PIXBeginNamedEvent(-1, v7);
     for ( k = 0; k < menu->itemCount; ++k )
@@ -8224,8 +8224,8 @@ LABEL_20:
             Item_Paint(localClientNum, dc, menu->items[k]);
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     menu->window.rect.x = menu->initialRectInfo.x;
     menu->window.rect.y = menu->initialRectInfo.y;
     //PIXBeginNamedEvent(-1, "g_debugMode");
@@ -8243,8 +8243,8 @@ LABEL_20:
             1.0,
             colorMagenta);
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     ScopedScrPlaceViewStack::~ScopedScrPlaceViewStack(&v15);
     R_UI3DStack_Pop(v16);
     return 1;
@@ -8768,8 +8768,8 @@ void __cdecl Item_Paint(int localClientNum, UiContext *dc, itemDef_s *item)
                 //PIXBeginNamedEvent(-1, "Item_IsVisible");
             if ( Item_IsVisible(localClientNum, dc->contextIndex, item) )
             {
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 if ( item->rectExpData && (!item->animInfo || !item->animInfo->animating) )
                 {
                     if ( item->rectExpData->rectXExp.filename )
@@ -8878,9 +8878,9 @@ void __cdecl Item_Paint(int localClientNum, UiContext *dc, itemDef_s *item)
                     }
                 }
             }
-            else if ( GetCurrentThreadId() == g_DXDeviceThread )
+            else //if ( GetCurrentThreadId() == g_DXDeviceThread )
             {
-                D3DPERF_EndEvent();
+                //D3DPERF_EndEvent();
             }
         }
         else if ( Window_HasFocus(dc->contextIndex, &item->window) )
@@ -10709,8 +10709,8 @@ void __cdecl Menu_PaintAll(int localClientNum, UiContext *dc)
     //PIXBeginNamedEvent(-1, "Menu_PaintAll_BeginVisibleList");
     if ( showVisibleList )
         Menu_PaintAll_BeginVisibleList(visibleList, 0x400u);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     dc->blurRadiusOut = 0.0f;
     if ( captureFunc )
         captureFunc(localClientNum, dc, captureData);
@@ -10732,8 +10732,8 @@ void __cdecl Menu_PaintAll(int localClientNum, UiContext *dc)
                              scrPlaceStackPtr,
                              menu,
                              (const ScreenPlacement *)0xFFFFFFFF);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             if ( drew )
             {
                 if ( showVisibleList )
@@ -10741,8 +10741,8 @@ void __cdecl Menu_PaintAll(int localClientNum, UiContext *dc)
             }
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     drawStart = 0;
     for ( menuIndexa = dc->openMenuCount - 1; menuIndexa >= 0; --menuIndexa )
     {
@@ -10769,8 +10769,8 @@ void __cdecl Menu_PaintAll(int localClientNum, UiContext *dc)
             blurMenu,
             (const ScreenPlacement *)0xFFFFFFFF);
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     for ( menuIndexb = drawStart; menuIndexb < dc->openMenuCount; ++menuIndexb )
     {
         menub = dc->menuStack[menuIndexb].menu;
@@ -10822,8 +10822,8 @@ void __cdecl Menu_PaintAll(int localClientNum, UiContext *dc)
             UI_DrawText(&scrPlaceView[dc->contextIndex], v3, 0x7FFFFFFF, font, 200.0, 45.0, 0, 0, 0.5, colorWhite, 0);
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "g_debugMode");
     if ( g_debugMode )
     {
@@ -10860,15 +10860,15 @@ void __cdecl Menu_PaintAll(int localClientNum, UiContext *dc)
                         (float)((float)((float)(dc->cursor.y - 480.0) * (float)dc->screenHeight) / 480.0));
         UI_DrawText(&scrPlaceView[dc->contextIndex], v12, 0x7FFFFFFF, v17, 5.0, 465.0, 0, 0, 0.5, colorRed, 0);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "Menu_PaintAll_DrawVisibleList");
     if ( showVisibleList )
         Menu_PaintAll_DrawVisibleList(visibleList, dc);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 int __cdecl GetBlurFocus(int localClientNum, UiContext *dc)

@@ -1,15 +1,20 @@
 #include "com_workercmds.h"
 
+#include <tl/jobqueue/jobqueue_all.h>
+#include "assertive.h"
+#include <cstring>
+#include <gfx_d3d/r_foliage.h>
+#include <tl/tl_system.h>
+#include <qcommon/threads.h>
+#include <Windows.h>
+#include <gfx_d3d/r_workercmds.h>
+
 bool g_WorkerCmdInit;
+unsigned __int64 gMainWaitWorker;
 
 void __cdecl Sys_WorkerCmdInit()
 {
     g_WorkerCmdInit = 1;
-}
-
-unsigned __int8 *__cdecl jqAllocBatchData(unsigned int Size)
-{
-    return jqAtomicHeap::Alloc(&jqPool.BatchDataHeap, Size, 0x10u);
 }
 
 unsigned __int8 *__cdecl jqCommitMemory(jqBatch *batch, unsigned __int8 *input, unsigned int dataSize)
@@ -59,7 +64,7 @@ void __cdecl Sys_AddWorkerCmdInternal(jqWorkerCmd *name, unsigned __int8 *data, 
 {
     jqBatch batch; // [esp+0h] [ebp-88h] BYREF
 
-    jqBatch::jqBatch(&batch);
+    //jqBatch::jqBatch(&batch);
     batch.Input = jqCommitMemory(&batch, data, name->dataSize);
     batch.Module = name->module;
     batch.GroupID = 0;
@@ -70,7 +75,7 @@ void __cdecl Sys_AddWorkerCmdInternal(jqWorkerCmd *name, unsigned __int8 *data, 
     jqAddBatch(&batch, name->queue);
 }
 
-jqBatch *__thiscall jqBatch::jqBatch(jqBatch *this)
+jqBatch::jqBatch()
 {
     this->p3x_info = 0;
     this->Input = 0;
@@ -79,7 +84,7 @@ jqBatch *__thiscall jqBatch::jqBatch(jqBatch *this)
     this->ConditionalAddress = 0;
     this->ConditionalValue = 0;
     this->GroupID = 0;
-    return this;
+    //return this;
 }
 
 void __cdecl Sys_WaitWorkerCmdInternal(jqWorkerCmd *name)

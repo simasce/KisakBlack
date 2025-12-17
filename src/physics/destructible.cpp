@@ -2941,8 +2941,8 @@ void __cdecl CG_ProcessDestructibleEvents()
         }
     }
     g_destructible_events_count = 0;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_DestructibleDamage(
@@ -3053,12 +3053,12 @@ void __cdecl CG_DestructibleDamage(
             }
             if ( needDObjUpdate )
                 CG_DestructibleUpdateDObj(self);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
         }
-        else if ( g_DXDeviceThread == GetCurrentThreadId() )
+        else //if ( g_DXDeviceThread == GetCurrentThreadId() )
         {
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
         }
     }
 }
@@ -3194,8 +3194,8 @@ bool __cdecl CG_DestructibleDamage(
         }
     }
     v12 = needDObjUpdate;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return v12;
 }
 

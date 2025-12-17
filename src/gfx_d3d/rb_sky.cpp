@@ -275,9 +275,9 @@ void __cdecl RB_DrawSun(unsigned int localClientNum)
     RB_AddSunEffects(sunFlare);
     if ( tess.indexCount )
         RB_EndTessSurface();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_16:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_DrawSunQuerySprite(SunFlareDynamic *sunFlare)
@@ -362,9 +362,9 @@ void __cdecl RB_DrawSunQuerySprite(SunFlareDynamic *sunFlare)
         sunFlare->sunQuery[queryIndex]->Issue(sunFlare->sunQuery[queryIndex], 1u);
         sunFlare->sunQueryIssued[queryIndex] = 1;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_33:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_TessSunBillboard(float widthInClipSpace, float heightInClipSpace, GfxColor color)
@@ -579,9 +579,9 @@ void __cdecl RB_DrawSunPostEffects(unsigned int localClientNum, float sunVisibil
         }
         goto LABEL_18;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_18:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_DrawSunFlare(SunFlareDynamic *sunFlare, int frameTime)
@@ -607,7 +607,7 @@ void __cdecl RB_DrawSunFlare(SunFlareDynamic *sunFlare, int frameTime)
         if ( GetCurrentThreadId() != g_DXDeviceThread )
             return;
 LABEL_36:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
     if ( rgp.world->sun.flareMinDot >= sunFlare->lastDot )
@@ -696,7 +696,7 @@ LABEL_36:
         __debugbreak();
     }
     RB_DrawSunFlareCore((float)(sunFlare->flareIntensity * alpha) * sunFlare->sunVisibilityAdjust, size);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
         goto LABEL_36;
 }
 
@@ -755,8 +755,8 @@ void __cdecl RB_DrawBlindAndGlare(SunFlareDynamic *sunFlare, int frameTime)
         R_ConvertColorToBytes(colorVec, (unsigned __int8 *)&color);
         RB_DrawFullScreenColoredQuad(rgp.glareBlindMaterial, 0.0, 0.0, 1.0, 1.0, color.packed);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_CalcSunBlind(SunFlareDynamic *sunFlare, int frameTime, float *blind, float *glare)

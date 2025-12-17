@@ -1422,8 +1422,8 @@ void __cdecl RB_BloomLDR(const GfxViewInfo *viewInfo)
     R_Resolve(gfxCmdBufContext, stru_B50E8A8.image);
     R_SetCodeImageTexture(&gfxCmdBufSourceState, 0xAu, stru_B50E8A8.image);
     RB_Filter(rgp.postFxColorMaterial, viewInfo);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 bool __cdecl R_UsingDoubleVision(const GfxViewInfo *viewInfo)
@@ -2425,8 +2425,8 @@ void __cdecl RB_ReviveFX(const GfxViewInfo *viewInfo)
     gfxCmdBufSourceState.input.consts[124][3] = 0.0f;
     R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x7Cu);
     RB_Filter(rgp.reviveFXMaterial, viewInfo);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_ProcessPostEffects(const GfxViewInfo *viewInfo)
@@ -2448,7 +2448,7 @@ void __cdecl RB_ProcessPostEffects(const GfxViewInfo *viewInfo)
         {
             //PIXBeginNamedEvent(-1, "RB_ApplyFlameFX");
             RB_FlameFX(viewInfo);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_28;
         }
         else
@@ -2457,29 +2457,29 @@ void __cdecl RB_ProcessPostEffects(const GfxViewInfo *viewInfo)
             {
                 //PIXBeginNamedEvent(-1, "RB_ApplyReviveFX");
                 RB_ReviveFX(viewInfo);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 goto LABEL_29;
             }
             if ( RB_UsingElectrifiedFX(viewInfo) )
             {
                 //PIXBeginNamedEvent(-1, "RB_ApplyElectrifiedFX");
                 RB_ElectrifiedFX(viewInfo);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
                     goto LABEL_28;
             }
             else if ( RB_UsingTransportedFX(viewInfo) )
             {
                 //PIXBeginNamedEvent(-1, "RB_ApplyTransportedFX");
                 RB_TransportedFX(viewInfo);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
                     goto LABEL_28;
             }
             else if ( RB_UsingWaterSheetingFX(viewInfo) )
             {
                 //PIXBeginNamedEvent(-1, "RB_WaterSheetingFX");
                 RB_WaterSheetingFX(viewInfo);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
                     goto LABEL_28;
             }
             else
@@ -2496,9 +2496,9 @@ void __cdecl RB_ProcessPostEffects(const GfxViewInfo *viewInfo)
                 }
                 //PIXBeginNamedEvent(-1, "RB_PoisonFX");
                 RB_PoisonFX(viewInfo);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_28:
-                    D3DPERF_EndEvent();
+                    //D3DPERF_EndEvent();
             }
         }
 LABEL_29:
@@ -2506,8 +2506,8 @@ LABEL_29:
         {
             //PIXBeginNamedEvent(-1, "genericFilter effect");
             RB_GenericFilterFX((const GfxMatrix *)&savedregs, viewInfo);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
         }
         if ( RB_UsingBlur(viewInfo) )
         {
@@ -2525,8 +2525,8 @@ LABEL_29:
             }
             //PIXBeginNamedEvent(-1, "RB_BlurScreen()");
             RB_BlurScreen(viewInfo, blurRadius);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
         }
         if ( viewInfo->saveScreenFx.blendBlurredParam.enabled
             || viewInfo->saveScreenFx.blendFlashedParam.enabled
@@ -2536,8 +2536,8 @@ LABEL_29:
             RB_SaveScreen_BlendBlurred(&viewInfo->saveScreenFx.blendBlurredParam, viewInfo);
             RB_SaveScreen_BlendFlashed(&viewInfo->saveScreenFx.blendFlashedParam, viewInfo);
             RB_SaveScreen(&viewInfo->saveScreenFx.saveScreenParam, viewInfo);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
         }
         R_Resolve(gfxCmdBufContext, stru_B50E8A8.image);
         R_SetCodeImageTexture(&gfxCmdBufSourceState, 0xAu, stru_B50E8A8.image);

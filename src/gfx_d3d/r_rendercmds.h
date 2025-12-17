@@ -2,6 +2,7 @@
 
 #include "r_gfx.h"
 #include "r_buffers.h"
+#include "r_bsp.h"
 #include <cgame/cg_visionsets.h>
 #include <client_mp/cl_main_mp.h>
 #include "r_scene.h"

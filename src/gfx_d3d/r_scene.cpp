@@ -1858,8 +1858,8 @@ void __cdecl R_WaitEndTime()
     //PIXBeginNamedEvent(-1, "max fps spin");
     while ( (int)(Sys_Milliseconds() - rg.endTime) < 0 )
         NET_Sleep(1u);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_SetSunConstants(GfxCmdBufInput *input)
@@ -3341,17 +3341,17 @@ void __cdecl R_GenerateSortedDrawSurfs(
 
     //PIXBeginNamedEvent(-1, "R_InitialEntityCulling");
     R_InitialEntityCulling();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "R_AddWorldSurfacesDpvs");
     v6 = R_CellForPoint(viewParmsDpvs->origin);
     R_AddWorldSurfacesDpvs(viewParmsDpvs, v6);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "WaitFXSpot");
     Sys_WaitWorkerCmdInternal(&fx_update_spotWorkerCmd);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     R_AddEmissiveSpotLight(viewInfo);
     R_WaitForFXUpdateWorkerCmds();
     if ( forMissileCamView )
@@ -3385,8 +3385,8 @@ void __cdecl R_GenerateSortedDrawSurfs(
     }
     //PIXBeginNamedEvent(-1, "wait for r_dpvs_static");
     Sys_WaitWorkerCmdInternal(&r_dpvs_staticWorkerCmd);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     R_AddSkyboxModel(viewParmsDraw->origin);
     //PIXBeginNamedEvent(-1, "bsp surfaces");
     if ( gfxDrawMethod.drawScene == GFX_DRAW_SCENE_STANDARD )
@@ -3423,8 +3423,8 @@ void __cdecl R_GenerateSortedDrawSurfs(
         R_AddAllBspDrawSurfacesCameraNonlit(rgp.world->dpvs.decalSurfsBegin, rgp.world->dpvs.decalSurfsEnd, 3u);
     }
     R_AddAllBspDrawSurfacesCameraNonlit(rgp.world->dpvs.emissiveSurfsBegin, rgp.world->dpvs.emissiveSurfsEnd, 0xAu);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     R_AddAllStaticModelSurfacesCamera(
         viewInfo->localClientNum,
         viewInfo->playerTeleported,
@@ -3433,36 +3433,36 @@ void __cdecl R_GenerateSortedDrawSurfs(
         0);
     //PIXBeginNamedEvent(-1, "DynEntPieces_AddDrawSurfs");
     DynEntPieces_AddDrawSurfs(viewInfo->localClientNum);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "wait for r_dpvs_dynmodel");
     Sys_WaitWorkerCmdInternal(&r_dpvs_dynmodelWorkerCmd);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "wait for r_dpvs_dynbrush");
     Sys_WaitWorkerCmdInternal(&r_dpvs_dynbrushWorkerCmd);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "draw all dyn ent");
     R_DrawAllDynEnt(viewInfo);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( gfxDrawMethod.drawScene == GFX_DRAW_SCENE_STANDARD
         && dynamicShadowType == SHADOW_MAP
         && Com_BitCheckAssert(frontEndDataOut->shadowableLightHasShadowMap, rgp.world->sunPrimaryLightIndex, 32) )
     {
         //PIXBeginNamedEvent(-1, "wait for more r_dpvs_static");
         Sys_WaitWorkerCmdInternal(&r_dpvs_staticWorkerCmd);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         //PIXBeginNamedEvent(-1, "bsp surfaces");
         R_AddAllBspDrawSurfacesSunShadow(viewInfo->localClientNum);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         //PIXBeginNamedEvent(-1, "static model surfaces");
         R_AddAllStaticModelSurfacesSunShadow(viewInfoIndex);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     semaphore = R_ReleaseDXDeviceOwnership();
     FX_BeginMarks(viewInfo->localClientNum);
@@ -3474,27 +3474,27 @@ void __cdecl R_GenerateSortedDrawSurfs(
     //PIXBeginNamedEvent(-1, "wait for r_dpvs_sceneent r_dpvs_entity");
     Sys_WaitWorkerCmdInternal(&r_dpvs_sceneentWorkerCmd);
     Sys_WaitWorkerCmdInternal(&r_dpvs_entityWorkerCmd);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "wait for r_spot_shadow_ent");
     Sys_WaitWorkerCmdInternal(&r_spot_shadow_entWorkerCmd);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     if ( semaphore )
         R_AcquireDXDeviceOwnership(0);
     //PIXBeginNamedEvent(-1, "draw all scene ent");
     R_DrawAllSceneEnt(viewInfo);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "wait for dobj_skin");
     Sys_WaitWorkerCmdInternal(&dobj_skinWorkerCmd);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "add workercmd r_add_sceneent");
     sceneEntCmd.viewInfo = viewInfo;
     Sys_AddWorkerCmdInternal(&r_add_sceneentWorkerCmd, &sceneEntCmd, 0);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     R_SortAllStaticModelSurfacesCamera();
     R_GetLightSurfs(viewInfo->visibleLights, viewInfo->visibleLightCount);
     R_GetPointLightShadowSurfs(viewInfo, scene.visLightShadow, viewInfo->visibleLights, viewInfo->visibleLightCount);
@@ -3511,8 +3511,8 @@ void __cdecl R_GenerateSortedDrawSurfs(
             {
                 //PIXBeginNamedEvent(-1, "scene ent surfaces");
                 R_AddAllSceneEntSurfacesSunShadow();
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 R_SortAllStaticModelSurfacesSunShadow();
                 R_SortAllCodeMeshSurfacesSunShadow();
                 R_GenerateSortedSunShadowDrawSurfs(viewInfo);
@@ -3524,8 +3524,8 @@ void __cdecl R_GenerateSortedDrawSurfs(
             }
             R_GenerateAllSortedSpotShadowDrawSurfs(viewInfo, viewInfoIndex);
         }
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     R_SetAllStaticModelLighting();
     smodelClient.localClientNum = viewInfo->localClientNum;
@@ -3541,8 +3541,8 @@ void __cdecl R_GenerateSortedDrawSurfs(
     //PIXBeginNamedEvent(-1, "wait for r_add_sceneent");
     Sys_AssistAndWaitWorkerCmdInternal(&r_model_lightingWorkerCmd);
     Sys_AssistAndWaitWorkerCmdInternal(&r_add_sceneentWorkerCmd);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( usePreTess )
     {
         v11 = !extraCamActive || viewInfo->isMissileCamera;
@@ -3583,19 +3583,19 @@ void __cdecl R_GenerateSortedDrawSurfs(
         R_WaterSimulationRender(viewParmsDraw->origin, frameTime, litInfo->viewInfoIndex);
     else
         R_WaterSimulationSwitchOff();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "set up litInfo");
     firstDrawSurfCount = frontEndDataOut->drawSurfCount;
     R_MergeAndEmitDrawSurfLists(0, 3u, frontEndDataOut);
     litInfo->drawSurfs = &frontEndDataOut->drawSurfs[firstDrawSurfCount];
     litInfo->drawSurfCount = frontEndDataOut->drawSurfCount - firstDrawSurfCount;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "split litInfo");
     R_SplitDrawSurfacesPrimarySortKey(viewInfo->drawList, &viewInfo->drawList[1], 16);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     R_DynSModelWaitWorker();
     if ( r_debugShowDynamicLights->current.enabled )
     {
@@ -3611,8 +3611,8 @@ void __cdecl R_GenerateSortedDrawSurfs(
                                                 viewInfo->visibleLights,
                                                 viewInfo->visibleLightCount,
                                                 viewParmsDpvs->origin);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     viewInfo->pointLightCount = pointLightCount;
     if ( !forMissileCamView && !forStereoRightEyeView )
@@ -3627,13 +3627,13 @@ void __cdecl R_GenerateSortedDrawSurfs(
     {
         //PIXBeginNamedEvent(-1, "DynEntCl_ProcessEntities");
         DynEntCl_ProcessEntities(viewInfo->localClientNum, refdef->time);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     //PIXBeginNamedEvent(-1, "wait for fx_marks_draw");
     Sys_WaitWorkerCmdInternal(&fx_marks_drawWorkerCmd);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( Sys_QueryD3DDeviceOKEvent() )
     {
         v9 = fx_marks && fx_marks->current.enabled;
@@ -3655,16 +3655,16 @@ void __cdecl R_GenerateSortedDrawSurfs(
                 viewInfo->visibleLightCount);
         if ( fx_marks_ents->current.enabled )
             R_GenerateMarkVertsForDynamicModels(viewInfo->visibleLights, viewInfo->visibleLightCount);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     R_FinishDecalAndEmissiveDrawSurfs(viewInfo, viewParmsDraw, frontEndDataOut, forMissileCamView);
     R_ShowCull(viewParmsDraw->origin);
     viewInfo->renderSeeThruDecals = CG_IsShowingZombieMap((bool)v7)
                                                              && FX_GetFrameTotalSeeThruDecalCount(viewInfo->localClientNum);
     BLOPS_NULLSUB(v8);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 bool __cdecl R_GetAllowShadowMaps()
@@ -4322,11 +4322,11 @@ int __cdecl R_GetVisibleDLights(GfxLight *visibleLights)
         R_CullDynamicPointLightsInCameraView();
         //PIXBeginNamedEvent(-1, "lights partition");
         visibleLightCount = R_GetPointLightPartitions(visibleLights);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return visibleLightCount;
 }
 
@@ -4337,18 +4337,18 @@ void __cdecl R_GetLightSurfs(const GfxLight *visibleLights, int visibleLightCoun
         //PIXBeginNamedEvent(-1, "R_GetLightSurfs");
         //PIXBeginNamedEvent(-1, "light surfs bsp");
         R_GetBspLightSurfs(visibleLights, visibleLightCount);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         //PIXBeginNamedEvent(-1, "light surfs smodel");
         R_GetStaticModelLightSurfs(visibleLights, visibleLightCount);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         //PIXBeginNamedEvent(-1, "light surfs scene ent");
         R_GetSceneEntLightSurfs(visibleLights, visibleLightCount);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -4410,8 +4410,8 @@ void __cdecl R_GetPointLightShadowSurfs(
         frontEndDataOut->emissiveSpotDrawSurfCount = visibleLights->drawSurfCount;
         frontEndDataOut->emissiveSpotDrawSurfs = visibleLights->drawSurfs;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_SetSunShadowConstants(GfxCmdBufInput *input, const GfxSunShadowProjection *sunProj)
@@ -5052,7 +5052,7 @@ unsigned intR_SortAllCodeMeshSurfacesSunShadow()
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }
@@ -5123,22 +5123,22 @@ unsigned intR_WaitForFXUpdateWorkerCmds()
     //PIXBeginNamedEvent(-1, "R_WaitForFXUpdateWorkerCmds");
     //PIXBeginNamedEvent(-1, "wait fx_update");
     Sys_WaitWorkerCmdInternal(&fx_updateWorkerCmd);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "wait fx_update_remaining");
     Sys_WaitWorkerCmdInternal(&fx_update_remainingWorkerCmd);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "wait fx_update_remaining_ppu");
     Sys_WaitWorkerCmdInternal(&fx_update_remaining_ppuWorkerCmd);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     result = GetCurrentThreadId();
     if ( result == (unsigned int)g_DXDeviceThread )
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }
@@ -5157,17 +5157,17 @@ void __cdecl R_FinishDecalAndEmissiveDrawSurfs(
     //PIXBeginNamedEvent(-1, "R_FinishDecalAndEmissiveDrawSurfs");
     //PIXBeginNamedEvent(-1, "wait for fx_draw");
     Sys_WaitWorkerCmdInternal(&fx_drawWorkerCmd);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     GlassCl_WaitGenerateVerts();
     //PIXBeginNamedEvent(-1, "R_SortDrawSurfs FX_CAMERA_LIT");
     R_SortDrawSurfs(scene.drawSurfs[6], scene.drawSurfCount[6]);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "R_SortDrawSurfs CODEMESH_CAMERA_LIT");
     R_SortDrawSurfs(scene.drawSurfs[9], scene.drawSurfCount[9]);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "set up decalInfo");
     R_InitDrawSurfListInfo(&viewInfo->drawList[3]);
     viewInfo->drawList[3].baseTechType = gfxDrawMethod.baseTechType;
@@ -5193,13 +5193,13 @@ void __cdecl R_FinishDecalAndEmissiveDrawSurfs(
     viewInfo->drawList[3].drawSurfCount = backendData->drawSurfCount - firstDrawSurfCount;
     if ( !forMissileCamView )
         R_SplitDrawSurfacesPrimarySortKey(&viewInfo->drawList[3], &viewInfo->drawList[6], 60);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "sort fx surfs");
     R_SortDrawSurfs(scene.drawSurfs[13], scene.drawSurfCount[13]);
     R_SortDrawSurfs(scene.drawSurfs[16], scene.drawSurfCount[16]);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "set up emissiveInfo");
     emissiveInfo = &viewInfo->drawList[4];
     R_InitDrawSurfListInfo(&viewInfo->drawList[4]);
@@ -5229,8 +5229,8 @@ void __cdecl R_FinishDecalAndEmissiveDrawSurfs(
     R_MergeAndEmitDrawSurfLists(0xAu, 6u, backendData);
     emissiveInfo->drawSurfs = &backendData->drawSurfs[firstDrawSurfCounta];
     viewInfo->drawList[4].drawSurfCount = backendData->drawSurfCount - firstDrawSurfCounta;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "set up reflectedInfo");
     R_InitDrawSurfListInfo(&viewInfo->drawList[5]);
     viewInfo->drawList[5].baseTechType = 9;
@@ -5245,12 +5245,12 @@ void __cdecl R_FinishDecalAndEmissiveDrawSurfs(
     R_MergeAndEmitDrawSurfLists(0x10u, 3u, backendData);
     viewInfo->drawList[5].drawSurfs = &backendData->drawSurfs[firstDrawSurfCountb];
     viewInfo->drawList[5].drawSurfCount = backendData->drawSurfCount - firstDrawSurfCountb;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( !viewInfo->needsFloatZ )
         viewInfo->needsFloatZ = R_DoesDrawSurfListInfoNeedFloatz(viewInfo, emissiveInfo);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 unsigned __int8 __cdecl R_GetEmissiveTechnique(const GfxViewInfo *viewInfo, unsigned __int8 baseTech)

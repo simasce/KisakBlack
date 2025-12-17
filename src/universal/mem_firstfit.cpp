@@ -1,4 +1,6 @@
 #include "mem_firstfit.h"
+#include "assertive.h"
+#include <win32/win_common.h>
 
 HunkUser *__cdecl Hunk_FirstFitInit(
                 unsigned int *buffer,
@@ -29,13 +31,13 @@ HunkUser *__cdecl Hunk_FirstFitInit(
     {
         __debugbreak();
     }
-    buffer[2] = name;
+    buffer[2] = (unsigned int)name;
     *buffer = scheme;
     buffer[1] = flags;
     buffer[3] = type;
     buffer[6] = -1;
     buffer[4] = size;
-    buffer[5] = buffer + 8;
+    buffer[5] = (unsigned int)(buffer + 8);
     *(unsigned int *)buffer[5] = 0;
     *(unsigned int *)(buffer[5] + 4) = buffer[4] - 32;
     buffer[7] = 32;
@@ -104,7 +106,7 @@ LABEL_16:
     else
         _user[1].flags = *free_link;
     *free_link = -559038737;
-    *(unsigned int *)((~(alignment - 1) & ((unsigned int)free_link + alignment + 11)) - 12 + 8) = free_link;
+    *(unsigned int *)((~(alignment - 1) & ((unsigned int)free_link + alignment + 11)) - 12 + 8) = (unsigned int)free_link;
     _user[1].type += free_link[1];
     Sys_LeaveCriticalSection(CRITSECT_MEMFIRSTFIT);
     return ~(alignment - 1) & ((unsigned int)free_link + alignment + 11);

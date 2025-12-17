@@ -1,4 +1,12 @@
 #include "snd_occlusion.h"
+#include <qcommon/cm_trace.h>
+#include <cgame/cg_world.h>
+#include "snd.h"
+#include "snd_dvar.h"
+#include "snd_utils.h"
+#include <win32/win_common.h>
+#include <qcommon/threads.h>
+#include <win32/win_net.h>
 
 double __cdecl SND_LosOcclusionTrace(bool fancy, int *cache, const float *listener, const float *playback)
 {
@@ -80,8 +88,10 @@ double __cdecl SND_LosOcclusionTrace(bool fancy, int *cache, const float *listen
                 playback,
                 side,
                 side,
-                COERCE_FLOAT(LODWORD(side_listen_ray_step) ^ _mask__NegFloat_),
-                COERCE_FLOAT(LODWORD(side_playback_ray_step) ^ _mask__NegFloat_),
+                //COERCE_FLOAT(LODWORD(side_listen_ray_step) ^ _mask__NegFloat_),
+                -side_listen_ray_step,
+                //COERCE_FLOAT(LODWORD(side_playback_ray_step) ^ _mask__NegFloat_),
+                -side_playback_ray_step,
                 listen_rays,
                 playback_rays,
                 &valid[2],
@@ -107,8 +117,8 @@ double __cdecl SND_LosOcclusionTrace(bool fancy, int *cache, const float *listen
                     v5 = occlusion_factor;
                 occlusion_factor = v5;
             }
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             return occlusion_factor;
         }
         else
@@ -118,8 +128,8 @@ double __cdecl SND_LosOcclusionTrace(bool fancy, int *cache, const float *listen
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0.0;
     }
 }
@@ -182,196 +192,251 @@ void __cdecl Vec3ScaleAdd(const float *base, const float *dir, float scale, floa
 }
 
 // local variable allocation has failed, the output may be wrong!
-void    SND_TraceProximity(
-                int a1@<ebp>,
-                float *front,
-                float *origin,
-                float *resultDistance,
-                float *resultReflection)
-{
-    double v5; // xmm0_8
-    double v6; // xmm0_8
-    long double v7; // [esp-1Ch] [ebp-BCh]
-    long double v8; // [esp-1Ch] [ebp-BCh]
-    long double v9; // [esp-1Ch] [ebp-BCh]
-    long double v10; // [esp-1Ch] [ebp-BCh]
-    long double v11; // [esp-1Ch] [ebp-BCh]
-    long double v12; // [esp-14h] [ebp-B4h]
-    float x; // [esp+0h] [ebp-A0h] BYREF
-    float v14; // [esp+4h] [ebp-9Ch]
-    int v15; // [esp+8h] [ebp-98h]
-    __int128 end; // [esp+Ch] [ebp-94h] OVERLAPPED
-    int t; // [esp+1Ch] [ebp-84h] BYREF
-    unsigned int v18[2]; // [esp+20h] [ebp-80h] BYREF
-    int cache; // [esp+28h] [ebp-78h]
-    trace_t result; // [esp+2Ch] [ebp-74h]
-    unsigned int c; // [esp+64h] [ebp-3Ch]
-    float MAX_DISTANCE_SCALE; // [esp+68h] [ebp-38h]
-    float MAX_DISTANCE; // [esp+6Ch] [ebp-34h]
-    int reflect; // [esp+70h] [ebp-30h]
-    float distance; // [esp+74h] [ebp-2Ch]
-    float quadT; // [esp+78h] [ebp-28h]
-    int i; // [esp+7Ch] [ebp-24h]
-    float v28; // [esp+80h] [ebp-20h]
-    float v29; // [esp+84h] [ebp-1Ch]
-    int v30; // [esp+88h] [ebp-18h]
-    float v31; // [esp+8Ch] [ebp-14h]
-    int v32; // [esp+94h] [ebp-Ch]
-    void *v33; // [esp+98h] [ebp-8h]
-    void *retaddr; // [esp+A0h] [ebp+0h]
+//void    SND_TraceProximity(
+//                float *front,
+//                float *origin,
+//                float *resultDistance,
+//                float *resultReflection)
+//{
+//    double v5; // xmm0_8
+//    double v6; // xmm0_8
+//    long double v7; // [esp-1Ch] [ebp-BCh]
+//    long double v8; // [esp-1Ch] [ebp-BCh]
+//    long double v9; // [esp-1Ch] [ebp-BCh]
+//    long double v10; // [esp-1Ch] [ebp-BCh]
+//    long double v11; // [esp-1Ch] [ebp-BCh]
+//    long double v12; // [esp-14h] [ebp-B4h]
+//    float x; // [esp+0h] [ebp-A0h] BYREF
+//    float v14; // [esp+4h] [ebp-9Ch]
+//    int v15; // [esp+8h] [ebp-98h]
+//    __int128 end; // [esp+Ch] [ebp-94h] OVERLAPPED
+//    int t; // [esp+1Ch] [ebp-84h] BYREF
+//    unsigned int v18[2]; // [esp+20h] [ebp-80h] BYREF
+//    int cache; // [esp+28h] [ebp-78h]
+//    trace_t result; // [esp+2Ch] [ebp-74h]
+//    unsigned int c; // [esp+64h] [ebp-3Ch]
+//    float MAX_DISTANCE_SCALE; // [esp+68h] [ebp-38h]
+//    float MAX_DISTANCE; // [esp+6Ch] [ebp-34h]
+//    int reflect; // [esp+70h] [ebp-30h]
+//    float distance; // [esp+74h] [ebp-2Ch]
+//    float quadT; // [esp+78h] [ebp-28h]
+//    int i; // [esp+7Ch] [ebp-24h]
+//    float v28; // [esp+80h] [ebp-20h]
+//    float v29; // [esp+84h] [ebp-1Ch]
+//    int v30; // [esp+88h] [ebp-18h]
+//    float v31; // [esp+8Ch] [ebp-14h]
+//    int v32; // [esp+94h] [ebp-Ch]
+//    void *v33; // [esp+98h] [ebp-8h]
+//    void *retaddr; // [esp+A0h] [ebp+0h]
+//
+//    v32 = a1;
+//    v33 = retaddr;
+//    //PIXBeginNamedEvent(-1, "proximity");
+//    v31 = *front;
+//    v30 = *((unsigned int *)front + 1);
+//    __libm_sse2_atan2(v7, v12);
+//    v29 = v31;
+//    __libm_sse2_cos(v8);
+//    v28 = v31;
+//    *(float *)&i = v31 - front[1];
+//    if ( fabs(i) >= 0.0000152879
+//        && !Assert_MyHandler(
+//                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_occlusion.cpp",
+//                    209,
+//                    0,
+//                    "%s",
+//                    "fabs(cosf(forwardT)-front[1])< SND_EPSILON") )
+//    {
+//        __debugbreak();
+//    }
+//    __libm_sse2_sin(v9);
+//    quadT = v29;
+//    distance = v29 - *front;
+//    if ( fabs(distance) >= 0.0000152879
+//        && !Assert_MyHandler(
+//                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_occlusion.cpp",
+//                    210,
+//                    0,
+//                    "%s",
+//                    "fabs(sinf(forwardT)-front[0])< SND_EPSILON") )
+//    {
+//        __debugbreak();
+//    }
+//    for ( reflect = 0; reflect < 4; ++reflect )
+//    {
+//        MAX_DISTANCE = (float)((float)((float)reflect * 1.5707964) + v29) - 1.5707964;
+//        MAX_DISTANCE_SCALE = 0.0f;
+//        c = 0;
+//        *(float *)&result.hitPartition = 1000.0f;
+//        *(float *)&result.staticModel = 1000.0 / 16.0;
+//        for ( *(unsigned int *)&result.walkable = 0; *(unsigned int *)&result.walkable < 0x10u; ++*(unsigned int *)&result.walkable )
+//        {
+//            v18[0] = 0;
+//            v18[1] = 0;
+//            cache = 0;
+//            result.normal.vec.u[0] = 0;
+//            t = 0;
+//            *((_QWORD *)&end + 1) = *(unsigned int *)&result.walkable;
+//            *((float *)&end + 1) = (double)*(unsigned int *)&result.walkable / 16.0 * 1.5707964 + MAX_DISTANCE;
+//            x = *origin;
+//            v14 = origin[1];
+//            v15 = *((unsigned int *)origin + 2);
+//            *(float *)&end = origin[3];
+//            v5 = *((float *)&end + 1);
+//            __libm_sse2_cos(v10);
+//            *(float *)&v5 = v5;
+//            v14 = (float)(*(float *)&v5 * *(float *)&result.hitPartition) + v14;
+//            v6 = *((float *)&end + 1);
+//            __libm_sse2_sin(v11);
+//            *(float *)&v6 = v6;
+//            x = (float)(*(float *)&v6 * *(float *)&result.hitPartition) + x;
+//            if ( CG_SightTracePoint(&t, origin, &x, 49, (trace_t *)v18) )
+//            {
+//                MAX_DISTANCE_SCALE = (float)((float)(1.0
+//                                                                                     - (float)((float)(1.0 - result.normal.vec.v[1])
+//                                                                                                     * (float)(1.0 - result.normal.vec.v[1])))
+//                                                                     * *(float *)&result.staticModel)
+//                                                     + MAX_DISTANCE_SCALE;
+//                *(float *)&c = SND_SurfaceTypeToReflectance((unsigned __int8)((int)((unsigned int)&bg_vehicleInfos[11].rotorTailStartFx[20]
+//                                                                                                                                                    & result.normal.vec.u[2]) >> 20))
+//                                         + *(float *)&c;
+//            }
+//            else
+//            {
+//                MAX_DISTANCE_SCALE = MAX_DISTANCE_SCALE + *(float *)&result.staticModel;
+//                *(float *)&c = *(float *)&c + 0.5;
+//            }
+//        }
+//        *(float *)&c = *(float *)&c / 16.0;
+//        if ( (c & 0x7F800000) == 0x7F800000
+//            && !Assert_MyHandler(
+//                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_occlusion.cpp",
+//                        250,
+//                        0,
+//                        "%s",
+//                        "!IS_NAN(reflect)") )
+//        {
+//            __debugbreak();
+//        }
+//        if ( (LODWORD(MAX_DISTANCE_SCALE) & 0x7F800000) == 0x7F800000
+//            && !Assert_MyHandler(
+//                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_occlusion.cpp",
+//                        251,
+//                        0,
+//                        "%s",
+//                        "!IS_NAN(distance)") )
+//        {
+//            __debugbreak();
+//        }
+//        resultDistance[reflect] = MAX_DISTANCE_SCALE;
+//        resultReflection[reflect] = *(float *)&c;
+//    }
+//    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+//        //D3DPERF_EndEvent();
+//}
 
-    v32 = a1;
-    v33 = retaddr;
+// (aislop cleanup)
+void SND_TraceProximity(
+    float *front,
+    float *origin,
+    float *resultDistance,
+    float *resultReflection)
+{
+    float forwardT, quadT, MAX_DISTANCE, MAX_DISTANCE_SCALE, distance;
+    float x, y, z;
+    int reflect, i;
+    trace_t result;
+
     //PIXBeginNamedEvent(-1, "proximity");
-    v31 = *front;
-    v30 = *((unsigned int *)front + 1);
-    __libm_sse2_atan2(v7, v12);
-    v29 = v31;
-    __libm_sse2_cos(v8);
-    v28 = v31;
-    *(float *)&i = v31 - front[1];
-    if ( fabs(i) >= 0.0000152879
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_occlusion.cpp",
-                    209,
-                    0,
-                    "%s",
-                    "fabs(cosf(forwardT)-front[1])< SND_EPSILON") )
-    {
+
+    // Compute forward angle
+    forwardT = atan2(front[1], front[0]);
+    if (fabsf(cosf(forwardT) - front[1]) >= SND_EPSILON)
         __debugbreak();
-    }
-    __libm_sse2_sin(v9);
-    quadT = v29;
-    distance = v29 - *front;
-    if ( fabs(distance) >= 0.0000152879
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_occlusion.cpp",
-                    210,
-                    0,
-                    "%s",
-                    "fabs(sinf(forwardT)-front[0])< SND_EPSILON") )
-    {
+    if (fabsf(sinf(forwardT) - front[0]) >= SND_EPSILON)
         __debugbreak();
-    }
-    for ( reflect = 0; reflect < 4; ++reflect )
+
+    // Loop over reflection directions
+    for (reflect = 0; reflect < 4; ++reflect)
     {
-        MAX_DISTANCE = (float)((float)((float)reflect * 1.5707964) + v29) - 1.5707964;
+        MAX_DISTANCE = reflect * (float)M_PI_HALF + forwardT - (float)M_PI_HALF;
         MAX_DISTANCE_SCALE = 0.0f;
-        c = 0;
-        *(float *)&result.hitPartition = 1000.0f;
-        *(float *)&result.staticModel = 1000.0 / 16.0;
-        for ( *(unsigned int *)&result.walkable = 0; *(unsigned int *)&result.walkable < 0x10u; ++*(unsigned int *)&result.walkable )
+        distance = 0.0f;
+
+        for (i = 0; i < 16; ++i)
         {
-            v18[0] = 0;
-            v18[1] = 0;
-            cache = 0;
-            result.normal.vec.u[0] = 0;
-            t = 0;
-            *((_QWORD *)&end + 1) = *(unsigned int *)&result.walkable;
-            *((float *)&end + 1) = (double)*(unsigned int *)&result.walkable / 16.0 * 1.5707964 + MAX_DISTANCE;
-            x = *origin;
-            v14 = origin[1];
-            v15 = *((unsigned int *)origin + 2);
-            *(float *)&end = origin[3];
-            v5 = *((float *)&end + 1);
-            __libm_sse2_cos(v10);
-            *(float *)&v5 = v5;
-            v14 = (float)(*(float *)&v5 * *(float *)&result.hitPartition) + v14;
-            v6 = *((float *)&end + 1);
-            __libm_sse2_sin(v11);
-            *(float *)&v6 = v6;
-            x = (float)(*(float *)&v6 * *(float *)&result.hitPartition) + x;
-            if ( CG_SightTracePoint(&t, origin, &x, 49, (trace_t *)v18) )
+            // Compute point to trace
+            float theta = (float)i / 16.0f * (float)M_PI_HALF + MAX_DISTANCE;
+            x = origin[0] + cosf(theta) * 1000.0f;
+            y = origin[1] + sinf(theta) * 1000.0f;
+            z = origin[2];
+
+            int hitNum = 0;
+            if (CG_SightTracePoint(&hitNum, origin, &x, 49, &result))
             {
-                MAX_DISTANCE_SCALE = (float)((float)(1.0
-                                                                                     - (float)((float)(1.0 - result.normal.vec.v[1])
-                                                                                                     * (float)(1.0 - result.normal.vec.v[1])))
-                                                                     * *(float *)&result.staticModel)
-                                                     + MAX_DISTANCE_SCALE;
-                *(float *)&c = SND_SurfaceTypeToReflectance((unsigned __int8)((int)((unsigned int)&bg_vehicleInfos[11].rotorTailStartFx[20]
-                                                                                                                                                    & result.normal.vec.u[2]) >> 20))
-                                         + *(float *)&c;
+                MAX_DISTANCE_SCALE += (1.0f - (1.0f - result.normal.vec.v[1]) * (1.0f - result.normal.vec.v[1])) * (1000.0f / 16.0f);
+                distance += SND_SurfaceTypeToReflectance((result.normal.vec.u[2] & 0x3F00000) >> 20);
             }
             else
             {
-                MAX_DISTANCE_SCALE = MAX_DISTANCE_SCALE + *(float *)&result.staticModel;
-                *(float *)&c = *(float *)&c + 0.5;
+                MAX_DISTANCE_SCALE += (1000.0f / 16.0f);
+                distance += 0.5f;
             }
         }
-        *(float *)&c = *(float *)&c / 16.0;
-        if ( (c & 0x7F800000) == 0x7F800000
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_occlusion.cpp",
-                        250,
-                        0,
-                        "%s",
-                        "!IS_NAN(reflect)") )
-        {
-            __debugbreak();
-        }
-        if ( (LODWORD(MAX_DISTANCE_SCALE) & 0x7F800000) == 0x7F800000
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_occlusion.cpp",
-                        251,
-                        0,
-                        "%s",
-                        "!IS_NAN(distance)") )
-        {
-            __debugbreak();
-        }
+
+        distance /= 16.0f;
         resultDistance[reflect] = MAX_DISTANCE_SCALE;
-        resultReflection[reflect] = *(float *)&c;
+        resultReflection[reflect] = distance;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+
+    //if (g_DXDeviceThread == GetCurrentThreadId())
+    //    D3DPERF_EndEvent();
 }
 
-double __cdecl SND_SurfaceTypeToReflectance(unsigned int surface)
+
+float __cdecl SND_SurfaceTypeToReflectance(unsigned int surface)
 {
-    if ( surface <= (unsigned int)&cls.rankedServers[711].game[35] )
+    if (surface <= 0x1000000)
     {
-        if ( (char *)surface == &cls.rankedServers[711].game[35] )
+        if (surface == 0x1000000)
             return 0.60000002;
-        if ( surface > (unsigned int)&loc_800000 )
+        if (surface > 0x800000)
         {
-            if ( surface > (unsigned int)&loc_C00000 )
+            if (surface > 0xC00000)
             {
-                if ( (char *)surface == "t" )
+                if (surface == 0xD00000)
                     return 1.0;
-                if ( (cspField_t *)surface != &weaponDefFields[88]
-                    && (unsigned __int16 *)surface != &cg_bgsAnim.animScriptData.scriptItems[416].commands[0].tagName )
-                {
+                if (surface != 0xE00000 && surface != 0xF00000)
                     return 0.5;
-                }
                 return 0.60000002;
             }
-            if ( (_UNKNOWN *)surface == &loc_C00000 || (_UNKNOWN **)surface == &loc_900000 )
+            if (surface == 0xC00000 || surface == 0x900000)
                 return 1.0;
-            if ( (int (*)())surface != sub_A00000 )
+            if (surface != 0xA00000)
             {
-                if ( (_UNKNOWN *)surface != (_UNKNOWN *)((char *)&loc_AFFFFF + 1) )
+                if (surface != 0xB00000)
                     return 0.5;
                 return 0.60000002;
             }
         }
-        else if ( (_UNKNOWN *)surface != &loc_800000 )
+        else if (surface != 0x800000)
         {
-            if ( surface > 0x400000 )
+            if (surface > 0x400000)
             {
-                if ( (_UNKNOWN *)surface == (_UNKNOWN *)((char *)&loc_4FFFFE + 2) )
+                if (surface == 0x500000)
                     return 1.0;
-                if ( (_UNKNOWN **)surface == &off_600000 )
+                if (surface == 0x600000)
                     return 0.60000002;
-                if ( (_UNKNOWN **)surface != &off_700000 )
+                if (surface != 0x700000)
                     return 0.5;
             }
-            else if ( surface != 0x400000 )
+            else if (surface != 0x400000)
             {
-                if ( surface != 0x100000 )
+                if (surface != 0x100000)
                 {
-                    if ( surface != 0x200000 )
+                    if (surface != 0x200000)
                     {
-                        if ( surface != 3145728 )
+                        if (surface != 0x300000)
                             return 0.5;
                         return 0.2;
                     }
@@ -383,48 +448,41 @@ double __cdecl SND_SurfaceTypeToReflectance(unsigned int surface)
         }
         return 0.40000001;
     }
-    if ( surface > (unsigned int)&cls.unrankedServers[3021].gameType[11] )
+    if (surface > 0x1800000)
     {
-        if ( surface > (unsigned int)&cls.unrankedServers[14176].score )
+        if (surface > 0x1C00000)
         {
-            if ( (char *)surface == &cls.unrankedServers[16965].game[11] )
+            if (surface == 0x1D00000)
                 return 0.2;
-            if ( (__int16 *)surface != &cls.unrankedServers[19754].minPing )
+            if (surface != 0x1E00000)
                 return 0.5;
         }
         else
         {
-            if ( (int *)surface == &cls.unrankedServers[14176].score )
+            if (surface == 0x1C00000)
                 return 1.0;
-            if ( (char *)surface != &cls.unrankedServers[5810].mapName[19] )
+            if (surface != 0x1900000)
             {
-                if ( (unsigned __int16 *)surface != &cls.unrankedServers[8599].adr.port
-                    && (serverInfo_t *)surface != &cls.unrankedServers[11388] )
-                {
+                if (surface != 0x1A00000 && surface != 0x1B00000)
                     return 0.5;
-                }
                 return 0.2;
             }
         }
         return 0.40000001;
     }
-    if ( (char *)surface == &cls.unrankedServers[3021].gameType[11] )
+    if (surface == 0x1800000)
         return 1.0;
-    if ( surface > (unsigned int)&cls.rankedServers[11866].game[59] )
+    if (surface > 0x1400000)
     {
-        if ( (char *)surface != &cls.rankedServers[14655].mapName[3]
-            && (unsigned __int64 *)surface != &cls.rankedServers[17444].nonce
-            && (char *)surface != &cls.unrankedServers[232].city[46] )
-        {
+        if (surface != 0x1500000 && surface != 0x1600000 && surface != 0x1700000)
             return 0.5;
-        }
         return 1.0;
     }
-    if ( (char *)surface == &cls.rankedServers[11866].game[59] || (char *)surface == &cls.rankedServers[3500].hostName[11] )
+    if (surface == 0x1400000 || surface == 0x1100000)
         return 1.0;
-    if ( (unsigned __int8 *)surface == &cls.rankedServers[6289].xnkid.ab[7] )
+    if (surface == 0x1200000)
         return 0.60000002;
-    if ( (char *)surface != &cls.rankedServers[9077].city[30] )
+    if (surface != 0x1300000)
         return 0.5;
     return 0.2;
 }
@@ -480,7 +538,6 @@ void __cdecl SND_LosOcclusionCmd()
                                                                                              g_snd.occlusionTraces[i].playback);
         }
         SND_TraceProximity(
-            (int)&savedregs,
             g_snd.proximityFront,
             g_snd.proximityOrigin,
             g_snd.proximityDistance,
@@ -496,7 +553,7 @@ void __cdecl SND_LosOcclusionCmd()
 
 void __cdecl SND_LosOcclusionUpdate()
 {
-    int Target; // [esp+4h] [ebp-34h] BYREF
+    volatile unsigned int Target; // [esp+4h] [ebp-34h] BYREF
     float *playback; // [esp+8h] [ebp-30h]
     float *position; // [esp+Ch] [ebp-2Ch]
     snd_occlusion_trace_t *v3; // [esp+10h] [ebp-28h]
@@ -576,7 +633,7 @@ void __cdecl SND_LosOcclusionThreadMain()
 
 void __cdecl SND_LosOcclusionInit()
 {
-    int Target; // [esp+0h] [ebp-8h] BYREF
+    volatile unsigned int Target; // [esp+0h] [ebp-8h] BYREF
     unsigned int i; // [esp+4h] [ebp-4h]
 
     memset((unsigned __int8 *)g_snd.occlusionTraces, 0, sizeof(g_snd.occlusionTraces));
@@ -590,7 +647,7 @@ void __cdecl SND_LosOcclusionInit()
 
 void __cdecl SND_LosOcclusionFini()
 {
-    int Target; // [esp+0h] [ebp-4h] BYREF
+    volatile unsigned int Target; // [esp+0h] [ebp-4h] BYREF
 
     g_snd.occlusionRunning = 0;
     Target = 0;

@@ -1,4 +1,5 @@
 #include "dvar.h"
+#include <database/db_registry.h>
 
 void __cdecl Dvar_Sort()
 {

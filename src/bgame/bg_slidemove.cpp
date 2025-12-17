@@ -906,8 +906,8 @@ void    gjk_trace(int a1@<ebp>, const gjk_trace_input_t *gti, list_gjk_trace_out
         for ( i = gti->m_query_output->m_list_geom_info.m_first; i; i = i->m_next_link )
             v13[gi_i++] = i;
         sort_gi_list(v13, gi_i);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         //PIXBeginNamedEvent(-1, "gjk_trace_collide");
         v10 = (gjk_trace_output_t *)phys_transient_allocator::allocate(
                                                                     gti->m_allocator,
@@ -971,12 +971,12 @@ void    gjk_trace(int a1@<ebp>, const gjk_trace_input_t *gti, list_gjk_trace_out
                     break;
             }
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
-    else if ( GetCurrentThreadId() == g_DXDeviceThread )
+    else //if ( GetCurrentThreadId() == g_DXDeviceThread )
     {
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
     }
 }
 

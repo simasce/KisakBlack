@@ -34,6 +34,58 @@ struct cent_field_s // sizeof=0x18
     void (__cdecl *getter)(centity_s *, const cent_field_s *);
 };
 
+struct cscr_data_t // sizeof=0x68
+{                                       // XREF: .data:cscr_data_t cg_scr_data/r
+    int delete_;                        // XREF: CG_FreeEntityDelay(centity_s *)+4/r
+                                        // CG_FreeEntityDelay(centity_s *)+F/r ...
+    int initstructs;                    // XREF: CScr_LoadStructs(void)+6/r
+                                        // CScr_LoadStructs(void)+37/r ...
+    int createstruct;                   // XREF: CG_SpawnStruct(SpawnVar const &):loc_4FB456/r
+                                        // CG_SpawnStruct(SpawnVar const &)+67/r ...
+    int findstruct;                     // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+72/w
+                                        // CG_FindStruct(SpawnVar &,int):loc_6ECC16/r ...
+    int levelscript;                    // XREF: CScr_LoadLevel(void)+4/r
+                                        // CScr_LoadLevel(void)+11/r ...
+    int clientsysstatechange;           // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+8F/w
+                                        // CG_ParseClientSystemStateChange(int,int,char const *)+13/r ...
+    int maprestart;                     // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+AC/w
+                                        // CG_MapRestart(int,int)+2E2/r ...
+    int localclientconnect;             // XREF: CG_Init(int,int,int,int)+C38/r
+                                        // CScr_SetUniqueClientScripts(ScriptFunctions *)+C9/w ...
+    int localclientdisconnect;          // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+E6/w
+    int entityspawned;                  // XREF: CG_Actor(int,centity_s *)+8F/r
+                                        // CG_ProcessFakeEntity+6B3/r ...
+    int scriptmodelspawned;
+    int dogSoundNotify;                 // XREF: CG_ProcessClientNote+39C/r
+                                        // CScr_SetUniqueClientScripts(ScriptFunctions *)+25F/w
+    int clientFlagCB;                   // XREF: CG_ClientFlagCallback:loc_4B09A7/r
+                                        // CG_ClientFlagCallback+20/r ...
+    int clientFlagAsValCB;              // XREF: CG_ClientFlagCallback:loc_4B09DD/r
+                                        // CG_ClientFlagCallback+56/r ...
+    int destructible_callback;          // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+177/w
+                                        // CScr_DestructibleCallback(centity_s *,ushort,int,float,int)+4/r ...
+    int corpse_callback;                // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+194/w
+                                        // CG_ResetEntity+5FB/r
+    int playerFootstep;                 // XREF: CScr_PlayerFootstepEvent(int,centity_s *,bool,int,int,bool)+98/r
+                                        // CScr_SetUniqueClientScripts(ScriptFunctions *)+1B1/w
+    int playerJump;                     // XREF: CScr_PlayerJumpEvent(int,centity_s *,bool,int,bool)+62/r
+                                        // CScr_SetUniqueClientScripts(ScriptFunctions *)+1CE/w
+    int playerLand;                     // XREF: CScr_PlayerLandEvent(int,centity_s *,bool,int,bool,bool)+8A/r
+                                        // CScr_SetUniqueClientScripts(ScriptFunctions *)+1EB/w
+    int playerFoliage;                  // XREF: CScr_PlayerFoliageEvent(int,centity_s *,bool,bool)+43/r
+                                        // CScr_SetUniqueClientScripts(ScriptFunctions *)+208/w
+    int playerspawned;                  // XREF: CG_Player(int,centity_s *)+1FA/r
+                                        // CScr_SetUniqueClientScripts(ScriptFunctions *)+120/w
+    int levelnotify;                    // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+242/w
+                                        // ProcessWeaponNoteTracks+107/r ...
+    int airsupport;
+    int entityshutdownCB;               // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+2D3/w
+                                        // CG_ShutdownEntity(int,centity_s *,bool)+C3/r
+    int glassSmash;                     // XREF: CScr_GlassSmash(float const * const,float const * const)+4/r
+                                        // CScr_GlassSmash(float const * const,float const * const)+2B/r ...
+    int gibEvent;
+};
+
 void __cdecl CScr_AddStruct();
 void __cdecl CScr_SetClientScripts(ScriptFunctions *functions);
 unsigned __int16 __cdecl CScr_GetMeansOfDeathConstString(int mod);
@@ -423,3 +475,4 @@ void __cdecl CScr_PostLoadScripts();
 
 
 extern cg_level_locals_t cg_level;
+extern cscr_data_t cg_scr_data;

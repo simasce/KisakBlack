@@ -1,6 +1,21 @@
 #include "demo_common.h"
 
 #include <qcommon/cmd.h>
+#include <ui/ui_shared.h>
+#include <live/live_fileshare.h>
+#include <client_mp/sv_client_mp.h>
+#include <live/live_win.h>
+#include <qcommon/common.h>
+#include <live/live_stats.h>
+#include <server_mp/sv_main_mp.h>
+#include <qcommon/com_clients.h>
+#include <DW/MatchRecorder.h>
+#include "demo_recording.h"
+#include <live/live_storage.h>
+#include <universal/com_shared.h>
+
+#include <cstring>
+#include <new>
 
 const dvar_t *demo_enabled;
 const dvar_t *demo_recordBasicTraining;
@@ -30,6 +45,10 @@ const dvar_t *demo_bytesPerSecondMin;
 const dvar_t *demo_packetsPerSecondMax;
 const dvar_t *demo_bytesPerSecondMax;
 
+demoMain demo;
+ddlState_t g_fileShareRootState;
+ddlDef_t *g_fileshareDDL;
+demoRecordedFileUploadInfo s_demoUploadInfo;
 
 void __cdecl Demo_RegisterDvars()
 {
@@ -555,6 +574,7 @@ LABEL_11:
     return 0;
 }
 
+char gamerTag_0[32];
 void __cdecl Demo_StreamingSuccessCallback(int controllerIndex, unsigned __int64 fileID)
 {
     const ddlState_t *RootDDLState; // eax
@@ -599,8 +619,11 @@ void __cdecl Demo_StreamingSuccessCallback(int controllerIndex, unsigned __int64
             matchRecordBufferSize = strlen(gamerTag_0);
         }
         v7 = 40;
-        for ( j = tags; --v7 >= 0; ++j )
-            bdTag::bdTag(j);
+        for (j = tags; --v7 >= 0; ++j)
+        {
+            //bdTag::bdTag(j);
+            new (j) bdTag();
+        }
         numTags = 0;
         Demo_SetTags(controllerIndex, &numTags, tags, &demo.info, FILESHARE_FILETYPE_FILM);
         memcpy(s_demoUploadInfo.tags, tags, sizeof(s_demoUploadInfo.tags));
@@ -923,8 +946,8 @@ void __cdecl Demo_Forward_f()
                     Demo_Load();
                     MSG_GotoBookmark(&demo.msg, &demo.playback->keyFrame[newKeyframeIndex].msgBookmark);
                     demo.playback->lastJumpedKeyframe = newKeyframeIndex;
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     MSG_Init(&keyframeMsg, demo.msgBuf1, 49152);
                     memcpy(
                         demo.msgBuf1,
@@ -976,21 +999,21 @@ void __cdecl Demo_Forward_f()
                     }
                     msgSequence = MSG_ReadLong(&keyframeMsg);
                     Demo_ParseServerMessage(localClientNum, &keyframeMsg, msgType, msgSequence);
-                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                        D3DPERF_EndEvent();
+                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //D3DPERF_EndEvent();
                     //PIXBeginNamedEvent(-16711681, "Forward Logic - Resetting World");
                     Demo_ResetTimeValues(localClientNum, LocalClientGlobals->snap.serverTime);
                     Demo_ResetSequenceNumbers(localClientNum, LocalClientGlobals->snap.messageNum - 1);
                     Demo_ResetWorldInformation(localClientNum, LocalClientGlobals->snap.serverTime);
-                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                        D3DPERF_EndEvent();
+                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //D3DPERF_EndEvent();
                     //PIXBeginNamedEvent(-16711681, "Forward Logic - Reading Messages");
                     cgameGlob->latestSnapshotNum = LocalClientGlobals->snap.messageNum;
                     v15 = LocalClientGlobals->snap.serverTime - cls.realtime - 5;
                     LocalClientGlobals->serverTimeDelta = v15 - (Sys_Milliseconds() - preparse);
                     Demo_SetJumpTimeFlag(1);
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     Con_Close(localClientNum);
                     SND_StopSounds(SND_STOP_ALL);
                     demo.playback->overridePause = 1;
@@ -1110,8 +1133,8 @@ void __cdecl Demo_Back_f()
                                  demo.playback->keyFrame[newKeyframeIndex].keyframeSnapshotTime,
                                  demo.playback->keyFrame[newKeyframeIndex].firstCmdSequence);
                     Demo_Printf(128, v8);
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     preparse = Sys_Milliseconds();
                     //PIXBeginNamedEvent(-16711681, "Rewind Logic - File Seek");
                     demo.totalSize = demo.playback->keyFrame[keyframeIndex].demoFileMemoryBlockStart;
@@ -1119,8 +1142,8 @@ void __cdecl Demo_Back_f()
                     Demo_Load();
                     MSG_GotoBookmark(&demo.msg, &demo.playback->keyFrame[keyframeIndex].msgBookmark);
                     demo.playback->lastJumpedKeyframe = keyframeIndex;
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     MSG_Init(&keyframeMsg, demo.msgBuf1, 49152);
                     memcpy(
                         demo.msgBuf1,
@@ -1172,14 +1195,14 @@ void __cdecl Demo_Back_f()
                     }
                     msgSequence = MSG_ReadLong(&keyframeMsg);
                     Demo_ParseServerMessage(localClientNum, &keyframeMsg, msgType, msgSequence);
-                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                        D3DPERF_EndEvent();
+                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //D3DPERF_EndEvent();
                     //PIXBeginNamedEvent(-16711681, "Rewind Logic - Rewinding World");
                     Demo_ResetTimeValues(localClientNum, LocalClientGlobals->snap.serverTime);
                     Demo_ResetSequenceNumbers(localClientNum, LocalClientGlobals->snap.messageNum - 1);
                     Demo_ResetWorldInformation(localClientNum, LocalClientGlobals->snap.serverTime);
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     v15 = LocalClientGlobals->snap.serverTime - cls.realtime - 5;
                     LocalClientGlobals->serverTimeDelta = v15 - (Sys_Milliseconds() - preparse);
                     Demo_SetJumpTimeFlag(1);
@@ -1188,8 +1211,8 @@ void __cdecl Demo_Back_f()
                     demo.playback->overridePause = 1;
                     CL_SetCGameTime(localClientNum);
                     demo.playback->overridePause = 0;
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     ++demo.playback->keyframeJumpCount;
                     Demo_SetCmdCompleted();
                 }

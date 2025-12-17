@@ -1,4 +1,5 @@
 #pragma once
+#include "snd.h"
 
 snd_category_t __cdecl SND_GroupCategory(unsigned int group);
 double __cdecl SND_GroupGetAttenuation(unsigned int group);

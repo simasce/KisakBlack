@@ -1,21 +1,50 @@
 #include "snd_driver_xaudio2.h"
+#include <ui/ui_main.h>
+#include "snd_stream.h"
+#include "snd_db.h"
+#include <qcommon/common.h>
+#include "snd_public_async.h"
+#include <gfx_d3d/r_cinematic.h>
+#include "snd_dvar.h"
+#include "snd_utils.h"
+#include "snd_radverb.h"
+#include "snd_bank.h"
+#include "snd_globals.h"
+
+const dvar_t *sd_xa2_num_devices;
+const dvar_t *sd_xa2_can_switch_device;
+const dvar_t *sd_xa2_device_guid;
+const dvar_t *sd_xa2_device_name;
+
+unsigned int g_xaudio27;
+SoundState g_sd;
+char sd_xa2_device_names[16][256];
+const char *sd_xa2_devices_value_list[16];
+const char *sd_xa2_device_guids_value_list[16];
+int sd_xa2_device_indices[16];
+_GUID sd_deviceGUIDs[16];
+char sd_xa2_device_guids[16][256];
+const char *sd_xa2_devices_value_list[16];
+
+const int sd_max_num_devices = 16;
 
 bool __cdecl SD_Xaudio2CanInit()
 {
     return g_xaudio27 != 0;
 }
 
-IXAudio2SourceVoice **__cdecl SDXA2_VoiceDspAllocate()
+SDXA2SourceEffect *__cdecl SDXA2_VoiceDspAllocate()
 {
     SDXA2SourceEffect *dsp; // [esp+4h] [ebp-8h]
     unsigned int i; // [esp+8h] [ebp-4h]
 
     for ( i = 0; i < 0x94; ++i )
     {
-        dsp = (SDXA2SourceEffect *)&g_sd.voices[5856 * i - 866688];
-        if ( dsp->AddRef(dsp) == 2 )
+        //dsp = (SDXA2SourceEffect *)&g_sd.voices[5856 * i - 866688];
+        dsp = &g_sd.voiceDsp[i];
+        if ( dsp->AddRef() == 2 )
         {
-            if ( dsp->Release(dsp) != 1
+            if ( dsp->Release() != 1
                 && !Assert_MyHandler(
                             "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
                             173,
@@ -25,9 +54,10 @@ IXAudio2SourceVoice **__cdecl SDXA2_VoiceDspAllocate()
             {
                 __debugbreak();
             }
-            return &g_sd.voices[5856 * i - 866688];
+            //return &g_sd.voices[5856 * i - 866688];
+            return &g_sd.voiceDsp[i];
         }
-        dsp->Release(dsp);
+        dsp->Release();
     }
     if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp", 182, 0, "%s", "0") )
         __debugbreak();
@@ -52,7 +82,7 @@ void __cdecl SD_XAudio2Done()
 {
     if ( g_sd.xa2 )
     {
-        g_sd.xa2->Release(g_sd.xa2);
+        g_sd.xa2->Release();
         g_sd.xa2 = 0;
         g_sd.deviceGUIDValid = 0;
         g_sd.deviceIndex = -1;
@@ -113,7 +143,6 @@ IXAudio2SubmixVoice *__cdecl SD_CreateBus(
     effects.EffectCount = 1;
     effects.pEffectDescriptors = effectDescriptors;
     hr = g_sd.xa2->CreateSubmixVoice(
-                 g_sd.xa2,
                  &voice,
                  inputChannelCount,
                  sampleRate,
@@ -163,7 +192,7 @@ IXAudio2SubmixVoice *__cdecl SD_CreateBus(
             matrix[i + j * inputChannelCount] = v7;
         }
     }
-    v8 = voice->SetOutputMatrix(voice, outputVoice, inputChannelCount, outputChannelCount, matrix, 0);
+    v8 = voice->SetOutputMatrix(outputVoice, inputChannelCount, outputChannelCount, matrix, 0);
     if ( v8
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
@@ -185,8 +214,8 @@ void __cdecl SD_StopVoice(int voiceIndex)
 
     if ( g_sd.voices[voiceIndex] )
     {
-        g_sd.voices[voiceIndex]->Stop(g_sd.voices[voiceIndex], 0, 0);
-        g_sd.voices[voiceIndex]->DestroyVoice(g_sd.voices[voiceIndex]);
+        g_sd.voices[voiceIndex]->Stop(0, 0);
+        g_sd.voices[voiceIndex]->DestroyVoice();
         g_sd.voices[voiceIndex] = 0;
     }
     if ( SND_IsStream(voiceIndex) )
@@ -240,7 +269,7 @@ void __cdecl iSND_ReleaseStreamBuffer(unsigned int streamVoice, unsigned int buf
         __debugbreak();
     }
     releaseWindow = (char *)InterlockedExchange(
-                                                        (volatile int *)&g_sd.streamVoices[streamVoice].buffers[bufferIndex].pAudioData,
+                                                        (volatile unsigned int *)&g_sd.streamVoices[streamVoice].buffers[bufferIndex].pAudioData,
                                                         0);
     if ( releaseWindow )
         Snd_StreamReleaseWindow(streamVoice, releaseWindow);
@@ -340,7 +369,7 @@ LABEL_5:
 LABEL_11:
             while ( Snd_StreamGetFreeWindows(streamVoice) )
             {
-                g_sd.voices[voiceIndex]->GetState(g_sd.voices[voiceIndex], &voiceState);
+                g_sd.voices[voiceIndex]->GetState(&voiceState);
                 if ( voiceState.BuffersQueued >= 2 )
                     break;
                 status = Snd_StreamAcquireWindow(streamVoice, &size, &position, &data);
@@ -383,7 +412,6 @@ LABEL_11:
                         sv->buffers[bufferIndex].pAudioData = (const unsigned __int8 *)data;
                         sv->buffers[bufferIndex].pContext = (void *)(bufferIndex | (streamVoice << 8));
                         g_sd.voices[voiceIndex]->SubmitSourceBuffer(
-                            g_sd.voices[voiceIndex],
                             &sv->buffers[bufferIndex],
                             header->format != SND_ASSET_FORMAT_WMA ? 0 : &bufferWMA);
                         break;
@@ -565,13 +593,14 @@ int __cdecl iSND_CreateVoice(int voiceIndex, const snd_asset *snd, int isLooping
     outputVoices[1].pOutputVoice = g_sd.radverbBus;
     sendList.SendCount = 2;
     sendList.pSends = outputVoices;
-    voiceInfo->sourceDsp = (SDXA2SourceEffect *)SDXA2_VoiceDspAllocate();
+    voiceInfo->sourceDsp = SDXA2_VoiceDspAllocate();
     effect.pEffect = voiceInfo->sourceDsp;
     effect.InitialState = 1;
     effect.OutputChannels = snd->channel_count;
     fxChain.EffectCount = 1;
     fxChain.pEffectDescriptors = &effect;
-    SDXA2SourceEffect::Clear(voiceInfo->sourceDsp);
+    //SDXA2SourceEffect::Clear(voiceInfo->sourceDsp);
+    voiceInfo->sourceDsp->Clear();
     if ( isStreaming )
         v7 = &g_sd.streamVoices[streamVoice];
     else
@@ -580,15 +609,17 @@ int __cdecl iSND_CreateVoice(int voiceIndex, const snd_asset *snd, int isLooping
         p_WFXE = &AWFT;
     else
         p_WFXE = &WFXE;
-    hr = ((int (__stdcall *)(IXAudio2 *, int, void *, unsigned int, unsigned int, StreamVoice *, XAUDIO2_VOICE_SENDS *, XAUDIO2_EFFECT_CHAIN *))g_sd.xa2->CreateSourceVoice)(
-                 g_sd.xa2,
-                 4 * voiceIndex + 172630016,
-                 p_WFXE,
-                 0,
-                 2.0,
-                 v7,
-                 &sendList,
-                 &fxChain);
+
+    hr = g_sd.xa2->CreateSourceVoice(&g_sd.voices[voiceIndex], (WAVEFORMATEX*)p_WFXE);
+    //hr = ((int (__stdcall *)(IXAudio2 *, int, void *, unsigned int, unsigned int, StreamVoice *, XAUDIO2_VOICE_SENDS *, XAUDIO2_EFFECT_CHAIN *))g_sd.xa2->CreateSourceVoice)(
+    //             g_sd.xa2,
+    //             4 * voiceIndex + 172630016,
+    //             p_WFXE,
+    //             0,
+    //             2.0,
+    //             v7,
+    //             &sendList,
+    //             &fxChain);
     if ( hr
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
@@ -609,7 +640,6 @@ int __cdecl iSND_CreateVoice(int voiceIndex, const snd_asset *snd, int isLooping
         else
         {
             v12 = g_sd.voices[voiceIndex]->SubmitSourceBuffer(
-                            g_sd.voices[voiceIndex],
                             &buffer,
                             snd->seek_table != 0 ? &bufferWMA : 0);
             if ( v12
@@ -694,33 +724,34 @@ char __cdecl SD_Init()
 
 void SDXA2_VoiceDspAssertUnused()
 {
-    unsigned int i; // [esp+8h] [ebp-4h]
-
-    for ( i = 0; i < 0x94; ++i )
-    {
-        if ( ((int (__stdcall *)(IXAudio2SourceVoice **))g_sd.voices[5856 * i - 866688][1].__vftable)(&g_sd.voices[5856 * i - 866688]) != 2
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
-                        156,
-                        0,
-                        "%s",
-                        "count == 2") )
-        {
-            __debugbreak();
-        }
-        if ( ((int (__thiscall *)(IXAudio2SourceVoice **, IXAudio2SourceVoice **))g_sd.voices[5856 * i - 866688][2].__vftable)(
-                     &g_sd.voices[5856 * i - 866688],
-                     &g_sd.voices[5856 * i - 866688]) != 1
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
-                        158,
-                        0,
-                        "%s",
-                        "count == 1") )
-        {
-            __debugbreak();
-        }
-    }
+    // KISAKTODO: aids
+    //unsigned int i; // [esp+8h] [ebp-4h]
+    //
+    //for ( i = 0; i < 0x94; ++i )
+    //{
+    //    if ( ((int (__stdcall *)(IXAudio2SourceVoice **))g_sd.voices[5856 * i - 866688][1].__vftable)(&g_sd.voices[5856 * i - 866688]) != 2
+    //        && !Assert_MyHandler(
+    //                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
+    //                    156,
+    //                    0,
+    //                    "%s",
+    //                    "count == 2") )
+    //    {
+    //        __debugbreak();
+    //    }
+    //    if ( ((int (__thiscall *)(IXAudio2SourceVoice **, IXAudio2SourceVoice **))g_sd.voices[5856 * i - 866688][2].__vftable)(
+    //                 &g_sd.voices[5856 * i - 866688],
+    //                 &g_sd.voices[5856 * i - 866688]) != 1
+    //        && !Assert_MyHandler(
+    //                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
+    //                    158,
+    //                    0,
+    //                    "%s",
+    //                    "count == 1") )
+    //    {
+    //        __debugbreak();
+    //    }
+    //}
 }
 
 bool __cdecl SD_XAudio2Init()
@@ -757,31 +788,6 @@ bool __cdecl SD_XAudio2Init()
     return g_sd.xa2 != 0;
 }
 
-HRESULT __cdecl XAudio2Create(
-                IXAudio2 **ppXAudio2,
-                unsigned int Flags,
-                XAUDIO2_WINDOWS_PROCESSOR_SPECIFIER XAudio2Processor)
-{
-    GUID *v4; // [esp+0h] [ebp-10h]
-    int hr; // [esp+8h] [ebp-8h]
-    IXAudio2 *pXAudio2; // [esp+Ch] [ebp-4h] BYREF
-
-    if ( (Flags & 1) != 0 )
-        v4 = &_GUID_db05ea35_0329_4d4b_a53a_6dead03d3852;
-    else
-        v4 = &_GUID_5a508685_a254_4fba_9b82_9a24b00306af;
-    hr = CoCreateInstance(v4, 0, 1u, &_GUID_8bcf1f58_9fe7_4583_8ac6_e2adc465c8bb, (LPVOID *)&pXAudio2);
-    if ( hr >= 0 )
-    {
-        hr = pXAudio2->Initialize(pXAudio2, Flags, XAudio2Processor);
-        if ( hr < 0 )
-            pXAudio2->Release(pXAudio2);
-        else
-            *ppXAudio2 = pXAudio2;
-    }
-    return hr;
-}
-
 char __cdecl SD_XAudio2EnumerateDevices()
 {
     int v1; // [esp+0h] [ebp-45Ch]
@@ -801,7 +807,7 @@ char __cdecl SD_XAudio2EnumerateDevices()
     if ( hr < 0 )
         return 0;
     defaultDevice = 0;
-    hr = xa2->GetDeviceCount(xa2, &deviceCount);
+    hr = xa2->GetDeviceCount(&deviceCount);
     if ( hr >= 0 )
     {
         if ( deviceCount >= sd_max_num_devices )
@@ -811,7 +817,7 @@ char __cdecl SD_XAudio2EnumerateDevices()
         deviceCount = v1;
         for ( deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex )
         {
-            xa2->GetDeviceDetails(xa2, deviceIndex, &deviceDetails);
+            xa2->GetDeviceDetails(deviceIndex, &deviceDetails);
             if ( SD_XAudio2CheckDevice(xa2, &deviceDetails, deviceIndex) )
             {
                 n = sd_xa2_num_devices->current.integer;
@@ -840,7 +846,8 @@ char __cdecl SD_XAudio2EnumerateDevices()
                                                      0,
                                                      "Available Sound devices");
     }
-    ((void (__thiscall *)(IXAudio2 *, IXAudio2 *))xa2->Release)(xa2, xa2);
+    //((void (__thiscall *)(IXAudio2 *, IXAudio2 *))xa2->Release)(xa2, xa2);
+    xa2->Release();
     return 1;
 }
 
@@ -871,22 +878,23 @@ char __cdecl SD_XAudio2CheckDevice(
         return 0;
     nChannels = deviceDetails->OutputFormat.Format.nChannels <= 8u ? 0 : 8;
     testVoice = 0;
-    hr = pXAudio2->CreateMasteringVoice(pXAudio2, &testVoice, nChannels, 48000u, 0, deviceIndex, 0);
+    hr = pXAudio2->CreateMasteringVoice(&testVoice, nChannels, 48000u, 0, deviceIndex, 0);
     if ( hr )
     {
-        hr = ((int (__thiscall *)(IXAudio2 *, IXAudio2 *, IXAudio2MasteringVoice **, unsigned int, int, unsigned int, unsigned int, unsigned int))pXAudio2->CreateMasteringVoice)(
-                     pXAudio2,
-                     pXAudio2,
-                     &testVoice,
-                     nChannels,
-                     deviceDetails->OutputFormat.Format.nSamplesPerSec > 0xBB80 ? 0xBB80 : 0,
-                     0,
-                     deviceIndex,
-                     0);
+        //hr = ((int (__thiscall *)(IXAudio2 *, IXAudio2 *, IXAudio2MasteringVoice **, unsigned int, int, unsigned int, unsigned int, unsigned int))pXAudio2->CreateMasteringVoice)(
+        //             pXAudio2,
+        //             pXAudio2,
+        //             &testVoice,
+        //             nChannels,
+        //             deviceDetails->OutputFormat.Format.nSamplesPerSec > 0xBB80 ? 0xBB80 : 0,
+        //             0,
+        //             deviceIndex,
+        //             0);
+        hr = pXAudio2->CreateMasteringVoice(&testVoice, nChannels, deviceDetails->OutputFormat.Format.nSamplesPerSec > 0xBB80 ? 0xBB80 : 0, 0, deviceIndex, 0);
         if ( hr )
             return 0;
     }
-    testVoice->DestroyVoice(testVoice);
+    testVoice->DestroyVoice();
     return 1;
 }
 
@@ -913,11 +921,12 @@ void SD_SwitchDevice()
             __debugbreak();
         }
         g_sd.deviceIndex = deviceIndex;
-        ((void (__thiscall *)(IXAudio2 *, IXAudio2 *, int, XAUDIO2_DEVICE_DETAILS *))g_sd.xa2->GetDeviceDetails)(
-            g_sd.xa2,
-            g_sd.xa2,
-            deviceIndex,
-            &g_sd.details);
+        //((void (__thiscall *)(IXAudio2 *, IXAudio2 *, int, XAUDIO2_DEVICE_DETAILS *))g_sd.xa2->GetDeviceDetails)(
+        //    g_sd.xa2,
+        //    g_sd.xa2,
+        //    deviceIndex,
+        //    &g_sd.details);
+        g_sd.xa2->GetDeviceDetails(deviceIndex, &g_sd.details);
         g_sd.deviceGUID = sd_deviceGUIDs[deviceIndex];
         g_sd.deviceGUIDValid = 1;
         R_CinematicInitSound(&g_sd.deviceGUID);
@@ -936,15 +945,16 @@ void SND_InitMasterVoice()
 
     inputChannels = g_sd.details.OutputFormat.Format.nChannels <= 8u ? 0 : 8;
     inputSampleRate = g_sd.details.OutputFormat.Format.nSamplesPerSec > 0xBB80 ? 0xBB80 : 0;
-    hr = ((int (__thiscall *)(IXAudio2 *, IXAudio2 *, IXAudio2MasteringVoice **, int, int, unsigned int, int, unsigned int))g_sd.xa2->CreateMasteringVoice)(
-                 g_sd.xa2,
-                 g_sd.xa2,
-                 &g_sd.masterVoice,
-                 inputChannels,
-                 inputSampleRate,
-                 0,
-                 g_sd.deviceIndex < 0 ? 0 : g_sd.deviceIndex,
-                 0);
+    //hr = ((int (__thiscall *)(IXAudio2 *, IXAudio2 *, IXAudio2MasteringVoice **, int, int, unsigned int, int, unsigned int))g_sd.xa2->CreateMasteringVoice)(
+    //             g_sd.xa2,
+    //             g_sd.xa2,
+    //             &g_sd.masterVoice,
+    //             inputChannels,
+    //             inputSampleRate,
+    //             0,
+    //             g_sd.deviceIndex < 0 ? 0 : g_sd.deviceIndex,
+    //             0);
+    hr = g_sd.xa2->CreateMasteringVoice(&g_sd.masterVoice, inputChannels, inputSampleRate, 0, g_sd.deviceIndex < 0 ? 0 : g_sd.deviceIndex, 0);
     if ( hr
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
@@ -958,7 +968,7 @@ void SND_InitMasterVoice()
     }
     if ( g_sd.masterVoice )
     {
-        g_sd.masterVoice->GetVoiceDetails(g_sd.masterVoice, &g_sd.masterVoiceDetails);
+        g_sd.masterVoice->GetVoiceDetails(&g_sd.masterVoiceDetails);
         if ( g_sd.masterVoiceDetails.InputChannels > 8
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
@@ -1054,7 +1064,6 @@ void SND_InitMasterVoice()
                 break;
         }
         v1 = g_sd.radverbBus->SetOutputMatrix(
-                     g_sd.radverbBus,
                      g_sd.novoiceBus,
                      4u,
                      g_sd.masterVoiceDetails.InputChannels,
@@ -1087,31 +1096,38 @@ void SND_InitMasterVoice()
     }
 }
 
-void __thiscall SD_Shutdown(void *this)
+void SD_Shutdown()
 {
-    SND_ShutdownMasterVoice(this);
+    SND_ShutdownMasterVoice();
     SD_XAudio2Done();
 }
 
-void __thiscall SND_ShutdownMasterVoice(void *this)
+void SND_ShutdownMasterVoice()
 {
     unsigned int i; // [esp+0h] [ebp-4h]
     unsigned int ia; // [esp+0h] [ebp-4h]
 
-    ((void (__stdcall *)(IXAudio2 *, void *))g_sd.xa2->StopEngine)(g_sd.xa2, this);
+    g_sd.xa2->StopEngine();
+    //((void (__stdcall *)(IXAudio2 *, void *))g_sd.xa2->StopEngine)(g_sd.xa2, this);
+
     for ( i = 0; i < 0x4A; i = ia + 1 )
         SND_StopVoice(i);
-    g_sd.radverbBus->DestroyVoice(g_sd.radverbBus);
+
+    g_sd.radverbBus->DestroyVoice();
     g_sd.radverbBus = 0;
-    g_sd.novoiceBus->DestroyVoice(g_sd.novoiceBus);
+    g_sd.novoiceBus->DestroyVoice();
     g_sd.novoiceBus = 0;
-    ((void (__thiscall *)(IXAudio2SubmixVoice *, IXAudio2SubmixVoice *))g_sd.masterBus->DestroyVoice)(
-        g_sd.masterBus,
-        g_sd.masterBus);
+
+    //((void (__thiscall *)(IXAudio2SubmixVoice *, IXAudio2SubmixVoice *))g_sd.masterBus->DestroyVoice)(
+    //    g_sd.masterBus,
+    //    g_sd.masterBus);
+
+    g_sd.masterBus->DestroyVoice();
+
     g_sd.masterBus = 0;
-    g_sd.masterVoice->DestroyVoice(g_sd.masterVoice);
+    g_sd.masterVoice->DestroyVoice();
     g_sd.masterVoice = 0;
-    g_sd.xa2->Release(g_sd.xa2);
+    g_sd.xa2->Release();
     g_sd.xa2 = 0;
     SDXA2_VoiceDspAssertUnused();
 }
@@ -1132,7 +1148,7 @@ void __cdecl SD_PreUpdate()
     SND_RvParamsDefault(&g_sd.radverbParams);
     CurrentReverb = SND_GetCurrentReverb();
     radverb = SND_GetRadverb(CurrentReverb);
-    g_sd.radverbParams.frameRate = FLOAT_48000_0;
+    g_sd.radverbParams.frameRate = 48000.0f ;
     if ( radverb )
     {
         g_sd.radverbParams.smoothing = radverb->smoothing;
@@ -1156,21 +1172,19 @@ void __cdecl SD_PreUpdate()
         g_sd.radverbParams.lateSize = radverb->lateSize;
         g_sd.radverbParams.diffusion = radverb->diffusion;
         g_sd.radverbParams.delayMatrix = snd_radverb_matrix->current.color[0];
-        if ( SND_ActiveListenerCount() == 1 )
+        if (SND_ActiveListenerCount() == 1)
         {
-            HIDWORD(v5) = LODWORD(g_snd.listeners[0].orient.axis[0][0]);
-            v1 = g_snd.listeners[0].orient.axis[0][0];
-            __libm_sse2_atan2(v3, v5);
-            v2 = v1;
-            if ( (float)((float)(v2 + 3.1415927) - 6.2831855) < 0.0 )
-                v6 = v2 + 3.1415927;
-            else
-                v6 = 6.2831855f;
-            if ( (float)(0.0 - (float)(v2 + 3.1415927)) < 0.0 )
-                v4 = v6;
-            else
-                v4 = 0.0f;
-            g_sd.radverbParams.angle = v4;
+            const float fx = g_snd.listeners[0].orient.axis[0][0];
+            const float fy = g_snd.listeners[0].orient.axis[0][1];
+
+            float angle = atan2f(fy, fx) + M_PI;
+
+            if (angle < 0.0f)
+                angle = 0.0f;
+            else if (angle > 2.0f * M_PI)
+                angle = 2.0f * M_PI;
+
+            g_sd.radverbParams.angle = angle;
         }
         else
         {
@@ -1197,13 +1211,14 @@ void __cdecl SD_PreUpdate()
     {
         __debugbreak();
     }
-    ((void (__thiscall *)(IXAudio2SubmixVoice *, IXAudio2SubmixVoice *, unsigned int, snd_rv_params *, int, unsigned int))g_sd.radverbBus->SetEffectParameters)(
-        g_sd.radverbBus,
-        g_sd.radverbBus,
-        0,
-        &g_sd.radverbParams,
-        100,
-        0);
+    //((void (__thiscall *)(IXAudio2SubmixVoice *, IXAudio2SubmixVoice *, unsigned int, snd_rv_params *, int, unsigned int))g_sd.radverbBus->SetEffectParameters)(
+    //    g_sd.radverbBus,
+    //    g_sd.radverbBus,
+    //    0,
+    //    &g_sd.radverbParams,
+    //    100,
+    //    0);
+    g_sd.radverbBus->SetEffectParameters(0, &g_sd.radverbParams, 100, 0);
     memset((unsigned __int8 *)&g_sd.masterParams, 0, sizeof(g_sd.masterParams));
     master = SND_GetMasterCurrent();
     g_sd.masterParams.lowE = master->lowE;
@@ -1230,7 +1245,7 @@ void __cdecl SD_PreUpdate()
     g_sd.masterParams.limitR = master->limitR;
     g_sd.masterParams.limitTA = master->limitTA;
     g_sd.masterParams.limitTR = master->limitTR;
-    g_sd.masterBus->SetEffectParameters(g_sd.masterBus, 0, &g_sd.masterParams, 96u, 0);
+    g_sd.masterBus->SetEffectParameters(0, &g_sd.masterParams, 96u, 0);
     g_sd.novoiceParams.compE = 0.0;
     g_sd.novoiceParams.compPG = 0.0;
     g_sd.novoiceParams.compMG = 0.0;
@@ -1239,20 +1254,20 @@ void __cdecl SD_PreUpdate()
     g_sd.novoiceParams.compTA = 0.0;
     g_sd.novoiceParams.compTR = 0.0;
     g_sd.novoiceParams = *(snd_dsp_master_no_voice_params *)&master->compE;
-    g_sd.novoiceBus->SetEffectParameters(g_sd.novoiceBus, 0, &g_sd.novoiceParams, 28u, 0);
+    g_sd.novoiceBus->SetEffectParameters(0, &g_sd.novoiceParams, 28u, 0);
 }
 
 void __cdecl SD_PauseVoice(int voiceIndex)
 {
     LOBYTE(g_snd.voiceAliasHash[118 * voiceIndex - 8618]) = 1;
     if ( g_snd.voiceAliasHash[118 * voiceIndex - 8732] != 1 )
-        g_sd.voices[voiceIndex]->Stop(g_sd.voices[voiceIndex], 0, 0);
+        g_sd.voices[voiceIndex]->Stop(0, 0);
 }
 
 void __cdecl SD_UnpauseVoice(int voiceIndex)
 {
     if ( g_snd.voiceAliasHash[118 * voiceIndex - 8732] != 1 )
-        g_sd.voices[voiceIndex]->Start(g_sd.voices[voiceIndex], 0, 0);
+        g_sd.voices[voiceIndex]->Start(0, 0);
 }
 
 void __cdecl SD_UpdateVoice(unsigned int voiceIndex)
@@ -1289,14 +1304,14 @@ void __cdecl SD_UpdateVoice(unsigned int voiceIndex)
         {
             voice = (snd_voice_t *)&g_snd.voiceAliasHash[118 * voiceIndex - 8732];
             SDXA2_UpdateVoiceSends(voiceIndex);
-            g_sd.voices[voiceIndex]->GetState(g_sd.voices[voiceIndex], &state);
+            g_sd.voices[voiceIndex]->GetState(&state);
             if ( !voice->startDelay && !state.SamplesPlayed )
             {
                 if ( state.BuffersQueued )
                 {
                     if ( !voice->paused )
                     {
-                        hr = g_sd.voices[voiceIndex]->Start(g_sd.voices[voiceIndex], 0, 0);
+                        hr = g_sd.voices[voiceIndex]->Start(0, 0);
                         if ( hr )
                         {
                             if ( !Assert_MyHandler(
@@ -1314,10 +1329,11 @@ void __cdecl SD_UpdateVoice(unsigned int voiceIndex)
             if ( state.BuffersQueued )
             {
                 Pitch = SND_GetPitch(voice);
-                ((void (__stdcall *)(IXAudio2SourceVoice *, unsigned int, unsigned int))g_sd.voices[voiceIndex]->SetFrequencyRatio)(
-                    g_sd.voices[voiceIndex],
-                    LODWORD(Pitch),
-                    0);
+                //((void (__stdcall *)(IXAudio2SourceVoice *, unsigned int, unsigned int))g_sd.voices[voiceIndex]->SetFrequencyRatio)(
+                //    g_sd.voices[voiceIndex],
+                //    LODWORD(Pitch),
+                //    0);
+                g_sd.voices[voiceIndex]->SetFrequencyRatio(Pitch, 0);
             }
             else
             {
@@ -1361,7 +1377,7 @@ void __cdecl SDXA2_UpdateVoiceSends(int voiceIndex)
     params = &g_sd.voiceInfos[voiceIndex];
     params->params.lpfAttenuation = SND_GetLpfLevel(voice);
     params->params.lpfRatio = 0.25f;
-    params->params.frameRate = FLOAT_48000_0;
+    params->params.frameRate = 48000.0f;
     params->params.futz.blend = voice->futzBlend;
     params->params.futz.bpfF = snd_futz_bpf_f->current.value;
     params->params.futz.bpfQ = snd_futz_bpf_q->current.value;
@@ -1375,7 +1391,7 @@ void __cdecl SDXA2_UpdateVoiceSends(int voiceIndex)
     params->params.futz.squelch.th = snd_futz_th->current.value;
     params->params.futz.preclip = snd_futz_clip_pre->current.value;
     params->params.futz.postclip = snd_futz_clip_post->current.value;
-    xvoice->SetEffectParameters(xvoice, 0, params, 64u, 0);
+    xvoice->SetEffectParameters(0, params, 64u, 0);
     inputChannels = voice->pan.input_channel_count;
     outputChannels = voice->pan.output_channel_count;
     for ( i = 0; i < 0x40; ++i )
@@ -1430,7 +1446,7 @@ void __cdecl SDXA2_UpdateVoiceSends(int voiceIndex)
             }
             break;
     }
-    hr = g_sd.voices[voiceIndex]->SetOutputMatrix(g_sd.voices[voiceIndex], g_sd.radverbBus, inputChannels, 4u, volumes, 0);
+    hr = g_sd.voices[voiceIndex]->SetOutputMatrix(g_sd.radverbBus, inputChannels, 4u, volumes, 0);
     if ( hr
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
@@ -1450,24 +1466,30 @@ void __cdecl SDXA2_UpdateVoiceSends(int voiceIndex)
             volumes[j + channel * inputChannels] = Snd_SpeakerMapGetVolume(&voice->pan, j, out) * voice->dryLevel;
         }
     }
-    if ( (voice->alias->flags & 0x3000) >> 12 == 2 )
-        v1 = ((int (__thiscall *)(IXAudio2SourceVoice *, IXAudio2SourceVoice *, IXAudio2SubmixVoice *, unsigned int, unsigned int, float *, unsigned int))xvoice->SetOutputMatrix)(
-                     xvoice,
-                     xvoice,
-                     g_sd.masterBus,
-                     inputChannels,
-                     outputChannels,
-                     volumes,
-                     0);
+    if ((voice->alias->flags & 0x3000) >> 12 == 2)
+    {
+        //v1 = ((int(__thiscall *)(IXAudio2SourceVoice *, IXAudio2SourceVoice *, IXAudio2SubmixVoice *, unsigned int, unsigned int, float *, unsigned int))xvoice->SetOutputMatrix)(
+        //    xvoice,
+        //    xvoice,
+        //    g_sd.masterBus,
+        //    inputChannels,
+        //    outputChannels,
+        //    volumes,
+        //    0);
+        v1 = xvoice->SetOutputMatrix(g_sd.masterBus, inputChannels, outputChannels, volumes, 0);
+    }
     else
-        v1 = ((int (__thiscall *)(IXAudio2SourceVoice *, IXAudio2SourceVoice *, IXAudio2SubmixVoice *, unsigned int, unsigned int, float *, unsigned int))xvoice->SetOutputMatrix)(
-                     xvoice,
-                     xvoice,
-                     g_sd.novoiceBus,
-                     inputChannels,
-                     outputChannels,
-                     volumes,
-                     0);
+    {
+        //v1 = ((int(__thiscall *)(IXAudio2SourceVoice *, IXAudio2SourceVoice *, IXAudio2SubmixVoice *, unsigned int, unsigned int, float *, unsigned int))xvoice->SetOutputMatrix)(
+        //    xvoice,
+        //    xvoice,
+        //    g_sd.novoiceBus,
+        //    inputChannels,
+        //    outputChannels,
+        //    volumes,
+        //    0);
+        v1 = xvoice->SetOutputMatrix(g_sd.novoiceBus, inputChannels, outputChannels, volumes, 0);
+    }
     if ( v1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2.cpp",
@@ -1541,55 +1563,36 @@ int __cdecl SND_StartAliasRam(SndStartAliasInfo *startAliasInfo, int voiceIndex)
     return startAliasInfo->playbackId;
 }
 
-SoundState *__thiscall SoundState::SoundState(SoundState *this)
+SoundState::SoundState()
 {
-    int v3; // [esp+4h] [ebp-10h]
-    StreamVoice *j; // [esp+8h] [ebp-Ch]
-    int v5; // [esp+Ch] [ebp-8h]
-    SDXA2SourceEffect *i; // [esp+10h] [ebp-4h]
-
-    SDXA2MasterBusEffect::SDXA2MasterBusEffect(&this->masterDsp);
-    SDXA2MasterNoVoiceBusEffect::SDXA2MasterNoVoiceBusEffect(&this->novoiceDsp);
-    SDXA2RadverbEffect::SDXA2RadverbEffect(&this->radverbDsp);
-    v5 = 148;
-    for ( i = this->voiceDsp; --v5 >= 0; ++i )
-        SDXA2SourceEffect::SDXA2SourceEffect(i);
-    v3 = 10;
-    for ( j = this->streamVoices; --v3 >= 0; ++j )
-        j->__vftable = (StreamVoice_vtbl *)&StreamVoice::`vftable';
-    return this;
+    //int v3; // [esp+4h] [ebp-10h]
+    //StreamVoice *j; // [esp+8h] [ebp-Ch]
+    //int v5; // [esp+Ch] [ebp-8h]
+    //SDXA2SourceEffect *i; // [esp+10h] [ebp-4h]
+    //
+    //SDXA2MasterBusEffect::SDXA2MasterBusEffect(&this->masterDsp);
+    //SDXA2MasterNoVoiceBusEffect::SDXA2MasterNoVoiceBusEffect(&this->novoiceDsp);
+    //SDXA2RadverbEffect::SDXA2RadverbEffect(&this->radverbDsp);
+    //v5 = 148;
+    //for ( i = this->voiceDsp; --v5 >= 0; ++i )
+    //    SDXA2SourceEffect::SDXA2SourceEffect(i);
+    //v3 = 10;
+    //for ( j = this->streamVoices; --v3 >= 0; ++j )
+    //    j->__vftable = (StreamVoice_vtbl *)&StreamVoice::`vftable';
+    //return this;
 }
 
-void __stdcall StreamVoice::OnVoiceProcessingPassStart(StreamVoice *this)
-{
-    ;
-}
 
-void __stdcall StreamVoice::OnLoopEnd(StreamVoice *this, void *__formal)
+SoundState::~SoundState()
 {
-    ;
-}
-
-void __stdcall StreamVoice::OnBufferEnd(StreamVoice *this, unsigned int p)
-{
-    iSND_ReleaseStreamBuffer(p >> 8, (unsigned __int8)p);
-}
-
-void __stdcall StreamVoice::OnVoiceError(StreamVoice *this, void *__formal, HRESULT a3)
-{
-    OutputDebugStringA("StreamVoiceError\n");
-}
-
-void __thiscall SoundState::~SoundState(SoundState *this)
-{
-    int v2; // [esp+4h] [ebp-8h]
-    SDXA2Effect *i; // [esp+8h] [ebp-4h]
-
-    v2 = 148;
-    for ( i = (SDXA2Effect *)this->voices; --v2 >= 0; SDXA2Effect::~SDXA2Effect(i) )
-        i = (SDXA2Effect *)((char *)i - 23424);
-    SDXA2Effect::~SDXA2Effect(&this->radverbDsp);
-    SDXA2Effect::~SDXA2Effect(&this->novoiceDsp);
-    SDXA2Effect::~SDXA2Effect(&this->masterDsp);
+    //int v2; // [esp+4h] [ebp-8h]
+    //SDXA2Effect *i; // [esp+8h] [ebp-4h]
+    //
+    //v2 = 148;
+    //for ( i = (SDXA2Effect *)this->voices; --v2 >= 0; SDXA2Effect::~SDXA2Effect(i) )
+    //    i = (SDXA2Effect *)((char *)i - 23424);
+    //SDXA2Effect::~SDXA2Effect(&this->radverbDsp);
+    //SDXA2Effect::~SDXA2Effect(&this->novoiceDsp);
+    //SDXA2Effect::~SDXA2Effect(&this->masterDsp);
 }
 

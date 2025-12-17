@@ -1,5 +1,7 @@
 #pragma once
 
+#define SND_EPSILON 0.0000152879
+
 double __cdecl SND_LosOcclusionTrace(bool fancy, int *cache, const float *listener, const float *playback);
 void __cdecl Snd_LosOcclusionMultiTrace(
                 int *global_cache,
@@ -14,14 +16,12 @@ void __cdecl Snd_LosOcclusionMultiTrace(
                 unsigned int *valid,
                 unsigned int *hits);
 void __cdecl Vec3ScaleAdd(const float *base, const float *dir, float scale, float *dst);
-// local variable allocation has failed, the output may be wrong!
 void    SND_TraceProximity(
-                int a1@<ebp>,
                 float *front,
                 float *origin,
                 float *resultDistance,
                 float *resultReflection);
-double __cdecl SND_SurfaceTypeToReflectance(unsigned int surface);
+float __cdecl SND_SurfaceTypeToReflectance(unsigned int surface);
 void __cdecl SND_UpdateProximity();
 void __cdecl SND_LosOcclusionCmd();
 void __cdecl SND_LosOcclusionUpdate();

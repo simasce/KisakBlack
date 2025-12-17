@@ -3,6 +3,7 @@
 #include <clientscript/scr_const.h>
 
 cg_level_locals_t cg_level;
+cscr_data_t cg_scr_data;
 
 void __cdecl CScr_AddStruct()
 {
@@ -945,7 +946,7 @@ unsigned intCScr_Distance()
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }
@@ -1543,7 +1544,7 @@ unsigned intCScr_SetDvar()
         result = 0;
         if ( HIDWORD(g_DXDeviceThread) )
             return result;
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     }
     dvar = Dvar_FindVar(dvarName);
     if ( dvar && (dvar->flags & 0x4000) == 0 )
@@ -1557,7 +1558,7 @@ unsigned intCScr_SetDvar()
         Dvar_SetFromStringByNameFromSource(dvarName, outString, DVAR_SOURCE_SCRIPT, 0);
     result = GetCurrentThreadId();
     if ( result == g_DXDeviceThread )
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     return result;
 }
 
@@ -2020,7 +2021,7 @@ unsigned intCScr_PlayLoopSound()
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }
@@ -2097,7 +2098,7 @@ unsigned intCScr_StopLoopSound()
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }
@@ -2463,7 +2464,7 @@ unsigned intCScr_SetSoundVolume()
         result = 0;
         if ( HIDWORD(g_DXDeviceThread) )
             return result;
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     }
     x = Scr_GetFloat(1u, SCRIPTINSTANCE_CLIENT);
     if ( (LODWORD(x) & 0x7F800000) == 0x7F800000 )
@@ -2474,7 +2475,7 @@ unsigned intCScr_SetSoundVolume()
         {
             result = 0;
             if ( !HIDWORD(g_DXDeviceThread) )
-                return D3DPERF_EndEvent();
+                return //D3DPERF_EndEvent();
         }
     }
     else
@@ -2486,7 +2487,7 @@ unsigned intCScr_SetSoundVolume()
         {
             result = 0;
             if ( !HIDWORD(g_DXDeviceThread) )
-                return D3DPERF_EndEvent();
+                return //D3DPERF_EndEvent();
         }
     }
     return result;
@@ -2508,7 +2509,7 @@ unsigned intCScr_SetSoundPitch()
         result = 0;
         if ( HIDWORD(g_DXDeviceThread) )
             return result;
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     }
     x = Scr_GetFloat(1u, SCRIPTINSTANCE_CLIENT);
     if ( (LODWORD(x) & 0x7F800000) == 0x7F800000 )
@@ -2519,7 +2520,7 @@ unsigned intCScr_SetSoundPitch()
         {
             result = 0;
             if ( !HIDWORD(g_DXDeviceThread) )
-                return D3DPERF_EndEvent();
+                return //D3DPERF_EndEvent();
         }
     }
     else
@@ -2531,7 +2532,7 @@ unsigned intCScr_SetSoundPitch()
         {
             result = 0;
             if ( !HIDWORD(g_DXDeviceThread) )
-                return D3DPERF_EndEvent();
+                return //D3DPERF_EndEvent();
         }
     }
     return result;
@@ -3271,7 +3272,7 @@ unsigned intCScr_Spawn()
         result = GetCurrentThreadId();
         if ( result != g_DXDeviceThread )
             return result;
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     }
     v1 = ent->pose.origin;
     ent->pose.origin[0] = origin[0];
@@ -3286,7 +3287,7 @@ unsigned intCScr_Spawn()
     CScr_AddEntity(ent, localClientNum);
     result = GetCurrentThreadId();
     if ( result == g_DXDeviceThread )
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     return result;
 }
 
@@ -3901,9 +3902,9 @@ void __cdecl CScrCmd_IsDriving(scr_entref_t entref)
     }
     Scr_Error(SCRIPTINSTANCE_CLIENT, "IsDriving not called on a player.", 0);
     Scr_AddInt(0, SCRIPTINSTANCE_CLIENT);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_16:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CScrCmd_IsLocalClientDriver(scr_entref_t entref)
@@ -3955,7 +3956,7 @@ void __cdecl CScrCmd_IsLocalClientDriver(scr_entref_t entref)
         if ( g_DXDeviceThread != GetCurrentThreadId() )
             return;
     }
-    D3DPERF_EndEvent();
+    //D3DPERF_EndEvent();
 }
 
 void __cdecl CScrCmd_GetLocalClientDriver(scr_entref_t entref)
@@ -4013,7 +4014,7 @@ void __cdecl CScrCmd_GetLocalClientDriver(scr_entref_t entref)
     if ( g_DXDeviceThread != GetCurrentThreadId() )
         return;
 LABEL_27:
-    D3DPERF_EndEvent();
+    //D3DPERF_EndEvent();
 }
 
 void __cdecl CScrCmd_GetWheelSurface(scr_entref_t entref)
@@ -4092,8 +4093,8 @@ void __cdecl CScrCmd_GetWheelSurface(scr_entref_t entref)
     {
         Scr_AddString("none", SCRIPTINSTANCE_CLIENT);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CScrCmd_IsWheelSliding(scr_entref_t entref)
@@ -4755,8 +4756,8 @@ unsigned int __cdecl CScr_PlayFXInternal(int localClientNum, int fxId, float *an
     //PIXBeginNamedEvent(-1, "CScr_PlayFXInternal");
     AnglesToAxis(angles, axis);
     v6 = FX_PlayOrientedEffect(localClientNum, fxDef, time, pos, axis);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return v6;
 }
 
@@ -5223,7 +5224,7 @@ unsigned intCScr_BulletTrace()
     Scr_AddArrayStringIndexed(cscr_const.surfacetype, SCRIPTINSTANCE_CLIENT);
     result = GetCurrentThreadId();
     if ( result == g_DXDeviceThread )
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     return result;
 }
 
@@ -5279,7 +5280,7 @@ unsigned intCScr_TracePoint()
     Scr_AddArrayStringIndexed(cscr_const.surfacetype, SCRIPTINSTANCE_CLIENT);
     result = GetCurrentThreadId();
     if ( result == g_DXDeviceThread )
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     return result;
 }
 

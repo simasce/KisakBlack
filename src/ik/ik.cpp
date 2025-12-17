@@ -634,9 +634,9 @@ void __cdecl IK_UpdateEntity(unsigned int entityNum, unsigned __int8 *model, boo
                 }
             }
         }
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_19:
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
     }
 }
 

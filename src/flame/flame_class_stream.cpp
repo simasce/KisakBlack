@@ -515,7 +515,7 @@ void __cdecl CG_Flame_Render()
         if ( GetCurrentThreadId() != g_DXDeviceThread )
             return;
 LABEL_10:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
     while ( stream )
@@ -524,7 +524,7 @@ LABEL_10:
             Flame_Class_Stream_Light_Chunks(stream);
         stream = (const flameStream_s *)stream->gen.listGlobal.next;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
         goto LABEL_10;
 }
 

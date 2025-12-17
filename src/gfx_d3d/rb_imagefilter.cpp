@@ -37,7 +37,7 @@ void __cdecl RB_GaussianFilterImage(float radius, unsigned __int8 srcRenderTarge
     {
         return;
     }
-    D3DPERF_EndEvent();
+    //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_VirtualToSceneRadius(float radius, float *radiusX, float *radiusY)

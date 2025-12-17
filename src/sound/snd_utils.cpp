@@ -1,4 +1,68 @@
 #include "snd_utils.h"
+#include "snd.h"
+#include <universal/assertive.h>
+#include <universal/com_math.h>
+#include <cfloat>
+#include <qcommon/common.h>
+#include <string.h>
+#include <ctype.h>
+
+snd_speaker_config snd_speaker_configs[3] =
+{
+  {
+    "Stereo",
+    (snd_speaker_flag)(SND_SPEAKER_FLAG_LEFT | SND_SPEAKER_FLAG_RIGHT),
+    2u,
+    2u,
+    2u,
+    {
+      { SND_SPEAKER_FLAG_LEFT, 5.4977875 },
+      { SND_SPEAKER_FLAG_RIGHT, 0.78539819 },
+      { (snd_speaker_flag)0, 0.0 },
+      { (snd_speaker_flag)0, 0.0 },
+      { (snd_speaker_flag)0, 0.0 },
+      { (snd_speaker_flag)0, 0.0 },
+      { (snd_speaker_flag)0, 0.0 },
+      { (snd_speaker_flag)0, 0.0 }
+    }
+  },
+  {
+    "5.1",
+    (snd_speaker_flag)(SND_SPEAKER_FLAG_LEFT | SND_SPEAKER_FLAG_RIGHT | SND_SPEAKER_FLAG_CENTER | SND_SPEAKER_FLAG_LFE | SND_SPEAKER_FLAG_LEFT_SURROUND | SND_SPEAKER_FLAG_RIGHT_SURROUND),
+    6u,
+    6u,
+    4u,
+    {
+      { SND_SPEAKER_FLAG_LEFT, 5.4977875 },
+      { SND_SPEAKER_FLAG_RIGHT, 0.78539819 },
+      { SND_SPEAKER_FLAG_RIGHT_SURROUND, 2.0420351 },
+      { SND_SPEAKER_FLAG_LEFT_SURROUND, 3.926991 },
+      { (snd_speaker_flag)0, 0.0 },
+      { (snd_speaker_flag)0, 0.0 },
+      { (snd_speaker_flag)0, 0.0 },
+      { (snd_speaker_flag)0, 0.0 }
+    }
+  },
+  {
+    "7.1",
+    (snd_speaker_flag)(SND_SPEAKER_FLAG_LEFT | SND_SPEAKER_FLAG_RIGHT | SND_SPEAKER_FLAG_CENTER | SND_SPEAKER_FLAG_LFE | SND_SPEAKER_FLAG_LEFT_SURROUND | SND_SPEAKER_FLAG_RIGHT_SURROUND | SND_SPEAKER_FLAG_LEFT_REAR_SURROUND | SND_SPEAKER_FLAG_RIGHT_REAR_SURROUND),
+    8u,
+    6u,
+    6u,
+    {
+      { SND_SPEAKER_FLAG_LEFT, 5.4977875 },
+      { SND_SPEAKER_FLAG_RIGHT, 0.78539819 },
+      { SND_SPEAKER_FLAG_RIGHT_SURROUND, 1.9198623 },
+      { SND_SPEAKER_FLAG_RIGHT_REAR_SURROUND, 2.0420351 },
+      { SND_SPEAKER_FLAG_LEFT_REAR_SURROUND, 3.926991 },
+      { SND_SPEAKER_FLAG_LEFT_SURROUND, 4.3633232 },
+      { (snd_speaker_flag)0, 0.0 },
+      { (snd_speaker_flag)0, 0.0 }
+    }
+  }
+};
+
+
 
 unsigned int __cdecl SND_GetSpeakerConfigCount()
 {
@@ -191,16 +255,16 @@ void __cdecl Snd_Pan(unsigned int speakerCount, const float *angles, float toSou
     SND_EqualPowerFadeCoefs(sound / spread, &levels[leftIndex], &levels[rightIndex]);
     for ( k = 0; k < speakerCount; ++k )
     {
-        if ( (LODWORD(levels[k]) & 0x7F800000) == 0x7F800000
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp",
-                        209,
-                        0,
-                        "%s",
-                        "!IS_NAN(levels[i])") )
-        {
-            __debugbreak();
-        }
+        //if ( (LODWORD(levels[k]) & 0x7F800000) == 0x7F800000
+        //    && !Assert_MyHandler(
+        //                "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp",
+        //                209,
+        //                0,
+        //                "%s",
+        //                "!IS_NAN(levels[i])") )
+        //{
+        //    __debugbreak();
+        //}
         if ( levels[k] < 0.0
             && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp", 210, 0, "%s", "levels[i] >= 0.0f") )
         {
@@ -240,20 +304,20 @@ void __cdecl Snd_Pan3d(
                 snd_speaker_map *pan)
 {
     double v8; // st7
-    double v9; // xmm0_8
-    double v10; // xmm0_8
-    long double v11; // [esp+10h] [ebp-E8h]
-    long double v12; // [esp+10h] [ebp-E8h]
+    //double v9; // xmm0_8
+    //double v10; // xmm0_8
+    //long double v11; // [esp+10h] [ebp-E8h]
+    //long double v12; // [esp+10h] [ebp-E8h]
     float v13; // [esp+10h] [ebp-E8h]
     float v14; // [esp+14h] [ebp-E4h]
-    long double v15; // [esp+18h] [ebp-E0h]
-    long double v16; // [esp+18h] [ebp-E0h]
+    //long double v15; // [esp+18h] [ebp-E0h]
+    //long double v16; // [esp+18h] [ebp-E0h]
     float v17; // [esp+20h] [ebp-D8h]
     float v18; // [esp+28h] [ebp-D0h]
     float v19; // [esp+2Ch] [ebp-CCh]
     float v20; // [esp+30h] [ebp-C8h]
     float v21; // [esp+38h] [ebp-C0h]
-    float v22; // [esp+48h] [ebp-B0h]
+    //float v22; // [esp+48h] [ebp-B0h]
     unsigned int j; // [esp+78h] [ebp-80h]
     float scale; // [esp+80h] [ebp-78h]
     signed int out; // [esp+84h] [ebp-74h]
@@ -270,89 +334,17 @@ void __cdecl Snd_Pan3d(
     float to[3]; // [esp+E8h] [ebp-10h]
     float omni; // [esp+F4h] [ebp-4h]
 
-    if ( !config && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp", 225, 0, "%s", "config") )
-        __debugbreak();
-    if ( ((*(unsigned int *)position & 0x7F800000) == 0x7F800000
-         || ((unsigned int)position[1] & 0x7F800000) == 0x7F800000
-         || ((unsigned int)position[2] & 0x7F800000) == 0x7F800000)
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp",
-                    226,
-                    0,
-                    "%s",
-                    "!IS_NAN((position)[0]) && !IS_NAN((position)[1]) && !IS_NAN((position)[2])") )
-    {
-        __debugbreak();
-    }
-    if ( ((*(unsigned int *)listener & 0x7F800000) == 0x7F800000
-         || ((unsigned int)listener[1] & 0x7F800000) == 0x7F800000
-         || ((unsigned int)listener[2] & 0x7F800000) == 0x7F800000)
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp",
-                    227,
-                    0,
-                    "%s",
-                    "!IS_NAN((listener)[0]) && !IS_NAN((listener)[1]) && !IS_NAN((listener)[2])") )
-    {
-        __debugbreak();
-    }
-    if ( (centerSend < 0.0 || centerSend > 1.0)
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp",
-                    228,
-                    0,
-                    "%s\n\t(centerSend) = %g",
-                    "(centerSend >= 0.0f && centerSend <= 1.0f)",
-                    centerSend) )
-    {
-        __debugbreak();
-    }
-    if ( (lfeSend < 0.0 || lfeSend > 1.0)
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp",
-                    229,
-                    0,
-                    "%s\n\t(lfeSend) = %g",
-                    "(lfeSend >= 0.0f && lfeSend <= 1.0f)",
-                    lfeSend) )
-    {
-        __debugbreak();
-    }
-    if ( (aliasOmni < 0.0 || aliasOmni > 1.0)
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp",
-                    230,
-                    0,
-                    "%s\n\t(aliasOmni) = %g",
-                    "(aliasOmni >= 0.0f && aliasOmni <= 1.0f)",
-                    aliasOmni) )
-    {
-        __debugbreak();
-    }
-    if ( Abs(forward) <= 0.99998474 || Abs(forward) >= 1.0000153 )
-    {
-        v8 = Abs(forward);
-        if ( !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp",
-                        231,
-                        0,
-                        "%s\n\t(Vec3Length(forward)) = %g",
-                        "(Vec3Length(forward) > 1.0f-(1.52879e-5f) && Vec3Length(forward) < 1.0f+(1.52879e-5f))",
-                        v8) )
-            __debugbreak();
-    }
-    if ( !pan && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp", 232, 0, "%s", "pan") )
-        __debugbreak();
-    if ( pan->input_channel_count != 1
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp",
-                    239,
-                    0,
-                    "%s",
-                    "pan->input_channel_count == 1") )
-    {
-        __debugbreak();
-    }
+    iassert(config);
+    iassert(!IS_NAN((position)[0]) && !IS_NAN((position)[1]) && !IS_NAN((position)[2]));
+    iassert(!IS_NAN((listener)[0]) && !IS_NAN((listener)[1]) && !IS_NAN((listener)[2]));
+    iassert(centerSend >= 0.0f && centerSend <= 1.0f);
+    iassert(lfeSend >= 0.0f && lfeSend <= 1.0f);
+    iassert(aliasOmni >= 0.0f && aliasOmni <= 1.0f);
+    iassert(Vec3Length(forward) > 1.0f - (1.52879e-5f) && Vec3Length(forward) < 1.0f + (1.52879e-5f));
+    iassert(Vec3Length(forward));
+    iassert(pan);
+    iassert(pan->input_channel_count == 1);
+
     to[0] = *position - *listener;
     to[1] = position[1] - listener[1];
     to[2] = position[2] - listener[2];
@@ -360,25 +352,35 @@ void __cdecl Snd_Pan3d(
     d = sqrtf(d2);
     angle = 0.0f;
     omni = 0.0f;
+
     for ( i = 0; i < config->angleCount; ++i )
     {
         levels[i] = 0.0f;
         angles[i] = config->angles[i].angle;
     }
+
     if ( d2 <= 0.0000152879 )
     {
         omni = 1.0f;
     }
     else
     {
-        v9 = to[0];
-        __libm_sse2_atan2(v11, v15);
-        *(float *)&v9 = v9;
-        v22 = *(float *)&v9;
-        v10 = *forward;
-        __libm_sse2_atan2(v12, v16);
-        *(float *)&v10 = v10;
-        angle = Snd_NormalizeAngle(v22 - *(float *)&v10);
+        //v9 = to[0];
+        //__libm_sse2_atan2(v11, v15);
+        //*(float *)&v9 = v9;
+        //v22 = *(float *)&v9;
+        //v10 = *forward;
+        //__libm_sse2_atan2(v12, v16);
+        //*(float *)&v10 = v10;
+        //angle = Snd_NormalizeAngle(v22 - *(float *)&v10);
+
+        // Compute the azimuth angles in 2D (X/Y plane)
+        float azimuthTo = atan2f(to[1], to[0]);       // atan2(y, x) for vector from listener to sound
+        float azimuthForward = atan2f(forward[1], forward[0]); // atan2(y, x) for listener's forward vector
+
+        // Difference between angles, normalized
+        angle = Snd_NormalizeAngle(azimuthTo - azimuthForward);
+
         if ( (float)((float)(d / 10.0) - 1.0) < 0.0 )
             v21 = d / 10.0;
         else
@@ -389,6 +391,7 @@ void __cdecl Snd_Pan3d(
             v17 = 0.0f;
         omni = 1.0 - v17;
     }
+
     v20 = 1.0 / (double)config->speakerCount;
     omniBaseVolume = sqrtf(v20);
     if ( omni != 1.0 )
@@ -460,78 +463,27 @@ void __cdecl Snd_Pan3d(
                 scale = lfeSend;
             }
         }
-        if ( (LODWORD(scale) & 0x7F800000) == 0x7F800000
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp", 325, 0, "%s", "!IS_NAN(scale)") )
-        {
-            __debugbreak();
-        }
-        if ( scale < 0.0
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp", 326, 0, "%s", "scale>=0.0f") )
-        {
-            __debugbreak();
-        }
-        if ( scale > 1.0
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp", 327, 0, "%s", "scale<=1.0f") )
-        {
-            __debugbreak();
-        }
+        iassert(!IS_NAN(scale));
+        iassert(scale >= 0.0f);
+        iassert(scale <= 1.0f);
         Snd_SpeakerMapSetVolume(pan, 0, out, scale);
     }
 }
 
 void __cdecl SND_EqualPowerFadeCoefs(float t, float *a, float *b)
 {
-    long double v3; // [esp+0h] [ebp-2Ch]
-    long double v4; // [esp+0h] [ebp-2Ch]
-    float v5; // [esp+0h] [ebp-2Ch]
-    float v6; // [esp+8h] [ebp-24h]
-    float v7; // [esp+14h] [ebp-18h]
-    float v8; // [esp+1Ch] [ebp-10h]
-    float v9; // [esp+24h] [ebp-8h]
+    iassert(!IS_NAN(t));
 
-    if ( (LODWORD(t) & 0x7F800000) == 0x7F800000
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp", 336, 0, "%s", "!IS_NAN(t)") )
-    {
-        __debugbreak();
-    }
-    if ( (float)(t - 1.0) < 0.0 )
-        v9 = t;
-    else
-        v9 = 1.0f;
-    if ( (float)(0.0 - t) < 0.0 )
-        v6 = v9;
-    else
-        v6 = 0.0f;
-    __libm_sse2_cos(v3);
-    if ( (float)((float)(1.5707964 * v6) - 1.0) < 0.0 )
-        v8 = 1.5707964 * v6;
-    else
-        v8 = 1.0f;
-    if ( (float)(0.0 - (float)(1.5707964 * v6)) < 0.0 )
-        *((float *)&v4 + 1) = v8;
-    else
-        HIDWORD(v4) = 0;
-    *a = *((float *)&v4 + 1);
-    __libm_sse2_sin(v4);
-    if ( (float)((float)(1.5707964 * v6) - 1.0) < 0.0 )
-        v7 = 1.5707964 * v6;
-    else
-        v7 = 1.0f;
-    if ( (float)(0.0 - (float)(1.5707964 * v6)) < 0.0 )
-        v5 = v7;
-    else
-        v5 = 0.0f;
-    *b = v5;
-    if ( (*(unsigned int *)a & 0x7F800000) == 0x7F800000
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp", 341, 0, "%s", "!IS_NAN(*a)") )
-    {
-        __debugbreak();
-    }
-    if ( (*(unsigned int *)b & 0x7F800000) == 0x7F800000
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp", 342, 0, "%s", "!IS_NAN(*b)") )
-    {
-        __debugbreak();
-    }
+    if (t < 0.0f) t = 0.0f;
+    else if (t > 1.0f) t = 1.0f;
+
+    float angle = t * (3.1415927f / 2.0f);
+
+    *a = cos(angle);
+    *b = sin(angle);
+
+    iassert(!IS_NAN(*a));
+    iassert(!IS_NAN(*b));
 }
 
 void __cdecl SND_GetNearestPointOnSegment(
@@ -680,33 +632,31 @@ const char *__cdecl SND_GetAliasName(const snd_alias_list_t *alias)
         return "null";
 }
 
-double __cdecl SND_dBToLinear()
+// aislop cleanup
+double __cdecl SND_dBToLinear(double db)
 {
-    long double v1; // [esp+0h] [ebp-Ch]
-    float v3; // [esp+4h] [ebp-8h]
-    long double x; // [esp+8h] [ebp-4h]
-    float xa; // [esp+8h] [ebp-4h]
+    // Compute 10^(db / 20)
+    float x = static_cast<float>(pow(10.0, db / 20.0));
 
-    __libm_sse2_pow(v1, x);
-    xa = 10.0;
-    if ( (float)10.0 < 0.0000152879 )
-        xa = 0.0f;
-    if ( (float)(xa - 1.0) < 0.0 )
-        v3 = xa;
-    else
-        v3 = 1.0f;
-    if ( (float)(0.0 - xa) < 0.0 )
-        return v3;
-    else
-        return 0.0f;
+    // Clamp to minimum value
+    if (x < 0.0000152879f)
+        x = 0.0f;
+
+    // First branch: clamp max at 1.0
+    float v = (x < 1.0f) ? x : 1.0f;
+
+    // Second branch: ensure non-negative
+    if (x <= 0.0f)
+        v = 0.0f;
+
+    return v;
 }
-
 double __cdecl SND_LinearToDb(float linear)
 {
     float v2; // [esp+0h] [ebp-4h]
 
     if ( linear < 0.0000152879 )
-        linear = FLOAT_0_0000152879;
+        linear = 0.0000152879f;
     v2 = log10(linear);
     return v2 * 20.0;
 }
@@ -722,9 +672,9 @@ double __cdecl SND_LinearToDbSpl(float linear)
         return 0.0f;
 }
 
-double __cdecl SND_dBSPLToLinear()
+double __cdecl SND_dBSPLToLinear(float value)
 {
-    return SND_dBToLinear();
+    return SND_dBToLinear(value);
 }
 
 int __cdecl SND_HashName(const char *name)

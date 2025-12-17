@@ -731,8 +731,8 @@ void __cdecl SV_ShutdownGameVM(int clearScripts)
     }
     //PIXBeginNamedEvent(-1, "SV_ShutdownGameVM");
     G_ShutdownGame(clearScripts);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl    SV_RestartGameProgs(int savepersist)

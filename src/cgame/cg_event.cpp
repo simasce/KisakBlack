@@ -2624,8 +2624,8 @@ void __cdecl CG_CheckEvents(int localClientNum, centity_s *cent)
         //PIXBeginNamedEvent(-1, EntityTypeName);
         CG_CalcEntityLerpPositions(localClientNum, cent);
         CG_EntityEvent(localClientNum, cent, cent->nextState.eType - 21);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -2664,8 +2664,8 @@ void __cdecl CG_CheckEntEvents(int localClientNum, centity_s *cent)
                 EntityTypeName = BG_GetEntityTypeName(event + 21);
                 //PIXBeginNamedEvent(-1, EntityTypeName);
                 CG_EntityEvent(localClientNum, cent, event);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
             }
             cent->nextState.eventParm = oldEventParm;
             cent->previousEventSequence = cent->nextState.eventSequence;

@@ -433,8 +433,8 @@ void __cdecl Sys_FrontEndSleep()
     Sys_WaitForSingleObject(&rendererRunningEvent);
     if ( semaphore )
         R_AcquireDXDeviceOwnership(0);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 int __cdecl Sys_WaitRenderer()
@@ -482,8 +482,8 @@ void __cdecl Sys_SleepServer()
 
     //PIXBeginNamedEvent(-1, "sleep server");
     result = Sys_WaitForSingleObjectTimeout(&wakeServerEvent, 0);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     if ( result )
         Sys_ResetEvent(&wakeServerEvent);
 }
@@ -673,8 +673,8 @@ void __cdecl Sys_WaitUpdateNonDependentEffectsCompleted()
 {
     //PIXBeginNamedEvent(-1, "wait non-dependent fx");
     Sys_WaitForSingleObject(&updateEffectsEvent);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Sys_SetUpdateNonDependentEffectsEvent()

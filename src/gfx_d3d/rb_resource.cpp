@@ -441,7 +441,7 @@ LABEL_2:
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return (unsigned __int8 *)D3DPERF_EndEvent();
+            return (unsigned __int8 *)//D3DPERF_EndEvent();
     }
     return result;
 }

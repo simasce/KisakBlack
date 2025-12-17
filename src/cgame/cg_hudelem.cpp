@@ -764,7 +764,7 @@ void __cdecl CG_Draw2dHudElems(int localClientNum, int foreground)
         v4 = 1;
     if ( cgameGlob->cameraMode == 1 )
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
             goto LABEL_18;
     }
     else
@@ -785,9 +785,9 @@ void __cdecl CG_Draw2dHudElems(int localClientNum, int foreground)
             }
             goto LABEL_18;
         }
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_18:
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -2446,7 +2446,7 @@ void __cdecl RB_DrawWaypoints(int localClientNum)
         if ( g_DXDeviceThread != GetCurrentThreadId() )
             return;
 LABEL_11:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
     if ( !CG_ShouldDrawHud(localClientNum) )
@@ -2477,8 +2477,8 @@ LABEL_11:
         if ( elems[i]->type == 15 )
             RB_AddWaypoint(localClientNum, elems[i]);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_AddWaypoint(int localClientNum, const hudelem_s *elem)

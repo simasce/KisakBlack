@@ -152,8 +152,8 @@ void __thiscall GlassesServer::Update(GlassesServer *this)
                 this->nextShatterTime += this->shatterIntervalsMS;
             }
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -359,8 +359,8 @@ void __cdecl GlassSv_ClipMoveTrace(const moveclip_t *clip, trace_t *results)
                 results->hitId = index;
             }
         }
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -414,8 +414,8 @@ void __cdecl GlassSv_PointTrace(const pointtrace_t *clip, trace_t *results)
                 }
             }
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -452,9 +452,9 @@ void __cdecl GlassSv_Damage(unsigned int glassId, int damage, int mod, float *po
         GlassServer::SetState(glass, SHATTERED, pos, dir);
     else
         GlassServer::SetState(glass, CRACKED, 0, 0);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_32:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl GlassSv_RadiusDamage(
@@ -531,8 +531,8 @@ void __cdecl GlassSv_RadiusDamage(
                 }
             }
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -696,8 +696,8 @@ void __cdecl GlassSv_PredictTouch(gentity_s *other)
                 }
             }
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -788,9 +788,9 @@ void __thiscall GlassesServer::WriteSnapshotToClient(GlassesServer *this, msg_t 
             }
         }
         MSG_WriteShort(msg, 30154);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_30:
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
     }
 }
 

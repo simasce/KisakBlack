@@ -1,4 +1,18 @@
 #include "physicalmemory.h"
+#include <memoryapi.h>
+#include "assertive.h"
+#include "q_shared.h"
+#include <qcommon/common.h>
+#include <qcommon/mem_track.h>
+#include "../../tl/tl_system.h"
+#include <win32/win_main.h>
+
+bool g_physicalMemoryInit;
+PhysicalMemory g_mem;
+
+thread_local int g_alloc_type;
+int freeTot;
+int g_overAllocatedSize;
 
 void __cdecl PMem_Init()
 {
@@ -37,7 +51,8 @@ void __cdecl PMem_InitPhysicalMemory(
 
 void __cdecl PMem_BeginAlloc(const char *name, unsigned int allocType, EMemTrack memTrack)
 {
-    *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 28) = allocType;
+    //*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 28) = allocType;
+    g_alloc_type = allocType;
     if ( allocType >= 2
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\physicalmemory.cpp",

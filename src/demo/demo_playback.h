@@ -3,7 +3,7 @@
 void __cdecl Demo_AllocatePlaybackMemory(unsigned int location);
 void __cdecl Demo_DeallocatePlaybackMemory();
 void __cdecl Demo_Load();
-void    Demo_HiResScreenshot(int a1@<esi>, int localClientNum, int tiles);
+void    Demo_HiResScreenshot(int localClientNum, int tiles);
 void __cdecl Demo_TagPlayers(int localClientNum, demoTagPlayers *players);
 void __cdecl Demo_TagPlayer(demoTagPlayers *players, unsigned __int64 playerXuid);
 char __cdecl Demo_IsPlayerTagged(int localClientNum, demoTagPlayers *players, unsigned __int64 playerXuid);
@@ -96,7 +96,6 @@ void __cdecl Demo_UpdateCurrentSnapshot(int localClientNum, playerState_s *ps);
 void __cdecl Demo_EnableSnapshotProcessing();
 void __cdecl Demo_DisableSnapshotProcessing();
 void    Demo_GenerateUncompressedSnapshot(
-                int a1@<ebp>,
                 int localClientNum,
                 msg_t *msg,
                 int msgSequence,

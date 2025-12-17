@@ -1,4 +1,7 @@
 #include "snd_globals.h"
+#include "snd_dvar.h"
+#include "snd_utils.h"
+#include <qcommon/common.h>
 
 snd_category_t __cdecl SND_GroupCategory(unsigned int group)
 {

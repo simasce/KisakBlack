@@ -1,4 +1,18 @@
 #include "snd_stream.h"
+#include <qcommon/threads.h>
+#include <universal/physicalmemory.h>
+#include <tl/tl_system.h>
+
+#include <Windows.h>
+#include <qcommon/common.h>
+#include <universal/com_files.h>
+
+char *g_snd_stream_buffer;
+snd_stream *g_snd_streams;
+snd_buffer *g_snd_buffers;
+volatile unsigned int g_snd_stream_time;
+snd_stream_file g_snd_stream_files[10];
+snd_pack_file g_snd_pack_files[8];
 
 void __cdecl Snd_StreamBufferInit(snd_buffer *buffer, char *data)
 {
@@ -14,7 +28,8 @@ void __cdecl Snd_StreamReset(snd_stream *stream)
     int Target[5]; // [esp+4h] [ebp-18h] BYREF
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    tlAtomicMutex::Lock(&stream->mutex);
+    //tlAtomicMutex::Lock(&stream->mutex);
+    stream->mutex.Lock();
     stream->filename[0] = 0;
     for ( i = 0; i < 3; ++i )
         stream->window_return[i] = 0;
@@ -31,38 +46,14 @@ void __cdecl Snd_StreamReset(snd_stream *stream)
     stream->in_use = 0;
     stream->have_header = 0;
     stream->stream_length = 0;
-    if ( !--stream->mutex.LockCount )
-    {
-        Target[0] = 0;
-        InterlockedExchange(Target, 0);
-        stream->mutex.ThreadId = 0;
-    }
-}
 
-void __thiscall tlAtomicMutex::Lock(tlAtomicMutex *this)
-{
-    int Target; // [esp+1Ch] [ebp-10h] BYREF
-    tlAtomicMutex *ThisPtr; // [esp+20h] [ebp-Ch]
-    unsigned __int64 CurThread; // [esp+24h] [ebp-8h]
-
-    CurThread = GetCurrentThreadId();
-    if ( this->ThreadId == CurThread )
-    {
-        ++this->LockCount;
-    }
-    else
-    {
-        while ( 1 )
-        {
-            ThisPtr = this->ThisPtr;
-            if ( !_InterlockedCompareExchange64((volatile signed __int64 *)ThisPtr, CurThread, 0) )
-                break;
-            SwitchToThread();
-        }
-        Target = 0;
-        InterlockedExchange(&Target, 0);
-        this->LockCount = 1;
-    }
+    stream->mutex.Unlock();
+    //if ( !--stream->mutex.LockCount )
+    //{
+    //    Target[0] = 0;
+    //    InterlockedExchange(Target, 0);
+    //    stream->mutex.ThreadId = 0;
+    //}
 }
 
 void __cdecl Snd_StreamInit()
@@ -76,33 +67,33 @@ void __cdecl Snd_StreamInit()
     {
         __debugbreak();
     }
-    if ( !g_snd_stream_buffer )
+    if (!g_snd_stream_buffer)
     {
         g_snd_stream_buffer = (char *)_PMem_Alloc(
-                                                                        (unsigned int)&loc_A3C000,
-                                                                        0x1000u,
-                                                                        4u,
-                                                                        1u,
-                                                                        TRACK_SOUND_GLOBALS,
-                                                                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_stream.cpp",
-                                                                        247);
+            0xA3C000u,
+            0x1000u,
+            4u,
+            1u,
+            TRACK_SOUND_GLOBALS,
+            "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_stream.cpp",
+            247);
         g_snd_streams = (snd_stream *)_PMem_Alloc(
-                                                                        0xFA0u,
-                                                                        0x80u,
-                                                                        4u,
-                                                                        1u,
-                                                                        TRACK_SOUND_GLOBALS,
-                                                                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_stream.cpp",
-                                                                        254);
+            0xFA0u,
+            0x80u,
+            4u,
+            1u,
+            TRACK_SOUND_GLOBALS,
+            "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_stream.cpp",
+            254);
         g_snd_buffers = (snd_buffer *)_PMem_Alloc(
-                                                                        0x15E0u,
-                                                                        0x80u,
-                                                                        4u,
-                                                                        1u,
-                                                                        TRACK_SOUND_GLOBALS,
-                                                                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_stream.cpp",
-                                                                        261);
-        *(unsigned int *)g_snd_streams->filename = 0;
+            0x15E0u,
+            0x80u,
+            4u,
+            1u,
+            TRACK_SOUND_GLOBALS,
+            "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_stream.cpp",
+            261);
+        *(_DWORD *)g_snd_streams->filename = 0;
     }
     for ( i = 0; i < 0xA; ++i )
     {
@@ -178,8 +169,11 @@ void __cdecl SND_StreamCloseFiles()
 
     if ( SND_Active() )
     {
-        for ( i = 0; i < 0xA; ++i )
-            tlAtomicMutex::Lock(&g_snd_streams[i].mutex);
+        for (i = 0; i < 0xA; ++i)
+        {
+            //tlAtomicMutex::Lock(&g_snd_streams[i].mutex);
+            g_snd_streams[i].mutex.Lock();
+        }
         for ( j = 0; j < 0xA; ++j )
         {
             if ( g_snd_stream_files[j].handle )
@@ -188,14 +182,16 @@ void __cdecl SND_StreamCloseFiles()
         for ( k = 0; k < 0xA; ++k )
         {
             p_mutex = &g_snd_streams[k].mutex;
-            --g_snd_streams[k].mutex.LockCount;
-            if ( !p_mutex->LockCount )
-            {
-                Target[0] = 0;
-                InterlockedExchange(Target, 0);
-                LODWORD(p_mutex->ThreadId) = 0;
-                HIDWORD(p_mutex->ThreadId) = 0;
-            }
+
+            g_snd_streams[k].mutex.Unlock();
+            //--g_snd_streams[k].mutex.LockCount;
+            //if ( !p_mutex->LockCount )
+            //{
+            //    Target[0] = 0;
+            //    InterlockedExchange(Target, 0);
+            //    LODWORD(p_mutex->ThreadId) = 0;
+            //    HIDWORD(p_mutex->ThreadId) = 0;
+            //}
         }
     }
 }
@@ -272,8 +268,9 @@ void __cdecl Snd_StreamOpen(
     {
         __debugbreak();
     }
-    tlAtomicMutex::Lock(&s->mutex);
-    strncpy((unsigned __int8 *)s, (unsigned __int8 *)filename, 0x104u);
+    //tlAtomicMutex::Lock(&s->mutex);
+    s->mutex.Lock();
+    strncpy((char *)s, filename, 0x104u);
     s->prime_size = prime_size;
     s->looping = looping;
     s->in_use = 1;
@@ -301,18 +298,20 @@ void __cdecl Snd_StreamOpen(
     }
     Sys_WakeStream();
     p_mutex = &s->mutex;
-    --s->mutex.LockCount;
-    if ( !p_mutex->LockCount )
-    {
-        Target[0] = 0;
-        InterlockedExchange(Target, 0);
-        LODWORD(p_mutex->ThreadId) = 0;
-        HIDWORD(p_mutex->ThreadId) = 0;
-    }
-    scoped_performance_error::test(&pe, "");
+    s->mutex.Unlock();
+    //--s->mutex.LockCount;
+    //if ( !p_mutex->LockCount )
+    //{
+    //    Target[0] = 0;
+    //    InterlockedExchange(Target, 0);
+    //    LODWORD(p_mutex->ThreadId) = 0;
+    //    HIDWORD(p_mutex->ThreadId) = 0;
+    //}
+    //scoped_performance_error::test(&pe, "");
+    pe.test("");
 }
 
-void __thiscall scoped_performance_error::test(scoped_performance_error *this, const char *__formal)
+void scoped_performance_error::test(const char *__formal)
 {
     tlPcGetTick();
 }
@@ -321,8 +320,8 @@ void __cdecl Snd_StreamClose(unsigned int index)
 {
     tlAtomicMutex *p_mutex; // [esp+Ch] [ebp-40h]
     int Target; // [esp+10h] [ebp-3Ch] BYREF
-    volatile signed __int32 *v3; // [esp+14h] [ebp-38h]
-    volatile signed __int32 *p_reference_count; // [esp+18h] [ebp-34h]
+    volatile unsigned __int32 *v3; // [esp+14h] [ebp-38h]
+    volatile unsigned __int32 *p_reference_count; // [esp+18h] [ebp-34h]
     scoped_performance_error pe; // [esp+2Ch] [ebp-20h] BYREF
     snd_stream *s; // [esp+48h] [ebp-4h]
 
@@ -345,7 +344,8 @@ void __cdecl Snd_StreamClose(unsigned int index)
     {
         __debugbreak();
     }
-    tlAtomicMutex::Lock(&s->mutex);
+    //tlAtomicMutex::Lock(&s->mutex);
+    s->mutex.Lock();
     Snd_StreamReleaseProcess(index);
     if ( s->windows_in_use
         && !Assert_MyHandler(
@@ -359,7 +359,7 @@ void __cdecl Snd_StreamClose(unsigned int index)
     }
     if ( s->buffers[0] )
     {
-        p_reference_count = &s->buffers[0]->reference_count;
+        p_reference_count = (volatile unsigned int*)&s->buffers[0]->reference_count;
         _InterlockedExchangeAdd(p_reference_count, 0xFFFFFFFF);
         if ( s->buffers[0]->reference_count > 0xAu
             && !Assert_MyHandler(
@@ -375,7 +375,7 @@ void __cdecl Snd_StreamClose(unsigned int index)
     }
     if ( s->buffers[1] )
     {
-        v3 = &s->buffers[1]->reference_count;
+        v3 = (volatile unsigned int *)&s->buffers[1]->reference_count;
         _InterlockedExchangeAdd(v3, 0xFFFFFFFF);
         if ( s->buffers[1]->reference_count > 0xAu
             && !Assert_MyHandler(
@@ -391,15 +391,17 @@ void __cdecl Snd_StreamClose(unsigned int index)
     }
     Snd_StreamReset(s);
     p_mutex = &s->mutex;
-    --s->mutex.LockCount;
-    if ( !p_mutex->LockCount )
-    {
-        Target = 0;
-        InterlockedExchange(&Target, 0);
-        LODWORD(p_mutex->ThreadId) = 0;
-        HIDWORD(p_mutex->ThreadId) = 0;
-    }
-    scoped_performance_error::test(&pe, "");
+    //--s->mutex.LockCount;
+    //if ( !p_mutex->LockCount )
+    //{
+    //    Target = 0;
+    //    InterlockedExchange(&Target, 0);
+    //    LODWORD(p_mutex->ThreadId) = 0;
+    //    HIDWORD(p_mutex->ThreadId) = 0;
+    //}
+    s->mutex.Unlock();
+    //scoped_performance_error::test(&pe, "");
+    pe.test("");
 }
 
 snd_stream_status __cdecl Snd_StreamStatus(unsigned int index)
@@ -426,7 +428,8 @@ snd_stream_status __cdecl Snd_StreamStatus(unsigned int index)
     }
     s = &g_snd_streams[index];
     status = SND_STREAM_OK;
-    tlAtomicMutex::Lock(&s->mutex);
+    //tlAtomicMutex::Lock(&s->mutex);
+    s->mutex.Lock();
     if ( s->in_use )
     {
         if ( s->error )
@@ -447,16 +450,18 @@ snd_stream_status __cdecl Snd_StreamStatus(unsigned int index)
         status = SND_STREAM_UNUSED;
     }
     p_mutex = &s->mutex;
-    --s->mutex.LockCount;
-    if ( !p_mutex->LockCount )
-    {
-        Target[0] = 0;
-        InterlockedExchange(Target, 0);
-        LODWORD(p_mutex->ThreadId) = 0;
-        HIDWORD(p_mutex->ThreadId) = 0;
-    }
+    s->mutex.Unlock();
+    //--s->mutex.LockCount;
+    //if ( !p_mutex->LockCount )
+    //{
+    //    Target[0] = 0;
+    //    InterlockedExchange(Target, 0);
+    //    LODWORD(p_mutex->ThreadId) = 0;
+    //    HIDWORD(p_mutex->ThreadId) = 0;
+    //}
     v4 = status;
-    scoped_performance_error::test(&pe, "");
+    //scoped_performance_error::test(&pe, "");
+    pe.test("");
     return v4;
 }
 
@@ -521,51 +526,26 @@ unsigned int __cdecl Snd_StreamGetFreeWindows(unsigned int index)
     {
         __debugbreak();
     }
-    while ( !tlAtomicMutex::TryLock(&s->mutex) )
-        ;
+
+    //while ( !tlAtomicMutex::TryLock(&s->mutex) );
+    while ( !s->mutex.TryLock() );
+
     Snd_StreamReleaseProcess(index);
     count = 3 - s->windows_in_use;
     p_mutex = &s->mutex;
-    --s->mutex.LockCount;
-    if ( !p_mutex->LockCount )
-    {
-        Target[0] = 0;
-        InterlockedExchange(Target, 0);
-        LODWORD(p_mutex->ThreadId) = 0;
-        HIDWORD(p_mutex->ThreadId) = 0;
-    }
+    s->mutex.Unlock();
+    //--s->mutex.LockCount;
+    //if ( !p_mutex->LockCount )
+    //{
+    //    Target[0] = 0;
+    //    InterlockedExchange(Target, 0);
+    //    LODWORD(p_mutex->ThreadId) = 0;
+    //    HIDWORD(p_mutex->ThreadId) = 0;
+    //}
     v4 = count;
-    scoped_performance_error::test(&pe, "");
+    //scoped_performance_error::test(&pe, "");
+    pe.test("");
     return v4;
-}
-
-char __thiscall tlAtomicMutex::TryLock(tlAtomicMutex *this)
-{
-    int Target; // [esp+1Ch] [ebp-10h] BYREF
-    tlAtomicMutex *ThisPtr; // [esp+20h] [ebp-Ch]
-    unsigned __int64 CurThread; // [esp+24h] [ebp-8h]
-
-    CurThread = GetCurrentThreadId();
-    if ( this->ThreadId == CurThread )
-    {
-        ++this->LockCount;
-        return 1;
-    }
-    else
-    {
-        ThisPtr = this->ThisPtr;
-        if ( _InterlockedCompareExchange64((volatile signed __int64 *)ThisPtr, CurThread, 0) )
-        {
-            return 0;
-        }
-        else
-        {
-            Target = 0;
-            InterlockedExchange(&Target, 0);
-            this->LockCount = 1;
-            return 1;
-        }
-    }
 }
 
 snd_stream_status __cdecl Snd_StreamAcquireWindow(
@@ -605,9 +585,11 @@ snd_stream_status __cdecl Snd_StreamAcquireWindow(
         __debugbreak();
     }
     status = SND_STREAM_OK;
-    while ( !tlAtomicMutex::TryLock(&s->mutex) )
-        ;
-    scoped_performance_error::test(&pe, "lock");
+
+    while ( !s->mutex.TryLock() );
+
+    //scoped_performance_error::test(&pe, "lock");
+    pe.test("lock");
     Snd_StreamReleaseProcess(index);
     *size = 0;
     *data = 0;
@@ -828,19 +810,23 @@ snd_stream_status __cdecl Snd_StreamAcquireWindow(
             __debugbreak();
         }
     }
-    scoped_performance_error::test(&pe, "data");
+    //scoped_performance_error::test(&pe, "data");
+    pe.test("data");
     p_mutex = &s->mutex;
-    --s->mutex.LockCount;
-    if ( !p_mutex->LockCount )
-    {
-        Target[0] = 0;
-        InterlockedExchange(Target, 0);
-        LODWORD(p_mutex->ThreadId) = 0;
-        HIDWORD(p_mutex->ThreadId) = 0;
-    }
-    scoped_performance_error::test(&pe, "unlock");
+    //--s->mutex.LockCount;
+    //if ( !p_mutex->LockCount )
+    //{
+    //    Target[0] = 0;
+    //    InterlockedExchange(Target, 0);
+    //    LODWORD(p_mutex->ThreadId) = 0;
+    //    HIDWORD(p_mutex->ThreadId) = 0;
+    //}
+    p_mutex->Unlock();
+    //scoped_performance_error::test(&pe, "unlock");
+    pe.test("unlock");
     v9 = status;
-    scoped_performance_error::test(&pe, "");
+    //scoped_performance_error::test(&pe, "");
+    pe.test("");
     return v9;
 }
 
@@ -939,7 +925,7 @@ void __cdecl Snd_StreamReleaseWindow(unsigned int index, char *data)
     for ( i = 0; i < 3; ++i )
     {
         if ( !_InterlockedCompareExchange(
-                        (volatile signed __int32 *)&g_snd_streams[index].window_return[i],
+                        (volatile unsigned __int32 *)&g_snd_streams[index].window_return[i],
                         (signed __int32)data,
                         0) )
         {
@@ -1150,11 +1136,12 @@ void __cdecl Snd_StreamLoadHeader(snd_stream *s, char *data, const char *filenam
 void __cdecl Snd_StreamSetError(snd_stream *s, snd_stream_request *r)
 {
     unsigned int read; // [esp+0h] [ebp-20h]
-    int Target[5]; // [esp+8h] [ebp-18h] BYREF
+    volatile unsigned int Target[5]; // [esp+8h] [ebp-18h] BYREF
     bool same_offset; // [esp+1Eh] [ebp-2h]
     bool same_file; // [esp+1Fh] [ebp-1h]
 
-    tlAtomicMutex::Lock(&s->mutex);
+    //tlAtomicMutex::Lock(&s->mutex);
+    s->mutex.Lock();
     if ( r->buffer
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_stream.cpp", 1090, 0, "%s", "!r->buffer") )
     {
@@ -1168,12 +1155,14 @@ void __cdecl Snd_StreamSetError(snd_stream *s, snd_stream_request *r)
     same_offset = r->start_of_read == read;
     if ( same_file && same_offset )
         s->error = 1;
-    if ( !--s->mutex.LockCount )
-    {
-        Target[0] = 0;
-        InterlockedExchange(Target, 0);
-        s->mutex.ThreadId = 0;
-    }
+
+    s->mutex.Unlock();
+    //if ( !--s->mutex.LockCount )
+    //{
+    //    Target[0] = 0;
+    //    InterlockedExchange(Target, 0);
+    //    s->mutex.ThreadId = 0;
+    //}
 }
 
 char __cdecl Snd_LoadBuffer(unsigned int streamIndex, char *filename, unsigned int offset)
@@ -1309,7 +1298,8 @@ void __cdecl Snd_StreamGetRequest(snd_stream *s, snd_stream_request *r)
     bool active; // [esp+6Eh] [ebp-2h]
     bool loaded0; // [esp+6Fh] [ebp-1h]
 
-    tlAtomicMutex::Lock(&s->mutex);
+    //tlAtomicMutex::Lock(&s->mutex);
+    s->mutex.Lock();
     Snd_StreamReleaseProcess(s - g_snd_streams);
     v8 = s->in_use && !s->error;
     active = v8;
@@ -1331,7 +1321,7 @@ void __cdecl Snd_StreamGetRequest(snd_stream *s, snd_stream_request *r)
         pe.threshold = 0.0003000000142492354;
         pe.what = "Snd_StreamSetRequest_if1";
         pe.start = tlPcGetTick().QuadPart;
-        strncpy((unsigned __int8 *)r, (unsigned __int8 *)s, 0x104u);
+        strncpy((char *)r, (char *)s, 0x104u);
         if ( s->read < s->stream_length )
             v2 = s->read;
         else
@@ -1351,14 +1341,16 @@ void __cdecl Snd_StreamGetRequest(snd_stream *s, snd_stream_request *r)
             r->need = b1need;
         if ( !s->buffers[0] && !s->buffers[1] && s->prime_data )
             r->need = 1073152;
-        scoped_performance_error::test(&pe, "");
+        //scoped_performance_error::test(&pe, "");
+        pe.test("");
     }
-    if ( !--s->mutex.LockCount )
-    {
-        Target[0] = 0;
-        InterlockedExchange(Target, 0);
-        s->mutex.ThreadId = 0;
-    }
+    //if ( !--s->mutex.LockCount )
+    //{
+    //    Target[0] = 0;
+    //    InterlockedExchange(Target, 0);
+    //    s->mutex.ThreadId = 0;
+    //}
+    s->mutex.Unlock();
 }
 
 bool __cdecl Snd_StreamSetRequest(snd_stream *s, snd_stream_request *r)
@@ -1375,7 +1367,8 @@ bool __cdecl Snd_StreamSetRequest(snd_stream *s, snd_stream_request *r)
     pe.threshold = 0.0003000000142492354;
     pe.what = "Snd_StreamSetRequest";
     pe.start = tlPcGetTick().QuadPart;
-    tlAtomicMutex::Lock(&s->mutex);
+    //tlAtomicMutex::Lock(&s->mutex);
+    s->mutex.Lock();
     if ( !r->buffer
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_stream.cpp", 1050, 0, "%s", "r->buffer") )
     {
@@ -1417,16 +1410,19 @@ bool __cdecl Snd_StreamSetRequest(snd_stream *s, snd_stream_request *r)
         s->read = r->buffer->data_size + r->buffer->offset_in_file;
         if ( !s->have_header && !s->prime_size )
             Snd_StreamLoadHeader(s, r->buffer->data, r->buffer->filename, r->buffer->file_size);
-        scoped_performance_error::test(&v6, "");
+        //scoped_performance_error::test(&v6, "");
+        v6.test("");
     }
-    if ( !--s->mutex.LockCount )
-    {
-        Target[0] = 0;
-        InterlockedExchange(Target, 0);
-        s->mutex.ThreadId = 0;
-    }
+    //if ( !--s->mutex.LockCount )
+    //{
+    //    Target[0] = 0;
+    //    InterlockedExchange(Target, 0);
+    //    s->mutex.ThreadId = 0;
+    //}
+    s->mutex.Unlock();
     v5 = used_buffer;
-    scoped_performance_error::test(&pe, "");
+    //scoped_performance_error::test(&pe, "");
+    pe.test("");
     return v5;
 }
 
@@ -1443,7 +1439,8 @@ snd_buffer *__cdecl Snd_FindBuffer(const char *filename, unsigned int offset)
     {
         if ( i >= 0x14 )
         {
-            scoped_performance_error::test(&pe, "");
+            //scoped_performance_error::test(&pe, "");
+            pe.test("");
             return 0;
         }
         buffer = &g_snd_buffers[i];
@@ -1472,7 +1469,8 @@ snd_buffer *__cdecl Snd_FindBuffer(const char *filename, unsigned int offset)
     {
         __debugbreak();
     }
-    scoped_performance_error::test(&pe, "");
+    //scoped_performance_error::test(&pe, "");
+    pe.test("");
     return buffer;
 }
 
@@ -1568,7 +1566,7 @@ LABEL_31:
         return 0;
     v5 = _InterlockedExchangeAdd(&g_snd_stream_time, 1u);
     file->age = v5 + 1;
-    strncpy((unsigned __int8 *)buffer->filename, (unsigned __int8 *)filename, 0x104u);
+    strncpy((char*)buffer->filename, (char *)filename, 0x104u);
     buffer->offset_in_file = start_offset;
     buffer->data_size = read_size;
     buffer->file_size = file->size;
@@ -1589,10 +1587,10 @@ char __cdecl Snd_FileOpen(const char *filename, snd_stream_file *file)
 
 char __cdecl Snd_FileRead(snd_stream_file *file, unsigned int offset, unsigned int size, unsigned __int8 *data)
 {
-    unsigned intLastError; // eax
+    DWORD LastError; // eax
 
     FS_Seek(file->handle, offset + LODWORD(file->base_offset), 2);
-    if ( FS_Read(data, size, file->handle) == size )
+    if (FS_Read(data, size, file->handle) == size)
         return 1;
     LastError = GetLastError();
     Com_PrintError(9, "### could not read file %s, error: %08.8X\n", file->filename, LastError);

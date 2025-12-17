@@ -830,7 +830,7 @@ void __cdecl Com_EventLoop()
             case SE_NONE:
                 Com_ClientPacketEvent(v1.evType);
                 if ( GetCurrentThreadId() == (unsigned int)g_DXDeviceThread && !MEMORY[0xA8402BC] )
-                    D3DPERF_EndEvent();
+                    //D3DPERF_EndEvent();
                 return;
             case SE_KEY:
                 CL_KeyEvent(0, ev.evValue, ev.evValue2, ev.evTime);
@@ -2392,15 +2392,15 @@ unsigned intCom_Frame_Try_Block_Function()
     //PIXBeginNamedEvent(-1, "SV frame");
     v3 = Com_LocalClient_GetControllerIndex(0);
     SV_Frame(v3, mseca);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     Monkey_Frame();
     //BLOPS_NULLSUB();
     Phys_RunToTime(svsHeader.time);
     DWDedicatedLobbyPump();
     result = GetCurrentThreadId();
     if ( result == g_DXDeviceThread )
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     return result;
 }
 

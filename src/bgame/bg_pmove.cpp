@@ -1495,9 +1495,9 @@ void __cdecl Pmove_1(pmove_t *pm)
         PmoveSingle(pm);
         memcpy(&pm->oldcmd, &pm->cmd, sizeof(pm->oldcmd));
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_15:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl PmoveSingle(pmove_t *pm)
@@ -1957,8 +1957,8 @@ LABEL_151:
                         PM_SwimMove(pm, &pml);
                     }
                     PM_UpdatePush(pm, &pml);
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     PM_GroundTrace(pm, &pml);
                     PM_Footsteps(pm, &pml);
                     PM_Weapon(pm, &pml);

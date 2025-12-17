@@ -2577,7 +2577,7 @@ double __cdecl Q_rint(float in)
     return (float)floor(in + 0.5);
 }
 
-double __cdecl ColorNormalize(float *in, float *out)
+double __cdecl ColorNormalize(const float *in, float *out)
 {
     float max; // [esp+0h] [ebp-8h]
 
@@ -3258,6 +3258,11 @@ void __cdecl Vec3Rotate(const float *in, const float (*matrix)[3], float *out)
         + (float)(in[2] * (float)(*matrix)[8]);
 }
 
+float __cdecl Vec3Length(const vec3r v)
+{
+    return sqrtf((v[2] * v[2]) + (v[1] * v[1]) + (v[0] * v[0]));
+}
+
 float __cdecl Vec3LengthSq(const float* v)
 {
     float fDistSqrd = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
@@ -3267,7 +3272,7 @@ float __cdecl Vec3LengthSq(const float* v)
 
 void __cdecl Vec3NormalizeFast(float *v)
 {
-    int32_t number; // [esp+0h] [ebp-1Ch]
+    int number; // [esp+0h] [ebp-1Ch]
     float invLength; // [esp+18h] [ebp-4h]
 
     *(float *)&number = Vec3LengthSq(v);

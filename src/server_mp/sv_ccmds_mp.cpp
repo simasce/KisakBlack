@@ -83,15 +83,15 @@ void __cdecl SV_MapRestart(int fast_restart)
             sv.restarting = 1;
             SV_RestartGameProgs(savepersist);
         }
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
             goto LABEL_3;
     }
     else
     {
         Com_Printf(0, "Server is not running.\n");
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_3:
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
     }
 }
 

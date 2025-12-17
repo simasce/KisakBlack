@@ -24,6 +24,12 @@ struct DpvsPlane // sizeof=0x14
     unsigned __int8 pad;
 };
 
+struct DpvsClipPlanes // sizeof=0x144
+{                                       // XREF: R_AddAabbTreeSurfacesInFrustum_r/r
+    DpvsPlane planes[16];
+    unsigned int count;                 // XREF: R_AddAabbTreeSurfacesInFrustum_r+7D/w
+};
+
 struct GfxPortalWritable // sizeof=0xC
 {                                       // XREF: GfxPortal/r
     bool isQueued;

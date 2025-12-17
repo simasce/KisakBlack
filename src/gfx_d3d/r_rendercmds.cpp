@@ -2,6 +2,7 @@
 #include "r_pointlights.h"
 #include "r_dpvs.h"
 #include "r_model_lighting.h"
+#include "r_model.h"
 
 GfxBackEndData *frontEndDataOut;
 
@@ -445,7 +446,7 @@ unsigned intR_PerformanceCounters()
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }
@@ -515,8 +516,8 @@ void __cdecl R_ToggleSmpFrameCmd(char type)
     Sys_WaitRenderer();
     if ( sem )
         R_AcquireDXDeviceOwnership(0);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     RB_CopyBackendStats();
     if ( (type & 2) != 0 )
         R_PerformanceCounters();
@@ -526,8 +527,8 @@ void __cdecl R_ToggleSmpFrameCmd(char type)
         NET_Sleep(1u);
     if ( semaphore )
         R_AcquireDXDeviceOwnership(0);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     R_UpdateSkinCacheUsage();
     //BLOPS_NULLSUB();
     R_UnlockSkinnedCache();
@@ -821,8 +822,8 @@ unsigned intR_ToggleSmpFrame()
     Com_Memset(&frontEndDataOut->codeMeshes[0].triCount, 176, 0x8000);
     Com_Memset(frontEndDataOut->primDrawSurfsBuf, 176, 4 * frontEndDataOut->primDrawSurfPos);
     Com_Memset((unsigned int *)&frontEndDataOut->fogSettings, 176, 80);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     frontEndDataOut->drawSurfCount = 0;
     frontEndDataOut->primDrawSurfPos = 0;
     frontEndDataOut->surfPos = 0;
@@ -853,7 +854,7 @@ unsigned intR_ToggleSmpFrame()
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }

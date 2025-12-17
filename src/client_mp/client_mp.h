@@ -1,7 +1,7 @@
 #pragma once
 
 #include <game/teams.h>
-
+#include <client_mp/cl_main_mp.h>
 
 union $4EE974FEE7F16CD9507A14B5D3A2E3FF // sizeof=0x8
 {                                                                             // XREF: clientState_s/r

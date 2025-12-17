@@ -2084,8 +2084,8 @@ void    Phys_AddCacheImpulses(int a1@<ebp>)
         }
     }
     gImpulseCacheNum = 0;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Phys_ObjAddCustomForce(
@@ -4465,19 +4465,19 @@ void    UpdateRigidBody(float a1@<ebp>, float delta_t)
         t);
     render_debug_draw_gjk_trace_geom();
     NitrousVehicle::frame_prolog_all_systems(t);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "phys_frame_advance");
     phys_sys::phys_frame_advance(t);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "update 2");
     NitrousVehicle::debug_render_all();
     NitrousVehicle::frame_epilog_all_systems(t);
     process_destructible_hits();
     process_dynent_hits();
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     Sys_LeaveCriticalSection(CRITSECT_PHYSICS_UPDATE);
 }
 
@@ -4670,8 +4670,8 @@ void __cdecl Phys_RunToTime(int timeNow)
     if ( timeNow != physGlob.timeLastUpdate )
     {
         //PIXBeginNamedEvent(-1, "auto_rigid_body");
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         auto_rigid_body::update((auto_rigid_body *)&savedregs);
         if ( !Demo_IsPlaying() || !Demo_IsPaused() && time_msec > 0 && time_msec < 100 )
         {
@@ -4688,12 +4688,12 @@ void __cdecl Phys_RunToTime(int timeNow)
         }
         physGlob.timeLastUpdate = timeNow;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     proftimer_physics_frame_advance.value += *(_QWORD *)&tlPcGetTick() - proftimer_physics_frame_advance.stamp;
     //PIXBeginNamedEvent(-1, "Ragdoll_Update/XDoll_Update");
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     Ragdoll_Update(time_msec);
     XDoll_Update(time_msec);
 }

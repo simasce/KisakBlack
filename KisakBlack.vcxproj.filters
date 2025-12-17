@@ -5054,5 +5054,26 @@
     <ClInclude Include="src\game\actor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="tl\jobqueue\jobqueue_all.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tl\physics\rbc_def_contact.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tl\physics\rbc_def_custom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tl\physics\rbc_def_generic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tl\physics\rbc_def_ragdoll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tl\physics\rbc_def_vehicle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\server_mp\server_mp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

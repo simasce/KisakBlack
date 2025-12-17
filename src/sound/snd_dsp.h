@@ -1,11 +1,16 @@
 #pragma once
+#include "snd_driver_xaudio2_dsp.h"
 
-double __cdecl sqrtf(float val);
-double __cdecl cosf(float _X);
-double __cdecl sinf(float _X);
-bool __cdecl IS_NAN(float x);
-double __cdecl I_fmax(float x, float y);
-double __cdecl I_fmin(float x, float y);
+struct snd_dsp_meters // sizeof=0x18
+{                                                                             // XREF: snd_local_t/r
+    float p;
+    float vu;
+    float dyn1Gain;
+    float dyn1Level;
+    float dyn2Gain;
+    float dyn2Level;
+};
+
 void __cdecl SND_DspMul(unsigned int count, const float *a, const float *b, float *c);
 void __cdecl SND_DspScale(unsigned int count, float a, float *c);
 void __cdecl SND_DspScaleCache(unsigned int count, float a, float *c);
@@ -15,7 +20,6 @@ void __cdecl SND_DspSum(unsigned int count, const float *a, float *c);
 void __cdecl SND_DspOnePoleFilterMono(unsigned int count, float *frames, float b0, float a1, float *y1);
 double __cdecl fabs(float f);
 void __cdecl SND_OcclusionLpfCoef(float occlusionLevel, float occlusionRatio, float sampleRate, float *b0, float *a1);
-double __cdecl powf(float _X, float _Y);
 double __cdecl I_fclamp(float val, float min, float max);
 void __cdecl SND_DspBiquadInPlace(
                 const snd_dsp_biquad_coef *coef,
@@ -36,7 +40,6 @@ void __cdecl SND_DspSquelch(
                 unsigned int frameCount,
                 float *input);
 double __cdecl SND_DspDecayConstant(float time, float dt, float targetAmplitude);
-double __cdecl logf(float _X);
 void __cdecl SND_DspFutzMono(
                 const snd_dsp_futz_param *param,
                 snd_dsp_futz_state *state,

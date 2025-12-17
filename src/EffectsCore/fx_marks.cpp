@@ -350,8 +350,8 @@ void __cdecl FX_CreateImpactMark(
 {
     //PIXBeginNamedEvent(-1, "FX_CreateImpactMark");
     FX_CreateImpactMarkInternal(localClientNum, elemDef, spatialFrame, randomSeed, markEntnum);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl FX_CreateImpactMarkInternal(
@@ -466,18 +466,18 @@ void __cdecl FX_ImpactMark(
                         markAlpha,
                         0);
             }
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
         }
-        else if ( GetCurrentThreadId() == g_DXDeviceThread )
+        else //if ( GetCurrentThreadId() == g_DXDeviceThread )
         {
             goto LABEL_4;
         }
     }
-    else if ( GetCurrentThreadId() == g_DXDeviceThread )
+    else //if ( GetCurrentThreadId() == g_DXDeviceThread )
     {
 LABEL_4:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
     }
 }
 
@@ -504,8 +504,8 @@ void __cdecl FX_ImpactMark_Generate(
     viewOffset = (float *)FX_GetSystem(localClientNum);
     if ( CG_IsShowingZombieMap() )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     else
     {
@@ -549,8 +549,8 @@ void __cdecl FX_ImpactMark_Generate(
                 765,
                 FxMarkPointsBuffer);
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -1368,8 +1368,8 @@ int __cdecl fx_add_markCallback(jqBatch *batch)
     //PIXBeginNamedEvent(-1, "fx_add_mark");
     FX_CreateImpactMarkInternal(cmd->localClientNum, cmd->elemDef, &cmd->spatialFrame, cmd->randomSeed, cmd->markEntnum);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 0;
 }
 

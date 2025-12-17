@@ -1,5 +1,7 @@
 #include "cl_keys.h"
 
+PlayerKeyState playerKeys[1];
+
 void __cdecl Field_DrawTextOverride(
                 int localClientNum,
                 const field_t *edit,

@@ -1,5 +1,30 @@
 #pragma once
 
+#include <bgame/bg_local.h>
+
+struct client_t;
+struct msg_t;
+struct SnapshotInfo_s;
+struct entityState_s;
+struct clientState_s;
+struct cachedSnapshot_t;
+struct snapshotEntityNumbers_t;
+
+struct clientSnapshot_t // sizeof=0x26CC
+{                                       // XREF: client_t/r
+    playerState_s ps;
+    int num_entities;
+    int num_clients;
+    int matchState;
+    int first_entity;
+    int first_client;
+    int messageSent;
+    int messageAcked;
+    int messageSize;
+    int serverTime;
+    int physicsTime;
+};
+
 void __cdecl SV_WriteSnapshotToClient(client_t *client, msg_t *msg);
 void __cdecl SV_EmitPacketEntities(
                 SnapshotInfo_s *snapInfo,

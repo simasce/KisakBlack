@@ -2546,8 +2546,8 @@ void __cdecl FX_UpdateBatch(
     }
     if ( !_InterlockedDecrement(&system->shared->iteratorCount) )
         FX_RunGarbageCollectionAndPrioritySort(system);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 char __cdecl FX_AcquireEffectLock_IsLiveEffect(FxEffect *effect)
@@ -2690,8 +2690,8 @@ void __cdecl FX_Update(FxSystem *system, FxSystem *remoteSystem, int localClient
         nonBoltedEffectsOnly,
         system->shared->firstActiveEffect,
         system->shared->firstNewEffect);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl FX_UpdateSpotLight(FxCmd *cmd)

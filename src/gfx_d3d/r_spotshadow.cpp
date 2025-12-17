@@ -406,16 +406,16 @@ void __cdecl R_GenerateSortedPrimarySpotShadowDrawSurfs(
     }
     //PIXBeginNamedEvent(-1, "bsp surfaces");
     R_AddAllBspDrawSurfacesSpotShadow(spotShadowIndex, shadowableLightIndex);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "static model surfaces");
     R_AddAllStaticModelSurfacesSpotShadow(viewIndex, spotShadowIndex, shadowableLightIndex);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "scene ent surfaces");
     R_AddAllSceneEntSurfacesSpotShadow(viewInfo, spotShadowIndex, shadowableLightIndex);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_EmitSpotShadowMapSurfs(GfxViewInfo *viewInfo)
@@ -477,7 +477,7 @@ void __cdecl R_EmitSpotShadowMapSurfs(GfxViewInfo *viewInfo)
                     info);
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 

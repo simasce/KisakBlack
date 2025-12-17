@@ -1,5 +1,9 @@
 #pragma once
 
+#include <tl/jobqueue/jobqueue_all.h>
+
+struct jqBatch;
+
 int __cdecl r_dpvs_entityCallback(jqBatch *batch);
 int __cdecl r_model_skinCallback(jqBatch *batch);
 bool __cdecl R_DynamicFenceBusy();
@@ -28,3 +32,39 @@ int __cdecl r_add_sceneentCallback(jqBatch *batch);
 int __cdecl fx_marks_drawCallback(jqBatch *batch);
 int __cdecl fx_update_spotCallback(jqBatch *batch);
 int __cdecl r_skin_cached_staticmodelCallback(jqBatch *batch);
+
+extern jqModule fx_update_spotModule;
+extern jqModule fx_updateModule;
+extern jqModule fx_update_remainingModule;
+extern jqModule r_dpvs_staticModule;
+extern jqModule r_dpvs_sceneentModule;
+extern jqModule r_dpvs_dynmodelModule;
+extern jqModule r_dpvs_dynbrushModule;
+extern jqModule r_dpvs_entityModule;
+extern jqModule r_add_sceneentModule;
+extern jqModule r_spot_shadow_entModule;
+extern jqModule dobj_skelModule;
+extern jqModule dobj_skinModule;
+extern jqModule fx_drawModule;
+extern jqModule fx_marks_drawModule;
+extern jqModule r_model_skinModule;
+extern jqModule nuge_physicsModule;
+extern jqModule r_skin_cached_staticmodelModule;
+
+extern jqWorkerCmd fx_update_spotWorkerCmd;
+extern jqWorkerCmd fx_updateWorkerCmd;
+extern jqWorkerCmd fx_update_remainingWorkerCmd;
+extern jqWorkerCmd r_dpvs_staticWorkerCmd;
+extern jqWorkerCmd r_dpvs_sceneentWorkerCmd;
+extern jqWorkerCmd r_dpvs_dynmodelWorkerCmd;
+extern jqWorkerCmd r_dpvs_dynbrushWorkerCmd;
+extern jqWorkerCmd r_dpvs_entityWorkerCmd;
+extern jqWorkerCmd r_add_sceneentWorkerCmd;
+extern jqWorkerCmd r_spot_shadow_entWorkerCmd;
+extern jqWorkerCmd dobj_skelWorkerCmd;
+extern jqWorkerCmd dobj_skinWorkerCmd;
+extern jqWorkerCmd fx_drawWorkerCmd;
+extern jqWorkerCmd fx_marks_drawWorkerCmd;
+extern jqWorkerCmd r_model_skinWorkerCmd;
+extern jqWorkerCmd nuge_physicsWorkerCmd;
+extern jqWorkerCmd r_skin_cached_staticmodelWorkerCmd;

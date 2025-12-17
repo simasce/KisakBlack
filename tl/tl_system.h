@@ -1,5 +1,26 @@
 #pragma once
 
+#include <Windows.h>
+
+struct tlFileBuf // sizeof=0xC
+{
+    unsigned __int8 *Buf;
+    unsigned int Size;
+    unsigned int UserData;
+};
+
+struct tlSystemCallbacks // sizeof=0x20
+{                                       // XREF: .data:tlSystemCallbacks tlCurSystemCallbacks/r
+    bool (__cdecl *ReadFile)(const char *, tlFileBuf *, unsigned int, unsigned int);
+    void (__cdecl *ReleaseFile)(tlFileBuf *);
+    void (__cdecl *CriticalError)(const char *);
+    void (__cdecl *Warning)(const char *);
+    void (__cdecl *DebugPrint)(const char *);
+    void *(__cdecl *MemAlloc)(unsigned int, unsigned int, unsigned int);
+    void *(__cdecl *MemRealloc)(void *, unsigned int, unsigned int, unsigned int);
+    void (__cdecl *MemFree)(void *);    // XREF: Sys_SetupTLCallbacks(int)+55/w
+};
+
 void __cdecl tlSetSystemCallbacks(const tlSystemCallbacks *Callbacks);
 void __cdecl tlSetFileServerRootPC(const char *Path);
 void __cdecl tlMemFree(void *Ptr);

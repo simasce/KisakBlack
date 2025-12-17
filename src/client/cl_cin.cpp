@@ -2,6 +2,12 @@
 #include <gfx_d3d/r_cinematic.h>
 #include <universal/dvar.h>
 #include <universal/q_shared.h>
+#include <server_mp/sv_init_mp.h>
+#include "client.h"
+#include <client_mp/cl_cgame_mp.h>
+#include <qcommon/cmd.h>
+
+bool cin_skippable = true;
 
 void __cdecl SCR_DrawCinematic()
 {

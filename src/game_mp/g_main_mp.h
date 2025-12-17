@@ -671,3 +671,5 @@ extern const dvar_t *g_turretBipodOffset;
 extern level_locals_t level;
 
 extern gentity_s g_entities[MAX_GENTITIES];
+
+extern playerState_s g_defaultPlayerState;

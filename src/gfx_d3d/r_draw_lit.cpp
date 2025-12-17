@@ -143,8 +143,8 @@ void    R_DrawCloakHDR(int a1@<ebp>, const GfxViewInfo *viewInfo, GfxCmdBuf *cmd
             cmdBuf,
             0);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_DrawCloakPrePassCallbackHDR(
@@ -343,8 +343,8 @@ void    R_DrawDecal(int a1@<ebp>, const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf
         &viewInfo->cullViewInfo.viewParms,
         cmdBuf,
         prepassCmdBuf);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_DrawDecalCallback(char *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)

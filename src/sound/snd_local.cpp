@@ -1,4 +1,16 @@
 #include "snd_local.h"
+#include "snd_log.h"
+
+#include <cstring>
+#include "snd_bank.h"
+#include "snd_public_async.h"
+#include <win32/win_shared.h>
+#include <win32/win_voice.h>
+#include "snd_utils.h"
+#include <qcommon/common.h>
+#include <cgame/cg_sound.h>
+#include <win32/win_common.h>
+#include "snd_globals.h"
 
 void __cdecl SNDL_AliasName(char *name, unsigned int id)
 {
@@ -255,7 +267,9 @@ void __cdecl SNDL_SetListener(
     axis[0][2] = 0.0f;
     axis[1][2] = 0.0f;
     axis[2][0] = 0.0f;
-    *(_QWORD *)&axis[2][1] = __PAIR64__(LODWORD(1.0f), 0);
+    //*(_QWORD *)&axis[2][1] = __PAIR64__(LODWORD(1.0f), 0);
+    axis[2][1] = 0.0f;
+    axis[2][2] = 1.0f;
     a = Vec3Normalize(axis[0]);
     b = Vec3Normalize(axis[1]);
     if ( (LODWORD(a) & 0x7F800000) == 0x7F800000

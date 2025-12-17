@@ -2255,8 +2255,8 @@ int __cdecl BG_UnlockablesGetItemIndexFromName(const char *itemName)
             && !I_stricmp(s_unlockableItems.itemTable[lastItem].name, itemName) )
         {
             v2 = lastItem;
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return v2;
         }
         for ( itemIndex = 0; itemIndex <= s_unlockableItems.maxItem; ++itemIndex )
@@ -2278,15 +2278,15 @@ int __cdecl BG_UnlockablesGetItemIndexFromName(const char *itemName)
                     && !I_stricmp(s_unlockableItems.itemTable[itemIndex].name, itemName) )
                 {
                     lastItem = itemIndex;
-                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                        D3DPERF_EndEvent();
+                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //D3DPERF_EndEvent();
                     return itemIndex;
                 }
             }
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     return -1;
 }
 

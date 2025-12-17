@@ -1,4 +1,33 @@
 #include "snd_bank.h"
+#include <win32/win_common.h>
+
+#include <cstring>
+#include "snd_utils.h"
+#include "snd_log.h"
+#include <qcommon/common.h>
+#include "snd_db.h"
+
+SndBank *g_snd_banks[32];
+unsigned int g_snd_bankCount;
+SndPatch *g_snd_patches[8];
+unsigned int g_snd_patchCount;
+
+void *(__cdecl *const SND_FIND_ROW[9])(unsigned int) =
+{
+  (void*(*)(unsigned int))SND_FindRowAlias,
+  (void*(*)(unsigned int))SND_FindRowGroup,
+  (void*(*)(unsigned int))SND_FindRowCurve,
+  (void*(*)(unsigned int))SND_FindRowPan,
+  (void*(*)(unsigned int))RETURN_ZERO32,
+  (void*(*)(unsigned int))RETURN_ZERO32,
+  (void*(*)(unsigned int))SND_FindRowContext,
+  (void*(*)(unsigned int))RETURN_ZERO32,
+  (void*(*)(unsigned int))SND_FindRowMaster
+};
+
+
+
+
 
 void __cdecl SND_AddBank(SndBank *bank)
 {
@@ -143,7 +172,8 @@ void __cdecl SND_RemoveBank(SndBank *bank)
         {
             if ( found )
             {
-                dword_A0B1C6C[i] = (int)g_snd_banks[i];
+                //dword_A0B1C6C[i] = (int)g_snd_banks[i];
+                g_snd_banks[i - 1] = g_snd_banks[i];
                 g_snd_banks[i] = 0;
             }
         }
@@ -326,11 +356,11 @@ snd_alias_list_t *__cdecl SND_BankAliasLookup(unsigned int key)
     //PIXBeginNamedEvent(-1, "SND_BankAliasLookup");
     list = 0;
     Sys_EnterCriticalSection(CRITSECT_SOUND_BANK);
-    for ( i = 0; i < g_snd_bankCount && !SND_FindInIndex(key, (const SndBank *)dword_A0B1C6C[g_snd_bankCount - i], &list); ++i )
+    for ( i = 0; i < g_snd_bankCount && !SND_FindInIndex(key, (const SndBank *)g_snd_banks[g_snd_bankCount - i - 1], &list); ++i )
         ;
     Sys_LeaveCriticalSection(CRITSECT_SOUND_BANK);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return list;
 }
 
@@ -355,7 +385,7 @@ const snd_radverb *__cdecl SND_GetRadverb(unsigned int id)
     radverb = 0;
     for ( i = 0; i < g_snd_bankCount && !radverb; ++i )
     {
-        bank = (SndBank *)dword_A0B1C6C[g_snd_bankCount - i];
+        bank = (SndBank *)g_snd_banks[g_snd_bankCount - i - 1];
         if ( bank )
         {
             for ( r = 0; r < bank->radverbCount; ++r )
@@ -385,7 +415,7 @@ const snd_snapshot *__cdecl SND_GetSnapshotById(unsigned int id)
     snapshot = 0;
     for ( i = 0; i < g_snd_bankCount && !snapshot; ++i )
     {
-        bank = (SndBank *)dword_A0B1C6C[g_snd_bankCount - i];
+        bank = (SndBank *)g_snd_banks[g_snd_bankCount - i - 1];
         if ( bank )
         {
             for ( r = 0; r < bank->snapshotCount; ++r )
@@ -546,7 +576,7 @@ void __cdecl SND_PatchValue(unsigned int table, char *asset, unsigned int field,
                 *(unsigned int *)v4 = value;
                 break;
             case SND_CSV_DBSPL:
-                *(_WORD *)v4 = (int)(SND_dBSPLToLinear() * 65535.0);
+                *(_WORD *)v4 = (int)(SND_dBSPLToLinear(value) * 65535.0);
                 break;
             case SND_CSV_HASH:
                 *(unsigned int *)v4 = value;

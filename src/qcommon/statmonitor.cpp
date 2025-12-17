@@ -1,4 +1,12 @@
 #include "statmonitor.h"
+#include <gfx_d3d/r_dvars.h>
+#include <game_mp/g_main_mp.h>
+#include <win32/win_common.h>
+#include <win32/win_shared.h>
+#include <client_mp/cl_main_mp.h>
+
+statmonitor_s stats[14];
+int statCount;
 
 void __cdecl StatMon_Warning(int type, int duration, char *materialName)
 {

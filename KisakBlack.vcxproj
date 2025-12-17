@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\M1911\Documents\kisak-COD\blops\kisakblack\src;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\M1911\Documents\kisak-COD\blops\kisakblack;C:\Users\M1911\Documents\kisak-COD\blops\kisakblack\src;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -1670,6 +1670,7 @@
     <ClInclude Include="src\server\sv_game.h" />
     <ClInclude Include="src\server\sv_live_stats.h" />
     <ClInclude Include="src\server\sv_world.h" />
+    <ClInclude Include="src\server_mp\server_mp.h" />
     <ClInclude Include="src\server_mp\sv_archive_mp.h" />
     <ClInclude Include="src\server_mp\sv_bot_mp.h" />
     <ClInclude Include="src\server_mp\sv_ccmds_mp.h" />
@@ -1810,6 +1811,12 @@
     <ClInclude Include="src\zlib\zconf.h" />
     <ClInclude Include="src\zlib\zlib.h" />
     <ClInclude Include="src\zlib\zutil.h" />
+    <ClInclude Include="tl\jobqueue\jobqueue_all.h" />
+    <ClInclude Include="tl\physics\rbc_def_contact.h" />
+    <ClInclude Include="tl\physics\rbc_def_custom.h" />
+    <ClInclude Include="tl\physics\rbc_def_generic.h" />
+    <ClInclude Include="tl\physics\rbc_def_ragdoll.h" />
+    <ClInclude Include="tl\physics\rbc_def_vehicle.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

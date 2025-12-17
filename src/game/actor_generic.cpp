@@ -37,8 +37,8 @@ void __fastcall Actor_Generic_Suspend(actor_s *self, ai_state_t eNextState)
         __debugbreak();
     }
     AIFuncTable[self->species][self->eState[self->stateLevel]].pfnFinish(self, eNextState);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 int __fastcall Actor_Generic_Resume(actor_s *self, ai_state_t ePrevState)

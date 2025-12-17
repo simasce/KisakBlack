@@ -4259,7 +4259,7 @@ void __cdecl VM_Resume(scriptInstance_t inst, unsigned int timeId)
     ClearVariableValue(inst, gScrVarPub[inst].tempVariable);
     gScrVmPub[inst].top = gScrVmPub[inst].stack;
     //if (g_DXDeviceThread == GetCurrentThreadId())
-    //    D3DPERF_EndEvent();
+    //    //D3DPERF_EndEvent();
 }
 
 void __cdecl VM_UnarchiveStack(scriptInstance_t inst, unsigned int startLocalId, VariableStackBuffer *stackValue)

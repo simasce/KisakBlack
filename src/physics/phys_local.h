@@ -979,34 +979,6 @@ struct Phys_UnitQuaternion // sizeof=0x10
     float w;
 };
 
-struct tlAtomicMutex // sizeof=0x10
-{                                       // XREF: .data:tlAtomicMutex g_prolog_task_mutex/r
-    unsigned __int64 ThreadId;          // XREF: jqInit(void)+58/w
-    int LockCount;                      // XREF: jqInit(void)+64/w
-    tlAtomicMutex *ThisPtr;             // XREF: jqInit(void)+4E/w
-};
-
-struct tlAtomicMutexLocker // sizeof=0x4
-{
-    tlAtomicMutex *Mutex;
-};
-
-struct __declspec(align(8)) tlAtomicReadWriteMutex // sizeof=0x18
-{                                       // XREF: .data:tlAtomicReadWriteMutex g_auto_rigid_body_map_mutex/r
-                                        // broad_phase_memory/r
-    volatile unsigned __int64 WriteThreadId;
-                                        // XREF: _dynamic_initializer_for__g_auto_rigid_body_map_mutex__+3/w
-                                        // _dynamic_initializer_for__g_auto_rigid_body_map_mutex__+D/w
-    volatile int ReadLockCount;         // XREF: _dynamic_initializer_for__g_auto_rigid_body_map_mutex__+17/w
-    volatile int WriteLockCount;        // XREF: _dynamic_initializer_for__g_auto_rigid_body_map_mutex__+21/w
-    tlAtomicReadWriteMutex *ThisPtr;    // XREF: auto_rigid_body::add(centity_s const *,gjk_physics_collision_visitor *,int)+15B/r
-                                        // _dynamic_initializer_for__g_auto_rigid_body_map_mutex__+2B/w ...
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
-};
-
 inline const phys_vec3 *__cdecl phys_min(phys_vec3 *result, const phys_vec3 *v1, const phys_vec3 *v2)
 {
     float x; // [esp+0h] [ebp-24h]

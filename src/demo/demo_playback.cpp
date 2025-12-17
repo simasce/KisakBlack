@@ -352,8 +352,8 @@ void __cdecl Demo_TagPlayers(int localClientNum, demoTagPlayers *players)
                 }
             }
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -1121,8 +1121,8 @@ void __cdecl Demo_ResetWorldInformation(int localClientNum, int time)
     Con_Close(localClientNum);
     //PIXBeginNamedEvent(-16711681, "Resetting World - FX Rewind");
     CG_RestartSmokeGrenades(localClientNum);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     cgameGlob->newPlayerViewmodel = 1;
     cgameGlob->clearMarks = 1;
     //PIXBeginNamedEvent(-16711681, "Resetting World - Reset Destructibles & Compass Data");
@@ -1131,8 +1131,8 @@ void __cdecl Demo_ResetWorldInformation(int localClientNum, int time)
     CG_ClearPopUpUI(localClientNum);
     CG_ResetDirectionalDamageIndicators(localClientNum, time);
     CG_ResetLowHealthOverlay(cgameGlob);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     cgameGlob->refdef.poisonFx.curAmountTarget = 0.0f;
     cgameGlob->refdef.poisonFx.curAmount = 0.0f;
     cgameGlob->refdef.waterSheetingFx.enabled = 0;
@@ -1154,8 +1154,8 @@ void __cdecl Demo_ResetWorldInformation(int localClientNum, int time)
         t = Scr_ExecThread(SCRIPTINSTANCE_CLIENT, cg_scr_mp_data.demo_jump, 2u);
         Scr_FreeThread(t, SCRIPTINSTANCE_CLIENT);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-16711681, "Resetting World - Centity Resets");
     for ( i = 0; i < 1024; ++i )
     {
@@ -1173,8 +1173,8 @@ void __cdecl Demo_ResetWorldInformation(int localClientNum, int time)
         if ( cent->clientTagCache )
             cent->clientTagCache = 0;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 bool __cdecl Demo_IsGameHudHidden()
@@ -3288,8 +3288,8 @@ void __cdecl Demo_WriteConfigStrings(int localClientNum, msg_t *msg)
     bitsUsed = MSG_GetUsedBitCount(msg) - bitsStart;
     v5 = va("Demo_WriteConfigStrings() - NumConfigStrings: %d Size: %d bytes\n", configStringCount, bitsUsed / 8);
     Demo_Printf(131, v5);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_ReadConfigStrings(int localClientNum, msg_t *msg)
@@ -3380,8 +3380,8 @@ void __cdecl Demo_ReadConfigStrings(int localClientNum, msg_t *msg)
     bitsUsed = MSG_GetNumBitsRead(msg) - bitsStart;
     v2 = va("Demo_ReadConfigStrings() - NumConfigStrings: %d Size: %d bytes\n", numConfigStrings, bitsUsed / 8);
     Demo_Printf(131, v2);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_UpdateConfigStrings(int localClientNum)
@@ -3440,8 +3440,8 @@ void __cdecl Demo_GenerateKeyFrameSnapshot(
     MSG_Init(&demo.playback->keyframeMsg, demo.memBlock.compressedMsgBuf, 49152);
     MSG_Embed(&demo.playback->keyframeMsg, &msg);
     demo.playback->keyframeGenerated = 1;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_WriteKeyFrameInformation(int localClientNum)
@@ -3538,8 +3538,8 @@ void __cdecl Demo_WriteKeyFrameInformation(int localClientNum)
                  *demo.playback->keyframeMsg.data,
                  demo.playback->keyframeMsg.data[demo.playback->keyframeMsg.cursize - 1]);
     Demo_Printf(128, v8);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_InitClipRecord(int localClientNum, bool newClip)
@@ -5272,8 +5272,8 @@ void __cdecl Demo_WriteDemoPreviewPoint(int localClientNum, int restorePoint)
     {
         __debugbreak();
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_RestoreDemoPreviewPoint(int localClientNum, int restorePoint)

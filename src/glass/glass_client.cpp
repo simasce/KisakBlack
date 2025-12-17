@@ -84,8 +84,8 @@ void __thiscall GlassesClient::Update(GlassesClient *this, int localClientNum)
     //PIXBeginNamedEvent(-1, "GlassesClient.Update");
     for ( i = 0; i < this->numGlasses; ++i )
         GlassClient::Update(&this->glasses[i], localClientNum);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __thiscall GlassesClient::ParseSnapshot(GlassesClient *this, int localClientNum, msg_t *msg, bool gameState)
@@ -205,8 +205,8 @@ void __thiscall GlassesClient::WriteDemoSnapshot(GlassesClient *this, msg_t *msg
         }
     }
     MSG_WriteShort(msg, 30154);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __thiscall GlassesClient::PreShatterNext(GlassesClient *this)
@@ -230,7 +230,7 @@ void __thiscall GlassesClient::PreShatterNext(GlassesClient *this)
     if ( GetCurrentThreadId() != g_DXDeviceThread )
         return;
 LABEL_10:
-    D3DPERF_EndEvent();
+    //D3DPERF_EndEvent();
 }
 
 void __thiscall GlassClient::Init(GlassClient *this, const Glass *gls)
@@ -563,8 +563,8 @@ void __thiscall GlassClient::Shatter(GlassClient *this, const float *pos, const 
                 this->outlines = 0;
                 if ( numNewShards > 0 )
                     GlassShard::InitPhysics(newShards[0], newShards, numNewShards, glassExtent, pos, dir);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
             }
             else
             {
@@ -594,12 +594,12 @@ void __thiscall GlassClient::Shatter(GlassClient *this, const float *pos, const 
         {
             GlassRenderer::FreeShard(clGlasses->renderer, shard);
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
-    else if ( GetCurrentThreadId() == g_DXDeviceThread )
+    else //if ( GetCurrentThreadId() == g_DXDeviceThread )
     {
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
     }
 }
 
@@ -647,14 +647,14 @@ char __thiscall GlassClient::PreShatter(GlassClient *this)
         {
             GlassRenderer::FreeShard(clGlasses->renderer, shard);
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 1;
     }
 }
@@ -751,8 +751,8 @@ int __thiscall GlassClient::Outlines::InitShards(
         ShardGroup::Add(grp, shards[numNewShards++]);
     }
     v8 = numNewShards;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return v8;
 }
 
@@ -854,8 +854,8 @@ void __cdecl GlassCl_WaitGenerateVerts()
     {
         //PIXBeginNamedEvent(-1, "GlassCl_WaitGenerateVerts");
         GlassRenderer::BeginUpdate((colgeom_visitor_t *)clGlasses->renderer);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -945,8 +945,8 @@ void __thiscall GlassesClient::TracePoint(GlassesClient *this, const pointtrace_
             results->hitId = index;
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl GlassCl_MeleeEvent(int localClientNum, int attackerEntNum)
@@ -1119,7 +1119,7 @@ void __thiscall GlassesClient::ClipMoveTrace(GlassesClient *this, const moveclip
             results->hitId = index;
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "snd.h"
 
 void __cdecl SND_InitCommands();
 snd_command *__cdecl SND_GetNewCommand();

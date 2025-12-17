@@ -4756,8 +4756,8 @@ void __cdecl VEH_UpdateNitrousPosition(gentity_s *pSelf)
         if ( (notifyFlags & 0x10) != 0 )
             Scr_Notify(pSelf, scr_const.veh_engine_stutter, 0);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Scr_Vehicle_Think(gentity_s *pSelf)
@@ -4863,8 +4863,8 @@ void __cdecl Scr_Vehicle_Think(gentity_s *pSelf)
         G_MoverTeam_New(pSelf);
     if ( info->type == 6 )
         veh->phys.angles[0] = veh->phys.angles[0] - defaultPitch;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl VEH_MoveTrace(gentity_s *ent)

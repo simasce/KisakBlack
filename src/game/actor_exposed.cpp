@@ -267,8 +267,8 @@ void __fastcall Actor_Exposed_FlashBanged(actor_s *self)
         AI_ANIM_USE_BOTH_DELTAS,
         AI_ANIM_FUNCTION_STOP);
     Actor_SetOrientMode(self, AI_ORIENT_DONT_CHANGE);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 int __cdecl Path_IsValidClaimNode(const pathnode_t *node)

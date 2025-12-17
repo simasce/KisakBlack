@@ -1,4 +1,21 @@
 #pragma once
+#include "r_dpvs.h"
+
+struct DpvsStaticCellCmd // sizeof=0xC
+{                                       // XREF: R_AddCellSurfacesAndCullGroupsInFrustumDelayed/r
+    const DpvsPlane *planes;            // XREF: R_AddCellSurfacesAndCullGroupsInFrustumDelayed+F/w
+    //$FE217278708CFE8B64B0580037FD6900 ___u1;
+    // 00000000 union $FE217278708CFE8B64B0580037FD6900 // sizeof=0x4
+    union 
+    {                                       // XREF: R_AddCellSurfacesAndCullGroupsInFrustumDelayed+9/w
+        const GfxCell *cell;
+        const GfxCell *cell_local;
+    };
+                                        // XREF: R_AddCellSurfacesAndCullGroupsInFrustumDelayed+9/w
+    unsigned __int8 planeCount;         // XREF: R_AddCellSurfacesAndCullGroupsInFrustumDelayed+15/w
+    unsigned __int8 frustumPlaneCount;  // XREF: R_AddCellSurfacesAndCullGroupsInFrustumDelayed+1B/w
+    unsigned __int16 viewIndex;         // XREF: R_AddCellSurfacesAndCullGroupsInFrustumDelayed+35/w
+};
 
 char __cdecl TestOccluders(const float (*bounds)[3], int numOccluders, float (*plane)[4]);
 float (*__cdecl TestOccludersPartial(const float (*bounds)[3], int *numOccludersPtr, float (*plane)[4]))[4];

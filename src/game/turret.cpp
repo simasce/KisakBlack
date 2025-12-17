@@ -1259,7 +1259,7 @@ void __cdecl turret_think(gentity_s *self)
         if ( g_DXDeviceThread != GetCurrentThreadId() )
             return;
     }
-    D3DPERF_EndEvent();
+    //D3DPERF_EndEvent();
 }
 
 int __cdecl turret_ReturnToDefaultPos(gentity_s *self, int bManned)

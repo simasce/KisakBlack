@@ -1,63 +1,303 @@
 #pragma once
 
-SDXA2Effect *__thiscall SDXA2Effect::SDXA2Effect(SDXA2Effect *this, XAPO_REGISTRATION_PROPERTIES *props);
-HRESULT __stdcall CXAPOBase::Initialize(CXAPOBase *this, const void *__formal, unsigned int DataByteSize);
-unsigned int __stdcall CXAPOBase::CalcInputFrames(CXAPOBase *this, unsigned int InputFrameCount);
-void __thiscall SDXA2Effect::~SDXA2Effect(SDXA2Effect *this);
-void __stdcall SDXA2Effect::GetParameters(SDXA2Effect *this, void *pParameters, unsigned int ParameterByteSize);
-HRESULT __stdcall SDXA2Effect::LockForProcess(
-                SDXA2Effect *this,
-                unsigned int InputLockedParameterCount,
-                const XAPO_LOCKFORPROCESS_BUFFER_PARAMETERS *in,
-                unsigned int OutputLockedParameterCount,
-                const XAPO_LOCKFORPROCESS_BUFFER_PARAMETERS *out);
-HRESULT __stdcall SDXA2Effect::QueryInterface(SDXA2Effect *this, const _GUID *riid, void **ppInterface);
-HRESULT __stdcall CXAPOBase::QueryInterface(CXAPOBase *this, const _GUID *riid, void **ppInterface);
-int __stdcall SDXA2Effect::AddRef(SDXA2Effect *this);
-int __stdcall SDXA2Effect::Release(SDXA2Effect *this);
-int __stdcall CXAPOBase::Release(CXAPOBase *this);
-void __stdcall SDXA2Effect::Reset(SDXA2Effect *this);
-void __stdcall SDXA2Effect::UnlockForProcess(SDXA2Effect *this);
-void __stdcall SDXA2Effect::Process(
-                SDXA2Effect *this,
-                unsigned int InputProcessParameterCount,
-                const XAPO_PROCESS_BUFFER_PARAMETERS *pInputProcessParameters,
-                unsigned int OutputProcessParameterCount,
-                XAPO_PROCESS_BUFFER_PARAMETERS *pOutputProcessParameters,
-                int IsEnabled);
-SDXA2SourceEffect *__thiscall SDXA2SourceEffect::SDXA2SourceEffect(SDXA2SourceEffect *this);
-void __thiscall SDXA2SourceEffect::Clear(SDXA2SourceEffect *this);
-void __thiscall SDXA2SourceEffect::Process(
-                SDXA2SourceEffect *this,
-                unsigned int channelCount,
-                unsigned int frameCount,
-                float *data);
-void __stdcall SDXA2SourceEffect::SetParameters(SDXA2SourceEffect *this, const void *pParams, unsigned int cbParams);
-SDXA2MasterNoVoiceBusEffect *__thiscall SDXA2MasterNoVoiceBusEffect::SDXA2MasterNoVoiceBusEffect(
-                SDXA2MasterNoVoiceBusEffect *this);
-void __thiscall SDXA2MasterNoVoiceBusEffect::Process(
-                SDXA2MasterNoVoiceBusEffect *this,
-                unsigned int channelCount,
-                unsigned int frameCount,
-                float *data);
-void __stdcall SDXA2MasterNoVoiceBusEffect::SetParameters(
-                SDXA2MasterNoVoiceBusEffect *this,
-                const void *pParams,
-                unsigned int cbParams);
-SDXA2MasterBusEffect *__thiscall SDXA2MasterBusEffect::SDXA2MasterBusEffect(SDXA2MasterBusEffect *this);
-void __thiscall SDXA2MasterBusEffect::Process(
-                SDXA2MasterBusEffect *this,
-                unsigned int channelCount,
-                unsigned int frameCount,
-                float *data);
-void __stdcall SDXA2MasterBusEffect::SetParameters(
-                SDXA2MasterBusEffect *this,
-                const void *pParams,
-                unsigned int cbParams);
-SDXA2RadverbEffect *__thiscall SDXA2RadverbEffect::SDXA2RadverbEffect(SDXA2RadverbEffect *this);
-void __thiscall SDXA2RadverbEffect::Process(
-                SDXA2RadverbEffect *this,
-                unsigned int channelCount,
-                unsigned int frameCount,
-                float *data);
-void __stdcall SDXA2RadverbEffect::SetParameters(SDXA2RadverbEffect *this, const void *pParams, unsigned int cbParams);
+#include <XAPOBase.h>
+#include <XAudio2.h>
+#include <universal/assertive.h>
+
+struct SDXA2Effect : CXAPOBase // sizeof=0x3C80
+{                                       // XREF: SDXA2MasterNoVoiceBusEffect/r
+    int locked;
+    int started;
+    unsigned int frameRate;
+    unsigned int frameCount;
+    unsigned int channelCount;
+    float interleave[3840];             // XREF: .rdata:stru_D50258/o
+
+    SDXA2Effect(XAPO_REGISTRATION_PROPERTIES *props);
+    ~SDXA2Effect();
+
+    HRESULT LockForProcess(
+        unsigned int InputLockedParameterCount,
+        const XAPO_LOCKFORPROCESS_BUFFER_PARAMETERS *in,
+        unsigned int OutputLockedParameterCount,
+        const XAPO_LOCKFORPROCESS_BUFFER_PARAMETERS *out);;
+
+    //int __stdcall SDXA2Effect::Release(); CXAPOBase
+    void Reset()
+    {
+        iassert(!locked);
+        locked = 0;
+        started = 0;
+    }
+    void UnlockForProcess()
+    {
+        iassert(locked);
+        locked = 0;
+    }
+
+    virtual void Process(
+        unsigned int InputProcessParameterCount,
+        const XAPO_PROCESS_BUFFER_PARAMETERS *pInputProcessParameters,
+        unsigned int OutputProcessParameterCount,
+        XAPO_PROCESS_BUFFER_PARAMETERS *pOutputProcessParameters,
+        int IsEnabled);
+    
+    virtual void Process(unsigned int channelCount, unsigned int frameCount, float *data) = 0;
+};
+
+struct snd_dsp_master_params // sizeof=0x60
+{                                       // XREF: SDXA2MasterBusEffect/r
+                                        // SoundState/r
+    float lowE;                         // XREF: SD_PreUpdate(int)+314/w
+    float lowG;                         // XREF: SD_PreUpdate(int)+324/w
+    float lowF;                         // XREF: SD_PreUpdate(int)+334/w
+    float lowQ;                         // XREF: SD_PreUpdate(int)+344/w
+    float peak1E;                       // XREF: SD_PreUpdate(int)+354/w
+    float peak1G;                       // XREF: SD_PreUpdate(int)+364/w
+    float peak1F;                       // XREF: SD_PreUpdate(int)+374/w
+    float peak1Q;                       // XREF: SD_PreUpdate(int)+384/w
+    float peak2E;                       // XREF: SD_PreUpdate(int)+394/w
+    float peak2G;                       // XREF: SD_PreUpdate(int)+3A4/w
+    float peak2F;                       // XREF: SD_PreUpdate(int)+3B4/w
+    float peak2Q;                       // XREF: SD_PreUpdate(int)+3C4/w
+    float hiE;                          // XREF: SD_PreUpdate(int)+3D4/w
+    float hiG;                          // XREF: SD_PreUpdate(int)+3E4/w
+    float hiF;                          // XREF: SD_PreUpdate(int)+3F4/w
+    float hiQ;                          // XREF: SD_PreUpdate(int)+404/w
+    float eqG;                          // XREF: SD_PreUpdate(int)+414/w
+    float limitE;                       // XREF: SD_PreUpdate(int)+427/w
+    float limitPG;                      // XREF: SD_PreUpdate(int)+43A/w
+    float limitMG;                      // XREF: SD_PreUpdate(int)+44D/w
+    float limitT;                       // XREF: SD_PreUpdate(int)+460/w
+    float limitR;                       // XREF: SD_PreUpdate(int)+473/w
+    float limitTA;                      // XREF: SD_PreUpdate(int)+486/w
+    float limitTR;                      // XREF: SD_PreUpdate(int)+499/w
+};
+
+struct __declspec(align(128)) snd_dsp_dynamo_state // sizeof=0xF80
+{                                       // XREF: snd_dsp_master_no_voice_state/r
+                                        // snd_dsp_master_state/r
+    float lookahead[960];
+    unsigned int offset;
+    float yfilter;
+    float gfilter;
+    float g;
+};
+
+struct snd_dsp_master_no_voice_state // sizeof=0xF80
+{                                       // XREF: SDXA2MasterNoVoiceBusEffect/r
+    snd_dsp_dynamo_state comp;
+};
+
+struct snd_dsp_biquad_state // sizeof=0x20
+{                                       // XREF: snd_dsp_futz_state/r
+                                        // snd_dsp_futz_state/r ...
+    float y[4];
+    float x[4];
+};
+
+struct snd_dsp_squelch_state // sizeof=0x8
+{                                       // XREF: snd_dsp_futz_state/r
+    float l;
+    float g;
+};
+
+struct snd_dsp_futz_state // sizeof=0x48
+{                                       // XREF: snd_dsp_source_state/r
+    snd_dsp_biquad_state bpf;
+    snd_dsp_biquad_state ls;
+    snd_dsp_squelch_state squelch;
+};
+
+struct snd_dsp_master_no_voice_params // sizeof=0x1C
+{                                       // XREF: SDXA2MasterNoVoiceBusEffect/r
+                                        // SoundState/r
+    float compE;                        // XREF: SD_Init(void)+AF/w
+                                        // SD_PreUpdate(int)+4C1/w ...
+    float compPG;                       // XREF: SD_Init(void)+B5/w
+                                        // SD_PreUpdate(int)+4C7/w ...
+    float compMG;                       // XREF: SD_Init(void)+BB/w
+                                        // SD_PreUpdate(int)+4CD/w ...
+    float compT;                        // XREF: SD_Init(void)+C1/w
+                                        // SD_PreUpdate(int)+4D3/w ...
+    float compR;                        // XREF: SD_Init(void)+C7/w
+                                        // SD_PreUpdate(int)+4D9/w ...
+    float compTA;                       // XREF: SD_Init(void)+CD/w
+                                        // SD_PreUpdate(int)+4DF/w ...
+    float compTR;                       // XREF: SD_Init(void)+D3/w
+                                        // SD_PreUpdate(int)+4E5/w ...
+};
+
+struct snd_dsp_biquad_coef // sizeof=0x14
+{                                       // XREF: ?SND_DspFutzMono@@YAXPIBUsnd_dsp_futz_param@@PIAUsnd_dsp_futz_state@@MIPIAM22@Z/r
+                                        // ?SND_DspFutzMono@@YAXPIBUsnd_dsp_futz_param@@PIAUsnd_dsp_futz_state@@MIPIAM22@Z/r ...
+    float s[5];
+};
+
+struct snd_dsp_master_state // sizeof=0x1000
+{                                       // XREF: SDXA2MasterBusEffect/r
+    snd_dsp_biquad_state low;
+    snd_dsp_biquad_state peak1;
+    snd_dsp_biquad_state peak2;
+    snd_dsp_biquad_state hi;
+    snd_dsp_dynamo_state limit;
+};
+
+struct SDXA2MasterBusEffect : SDXA2Effect // sizeof=0xBD00
+{                                       // XREF: SoundState/r
+    snd_dsp_master_params params;
+    snd_dsp_master_state state[8];
+
+    SDXA2MasterBusEffect();
+
+    void Process(
+        unsigned int channelCount,
+        unsigned int frameCount,
+        float *data);
+    void SetParameters(
+        const void *pParams,
+        unsigned int cbParams);
+};
+
+struct snd_rv_params // sizeof=0x64
+{                                       // XREF: snd_rv_state/r
+                                        // SDXA2RadverbEffect/r ...
+    float frameRate;                    // XREF: SD_PreUpdate(int)+2C/w
+                                        // SD_PreUpdate(int):loc_940486/r ...
+    float smoothing;                    // XREF: SD_PreUpdate(int)+46/w
+    float earlyTime;                    // XREF: SD_PreUpdate(int)+56/w
+    float lateTime;                     // XREF: SD_PreUpdate(int)+66/w
+    float earlyGain;                    // XREF: SD_PreUpdate(int)+76/w
+    float lateGain;                     // XREF: SD_PreUpdate(int)+86/w
+    float lateGainProx[4];              // XREF: SD_PreUpdate(int)+96/w
+                                        // SD_PreUpdate(int)+A6/w ...
+    float returnGain;                   // XREF: SD_PreUpdate(int)+D6/w
+    float earlyLpf;                     // XREF: SD_PreUpdate(int)+E6/w
+    float lateLpf;                      // XREF: SD_PreUpdate(int)+F6/w
+    float inputLpf;                     // XREF: SD_PreUpdate(int)+106/w
+    float dampLpf;                      // XREF: SD_PreUpdate(int)+116/w
+    float wallReflect[4];               // XREF: SD_PreUpdate(int)+13F/w
+    float dryGain;                      // XREF: SD_PreUpdate(int)+150/w
+    float earlySize;                    // XREF: SD_PreUpdate(int)+160/w
+    float lateSize;                     // XREF: SD_PreUpdate(int)+170/w
+    float diffusion;                    // XREF: SD_PreUpdate(int)+180/w
+    float angle;                        // XREF: SD_PreUpdate(int)+24C/w
+                                        // SD_PreUpdate(int)+25E/w
+    unsigned int delayMatrix;           // XREF: SD_PreUpdate(int)+192/w
+};
+
+struct __declspec(align(128)) snd_rv_state // sizeof=0x80280
+{                                       // XREF: SDXA2RadverbEffect/r
+    float delayLine[131072];            // XREF: .data:00E1F218/o
+                                        // .data:00E1F42C/o ...
+    float earlyReflectionCoefs[4][4];
+    unsigned int earlyReflectionDelays[4][4];
+    float lateReflectionCoefs[4][4];
+    unsigned int lateReflectionDelays[4][4];
+    float inputLpfState[4];
+    float earlyLpfState[4];
+    float lateLpfState[4];
+    float dampLpfState[4];
+    snd_rv_params params;
+    unsigned int earlyReflectionDelayBase[4][4];
+    unsigned int lateReflectionDelayBase[4][4];
+    unsigned int delayIndex;
+};
+
+struct SDXA2RadverbEffect : SDXA2Effect // sizeof=0x87B80
+{                                       // XREF: SoundState/r
+    snd_rv_state state;                 // XREF: .data:00E1F218/o
+                                        // .data:00E1F42C/o ...
+    snd_rv_params params;
+
+    float temp[3840];
+
+    SDXA2RadverbEffect();
+
+    void Process(
+        unsigned int channelCount,
+        unsigned int frameCount,
+        float *data);
+
+    void SetParameters(const void *pParams, unsigned int cbParams);
+
+};
+
+struct snd_dsp_squelch_param // sizeof=0x8
+{                                       // XREF: snd_dsp_futz_param/r
+    float tg;
+    float th;
+};
+
+struct snd_dsp_futz_param // sizeof=0x34
+{                                       // XREF: snd_dsp_source_params/r
+    float blend;
+    float bpfF;
+    float bpfQ;
+    float lsG;
+    float lsF;
+    float lsQ;
+    float distortion;
+    float pregain;
+    float postgain;
+    float preclip;
+    float postclip;
+    snd_dsp_squelch_param squelch;
+};
+
+struct snd_dsp_source_params // sizeof=0x40
+{                                       // XREF: SDXA2SourceEffect/r
+                                        // VoiceInfo/r
+    float frameRate;
+    float lpfAttenuation;
+    float lpfRatio;
+    snd_dsp_futz_param futz;
+};
+
+struct snd_dsp_source_state // sizeof=0x4C
+{                                       // XREF: SDXA2SourceEffect/r
+    float lpfy;
+    snd_dsp_futz_state futz;
+};
+
+struct SDXA2SourceEffect : SDXA2Effect // sizeof=0x5B80
+{                                       // XREF: SoundState/r
+    snd_dsp_source_params params;
+    snd_dsp_source_state state[2];
+
+    float tempa[960];
+    float tempb[960];
+
+    SDXA2SourceEffect();
+    void Clear();
+    void Process(
+        unsigned int channelCount,
+        unsigned int frameCount,
+        float *data);
+    void SetParameters(const void *pParams, unsigned int cbParams);
+};
+
+struct SDXA2MasterNoVoiceBusEffect : SDXA2Effect // sizeof=0xB900
+{                                       // XREF: SoundState/r
+    snd_dsp_master_no_voice_params params;
+    snd_dsp_master_no_voice_state state[8];
+
+    SDXA2MasterNoVoiceBusEffect();
+
+    void Process(
+        unsigned int channelCount,
+        unsigned int frameCount,
+        float *data);
+    void SetParameters(
+        const void *pParams,
+        unsigned int cbParams);
+};
+
+
+
+
+
+
+
+
+

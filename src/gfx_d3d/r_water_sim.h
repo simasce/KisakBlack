@@ -1,5 +1,54 @@
 #pragma once
 
+#include "r_gfx.h"
+
+struct WaterSimulationCmdUpdate // sizeof=0xC
+{                                       // XREF: WaterSimulationCmd/r
+    unsigned int startTile;             // XREF: R_WaterSimulationRender(float const * const,int,uint)+222/r
+    unsigned int srcBuf;
+    unsigned int destBuf;               // XREF: R_WaterSimulationRender(float const * const,int,uint):loc_A820B9/r
+};
+
+struct GfxWaterVertex // sizeof=0x10
+{
+    unsigned __int8 pos[4];
+    unsigned __int8 normal[4];
+    GfxColor color;
+    unsigned __int8 texCoord[4];
+};
+
+struct tilemesh_t // sizeof=0x20
+{                                       // XREF: fifo_t<tilemesh_t,4>/r
+    int srcU;
+    int srcV;
+    int worldX;
+    int worldY;
+    int worldZ;
+    int lastSkinTime;
+    unsigned int baseVertex;
+    GfxWaterVertex *lockedData;
+};
+
+struct WaterSimulationCmdSkin // sizeof=0x48
+{                                       // XREF: WaterSimulationCmd/r
+    unsigned int startTile;
+    unsigned int srcBuf;
+    //$23E4FC536F9FEE55F47DDD857C0ED32E ___u2;
+    union //$23E4FC536F9FEE55F47DDD857C0ED32E // sizeof=0x40
+    {                                       // XREF: WaterSimulationCmdSkin/r
+        tilemesh_t *meshesEA[16];
+        tilemesh_t *meshes[16];
+    };
+};
+
+struct WaterSimulationCmd // sizeof=0x54
+{                                       // XREF: .data:prevCmd/r
+                                        // ?R_WaterSimulationRender@@YAXQBMHI@Z/r
+    WaterSimulationCmdUpdate update;    // XREF: R_WaterSimulationRender(float const * const,int,uint):loc_A820B9/r
+                                        // R_WaterSimulationRender(float const * const,int,uint)+222/r
+    WaterSimulationCmdSkin skin;
+};
+
 void __cdecl R_InitWaterSimulation();
 void __cdecl R_WaterSimulationRestart();
 void __cdecl ExpireAllMeshes(tile_t *tile);

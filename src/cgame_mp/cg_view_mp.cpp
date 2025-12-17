@@ -4093,12 +4093,12 @@ LABEL_22:
         CG_ProcessEntity(localClientNum, cent);
         CG_CheckEntEvents(localClientNum, cent);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "view anim");
     CG_UpdateViewWeaponAnim(localClientNum, 0);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     dword_A05AC7C = 0;
     if ( CL_LocalClient_IsFirstActive(localClientNum) && cgameGlob->snap )
     {
@@ -4136,8 +4136,8 @@ LABEL_22:
             }
         }
         Scr_IncTime(SCRIPTINSTANCE_CLIENT);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     //PIXBeginNamedEvent(-1, "view values");
     UpdateKillCamEntityCache(localClientNum);
@@ -4148,8 +4148,8 @@ LABEL_22:
     if ( cgameGlob->cameraMode == 1 || cgameGlob->cameraMode == 2 )
         CG_MovieCamCalcView(localClientNum);
     CG_DrawWaterTrail(localClientNum);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "player entity");
     if ( r_lockPvs->current.enabled )
     {
@@ -4180,13 +4180,13 @@ LABEL_22:
     if ( CL_LocalClient_IsFirstActive(localClientNum) )
         DumpAnims(localClientNum);
     FX_MarkUpdateClientTime(localClientNum, cgameGlob->frametime);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "remaining fx");
     R_UpdateRemainingEffects(&fxUpdateCmd);
     Rope_Render(localClientNum);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "aim assist");
     AimAssist_UpdateScreenTargets(
         localClientNum,
@@ -4194,8 +4194,8 @@ LABEL_22:
         cgameGlob->refdefViewAngles,
         cgameGlob->refdef.tanHalfFovX,
         cgameGlob->refdef.tanHalfFovY);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     //BLOPS_NULLSUB();
     CG_UpdateSceneDepthOfField(localClientNum);
     CG_UpdateWaterSheetingFX(cgameGlob);
@@ -4216,8 +4216,8 @@ LABEL_22:
     }
     CG_CompassIncreaseRadarTime(localClientNum);
     CG_Draw2D(localClientNum);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     CG_ValidateWeaponSelect(cgameGlob);
     CG_DrawActive(localClientNum);
     CG_CheckBattleChatter();
@@ -4541,8 +4541,8 @@ void __cdecl CG_UpdateEntInfo(int localClientNum)
             }
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_UpdateIKTiming(int localClientNum)
@@ -4552,8 +4552,8 @@ void __cdecl CG_UpdateIKTiming(int localClientNum)
     //PIXBeginNamedEvent(-1, "update ik timing");
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
     IK_UpdateTimeAll(cgameGlob->time, localClientNum, 0);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl DumpAnims(int localClientNum)
@@ -5147,8 +5147,8 @@ int __cdecl CG_DrawExtraCamFrame(
     if ( cgameGlob->isLoading )
     {
         ExtraCamClientStateRestore::~ExtraCamClientStateRestore(&clientRestore);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 0;
     }
     else
@@ -5173,8 +5173,8 @@ int __cdecl CG_DrawExtraCamFrame(
                     }
                     *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) = 0;
                     ExtraCamClientStateRestore::~ExtraCamClientStateRestore(&clientRestore);
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     return 0;
                 }
                 else
@@ -5243,8 +5243,8 @@ int __cdecl CG_DrawExtraCamFrame(
                     }
                     *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) = 0;
                     ExtraCamClientStateRestore::~ExtraCamClientStateRestore(&clientRestore);
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                     return 1;
                 }
             }
@@ -5263,8 +5263,8 @@ int __cdecl CG_DrawExtraCamFrame(
                 }
                 *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) = 0;
                 ExtraCamClientStateRestore::~ExtraCamClientStateRestore(&clientRestore);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 return 0;
             }
         }
@@ -5283,8 +5283,8 @@ int __cdecl CG_DrawExtraCamFrame(
             }
             *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) = 0;
             ExtraCamClientStateRestore::~ExtraCamClientStateRestore(&clientRestore);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             return 0;
         }
     }
@@ -5462,3 +5462,7 @@ void __cdecl CG_ResetFullscreenFX(int localClientNum)
     }
 }
 
+float __cdecl CG_GetViewZoomScale()
+{
+    return cgArray[0].refdef.tanHalfFovY * 1.5890048f;
+}

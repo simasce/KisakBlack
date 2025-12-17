@@ -1,4 +1,101 @@
 #include "cl_console.h"
+#include <qcommon/common.h>
+#include "cl_main.h"
+#include <client_mp/client_mp.h>
+#include <qcommon/cmd.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <cgame_mp/cg_newDraw_mp.h>
+#include "cl_keys.h"
+#include <win32/win_common.h>
+#include "con_channels.h"
+#include <ui/ui_main.h>
+#include <stringed/stringed_hooks.h>
+#include <win32/win_net.h>
+#include <cgame_mp/cg_main_mp.h>
+#include <gfx_d3d/r_rendercmds.h>
+#include <sound/snd_public_async.h>
+#include <qcommon/threads.h>
+#include <universal/com_buildinfo.h>
+#include <universal/com_files.h>
+#include <client_mp/cl_scrn_mp.h>
+#include <cgame_mp/cg_consolecmds_mp.h>
+#include <cgame/cg_sound.h>
+#include <server_mp/sv_main_pc_mp.h>
+
+Console con;
+ConDrawInputGlob conDrawInputGlob;
+
+field_t g_consoleField;
+
+s_restricted_single g_restricted[1024];
+int g_restricted_count;
+e_restricted_initState g_restricted_state;
+bool g_restricted_ranked;
+
+int callDepth;
+
+int g_console_field_width = 620;
+float g_console_char_height = 16.0f;
+const float con_screenPadding = 4.0f;
+
+int con_inputMaxMatchesShown = 24;
+
+const float defaultGameMessageTimes[3] =
+{ 5.0, 8.0, 5.0 };
+
+const int defaultGameMessageWindowLineCounts[3] =
+{ 4, 1, 7 };
+
+bool con_ignoreMatchPrefixOnly;
+
+char con_gameMsgWindowNMsgTime_Descs[3][69];
+char con_gameMsgWindowNMsgTime_Names[3][26];
+char con_gameMsgWindowNLineCount_Descs[3][73];
+char con_gameMsgWindowNLineCount_Names[3][28];
+char con_gameMsgWindowNScrollTime_Descs[3][84];
+char con_gameMsgWindowNScrollTime_Names[3][29];
+char con_gameMsgWindowNFadeInTime_Descs[3][54];
+char con_gameMsgWindowNFadeInTime_Names[3][29];
+char con_gameMsgWindowNFadeOutTime_Descs[3][55];
+char con_gameMsgWindowNFadeOutTime_Names[3][30];
+char con_gameMsgWindowNSplitscreenScale_Descs[3][48];
+char con_gameMsgWindowNSplitscreenScale_Names[3][35];
+
+const dvar_t *con_inputBoxColor;
+const dvar_t *con_inputHintBoxColor;
+const dvar_t *con_outputBarColor;
+const dvar_t *con_outputSliderColor;
+const dvar_t *con_outputWindowColor;
+
+const dvar_t *con_gameMsgWindowNMsgTime[3];
+const dvar_t *con_gameMsgWindowNLineCount[3];
+const dvar_t *con_gameMsgWindowNScrollTime[3];
+const dvar_t *con_gameMsgWindowNFadeInTime[3];
+const dvar_t *con_gameMsgWindowNFadeOutTime[3];
+const dvar_t *con_gameMsgWindowNSplitscreenScale[3];
+
+const dvar_t *con_errormessagetime;
+const dvar_t *con_minicontime;
+const dvar_t *con_miniconlines;
+
+const dvar_t *con_typewriterEnabledSounds;
+const dvar_t *con_typewriterPrintSpeed;
+const dvar_t *con_typewriterDecayStartTime;
+const dvar_t *con_typewriterDecayDuration;
+
+const dvar_t *con_typewriterColorBase;
+const dvar_t *con_typewriterColorGlowUpdated;
+const dvar_t *con_typewriterColorGlowCompleted;
+const dvar_t *con_typewriterColorGlowFailed;
+const dvar_t *con_typewriterColorGlowCheckpoint;
+
+const dvar_t *con_restricted;
+const dvar_t *con_restricted_access;
+const dvar_t *con_matchPrefixOnly;
+
+field_t historyEditLines[32];
+
+int g_restricted_count;
 
 void __cdecl Con_ToggleConsole()
 {
@@ -11,8 +108,8 @@ void __cdecl Con_ToggleConsole()
     g_consoleField.charHeight = g_console_char_height;
     g_consoleField.fixedSize = 1;
     con.outputVisible = 0;
-    for ( localClientNum = 0; localClientNum < 1; ++localClientNum )
-        dword_FB2C38[4 * localClientNum] ^= 1u;
+    for (localClientNum = 0; localClientNum < 1; ++localClientNum)
+        clientUIActives[localClientNum].keyCatchers ^= 1u;
 }
 
 void __cdecl Con_GetTextCopy(char *text, int maxSize)
@@ -258,10 +355,12 @@ void __cdecl Con_CheckResize()
     v6 = ScrPlace_ApplyY(&scrPlaceFull, 4.0, 1);
     v2 = floor(v6);
     con.screenMin[1] = v2;
-    v5 = ScrPlace_ApplyX(&scrPlaceFull, COERCE_FLOAT(LODWORD(con_screenPadding) ^ _mask__NegFloat_), 3);
+    //v5 = ScrPlace_ApplyX(&scrPlaceFull, COERCE_FLOAT(LODWORD(con_screenPadding) ^ _mask__NegFloat_), 3);
+    v5 = ScrPlace_ApplyX(&scrPlaceFull, -con_screenPadding, 3);
     v1 = floor(v5);
     con.screenMax[0] = v1;
-    v4 = ScrPlace_ApplyY(&scrPlaceFull, COERCE_FLOAT(LODWORD(con_screenPadding) ^ _mask__NegFloat_), 3);
+    //v4 = ScrPlace_ApplyY(&scrPlaceFull, COERCE_FLOAT(LODWORD(con_screenPadding) ^ _mask__NegFloat_), 3);
+    v4 = ScrPlace_ApplyY(&scrPlaceFull, -con_screenPadding, 3);
     v0 = floor(v4);
     con.screenMax[1] = v0;
     if ( cls.consoleFont )
@@ -292,6 +391,8 @@ void __cdecl Con_CheckResize()
     }
 }
 
+const dvar_t *con_inputBoxColor;
+
 void __cdecl Con_OneTimeInit()
 {
     float v0; // [esp+40h] [ebp-B4h]
@@ -306,50 +407,50 @@ void __cdecl Con_OneTimeInit()
 
     con_inputBoxColor = _Dvar_RegisterVec4(
                                                 "con_inputBoxColor",
-                                                COERCE_UNSIGNED_INT(0.25),
-                                                COERCE_UNSIGNED_INT(0.25),
-                                                COERCE_UNSIGNED_INT(0.2),
-                                                COERCE_UNSIGNED_INT(1.0),
+                                                (0.25),
+                                                (0.25),
+                                                (0.2),
+                                                (1.0),
                                                 0.0,
                                                 1.0,
                                                 1u,
                                                 "Color of the console input box");
     con_inputHintBoxColor = _Dvar_RegisterVec4(
                                                         "con_inputHintBoxColor",
-                                                        COERCE_UNSIGNED_INT(0.40000001),
-                                                        COERCE_UNSIGNED_INT(0.40000001),
-                                                        COERCE_UNSIGNED_INT(0.34999999),
-                                                        COERCE_UNSIGNED_INT(1.0),
+                                                        (0.40000001),
+                                                        (0.40000001),
+                                                        (0.34999999),
+                                                        (1.0),
                                                         0.0,
                                                         1.0,
                                                         1u,
                                                         "Color of the console input hint box");
     con_outputBarColor = _Dvar_RegisterVec4(
                                                  "con_outputBarColor",
-                                                 COERCE_UNSIGNED_INT(1.0),
-                                                 COERCE_UNSIGNED_INT(1.0),
-                                                 COERCE_UNSIGNED_INT(0.94999999),
-                                                 COERCE_UNSIGNED_INT(0.60000002),
+                                                 (1.0),
+                                                 (1.0),
+                                                 (0.94999999),
+                                                 (0.60000002),
                                                  0.0,
                                                  1.0,
                                                  1u,
                                                  "Color of the console output slider bar");
     con_outputSliderColor = _Dvar_RegisterVec4(
                                                         "con_outputSliderColor",
-                                                        COERCE_UNSIGNED_INT(0.15000001),
-                                                        COERCE_UNSIGNED_INT(0.15000001),
-                                                        COERCE_UNSIGNED_INT(0.1),
-                                                        COERCE_UNSIGNED_INT(0.60000002),
+                                                        (0.15000001),
+                                                        (0.15000001),
+                                                        (0.1),
+                                                        (0.60000002),
                                                         0.0,
                                                         1.0,
                                                         1u,
                                                         "Color of the console slider");
     con_outputWindowColor = _Dvar_RegisterVec4(
                                                         "con_outputWindowColor",
-                                                        COERCE_UNSIGNED_INT(0.34999999),
-                                                        COERCE_UNSIGNED_INT(0.34999999),
-                                                        COERCE_UNSIGNED_INT(0.30000001),
-                                                        COERCE_UNSIGNED_INT(0.75),
+                                                        (0.34999999),
+                                                        (0.34999999),
+                                                        (0.30000001),
+                                                        (0.75),
                                                         0.0,
                                                         1.0,
                                                         1u,
@@ -600,49 +701,49 @@ void __cdecl Con_OneTimeInit()
                                                                     "Time (in milliseconds) to spend disolving the line away.");
     con_typewriterColorBase = _Dvar_RegisterVec3(
                                                             "con_typewriterColorBase",
-                                                            COERCE_UNSIGNED_INT(1.0),
-                                                            COERCE_UNSIGNED_INT(1.0),
-                                                            COERCE_UNSIGNED_INT(1.0),
+                                                            (1.0),
+                                                            (1.0),
+                                                            (1.0),
                                                             0.0,
                                                             1.0,
                                                             0x1000u,
                                                             "Base color of typewritten objective text.");
     con_typewriterColorGlowUpdated = _Dvar_RegisterVec4(
                                                                          "con_typewriterColorGlowUpdated",
-                                                                         COERCE_UNSIGNED_INT(0.0),
-                                                                         COERCE_UNSIGNED_INT(0.60000002),
-                                                                         COERCE_UNSIGNED_INT(0.18000001),
-                                                                         COERCE_UNSIGNED_INT(1.0),
+                                                                         (0.0),
+                                                                         (0.60000002),
+                                                                         (0.18000001),
+                                                                         (1.0),
                                                                          0.0,
                                                                          1.0,
                                                                          1u,
                                                                          "Color of typewritten objective text.");
     con_typewriterColorGlowCompleted = _Dvar_RegisterVec4(
                                                                              "con_typewriterColorGlowCompleted",
-                                                                             COERCE_UNSIGNED_INT(0.0),
-                                                                             COERCE_UNSIGNED_INT(0.30000001),
-                                                                             COERCE_UNSIGNED_INT(0.80000001),
-                                                                             COERCE_UNSIGNED_INT(1.0),
+                                                                             (0.0),
+                                                                             (0.30000001),
+                                                                             (0.80000001),
+                                                                             (1.0),
                                                                              0.0,
                                                                              1.0,
                                                                              1u,
                                                                              "Color of typewritten objective text.");
     con_typewriterColorGlowFailed = _Dvar_RegisterVec4(
                                                                         "con_typewriterColorGlowFailed",
-                                                                        COERCE_UNSIGNED_INT(0.80000001),
-                                                                        COERCE_UNSIGNED_INT(0.0),
-                                                                        COERCE_UNSIGNED_INT(0.0),
-                                                                        COERCE_UNSIGNED_INT(1.0),
+                                                                        (0.80000001),
+                                                                        (0.0),
+                                                                        (0.0),
+                                                                        (1.0),
                                                                         0.0,
                                                                         1.0,
                                                                         1u,
                                                                         "Color of typewritten objective text.");
     con_typewriterColorGlowCheckpoint = _Dvar_RegisterVec4(
                                                                                 "con_typewriterColorGlowCheckpoint",
-                                                                                COERCE_UNSIGNED_INT(0.60000002),
-                                                                                COERCE_UNSIGNED_INT(0.5),
-                                                                                COERCE_UNSIGNED_INT(0.60000002),
-                                                                                COERCE_UNSIGNED_INT(1.0),
+                                                                                (0.60000002),
+                                                                                (0.5),
+                                                                                (0.60000002),
+                                                                                (1.0),
                                                                                 0.0,
                                                                                 1.0,
                                                                                 1u,
@@ -719,6 +820,11 @@ void __cdecl Con_InitMessageWindow(
     msgwnd->fadeIn = fadeIn;
     msgwnd->fadeOut = fadeOut;
 }
+
+cmd_function_s Con_ChatModePublic_f_VAR;
+cmd_function_s Con_ChatModeTeam_f_VAR;
+cmd_function_s Con_Clear_f_VAR;
+cmd_function_s Con_Echo_f_VAR;
 
 void __cdecl Con_Init()
 {
@@ -1821,7 +1927,7 @@ unsigned int __cdecl CL_AddMessageIcon(
     {
         __debugbreak();
     }
-    *(unsigned int *)&msg[msgLenc] = iconShader;
+    *(unsigned int *)&msg[msgLenc] = (unsigned int)iconShader;
     msgLend = msgLenc + 4;
     if ( msgLend - msgLen != 8
         && !Assert_MyHandler(
@@ -2487,6 +2593,8 @@ bool __cdecl Con_ShouldProcessMessage(Message *message, int serverTime)
     return 1;
 }
 
+
+float MY_GLOWCOLOR[4] = { 0.0, 0.3, 0.0, 1.0 };
 void __cdecl Con_DrawMessageLineOnHUD(
                 int localClientNum,
                 const ScreenPlacement *scrPlace,
@@ -2505,7 +2613,7 @@ void __cdecl Con_DrawMessageLineOnHUD(
 {
     int v14; // [esp+34h] [ebp-38h]
     int v15; // [esp+38h] [ebp-34h]
-    DvarValue *glowColor; // [esp+3Ch] [ebp-30h]
+    const DvarValue *glowColor; // [esp+3Ch] [ebp-30h]
     float typewriterColor[4]; // [esp+40h] [ebp-2Ch] BYREF
     float xScale; // [esp+50h] [ebp-1Ch] BYREF
     float yAdj; // [esp+54h] [ebp-18h] BYREF
@@ -3100,6 +3208,9 @@ void __cdecl Con_DrawSolidConsole(int localClientNum)
     Con_DrawInput(localClientNum);
 }
 
+
+const float con_versionColor[4] = { 1.0, 1.0, 0.0, 1.0 };
+const float con_inputDvarMatchColor[4] = { 1.0, 1.0, 0.8, 1.0 };
 void __cdecl Con_DrawInput(int localClientNum)
 {
     int BuildNumber; // eax
@@ -3306,6 +3417,7 @@ void __cdecl ConDrawInput_IncrMatchCounter(const char *str)
     }
 }
 
+const float con_inputDvarValueColor[4] = { 1.0, 1.0, 1.0, 1.0 };
 void __cdecl ConDrawInput_DvarMatch(char *str)
 {
     char *VariantString; // eax
@@ -3340,6 +3452,9 @@ void __cdecl ConDrawInput_TextLimitChars(char *str, int maxChars, const float *c
         0);
 }
 
+const float con_inputDvarInactiveValueColor[4] = { 0.8, 0.8, 0.8, 1.0 };
+const float con_inputDvarDescriptionColor[4] = { 1.0, 1.0, 1.0, 1.0 };
+const float con_inputDvarInfoColor[4] = { 0.8, 0.8, 1.0, 1.0 };
 void __cdecl ConDrawInput_DetailedDvarMatch(char *str)
 {
     char *v1; // eax
@@ -3373,14 +3488,14 @@ void __cdecl ConDrawInput_DetailedDvarMatch(char *str)
         conDrawInputGlob.x = conDrawInputGlob.leftX;
         if ( hasLatchedValue )
         {
-            ConDrawInput_Text("    latched value", con_inputDvarInactiveValueColor);
+            ConDrawInput_Text((char*)"    latched value", con_inputDvarInactiveValueColor);
             conDrawInputGlob.x = conDrawInputGlob.x + 200.0;
             v2 = (char *)Dvar_DisplayableLatchedValue(dvar);
             ConDrawInput_TextLimitChars(v2, 40, con_inputDvarInactiveValueColor);
             conDrawInputGlob.y = conDrawInputGlob.y + conDrawInputGlob.fontHeight;
             conDrawInputGlob.x = conDrawInputGlob.leftX;
         }
-        ConDrawInput_Text("    default", con_inputDvarInactiveValueColor);
+        ConDrawInput_Text((char *)"    default", con_inputDvarInactiveValueColor);
         conDrawInputGlob.x = conDrawInputGlob.x + 200.0;
         v3 = (char *)Dvar_DisplayableResetValue(dvar);
         ConDrawInput_TextLimitChars(v3, 40, con_inputDvarInactiveValueColor);
@@ -3513,6 +3628,7 @@ int __cdecl ConDrawInput_GetDvarDescriptionLines(const dvar_s *dvar)
     return linecount;
 }
 
+const float con_inputCommandMatchColor[4] = { 0.8, 0.8, 1.0, 1.0 };
 void __cdecl ConDrawInput_DetailedCmdMatch(char *str)
 {
     int fileCount; // [esp+8h] [ebp-8h] BYREF
@@ -3661,9 +3777,9 @@ int __cdecl Con_GetAutoCompleteColorCodedStringDiscontiguous(
         {
             wasMatching = isMatching;
             if ( isMatching )
-                v9 = a2_0;
+                v9 = "^2";
             else
-                v9 = a7_0;
+                v9 = "^7";
             v8 = v9;
             v7 = &colorCoded[colorCodedPos];
             do
@@ -3730,11 +3846,11 @@ int __cdecl Con_GetAutoCompleteColorCodedStringContiguous(
     queryPos = (char *)I_stristr(query, matchToText);
     if ( queryPos )
     {
-        strncpy((unsigned __int8 *)colorCoded, (unsigned __int8 *)query, queryPos - query);
+        strncpy(colorCoded, query, queryPos - query);
         strcpy(&colorCoded[queryPos - query], "^2");
         colorCodedPosb = queryPos - query + 2;
         len = strlen(matchToText);
-        strncpy((unsigned __int8 *)&colorCoded[colorCodedPosb], (unsigned __int8 *)queryPos, len);
+        strncpy(&colorCoded[colorCodedPosb], queryPos, len);
         colorCodedPosc = len + colorCodedPosb;
         strcpy(&colorCoded[colorCodedPosc], "^7");
         colorCodedPosa = colorCodedPosc + 2;
@@ -3820,6 +3936,7 @@ void Con_DrawOuputWindow()
     Con_DrawOutputText(xa, ya);
 }
 
+const float con_outputBarSize = 10.0f;
 void __cdecl Con_DrawOutputScrollBar(float x, float y, float width, float height)
 {
     float h; // [esp+14h] [ebp-28h]
@@ -3965,15 +4082,15 @@ void __cdecl Con_Close(int localClientNum)
 {
     int client; // [esp+0h] [ebp-4h]
 
-    if ( CL_LocalClient_IsCUIFlagSet(localClientNum, 2) )
+    if (CL_LocalClient_IsCUIFlagSet(localClientNum, 2))
     {
         Field_Clear(&g_consoleField);
         Con_CancelAutoComplete();
         Con_ClearNotify(localClientNum);
         Con_ClearMiniConsole(localClientNum);
         Con_ClearErrors(localClientNum);
-        for ( client = 0; client < 1; ++client )
-            dword_FB2C38[4 * client] &= ~1u;
+        for (client = 0; client < 1; ++client)
+            clientUIActives[client].keyCatchers &= ~1u;
     }
 }
 
@@ -4257,7 +4374,8 @@ void __cdecl Con_Restricted_AddBuf(char *buf)
     if ( Dvar_GetBool("con_restricted_access") )
     {
         Con_Restricted_ResetLists();
-        length = strlen_noncrt(buf);
+        //length = strlen_noncrt(buf);
+        length = strlen(buf);
         start = 0;
         do
         {

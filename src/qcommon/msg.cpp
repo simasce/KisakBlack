@@ -1,4 +1,11 @@
 #include "msg.h"
+#include "common.h"
+#include <client_mp/cl_main_mp.h>
+#include "sv_msg_write.h"
+
+#include <cstring>
+
+__int16 g_commonAngleDeltas[7] = { 364, 546, 182, 1, 910, 1092, 729 }; // KISAKTODO: this is kinda interesting, look at this later
 
 int __cdecl MSG_ReadValueNoXor(msg_t *msg, int bits)
 {
@@ -330,7 +337,7 @@ int __cdecl MSG_ReadDeltaStruct(
 }
 
 // local variable allocation has failed, the output may be wrong!
-void    MSG_ReadDeltaMatchState(int a1@<ebp>, msg_t *msg, int time, MatchState *from, MatchState *to)
+void    MSG_ReadDeltaMatchState(msg_t *msg, int time, MatchState *from, MatchState *to)
 {
     bool IsPlaying; // al
     bool v6; // al
@@ -338,12 +345,12 @@ void    MSG_ReadDeltaMatchState(int a1@<ebp>, msg_t *msg, int time, MatchState *
     unsigned int count; // [esp+E8h] [ebp-18h]
     const NetField *array; // [esp+ECh] [ebp-14h]
     unsigned int EntityIndex; // [esp+F0h] [ebp-10h]
-    int numFields; // [esp+F4h] [ebp-Ch]
-    const NetField *fields; // [esp+F8h] [ebp-8h]
+    //int numFields; // [esp+F4h] [ebp-Ch]
+    //const NetField *fields; // [esp+F8h] [ebp-8h]
     const NetField *retaddr; // [esp+100h] [ebp+0h]
 
-    numFields = a1;
-    fields = retaddr;
+    //numFields = a1;
+    //fields = retaddr;
     EntityIndex = MSG_ReadEntityIndex(msg, 1u);
     IsPlaying = Demo_IsPlaying();
     array = MSG_GetNetFieldList(NET_FIELD_TYPE_MATCHSTATE, IsPlaying)->array;

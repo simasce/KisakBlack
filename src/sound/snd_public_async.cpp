@@ -1,4 +1,21 @@
 #include "snd_public_async.h"
+#include <qcommon/common.h>
+#include "snd_dvar.h"
+#include "snd_public_async_q.h"
+#include "snd_utils.h"
+#include "snd_bank.h"
+#include <cgame_mp/cg_consolecmds_mp.h>
+#include <cgame/cg_sound.h>
+#include "snd_globals.h"
+#include <win32/win_common.h>
+#include <universal/com_workercmds.h>
+
+#include <Windows.h>
+#include "snd_local.h"
+
+jqWorkerCmd updatesound_workerWorkerCmd;
+
+volatile unsigned int entryCount;
 
 void __cdecl SND_PlayInternal(
                 unsigned int id,
@@ -1196,18 +1213,23 @@ void __cdecl SND_EntStateFrame()
             state = state->next;
         }
     }
-    for ( k = 0; k < 0x4A; ++k )
+    for ( k = 0; k < 74; ++k )
     {
         if ( g_snd.voiceAliasHash[k] )
         {
-            if ( ((g_snd.voiceAliasHash[118 * k - 8727] >> 21) & 1) == 0
-                && (g_snd.voiceAliasHash[118 * k - 8727] & 0xFFF) != 0xFFF )
+            SndEntHandle ent = g_snd.voice[k].sndEnt;
+            //if ( ((g_snd.voiceAliasHash[118 * k - 8727] >> 21) & 1) == 0 && (g_snd.voiceAliasHash[118 * k - 8727] & 0xFFF) != 0xFFF )
+            if ( ((ent.handle >> 21) & 1) == 0 && (ent.handle & 0xFFF) != 0xFFF )
             {
-                EntState = SND_FindEntState((SndEntHandle)g_snd.voiceAliasHash[118 * k - 8727], 0);
+                //EntState = SND_FindEntState((SndEntHandle)g_snd.voiceAliasHash[118 * k - 8727], 0);
+                EntState = SND_FindEntState(ent, 0);
                 if ( EntState )
                 {
-                    if ( EntState->lastUsed != g_snd.frame )
-                        SND_EntStateRequest((SndEntHandle)g_snd.voiceAliasHash[118 * k - 8727]);
+                    if (EntState->lastUsed != g_snd.frame)
+                    {
+                        //SND_EntStateRequest((SndEntHandle)g_snd.voiceAliasHash[118 * k - 8727]);
+                        SND_EntStateRequest(ent);
+                    }
                     EntState->lastUsed = g_snd.frame;
                 }
             }
@@ -1260,8 +1282,8 @@ void __cdecl SND_EntStateFrame()
             v3->next = 0;
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl SND_ResetEntState()
@@ -1439,11 +1461,11 @@ char __cdecl SND_GetKnownLength(int playbackId, int *msec)
     return v3;
 }
 
-void __thiscall SND_Update(void *this)
+void SND_Update()
 {
     unsigned int unused; // [esp+0h] [ebp-4h] BYREF
 
-    unused = (unsigned int)this;
+    //unused = (unsigned int)this;
     if ( SND_Active() )
     {
         Sys_AssistAndWaitWorkerCmdInternal(&updatesound_workerWorkerCmd);
@@ -1468,15 +1490,13 @@ int __cdecl updatesound_workerCallback(jqBatch *batch)
     jqLockData(batch);
     jqUnlockData(batch);
     SND_Frame();
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 0;
 }
 
-volatile int *SND_Frame()
+void SND_Frame()
 {
-    volatile int *result; // eax
-
     if ( entryCount
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_public_async.cpp",
@@ -1502,8 +1522,8 @@ volatile int *SND_Frame()
     SND_EntStateFrame();
     SND_CommandPump();
     SNDL_Update();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     if ( entryCount != 1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_public_async.cpp",
@@ -1514,20 +1534,9 @@ volatile int *SND_Frame()
     {
         __debugbreak();
     }
-    result = &entryCount;
     _InterlockedExchangeAdd(&entryCount, 0xFFFFFFFF);
-    if ( entryCount )
-    {
-        result = (volatile int *)Assert_MyHandler(
-                                                             "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_public_async.cpp",
-                                                             1284,
-                                                             0,
-                                                             "%s",
-                                                             "entryCount == 0");
-        if ( !(_BYTE)result )
-            __debugbreak();
-    }
-    return result;
+
+    iassert(entryCount == 0);
 }
 
 void __cdecl SND_GameReset()

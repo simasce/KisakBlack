@@ -1,6 +1,20 @@
 #pragma once
 #include <universal/q_shared.h>
 #include <game/teams.h>
+#include "snd_dsp.h"
+
+enum snd_flux_type_t : __int32
+{                                       // XREF: SND_SetVoiceStartFlux/r
+    SND_FLUX_TYPE_NONE             = 0x0,
+    SND_FLUX_TYPE_LEFT_OF_PLAYER   = 0x1,
+    SND_FLUX_TYPE_CENTER_OF_PLAYER = 0x2,
+    SND_FLUX_TYPE_RIGHT_OF_PLAYER  = 0x3,
+    SND_FLUX_TYPE_RANDOM_PLAYER    = 0x4,
+    SND_FLUX_TYPE_LEFT_OF_SHOT     = 0x5,
+    SND_FLUX_TYPE_CENTER_OF_SHOT   = 0x6,
+    SND_FLUX_TYPE_RIGHT_OF_SHOT    = 0x7,
+    SND_FLUX_TYPE_COUNT            = 0x8,
+};
 
 enum snd_length_type : __int32
 {                                                                             // XREF: sndLengthNotifyInfo/r
@@ -539,16 +553,6 @@ struct snd_snapshot_category // sizeof=0x60C
                                                                                 // SNDL_SetSnapshot(snd_snapshot_type,uint,float,float)+ED/w
 };
 
-struct snd_dsp_meters // sizeof=0x18
-{                                                                             // XREF: snd_local_t/r
-        float p;
-        float vu;
-        float dyn1Gain;
-        float dyn1Level;
-        float dyn2Gain;
-        float dyn2Level;
-};
-
 struct snd_ent_state // sizeof=0x48
 {                                                                             // XREF: snd_local_t/r
         SndEntHandle handle;                                // XREF: SND_FindEntState(SndEntHandle,bool)+3C1/r
@@ -909,7 +913,8 @@ struct snd_local_t // sizeof=0x31730
                                                                                 // SNDL_NotifyCinematicEnd(void)+45/w
         int forcePause;                                         // XREF: SND_UpdatePause+11/r
                                                                                 // SND_Init(void)+252/w
-        int playbackIdCounter;                            // XREF: SND_AcquirePlaybackId(void)+3/o
+        //int playbackIdCounter;                            // XREF: SND_AcquirePlaybackId(void)+3/o
+        volatile unsigned int playbackIdCounter;                            // XREF: SND_AcquirePlaybackId(void)+3/o
                                                                                 // SND_Init(void)+2A9/w
         snd_fader_t volume;                                 // XREF: SND_UpdateMasterVolumes+D/o
                                                                                 // SND_UpdateMasterVolumes+22/r ...
@@ -1084,7 +1089,7 @@ void __cdecl SND_ContinueLoopingSound_Internal(
                 float *org,
                 snd_playback *playback);
 unsigned int __cdecl SND_GetCurrentContext(unsigned int type);
-snd_alias_t *__cdecl SND_PickSoundAliasFromList(const snd_alias_list_t *aliasList, int objectId);
+snd_alias_t *__cdecl SND_PickSoundAliasFromList(snd_alias_list_t *aliasList, int objectId);
 snd_alias_t *__cdecl SND_PickSoundAlias(const char *name, int objectid);
 void __cdecl SND_AssertValidData(const snd_alias_t *alias);
 unsigned int __cdecl SND_PlaySoundAlias(
@@ -1155,3 +1160,6 @@ double __cdecl Snd_DistanceCurveEval(
 double __cdecl SND_GetOmni(const snd_voice_t *voice);
 snd_voice_t *__cdecl SND_GetPlaybackVoice(int playbackId);
 bool __cdecl SND_IsStream(unsigned int index);
+
+
+extern snd_local_t g_snd;

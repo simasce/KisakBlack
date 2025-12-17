@@ -287,14 +287,14 @@ int __cdecl XModelTraceLine(
             }
         }
         v7 = partIndex;
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return v7;
     }
     else
     {
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return -1;
     }
 }
@@ -460,13 +460,13 @@ int __cdecl XModelTraceLineAnimated(
         }
         v15 = partIndex;
         if ( GetCurrentThreadId() == (unsigned int)g_DXDeviceThread && !MEMORY[0xA8402BC] )
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
         return v15;
     }
     else
     {
         if ( GetCurrentThreadId() == (unsigned int)g_DXDeviceThread && !MEMORY[0xA8402BC] )
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
         return -1;
     }
 }

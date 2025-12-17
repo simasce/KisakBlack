@@ -471,7 +471,7 @@ void CG_UpdateWind(int cur_time)
         if ( cg_paused->current.integer )
         {
             last_time = cur_time;
-            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            ////if ( GetCurrentThreadId() == g_DXDeviceThread )
             //    goto LABEL_5;
             return;
         }
@@ -646,16 +646,16 @@ void CG_UpdateWind(int cur_time)
             LODWORD(fxWind.windVector[2]) = g_GlobalLowWindStrengthPercentage->current.integer;
             FX_SetGlobalWind((const FX_WindInfo *)v8);
             last_time = cur_time;
-            //if ( g_DXDeviceThread == GetCurrentThreadId() )
-            //    D3DPERF_EndEvent();
+            ////if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //    //D3DPERF_EndEvent();
         }
     }
     else
     {
         v46 = 0;
-//        if ( GetCurrentThreadId() == g_DXDeviceThread )
+//        //if ( GetCurrentThreadId() == g_DXDeviceThread )
 //LABEL_5:
-//            D3DPERF_EndEvent();
+//            //D3DPERF_EndEvent();
     }
 }
 

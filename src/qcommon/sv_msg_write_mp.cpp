@@ -5,10 +5,11 @@
 #include <cstring>
 #include <server_mp/sv_snapshot_profile_mp.h>
 #include <cgame/cg_draw_debug.h>
+#include <server_mp/sv_init_mp.h>
 
-static const int maxStateFieldCount = 74;
-static const int numEntityStateFields= 69;
+int g_entsClientOnce;
 int g_entsDeltaCompared;
+int g_entsTransmitted;
 
 bool __cdecl MSG_EntityIsLinked(const entityState_s *ent)
 {

@@ -1838,8 +1838,8 @@ int __thiscall GlassShard::Shatter(GlassShard *this, GlassShard **newShards, int
                 break;
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( clGlasses->renderer->debugSplit->current.enabled )
     {
         numNewVerts = 0;
@@ -1870,8 +1870,8 @@ int __thiscall GlassShard::Shatter(GlassShard *this, GlassShard **newShards, int
             dword_A707084);
     }
     *timer_8 += *(_QWORD *)&tlPcGetTick() - timer.QuadPart;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return numNewShards;
 }
 
@@ -1941,8 +1941,8 @@ void __thiscall GlassShard::InitPhysics(
         if ( group->packedPos != GlassRenderer::CalcPackedPos(clGlasses->renderer, newShards[j]->origin) )
             GlassRenderer::AddGroupChange(clGlasses->renderer, newShards[j]);
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __thiscall GlassShard::InitMesh(GlassShard *this)
@@ -2400,7 +2400,7 @@ LABEL_23:
         if ( g_DXDeviceThread != GetCurrentThreadId() )
             goto LABEL_38;
     }
-    D3DPERF_EndEvent();
+    //D3DPERF_EndEvent();
 LABEL_38:
     for ( j = 0; j < numNewShards; ++j )
     {
@@ -2499,8 +2499,8 @@ LABEL_38:
                 qsort(newShards, numNewShards, 4u, (int (__cdecl *)(const void *, const void *))compareShards);
             }
         }
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     if ( clGlasses->renderer->debugSplit->current.enabled )
     {
@@ -2537,8 +2537,8 @@ LABEL_38:
         if ( group->packedPos != GlassRenderer::CalcPackedPos(clGlasses->renderer, newShards[k]->origin) )
             GlassRenderer::AddGroupChange(clGlasses->renderer, newShards[k]);
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 1;
 }
 

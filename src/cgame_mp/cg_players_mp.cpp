@@ -604,8 +604,8 @@ void __cdecl CG_Player(int localClientNum, centity_s *cent)
                         Scr_FreeThread(t, SCRIPTINSTANCE_CLIENT);
                     }
                 }
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 CG_UpdateMinigunSpin(localClientNum, cgameGlob, cent);
                 CG_UpdatePerkSounds(localClientNum, cgameGlob);
                 //PIXBeginNamedEvent(-1, "sliding");
@@ -630,13 +630,13 @@ void __cdecl CG_Player(int localClientNum, centity_s *cent)
                 {
                     cent->nextSlideFX = 0;
                 }
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 //PIXBeginNamedEvent(-1, "triggers");
                 if ( CL_LocalClient_IsFirstActive(localClientNum) )
                     CG_DoTouchTriggers(cent, localClientNum);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 nextSnap = cgameGlob->nextSnap;
                 v7 = (nextSnap->ps.otherFlags & 6) != 0 && p_nextState->number == nextSnap->ps.clientNum;
                 if ( !v7 || cgameGlob->renderingThirdPerson )
@@ -661,16 +661,16 @@ void __cdecl CG_Player(int localClientNum, centity_s *cent)
                     {
                         if ( (p_nextState->lerp.eFlags & 0x4300) != 0 && (p_nextState->lerp.eFlags2 & 0x10000000) == 0 )
                             CG_PlayerTurretPositionAndBlend(localClientNum, cent);
-                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                            D3DPERF_EndEvent();
+                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                            //D3DPERF_EndEvent();
                         //PIXBeginNamedEvent(-1, "pre controllers");
                         CG_Player_PreControllers(obj, cent);
-                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                            D3DPERF_EndEvent();
+                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                            //D3DPERF_EndEvent();
                         //PIXBeginNamedEvent(-1, "weapon visibility");
                         CG_UpdateWeaponVisibilityImmediate(localClientNum, cent);
-                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                            D3DPERF_EndEvent();
+                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                            //D3DPERF_EndEvent();
                         //PIXBeginNamedEvent(-1, "R_AddDObjToScene");
                         lightingOrigin[0] = cent->pose.origin[0];
                         lightingOrigin[1] = cent->pose.origin[1];
@@ -791,8 +791,8 @@ void __cdecl CG_Player(int localClientNum, centity_s *cent)
                             extraCamConstSetPtr,
                             0.0,
                             1.0);
-                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                            D3DPERF_EndEvent();
+                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                            //D3DPERF_EndEvent();
                         if ( (p_nextState->lerp.eFlags & 0x40000) == 0 )
                         {
                             //PIXBeginNamedEvent(-1, "CG_AddPlayerWeapon");
@@ -802,8 +802,8 @@ void __cdecl CG_Player(int localClientNum, centity_s *cent)
                             AnglesToQuat(cent->pose.angles, placement.base.quat);
                             placement.scale = 1.0f;
                             CG_AddPlayerWeapon(localClientNum, &placement, 0, cent, 1);
-                            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                                D3DPERF_EndEvent();
+                            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                                //D3DPERF_EndEvent();
                         }
                         CG_DrawWaterTrail(localClientNum, cent);
                     }

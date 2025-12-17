@@ -1,4 +1,11 @@
 #include "mem_largelocal.h"
+#include <qcommon/threads.h>
+#include "assertive.h"
+
+int g_largeLocalPos;
+unsigned __int8 g_largeLocalBuf[524288];
+int g_largeLocalRightPos = 524288;
+
 
 int __cdecl LargeLocalBegin(int size)
 {
@@ -102,7 +109,7 @@ unsigned __int8 *__cdecl LargeLocalGetBuf(int startPos, int size)
     return &g_largeLocalBuf[startIndex];
 }
 
-LargeLocal *__thiscall LargeLocal::LargeLocal(LargeLocal *this, int sizeParam)
+LargeLocal::LargeLocal(int sizeParam)
 {
     if ( !Sys_IsMainThread()
         && !Sys_IsServerThread()
@@ -120,7 +127,6 @@ LargeLocal *__thiscall LargeLocal::LargeLocal(LargeLocal *this, int sizeParam)
     else
         this->startPos = LargeLocalBeginRight(sizeParam);
     this->size = sizeParam;
-    return this;
 }
 
 int __cdecl LargeLocalBeginRight(int size)
@@ -154,7 +160,7 @@ int __cdecl LargeLocalBeginRight(int size)
     return startPos;
 }
 
-void __thiscall LargeLocal::~LargeLocal(LargeLocal *this)
+LargeLocal::~LargeLocal()
 {
     if ( !Sys_IsMainThread()
         && !Sys_IsServerThread()
@@ -198,7 +204,7 @@ void __cdecl LargeLocalEndRight(int startPos)
     }
 }
 
-unsigned __int8 *__thiscall LargeLocal::GetBuf(LargeLocal *this)
+unsigned __int8 *LargeLocal::GetBuf()
 {
     if ( !Sys_IsMainThread()
         && !Sys_IsServerThread()

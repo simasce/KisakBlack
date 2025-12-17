@@ -691,8 +691,8 @@ int __cdecl dyn_smodel_drawstateCallback(jqBatch *batch)
         cmd[7],
         (const ForceBoundsInfo *)cmd[8]);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -828,8 +828,8 @@ void __cdecl R_DynSModelWaitWorker()
     //PIXBeginNamedEvent(-1, "R_DynSModelWaitWorker");
     Sys_AssistAndWaitWorkerCmdInternal(&dyn_smodel_drawstateWorkerCmd);
     g_drawStateWorkerSharedBuffer.inUse = 0;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_DynSModelBuildClientView(
@@ -1117,8 +1117,8 @@ void __cdecl R_DynSModelBuildClientView(
         cmd.boundsInfo = bounds;
         Sys_AddWorkerCmdInternal(&dyn_smodel_drawstateWorkerCmd, (unsigned __int8 *)&cmd, 0);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_FoliageSetStaticModelShaderConstants(

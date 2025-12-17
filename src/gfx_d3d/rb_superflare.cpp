@@ -175,8 +175,8 @@ void __cdecl RB_DrawSuperFlareOccluders(const GfxViewInfo *viewInfo)
                 }
             }
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 

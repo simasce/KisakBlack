@@ -21,6 +21,8 @@
 #include "sv_main_pc_mp.h"
 
 serverStatic_t svs;
+serverStaticHeader_t svsHeader;
+int svsHeaderValid;
 server_t sv;
 
 char string_0[1024];
@@ -1040,8 +1042,8 @@ void __cdecl SV_CheckTimeouts()
         ++clientNum;
         ++drop;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 int __cdecl SV_CheckPaused()
@@ -1211,7 +1213,7 @@ void     SV_ServerThread(__m128 a1@<xmm0>, unsigned int threadContext)
         CurrentThreadId = GetCurrentThreadId();
         v9 = 0;
         if ( CurrentThreadId == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
         G_ClearVehicleInputs();
         SV_RunEventLoop();
         if ( Sys_IsServerThread() )
@@ -1228,17 +1230,17 @@ void     SV_ServerThread(__m128 a1@<xmm0>, unsigned int threadContext)
             SV_RunFrame(a1);
             v6 = GetCurrentThreadId();
             if ( v6 == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+                //D3DPERF_EndEvent();
             //PIXBeginNamedEvent((int)&cls.rankedServers[537].minPing, "SERVER: post frame");
             SV_PostFrame();
             v4 = GetCurrentThreadId();
             v5 = 0;
             if ( v4 == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+                //D3DPERF_EndEvent();
             QueryPerformanceCounter(&v3);
             gRunFrameTicks = v3.QuadPart - runStart;
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             SV_RunEventLoop();
             Sys_SleepServer();
             SV_DecServerThreadOwnsGame();
@@ -1275,8 +1277,8 @@ void SV_RunEventLoop()
         SV_IncServerThreadOwnsGame();
         Com_ServerPacketEvent();
         SV_DecServerThreadOwnsGame();
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     Sys_SetServerNetworkCompletedEvent();
 }
@@ -1329,8 +1331,8 @@ void __cdecl SV_WaitServer()
             Sys_AssistSingle();
             timeouta = !Sys_AssistNeeded();
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -1374,8 +1376,8 @@ void __cdecl SV_PreFrame()
 
     //PIXBeginNamedEvent((int)&cls.rankedServers[537].city[61], "SERVER: bots");
     SV_UpdateBots();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     if ( (dvar_modifiedFlags & 8) != 0
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_main_mp.cpp",
@@ -1628,7 +1630,7 @@ void __cdecl SV_AllowPackets(bool allow)
     Sys_ResetServerAllowNetworkEvent();
     sv.allowNetPackets = allow;
     Sys_SetServerAllowNetworkEvent();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 

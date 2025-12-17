@@ -104,7 +104,7 @@ LABEL_18:
                 self->ent->flags &= 0xE7FFFFFF;
                 self->Path.iPathEndTime = 0;
             }
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
                 goto LABEL_33;
             return;
         case AI_TEAMMOVE_WAIT:
@@ -120,9 +120,9 @@ LABEL_18:
     v4 = va("unhandled case %i for Actor_MoveAlongPathWithTeam", eTeamMove);
     if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game\\actor_team_move.cpp", 1015, 0, v4) )
         __debugbreak();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_33:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 ai_teammove_t __fastcall Actor_GetTeamMoveStatus(actor_s *self, bool bUseInterval, bool bAllowGoalPileUp)

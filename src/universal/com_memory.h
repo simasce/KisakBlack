@@ -1,6 +1,8 @@
 #pragma once
 #include <xanim/xanim.h>
 
+#include "mem_largelocal.h"
+
 struct __declspec(align(4)) fileData_s // sizeof=0xC
 {                                       // XREF: fileData_t/r
     void *data;
@@ -92,20 +94,3 @@ void __cdecl ReplaceString(const char **str, char *in, const char *name, int typ
 void __cdecl FreeString(const char *str, int type, scriptInstance_t inst);
 
 
-class LargeLocal
-{
-public:
-    LargeLocal(int sizeParam);
-    ~LargeLocal();
-
-    unsigned __int8 *GetBuf();
-
-    int startPos;
-    int size;
-};
-
-int __cdecl LargeLocalBegin(int size);
-void __cdecl LargeLocalEnd(int startPos);
-unsigned __int8 *__cdecl LargeLocalGetBuf(int startPos);
-void __cdecl LargeLocalReset();
-unsigned int __cdecl LargeLocalRoundSize(int size);

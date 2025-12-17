@@ -1592,8 +1592,8 @@ void __cdecl FX_DrawSpriteElems(FxSystem *system, int drawTime, const FxReflectP
         if ( effect->effect.firstTrailHandle != 0xFFFF )
             trailEffects[numTrailEffects++] = effectHandle;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent((int)&cls.rankedServers[537].city[61], "numTrailEffects");
     if ( numTrailEffects > 0 )
     {
@@ -1603,8 +1603,8 @@ void __cdecl FX_DrawSpriteElems(FxSystem *system, int drawTime, const FxReflectP
             FX_DrawTrailsForEffect(system, &effecta->effect, drawTime, reflect);
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( !_InterlockedDecrement(&system->shared->iteratorCount) )
         FX_RunGarbageCollectionAndPrioritySort(system);
     //PIXBeginNamedEvent((int)&cls.rankedServers[537].city[61], "R_AddCodeMeshDrawSurf");
@@ -1647,8 +1647,8 @@ void __cdecl FX_DrawSpriteElems(FxSystem *system, int drawTime, const FxReflectP
         system->sprite.indexCount = 0;
         sprite->indices = 0;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl FX_DrawTrailsForEffect(FxSystem *system, FxEffect *effect, int drawTime, const FxReflectParams *reflect)
@@ -2167,39 +2167,39 @@ void __cdecl FX_GenerateVerts(FxGenerateVertsCmd *cmd)
     {
         //PIXBeginNamedEvent((int)&cls.rankedServers[537].city[61], "FX_SpriteGenerateVerts");
         FX_SpriteGenerateVerts(cmd);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         //PIXBeginNamedEvent((int)&cls.rankedServers[537].city[61], "FX_Beam_GenerateVerts");
         FX_Beam_GenerateVerts(cmd);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         //PIXBeginNamedEvent((int)&cls.rankedServers[537].city[61], "FX_PostLight_GenerateVerts");
         FX_PostLight_GenerateVerts(cmd->postLightInfo, localSystem);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         //PIXBeginNamedEvent((int)&cls.rankedServers[537].city[61], "Glass_GenerateVerts");
         GlassCl_GenerateVerts(cmd->localClientNum, 0);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         FX_GetNullReflection(&reflect);
         //PIXBeginNamedEvent((int)&cls.rankedServers[537].city[61], "FX_DrawSpriteElems");
         if ( fx_enable->current.enabled && fx_draw->current.enabled )
             FX_DrawSpriteElems(localSystem, drawTime, &reflect, cmd->genVertsCameraType);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         //PIXBeginNamedEvent((int)&cls.rankedServers[537].city[61], "FX_GetReflection");
         FX_GetReflection(cmd->useReflection, cmd->reflectionHeight, &reflect);
         if ( reflect.enabled && fx_enable->current.enabled && fx_draw->current.enabled )
             FX_DrawSpriteElems(localSystem, drawTime, &reflect, cmd->genVertsCameraType);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         R_EndCodeMeshVerts();
         //PIXBeginNamedEvent((int)&cls.rankedServers[537].city[61], "FX_ToggleVisBlockerFrame");
         FX_ToggleVisBlockerFrame(localSystem);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     else
     {

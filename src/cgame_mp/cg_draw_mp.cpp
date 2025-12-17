@@ -1311,8 +1311,8 @@ void __cdecl CG_UpdatePlayerNamesInternal(int localClientNum)
         CG_DrawFriendlyNames(localClientNum);
         CG_DrawNames(localClientNum);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl DrawViewmodelInfo(int localClientNum)
@@ -1516,8 +1516,8 @@ void __cdecl CG_AddSceneTracerBeams(int localClientNum)
 {
     //PIXBeginNamedEvent(-1, "CG_AddSceneTracerBeams");
     CG_AddLocalEntityTracerBeams(localClientNum);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_GenerateSceneCodeMeshes(int localClientNum)
@@ -1538,11 +1538,11 @@ void __cdecl CG_GenerateSceneCodeMeshes(int localClientNum)
     ropeVertsCmd.refdef_tanHalfFovY = clientGlobals->refdef.tanHalfFovY;
     R_Rope_GenerateVerts_Camera(&ropeVertsCmd);
     //BLOPS_NULLSUB();
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     Flame_Generate_Verts(localClientNum);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_GenerateSceneVerts(int localClientNum)
@@ -1553,7 +1553,7 @@ void __cdecl CG_GenerateSceneVerts(int localClientNum)
     CG_RenderFire();
     CG_Flame_Render();
     CG_GenerateSceneCodeMeshes(localClientNum);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 

@@ -1,4 +1,39 @@
 #include "demo_recording.h"
+#include <universal/com_workercmds.h>
+
+#include <cstring>
+#include "demo_files.h"
+#include "demo_playback.h"
+#include <qcommon/threads.h>
+#include <live/live_storage.h>
+#include <live/live_win.h>
+#include <qcommon/common.h>
+#include <qcommon/cmd.h>
+#include <win32/win_shared.h>
+#include <win32/win_net.h>
+#include <server_mp/sv_main_mp.h>
+#include <qcommon/sv_msg_write_mp.h>
+#include "demo_profile.h"
+#include <glass/glass_server.h>
+#include <ui_mp/ui_main_mp.h>
+#include <ui/ui_main.h>
+#include <universal/q_parse.h>
+#include <stdlib.h>
+#include <qcommon/sv_msg_write.h>
+#include <game_mp/g_main_mp.h>
+#include <universal/com_shared.h>
+#include <time.h>
+
+uploadStreamData_t s_uploadStreamData;
+uploadStreamHistory_t s_uploadStreamUsage;
+
+volatile unsigned int Demo_SaveLimit;
+jqModule Demo_SaveModule;
+jqWorkerCmd Demo_SaveWorkerCmd = { &Demo_SaveModule, 12u, 0, 0, &Demo_SaveLimit, NULL, 0u };
+
+int g_democlientindex;
+
+SnapshotInfo_s g_snapInfo;
 
 void __cdecl Demo_StartSaveProcess()
 {
@@ -60,8 +95,8 @@ void __cdecl Demo_SaveInternal(unsigned __int8 *data, int size, bool writeInfoFi
     Demo_PopulateHeliPatches(&demo.info);
     if ( writeInfoFile )
         Demo_WriteInfoData(demo.demoFileHandle, &demo.info);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    ////if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_StartStreaming(int controllerIndex)
@@ -94,17 +129,19 @@ void __cdecl Demo_AppendToStreamingHistory(int val, bool isAdded)
 {
     int i; // [esp+0h] [ebp-4h]
 
-    if ( fsShowStreamingGraph->current.enabled )
-    {
-        for ( i = 1; i < 60; ++i )
-        {
-            dword_A7DDB08[2 * i] = *(unsigned int *)&s_uploadStreamUsage.history[i].isDataAdded;
-            dword_A7DDB0C[2 * i] = s_uploadStreamUsage.history[i].value;
-        }
-        s_uploadStreamUsage.history[59].isDataAdded = isAdded;
-        s_uploadStreamUsage.history[59].value = val;
-        s_uploadStreamUsage.changed = 1;
-    }
+    // KISAKTODO: this is s_uploadStreamUsage struct -2 offset or something
+    //if ( fsShowStreamingGraph->current.enabled )
+    //{
+    //    for ( i = 1; i < 60; ++i )
+    //    {
+    //        dword_A7DDB08[2 * i] = *(unsigned int *)&s_uploadStreamUsage.history[i].isDataAdded;
+    //        dword_A7DDB0C[2 * i] = s_uploadStreamUsage.history[i].value;
+    //    }
+    //    s_uploadStreamUsage.history[59].isDataAdded = isAdded;
+    //    s_uploadStreamUsage.history[59].value = val;
+    //    s_uploadStreamUsage.changed = 1;
+    //}
+
     if ( isAdded && s_uploadStreamUsage.highwater < val )
         s_uploadStreamUsage.highwater = val;
 }
@@ -133,8 +170,8 @@ void __cdecl Demo_SaveToStreamBuffer(unsigned __int8 *data, unsigned int dataSiz
     //PIXBeginNamedEvent(-1, "Demo_SaveToStreamBuffer");
     if ( !s_uploadStreamData.active )
     {
-        if ( g_DXDeviceThread != GetCurrentThreadId() )
-            return;
+        //if ( g_DXDeviceThread != GetCurrentThreadId() )
+        //    return;
         goto LABEL_18;
     }
     if ( (int)(dataSize + s_uploadStreamData.writer) > 393216 )
@@ -178,9 +215,10 @@ void __cdecl Demo_SaveToStreamBuffer(unsigned __int8 *data, unsigned int dataSiz
         s_uploadStreamData.overflow = 1;
         Cbuf_InsertText(0, "demo_stoprecord;");
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    ////if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_18:
-        D3DPERF_EndEvent();
+    ;
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_RecordSentPacket(unsigned int size)
@@ -219,40 +257,40 @@ unsigned int __cdecl Demo_ThrottleStream(unsigned int dataSize)
     int minInterval; // [esp+10h] [ebp-20h]
     float packetsPerSecond; // [esp+14h] [ebp-1Ch]
     int throttlePointTime; // [esp+18h] [ebp-18h]
-    unsigned intcurrentTime; // [esp+1Ch] [ebp-14h]
+    unsigned int currentTime; // [esp+1Ch] [ebp-14h]
     unsigned int index; // [esp+20h] [ebp-10h]
     int historicalBytes; // [esp+24h] [ebp-Ch]
     float howScrewedAreWe; // [esp+28h] [ebp-8h]
     float howScrewedAreWea; // [esp+28h] [ebp-8h]
     int timeSinceLast; // [esp+2Ch] [ebp-4h]
 
-    if ( Demo_ShouldThrottle() )
+    if (Demo_ShouldThrottle())
     {
-        if ( s_uploadStreamData.overflow )
+        if (s_uploadStreamData.overflow)
         {
             howScrewedAreWe = 0.75f;
         }
         else
         {
             howScrewedAreWea = (float)((float)((float)Demo_GetCurrUsedBuffer() / 393216.0) * 2.0) - 0.2;
-            if ( (float)(howScrewedAreWea - 1.0) < 0.0 )
+            if ((float)(howScrewedAreWea - 1.0) < 0.0)
                 v4 = howScrewedAreWea;
             else
                 v4 = 1.0f;
-            if ( (float)(0.0 - howScrewedAreWea) < 0.0 )
+            if ((float)(0.0 - howScrewedAreWea) < 0.0)
                 v3 = v4;
             else
                 v3 = 0.0f;
             howScrewedAreWe = v3;
         }
         packetsPerSecond = (float)((float)(demo_packetsPerSecondMax->current.integer
-                                                                         - demo_packetsPerSecondMin->current.integer)
-                                                         * howScrewedAreWe)
-                                         + (float)demo_packetsPerSecondMin->current.integer;
+            - demo_packetsPerSecondMin->current.integer)
+            * howScrewedAreWe)
+            + (float)demo_packetsPerSecondMin->current.integer;
         bytesPerSecond = demo_bytesPerSecondMin->current.integer
-                                     + (int)(float)((float)(demo_bytesPerSecondMax->current.integer
-                                                                                - demo_bytesPerSecondMin->current.integer)
-                                                                * howScrewedAreWe);
+            + (int)(float)((float)(demo_bytesPerSecondMax->current.integer
+                - demo_bytesPerSecondMin->current.integer)
+                * howScrewedAreWe);
     }
     else
     {
@@ -262,43 +300,43 @@ unsigned int __cdecl Demo_ThrottleStream(unsigned int dataSize)
     minInterval = (int)(float)(1000.0 / packetsPerSecond);
     historicalBytes = bytesPerSecond - dataSize;
     index = s_uploadStreamData.sendHistoryIndex - 1;
-    if ( !s_uploadStreamData.sendHistoryIndex )
+    if (!s_uploadStreamData.sendHistoryIndex)
         index = 99;
     timeSinceLast = Sys_Milliseconds() - s_uploadStreamData.sendHistory[index].ms;
-    if ( timeSinceLast < minInterval )
+    if (timeSinceLast < minInterval)
     {
         Com_Printf(16, "DEMO THROTTLE CLOSED FOR INTERVAL: %dms\n", minInterval - timeSinceLast);
         NET_Sleep(minInterval - timeSinceLast);
     }
     currentTime = Sys_Milliseconds();
     throttlePointTime = 0;
-    while ( index != s_uploadStreamData.sendHistoryIndex )
+    while (index != s_uploadStreamData.sendHistoryIndex)
     {
-        if ( index >= 0x64
+        if (index >= 0x64
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\demo\\demo_recording.cpp",
-                        502,
-                        0,
-                        "index doesn't index DEMOSTREAMING_SEND_HISTORY\n\t%i not in [0, %i)",
-                        index,
-                        100) )
+                "C:\\projects_pc\\cod\\codsrc\\src\\demo\\demo_recording.cpp",
+                502,
+                0,
+                "index doesn't index DEMOSTREAMING_SEND_HISTORY\n\t%i not in [0, %i)",
+                index,
+                100))
         {
             __debugbreak();
         }
-        if ( !s_uploadStreamData.sendHistory[index].size )
+        if (!s_uploadStreamData.sendHistory[index].size)
             break;
         historicalBytes -= s_uploadStreamData.sendHistory[index].size;
-        if ( historicalBytes <= 0 )
+        if (historicalBytes <= 0)
         {
             throttlePointTime = s_uploadStreamData.sendHistory[index].ms;
             break;
         }
-        if ( --index == -1 )
+        if (--index == -1)
             index = 99;
     }
     timeUntilThrottle = currentTime - throttlePointTime;
     v1 = Demo_CurrAvailableBuffer();
-    if ( (int)(currentTime - throttlePointTime) >= 1000 )
+    if ((int)(currentTime - throttlePointTime) >= 1000)
     {
         Com_Printf(16, "DEMO THROTTLE OPEN: %dms, %dbytes. Buffer Available: %d\n", 1000 - timeUntilThrottle, dataSize, v1);
     }
@@ -376,8 +414,8 @@ int __cdecl Demo_SaveCallback(jqBatch *batch)
     cmd = jqLockData(batch);
     Demo_SaveInternal((unsigned __int8 *)*cmd, cmd[1], *((_BYTE *)cmd + 8));
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -441,9 +479,10 @@ bool __cdecl Demo_IsInFinalKillcam()
     bool result; // [esp+Bh] [ebp-1h]
 
     result = 1;
-    for ( i = 0; i < demo.header.maxClients; ++i )
+    for (i = 0; i < demo.header.maxClients; ++i)
     {
-        if ( svs.clients[i].header.state >= 5 && svs.clients[i].gentity->client->sess.forceSpectatorClient < 0 )
+        if (svs.clients[i].header.state >= 5 
+            && svs.clients[i].gentity->client->sess.forceSpectatorClient < 0)
             return 0;
     }
     return result;
@@ -799,8 +838,8 @@ void __cdecl Demo_WriteServerCommands(msg_t *msg)
             v2->reliableCommandInfo[v8 & 0x7F].cmd);
         Demo_Printf(4, string);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    ////if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_WriteMatchState(msg_t *msg)
@@ -815,14 +854,14 @@ void __cdecl Demo_WriteMatchState(msg_t *msg)
     g_snapInfo.client = &svs.clients[g_democlientindex].header;
     MSG_ClearLastReferencedEntity(msg);
     bitsStart = MSG_GetUsedBitCount(msg);
-    MSG_WriteDeltaMatchState((int)&savedregs, &g_snapInfo, msg, svsHeader.time, &demo.matchState, svsHeader.matchState);
+    MSG_WriteDeltaMatchState(&g_snapInfo, msg, svsHeader.time, &demo.matchState, svsHeader.matchState);
     memcpy(&demo.matchState, svsHeader.matchState, sizeof(demo.matchState));
     bitsUsed = MSG_GetUsedBitCount(msg) - bitsStart;
     v1 = va("DEMO: w Type: MatchState Size: %d bytes\n", bitsUsed / 8);
     Demo_Printf(9, v1);
     Demo_RecordProfileData(2, bitsUsed / 8);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_WritePlayerStates(msg_t *msg)
@@ -900,8 +939,8 @@ void __cdecl Demo_WritePlayerStates(msg_t *msg)
     }
     g_snapInfo.clientNum = g_democlientindex;
     g_snapInfo.client = &svs.clients[g_democlientindex].header;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_WritePacketEntities(msg_t *msg)
@@ -1058,8 +1097,8 @@ void __cdecl Demo_WritePacketEntities(msg_t *msg)
     v8 = MSG_GetUsedBitCount(msg);
     Demo_RecordProfileData(4, (v8 - UsedBitCount) / 8);
     demo.prevNumEntities = value;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_WritePacketClients(msg_t *msg)
@@ -1159,8 +1198,8 @@ void __cdecl Demo_WritePacketClients(msg_t *msg)
     v5 = MSG_GetUsedBitCount(msg);
     Demo_RecordProfileData(5, (v5 - initBitsUsed) / 8);
     demo.prevNumClients = numClients;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_PopulateStaticInfoData(demoMetaInfo *info)

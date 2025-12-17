@@ -1,4 +1,10 @@
 #include "memfile.h"
+#include "com_memory.h"
+#include <qcommon/common.h>
+#include <live/live.h>
+#include "physicalmemory.h"
+
+bool s_isLzoInitialized;
 
 void __cdecl MemFile_CommonInit(
                 MemoryFile *memFile,
@@ -9,7 +15,7 @@ void __cdecl MemFile_CommonInit(
 {
     if ( !s_isLzoInitialized )
     {
-        __lzopro_lzo_init_v2(0x2020u, 2, 4, 4, 4, 4, 4, 4, 4, 24);
+        __lzopro_lzo_init_v2(0x2020u, 2, 4, 4, 4, 4, 4, 4, 4, 24); // KISAKTODO: find this
         s_isLzoInitialized = 1;
     }
     if ( !memFile
@@ -126,7 +132,7 @@ void __cdecl MemFile_StartSegment(MemoryFile *memFile, int index)
 
 void __cdecl MemFile_EndSegment(MemoryFile *memFile)
 {
-    LargeLocal workmem_large_local; // [esp+0h] [ebp-1Ch] BYREF
+    LargeLocal workmem_large_local(0x2000); // [esp+0h] [ebp-1Ch] BYREF
     unsigned int *out_len; // [esp+8h] [ebp-14h]
     unsigned __int8 *workmem; // [esp+Ch] [ebp-10h]
     int err; // [esp+10h] [ebp-Ch]
@@ -169,8 +175,8 @@ void __cdecl MemFile_EndSegment(MemoryFile *memFile)
                     memFile->memoryOverflow = 1;
                     return;
                 }
-                LargeLocal::LargeLocal(&workmem_large_local, 0x2000);
-                workmem = LargeLocal::GetBuf(&workmem_large_local);
+                //LargeLocal::LargeLocal(&workmem_large_local, 0x2000);
+                workmem = workmem_large_local.GetBuf(); // LargeLocal::GetBuf(&workmem_large_local);
                 out_len = (unsigned int *)&memFile->buffer[memFile->bytesUsed];
                 memFile->bytesUsed += 4;
                 lzopro_lzo1x_1_11_compress(
@@ -181,14 +187,14 @@ void __cdecl MemFile_EndSegment(MemoryFile *memFile)
                     workmem);
                 memFile->cacheBufferUsed = 0;
                 memFile->bytesUsed += *out_len;
-                LargeLocal::~LargeLocal(&workmem_large_local);
+                //LargeLocal::~LargeLocal(&workmem_large_local);
             }
         }
         else
         {
             MemFile_WriteDataFlushInternal(memFile);
         }
-        err = Live_CountGuestsInUse(memFile);
+        err = Live_CountGuestsInUse();
         if ( err
             && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\universal\\memfile.cpp", 492, 0, "%s", "err == Z_OK") )
         {
@@ -227,7 +233,7 @@ void __cdecl MemFile_MoveToSegment(MemoryFile *memFile, int index)
     if ( !memFile->memoryOverflow )
     {
         if ( memFile->segmentIndex >= 0
-            && Live_CountGuestsInUse(memFile)
+            && Live_CountGuestsInUse()
             && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\universal\\memfile.cpp", 578, 0, "%s", "err == Z_OK") )
         {
             __debugbreak();
@@ -315,7 +321,7 @@ bool __cdecl MemFile_IsReading(MemoryFile *memFile)
 
 void __cdecl MemFile_WriteDataFlushInternal(MemoryFile *memFile)
 {
-    LargeLocal workmem_large_local; // [esp+0h] [ebp-10h] BYREF
+    LargeLocal workmem_large_local(0x2000); // [esp+0h] [ebp-10h] BYREF
     unsigned int *len; // [esp+8h] [ebp-8h]
     unsigned __int8 *workmem; // [esp+Ch] [ebp-4h]
 
@@ -343,8 +349,8 @@ LABEL_14:
     }
     if ( memFile->bytesUsed < memFile->bufferSize )
     {
-        LargeLocal::LargeLocal(&workmem_large_local, 0x2000);
-        workmem = LargeLocal::GetBuf(&workmem_large_local);
+        //LargeLocal::LargeLocal(&workmem_large_local, 0x2000);
+        workmem = workmem_large_local.GetBuf(); // LargeLocal::GetBuf(&workmem_large_local);
         len = (unsigned int *)&memFile->buffer[memFile->bytesUsed];
         memFile->bytesUsed += 4;
         lzopro_lzo1x_1_11_compress(
@@ -355,7 +361,7 @@ LABEL_14:
             workmem);
         memFile->cacheBufferUsed = 0;
         memFile->bytesUsed += *len;
-        LargeLocal::~LargeLocal(&workmem_large_local);
+        //LargeLocal::~LargeLocal(&workmem_large_local);
         goto LABEL_14;
     }
     if ( memFile->errorOnOverflow )
@@ -400,6 +406,8 @@ void __cdecl MemFile_WriteDataInternal(MemoryFile *memFile, unsigned int byteCou
     }
 }
 
+
+static char buffer[1024];
 char *__cdecl MemFile_ReadCString(MemoryFile *memFile)
 {
     char *string; // [esp+0h] [ebp-4h]

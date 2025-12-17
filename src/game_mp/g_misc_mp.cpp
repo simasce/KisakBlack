@@ -1,10 +1,23 @@
 #include "g_misc_mp.h"
+#include <clientscript/cscr_stringlist.h>
+#include "g_main_mp.h"
+#include <cgame/cg_drawtools.h>
+#include <bgame/bg_weapons.h>
+#include "g_utils_mp.h"
+#include <cgame_mp/cg_view_mp.h>
+#include <gfx_d3d/r_primarylights.h>
+#include "g_spawn_mp.h"
+#include <game/g_load_utils.h>
+#include <cgame_mp/cg_ents_mp.h>
+#include <cgame/cg_scr_main.h>
+#include <server/sv_world.h>
 
+static const float color[4] = { 0.5, 0.5, 0.5, 1.0 };
 void __cdecl misc_EntInfo(gentity_s *self, float *source)
 {
     char *v2; // eax
     char *v3; // eax
-    char *v4; // [esp+10h] [ebp-3Ch]
+    const char *v4; // [esp+10h] [ebp-3Ch]
     float xyz[3]; // [esp+1Ch] [ebp-30h] BYREF
     float mins[3]; // [esp+28h] [ebp-24h] BYREF
     float dist; // [esp+34h] [ebp-18h] BYREF
@@ -42,7 +55,7 @@ void __cdecl misc_EntInfo(gentity_s *self, float *source)
         mins[2] = 0.0f;
         maxs[0] = 16.0f;
         maxs[1] = 16.0f;
-        maxs[2] = FLOAT_72_0;
+        maxs[2] = 72.0f;
     }
     else
     {
@@ -96,6 +109,11 @@ void __cdecl EntInfo_Vehicle(gentity_s *self, float *source)
     CG_DebugBox(self->r.currentOrigin, self->r.mins, self->r.maxs, 0.0, colorCyan, 1, 0);
 }
 
+unsigned int _S1_8;
+float MY_MAX_DIST_HALF;
+static const float MY_MAX_DIST = 500.0f;
+static const float MY_NEXTLINE = -3.0f;
+static const float MY_RGB[3] = { 0.6f, 0.5f, 0.5f };
 void __cdecl EntInfo_Item(gentity_s *self, float *source)
 {
     const char *v2; // eax
@@ -108,27 +126,27 @@ void __cdecl EntInfo_Item(gentity_s *self, float *source)
     int idx; // [esp+24h] [ebp-14h]
     float color[4]; // [esp+28h] [ebp-10h] BYREF
 
-    if ( (_S1_8 & 1) == 0 )
+    if ((_S1_8 & 1) == 0)
     {
         _S1_8 |= 1u;
         MY_MAX_DIST_HALF = MY_MAX_DIST * 0.5;
     }
-    if ( !self && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_misc_mp.cpp", 108, 0, "%s", "self") )
+    if (!self && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_misc_mp.cpp", 108, 0, "%s", "self"))
         __debugbreak();
     EntinfoPosAndScale(self, source, pos, &textScale, &dist);
-    if ( dist <= MY_MAX_DIST )
+    if (dist <= MY_MAX_DIST)
     {
         color[0] = MY_RGB[0];
-        LODWORD(color[1]) = dword_E082D8;
-        LODWORD(color[2]) = dword_E082DC;
-        if ( MY_MAX_DIST_HALF <= dist )
+        color[1] = MY_RGB[1];
+        color[2] = MY_RGB[2];
+        if (MY_MAX_DIST_HALF <= dist)
             color[3] = 1.0 - (float)((float)(dist - MY_MAX_DIST_HALF) / MY_MAX_DIST_HALF);
         else
             color[3] = 1.0f;
         pos[2] = pos[2] - (float)(MY_NEXTLINE * 0.5);
-        for ( idx = 0; idx < 2; ++idx )
+        for (idx = 0; idx < 2; ++idx)
         {
-            if ( self->item[idx].index )
+            if (self->item[idx].index)
             {
                 ammoCount = self->item[idx].ammoCount;
                 scale = self->item[idx].clipAmmoCount;
@@ -142,14 +160,9 @@ void __cdecl EntInfo_Item(gentity_s *self, float *source)
     }
 }
 
-double __cdecl G_GetEntInfoScale()
+float __cdecl G_GetEntInfoScale()
 {
-    long double fov_x; // [esp+0h] [ebp-10h]
-
-    *(float *)&fov_x = 80.0f;
-    __libm_sse2_tan(fov_x);
-    return g_entinfo_scale->current.value
-             * (float)((float)((float)((float)(80.0 * 0.017453292) * 0.5) * 0.75) * 1.5890048);
+    return CG_GetViewZoomScale() * g_entinfo_scale->current.value;
 }
 
 void __cdecl SP_info_notnull(gentity_s *self)
@@ -230,7 +243,7 @@ void __cdecl SP_light(gentity_s *self, SpawnVar *spawnVar)
         }
         self->handler = 23;
         self->flags |= 0x1000u;
-        SV_LinkEntity((int)&savedregs, self);
+        SV_LinkEntity(self);
     }
     else
     {
@@ -286,7 +299,7 @@ void __cdecl ScrNotify_FaceEvent(gentity_s *self, unsigned __int16 face_event)
 
     Scr_AddEntity(self, SCRIPTINSTANCE_SERVER);
     Scr_AddConstString(face_event, SCRIPTINSTANCE_SERVER);
-    t = Scr_ExecThread(SCRIPTINSTANCE_SERVER, handle, 2u);
+    t = Scr_ExecThread(SCRIPTINSTANCE_SERVER, g_scr_faceeventnotify, 2u);
     Scr_FreeThread(t, SCRIPTINSTANCE_SERVER);
 }
 

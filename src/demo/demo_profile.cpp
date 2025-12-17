@@ -1,4 +1,22 @@
 #include "demo_profile.h"
+#include "demo_common.h"
+#include <cgame_mp/cg_local_mp.h>
+#include <cgame_mp/cg_consolecmds_mp.h>
+#include "demo_playback.h"
+#include <game/g_debug.h>
+#include <client/cl_debugdata.h>
+
+const char *demo_profile_enum_string_72[8] =
+{
+  "Gamestate",
+  "Snapshots",
+  "MatchStates",
+  "PlayerStates",
+  "Entities",
+  "Clients",
+  "Actors",
+  "AnimCmds"
+};
 
 bool __cdecl Demo_GetAnalyzePrintDataType(int fieldBit)
 {

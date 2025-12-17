@@ -490,8 +490,8 @@ void __cdecl Rope_UpdateInternal(const RopeUpdateCmdData *cmd)
         if ( cmd->ropes[ri].m_in_use )
             Rope_Tick(cmd, ri, 17.0 * 0.001, 0);
     }
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-    //    D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
 }
 
 void __cdecl Rope_Tick(const RopeUpdateCmdData *cmd, int rope_index, float dt, bool force_update)
@@ -1087,18 +1087,18 @@ void    Rope_Update(int a1@<ebp>, int localClientNum, int curtime)
                 MatrixTranspose44((const float *)v3, &cmd.viewOrg[1]);
                 Rope_UpdateInternal((const RopeUpdateCmdData *)((char *)&viewAxis_24 + 8));
                 g_rope_sys_time = curtime;
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
             }
-            else if ( GetCurrentThreadId() == g_DXDeviceThread )
+            else //if ( GetCurrentThreadId() == g_DXDeviceThread )
             {
                 goto LABEL_4;
             }
         }
-        else if ( GetCurrentThreadId() == g_DXDeviceThread )
+        else //if ( GetCurrentThreadId() == g_DXDeviceThread )
         {
 LABEL_4:
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
         }
     }
 }
@@ -1128,8 +1128,8 @@ void __cdecl Rope_Render(unsigned int localClientNum)
                 Rope_DebugDraw(ri);
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl Rope_DebugDraw(int rope_index)
@@ -1531,12 +1531,12 @@ void __cdecl Rope_Trace(const float *p0, const float *p1)
                 }
             }
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
-    else if ( g_DXDeviceThread == GetCurrentThreadId() )
+    else //if ( g_DXDeviceThread == GetCurrentThreadId() )
     {
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
     }
 }
 

@@ -35,9 +35,9 @@ void __cdecl CL_DrawScreen(int localClientNum)
         CG_DrawVersion();
     Con_DrawConsole(localClientNum);
     DevGui_Draw(localClientNum);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_13:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 double __cdecl CL_GetMenuBlurRadius(int localClientNum)
@@ -368,8 +368,8 @@ void __cdecl CL_UpdateUIVisibilityBits(int localClientNum)
             }
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void    SCR_UpdateScreen(int a1@<esi>)
@@ -601,18 +601,18 @@ int    CL_CGameRendering@<eax>(int a1@<esi>, int localClientNum)
             rg.renderHiResShot = hiRes;
         }
         //PIXBeginNamedEvent(-1, "wait Draw2D");
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         R_AddCmdEndOfList();
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 1;
     }
     else
     {
         CL_SendCmd(localClientNum);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         return 0;
     }
 }

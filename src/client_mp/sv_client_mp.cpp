@@ -2713,9 +2713,9 @@ void __cdecl SV_ClientThink(client_t *cl, usercmd_s *cmd)
             return;
         goto LABEL_11;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_11:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl SV_UserMove(client_t *cl, msg_t *msg, int delta)

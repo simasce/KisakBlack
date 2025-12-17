@@ -1,4 +1,102 @@
 #include "r_workercmds.h"
+#include <universal/com_workercmds.h>
+#include "r_dpvs_entity.h"
+#include "r_model_skin.h"
+#include "r_rendercmds.h"
+#include "r_dpvs_static.h"
+#include "r_dpvs_dynmodel.h"
+#include "r_dpvs_sceneent.h"
+#include "r_water.h"
+#include "r_water_sim.h"
+#include "r_spotshadow.h"
+#include "r_workercmds_common.h"
+#include <EffectsCore/fx_update.h>
+#include <qcommon/threads.h>
+#include <EffectsCore/fx_draw.h>
+
+
+volatile unsigned int g_waterLock;
+
+jqModule fx_update_spotModule;
+jqModule fx_updateModule;
+jqModule fx_update_remainingModule;
+jqModule r_dpvs_staticModule;
+jqModule r_dpvs_sceneentModule;
+jqModule r_dpvs_dynmodelModule;
+jqModule r_dpvs_dynbrushModule;
+jqModule r_dpvs_entityModule;
+jqModule r_add_sceneentModule;
+jqModule r_spot_shadow_entModule;
+jqModule dobj_skelModule;
+jqModule dobj_skinModule;
+jqModule fx_drawModule;
+jqModule fx_marks_drawModule;
+jqModule r_model_skinModule;
+jqModule nuge_physicsModule;
+jqModule r_skin_cached_staticmodelModule;
+
+// probably decl'd with a macro here, but ya'know
+
+volatile unsigned int fx_update_spotLimit = 1;
+jqWorkerCmd fx_update_spotWorkerCmd = { &fx_update_spotModule, 52u, 0, 0, &fx_update_spotLimit, NULL, 0u };
+
+volatile unsigned int fx_updateLimit = 1;
+jqWorkerCmd fx_updateWorkerCmd = { &fx_updateModule, 52u, 0, 0, &fx_updateLimit, NULL, 0u };
+
+volatile unsigned int fx_update_remainingLimit = 1;
+jqWorkerCmd fx_update_remainingWorkerCmd = { &fx_update_remainingModule, 52u, 0, 0, &fx_update_remainingLimit, NULL, 0u };
+
+volatile unsigned int r_dpvs_staticLimit = 1;
+jqWorkerCmd r_dpvs_staticWorkerCmd = { &r_dpvs_staticModule, 12u, 0, 0, &r_dpvs_staticLimit, NULL, 0u };
+
+volatile unsigned int r_dpvs_sceneentLimit = 1;
+jqWorkerCmd r_dpvs_sceneentWorkerCmd = { &r_dpvs_sceneentModule, 12u, 0, 0, &r_dpvs_sceneentLimit, NULL, 0u };
+
+volatile unsigned int r_dpvs_dynmodelLimit = 1;
+jqWorkerCmd r_dpvs_dynmodelWorkerCmd = { &r_dpvs_dynmodelModule, 12u, 0, 0, &r_dpvs_dynmodelLimit, NULL, 0u };
+
+volatile unsigned int r_dpvs_dynbrushLimit = 1;
+jqWorkerCmd r_dpvs_dynbrushWorkerCmd = { &r_dpvs_dynbrushModule, 12u, 0, 0, &r_dpvs_dynbrushLimit, NULL, 0u };
+
+volatile unsigned int r_dpvs_entityLimit = 1;
+jqWorkerCmd r_dpvs_entityWorkerCmd = { &r_dpvs_entityModule, 16u, 0, 0, &r_dpvs_entityLimit, NULL, 0u };
+
+volatile unsigned int r_add_sceneentLimit = 1;
+jqWorkerCmd r_add_sceneentWorkerCmd = { &r_add_sceneentModule, 4u, 0, 0, &r_add_sceneentLimit, NULL, 0u };
+
+volatile unsigned int r_spot_shadow_entLimit = 1;
+jqWorkerCmd r_spot_shadow_entWorkerCmd = { &r_spot_shadow_entModule, 8u, 0, 0, &r_spot_shadow_entLimit, NULL, 0u };
+
+volatile unsigned int dobj_skelLimit = 1;
+jqWorkerCmd dobj_skelWorkerCmd = { &dobj_skelModule, 4u, 0, 0, &dobj_skelLimit, NULL, 0u };
+
+volatile unsigned int dobj_skinLimit = 1;
+jqWorkerCmd dobj_skinWorkerCmd = { &dobj_skinModule, 4u, 0, 0, &dobj_skinLimit, NULL, 0u }; 
+
+volatile unsigned int fx_drawLimit = 1;
+jqWorkerCmd fx_drawWorkerCmd = { &fx_drawModule, 80u, 0, 0, &fx_drawLimit, NULL, 0u };
+
+volatile unsigned int fx_marks_drawLimit = 1;
+jqWorkerCmd fx_marks_drawWorkerCmd = { &fx_marks_drawModule, 52u, 0, 0, &fx_marks_drawLimit, NULL, 0u };
+
+volatile unsigned int r_model_skinLimit;
+jqWorkerCmd r_model_skinWorkerCmd = { &r_model_skinModule, 48u, 0, 0, &r_model_skinLimit, NULL, 0u };
+
+volatile unsigned int nuge_physicsLimit= 1;
+jqWorkerCmd nuge_physicsWorkerCmd = { &nuge_physicsModule, 124u, 0, 0, &nuge_physicsLimit, NULL, 0u };
+
+volatile unsigned int r_skin_cached_staticmodelLimit = 1;
+jqWorkerCmd r_skin_cached_staticmodelWorkerCmd =
+{
+  &r_skin_cached_staticmodelModule,
+  4u,
+  0,
+  0,
+  &r_skin_cached_staticmodelLimit,
+  NULL,
+  0u
+};
+
 
 int __cdecl r_dpvs_entityCallback(jqBatch *batch)
 {
@@ -8,8 +106,8 @@ int __cdecl r_dpvs_entityCallback(jqBatch *batch)
     data = (unsigned __int16 *)jqLockData(batch);
     R_AddEntitySurfacesInFrustumCmd(data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -23,10 +121,10 @@ int __cdecl r_model_skinCallback(jqBatch *batch)
         return 1;
     *frontEndDataOut->dynamicBufferCurrentFrame = frontEndDataOut->frameCount;
     //PIXBeginNamedEvent(-1, "r_model_skin");
-    R_SkinXModelCmd((int)&savedregs, (SkinXModelCmd *)data);
+    R_SkinXModelCmd((SkinXModelCmd *)data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -43,8 +141,8 @@ int __cdecl r_dpvs_staticCallback(jqBatch *batch)
     data = jqLockData(batch);
     R_AddCellStaticSurfacesInFrustumCmd((DpvsStaticCellCmd *)data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -56,8 +154,8 @@ int __cdecl r_dpvs_dynmodelCallback(jqBatch *batch)
     data = jqLockData(batch);
     R_AddCellDynModelSurfacesInFrustumCmd((const DpvsPlane **)data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -68,10 +166,10 @@ int __cdecl r_dpvs_sceneentCallback(jqBatch *batch)
 
     //PIXBeginNamedEvent(-1, "r_dpvs_sceneent");
     data = (GfxWorldDpvsPlanes *)jqLockData(batch);
-    R_AddCellSceneEntSurfacesInFrustumCmd((unsigned int)&savedregs, data);
+    R_AddCellSceneEntSurfacesInFrustumCmd(data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -83,8 +181,8 @@ int __cdecl r_dpvs_dynbrushCallback(jqBatch *batch)
     data = jqLockData(batch);
     R_AddCellDynBrushSurfacesInFrustumCmd((const DpvsPlane **)data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -98,8 +196,8 @@ int __cdecl r_waterCallback(jqBatch *batch)
     //PIXBeginNamedEvent(-1, "r_water");
     R_UploadWaterTextureInternal((water_t **)data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -126,8 +224,8 @@ int __cdecl r_water_simCallback(jqBatch *batch)
     //PIXBeginNamedEvent(-1, "r_water_sim");
     R_WaterSimulationCmd(data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -144,8 +242,8 @@ int __cdecl r_spot_shadow_entCallback(jqBatch *batch)
     data = jqLockData(batch);
     R_AddSpotShadowEntCmd((const GfxSpotShadowEntCmd *)data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -157,8 +255,8 @@ int __cdecl fx_updateCallback(jqBatch *batch)
     data = jqLockData(batch);
     R_ProcessCmd_UpdateFxNonDependent((FxCmd *)data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -174,8 +272,8 @@ int __cdecl fx_update_remainingCallback(jqBatch *batch)
     //PIXBeginNamedEvent(-1, Name);
     FX_UpdateRemaining(data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -201,8 +299,8 @@ int __cdecl fx_update_remaining_ppuCallback(jqBatch *batch)
     //PIXBeginNamedEvent(-1, Name);
     R_ProcessCmd_UpdateFxRemaining(data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -231,8 +329,8 @@ int __cdecl fx_drawCallback(jqBatch *batch)
     if ( Sys_QueryD3DDeviceOKEvent() )
         FX_GenerateVerts((FxGenerateVertsCmd *)data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -244,8 +342,8 @@ int __cdecl dobj_skelCallback(jqBatch *batch)
     data = jqLockData(batch);
     R_UpdateGfxEntityBoundsCmd((GfxSceneEntity **)data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -257,8 +355,8 @@ int __cdecl dobj_skinCallback(jqBatch *batch)
     data = jqLockData(batch);
     R_SkinGfxEntityCmd((GfxSceneEntity **)data);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 0;
 }
 
@@ -269,8 +367,8 @@ int __cdecl r_model_lightingCallback(jqBatch *batch)
     data = (CalcLightingCmd *)jqLockData(batch);
     //PIXBeginNamedEvent(-1, "r_model_lighting");
     R_CalcModelLightingCmd(data);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     jqUnlockData(batch);
     return 0;
 }
@@ -282,8 +380,8 @@ int __cdecl r_add_sceneentCallback(jqBatch *batch)
     data = jqLockData(batch);
     //PIXBeginNamedEvent(-1, "r_add_sceneent");
     R_AddAllSceneEntSurfacesCamera((const GfxViewInfo *)*data);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     jqUnlockData(batch);
     return 0;
 }
@@ -303,8 +401,8 @@ int __cdecl fx_marks_drawCallback(jqBatch *batch)
     {
         //PIXBeginNamedEvent(-1, "fx_marks_draw");
         FX_GenerateMarkVertsForWorld(data[1], (const GfxLight *)data[9], data[10]);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     jqUnlockData(batch);
     return 0;
@@ -317,8 +415,8 @@ int __cdecl fx_update_spotCallback(jqBatch *batch)
     data = jqLockData(batch);
     //PIXBeginNamedEvent(-1, "fx_update_spot");
     R_ProcessCmd_UpdateFxSpotLight((FxCmd *)data);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     jqUnlockData(batch);
     return 0;
 }

@@ -300,7 +300,7 @@ void    Flame_Render_Sprites(
                 flameGeneric_s **flameGenericList,
                 int numItems);
 int __cdecl Flame_GetLocalClientFlameSource(int localClientNum, int EntNum);
-unsigned __int8 __cdecl Flame_GetLocalClientSourceRange();
+bool __cdecl Flame_GetLocalClientSourceRange(const char *__formal);
 void __cdecl Flame_Source_Update(flameSource_t *source, flameWeaponConfig_t *weaponConfig);
 void __cdecl SV_Flame_Update_Source_Internal(
                 flameSource_t *source,

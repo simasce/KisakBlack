@@ -53,8 +53,8 @@ void __cdecl DObjCalcSkel(DObj *obj, int *partBits)
     }
     if ( bFinished )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     else
     {
@@ -137,8 +137,8 @@ void __cdecl DObjCalcSkel(DObj *obj, int *partBits)
                 }
             }
         }
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
 }
 

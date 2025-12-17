@@ -757,8 +757,8 @@ void __cdecl RB_StretchPicCmd(GfxRenderCommandExecState *execState)
         cmd->t1,
         cmd->color.packed,
         GFX_PRIM_STATS_HUD);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     execState->cmd = (char *)execState->cmd + *(unsigned __int16 *)execState->cmd;
 }
 
@@ -1502,7 +1502,7 @@ void __cdecl R_DrawSurfs(GfxCmdBufContext context, GfxCmdBufState *prepassState,
     if ( prepassContext.state )
         R_EndPixMaterials(prepassContext.state);
     if ( context.state->prim.device != dx.device && GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
     R_TessEnd(context, prepassContext);
     context.state->origMaterial = 0;
 }
@@ -4462,8 +4462,8 @@ void __cdecl RB_DrawText2DCmd(GfxRenderCommandExecState *execState)
         cmd->fxRedactDecayDuration,
         cmd->fxMaterial,
         cmd->fxMaterialGlow);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     execState->cmd = (char *)execState->cmd + *(unsigned __int16 *)execState->cmd;
 }
 
@@ -4884,8 +4884,8 @@ void __cdecl RB_ExecuteRenderCommandsLoop(const void *cmds, int *ui3dTextureWind
             }
             //PIXBeginNamedEvent((int)&cls.rankedServers[711].game[34], gfxRenderCommandNames[header->id]);
             RB_RenderCommandTable[header->id](&execState);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
         }
         else
         {
@@ -4916,8 +4916,8 @@ void __cdecl RB_ExecuteRenderCommandsLoop(const void *cmds, int *ui3dTextureWind
     }
     if ( tess.indexCount )
         RB_EndTessSurface();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_Draw3D()
@@ -4956,8 +4956,8 @@ void __cdecl RB_Draw3D()
                 //PIXBeginNamedEvent(-1, Name);
                 RB_ResetStatTracking(v);
                 RB_Draw3DInternal(viewInfoa);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
             }
         }
         else
@@ -4966,8 +4966,8 @@ void __cdecl RB_Draw3D()
             //PIXBeginNamedEvent(-1, v0);
             RB_ResetStatTracking(data->viewInfoIndex);
             RB_Draw3DInternal(viewInfo);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
         }
     }
 }
@@ -5036,8 +5036,8 @@ void __cdecl RB_CallExecuteRenderCommands()
         {
             //PIXBeginNamedEvent(-1, "backEndData->cmds");
             RB_ExecuteRenderCommandsLoop(backEndData->cmds, 0);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
         }
         if ( r_drawPrimHistogram->current.enabled )
             RB_DrawPrimHistogramOverlay();
@@ -5095,8 +5095,8 @@ void __cdecl RB_CallExecuteRenderCommands()
         }
     }
     backEndData = 0;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_UpdateDynamicBuffers(GfxBackEndData *backendData)
@@ -5160,8 +5160,8 @@ void __cdecl RB_UpdateDynamicBuffers(GfxBackEndData *backendData)
         R_UnlockIndexBuffer(backendData->preTessIb->buffer);
     }
     *backendData->dynamicBufferCurrentFrame = 0;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void     RB_RenderThread(int a1@<esi>, unsigned int threadContext)
@@ -5353,12 +5353,12 @@ void __cdecl RB_RenderCommandFrame(const GfxBackEndData *data)
     RB_CallExecuteRenderCommands();
     rb_execCmdsMS = Sys_Milliseconds() - renderStartMS;
     backEndData = 0;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "Sys_RenderCompleted()");
     Sys_RenderCompleted();
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     while ( !RB_BackendTimeout((r_glob.backEndFrameCount + dx.gpuCount - 1) % dx.gpuCount) )
     {
         semaphore = R_ReleaseDXDeviceOwnership();
@@ -5368,8 +5368,8 @@ void __cdecl RB_RenderCommandFrame(const GfxBackEndData *data)
     }
     //PIXBeginNamedEvent(-1, "end frame");
     RB_EndFrame(drawType);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     rb_swapMS = Sys_Milliseconds() - renderStartMS - rb_execCmdsMS;
 }
 
@@ -5607,8 +5607,8 @@ void __cdecl RB_SaveScreen_BlendBlurred(const GfxBlendSaveScreenBlurredParam *p,
             if ( tess.indexCount )
                 RB_EndTessSurface();
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -5680,8 +5680,8 @@ void __cdecl RB_SaveScreen_BlendFlashed(const GfxBlendSaveScreenFlashedParam *p,
             GFX_PRIM_STATS_CODE);
         if ( tess.indexCount )
             RB_EndTessSurface();
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -5775,8 +5775,8 @@ void __cdecl RB_SaveScreen(const GfxSaveScreenParam *p, const GfxViewInfo *viewI
             R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
             R_SetRenderTarget(gfxCmdBufContext, 3u);
         }
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 

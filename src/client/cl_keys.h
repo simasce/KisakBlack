@@ -1,4 +1,43 @@
 #pragma once
+#include <qcommon/common.h>
+#include "screen_placement.h"
+
+enum LocSelInputState : __int32
+{                                       // XREF: PlayerKeyState/r
+                                        // CG_HandleLocationSelectionInput/r
+    LOC_SEL_INPUT_NONE         = 0x0,
+    LOC_SEL_INPUT_CONFIRM      = 0x1,
+    LOC_SEL_INPUT_YAW          = 0x2,
+    LOC_SEL_INPUT_REGROUP      = 0x3,
+    LOC_SEL_INPUT_DEFEND       = 0x4,
+    LOC_SEL_INPUT_SQUAD_CANCEL = 0x5,
+    LOC_SEL_INPUT_CANCEL       = 0x6,
+};
+
+struct KeyState // sizeof=0x10
+{                                       // XREF: PlayerKeyState/r
+    int down;                           // XREF: Console_Key(int,int)+22/r
+                                        // Console_Key(int,int)+34/r ...
+    int repeats;
+    const char *binding;                // XREF: Key_SetBinding(int,int,char const *,int)+5A/o
+                                        // Key_GetBinding(int,int,int)+78/r ...
+    const char *binding2;               // XREF: Key_SetBinding(int,int,char const *,int)+97/o
+                                        // Key_GetBinding(int,int,int)+92/r ...
+};
+
+struct PlayerKeyState // sizeof=0x1128
+{                                       // XREF: .data:PlayerKeyState * playerKeys/r
+    field_t chatField;
+    int chat_team;                      // XREF: SetupChatField+26/w
+                                        // Con_DrawSay(int,int,int)+29/r ...
+    int overstrikeMode;                 // XREF: Key_GetOverstrikeMode(int)+C/r
+                                        // Key_SetOverstrikeMode(int,int)+F/w
+    int anyKeyDown;                     // XREF: CL_GamepadButtonEvent(int,int,int,int,uint,int)+168/r
+                                        // CL_GamepadButtonEvent(int,int,int,int,uint,int)+17A/w ...
+    KeyState keys[256];                 // XREF: CL_GamepadButtonEvent(int,int,int,int,uint,int)+BE/o
+                                        // Console_Key(int,int)+22/r ...
+    LocSelInputState locSelInputState;  // XREF: CL_GamepadButtonEvent(int,int,int,int,uint,int)+394/o
+};
 
 void __cdecl Field_DrawTextOverride(
                 int localClientNum,
@@ -78,3 +117,6 @@ void __cdecl Key_AddCatcher(int localClientNum, int orMask);
 void __cdecl Key_RemoveCatcher(int localClientNum, int andMask);
 void __cdecl Key_SetCatcher(int localClientNum, int catcher);
 void __cdecl Key_ContextIndex_SetCatcher(int contextIndex, int catcher);
+
+
+extern PlayerKeyState playerKeys[1];

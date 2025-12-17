@@ -169,3 +169,5 @@ void __cdecl CG_BlendSavedScreenShockFlashed(
                 float viewWidth,
                 float viewHeight);
 void __cdecl CG_ResetFullscreenFX(int localClientNum);
+
+float __cdecl CG_GetViewZoomScale();

@@ -2103,8 +2103,8 @@ void __cdecl NitrousVehicle::frame_prolog_all_systems(float delta_t)
     {
         NitrousVehicle::_update_prolog((NitrousVehicle *)&i[2], (int)&savedregs, delta_t);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl NitrousVehicle::frame_epilog_all_systems(float delta_t)
@@ -2118,8 +2118,8 @@ void __cdecl NitrousVehicle::frame_epilog_all_systems(float delta_t)
     {
         NitrousVehicle::_update_epilog((NitrousVehicle *)&i[2], delta_t);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 NitrousVehicle **__cdecl NitrousVehicle::add_vehicle(NitrousVehicle *id)
@@ -3631,8 +3631,8 @@ void __cdecl G_ClearVehicleInputs()
         }
         Sys_LeaveCriticalSection(CRITSECT_PHYSICS);
         Sys_LeaveCriticalSection(CRITSECT_PHYSICS_UPDATE);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 

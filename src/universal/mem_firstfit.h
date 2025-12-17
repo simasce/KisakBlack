@@ -1,4 +1,11 @@
 #pragma once
+#include "mem_userhunk.h"
+
+struct _firstfit_heapnode // sizeof=0x8
+{                                       // XREF: FIRSTFIT_HEAPNODE/r
+    _firstfit_heapnode *next;
+    int size;
+};
 
 HunkUser *__cdecl Hunk_FirstFitInit(
                 unsigned int *buffer,

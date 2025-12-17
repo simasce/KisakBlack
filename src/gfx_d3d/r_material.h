@@ -3,6 +3,7 @@
 #include <d3d9.h>
 #include "r_gfx.h"
 #include <database/db_registry.h>
+#include <universal/fft.h>
 
 enum surfaceType_t : __int32
 {                                       // XREF: ?R_AddXModelSurfacesCamera@@YAXPIAUXModelDrawInfo@@PIBUXModel@@QAMIIIHHQAPIATGfxDrawSurf@@3III@Z/r
@@ -302,15 +303,6 @@ struct WaterWritable // sizeof=0x4
         float floatTime;
 };
 
-struct complex_s // sizeof=0x8
-{                                                                             // XREF: WaterGlob/r
-                                                                                // WaterGlobStatic/r ...
-        float real;                                                 // XREF: TransposeArray+4F/w
-                                                                                // TransposeArray+8A/r ...
-        float imag;                                                 // XREF: TransposeArray+52/w
-                                                                                // TransposeArray+90/r ...
-};
-
 struct water_t // sizeof=0x44
 {                                                                             // XREF: .data:sceneWaterMapSetups/r
                                                                                 // Material_RegisterWaterImage/r
@@ -362,18 +354,6 @@ struct GfxStateBits // sizeof=0x8
         unsigned int loadBits[2];
 };
 
-union $090A22A23743445EB0E711FA011CE2F0 // sizeof=0x4
-{                                                                             // XREF: Material/r
-        MaterialTechniqueSet *localTechniqueSet;
-        MaterialTechniqueSet *techniqueSet;
-};
-
-union $A4FF57C4AF6A63DB9C0EEC1063D439DF // sizeof=0x4
-{                                                                             // XREF: Material/r
-        MaterialConstantDef *localConstantTable;
-        MaterialConstantDef *constantTable;
-};
-
 struct Material // sizeof=0xC0
 {                                                                             // XREF: XAssetPoolEntry<Material>/r
         MaterialInfo info;
@@ -384,9 +364,19 @@ struct Material // sizeof=0xC0
         unsigned __int8 stateFlags;
         unsigned __int8 cameraRegion;
         unsigned __int8 maxStreamedMips;
-        $090A22A23743445EB0E711FA011CE2F0 ___u8;
+        //$090A22A23743445EB0E711FA011CE2F0 ___u8;
+        union //$090A22A23743445EB0E711FA011CE2F0 // sizeof=0x4
+        {                                                                             // XREF: Material/r
+            MaterialTechniqueSet *localTechniqueSet;
+            MaterialTechniqueSet *techniqueSet;
+        };
         MaterialTextureDef *textureTable;
-        $A4FF57C4AF6A63DB9C0EEC1063D439DF ___u10;
+        //$A4FF57C4AF6A63DB9C0EEC1063D439DF ___u10;
+        union //$A4FF57C4AF6A63DB9C0EEC1063D439DF // sizeof=0x4
+        {                                                                             // XREF: Material/r
+            MaterialConstantDef *localConstantTable;
+            MaterialConstantDef *constantTable;
+        };
         GfxStateBits *stateBitsTable;
 };
 

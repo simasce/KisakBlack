@@ -93,14 +93,14 @@ void __cdecl R_DepthPrepassCallback(const GfxViewInfo *userData, GfxCmdBufContex
     info.baseTechType = baseTechType;
     //PIXBeginNamedEvent(-1, "zprepass decalInfo");
     R_DrawSurfs(context, 0, &info);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     memcpy(&info, viewInfo->drawList, sizeof(info));
     info.baseTechType = baseTechType;
     //PIXBeginNamedEvent(-1, "zprepass litInfo");
     R_DrawSurfs(context, 0, &info);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( (viewInfo->sceneComposition.renderingMode & 7) == 0 )
         R_HW_DisableScissor(context.state->prim.device);
 }

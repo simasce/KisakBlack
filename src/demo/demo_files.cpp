@@ -1,4 +1,12 @@
 #include "demo_files.h"
+#include "demo_common.h"
+#include <universal/com_memory.h>
+#include <universal/com_files.h>
+#include <qcommon/files.h>
+#include <qcommon/common.h>
+#include "demo_recording.h"
+
+demoFileHandler s_fileHandler;
 
 void __cdecl Demo_InitFileHandlerSystem()
 {
@@ -66,7 +74,7 @@ char *__cdecl Demo_GetStreamAllocatedBuffer()
 void __cdecl Demo_GetDemoPath(char *demoPath)
 {
     if ( demo_usefilesystem->current.enabled )
-        FS_BuildOSPath((char *)fs_homepath->current.integer, "demos", (char *)"", demoPath);
+        FS_BuildOSPath((char *)fs_homepath->current.integer, (char*)"demos", (char *)"", demoPath);
 }
 
 int __cdecl Demo_OpenFileWrite(const char *filename, const char *dir, bool supressErrors)
@@ -77,7 +85,7 @@ int __cdecl Demo_OpenFileWrite(const char *filename, const char *dir, bool supre
     if ( !demo_usefilesystem->current.enabled )
         return 1;
     Com_sprintf(name, 0x100u, "%s", filename);
-    handle = FS_SV_FOpenFileWrite(name, "demos");
+    handle = FS_SV_FOpenFileWrite(name, (char *)"demos");
     if ( handle )
         return handle;
     if ( !supressErrors )
@@ -94,7 +102,7 @@ int __cdecl Demo_OpenFileRead(const char *filename, const char *dir, bool supres
     if ( demo_usefilesystem->current.enabled )
     {
         Com_sprintf(ospath, 0x100u, "%s", filename);
-        size = FS_SV_FOpenFileRead(ospath, "demos", &handle);
+        size = FS_SV_FOpenFileRead(ospath, (char *)"demos", &handle);
         if ( handle && size )
         {
             return handle;

@@ -1,5 +1,10 @@
 #include "snd_log.h"
 
+#include <cstring>
+#include "snd.h"
+#include <win32/win_common.h>
+#include <qcommon/common.h>
+
 void __cdecl SND_InitLog()
 {
     memset((unsigned __int8 *)g_snd.logSkipPlayedHash, 0, sizeof(g_snd.logSkipPlayedHash));
@@ -21,7 +26,7 @@ void __cdecl SND_LogLookupAlias(unsigned int hash, char *string)
         if ( g_snd.logReverseHash[i].hash == hash )
         {
             g_snd.logReverseHash[i].timestamp = g_snd.logTimestamp++;
-            strncpy((unsigned __int8 *)string, (unsigned __int8 *)&g_snd.logReverseHash[i], 0x30u);
+            strncpy(string, (char*)& g_snd.logReverseHash[i], 0x30u);
             break;
         }
     }
@@ -58,7 +63,7 @@ void __cdecl SND_LogRegisterString(char *name, unsigned int hash)
     }
     g_snd.logReverseHash[oldest].hash = hash;
     g_snd.logReverseHash[oldest].timestamp = g_snd.logTimestamp++;
-    strncpy((unsigned __int8 *)&g_snd.logReverseHash[oldest], (unsigned __int8 *)name, 0x30u);
+    strncpy((char*)&g_snd.logReverseHash[oldest], (char *)name, 0x30u);
     Sys_LeaveCriticalSection(CRITSECT_SOUND_LOOKUP_CACHE);
 }
 

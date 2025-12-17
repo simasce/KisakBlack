@@ -56,15 +56,15 @@ int __fastcall Actor_Pain_Think(actor_s *self)
         Actor_SetOrientMode(self, AI_ORIENT_DONT_CHANGE);
         Actor_AnimPain(self);
         Actor_PostThink(self);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
     else
     {
         Actor_PopState(self);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
 }

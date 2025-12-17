@@ -487,7 +487,7 @@ void __cdecl CG_ScanForCrosshairEntityInternal(int localClientNum)
     {
         if ( CG_Flared(localClientNum) )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
                 goto LABEL_6;
             return;
         }
@@ -633,12 +633,12 @@ void __cdecl CG_ScanForCrosshairEntityInternal(int localClientNum)
             return;
         }
 LABEL_69:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_6:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 bool __cdecl CG_CheckIfDrivingRemoteControlVehicle(int localClientNum, unsigned __int16 EntId)

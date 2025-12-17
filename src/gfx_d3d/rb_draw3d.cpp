@@ -83,15 +83,15 @@ void __cdecl R_DrawEmissiveCallback(char *userData, GfxCmdBufContext context)
     R_UpdateCodeConstant(context.source, 0x5Eu, 0.0, 0.0, 1.0, 1.0);
     //PIXBeginNamedEvent(-1, "emissive");
     R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)(userData + 9072));
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     R_ShowTris(context, (const GfxDrawSurfListInfo *)(userData + 8752));
     R_ShowTris(context, (const GfxDrawSurfListInfo *)(userData + 8992));
     R_ShowTris(context, (const GfxDrawSurfListInfo *)(userData + 9072));
     if ( (*((unsigned int *)userData + 3464) & 7) == 0 )
         R_HW_DisableScissor(context.state->prim.device);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_HW_DisableScissor(IDirect3DDevice9 *device)
@@ -163,8 +163,8 @@ void __cdecl R_DrawReflectedCallback(char *userData, GfxCmdBufContext context)
     R_ClearScreen(context.state->prim.device, 1u, clearColor, 1.0, 0, 0);
     //PIXBeginNamedEvent(-1, "reflected");
     R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)(userData + 9152));
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     R_HW_DisableScissor(context.state->prim.device);
 }
 
@@ -241,8 +241,8 @@ void __cdecl RB_FullbrightDrawCommands(const GfxViewInfo *viewInfo)
     RB_DrawSun(viewInfo->localClientNum);
     memcpy(gfxCmdBufState.refSamplerState, gfxCmdBufContext.state->refSamplerState, sizeof(gfxCmdBufState));
     RB_EndSceneRendering(gfxCmdBufContext, &viewInfo->input, viewInfo);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_EndSceneRendering(GfxCmdBufContext context, const GfxCmdBufInput *input, const GfxViewInfo *viewInfo)
@@ -273,8 +273,8 @@ void __cdecl RB_EndSceneRendering(GfxCmdBufContext context, const GfxCmdBufInput
         RB_ShowCollision((const GfxViewParms *)gfxCmdBufSourceState.viewParms.viewMatrix.m[3]);
     }
     memcpy(gfxCmdBufState.refSamplerState, context.state->refSamplerState, sizeof(gfxCmdBufState));
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_SetAndClearSceneTarget(const GfxViewport *viewport, const GfxViewInfo *viewInfo)
@@ -287,8 +287,8 @@ void __cdecl R_SetAndClearSceneTarget(const GfxViewport *viewport, const GfxView
         R_ClearForFrameBuffer(gfxCmdBufState.prim.device, 0);
     else
         R_ClearForFrameBuffer(gfxCmdBufState.prim.device, viewport);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     memcpy(gfxCmdBufState.refSamplerState, gfxCmdBufState.refSamplerState, sizeof(gfxCmdBufState));
 }
 
@@ -311,8 +311,8 @@ void __cdecl R_DrawFullbright(const GfxViewInfo *viewInfo, GfxCmdBufInput *input
         viewInfo,
         viewInfo->drawList,
         cmdBuf);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "R_DrawFullbrightOrDebugShader - Decal");
     R_DrawFullbrightOrDebugShader(
         (int)&savedregs,
@@ -320,8 +320,8 @@ void __cdecl R_DrawFullbright(const GfxViewInfo *viewInfo, GfxCmdBufInput *input
         viewInfo,
         &viewInfo->drawList[3],
         cmdBuf);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "R_DrawFullbrightOrDebugShader - Emissive");
     R_DrawFullbrightOrDebugShader(
         (int)&savedregs,
@@ -329,8 +329,8 @@ void __cdecl R_DrawFullbright(const GfxViewInfo *viewInfo, GfxCmdBufInput *input
         viewInfo,
         &viewInfo->drawList[4],
         cmdBuf);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_DrawFullbrightLitCallback(char *data, GfxCmdBufContext context)
@@ -629,7 +629,7 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
         viewInfo->renderingFloatZ = 1;
         R_DepthPrepass(setupRenderTargetId, viewInfo, &cmdBuf);
         viewInfo->renderingFloatZ = 0;
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
     }
     if ( viewInfo->isMissileCamera )
     {
@@ -640,8 +640,8 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
         memset(v2, 0, 12);
         v2[3] = 1.0f;
         R_ClearScreen(gfxCmdBufState.prim.device, 7u, v2, 1.0, 0, 0);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     else
     {
@@ -660,7 +660,7 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
         R_SetRenderTargetSize(&gfxCmdBufSourceState, depthPrepassRT);
         R_SetRenderTarget(gfxCmdBufContext, depthPrepassRT);
         R_DepthPrepass(viewInfo->sceneComposition.mainSceneMSAA, viewInfo, &cmdBuf);
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
     }
     if ( viewInfo->isMissileCamera )
     {
@@ -678,14 +678,14 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
         R_InitContext(data, &cmdBuf);
         //PIXBeginNamedEvent(-1, "CloakPrePass");
         R_DrawCloakHDR(viewInfo, &cmdBuf, CLOAK_PHASE_PREPASS);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     R_InitContext(data, &cmdBuf);
     //PIXBeginNamedEvent(-1, "Lit");
     R_DrawLit(viewInfo, &cmdBuf, 0, LIT_PHASE_MAIN);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( dx.supportsIntZ && !viewInfo->isMissileCamera )
     {
         //PIXBeginNamedEvent(-1, "Resolve IntZ");
@@ -695,8 +695,8 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
         R_SetRenderTarget(gfxCmdBufContext, viewInfo->sceneComposition.mainSceneMSAA);
         R_ResolveIntZ_PC();
         memcpy(gfxCmdBufState.refSamplerState, gfxCmdBufState.refSamplerState, sizeof(gfxCmdBufState));
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     if ( (viewInfo->sceneComposition.renderingMode & 7) == 0 )
         R_ResolveDistortion(viewInfo);
@@ -705,14 +705,14 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
         R_InitContext(data, &cmdBuf);
         //PIXBeginNamedEvent(-1, "Reflected");
         R_DrawReflected(viewInfo, &cmdBuf);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     //PIXBeginNamedEvent(-1, "LitPostResolve");
     R_InitContext(data, &cmdBuf);
     R_DrawLit(viewInfo, &cmdBuf, 0, LIT_PHASE_POST_RESOLVE);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     if ( r_setFrameBufferAlpha->current.enabled )
         RB_SetFrameBufferAlpha();
     R_InitContext(data, &cmdBuf);
@@ -747,8 +747,8 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
         R_SetRenderTarget(gfxCmdBufContext, viewInfo->sceneComposition.mainSceneMSAA);
         R_ResolveIntZ_PC();
         memcpy(gfxCmdBufState.refSamplerState, gfxCmdBufState.refSamplerState, sizeof(gfxCmdBufState));
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     memcpy(gfxCmdBufState.refSamplerState, gfxCmdBufState.refSamplerState, sizeof(gfxCmdBufState));
     if ( r_enableDlights->current.enabled )
@@ -756,15 +756,15 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
         R_InitContext(data, &cmdBuf);
         //PIXBeginNamedEvent(-1, "Dynamic Lights");
         R_DrawLights(viewInfo, &cmdBuf);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     R_ResolveDistortion(viewInfo);
     R_InitContext(data, &cmdBuf);
     //PIXBeginNamedEvent(-1, "Emissive");
     R_DrawEmissive(viewInfo, &cmdBuf);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     if ( drawWaypoints )
     {
         R_InitCmdBufSourceState(&gfxCmdBufSourceState, &viewInfo->input, 0);
@@ -791,8 +791,8 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
             1.0,
             (unsigned __int8)(int)(float)((float)(viewInfo->postEmissiveBrightening * 255.0) + 0.5));
         memcpy(gfxCmdBufState.refSamplerState, gfxCmdBufState.refSamplerState, sizeof(gfxCmdBufState));
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     if ( viewInfo->drawList[6].drawSurfCount )
     {
@@ -801,8 +801,8 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
         R_InitContext(data, &cmdBuf);
         //PIXBeginNamedEvent(-1, "CloakPostEmissive");
         R_DrawCloakHDR(viewInfo, &cmdBuf, CLOAK_PHASE_CLOAKED);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     if ( !isMissileCam )
         RB_EndSceneRendering(gfxCmdBufContext, &viewInfo->input, viewInfo);
@@ -810,8 +810,8 @@ void __cdecl RB_StandardDrawCommands(const GfxViewInfo *viewInfo)
         RB_StandardPostEffects(viewInfo);
     if ( !isRenderingFullScreen && !isMissileCam )
         viewInfo->cullViewInfo.sceneViewport = oldSceneViewport;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void RB_SetFrameBufferAlpha()
@@ -1087,7 +1087,7 @@ void __cdecl R_ResolveDistortion(const GfxViewInfo *viewInfo)
         if ( g_DXDeviceThread != GetCurrentThreadId() )
             return;
     }
-    D3DPERF_EndEvent();
+    //D3DPERF_EndEvent();
 }
 
 void __cdecl RB_StandardPostEffects(const GfxViewInfo *viewInfo)
@@ -1107,8 +1107,8 @@ void __cdecl RB_StandardPostEffects(const GfxViewInfo *viewInfo)
     R_SetRenderTarget(gfxCmdBufContext, 3u);
     RB_DrawSunPostEffects(viewInfo->localClientNum, viewInfo->sunVisibility);
     memcpy(gfxCmdBufState.refSamplerState, gfxCmdBufState.refSamplerState, sizeof(gfxCmdBufState));
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_SetResolvedScene(GfxCmdBufContext context)
@@ -1124,8 +1124,8 @@ void __cdecl RB_ApplyLatePostEffects(const GfxViewInfo *viewInfo)
     R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
     R_SetRenderTarget(gfxCmdBufContext, 3u);
     RB_DrawDebugPostEffects();
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void RB_DrawDebugPostEffects()
@@ -1414,7 +1414,7 @@ unsigned intRB_FullbrightDrawCommandsCommon()
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }
@@ -1439,8 +1439,8 @@ void __cdecl RB_FullbrightRenderCommands(const GfxViewInfo *viewInfo)
         RB_ExecuteRenderCommandsLoop(viewInfo->cmds, 0);
     }
     memcpy(gfxCmdBufState.refSamplerState, gfxCmdBufContext.state->refSamplerState, sizeof(gfxCmdBufState));
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 GfxCmdBufSourceState *RB_DebugShaderDrawCommandsCommon()
@@ -1478,8 +1478,8 @@ void __cdecl RB_DebugShaderRenderCommands(const GfxViewInfo *viewInfo)
         RB_ExecuteRenderCommandsLoop(viewInfo->cmds, 0);
     }
     memcpy(gfxCmdBufState.refSamplerState, gfxCmdBufContext.state->refSamplerState, sizeof(gfxCmdBufState));
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 unsigned intRB_StandardDrawCommandsCommon()
@@ -1498,7 +1498,7 @@ unsigned intRB_StandardDrawCommandsCommon()
         result = GetCurrentThreadId();
         if ( result != g_DXDeviceThread )
             return result;
-        return D3DPERF_EndEvent();
+        return //D3DPERF_EndEvent();
     }
     for ( viewInfoIndex = 0; viewInfoIndex < data->viewInfoCount; ++viewInfoIndex )
     {
@@ -1589,7 +1589,7 @@ unsigned intRB_StandardDrawCommandsCommon()
     {
         result = 0;
         if ( !HIDWORD(g_DXDeviceThread) )
-            return D3DPERF_EndEvent();
+            return //D3DPERF_EndEvent();
     }
     return result;
 }
@@ -1655,7 +1655,7 @@ void __cdecl RB_StandardRenderCommands(const GfxViewInfo *viewInfo)
         RB_ExecuteRenderCommandsLoop(viewInfo->cmds, 0);
     }
     memcpy(gfxCmdBufState.refSamplerState, gfxCmdBufState.refSamplerState, sizeof(gfxCmdBufState));
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 

@@ -1,4 +1,12 @@
 #include "sv_voice_mp.h"
+#include "sv_init_mp.h"
+#include <universal/com_memory.h>
+#include <qcommon/msg_mp.h>
+#include <server/server.h>
+#include <qcommon/common.h>
+#include "sv_main_mp.h"
+#include <client_mp/g_client_mp.h>
+
 
 bool __cdecl SV_VoiceEnabled()
 {
@@ -8,11 +16,11 @@ bool __cdecl SV_VoiceEnabled()
 void __cdecl SV_SendClientVoiceData(client_t *client)
 {
     unsigned __int8 *msg_buf; // [esp+0h] [ebp-3Ch]
-    LargeLocal msg_buf_large_local; // [esp+4h] [ebp-38h] BYREF
+    LargeLocal msg_buf_large_local(0x10000); // [esp+4h] [ebp-38h] BYREF
     msg_t msg; // [esp+Ch] [ebp-30h] BYREF
 
-    LargeLocal::LargeLocal(&msg_buf_large_local, 0x10000);
-    msg_buf = LargeLocal::GetBuf(&msg_buf_large_local);
+    //LargeLocal::LargeLocal(&msg_buf_large_local, 0x10000);
+    msg_buf = msg_buf_large_local.GetBuf();//LargeLocal::GetBuf(&msg_buf_large_local);
     if ( client->voicePacketCount < 0
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_voice_mp.cpp",
@@ -53,7 +61,7 @@ void __cdecl SV_SendClientVoiceData(client_t *client)
             client->voicePacketCount = 0;
         }
     }
-    LargeLocal::~LargeLocal(&msg_buf_large_local);
+    //LargeLocal::~LargeLocal(&msg_buf_large_local);
 }
 
 void __cdecl SV_WriteVoiceDataToClient(client_t *client, msg_t *msg)

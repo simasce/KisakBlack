@@ -349,6 +349,7 @@ struct qtime_s // sizeof=0x24
 };
 
 static const float colorBlack[4] = { 0.0, 0.0, 0.0, 1.0 }; // idb
+static const float colorBlackBlank[4] = { 0.0, 0.0, 0.0, 0.0 };
 static const float colorRed[4] = { 1.0, 0.0, 0.0, 1.0 }; // idb
 static const float colorGreen[4] = { 0.0, 1.0, 0.0, 1.0 }; // idb
 static const float colorLtGreen[4] = { 0.0, 0.69999999f, 0.0, 1.0 }; // idb

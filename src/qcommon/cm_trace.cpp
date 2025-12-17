@@ -552,8 +552,8 @@ void __cdecl CM_Trace(
         }
         results->sflags = oldSurfaceFlags;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CM_TestInLeaf(traceWork_t *tw, cLeaf_s *leaf, trace_t *trace)

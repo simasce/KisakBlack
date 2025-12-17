@@ -1,8 +1,15 @@
 #pragma once
 
+struct svEntity_s;
+struct gentity_s;
+struct trace_t;
+struct col_context_t;
+struct pointtrace_t;
+
+
 unsigned int __cdecl SV_ClipHandleForEntity(const gentity_s *ent);
 void __cdecl SV_UnlinkEntity(gentity_s *gEnt);
-void    SV_LinkEntity(int a1@<ebp>, gentity_s *gEnt);
+void    SV_LinkEntity(gentity_s *gEnt);
 void __cdecl SnapAngles(float *vAngles);
 void __cdecl SV_TraceCapsuleToEntity(const moveclip_t *clip, svEntity_s *check, trace_t *trace);
 void __cdecl SV_TracePointToEntity(const pointtrace_t *clip, svEntity_s *check, trace_t *trace);

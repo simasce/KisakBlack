@@ -1,4 +1,7 @@
 #include "fft.h"
+#include "assertive.h"
+#include <cmath>
+#include "q_shared.h"
 
 void __cdecl FFT_Init(int *fftBitswap, complex_s *fftTrigTable)
 {

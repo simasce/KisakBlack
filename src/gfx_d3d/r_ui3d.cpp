@@ -473,8 +473,8 @@ void __cdecl RB_UI3D_RenderToTexture(const void *cmds, const GfxUI3DBackend *rbU
                         RB_GaussianFilterImage(rbUI3D->blurRadius, 0x15u, 0x14u);
                     }
                     g_ui3dStatus.rendering = 0;
-                    if ( g_DXDeviceThread == GetCurrentThreadId() )
-                        D3DPERF_EndEvent();
+                    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                        //D3DPERF_EndEvent();
                 }
                 else
                 {

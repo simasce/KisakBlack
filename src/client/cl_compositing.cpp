@@ -11,6 +11,7 @@
 #include <qcommon/common.h>
 #include <gfx_d3d/rb_resource.h>
 #include <gfx_d3d/r_rendercmds.h>
+#include <gfx_d3d/r_utils.h>
 
 CompositeJob s_jobs[4];
 
@@ -424,7 +425,8 @@ bool __cdecl R_HW_IsFencePending(IDirect3DQuery9 *const *fence)
     sem = R_AcquireDXDeviceOwnership(0);
     if ( *fence )
     {
-        hr = (*(int (__stdcall **)(unsigned int, unsigned int *, int, int))(**(unsigned int **)fence + 28))(*fence, &data, 4, 1);
+        //hr = (*(int (__stdcall **)(unsigned int, unsigned int *, int, int))(**(unsigned int **)fence + 28))(*fence, &data, 4, 1);
+        hr = (*fence)->GetData(&data, 4, 1);
         if ( sem )
             R_ReleaseDXDeviceOwnership();
         return hr && hr != -2005530520;
@@ -438,8 +440,7 @@ bool __cdecl R_HW_IsFencePending(IDirect3DQuery9 *const *fence)
 }
 
 // local variable allocation has failed, the output may be wrong!
-char    CL_CompositeDrawEmblemPhysical@<al>(
-                GfxColor a1@<ebp>,
+char    CL_CompositeDrawEmblemPhysical(
                 float x,
                 float y,
                 float w,
@@ -588,21 +589,15 @@ void __cdecl UV_Transform(const float (*mat)[3], float *vec)
 
 bool __cdecl CL_CompositeIsLayerEmpty(CompositeEmblemLayer *layer)
 {
-    if ( !layer
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_compositing.cpp", 642, 0, "%s", "layer") )
-    {
-        __debugbreak();
-    }
+    iassert(layer);
+
     return layer->icon == -1;
 }
 
 void __cdecl CL_CompositeResetLayer(CompositeEmblemLayer *layer)
 {
-    if ( !layer
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_compositing.cpp", 648, 0, "%s", "layer") )
-    {
-        __debugbreak();
-    }
+    iassert(layer);
+
     layer->pos[0] = 0.0f;
     layer->pos[1] = 0.0f;
     layer->scale[0] = 0.0f;
@@ -614,11 +609,8 @@ void __cdecl CL_CompositeResetLayer(CompositeEmblemLayer *layer)
 
 void __cdecl CL_CompositeClearLayer(CompositeEmblemLayer *layer)
 {
-    if ( !layer
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_compositing.cpp", 660, 0, "%s", "layer") )
-    {
-        __debugbreak();
-    }
+    iassert(layer);
+
     layer->pos[0] = 0.0f;
     layer->pos[1] = 0.0f;
     layer->scale[0] = 0.0f;

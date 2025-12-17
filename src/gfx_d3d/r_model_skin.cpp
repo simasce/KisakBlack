@@ -1333,8 +1333,8 @@ void    R_SkinXModelCmd(int a1@<ebp>, SkinXModelCmd *data)
         }
         if ( sseStateUsed )
             _m_empty();
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 

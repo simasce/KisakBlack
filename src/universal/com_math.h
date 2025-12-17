@@ -173,7 +173,7 @@ int __cdecl IsPosInsideArc(
                 float arcHalfHeight);
 bool __cdecl BoxDistSqrdExceeds(const float *absmin, const float *absmax, const float *org, float fogOpaqueDistSqrd);
 double __cdecl Q_rint(float in);
-double __cdecl ColorNormalize(float *in, float *out);
+double __cdecl ColorNormalize(const float *in, float *out);
 void __cdecl ColorSRGBtoLinear(const float *in, float *out);
 double __cdecl PitchForYawOnNormal(float fYaw, const float *normal);
 void __cdecl NearestPitchAndYawOnPlane(const float *angles, const float *normal, float *result);
@@ -211,6 +211,7 @@ void __cdecl AxisCopy(const float (*in)[3], float (*out)[3]);
 float __cdecl Vec2Length(const float *v);
 void __cdecl Vec2NormalizeFast(float *v);
 
+float __cdecl Vec3Length(const vec3r v);
 float __cdecl Vec3LengthSq(const float *v);
 void __cdecl Vec3NormalizeFast(float *v);
 void __cdecl Vec3Rotate(const float *in, const float (*matrix)[3], float *out);
@@ -300,6 +301,22 @@ inline float __cdecl Q_rsqrt(float number)
 
     // TODO: use rsqrtss instead since it's not 1990 anymore
     return y;
+}
+
+inline float I_fmax(float x, float y)
+{
+    if ((x - y) < 0.0)
+        return y;
+    else
+        return x;
+}
+
+inline float I_fmin(float x, float y)
+{
+    if ((y - x) < 0.0)
+        return y;
+    else
+        return x;
 }
 
 float Q_fabs(float f);

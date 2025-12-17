@@ -10,8 +10,8 @@ int __cdecl nuge_physicsCallback(jqBatch *batch)
     //PIXBeginNamedEvent(-1, Name);
     (*(void (__cdecl **)(unsigned int *))(realbatch[3] + 8))(realbatch);
     jqUnlockData(batch);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 0;
 }
 

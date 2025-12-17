@@ -1,4 +1,18 @@
 #include "sv_snapshot_mp.h"
+#include <demo/demo_common.h>
+#include <qcommon/sv_msg_write_mp.h>
+#include "sv_main_mp.h"
+
+#include <cstring>
+#include <qcommon/common.h>
+#include <qcommon/sv_msg_write.h>
+#include <glass/glass_server.h>
+#include "sv_init_mp.h"
+#include <stdarg.h>
+#include "sv_snapshot_profile_mp.h"
+#include <cgame/cg_draw_debug.h>
+#include <client_mp/sv_client_mp.h>
+#include <qcommon/msg.h>
 
 void __cdecl SV_WriteSnapshotToClient(client_t *client, msg_t *msg)
 {
@@ -141,14 +155,13 @@ void __cdecl SV_WriteSnapshotToClient(client_t *client, msg_t *msg)
     to = toEA;
     if ( oldframe )
         MSG_WriteDeltaMatchState(
-            (int)&savedregs,
             &snapInfo,
             msg,
             svsHeader.time,
             &svsHeader.snapshotMatchStates[oldframe->matchState % svsHeader.numSnapshotMatchStates],
             (MatchState *)to);
     else
-        MSG_WriteDeltaMatchState((int)&savedregs, &snapInfo, msg, svsHeader.time, 0, (MatchState *)to);
+        MSG_WriteDeltaMatchState(&snapInfo, msg, svsHeader.time, 0, (MatchState *)to);
     MSG_ClearLastReferencedEntity(msg);
     if ( oldframe )
     {
@@ -1110,7 +1123,6 @@ cachedSnapshot_t *__cdecl SV_GetCachedSnapshotInternal(int archivedFrame, int de
         cachedFrame->physicsTime = v10;
         MSG_ClearLastReferencedEntity(&msg);
         MSG_ReadDeltaMatchState(
-            (int)&savedregs,
             &msg,
             cachedFrame->time,
             0,
@@ -3166,14 +3178,14 @@ void __cdecl SV_SendClientMessages()
                 {
                     //PIXBeginNamedEvent(-1, "SV_BuildClientSnapshot");
                     SV_BuildClientSnapshot(c);
-                    if ( GetCurrentThreadId() == g_DXDeviceThread )
-                        D3DPERF_EndEvent();
+                    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                        //D3DPERF_EndEvent();
                 }
             }
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     SV_SetServerStaticHeader();
     //PIXBeginNamedEvent(-1, "SV_SendClientSnapshot");
     for ( clientCounter = 0; clientCounter < maxclients; ++clientCounter )
@@ -3192,17 +3204,17 @@ void __cdecl SV_SendClientMessages()
             {
                 //PIXBeginNamedEvent(-1, "SV_WriteSnapshotToClient");
                 SV_WriteSnapshotToClient(ca, &msg);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
             }
             SV_EndClientSnapshot(ca, &msg);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             SV_SendClientVoiceData(ca);
         }
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( sv.ubpsWindow[14] >= maxBytesPerFrame )
         StatMon_Warning(13, 3000, "code_warning_bandwidthlimited");
     else
@@ -3223,8 +3235,8 @@ void __cdecl SV_SendClientMessages()
         }
         if ( cb->header.state == 5 || cb->header.state == 1 )
             Demo_BuildDemoSnapshot();
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     if ( numclients > 0 )
     {
@@ -3270,8 +3282,8 @@ void __cdecl SV_SendClientMessages()
         //PIXBeginNamedEvent(-1, "SV_ArchiveSnapshot");
         MSG_Init(&g_archiveMsg, tempServerMsgBuf, 0x10000);
         SV_ArchiveSnapshot(&g_archiveMsg);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     SV_GetServerStaticHeader();
     if ( sv.state == SS_GAME )
@@ -3313,7 +3325,7 @@ void __cdecl SV_SendClientMessages()
         }
     }
     g_archivingSnapshot = 0;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 

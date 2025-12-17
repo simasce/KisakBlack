@@ -1,5 +1,15 @@
 #pragma once
 
+#include "r_scene.h"
+#include "r_gfx.h"
+
+struct GfxSpotShadowEntCmd // sizeof=0x8
+{                                       // XREF: R_AddSpotShadowModelEntities/r
+    GfxSceneEntity *sceneEnt;           // XREF: R_AddSpotShadowModelEntities+42/w
+                                        // R_AddSpotShadowModelEntities+45/r ...
+    const GfxLight *light;              // XREF: R_AddSpotShadowModelEntities+10/w
+};
+
 void __cdecl R_AddSpotShadowEntCmd(const GfxSpotShadowEntCmd *data);
 char __cdecl R_AddSpotShadowsForLight(
                 GfxViewInfo *viewInfo,
@@ -9,7 +19,6 @@ char __cdecl R_AddSpotShadowsForLight(
                 float spotShadowFade);
 // local variable allocation has failed, the output may be wrong!
 void    R_SetViewParmsForLight(
-                int a1@<ebp>,
                 const GfxLight *light,
                 GfxViewParms *viewParms,
                 float nearPlaneBias);

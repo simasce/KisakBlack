@@ -1,4 +1,101 @@
 #include "eval.h"
+#include "assertive.h"
+#include <cstdlib>
+#include <string.h>
+
+// probably one of the stinkiest parts of the codebase
+
+#define _CxxThrowException(a, b) iassert(0);
+
+int s_consumedOperandCount[26] =
+{
+  1,
+  -1,
+  2,
+  0,
+  1,
+  1,
+  0,
+  0,
+  1,
+  1,
+  1,
+  1,
+  1,
+  0,
+  1,
+  1,
+  1,
+  0,
+  1,
+  1,
+  1,
+  1,
+  1,
+  1,
+  1,
+  1
+};
+
+char s_precedence[26] =
+{
+  'c',
+  '\0',
+  '\x03',
+  '\x02',
+  '\v',
+  '\v',
+  '\r',
+  '\r',
+  '\f',
+  '\f',
+  '\f',
+  '\n',
+  '\n',
+  '\r',
+  '\a',
+  '\x05',
+  '\x06',
+  '\r',
+  '\x02',
+  '\x01',
+  '\b',
+  '\b',
+  '\t',
+  '\t',
+  '\t',
+  '\t'
+};
+
+bool s_rightToLeft[26] =
+{
+  false,
+  false,
+  true,
+  true,
+  false,
+  false,
+  true,
+  true,
+  false,
+  false,
+  false,
+  false,
+  false,
+  true,
+  false,
+  false,
+  false,
+  true,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false
+};
 
 bool __cdecl Eval_AnyMissingOperands(const Eval *eval)
 {
@@ -11,7 +108,7 @@ bool __cdecl Eval_AnyMissingOperands(const Eval *eval)
     return requiredOperandCount != eval->valStackPos;
 }
 
-char    Eval_PushOperator@<al>(long double a1@<esi:edi>, Eval *eval, EvalOperatorType op)
+char    Eval_PushOperator(Eval *eval, EvalOperatorType op)
 {
     bool v4; // [esp+0h] [ebp-10h]
     const char *v5; // [esp+4h] [ebp-Ch] BYREF
@@ -70,7 +167,7 @@ char    Eval_PushOperator@<al>(long double a1@<esi:edi>, Eval *eval, EvalOperato
             }
             break;
         }
-        if ( !Eval_EvaluationStep((int)&savedregs, a1, eval) )
+        if ( !Eval_EvaluationStep(eval) )
             return 0;
     }
     if ( op != EVAL_OP_COLON || eval->opStackPos && eval->opStack[eval->opStackPos - 1] == EVAL_OP_QUESTION )
@@ -96,7 +193,7 @@ char    Eval_PushOperator@<al>(long double a1@<esi:edi>, Eval *eval, EvalOperato
 }
 
 // local variable allocation has failed, the output may be wrong!
-bool    Eval_EvaluationStep@<al>(int a1@<ebp>, long double a2@<esi:edi>, Eval *eval)
+bool    Eval_EvaluationStep(Eval *eval)
 {
     bool result; // al
     int v4; // esi

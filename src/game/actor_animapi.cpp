@@ -133,10 +133,10 @@ void __fastcall Actor_SetAnimScript(
     }
     G_XAnimUpdateEnt(self->ent);
     Scr_IncTime(SCRIPTINSTANCE_SERVER);
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_20:
     ;
-        //D3DPERF_EndEvent();
+        ////D3DPERF_EndEvent();
 }
 
 void __fastcall Actor_AnimStop(actor_s *self, scr_animscript_t *pAnimScriptFunc)

@@ -463,8 +463,8 @@ void __cdecl R_CalcModelLighting(
     *primaryLightIndex1 = lightingAtPoint;
     if ( primaryLightIndex2 )
         *primaryLightIndex2 = lightingAtPoint;
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_BeginAllStaticModelLighting()
@@ -549,9 +549,9 @@ void __cdecl R_SetAllStaticModelLighting()
             }
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_20:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl R_SetStaticModelLighting(unsigned int smodelIndex)

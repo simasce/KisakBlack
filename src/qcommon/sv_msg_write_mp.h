@@ -135,3 +135,13 @@ void __cdecl MSG_WriteDeltaHudElems(
                 const hudelem_s *from,
                 const hudelem_s *to,
                 int count);
+
+
+
+static const int maxStateFieldCount = 74;
+static const int numEntityStateFields = 69;
+
+
+extern int g_entsClientOnce;
+extern int g_entsDeltaCompared;
+extern int g_entsTransmitted;

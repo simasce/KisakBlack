@@ -802,6 +802,25 @@ struct dwFileShareReadFileTask // sizeof=0x878
         void (__cdecl *failureCallback)(dwFileShareReadFileTask *);
 };
 
+struct __declspec(align(8)) demoRecordedFileUploadInfo // sizeof=0x5D8
+{
+    unsigned __int64 fileID;
+    char metaData[512];                 // XREF: Demo_StreamingSuccessCallback(int,unsigned __int64)+205/o
+                                        // Demo_StreamingSuccessCallback(int,unsigned __int64)+220/o ...
+    int metaDataSize;                   // XREF: Demo_StreamingSuccessCallback(int,unsigned __int64)+25A/w
+                                        // Demo_StreamingSuccessCallback(int,unsigned __int64)+2BD/r
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    bdTag tags[40];                     // XREF: Demo_StreamingSuccessCallback(int,unsigned __int64)+1EB/o
+                                        // _dynamic_initializer_for__s_demoUploadInfo__+D/o
+    int numTags;                        // XREF: Demo_StreamingSuccessCallback(int,unsigned __int64)+1F8/w
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+};
 
 void __cdecl Demo_RegisterDvars();
 void __cdecl Demo_RegisterCommands();
@@ -913,3 +932,5 @@ extern const dvar_t *demo_packetsPerSecondMin;
 extern const dvar_t *demo_bytesPerSecondMin;
 extern const dvar_t *demo_packetsPerSecondMax;
 extern const dvar_t *demo_bytesPerSecondMax;
+
+extern demoMain demo;

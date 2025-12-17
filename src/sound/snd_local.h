@@ -1,4 +1,5 @@
 #pragma once
+#include "snd.h"
 
 void __cdecl SNDL_AliasName(char *name, unsigned int id);
 int __cdecl SNDL_Play(

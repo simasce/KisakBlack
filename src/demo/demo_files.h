@@ -1,5 +1,12 @@
 #pragma once
 
+struct demoFileHandler // sizeof=0xC
+{                                       // XREF: .data:s_fileHandler/r
+    unsigned __int8 *ptr;               // XREF: Demo_InitFileHandlerSystem(void)+14/w
+    int size;                           // XREF: Demo_InitFileHandlerSystem(void)+1A/w
+    int offset;                         // XREF: Demo_InitFileHandlerSystem(void)+20/w
+};
+
 void __cdecl Demo_InitFileHandlerSystem();
 void __cdecl Demo_AllocateMemoryFromStreamBuffer(int size);
 void __cdecl Demo_ReturnStreamBufferMemory();

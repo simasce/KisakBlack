@@ -406,8 +406,8 @@ void __cdecl Cbuf_Execute(int localClientNum, int controllerIndex)
     cmd_insideCBufExecute[localClientNum] = 0;
     Cbuf_SV_Execute();
 
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-    //    D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
 }
 
 void __cdecl Cbuf_ExecuteInternal(int localClientNum, int controllerIndex)

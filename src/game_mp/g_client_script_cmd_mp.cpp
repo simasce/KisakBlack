@@ -3780,8 +3780,8 @@ void __cdecl PlayerCmd_finishPlayerDamage(scr_entref_t entref)
             Scr_AddEntity(attacker, SCRIPTINSTANCE_SERVER);
             Scr_AddInt(damage, SCRIPTINSTANCE_SERVER);
             Scr_Notify(pSelf, scr_const.damage, 2u);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             if ( !dword_E07CEC[12 * pSelf->handler] )
                 Com_Printf(1, "No die handler for player entity type %i", pSelf->handler);
             if ( pSelf->health > 0 )
@@ -3791,8 +3791,8 @@ void __cdecl PlayerCmd_finishPlayerDamage(scr_entref_t entref)
                 pain = (void (__cdecl *)(gentity_s *, gentity_s *, int, const float *, const int, const float *, const hitLocation_t, const int))dword_E07CE4[12 * pSelf->handler];
                 if ( pain )
                     pain(pSelf, attacker, damage, point, mod, localdir, hitLoc, iWeapon);
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 goto LABEL_130;
             }
             if ( !pSelf->client->lastStand && (pSelf->client->ps.perks[1] & 0x20) != 0 && !pSelf->client->ps.waterlevel )
@@ -3825,8 +3825,8 @@ void __cdecl PlayerCmd_finishPlayerDamage(scr_entref_t entref)
                 }
                 ForceGrenadeThrow(&pSelf->client->ps);
                 Scr_PlayerLastStand(pSelf, inflictor, attacker, damage, mod, iWeapon, localdir, hitLoc, psTimeOffset);
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
             }
             if ( pSelf->health > 0 )
                 goto LABEL_130;
@@ -3851,8 +3851,8 @@ void __cdecl PlayerCmd_finishPlayerDamage(scr_entref_t entref)
             die = (void (__cdecl *)(gentity_s *, gentity_s *, gentity_s *, int, int, const int, const float *, const hitLocation_t, int))dword_E07CEC[12 * pSelf->handler];
             if ( die )
                 die(pSelf, inflictor, attacker, damage, mod, iWeapon, localdir, hitLoc, psTimeOffset);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             if ( pSelf->r.inuse )
             {
 LABEL_130:
@@ -4776,8 +4776,8 @@ void __cdecl PlayerCmd_spawn(scr_entref_t entref)
     {
         MatchRecordSpawn(pSelf->client);
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl PlayerCmd_setEnterTime(scr_entref_t entref)

@@ -748,8 +748,8 @@ void __cdecl DynEntCl_ProcessEntities(int localClientNum, int time)
         }
         DynEnt_UpdateBurning();
         DynEnt_UpdateFading(time);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -1581,11 +1581,11 @@ void __cdecl DynEntCl_PointTrace(const pointtrace_t *clip, trace_t *results)
             if ( g_DXDeviceThread != GetCurrentThreadId() )
                 return;
         }
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl DynEntCl_PointTrace_r(
@@ -2554,12 +2554,12 @@ void __cdecl DynEntCl_EntityImpactEvent(
         {
             return;
         }
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
         return;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_3:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl DynEntCl_PlayImpactEffects(
@@ -2717,8 +2717,8 @@ char __cdecl DynEntCl_DynEntImpactEvent(
         nextSnap = CG_GetLocalClientGlobals(localClientNum)->nextSnap;
         if ( (nextSnap->ps.otherFlags & 6) == 0 || sourceEntityNum != nextSnap->ps.clientNum )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return 0;
         }
         goto LABEL_24;
@@ -2741,8 +2741,8 @@ LABEL_24:
         dynEntId = Trace_GetDynEntHitId(&trace, &drawType);
         if ( dynEntId == 0xFFFF )
         {
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
             return 0;
         }
         else
@@ -2771,8 +2771,8 @@ LABEL_24:
                     trace.normal.vec.v);
             if ( (dynEntDef->flags & 4) != 0 )
             {
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 return 0;
             }
             else
@@ -2799,14 +2799,14 @@ LABEL_24:
                 }
                 if ( damage )
                     DynEntCl_Damage(localClientNum, dynEntId, (DynEntityCollType)drawType, hitPos, hitDir, damage);
-                if ( GetCurrentThreadId() == g_DXDeviceThread )
-                    D3DPERF_EndEvent();
+                //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                    //D3DPERF_EndEvent();
                 return 1;
             }
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     return 0;
 }
 

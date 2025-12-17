@@ -3,6 +3,19 @@
 #include <game_mp/g_main_mp.h>
 #include <game_mp/g_spawn_mp.h>
 #include <game_mp/actor_mp.h>
+#include <clientscript/scr_const.h>
+#include <game_mp/g_utils_mp.h>
+#include "dobj_management.h"
+#include <cgame_mp/cg_local_mp.h>
+#include <gfx_d3d/r_init.h>
+#include <universal/com_math_anglevectors.h>
+#include <gfx_d3d/r_dvars.h>
+#include <clientscript/cscr_vm.h>
+#include <game/g_load_utils.h>
+
+int g_selected_misc_model = -1;
+int g_selected_corona = -1;
+int gSelectedScriptStruct;
 
 bool runningSavedCommands;
 int savedCommandCount;
@@ -182,7 +195,7 @@ void __cdecl G_ClearSelectedEntity()
 void __cdecl G_ProcessEntityCommand(const RadiantCommand *command, SpawnVar *spawnVar)
 {
     char *v2; // eax
-    int v3; // eax
+    char *v3; // eax
     char *v4; // eax
     DObj *obj; // [esp+0h] [ebp-20h]
     bool bShouldUpdateSpawns; // [esp+7h] [ebp-19h]
@@ -258,7 +271,7 @@ void __cdecl G_ProcessEntityCommand(const RadiantCommand *command, SpawnVar *spa
                         classname);
                 break;
         }
-        strstr((unsigned __int8 *)classname, "actor_");
+        v3 = strstr(classname, "actor_");
         if ( ent )
         {
             G_ParseEntityFields(spawnVar, ent, v3 != 0);
@@ -321,7 +334,8 @@ void __cdecl G_ProcessCameraCommand(SpawnVar *spawnVar)
                 cgameGlob->radiantCameraAngles,
                 &cgameGlob->radiantCameraAngles[1],
                 &cgameGlob->radiantCameraAngles[2]);
-        LODWORD(cgameGlob->radiantCameraAngles[0]) ^= _mask__NegFloat_;
+        //LODWORD(cgameGlob->radiantCameraAngles[0]) ^= _mask__NegFloat_;
+        cgameGlob->radiantCameraAngles[0] = -cgameGlob->radiantCameraAngles[0];
         cgameGlob->radiantCamInUse = 1;
     }
 }
@@ -521,13 +535,13 @@ void __cdecl G_NotifyScriptsOfSelectedScriptStruct(int structId)
 
     gSelectedScriptStruct = structId;
     numparams = 1;
-    if ( structId )
+    if (structId)
     {
         Scr_AddObject(structId, SCRIPTINSTANCE_SERVER);
         numparams = 2;
     }
     Scr_AddConstString(scr_const.obstacle, SCRIPTINSTANCE_SERVER);
-    t = Scr_ExecThread(SCRIPTINSTANCE_SERVER, dword_3EDB4DC, numparams);
+    t = Scr_ExecThread(SCRIPTINSTANCE_SERVER, g_scr_levelnotify, numparams);
     Scr_FreeThread(t, SCRIPTINSTANCE_SERVER);
 }
 

@@ -1077,8 +1077,8 @@ void __cdecl CG_AddPacketEntity(int localClientNum, unsigned int entnum)
         nextSnap = cgameGlob->nextSnap;
         if ( (nextSnap->ps.otherFlags & 6) != 0 && entnum == nextSnap->ps.clientNum )
         {
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
             return;
         }
     }
@@ -1197,9 +1197,9 @@ void __cdecl CG_AddPacketEntity(int localClientNum, unsigned int entnum)
         }
         if ( cgEntCollNodes[localClientNum][entnum].sector )
             CG_UnlinkEntity(localClientNum, entnum);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_90:
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
     }
     else
     {
@@ -1258,7 +1258,7 @@ LABEL_90:
         }
         CG_UpdateClientDobjPartBits(cent, entnum, localClientNum);
         CG_ProcessEntity(localClientNum, cent);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
             goto LABEL_90;
     }
 }
@@ -1363,13 +1363,13 @@ int __cdecl CG_AddPacketEntities(int localClientNum)
             UpdatePacketEnt(localClientNum, entnum, cgameGlob->time, &postPSEntNum, contextKey);
     }
     UpdateDelayedPacketEnts(localClientNum, &delayList, &postPSEntNum, contextKey);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "fake ents");
     for ( num = 0; num < 512; ++num )
         CG_ProcessFakeEntity(localClientNum, &cg_fakeEntitiesArray[512 * localClientNum + num]);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     if ( g_processEvents )
     {
         //PIXBeginNamedEvent(-1, "process events");
@@ -1403,11 +1403,11 @@ int __cdecl CG_AddPacketEntities(int localClientNum)
                 }
             }
         }
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return postPSEntNum;
 }
 
@@ -3484,8 +3484,8 @@ void __cdecl CG_DObjCalcBone(const cpose_t *pose, DObj *obj, int boneIndex)
         CG_DoControllers(pose, obj, partBits);
         DObjCalcSkel(obj, partBits);
         DObjUnlock(obj);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -3570,31 +3570,31 @@ void __cdecl CG_ProcessEntity(int localClientNum, centity_s *cent)
         case ET_GENERAL:
             //PIXBeginNamedEvent(-1, "CG_General");
             CG_General(localClientNum, cent);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_30;
             break;
         case ET_PLAYER:
             //PIXBeginNamedEvent(-1, "CG_Player");
             CG_Player(localClientNum, cent);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_30;
             break;
         case ET_PLAYER_CORPSE:
             //PIXBeginNamedEvent(-1, "CG_Corpse");
             CG_Corpse(localClientNum, cent);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_30;
             break;
         case ET_ITEM:
             //PIXBeginNamedEvent(-1, "CG_Item");
             CG_Item(localClientNum, cent);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_30;
             break;
         case ET_MISSILE:
             //PIXBeginNamedEvent(-1, "CG_Missile");
             CG_Missile(localClientNum, cent);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_30;
             break;
         case ET_INVISIBLE:
@@ -3606,20 +3606,20 @@ void __cdecl CG_ProcessEntity(int localClientNum, centity_s *cent)
         case ET_PRIMARY_LIGHT:
             //PIXBeginNamedEvent(-1, "CG_PrimaryLight");
             CG_PrimaryLight(localClientNum, cent);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_30;
             break;
         case ET_MG42:
             //PIXBeginNamedEvent(-1, "CG_mg42");
             CG_mg42(localClientNum, cent);
             CG_CompassUpdateTurretInfo(localClientNum, cent->nextState.number);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_30;
             break;
         case ET_HELICOPTER:
             //PIXBeginNamedEvent(-1, "CG_Vehicle");
             CG_Vehicle(localClientNum, cent);
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
                 goto LABEL_30;
             break;
         case ET_PLANE:
@@ -3637,7 +3637,7 @@ $LN7_8:
             if ( GetCurrentThreadId() != g_DXDeviceThread )
                 break;
 LABEL_30:
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
             break;
         case ET_ACTOR:
             CG_Actor(localClientNum, cent);
@@ -4110,7 +4110,7 @@ void __cdecl CG_Vehicle(int localClientNum, centity_s *cent)
         }
         if ( (cent->currentState.eFlags & 0x20) == 0 )
             CScr_NotifyNum(localClientNum, cent->nextState.number, 0, cscr_const.hidden, 0);
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
             goto LABEL_13;
     }
     else
@@ -4182,13 +4182,13 @@ void __cdecl CG_Vehicle(int localClientNum, centity_s *cent)
             {
                 CG_CompassUpdateHelicopterInfo(localClientNum, ns->number);
             }
-            if ( GetCurrentThreadId() == g_DXDeviceThread )
-                D3DPERF_EndEvent();
+            //if ( GetCurrentThreadId() == g_DXDeviceThread )
+                //D3DPERF_EndEvent();
         }
-        else if ( GetCurrentThreadId() == g_DXDeviceThread )
+        else //if ( GetCurrentThreadId() == g_DXDeviceThread )
         {
 LABEL_13:
-            D3DPERF_EndEvent();
+            //D3DPERF_EndEvent();
         }
     }
 }
@@ -4281,9 +4281,9 @@ void __cdecl CG_ProcessFxEntity(int localClientNum, centity_s *cent)
     }
     //PIXBeginNamedEvent(-1, "CG_Fx");
     CG_Fx(localClientNum, cent);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_11:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl CG_CalcFxEntityLerpPositions(centity_s *cent)

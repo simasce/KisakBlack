@@ -6,6 +6,8 @@
 #include <qcommon/common.h>
 #include <stdarg.h>
 
+
+
 unsigned __int8 __cdecl ColorIndex(unsigned __int8 c)
 {
     if ( (unsigned __int8)(c - 48) >= 0x11u )

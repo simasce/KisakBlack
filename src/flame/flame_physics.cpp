@@ -844,8 +844,8 @@ void __cdecl Flame_Phys_Update_Items(bool is_server)
             Flame_Phys_Update_Items_PerStream(is_server, count, v2);
         }
         v3->m_alloc_count = 0;
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 

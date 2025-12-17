@@ -1,5 +1,56 @@
 #include "sv_snapshot_profile_mp.h"
 
+#include <qcommon/sv_msg_write_mp.h>
+#include "sv_init_mp.h"
+#include <bgame/bg_misc.h>
+#include <cgame/cg_draw_debug.h>
+
+const char *s_analyzeEntityTypeNames[28] =
+{
+  "General Entity",
+  "Player Entity",
+  "Corpse Entity",
+  "Item Entity",
+  "Missle Entity",
+  "Invisible Entity",
+  "Script Mover Entity",
+  "Sound Blend Entity",
+  "FX Entity",
+  "Loop FX Entity",
+  "Primary Light Entity",
+  "MG42 Entity",
+  "Helicopter",
+  "Plane",
+  "Vehicle",
+  "Vehicle Collmap",
+  "Vehicle Corpse",
+  "Actor",
+  "Actor Spawner",
+  "Actor Corpse",
+  "Streamer Hint",
+  "Temp Entity",
+  "Archived Entity",
+  "Match State",
+  "Client State",
+  "Player State",
+  "Hud Elem",
+  "Baselines"
+};
+
+int s_maxSnapshotSize;
+float s_stdSnapshotDeviation;
+int s_numSnapshotSamples;
+float s_avgSnapshotSize;
+int s_numSnapshotsBuiltSinceLastPoll;
+int s_uncompressedDataSinceLastPoll;
+ClientSnapshotData s_clientSnapshotData[32];
+
+int s_numSnapshotsSentSinceLastPoll;
+int s_compressedDataSinceLastPoll;
+int s_lastPSBits;
+bool g_archivingSnapshot;
+int sv_quickBitsTotal;
+
 void __cdecl MSG_PacketAnalyze_SetPacketEntityType(
                 SnapshotInfo_s *snapInfo,
                 PacketEntityType packetEntityType,
@@ -43,21 +94,21 @@ void __cdecl SV_PacketAnalyze_TrackPacketCompression(unsigned int clientNum, int
 {
     int slot; // [esp+0h] [ebp-4h]
 
-    if ( clientNum >= 0x20
+    if (clientNum >= 0x20
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_profile_mp.cpp",
-                    1432,
-                    0,
-                    "%s\n\t(clientNum) = %i",
-                    "(clientNum >= 0 && clientNum < 32)",
-                    clientNum) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_profile_mp.cpp",
+            1432,
+            0,
+            "%s\n\t(clientNum) = %i",
+            "(clientNum >= 0 && clientNum < 32)",
+            clientNum))
     {
         __debugbreak();
     }
-    slot = dword_98A02F8[17 * clientNum] & 7;
-    dword_98A02D8[17 * clientNum + slot] = compressedSize;
+    slot = s_clientSnapshotData[clientNum].index & 7;
+    s_clientSnapshotData[clientNum].compressedSize[slot] = compressedSize;
     s_clientSnapshotData[clientNum].snapshotSize[slot] = originalSize;
-    ++dword_98A02F8[17 * clientNum];
+    ++s_clientSnapshotData[clientNum].index;
     ++s_numSnapshotsSentSinceLastPoll;
     s_compressedDataSinceLastPoll += compressedSize;
 }

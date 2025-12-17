@@ -1,4 +1,20 @@
 #include "snd_debug.h"
+#include <qcommon/cmd.h>
+#include "snd_dvar.h"
+#include <universal/assertive.h>
+#include "snd.h"
+
+#include <cstring>
+#include <client/cl_debugdata.h>
+#include "snd_db.h"
+#include <cgame/cg_sound.h>
+#include "snd_public_async.h"
+#include <qcommon/common.h>
+#include <universal/com_math_anglevectors.h>
+#include "snd_globals.h"
+#include "snd_utils.h"
+
+cmd_function_s SND_PlayLocal_f_VAR;
 
 void __cdecl SND_DebugInit()
 {
@@ -12,8 +28,8 @@ void __cdecl SND_DebugFini()
 
 void __cdecl SND_DebugDrawWorldSounds(int debugDrawStyle)
 {
-    int v1; // eax
-    int v2; // eax
+    char *v1; // eax
+    char *v2; // eax
     int closestId; // [esp+10h] [ebp-180Ch] BYREF
     int dst[1536]; // [esp+14h] [ebp-1808h] BYREF
     int idx; // [esp+1814h] [ebp-8h]
@@ -22,7 +38,7 @@ void __cdecl SND_DebugDrawWorldSounds(int debugDrawStyle)
     if ( debugDrawStyle )
     {
         closestId = -1;
-        closestIdDotProd = FLOAT_N2_0;
+        closestIdDotProd = -2.0f;
         memset((unsigned __int8 *)dst, 0, sizeof(dst));
         for ( idx = 0; idx < 74; ++idx )
         {
@@ -42,16 +58,16 @@ void __cdecl SND_DebugDrawWorldSounds(int debugDrawStyle)
                 {
                     if ( !snd_solo_alias_substring->current.integer
                         || !*(_BYTE *)snd_solo_alias_substring->current.integer
-                        || (strstr(
-                                    *(unsigned __int8 **)g_snd.voiceAliasHash[118 * idx - 8708],
-                                    (unsigned __int8 *)snd_solo_alias_substring->current.integer),
+                        || (v1 = strstr(
+                                    *(char**)g_snd.voiceAliasHash[118 * idx - 8708],
+                                    (char *)snd_solo_alias_substring->current.integer),
                                 v1) )
                     {
                         if ( !snd_mute_alias_substring->current.integer
                             || !*(_BYTE *)snd_mute_alias_substring->current.integer
-                            || (strstr(
-                                        *(unsigned __int8 **)g_snd.voiceAliasHash[118 * idx - 8708],
-                                        (unsigned __int8 *)snd_mute_alias_substring->current.integer),
+                            || (v2 = strstr(
+                                        *(char **)g_snd.voiceAliasHash[118 * idx - 8708],
+                                        (char *)snd_mute_alias_substring->current.integer),
                                     !v2) )
                         {
                             DebugDrawWorldSound3D(idx, debugDrawStyle, dst, &closestId, &closestIdDotProd);
@@ -262,7 +278,8 @@ void __cdecl RelativeToListener(const snd_listener *listener, float yaw, float p
     inputAngles[0] = -pitch;
     inputAngles[2] = 0.0f;
     AxisToAngles(listener->orient.axis, clientAngles);
-    inputAngles[1] = COERCE_FLOAT(LODWORD(yaw) ^ _mask__NegFloat_) + clientAngles[1];
+    //inputAngles[1] = COERCE_FLOAT(LODWORD(yaw) ^ _mask__NegFloat_) + clientAngles[1];
+    inputAngles[1] = -yaw + clientAngles[1];
     AngleVectors(inputAngles, sndDir, 0, 0);
     *result = dist * sndDir[0];
     result[1] = dist * sndDir[1];

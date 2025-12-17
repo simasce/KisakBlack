@@ -111,7 +111,7 @@ void __cdecl    GScr_AllocString(char *s);
 void __cdecl Scr_LoadLevel();
 void __cdecl Scr_LoadPreGame();
 void __cdecl GScr_LoadGameTypeScript();
-int __cdecl GScr_LoadScriptAndLabel(scriptInstance_t inst, char *filename, const char *label, int bEnforceExists);
+int __cdecl GScr_LoadScriptAndLabel(scriptInstance_t inst, const char *filename, const char *label, int bEnforceExists);
 void __cdecl    GScr_LoadScripts(scriptInstance_t inst);
 void __cdecl    GScr_LoadDogAnimScripts(scriptInstance_t inst);
 void __cdecl    GScr_LoadSingleAnimScript(scriptInstance_t inst, scr_animscript_t *pAnim, const char *name);
@@ -860,3 +860,7 @@ void __cdecl Scr_ResetTimeout(scriptInstance_t inst);
 
 
 extern scr_data_t g_scr_data;
+
+extern int g_scr_faceeventnotify;
+extern int g_scr_levelnotify;
+extern int g_scr_glasssmash;

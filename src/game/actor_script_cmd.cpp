@@ -299,8 +299,8 @@ void __cdecl ActorCmd_CanSee(scr_entref_t entref)
         bVisible = Actor_CanSeeEntity(self, pOther);
     }
     Scr_AddBool(bVisible, SCRIPTINSTANCE_SERVER);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl ActorCmd_MayMoveToPoint(scr_entref_t entref)
@@ -340,7 +340,7 @@ void __cdecl ActorCmd_MayMoveToPoint(scr_entref_t entref)
                 return;
         }
     }
-    D3DPERF_EndEvent();
+    //D3DPERF_EndEvent();
 }
 
 void __cdecl DEBUGMAYMOVE(
@@ -482,9 +482,9 @@ void __cdecl ActorCmd_MayMoveFromPointToPoint(scr_entref_t entref)
     {
         Scr_AddInt(0, SCRIPTINSTANCE_SERVER);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_11:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl ActorCmd_Teleport(scr_entref_t entref)
@@ -960,8 +960,8 @@ void __cdecl ActorCmd_GetMotionAngle(scr_entref_t entref)
         fDeltaYaw = AngleNormalize180(fMoveYaw - self->ent->r.currentAngles[1]);
     }
     Scr_AddFloat(fDeltaYaw, SCRIPTINSTANCE_SERVER);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __cdecl ActorCmd_GetAnglesToLikelyEnemyPath(scr_entref_t entref)

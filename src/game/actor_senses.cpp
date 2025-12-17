@@ -86,14 +86,14 @@ char __fastcall Actor_SightTrace(actor_s *self, const float *start, const float 
     }
     if ( hitNum )
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 0;
     }
     else
     {
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
         return 1;
     }
 }
@@ -453,8 +453,8 @@ void __fastcall Actor_UpdateSight(actor_s *self)
     }
     if ( iCheckCount > 1 )
         qsort(check, iCheckCount, 8u, (int (__cdecl *)(const void *, const void *))compare_sentient_sort);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "sight 2");
     iOldTraceCount = self->iTraceCount;
     for ( i = 0; i < iCheckCount; ++i )
@@ -463,10 +463,10 @@ void __fastcall Actor_UpdateSight(actor_s *self)
         if ( self->iTraceCount != iOldTraceCount )
             break;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
 }
 
 int __cdecl compare_sentient_sort(unsigned int *pe1, unsigned int *pe2)
@@ -539,7 +539,7 @@ void __fastcall Actor_UpdateLastEnemySightPos(actor_s *self)
     {
         return;
     }
-    D3DPERF_EndEvent();
+    //D3DPERF_EndEvent();
 }
 
 void __fastcall Actor_GetEyePosition(actor_s *self, float *vEyePosOut)

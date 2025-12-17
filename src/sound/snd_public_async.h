@@ -1,5 +1,8 @@
 #pragma once
 
+#include "snd.h"
+#include <tl/jobqueue/jobqueue_all.h>
+
 void __cdecl SND_PlayInternal(
                 unsigned int id,
                 int fadeTimeMs,
@@ -92,10 +95,10 @@ bool __cdecl SND_IsPlaying(int playbackId);
 snd_playback *__cdecl SND_FindPlayback(int playbackId);
 int __cdecl SND_GetPlaybackTime(int playbackId);
 char __cdecl SND_GetKnownLength(int playbackId, int *msec);
-void __thiscall SND_Update(void *this);
+void SND_Update(void *thisp);
 void __cdecl SND_UpdateWait();
 int __cdecl updatesound_workerCallback(jqBatch *batch);
-volatile int *SND_Frame();
+void SND_Frame();
 void __cdecl SND_GameReset();
 void __cdecl SND_BeginFrame(bool isMature, bool isPaused, float timescale, unsigned int cgTime, unsigned int seed);
 void __cdecl SND_EndFrame();

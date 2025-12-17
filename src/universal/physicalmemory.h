@@ -113,3 +113,6 @@ unsigned __int8 *__cdecl _PMem_Alloc(
                 EMemTrack memTrack,
                 const char *file,
                 int lineNum);
+
+
+extern PhysicalMemory g_mem;

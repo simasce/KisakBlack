@@ -663,8 +663,8 @@ void __thiscall GlassRenderer::Update(GlassRenderer *this, int threadId)
                     cgameGlob = CG_GetLocalClientGlobals(i);
                     if ( !cgameGlob )
                     {
-                        if ( g_DXDeviceThread == GetCurrentThreadId() )
-                            D3DPERF_EndEvent();
+                        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                            //D3DPERF_EndEvent();
                         return;
                     }
                     now = cgameGlob->physicsTime;
@@ -727,13 +727,13 @@ void __thiscall GlassRenderer::Update(GlassRenderer *this, int threadId)
         std::list<GlassShard *,SmallAllocatorTemplate<GlassShard * *>>::_Const_iterator<1>::operator++((std::list<GlassPhysics *,SmallAllocatorTemplate<GlassPhysics * *> >::_Const_iterator<1> *)&grp);
         v12 = v7;
     }
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     if ( !threadId )
         GlassRenderer::DoGroupChanges(this);
     this->rendererLock.lock = 0;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __thiscall GlassRenderer::GenerateVerts(
@@ -800,8 +800,8 @@ void __thiscall GlassRenderer::GenerateVerts(
         //BLOPS_NULLSUB();
     this->rendererLock.lock = 0;
     GlassRenderer::StartMaintenance(this);
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __thiscall GlassRenderer::ExplosionEvent(
@@ -843,8 +843,8 @@ void __thiscall GlassRenderer::ExplosionEvent(
         std::list<GlassShard *,SmallAllocatorTemplate<GlassShard * *>>::_Const_iterator<1>::operator++((std::list<GlassPhysics *,SmallAllocatorTemplate<GlassPhysics * *> >::_Const_iterator<1> *)&grp);
         v12 = v10;
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 int __thiscall GlassRenderer::TracePoint(GlassRenderer *this, float *p0, const float *p1)
@@ -886,8 +886,8 @@ int __thiscall GlassRenderer::TracePoint(GlassRenderer *this, float *p0, const f
         v12 = v9;
     }
     v10 = numHits;
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
     return v10;
 }
 
@@ -1405,8 +1405,8 @@ void __thiscall GlassRenderer::ExecuteActions(GlassRenderer *this)
         _InterlockedExchangeAdd(&this->actionOutputIndex, 1u);
         GlassRenderer::DoGroupChanges(this);
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 void __thiscall GlassRenderer::StartMaintenance(GlassRenderer *this)
@@ -1591,8 +1591,8 @@ void __thiscall GlassRenderer::DoMaintenance(GlassRenderer *this)
                     v9 = v4;
                 }
                 std::list<GlassShard *,SmallAllocatorTemplate<GlassShard *>>::clear((std::list<GlassPhysics *,SmallAllocatorTemplate<GlassPhysics * *> > *)this->tempShardsList);
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
             }
         }
         else
@@ -1626,23 +1626,23 @@ void __thiscall GlassRenderer::DoMaintenance(GlassRenderer *this)
                 v11 = v7;
             }
             std::list<GlassShard *,SmallAllocatorTemplate<GlassShard *>>::clear((std::list<GlassPhysics *,SmallAllocatorTemplate<GlassPhysics * *> > *)this->tempShardsList);
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
         }
         //PIXBeginNamedEvent(-1, "Defrag shard work memory");
         Allocator::Defrag(&this->shardMemoryAllocator, (void (__cdecl *)(void *))GlassShard::Defrag, 10);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
         GlassesClient::PreShatterNext(clGlasses);
         this->rendererLock.lock = 0;
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
     else
     {
         this->rendererLock.lock = 0;
-        if ( g_DXDeviceThread == GetCurrentThreadId() )
-            D3DPERF_EndEvent();
+        //if ( g_DXDeviceThread == GetCurrentThreadId() )
+            //D3DPERF_EndEvent();
     }
 }
 
@@ -2270,8 +2270,8 @@ void __thiscall ShardGroup::GenerateVerts(ShardGroup *this, bool firstView, unsi
                 ShardGroup::FreeRenderMemory(this);
                 baseVerts = 0;
                 this->renderIndices = 0;
-                if ( g_DXDeviceThread == GetCurrentThreadId() )
-                    D3DPERF_EndEvent();
+                //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                    //D3DPERF_EndEvent();
                 return;
             }
             indices = this->renderIndices;
@@ -2300,8 +2300,8 @@ void __thiscall ShardGroup::GenerateVerts(ShardGroup *this, bool firstView, unsi
                 vertsIndex += v4;
             }
             *timer.counter += *(_QWORD *)&tlPcGetTick() - timer.start;
-            if ( g_DXDeviceThread == GetCurrentThreadId() )
-                D3DPERF_EndEvent();
+            //if ( g_DXDeviceThread == GetCurrentThreadId() )
+                //D3DPERF_EndEvent();
         }
         if ( !this->renderIndices
             && !Assert_MyHandler(
@@ -2425,8 +2425,8 @@ int __thiscall ShardGroup::TracePoint(ShardGroup *this, float *p0, const float *
                     ++numHits;
             }
         }
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-            D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //D3DPERF_EndEvent();
     }
     return numHits;
 }

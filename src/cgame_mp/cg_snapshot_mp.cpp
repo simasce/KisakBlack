@@ -1681,8 +1681,8 @@ LABEL_33:
     {
         __debugbreak();
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
+        //D3DPERF_EndEvent();
 }
 
 snapshot_s *__cdecl CG_ReadNextSnapshot(int localClientNum)

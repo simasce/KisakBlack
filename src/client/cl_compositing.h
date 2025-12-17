@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gfx_d3d/r_material.h>
+#include <gfx_d3d/r_bsp.h>
 
 enum CompositeState : __int32
 {                                       // XREF: CompositeJob/r

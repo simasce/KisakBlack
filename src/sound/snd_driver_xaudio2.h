@@ -1,7 +1,149 @@
 #pragma once
 
+#include <XAPOBase.h>
+#include <XAudio2.h>
+#include <gfx_d3d/r_font.h>
+#include "snd.h"
+#include "snd_driver_xaudio2_dsp.h"
+
+enum snd_stream_status : __int32
+{                                       // XREF: ?Snd_StreamStatus@@YA?AW4snd_stream_status@@I@Z/r
+                                        // ?Snd_StreamAcquireWindow@@YA?AW4snd_stream_status@@IPAI0PAPAD@Z/r ...
+    SND_STREAM_UNUSED   = 0x0,
+    SND_STREAM_LOADING  = 0x1,
+    SND_STREAM_OK       = 0x2,
+    SND_STREAM_STARVING = 0x3,
+    SND_STREAM_EOF      = 0x4,
+    SND_STREAM_ERROR    = 0x5,
+};
+
+struct $adpcmwaveformat_tag$_extraBytes_28 // sizeof=0x32
+{                                       // XREF: iSND_CreateVoice/r
+    tWAVEFORMATEX wfx;                  // XREF: iSND_CreateVoice+A8/w
+                                        // iSND_CreateVoice+B1/w ...
+    unsigned __int16 wSamplesPerBlock;  // XREF: iSND_CreateVoice+E9/w
+                                        // iSND_CreateVoice+2FD/w ...
+    unsigned __int16 wNumCoef;          // XREF: iSND_CreateVoice+F2/w
+                                        // iSND_CreateVoice+309/w
+    adpcmcoef_tag aCoef[7];             // XREF: iSND_CreateVoice+FE/w
+                                        // iSND_CreateVoice+107/w ...
+};
+
+struct StreamVoice : IXAudio2VoiceCallback // sizeof=0x50
+{                                       // XREF: SoundState/r
+    XAUDIO2_BUFFER buffers[2];
+    unsigned int bufferQueuedCount;
+
+    // Called just before this voice's processing pass begins.
+    STDMETHOD_(void, OnVoiceProcessingPassStart) (THIS_ UINT32 BytesRequired)
+    {
+
+    }
+
+    // Called just after this voice's processing pass ends.
+    STDMETHOD_(void, OnVoiceProcessingPassEnd) (THIS)
+    {
+
+    }
+
+    // Called when this voice has just finished playing a buffer stream
+    // (as marked with the XAUDIO2_END_OF_STREAM flag on the last buffer).
+    STDMETHOD_(void, OnStreamEnd) (THIS)
+    {
+
+    }
+
+    // Called when this voice is about to start processing a new buffer.
+    STDMETHOD_(void, OnBufferStart) (THIS_ void *pBufferContext)
+    {
+
+    }
+
+    // Called when this voice has just finished processing a buffer.
+    // The buffer can now be reused or destroyed.
+    STDMETHOD_(void, OnBufferEnd) (THIS_ void *pBufferContext)
+    {
+        iSND_ReleaseStreamBuffer((unsigned int)pBufferContext >> 8, (unsigned __int8)pBufferContext);
+    }
+
+    // Called when this voice has just reached the end position of a loop.
+    STDMETHOD_(void, OnLoopEnd) (THIS_ void *pBufferContext)
+    {
+
+    }
+
+    // Called in the event of a critical error during voice processing,
+    // such as a failing xAPO or an error from the hardware XMA decoder.
+    // The voice may have to be destroyed and re-created to recover from
+    // the error.  The callback arguments report which buffer was being
+    // processed when the error occurred, and its HRESULT code.
+    STDMETHOD_(void, OnVoiceError) (THIS_ void *pBufferContext, HRESULT Error)
+    {
+        OutputDebugStringA("StreamVoiceError\n");
+    }
+};
+
+struct VoiceInfo // sizeof=0x44
+{                                       // XREF: SoundState/r
+    snd_dsp_source_params params;
+    SDXA2SourceEffect *sourceDsp;
+};
+
+struct __declspec(align(128)) SoundState // sizeof=0x3EF600
+{                                       // XREF: .data:g_sd/r
+    int deviceIndex;                    // XREF: SD_XAudio2Done(void)+35/w
+                                        // SD_Init(void):loc_93F222/w ...
+    int deviceGUIDValid;                // XREF: SD_XAudio2Done(void)+2B/w
+                                        // SD_Init(void)+2C/w ...
+    _GUID deviceGUID;                   // XREF: SD_XAudio2Done(void)+41/w
+                                        // SD_XAudio2Done(void)+47/w ...
+    IXAudio2 *xa2;                      // XREF: SD_XAudio2Done(void)+3/r
+                                        // SD_XAudio2Done(void):loc_93E0DE/r ...
+    XAUDIO2_DEVICE_DETAILS details;     // XREF: SD_Init(void)+5D/o
+                                        // SD_SwitchDevice+8D/o ...
+    IXAudio2MasteringVoice *masterVoice; // XREF: SD_Init(void)+6A/w
+                                        // SND_InitMasterVoice+64/o ...
+    XAUDIO2_VOICE_DETAILS masterVoiceDetails; // XREF: SD_Init(void)+76/w
+                                        // SD_Init(void)+7C/w ...
+    IXAudio2SubmixVoice *masterBus;     // XREF: iSND_CreateVoice+51F/r
+                                        // SD_Init(void)+88/w ...
+    
+    SDXA2MasterBusEffect masterDsp;     // XREF: SND_InitMasterVoice+122/o
+    snd_dsp_master_params masterParams; // XREF: SD_Init(void)+96/o
+                                        // SD_PreUpdate(int)+2F7/o ...
+    IXAudio2SubmixVoice *novoiceBus;    // XREF: iSND_CreateVoice:loc_93EF9C/r
+                                        // SD_Init(void)+A3/w ...
+    
+    SDXA2MasterNoVoiceBusEffect novoiceDsp;
+                                        // XREF: SND_InitMasterVoice+14F/o
+    snd_dsp_master_no_voice_params novoiceParams;
+                                        // XREF: SD_Init(void)+AF/w
+                                        // SD_Init(void)+B5/w ...
+    IXAudio2SubmixVoice *radverbBus;    // XREF: iSND_CreateVoice+548/r
+                                        // SD_Init(void)+D9/w ...
+   
+    SDXA2RadverbEffect radverbDsp;      // XREF: SND_InitMasterVoice+17C/o
+                                        // .data:00E1F218/o ...
+    snd_rv_params radverbParams;        // XREF: SD_Init(void)+E7/o
+                                        // SD_PreUpdate(int)+6/o ...
+    
+    SDXA2SourceEffect voiceDsp[148];    // XREF: SDXA2_VoiceDspAllocate(void)+2E/o
+                                        // SDXA2_VoiceDspAssertUnused+2E/o ...
+    IXAudio2SourceVoice *voices[74];    // XREF: SD_StopVoice(int)+9/r
+                                        // SD_StopVoice(int)+1A/r ...
+    VoiceInfo voiceInfos[74];           // XREF: iSND_CreateVoice+7D/o
+                                        // SDXA2_UpdateVoiceSends+72/o
+    StreamVoice streamVoices[10];       // XREF: iSND_ReleaseStreamBuffer+64/o
+                                        // SD_UpdateStreamVoice(int,int)+22E/o ...
+    XAUDIO2_PERFORMANCE_DATA perfData;  // XREF: SD_Init(void)+10C/o
+
+
+    SoundState();
+    ~SoundState();
+};
+
 bool __cdecl SD_Xaudio2CanInit();
-IXAudio2SourceVoice **__cdecl SDXA2_VoiceDspAllocate();
+SDXA2SourceEffect *__cdecl SDXA2_VoiceDspAllocate();
 void __cdecl SD_TruncateAudioDeviceNames(Font_s *font, float scale, int size);
 void __cdecl SD_XAudio2Done();
 unsigned int __cdecl SDXA2_ChannelFixup(unsigned int outputChannels, unsigned int channel);
@@ -34,18 +176,14 @@ char __cdecl SD_XAudio2CheckDevice(
                 unsigned int deviceIndex);
 void SD_SwitchDevice();
 void SND_InitMasterVoice();
-void __thiscall SD_Shutdown(void *this);
-void __thiscall SND_ShutdownMasterVoice(void *this);
+void SD_Shutdown(void *thisp);
+void SND_ShutdownMasterVoice(void *thisp);
 void __cdecl SD_PreUpdate();
 void __cdecl SD_PauseVoice(int voiceIndex);
 void __cdecl SD_UnpauseVoice(int voiceIndex);
 void __cdecl SD_UpdateVoice(unsigned int voiceIndex);
 void __cdecl SDXA2_UpdateVoiceSends(int voiceIndex);
+
+
 int __cdecl SD_StartAlias(SndStartAliasInfo *startAliasInfo, unsigned int voice);
 int __cdecl SND_StartAliasRam(SndStartAliasInfo *startAliasInfo, int voiceIndex);
-SoundState *__thiscall SoundState::SoundState(SoundState *this);
-void __stdcall StreamVoice::OnVoiceProcessingPassStart(StreamVoice *this);
-void __stdcall StreamVoice::OnLoopEnd(StreamVoice *this, void *__formal);
-void __stdcall StreamVoice::OnBufferEnd(StreamVoice *this, unsigned int p);
-void __stdcall StreamVoice::OnVoiceError(StreamVoice *this, void *__formal, HRESULT a3);
-void __thiscall SoundState::~SoundState(SoundState *this);

@@ -1,4 +1,9 @@
 #include "demo_ui.h"
+#include "demo_common.h"
+#include <qcommon/common.h>
+#include <ui/ui_main.h>
+#include <qcommon/com_clients.h>
+#include <client/cl_keys.h>
 
 const char *__cdecl Demo_GetKeyboardTitle()
 {

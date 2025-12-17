@@ -1,5 +1,49 @@
 #include "gdt_remote.h"
 
+#include <cstring>
+#include <bgame/bg_weapons_load_obj.h>
+#include <ctype.h>
+#include <physics/physconstraints_load_obj.h>
+#include <game/g_scr_vehicle.h>
+#include <cgame/cg_main.h>
+#include <gfx_d3d/r_scene.h>
+#include <xanim/xmodel.h>
+#include <gfx_d3d/r_utils.h>
+#include <game_mp/g_scr_main_mp.h>
+#include <win32/win_common.h>
+
+int GDTCommandCount;
+char GDTCommands[4][128];
+
+struct gdt_remote_cmd_handler // sizeof=0x8
+{                                       // XREF: .data:gdt_remote_handlers/r
+    const char *assetType;              // XREF: ProcessGDTCmds(void)+A2/r
+    bool (__cdecl *action)(const char *);
+};
+
+gdt_remote_cmd_handler gdt_remote_handlers[17] =
+{
+  { "bulletweapon", GDT_RemoteWeaponUpdate },
+  { "grenadeweapon", GDT_RemoteWeaponUpdate },
+  { "projectileweapon", GDT_RemoteWeaponUpdate },
+  { "gasweapon", GDT_RemoteWeaponUpdate },
+  { "turretweapon", GDT_RemoteWeaponUpdate },
+  { "vehicleweapon", GDT_RemoteWeaponUpdate },
+  { "meleeweapon", GDT_RemoteWeaponUpdate },
+  { "dualwieldweapon", GDT_RemoteWeaponUpdate },
+  { "vehicle", GDT_RemoteVehicleUpdate },
+  { "physpreset", Flame_GetLocalClientSourceRange },
+  { "physconstraints", GDT_RemotePhysConstraintsUpdate },
+  { "rumble", Flame_GetLocalClientSourceRange },
+  { "xmodel", GDT_RemoteXModelUpdate },
+  { "material", GDT_RemoteMaterialUpdate },
+  { "mphead", GDT_RemoteMptypeUpdate },
+  { "mpbody", GDT_RemoteMptypeUpdate },
+  { "flametable", GDT_RemoteFlametableUpdate }
+};
+
+
+
 bool __cdecl GDT_RemoteWeaponUpdate(const char *in)
 {
   char weaponName[128]; // [esp+0h] [ebp-88h] BYREF
@@ -50,7 +94,7 @@ bool __cdecl GDT_RemoteFlametableUpdate(const char *in)
   return BG_FlameTableUpdateField(flameTableName, keyValue);
 }
 
-char __cdecl GDT_RemotePhysConstraintsUpdate(const char *in)
+bool __cdecl GDT_RemotePhysConstraintsUpdate(const char *in)
 {
   char *keyValue; // [esp+0h] [ebp-8Ch]
   char assetName[132]; // [esp+4h] [ebp-88h] BYREF
@@ -72,7 +116,7 @@ bool __cdecl GDT_RemoteVehicleUpdate(const char *in)
       && CG_VehicleUpdateField(vehicleInfoName, (char *)keyValue) != 0;
 }
 
-char __cdecl GDT_RemoteXModelUpdate(const char *in)
+bool __cdecl GDT_RemoteXModelUpdate(const char *in)
 {
   float lodDistance; // [esp+0h] [ebp-358h]
   XModel *v3; // [esp+4h] [ebp-354h]
@@ -196,7 +240,7 @@ char __cdecl GDT_RemoteXModelUpdate(const char *in)
   return 1;
 }
 
-char __cdecl GDT_RemoteMaterialUpdate(const char *in)
+bool __cdecl GDT_RemoteMaterialUpdate(const char *in)
 {
   float v2; // [esp+0h] [ebp-370h]
   float v3; // [esp+4h] [ebp-36Ch]
@@ -314,7 +358,7 @@ char __cdecl GDT_RemoteMaterialUpdate(const char *in)
   return 1;
 }
 
-char __cdecl GDT_RemoteMptypeUpdate(const char *in)
+bool __cdecl GDT_RemoteMptypeUpdate(const char *in)
 {
   const char *Token; // eax
   char asset[128]; // [esp+0h] [ebp-108h] BYREF

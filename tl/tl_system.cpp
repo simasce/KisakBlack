@@ -1,4 +1,17 @@
 #include "tl_system.h"
+#include <stdio.h>
+
+#include <Psapi.h>
+
+tlSystemCallbacks tlCurSystemCallbacks;
+char tlHostPrefix[256];
+int tlMemAllocCounter;
+int tlScratchPadRefCount;
+bool tlScratchpadLocked;
+void *tlScratchPadPtr;
+
+void *tlStackBegin;
+void *tlStackEnd;
 
 void __cdecl tlSetSystemCallbacks(const tlSystemCallbacks *Callbacks)
 {
@@ -196,7 +209,7 @@ unsigned int __cdecl tlGetFreeMemory()
 {
   unsigned int v0; // edi
   unsigned int dwTotalPhys; // ebx
-  unsigned intCurrentProcessId; // eax
+  DWORD CurrentProcessId; // eax
   HANDLE v3; // esi
   _PROCESS_MEMORY_COUNTERS pmc; // [esp+Ch] [ebp-48h] BYREF
   _MEMORYSTATUS stat; // [esp+34h] [ebp-20h] BYREF
@@ -272,10 +285,10 @@ bool __cdecl tlReadFile(const char *FileName, tlFileBuf *File, unsigned int Alig
   char *i; // eax
   HANDLE FileA; // eax
   void *v12; // esi
-  unsigned intFileSize; // eax
+  unsigned int FileSize; // eax
   unsigned __int8 *v14; // eax
-  unsigned intSize; // [esp-Ch] [ebp-21Ch]
-  unsigned int bytesRead; // [esp+8h] [ebp-208h] BYREF
+  unsigned int Size; // [esp-Ch] [ebp-21Ch]
+  DWORD bytesRead; // [esp+8h] [ebp-208h] BYREF
   char Work[512]; // [esp+Ch] [ebp-204h] BYREF
 
   if ( tlCurSystemCallbacks.ReadFile )

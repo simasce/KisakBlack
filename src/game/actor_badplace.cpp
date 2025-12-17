@@ -684,8 +684,8 @@ int __fastcall Actor_BadPlace_Flee_Think(actor_s *self)
     if ( self->aiBadPlace == AI_BADPLACE_NONE )
     {
         Actor_SetState(self, AIS_EXPOSED);
-        //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //    D3DPERF_EndEvent();
+        ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //    //D3DPERF_EndEvent();
         return 1;
     }
     Actor_PreThink(self);
@@ -707,14 +707,14 @@ int __fastcall Actor_BadPlace_Flee_Think(actor_s *self)
         Actor_AnimStop(self, &g_animScriptTable[self->species]->stop);
 LABEL_22:
         Actor_PostThink(self);
-        //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //    D3DPERF_EndEvent();
+        ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //    //D3DPERF_EndEvent();
         return 0;
     }
     self->aiBadPlace = AI_BADPLACE_NONE;
     Actor_SetState(self, AIS_EXPOSED);
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-    //    D3DPERF_EndEvent();
+    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+    //    //D3DPERF_EndEvent();
     return 1;
 }
 

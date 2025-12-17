@@ -59,6 +59,16 @@ enum GamePadButton : __int32
     GPAD_R_TRIG  = 0x20000001,
 };
 
+enum GamePadStick : __int32
+{                                       // XREF: StickToCodeMap_t/r
+                                        // ?GPad_GetStick@@YAMHW4GamePadStick@@@Z/r ...
+    GPAD_INVALID = 0x0,
+    GPAD_LX      = 0x40000000,          // XREF: .data:StickToCodeMap_t * analogStickList/s
+    GPAD_LY      = 0x40000001,          // XREF: .data:StickToCodeMap_t * analogStickList/s
+    GPAD_RX      = 0x40000002,
+    GPAD_RY      = 0x40000003,
+};
+
 struct DevGuiInput // sizeof=0x7C
 {                                       // XREF: .data:s_input/r
     int selectedGamePadIndex;           // XREF: DevGui_SelectGamepad(int)+6/w

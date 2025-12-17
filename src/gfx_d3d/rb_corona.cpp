@@ -92,9 +92,9 @@ void __cdecl RB_DrawCoronas(unsigned int localClientNum)
             }
         }
     }
-    if ( g_DXDeviceThread == GetCurrentThreadId() )
+    //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_52:
-        D3DPERF_EndEvent();
+        //D3DPERF_EndEvent();
 }
 
 GfxLightCorona *__cdecl RB_FindBestCoronaToSpawn(CoronaState *state)

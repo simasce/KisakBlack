@@ -179,8 +179,8 @@ actor_think_result_t __fastcall Actor_Dog_Exposed_Think(actor_s *self)
         Actor_Exposed_FlashBanged(self);
     }
     Actor_PostThink(self);
-    if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+    //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //D3DPERF_EndEvent();
     return 0;
 }
 
