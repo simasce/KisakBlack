@@ -1565,6 +1565,7 @@
     <ClInclude Include="src\glass\glass_server.h" />
     <ClInclude Include="src\glass\glass_shard.h" />
     <ClInclude Include="src\groupvoice\decode.h" />
+    <ClInclude Include="src\groupvoice\directsound.h" />
     <ClInclude Include="src\groupvoice\encode.h" />
     <ClInclude Include="src\groupvoice\play.h" />
     <ClInclude Include="src\groupvoice\play_dsound.h" />

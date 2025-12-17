@@ -1,4 +1,6 @@
 #include "play.h"
+#include "play_dsound.h"
+#include "record.h"
 
 unsigned int __cdecl Sound_UpdateSample(dsound_sample_t *sample, char *data, unsigned int data_len)
 {
@@ -25,9 +27,9 @@ void __cdecl Sound_SampleFrame(dsound_sample_t *sample)
     DSound_SampleFrame(sample);
 }
 
-int __cdecl Sound_Init(HWND__ *handle)
+int __cdecl Sound_Init(void *handle)
 {
-    return DSound_Init(1, handle);
+    return DSound_Init(1, (HWND__*)handle);
 }
 
 void __cdecl Sound_Shutdown()

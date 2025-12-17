@@ -1,4 +1,22 @@
 #include "record.h"
+#include <universal/q_shared.h>
+#include <client_mp/cl_main_mp.h>
+#include <client_mp/cl_input_mp.h>
+#include "encode.h"
+#include <qcommon/common.h>
+#include "record_dsound.h"
+
+int(__cdecl *current_audioCallback)(audioSample_t *);
+
+float voice_current_voicelevel;
+
+__int16 partial_audio_buffer[640];
+int samples_in_partial_audio_buffer;
+
+char enc_buffer[4096];
+int enc_buffer_pos;
+
+float voice_current_scaler = 1.0f;
 
 void __cdecl Record_SetRecordingCallback(int (__cdecl *new_audioCallback)(audioSample_t *))
 {
@@ -79,7 +97,7 @@ int __cdecl Record_QueueAudioDataForEncoding(audioSample_t *sample)
                             &sample->buffer[sample->bytesPerSample * sample->sampleOffset],
                             sample->bytesPerSample * (FrameSize - v5));
                         sample->sampleOffset += FrameSize - v5;
-                        bytes = Encode_Sample(dst, &enc_buffer[enc_buffer_pos], 4096 - enc_buffer_pos);
+                        bytes = Encode_Sample((short*)dst, &enc_buffer[enc_buffer_pos], 4096 - enc_buffer_pos);
                         v4 += bytes;
                         Client_SendVoiceData(bytes, &enc_buffer[enc_buffer_pos]);
                     }

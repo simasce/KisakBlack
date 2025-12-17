@@ -1,4 +1,22 @@
 #include "record_dsound.h"
+#include "record.h"
+#include <qcommon/common.h>
+
+bool g_recording_initialized;
+
+int g_sound_channels = 1;
+int g_sound_recordFrequency = 8192;
+int g_sound_recordBufferSize = 51200;
+int g_sound_recordVolume = 255;
+
+bool g_currently_recording;
+
+dsound_sample_t *g_current_sample;
+dsound_sample_t *s_recordingSamplePtr;
+
+dsound_sample_t s_recordingSamples[33];
+
+LPDIRECTSOUNDCAPTURE g_pDSCaptureInstance;
 
 void __cdecl DSOUNDRecord_UpdateSample(dsound_sample_t *pRecSample)
 {
@@ -8,17 +26,17 @@ void __cdecl DSOUNDRecord_UpdateSample(dsound_sample_t *pRecSample)
     HRESULT hr; // [esp+Ch] [ebp-44h]
     HRESULT hra; // [esp+Ch] [ebp-44h]
     void *pLock1; // [esp+14h] [ebp-3Ch] BYREF
-    unsigned int dwCapturePos; // [esp+18h] [ebp-38h] BYREF
+    DWORD dwCapturePos; // [esp+18h] [ebp-38h] BYREF
     audioSample_t audioSample; // [esp+1Ch] [ebp-34h] BYREF
-    unsigned int dwLockLen2; // [esp+3Ch] [ebp-14h] BYREF
+    DWORD dwLockLen2; // [esp+3Ch] [ebp-14h] BYREF
     int iChannels; // [esp+40h] [ebp-10h]
     void *pLock2; // [esp+44h] [ebp-Ch] BYREF
-    unsigned int dwReadPos; // [esp+48h] [ebp-8h] BYREF
-    unsigned int dwLockLen1; // [esp+4Ch] [ebp-4h] BYREF
+    DWORD dwReadPos; // [esp+48h] [ebp-8h] BYREF
+    DWORD dwLockLen1; // [esp+4Ch] [ebp-4h] BYREF
 
     if ( g_recording_initialized )
     {
-        if ( pRecSample->DSCB->GetCurrentPosition(pRecSample->DSCB, &dwCapturePos, &dwReadPos) < 0 )
+        if ( pRecSample->DSCB->GetCurrentPosition(&dwCapturePos, &dwReadPos) < 0 )
             Com_PrintError(9, "Error: Failed to get cursor positions \n");
         if ( dwReadPos >= pRecSample->dwCaptureOffset )
             lLockSize = dwReadPos - pRecSample->dwCaptureOffset;
@@ -28,7 +46,6 @@ void __cdecl DSOUNDRecord_UpdateSample(dsound_sample_t *pRecSample)
         if ( lLockSizea )
         {
             hr = pRecSample->DSCB->Lock(
-                         pRecSample->DSCB,
                          pRecSample->dwCaptureOffset,
                          lLockSizea,
                          &pLock1,
@@ -64,7 +81,7 @@ void __cdecl DSOUNDRecord_UpdateSample(dsound_sample_t *pRecSample)
                 }
                 pRecSample->dwCaptureOffset += lLockSizeb;
                 pRecSample->dwCaptureOffset %= pRecSample->dwBufferSize;
-                hra = pRecSample->DSCB->Unlock(pRecSample->DSCB, pLock1, dwLockLen1, pLock2, dwLockLen2);
+                hra = pRecSample->DSCB->Unlock(pLock1, dwLockLen1, pLock2, dwLockLen2);
                 if ( hra < 0 )
                 {
                     if ( hra == -2147024809 )
@@ -136,7 +153,7 @@ int __cdecl DSOUNDRecord_DestroySample(dsound_sample_t *pRecSample)
         return 0;
     if ( pRecSample->DSB )
     {
-        pRecSample->DSB->Release(pRecSample->DSB);
+        pRecSample->DSB->Release();
         pRecSample->DSB = 0;
     }
     return 1;
@@ -167,18 +184,16 @@ HRESULT __cdecl DSOUNDRecord_Start(dsound_sample_t *pRecSample)
     dscbd.lpwfxFormat = &wfx;
     dscbd.dwFXCount = 0;
     dscbd.lpDSCFXDesc = 0;
-    if ( pRecSample->DSCB
-        || (hr = ((int (__thiscall *)(LPDIRECTSOUNDCAPTURE, LPDIRECTSOUNDCAPTURE, _DSCBUFFERDESC *, dsound_sample_t *, unsigned int))g_pDSCaptureInstance->CreateCaptureBuffer)(
-                             g_pDSCaptureInstance,
-                             g_pDSCaptureInstance,
+    //if ( pRecSample->DSCB || (hr = ((int (__thiscall *)(LPDIRECTSOUNDCAPTURE, LPDIRECTSOUNDCAPTURE, _DSCBUFFERDESC *, dsound_sample_t *, unsigned int))g_pDSCaptureInstance->CreateCaptureBuffer)(
+    if ( pRecSample->DSCB || (hr = g_pDSCaptureInstance->CreateCaptureBuffer(
                              &dscbd,
-                             pRecSample,
+                             &pRecSample->DSCB,
                              0),
                 hr >= 0) )
     {
         pRecSample->dwCaptureOffset = 0;
         pRecSample->dwBufferSize = dscbd.dwBufferBytes;
-        hra = pRecSample->DSCB->Start(pRecSample->DSCB, 1u);
+        hra = pRecSample->DSCB->Start(1u);
         if ( hra < 0 )
         {
             Com_PrintError(9, "error: Unable to Read to Buffer\n");
@@ -235,7 +250,7 @@ HRESULT __cdecl DSOUNDRecord_Stop(dsound_sample_t *pRecSample)
         return -1;
     if ( !pRecSample->DSCB )
         return -1;
-    if ( pRecSample->DSCB->Stop(pRecSample->DSCB) < 0 )
+    if ( pRecSample->DSCB->Stop() < 0 )
     {
         Com_PrintError(9, "Error stopping recording buffer\n");
     }
@@ -244,7 +259,7 @@ HRESULT __cdecl DSOUNDRecord_Stop(dsound_sample_t *pRecSample)
         g_current_sample = 0;
         g_currently_recording = 0;
     }
-    hr = pRecSample->DSCB->Release(pRecSample->DSCB);
+    hr = pRecSample->DSCB->Release();
     if ( hr < 0 )
         Com_PrintError(9, "Error releasing recording buffer\n");
     else
@@ -276,7 +291,7 @@ void __cdecl DSOUNDRecord_Shutdown()
 
     hr = 0;
     if ( g_pDSCaptureInstance )
-        hr = g_pDSCaptureInstance->Release(g_pDSCaptureInstance);
+        hr = g_pDSCaptureInstance->Release();
     g_pDSCaptureInstance = 0;
     if ( hr < 0 )
         Com_PrintError(9, "Error releasing direct sound instance!    %d\n", hr);

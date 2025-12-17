@@ -1,4 +1,5 @@
 #pragma once
+#include "directsound.h"
 
 void __cdecl DSOUNDRecord_UpdateSample(dsound_sample_t *pRecSample);
 void __cdecl DSOUNDRecord_Frame();

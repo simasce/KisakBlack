@@ -1,4 +1,20 @@
 #include "play_dsound.h"
+#include <universal/assertive.h>
+#include <qcommon/common.h>
+#include "record_dsound.h"
+
+bool dsoundplay_initialized;
+
+int MIN_COMFORTABLE_BUFFER_AMOUNT = 320;
+int MAX_COMFORTABLE_BUFFER_AMOUNT = 10000;
+int COMFORTABLE_BUFFER_AMOUNT = 6000;
+
+unsigned int g_sound_playBufferSize = 51200u;
+
+float maxScalingUpMultiplier = 0.0099999998;
+float maxScalingDownMultiplier = 0.0099999998;
+
+LPDIRECTSOUND8 lpds;
 
 int __cdecl DSound_GetBytesLeft(dsound_sample_t *sample)
 {
@@ -13,9 +29,9 @@ unsigned int __cdecl DSound_UpdateSample(dsound_sample_t *sample, char *data, si
     unsigned int dataOffset; // [esp+18h] [ebp-1Ch]
     int bytesLeft; // [esp+20h] [ebp-14h]
     void *pLock1; // [esp+24h] [ebp-10h] BYREF
-    unsigned int dwLockLen2; // [esp+28h] [ebp-Ch] BYREF
+    DWORD dwLockLen2; // [esp+28h] [ebp-Ch] BYREF
     void *pLock2; // [esp+2Ch] [ebp-8h] BYREF
-    unsigned int dwLockLen1; // [esp+30h] [ebp-4h] BYREF
+    DWORD dwLockLen1; // [esp+30h] [ebp-4h] BYREF
 
     if ( !dsoundplay_initialized )
         return -1;
@@ -58,7 +74,7 @@ unsigned int __cdecl DSound_UpdateSample(dsound_sample_t *sample, char *data, si
     {
         __debugbreak();
     }
-    hr = sample->DSB->Lock(sample->DSB, sample->currentOffset, v4, &pLock1, &dwLockLen1, &pLock2, &dwLockLen2, 0);
+    hr = sample->DSB->Lock(sample->currentOffset, v4, &pLock1, &dwLockLen1, &pLock2, &dwLockLen2, 0);
     if ( hr >= 0 )
     {
         dataOffset = 0;
@@ -72,7 +88,7 @@ unsigned int __cdecl DSound_UpdateSample(dsound_sample_t *sample, char *data, si
             memcpy((unsigned __int8 *)pLock2, (unsigned __int8 *)&data[dataOffset], dwLockLen2);
             dataOffset += dwLockLen2;
         }
-        hra = sample->DSB->Unlock(sample->DSB, pLock1, dwLockLen1, pLock2, dwLockLen2);
+        hra = sample->DSB->Unlock(pLock1, dwLockLen1, pLock2, dwLockLen2);
         if ( hra >= 0 )
         {
             if ( sample->currentBufferLength > sample->dwBufferSize
@@ -197,15 +213,13 @@ void __cdecl DSound_AdjustSamplePlayback(dsound_sample_t *sample, int bytesLeft)
     {
         if ( playMode == 1 )
             sample->DSB->SetFrequency(
-                sample->DSB,
                 (__int64)((double)sample->frequency - (double)sample->frequency * maxScalingDownMultiplier));
         else
-            sample->DSB->SetFrequency(sample->DSB, sample->frequency);
+            sample->DSB->SetFrequency(sample->frequency);
     }
     else
     {
         sample->DSB->SetFrequency(
-            sample->DSB,
             (__int64)((double)sample->frequency + (double)sample->frequency * maxScalingUpMultiplier));
     }
 }
@@ -218,7 +232,7 @@ bool __cdecl DSound_BufferUnderrunOccurred(dsound_sample_t *sample)
 void __cdecl DSound_HandleBufferUnderrun(dsound_sample_t *sample)
 {
     DSound_GetBytesLeft(sample);
-    sample->DSB->Stop(sample->DSB);
+    sample->DSB->Stop();
     sample->currentBufferLength = 0;
     sample->currentOffset = 0;
     sample->lastOffset = 0;
@@ -227,7 +241,7 @@ void __cdecl DSound_HandleBufferUnderrun(dsound_sample_t *sample)
         sample->stopPosition -= sample->currentOffset;
     else
         sample->stopPosition = 0;
-    sample->DSB->SetCurrentPosition(sample->DSB, sample->currentOffset);
+    sample->DSB->SetCurrentPosition(sample->currentOffset);
     sample->lastOffset = sample->currentOffset;
     sample->playing = 0;
     sample->bytesBuffered = 0;
@@ -235,22 +249,22 @@ void __cdecl DSound_HandleBufferUnderrun(dsound_sample_t *sample)
 
 void __cdecl DSound_SampleFrame(dsound_sample_t *sample)
 {
-    unsigned int dwWritePos; // [esp+4h] [ebp-14h] BYREF
+    DWORD dwWritePos; // [esp+4h] [ebp-14h] BYREF
     HRESULT hr; // [esp+8h] [ebp-10h]
     int bytesLeft; // [esp+Ch] [ebp-Ch]
-    unsigned int dwPlayPos; // [esp+10h] [ebp-8h] BYREF
+    DWORD dwPlayPos; // [esp+10h] [ebp-8h] BYREF
     int bytesPlayed; // [esp+14h] [ebp-4h]
 
     bytesLeft = DSound_GetBytesLeft(sample);
     if ( !sample->playing && bytesLeft >= COMFORTABLE_BUFFER_AMOUNT )
     {
-        hr = sample->DSB->Play(sample->DSB, 0, 0, 1u);
+        hr = sample->DSB->Play(0, 0, 1u);
         if ( hr < 0 )
         {
             Com_Printf(9, "Error: Failed to play DirectSound play buffer (%i)!\n", hr);
             return;
         }
-        hr = sample->DSB->SetCurrentPosition(sample->DSB, sample->lastPlayPos);
+        hr = sample->DSB->SetCurrentPosition(sample->lastPlayPos);
         if ( hr < 0 )
             Com_Printf(9, "Error: Failed to set current position to %i when playing sound buffer!\n", sample->lastOffset);
         sample->playing = 1;
@@ -258,7 +272,7 @@ void __cdecl DSound_SampleFrame(dsound_sample_t *sample)
     }
     if ( sample->playing )
     {
-        hr = sample->DSB->GetCurrentPosition(sample->DSB, &dwPlayPos, &dwWritePos);
+        hr = sample->DSB->GetCurrentPosition(&dwPlayPos, &dwWritePos);
         if ( hr < 0 )
             Com_Printf(9, "Error: Failed to get cursor positions \n");
         dwWritePos = sample->currentOffset;
@@ -314,7 +328,7 @@ dsound_sample_t *__cdecl DSound_NewSample()
     if ( CreateBasicBuffer(lpds, &sample->DSB, sample->frequency, sample->channels, g_sound_playBufferSize) >= 0 )
         return sample;
     Com_Printf(9, "Error: Failed to create DirectSound play buffer\n");
-    sample->DSB->Release(sample->DSB);
+    sample->DSB->Release();
     sample->DSB = 0;
     return 0;
 }
@@ -343,12 +357,13 @@ HRESULT __cdecl CreateBasicBuffer(
     dsbdesc.dwFlags = 33000;
     dsbdesc.dwBufferBytes = bufferSize;
     dsbdesc.lpwfxFormat = &wfx;
-    hr = ((int (__thiscall *)(LPDIRECTSOUND8, LPDIRECTSOUND8, _DSBUFFERDESC *, IDirectSoundBuffer **, unsigned int))lpds->CreateSoundBuffer)(
-                 lpds,
-                 lpds,
-                 &dsbdesc,
-                 ppDsb,
-                 0);
+    //hr = ((int (__thiscall *)(LPDIRECTSOUND8, LPDIRECTSOUND8, _DSBUFFERDESC *, IDirectSoundBuffer **, unsigned int))lpds->CreateSoundBuffer)(
+    //             lpds,
+    //             lpds,
+    //             &dsbdesc,
+    //             ppDsb,
+    //             0);
+    hr = lpds->CreateSoundBuffer(&dsbdesc, ppDsb, 0);
     if ( hr < 0 )
         Com_Printf(9, "Failed to create sound buffer!\n");
     return hr;
@@ -361,11 +376,11 @@ char __cdecl DSound_StopSample(dsound_sample_t *sample)
     if ( !sample->playing )
         return 0;
     if ( sample->DSB )
-        sample->DSB->Stop(sample->DSB);
+        sample->DSB->Stop();
     sample->stopPosition = -1;
     sample->channel = -1;
     sample->playing = 0;
-    if ( sample->DSB->SetCurrentPosition(sample->DSB, 0) < 0 )
+    if ( sample->DSB->SetCurrentPosition(0) < 0 )
         Com_Printf(9, "Error: Failed to set current position to %i when playing sound buffer!\n", sample->lastOffset);
     return 1;
 }
@@ -376,7 +391,7 @@ int __cdecl DSound_Init(bool callDsoundInit, HWND__ *handle)
         return 1;
     if ( DirectSoundCreate8(0, &lpds, 0) >= 0 )
     {
-        if ( lpds->SetCooperativeLevel(lpds, handle, 2u) >= 0 )
+        if ( lpds->SetCooperativeLevel(handle, 2u) >= 0 )
         {
             dsoundplay_initialized = 1;
             return 1;
@@ -398,7 +413,7 @@ void __cdecl DSound_Shutdown()
 {
     if ( dsoundplay_initialized )
     {
-        lpds->Release(lpds);
+        lpds->Release();
         dsoundplay_initialized = 0;
     }
 }

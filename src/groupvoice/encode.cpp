@@ -1,12 +1,27 @@
 #include "encode.h"
+#include <speex/speex.h>
+#include <qcommon/common.h>
+#include <server_mp/sv_init_mp.h>
+
+void *g_encoder;
+SpeexBits encodeBits;
+int g_frame_size;
+int g_encoder_quality;
+int g_encoder_samplerate;
+int g_speex_initialized;
+int g_current_bandwidth_setting;
+
 
 void __cdecl Encode_SetOptions(int frequency, int quality)
 {
-    speex_encoder_ctl((int)g_encoder);
-    speex_encoder_ctl((int)g_encoder);
-    speex_encoder_ctl((int)g_encoder);
-    speex_encoder_ctl((int)g_encoder);
-    speex_encoder_ctl((int)g_encoder);
+    bool yes; // [esp+3h] [ebp-1h] BYREF
+
+    yes = 1;
+    speex_encoder_ctl(g_encoder, 24, &frequency);
+    speex_encoder_ctl(g_encoder, 4, &quality);
+    speex_encoder_ctl(g_encoder, 3, &g_frame_size);
+    speex_encoder_ctl(g_encoder, 30, &yes);
+    speex_encoder_ctl(g_encoder, 34, &yes);
     g_encoder_quality = quality;
     g_encoder_samplerate = frequency;
 }
@@ -19,7 +34,7 @@ bool __cdecl Encode_Init(int bandwidthEnum)
     {
         if ( bandwidthEnum == 1 )
         {
-            v1 = (void *)speex_encoder_init((int)&speex_wb_mode);
+            v1 = (void *)speex_encoder_init(&speex_wb_mode);
         }
         else
         {
@@ -28,30 +43,30 @@ bool __cdecl Encode_Init(int bandwidthEnum)
                 Com_Printf(9, "Unknown bandwidth mode %i\n", bandwidthEnum);
                 return 0;
             }
-            v1 = (void *)speex_encoder_init((int)&speex_uwb_mode);
+            v1 = (void *)speex_encoder_init(&speex_uwb_mode);
         }
     }
     else
     {
-        v1 = (void *)speex_encoder_init((int)&speex_nb_mode);
+        v1 = (void *)speex_encoder_init(&speex_nb_mode);
     }
     g_encoder = v1;
-    speex_bits_init((unsigned int **)&encodeBits);
+    speex_bits_init(&encodeBits);
     g_speex_initialized = 1;
     Encode_SetOptions(g_encoder_samplerate, g_encoder_quality);
-    speex_encoder_ctl((int)g_encoder);
+    speex_encoder_ctl(g_encoder, SPEEX_GET_FRAME_SIZE, &g_frame_size);
     g_current_bandwidth_setting = bandwidthEnum;
     return g_encoder != 0;
 }
 
 char __cdecl Encode_Shutdown()
 {
-    if ( g_encoder )
-        speex_encoder_destroy((int)g_encoder);
+    if (g_encoder)
+        speex_encoder_destroy(g_encoder);
     g_encoder = 0;
-    if ( g_speex_initialized )
+    if (g_speex_initialized)
     {
-        speex_bits_destroy((int)&encodeBits);
+        speex_bits_destroy(&encodeBits);
         g_speex_initialized = 0;
     }
     return 1;
@@ -59,14 +74,14 @@ char __cdecl Encode_Shutdown()
 
 int __cdecl Encode_Sample(__int16 *buffer_in, char *buffer_out, int maxLength)
 {
-    if ( sv_voiceQuality->current.integer != g_encoder_quality )
+    if (sv_voiceQuality->current.integer != g_encoder_quality)
     {
         g_encoder_quality = sv_voiceQuality->current.integer;
-        speex_encoder_ctl((int)g_encoder);
+        speex_encoder_ctl(g_encoder, SPEEX_SET_QUALITY, &g_encoder_quality);
     }
-    speex_bits_reset((int)&encodeBits);
-    speex_encode_int((int)g_encoder, (int)buffer_in, (int)&encodeBits);
-    return speex_bits_write(&encodeBits, (int)buffer_out, maxLength);
+    speex_bits_reset(&encodeBits);
+    speex_encode_int(g_encoder, buffer_in, &encodeBits);
+    return speex_bits_write(&encodeBits, buffer_out, maxLength);
 }
 
 int __cdecl Encode_GetFrameSize()
