@@ -1,10 +1,80 @@
 #include "cl_gamepad.h"
+#include <win32/win_shared.h>
+#include <qcommon/cmd.h>
+#include <universal/dvar.h>
+#include <universal/q_shared.h>
+#include <qcommon/common.h>
+#include <universal/com_files.h>
+#include "cl_main.h"
+#include "client.h"
+#include "cl_keys.h"
+#include <cgame_mp/cg_main_mp.h>
+#include <server_mp/sv_init_mp.h>
+#include <win32/win_gamepad.h>
+#include <devgui/devgui.h>
+#include <cgame_mp/cg_newDraw_mp.h>
+#include <ui/keycodes.h>
+#include <demo/demo_playback.h>
+#include <live/live_win.h>
+#include <bgame/bg_unlockable_items.h>
+#include <qcommon/com_clients.h>
+#include <cgame/cg_compass.h>
+#include <cgame_mp/cg_scoreboard_mp.h>
+#include <cgame/cg_gamepad.h>
+
+int lastGamepadEventTimeGlobal;
+GpadAxesGlob gaGlobs[1];
+
+int keyMask[32];
+
+GamepadPhysicalAxis axisSameStick[6] =
+{
+  GPAD_PHYSAXIS_RSTICK_Y,
+  GPAD_PHYSAXIS_RSTICK_X,
+  GPAD_PHYSAXIS_LSTICK_Y,
+  GPAD_PHYSAXIS_LSTICK_X,
+  GPAD_PHYSAXIS_NONE,
+  GPAD_PHYSAXIS_NONE
+};
+
+keyNum_t menuScrollButtonList[8] =
+{
+  K_DPAD_UP,
+  K_DPAD_DOWN,
+  K_DPAD_LEFT,
+  K_DPAD_RIGHT,
+  K_FIRSTGAMEPADBUTTON_RANGE_3,
+  K_APAD_DOWN,
+  K_APAD_LEFT,
+  K_APAD_RIGHT
+};
+
+const char *physicalAxisNames[6] =
+{
+  "A_RSTICK_X",
+  "A_RSTICK_Y",
+  "A_LSTICK_X",
+  "A_LSTICK_Y",
+  "A_RTRIGGER",
+  "A_LTRIGGER"
+};
+
+const char *inputTypeNames[2] =
+{ "MAP_LINEAR", "MAP_SQUARED" };
+
+const char *virtualAxisNames[6] =
+{ "VA_SIDE", "VA_FORWARD", "VA_UP", "VA_YAW", "VA_PITCH", "VA_ATTACK" };
 
 void __cdecl CL_ResetLastGamePadEventTime()
 {
     lastGamepadEventTimeGlobal = Sys_Milliseconds();
 }
 
+
+cmd_function_s Axis_Bind_f_VAR;
+cmd_function_s Axis_Unbindall_f_VAR;
+cmd_function_s Bind_GP_SticksConfigs_f_VAR;
+cmd_function_s Bind_GP_ButtonsConfigs_f_VAR;
 void __cdecl CL_InitGamepadCommands()
 {
     Cmd_AddCommandInternal("bindaxis", Axis_Bind_f, &Axis_Bind_f_VAR);
@@ -124,7 +194,7 @@ void __cdecl Axis_Bind_f()
     Gamepad_BindAxis(gaGlobs, physicalAxis, virtualAxis, inputType);
 }
 
-int __cdecl Gamepad_StringToPhysicalAxis(const char *axisName)
+GamepadPhysicalAxis __cdecl Gamepad_StringToPhysicalAxis(const char *axisName)
 {
     unsigned int axis; // [esp+0h] [ebp-4h]
 
@@ -136,12 +206,12 @@ int __cdecl Gamepad_StringToPhysicalAxis(const char *axisName)
     for ( axis = 0; axis < 6; ++axis )
     {
         if ( !I_stricmp(axisName, physicalAxisNames[axis]) )
-            return axis;
+            return (GamepadPhysicalAxis)axis;
     }
-    return -1;
+    return (GamepadPhysicalAxis)-1;
 }
 
-int __cdecl Axis_StringToVirtualAxis(const char *axisName)
+GamepadVirtualAxis __cdecl Axis_StringToVirtualAxis(const char *axisName)
 {
     unsigned int axis; // [esp+0h] [ebp-4h]
 
@@ -153,12 +223,12 @@ int __cdecl Axis_StringToVirtualAxis(const char *axisName)
     for ( axis = 0; axis < 6; ++axis )
     {
         if ( !I_stricmp(axisName, virtualAxisNames[axis]) )
-            return axis;
+            return (GamepadVirtualAxis)axis;
     }
-    return -1;
+    return (GamepadVirtualAxis)-1;
 }
 
-int __cdecl Gamepad_InputTypeStringToId(const char *name)
+GamepadMapping __cdecl Gamepad_InputTypeStringToId(const char *name)
 {
     unsigned int type; // [esp+0h] [ebp-4h]
 
@@ -167,9 +237,9 @@ int __cdecl Gamepad_InputTypeStringToId(const char *name)
     for ( type = 0; type < 2; ++type )
     {
         if ( !I_stricmp(name, inputTypeNames[type]) )
-            return type;
+            return (GamepadMapping)type;
     }
-    return -1;
+    return (GamepadMapping)-1;
 }
 
 void __cdecl Gamepad_BindAxis(
@@ -232,7 +302,7 @@ void __cdecl Gamepad_WriteBindings(int localClientNum, int f)
     GamepadVirtualAxis axis; // [esp+10h] [ebp-4h]
 
     gaGlob = &gaGlobs[localClientNum];
-    FS_Printf(f, "unbindallaxis\n");
+    FS_Printf(f, (char*)"unbindallaxis\n");
     for ( axis = GPAD_VIRTAXIS_SIDE; axis < GPAD_VIRTAXIS_COUNT; ++axis )
     {
         if ( gaGlob->virtualAxes[axis].physicalAxis != GPAD_PHYSAXIS_NONE )
@@ -260,7 +330,7 @@ void __cdecl Gamepad_WriteBindings(int localClientNum, int f)
             {
                 __debugbreak();
             }
-            FS_Printf(f, "bindaxis %s %s %s\n", realAxisName, virtualAxisName, inputTypeName);
+            FS_Printf(f, (char*)"bindaxis %s %s %s\n", realAxisName, virtualAxisName, inputTypeName);
         }
     }
 }
@@ -325,7 +395,7 @@ void __cdecl CL_GamepadEvent(int portIndex, unsigned int physicalAxis, int value
     int mask; // [esp+10h] [ebp-4h]
 
     if ( physicalAxis >= 6 )
-        Com_Error(ERR_DROP, &byte_C99220, physicalAxis);
+        Com_Error(ERR_DROP, "CL_GamepadEvent: bad axis %i", physicalAxis);
     clcState = CL_GetLocalClientConnectionState(0);
     if ( (clcState == CA_CINEMATIC || clcState == CA_LOGO || clcState == CA_DISCONNECTED)
         && gaGlobs[0].axesValues[physicalAxis] != value )
@@ -382,10 +452,11 @@ void __cdecl CL_GamepadGenerateAPad(int localClientNum, int portIndex, unsigned 
     stick = stickForAxis[physicalAxis];
     if ( stick )
     {
-        if ( GPad_IsStickPressed(portIndex, stick, GPAD_STICK_POS) || GPad_IsStickPressed(portIndex, stick, GPAD_STICK_NEG) )
+        if (GPad_IsStickPressed(portIndex, stick, GPAD_STICK_POS) || GPad_IsStickPressed(portIndex, stick, GPAD_STICK_NEG))
+        {
             //BLOPS_NULLSUB();
-        if ( GPad_IsStickReleased(portIndex, stick, GPAD_STICK_POS)
-            || GPad_IsStickReleased(portIndex, stick, GPAD_STICK_NEG) )
+        }
+        if ( GPad_IsStickReleased(portIndex, stick, GPAD_STICK_POS) || GPad_IsStickReleased(portIndex, stick, GPAD_STICK_NEG) )
         {
             //BLOPS_NULLSUB();
         }
@@ -644,13 +715,13 @@ void __cdecl CL_GamepadButtonEvent(
                             if ( buttonEvent == 1 )
                             {
                                 v7 = Com_LocalClient_GetControllerIndex(localClientNum);
-                                Cmd_ExecuteSingleCommand(localClientNum, v7, "noclip");
+                                Cmd_ExecuteSingleCommand(localClientNum, v7, (char *)"noclip");
                             }
                         }
                         else if ( key == 23 && buttonEvent == 1 )
                         {
                             v8 = Com_LocalClient_GetControllerIndex(localClientNum);
-                            Cmd_ExecuteSingleCommand(localClientNum, v8, "notarget");
+                            Cmd_ExecuteSingleCommand(localClientNum, v8, (char*)"notarget");
                         }
                     }
                     if ( !net_showprofile->current.integer || !com_sv_running->current.enabled || !CG_IsShowingZombieMap() )

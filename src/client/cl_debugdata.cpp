@@ -1,4 +1,37 @@
 #include "cl_debugdata.h"
+#include <qcommon/threads.h>
+#include <gfx_d3d/r_debug_alloc.h>
+#include <gfx_d3d/r_debug.h>
+
+#include <client_mp/cl_main_mp.h>
+
+const int iEdgePairs[12][2] =
+{
+  { 0, 1 },
+  { 0, 2 },
+  { 0, 4 },
+  { 1, 3 },
+  { 1, 5 },
+  { 2, 3 },
+  { 2, 6 },
+  { 3, 7 },
+  { 4, 5 },
+  { 4, 6 },
+  { 5, 7 },
+  { 6, 7 }
+};
+
+thread_local int gTls_isSverThread; // ??
+
+clientDebugStringInfo_t * clStr = &cls.debug.clStrings;
+clientDebugSphereInfo_t * clSphere = &cls.debug.clSpheres;
+clientDebugLineInfo_t * clLine = &cls.debug.clLines;
+clientDebugStringInfo_t * svStrBuff = &cls.debug.svStringsBuffer;
+clientDebugStringInfo_t * svStr = &cls.debug.svStrings;
+clientDebugSphereInfo_t * svSphereBuff = &cls.debug.svSpheresBuffer;
+clientDebugSphereInfo_t * svSphere = &cls.debug.svSpheres;
+clientDebugLineInfo_t * svLineBuff = &cls.debug.svLinesBuffer;
+clientDebugLineInfo_t * svLine = &cls.debug.svLines;
 
 void __cdecl CL_DebugInitSVThreadVariables()
 {
@@ -13,7 +46,7 @@ void __cdecl CL_DebugInitSVThreadVariables()
     {
         __debugbreak();
     }
-    *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 12) = 1;
+    gTls_isSverThread = 1;
 }
 
 void __cdecl CL_AddDebugString(const float *xyz, const float *color, float scale, char *text, int duration)
@@ -23,7 +56,8 @@ void __cdecl CL_AddDebugString(const float *xyz, const float *color, float scale
 
     if ( cls.rendererStarted && CreateDebugStringsIfNeeded() )
     {
-        fromServer = *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 12);
+        //fromServer = *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 12);
+        fromServer = gTls_isSverThread;
         if ( fromServer )
             info = &cls.debug.svStrings;
         else
@@ -115,7 +149,7 @@ void __cdecl AddDebugStringInternal(
         string->color[2] = color[2];
         string->color[3] = color[3];
         string->scale = scale;
-        strncpy((unsigned __int8 *)string->text, (unsigned __int8 *)text, 0x5Fu);
+        strncpy(string->text, text, 0x5Fu);
         string->text[95] = 0;
         info->durations[info->num++] = duration;
     }
@@ -134,7 +168,8 @@ void __cdecl CL_AddDebugSphere(
 
     if ( cls.rendererStarted && CreateDebugSpheresIfNeeded() )
     {
-        fromServer = *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 12);
+        //fromServer = *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 12);
+        fromServer = gTls_isSverThread;
         if ( fromServer )
             info = &cls.debug.svSpheres;
         else
@@ -229,7 +264,8 @@ void __cdecl CL_AddDebugLine(const float *start, const float *end, const float *
 
     if ( cls.rendererStarted && CreateDebugLinesIfNeeded() )
     {
-        fromServer = *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 12);
+        //fromServer = *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 12);
+        fromServer = gTls_isSverThread;
         if ( fromServer )
             AddDebugLineInternal(start, end, color, depthTest, duration, &cls.debug.svLines);
         else
@@ -327,7 +363,8 @@ void __cdecl CL_AddDebugAxis(const float *origin, const float (*axis)[3], float 
 
     if ( cls.rendererStarted && CreateDebugLinesIfNeeded() )
     {
-        fromServer = *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 12);
+        //fromServer = *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 12);
+        fromServer = gTls_isSverThread;
         if ( fromServer )
             info = &cls.debug.svLines;
         else
@@ -388,6 +425,7 @@ void __cdecl CL_AddDebugStarWithText(
     }
 }
 
+const float MYNULLTEXTCOLOR[4] = { 0.0, 0.0, 0.0, 0.0 };
 void __cdecl CL_AddDebugStar(const float *point, const float *color, int duration)
 {
     CL_AddDebugStarWithText(point, color, MYNULLTEXTCOLOR, 0, 1.0, duration);
@@ -435,7 +473,7 @@ void __cdecl CL_AddDebugBox(
         v9[2] = v9[2] + origin[2];
     }
     for ( ia = 0; ia < 0xC; ++ia )
-        CL_AddDebugLine(&v[3 * iEdgePairs[ia][0]], &v[3 * dword_D7F394[2 * ia]], color, depthTest, duration);
+        CL_AddDebugLine(&v[3 * iEdgePairs[ia][0]], &v[3 * iEdgePairs[ia][1]], color, depthTest, duration);
 }
 
 void __cdecl CL_AddDebugBox(
@@ -483,7 +521,7 @@ void __cdecl CL_AddDebugBox(
         v8[2] = xformed_8;
     }
     for ( ia = 0; ia < 0xC; ++ia )
-        CL_AddDebugLine(v[iEdgePairs[ia][0]], v[dword_D7F394[2 * ia]], color, depthTest, duration);
+        CL_AddDebugLine(v[iEdgePairs[ia][0]], v[iEdgePairs[ia][1]], color, depthTest, duration);
 }
 
 void __cdecl CL_FlushDebugClientData()

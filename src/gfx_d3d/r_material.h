@@ -270,6 +270,21 @@ struct CardMemory // sizeof=0x8
                                                                                 // Image_TrackTotalMemory(GfxImage *,int,int)+34/w ...
 };
 
+struct GfxImageFileHeader // sizeof=0x30
+{                                       // XREF: ?Image_LoadToBuffer@@YA_NPAUGfxImage@@_NPAPAEPAH@Z/r
+                                        // _Image_LoadFromFileWithReader/r
+    char tag[3];
+    unsigned __int8 version;
+    unsigned __int8 format;
+    unsigned __int8 flags;              // XREF: Image_LoadToBuffer(GfxImage *,bool,uchar * *,int *):loc_B2A604/r
+    // _Image_LoadFromFileWithReader:loc_B2AADC/r
+    __int16 dimensions[3];              // XREF: Image_LoadToBuffer(GfxImage *,bool,uchar * *,int *)+1A0/r
+    // Image_LoadToBuffer(GfxImage *,bool,uchar * *,int *)+1AA/r ...
+    float gamma;
+    int fileSizeForPicmip[8];           // XREF: Image_LoadToBuffer(GfxImage *,bool,uchar * *,int *)+202/r
+    // Image_LoadToBuffer(GfxImage *,bool,uchar * *,int *)+20E/r ...
+};
+
 struct GfxImage // sizeof=0x34
 {                                                                             // XREF: .data:g_imageProgs/r
                                                                                 // XAssetPoolEntry<GfxImage>/r ...

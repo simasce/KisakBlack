@@ -1,4 +1,40 @@
 #include "cl_scrn_mp.h"
+#include <gfx_d3d/r_font.h>
+#include <gfx_d3d/r_rendercmds.h>
+#include "cl_main_mp.h"
+#include <client/client.h>
+#include <cgame/cg_draw_debug.h>
+#include <cgame_mp/cg_main_mp.h>
+#include <client/cl_console.h>
+#include <devgui/devgui.h>
+#include <client/cl_keys.h>
+#include <bgame/bg_weapons_def.h>
+#include <cgame_mp/cg_consolecmds_mp.h>
+#include <qcommon/com_clients.h>
+#include <live/live.h>
+#include <demo/demo_playback.h>
+#include <cgame/cg_weapons.h>
+#include <cgame/cg_camera.h>
+#include <cgame/cg_compass.h>
+#include <bgame/bg_misc.h>
+#include <ui_mp/ui_main_mp.h>
+#include <gfx_d3d/r_singlethreaded_device_pc.h>
+#include <qcommon/threads.h>
+#include <win32/win_main.h>
+#include <sound/snd_public_async.h>
+#include <DW/dwLogOn_pc.h>
+#include <cgame/cg_sound.h>
+#include <client/cl_compositing.h>
+#include <glass/glass_client.h>
+#include <gfx_d3d/r_stream.h>
+#include <gfx_d3d/r_dvars.h>
+#include <ui/ui_viewer.h>
+#include <client/splitscreen.h>
+
+int scr_initialized;
+bool updateScreenCalled;
+
+int dword_98DADA8[4];
 
 void __cdecl SCR_DrawSmallStringExt(int x, int y, char *string, const float *setColor)
 {
@@ -18,8 +54,8 @@ void __cdecl CL_DrawScreen(int localClientNum)
     //PIXBeginNamedEvent(-1, "CL_DrawScreen");
     if ( !cls.rendererStarted )
     {
-        if ( g_DXDeviceThread != GetCurrentThreadId() )
-            return;
+        //if ( g_DXDeviceThread != GetCurrentThreadId() )
+            //return;
         goto LABEL_13;
     }
     if ( CL_GetLocalClientConnectionState(localClientNum) == 10 )
@@ -37,6 +73,7 @@ void __cdecl CL_DrawScreen(int localClientNum)
     DevGui_Draw(localClientNum);
     //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_13:
+    ;
         //D3DPERF_EndEvent();
 }
 
@@ -104,104 +141,104 @@ void __cdecl CL_UpdateUIVisibilityBits(int localClientNum)
     inKillCam = 0;
     uiActive = 0;
     dword_98DADA8[2 * localClientNum] = 0;
-    dword_98DADAC[2 * localClientNum] = 0;
-    if ( CL_LocalClient_IsCUIFlagSet(localClientNum, 32) )
+    dword_98DADA8[2 * localClientNum + 1] = 0;
+    if (CL_LocalClient_IsCUIFlagSet(localClientNum, 32))
     {
-        if ( !ui_hud_visible || ui_hud_visible->current.enabled )
+        if (!ui_hud_visible || ui_hud_visible->current.enabled)
         {
             cgameGlob = CG_GetLocalClientGlobals(localClientNum);
-            if ( CG_GetLocalClientGlobals(localClientNum)->nextSnap )
+            if (CG_GetLocalClientGlobals(localClientNum)->nextSnap)
             {
                 v44 = 16 * cgameGlob->matchUIVisibilityFlags;
-                v1 = HIDWORD(v44) | dword_98DADAC[2 * localClientNum];
+                v1 = HIDWORD(v44) | dword_98DADA8[2 * localClientNum + 1];
                 dword_98DADA8[2 * localClientNum] |= v44;
-                dword_98DADAC[2 * localClientNum] = v1;
+                dword_98DADA8[2 * localClientNum + 1] = v1;
                 clientUIVisibilityFlags = cgameGlob->bgs.clientinfo[cgameGlob->clientNum].clientUIVisibilityFlags;
-                v2 = (clientUIVisibilityFlags >> 31) | dword_98DADAC[2 * localClientNum];
+                v2 = (clientUIVisibilityFlags >> 31) | dword_98DADA8[2 * localClientNum + 1];
                 dword_98DADA8[2 * localClientNum] |= clientUIVisibilityFlags;
-                dword_98DADAC[2 * localClientNum] = v2;
-                v3 = dword_98DADB4[2 * localClientNum] | dword_98DADAC[2 * localClientNum];
-                dword_98DADA8[2 * localClientNum] |= dword_98DADB0[2 * localClientNum];
-                dword_98DADAC[2 * localClientNum] = v3;
-                if ( CG_IsInGuidedMissile(&cgameGlob->predictedPlayerState) )
+                dword_98DADA8[2 * localClientNum + 1] = v2;
+                v3 = dword_98DADA8[2 * localClientNum + 3] | dword_98DADA8[2 * localClientNum + 1];
+                dword_98DADA8[2 * localClientNum] |= dword_98DADA8[2 * localClientNum + 2];
+                dword_98DADA8[2 * localClientNum + 1] = v3;
+                if (CG_IsInGuidedMissile(&cgameGlob->predictedPlayerState))
                 {
-                    v4 = dword_98DADAC[2 * localClientNum];
+                    v4 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x10000000u;
-                    dword_98DADAC[2 * localClientNum] = v4;
+                    dword_98DADA8[2 * localClientNum + 1] = v4;
                 }
-                if ( CG_IsInGuidedMissileStatic(&cgameGlob->predictedPlayerState) )
+                if (CG_IsInGuidedMissileStatic(&cgameGlob->predictedPlayerState))
                 {
-                    v5 = dword_98DADAC[2 * localClientNum] | 0x40000;
+                    v5 = dword_98DADA8[2 * localClientNum + 1] | 0x40000;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v5;
+                    dword_98DADA8[2 * localClientNum + 1] = v5;
                 }
-                if ( cgameGlob->inKillCam )
+                if (cgameGlob->inKillCam)
                 {
-                    v6 = dword_98DADAC[2 * localClientNum];
+                    v6 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x200000u;
-                    dword_98DADAC[2 * localClientNum] = v6;
+                    dword_98DADA8[2 * localClientNum + 1] = v6;
                     inKillCam = 1;
                 }
-                if ( CG_IsSelectingLocation(localClientNum) )
+                if (CG_IsSelectingLocation(localClientNum))
                 {
-                    v7 = dword_98DADAC[2 * localClientNum];
+                    v7 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x400000u;
-                    dword_98DADAC[2 * localClientNum] = v7;
+                    dword_98DADA8[2 * localClientNum + 1] = v7;
                 }
-                if ( CG_Flashbanged(localClientNum) || CG_Flared(localClientNum) )
+                if (CG_Flashbanged(localClientNum) || CG_Flared(localClientNum))
                 {
-                    v8 = dword_98DADAC[2 * localClientNum];
+                    v8 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x800000u;
-                    dword_98DADAC[2 * localClientNum] = v8;
+                    dword_98DADA8[2 * localClientNum + 1] = v8;
                 }
-                if ( CL_IsUIActive(localClientNum) )
+                if (CL_IsUIActive(localClientNum))
                 {
-                    v9 = dword_98DADAC[2 * localClientNum];
+                    v9 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x1000000u;
-                    dword_98DADAC[2 * localClientNum] = v9;
+                    dword_98DADA8[2 * localClientNum + 1] = v9;
                     uiActive = 1;
                 }
-                if ( (cgameGlob->predictedPlayerState.otherFlags & 0x1A) != 0 )
+                if ((cgameGlob->predictedPlayerState.otherFlags & 0x1A) != 0)
                 {
-                    v10 = dword_98DADAC[2 * localClientNum];
+                    v10 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x2000000u;
-                    dword_98DADAC[2 * localClientNum] = v10;
+                    dword_98DADA8[2 * localClientNum + 1] = v10;
                     spectatingClient = 1;
                 }
-                if ( (cgameGlob->predictedPlayerState.otherFlags & 0x18) != 0 )
+                if ((cgameGlob->predictedPlayerState.otherFlags & 0x18) != 0)
                 {
-                    v11 = dword_98DADAC[2 * localClientNum];
+                    v11 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x10000000u;
-                    dword_98DADAC[2 * localClientNum] = v11;
+                    dword_98DADA8[2 * localClientNum + 1] = v11;
                     spectatingClient = 1;
                 }
-                if ( (cgameGlob->predictedPlayerState.otherFlags & 0x10) != 0 )
+                if ((cgameGlob->predictedPlayerState.otherFlags & 0x10) != 0)
                 {
-                    v12 = dword_98DADAC[2 * localClientNum] | 0x8000;
+                    v12 = dword_98DADA8[2 * localClientNum + 1] | 0x8000;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v12;
+                    dword_98DADA8[2 * localClientNum + 1] = v12;
                 }
-                if ( (cgameGlob->predictedPlayerState.otherFlags & 2) != 0 )
+                if ((cgameGlob->predictedPlayerState.otherFlags & 2) != 0)
                 {
-                    v13 = dword_98DADAC[2 * localClientNum] | 0x10000;
+                    v13 = dword_98DADA8[2 * localClientNum + 1] | 0x10000;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v13;
+                    dword_98DADA8[2 * localClientNum + 1] = v13;
                 }
-                if ( CG_ScopeIsOverlayed(localClientNum)
-                    && BG_GetWeaponDef(cgameGlob->predictedPlayerState.weapon)->guidedMissileType != MISSILE_GUIDANCE_TVGUIDED )
+                if (CG_ScopeIsOverlayed(localClientNum)
+                    && BG_GetWeaponDef(cgameGlob->predictedPlayerState.weapon)->guidedMissileType != MISSILE_GUIDANCE_TVGUIDED)
                 {
-                    v14 = dword_98DADAC[2 * localClientNum];
+                    v14 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x4000000u;
-                    dword_98DADAC[2 * localClientNum] = v14;
+                    dword_98DADA8[2 * localClientNum + 1] = v14;
                 }
-                if ( (cgameGlob->predictedPlayerState.eFlags & 0x4000) != 0 )
+                if ((cgameGlob->predictedPlayerState.eFlags & 0x4000) != 0)
                 {
-                    v15 = dword_98DADAC[2 * localClientNum];
+                    v15 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x8000000u;
-                    dword_98DADAC[2 * localClientNum] = v15;
+                    dword_98DADA8[2 * localClientNum + 1] = v15;
                 }
-                if ( cgameGlob->weaponSelect < BG_GetNumWeapons()
-                    && BG_PlayerHasWeapon(&cgameGlob->predictedPlayerState, cgameGlob->weaponSelect) )
+                if (cgameGlob->weaponSelect < BG_GetNumWeapons()
+                    && BG_PlayerHasWeapon(&cgameGlob->predictedPlayerState, cgameGlob->weaponSelect))
                 {
                     WeaponDef = BG_GetWeaponDef(cgameGlob->weaponSelect);
                 }
@@ -209,170 +246,170 @@ void __cdecl CL_UpdateUIVisibilityBits(int localClientNum)
                 {
                     WeaponDef = BG_GetWeaponDef(cgameGlob->predictedPlayerState.weapon);
                 }
-                if ( WeaponDef->fuelTankWeapon )
+                if (WeaponDef->fuelTankWeapon)
                 {
-                    v17 = dword_98DADAC[2 * localClientNum];
+                    v17 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x20000000u;
-                    dword_98DADAC[2 * localClientNum] = v17;
+                    dword_98DADA8[2 * localClientNum + 1] = v17;
                 }
-                if ( (cgameGlob->predictedPlayerState.locationSelectionInfo & 0xF) != 0xF
-                    && cgameGlob->predictedPlayerState.locationSelectionInfo )
+                if ((cgameGlob->predictedPlayerState.locationSelectionInfo & 0xF) != 0xF
+                    && cgameGlob->predictedPlayerState.locationSelectionInfo)
                 {
-                    v18 = dword_98DADAC[2 * localClientNum];
+                    v18 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x40000000u;
-                    dword_98DADAC[2 * localClientNum] = v18;
+                    dword_98DADA8[2 * localClientNum + 1] = v18;
                 }
-                if ( CG_JavelinADS(localClientNum) )
+                if (CG_JavelinADS(localClientNum))
                 {
-                    v19 = dword_98DADAC[2 * localClientNum] | 2;
+                    v19 = dword_98DADA8[2 * localClientNum + 1] | 2;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v19;
+                    dword_98DADA8[2 * localClientNum + 1] = v19;
                 }
-                if ( CG_ExtraCamIsActive(localClientNum) )
+                if (CG_ExtraCamIsActive(localClientNum))
                 {
-                    v20 = dword_98DADAC[2 * localClientNum] | 8;
+                    v20 = dword_98DADA8[2 * localClientNum + 1] | 8;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v20;
+                    dword_98DADA8[2 * localClientNum + 1] = v20;
                 }
-                if ( cgameGlob->extraCamStatic
-                    || cgameGlob->extraCamActive && (cgameGlob->predictedPlayerState.weapFlags & 0x200000) == 0 )
+                if (cgameGlob->extraCamStatic
+                    || cgameGlob->extraCamActive && (cgameGlob->predictedPlayerState.weapFlags & 0x200000) == 0)
                 {
-                    v21 = dword_98DADAC[2 * localClientNum] | 0x10;
+                    v21 = dword_98DADA8[2 * localClientNum + 1] | 0x10;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v21;
+                    dword_98DADA8[2 * localClientNum + 1] = v21;
                 }
-                if ( (CG_ExtraCamIsActive(localClientNum)
-                     || cgameGlob->extraCamStatic
-                     || cgameGlob->extraCamActive && (cgameGlob->predictedPlayerState.weapFlags & 0x200000) == 0)
-                    && (cgameGlob->predictedPlayerState.eFlags & 0x4000) == 0 )
+                if ((CG_ExtraCamIsActive(localClientNum)
+                    || cgameGlob->extraCamStatic
+                    || cgameGlob->extraCamActive && (cgameGlob->predictedPlayerState.weapFlags & 0x200000) == 0)
+                    && (cgameGlob->predictedPlayerState.eFlags & 0x4000) == 0)
                 {
-                    v22 = dword_98DADAC[2 * localClientNum] | 4;
+                    v22 = dword_98DADA8[2 * localClientNum + 1] | 4;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v22;
+                    dword_98DADA8[2 * localClientNum + 1] = v22;
                 }
-                if ( CG_IsShowingZombieMap() )
+                if (CG_IsShowingZombieMap())
                 {
-                    v23 = dword_98DADAC[2 * localClientNum] | 0x20;
+                    v23 = dword_98DADA8[2 * localClientNum + 1] | 0x20;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v23;
+                    dword_98DADA8[2 * localClientNum + 1] = v23;
                 }
-                if ( cgameGlob->bgs.clientinfo[cgameGlob->clientNum].infoValid )
+                if (cgameGlob->bgs.clientinfo[cgameGlob->clientNum].infoValid)
                 {
-                    switch ( cgameGlob->bgs.clientinfo[cgameGlob->clientNum].team )
+                    switch (cgameGlob->bgs.clientinfo[cgameGlob->clientNum].team)
                     {
-                        case TEAM_FREE:
-                            v24 = dword_98DADAC[2 * localClientNum] | 0x40;
-                            dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                            dword_98DADAC[2 * localClientNum] = v24;
-                            break;
-                        case TEAM_AXIS:
-                            v25 = dword_98DADAC[2 * localClientNum] | 0x100;
-                            dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                            dword_98DADAC[2 * localClientNum] = v25;
-                            break;
-                        case TEAM_ALLIES:
-                            v26 = dword_98DADAC[2 * localClientNum] | 0x80;
-                            dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                            dword_98DADAC[2 * localClientNum] = v26;
-                            break;
-                        case TEAM_SPECTATOR:
-                            v27 = dword_98DADAC[2 * localClientNum] | 0x200;
-                            dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                            dword_98DADAC[2 * localClientNum] = v27;
-                            break;
-                        default:
-                            break;
+                    case TEAM_FREE:
+                        v24 = dword_98DADA8[2 * localClientNum + 1] | 0x40;
+                        dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
+                        dword_98DADA8[2 * localClientNum + 1] = v24;
+                        break;
+                    case TEAM_AXIS:
+                        v25 = dword_98DADA8[2 * localClientNum + 1] | 0x100;
+                        dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
+                        dword_98DADA8[2 * localClientNum + 1] = v25;
+                        break;
+                    case TEAM_ALLIES:
+                        v26 = dword_98DADA8[2 * localClientNum + 1] | 0x80;
+                        dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
+                        dword_98DADA8[2 * localClientNum + 1] = v26;
+                        break;
+                    case TEAM_SPECTATOR:
+                        v27 = dword_98DADA8[2 * localClientNum + 1] | 0x200;
+                        dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
+                        dword_98DADA8[2 * localClientNum + 1] = v27;
+                        break;
+                    default:
+                        break;
                     }
                 }
                 else
                 {
-                    v28 = dword_98DADAC[2 * localClientNum] | 0x40;
+                    v28 = dword_98DADA8[2 * localClientNum + 1] | 0x40;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v28;
+                    dword_98DADA8[2 * localClientNum + 1] = v28;
                 }
-                v42 = (dword_98DADA8[2 * localClientNum] & 0x40) != 0 && (dword_98DADAC[2 * localClientNum] & 0x80) != 0;
-                v41 = (dword_98DADA8[2 * localClientNum] & 0x80) != 0 && (dword_98DADAC[2 * localClientNum] & 0x100) != 0;
-                v40 = (dword_98DADA8[2 * localClientNum] & 4) != 0 && (dword_98DADAC[2 * localClientNum] & 0x40) != 0;
-                if ( ((dword_98DADA8[2 * localClientNum] & 0x2000) == 0
-                     || v42
-                     || v41
-                     || v40
-                     || (dword_98DADA8[2 * localClientNum] & 2) != 0)
-                    && ((dword_98DADA8[2 * localClientNum] & 0x2000000) == 0 || !cg_thirdPerson->current.integer) )
+                v42 = (dword_98DADA8[2 * localClientNum] & 0x40) != 0 && (dword_98DADA8[2 * localClientNum + 1] & 0x80) != 0;
+                v41 = (dword_98DADA8[2 * localClientNum] & 0x80) != 0 && (dword_98DADA8[2 * localClientNum + 1] & 0x100) != 0;
+                v40 = (dword_98DADA8[2 * localClientNum] & 4) != 0 && (dword_98DADA8[2 * localClientNum + 1] & 0x40) != 0;
+                if (((dword_98DADA8[2 * localClientNum] & 0x2000) == 0
+                    || v42
+                    || v41
+                    || v40
+                    || (dword_98DADA8[2 * localClientNum] & 2) != 0)
+                    && ((dword_98DADA8[2 * localClientNum] & 0x2000000) == 0 || !cg_thirdPerson->current.integer))
                 {
-                    v29 = dword_98DADAC[2 * localClientNum] | 0x400;
+                    v29 = dword_98DADA8[2 * localClientNum + 1] | 0x400;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v29;
+                    dword_98DADA8[2 * localClientNum + 1] = v29;
                 }
-                if ( Dvar_GetInt("ui_hud_showobjicons") )
+                if (Dvar_GetInt("ui_hud_showobjicons"))
                 {
-                    v30 = dword_98DADAC[2 * localClientNum] | 0x800;
+                    v30 = dword_98DADA8[2 * localClientNum + 1] | 0x800;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v30;
+                    dword_98DADA8[2 * localClientNum + 1] = v30;
                 }
-                if ( Dvar_GetInt("ui_hud_obituaries") )
+                if (Dvar_GetInt("ui_hud_obituaries"))
                 {
-                    v31 = dword_98DADAC[2 * localClientNum] | 0x4000;
+                    v31 = dword_98DADA8[2 * localClientNum + 1] | 0x4000;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v31;
+                    dword_98DADA8[2 * localClientNum + 1] = v31;
                 }
                 UIContextIndex = Com_LocalClient_GetUIContextIndex(localClientNum);
-                if ( Menu_IsMenuOpenAndVisible(UIContextIndex, "scoreboard") )
+                if (Menu_IsMenuOpenAndVisible(UIContextIndex, "scoreboard"))
                 {
-                    v33 = dword_98DADAC[2 * localClientNum] | 0x1000;
+                    v33 = dword_98DADA8[2 * localClientNum + 1] | 0x1000;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v33;
+                    dword_98DADA8[2 * localClientNum + 1] = v33;
                 }
-                if ( Live_IsWagerMatch() )
+                if (Live_IsWagerMatch())
                 {
-                    v34 = dword_98DADAC[2 * localClientNum] | 0x20000;
+                    v34 = dword_98DADA8[2 * localClientNum + 1] | 0x20000;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v34;
+                    dword_98DADA8[2 * localClientNum + 1] = v34;
                 }
-                if ( Demo_IsPlaying() )
+                if (Demo_IsPlaying())
                 {
-                    v35 = dword_98DADAC[2 * localClientNum];
+                    v35 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x80000000;
-                    dword_98DADAC[2 * localClientNum] = v35;
+                    dword_98DADA8[2 * localClientNum + 1] = v35;
                 }
-                if ( Demo_IsRenderingMovie() )
+                if (Demo_IsRenderingMovie())
                 {
-                    v36 = dword_98DADAC[2 * localClientNum] | 1;
+                    v36 = dword_98DADA8[2 * localClientNum + 1] | 1;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v36;
+                    dword_98DADA8[2 * localClientNum + 1] = v36;
                 }
-                if ( Demo_IsGameHudHidden() )
+                if (Demo_IsGameHudHidden())
                 {
-                    v37 = dword_98DADAC[2 * localClientNum];
+                    v37 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x80000u;
-                    dword_98DADAC[2 * localClientNum] = v37;
+                    dword_98DADA8[2 * localClientNum + 1] = v37;
                 }
-                if ( Demo_IsDemoHudHidden() )
+                if (Demo_IsDemoHudHidden())
                 {
-                    v38 = dword_98DADAC[2 * localClientNum];
+                    v38 = dword_98DADA8[2 * localClientNum + 1];
                     dword_98DADA8[2 * localClientNum] |= 0x100000u;
-                    dword_98DADAC[2 * localClientNum] = v38;
+                    dword_98DADA8[2 * localClientNum + 1] = v38;
                 }
                 Demo_UpdateVisibilityBitsForCameraMode(localClientNum, -1);
-                if ( (!spectatingClient || inKillCam)
-                    && (dword_98DADAC[2 * localClientNum] & 0x1000) == 0
+                if ((!spectatingClient || inKillCam)
+                    && (dword_98DADA8[2 * localClientNum + 1] & 0x1000) == 0
                     && !uiActive
                     && (dword_98DADA8[2 * localClientNum] & 0x20000) == 0
                     && (dword_98DADA8[2 * localClientNum] & 0x40000) == 0
-                    && (dword_98DADA8[2 * localClientNum] & 0x80000) == 0 )
+                    && (dword_98DADA8[2 * localClientNum] & 0x80000) == 0)
                 {
-                    v39 = dword_98DADAC[2 * localClientNum] | 0x2000;
+                    v39 = dword_98DADA8[2 * localClientNum + 1] | 0x2000;
                     dword_98DADA8[2 * localClientNum] = dword_98DADA8[2 * localClientNum];
-                    dword_98DADAC[2 * localClientNum] = v39;
+                    dword_98DADA8[2 * localClientNum + 1] = v39;
                 }
             }
         }
     }
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //D3DPERF_EndEvent();
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
 }
 
-void    SCR_UpdateScreen(int a1@<esi>)
+void    SCR_UpdateScreen()
 {
     dvar_s *v1; // ecx
     int semaphore; // [esp+10h] [ebp-Ch]
@@ -397,8 +434,8 @@ void    SCR_UpdateScreen(int a1@<esi>)
             if ( scr_initialized && !shouldSkipRender )
             {
                 updateScreenCalled = 1;
-                SND_Update(v1);
-                SCR_UpdateFrame(a1);
+                SND_Update();
+                SCR_UpdateFrame();
                 updateScreenCalled = 0;
             }
         }
@@ -409,7 +446,7 @@ void    SCR_UpdateScreen(int a1@<esi>)
     }
 }
 
-void    SCR_UpdateFrame(int a1@<esi>)
+void    SCR_UpdateFrame()
 {
     bool IsMature; // al
     float timescale; // [esp+0h] [ebp-38h]
@@ -447,7 +484,7 @@ void    SCR_UpdateFrame(int a1@<esi>)
     CG_SndUpdate();
     CL_CompositeRender();
     GlassCl_WaitUpdate();
-    refreshedUI = CL_CGameRendering(a1, 0);
+    refreshedUI = CL_CGameRendering(0);
     if ( CL_AllLocalClientsDisconnected() && Sys_IsMainThread() && cls.uiStarted )
         UI_ViewerDraw(0);
     CL_UpdateUIVisibilityBits(0);
@@ -464,7 +501,7 @@ void    SCR_UpdateFrame(int a1@<esi>)
         R_BspGenerateReflections();
 }
 
-int    CL_CGameRendering@<eax>(int a1@<esi>, int localClientNum)
+int    CL_CGameRendering(int localClientNum)
 {
     DemoType DemoType; // eax
     DemoType v4; // eax
@@ -815,7 +852,7 @@ void __cdecl SCR_UpdateLoadScreen()
         SCR_UpdateScreen();
 }
 
-void    CL_CubemapShot_f(int a1@<esi>)
+void    CL_CubemapShot_f()
 {
     const char *v1; // eax
     const char *v2; // eax
@@ -946,7 +983,7 @@ void CL_CubemapShotUsage()
     Com_Printf(0, "    This is always calculated, and defaults to air-water interface (n0 = 1, n1 = 1.333).\n");
 }
 
-void    CL_TakeHiResShot(int a1@<esi>)
+void    CL_TakeHiResShot()
 {
     const char *v1; // eax
     int tiles; // [esp+10h] [ebp-4h]
@@ -960,7 +997,7 @@ void    CL_TakeHiResShot(int a1@<esi>)
     HiResScreenshot(a1, tiles);
 }
 
-void    HiResScreenshot(int a1@<esi>, int tiles)
+void    HiResScreenshot(int tiles)
 {
     int k; // [esp+18h] [ebp-8224h]
     float tileY; // [esp+1Ch] [ebp-8220h]
@@ -1063,22 +1100,22 @@ void    HiResScreenshot(int a1@<esi>, int tiles)
     }
 }
 
-void    CL_TakeHiResShot2(int a1@<esi>)
+void    CL_TakeHiResShot2()
 {
     HiResScreenshot(a1, 2);
 }
 
-void    CL_TakeHiResShot3(int a1@<esi>)
+void    CL_TakeHiResShot3()
 {
     HiResScreenshot(a1, 3);
 }
 
-void    CL_TakeHiResShot4(int a1@<esi>)
+void    CL_TakeHiResShot4()
 {
     HiResScreenshot(a1, 4);
 }
 
-void    CL_TakeHiResShot8(int a1@<esi>)
+void    CL_TakeHiResShot8()
 {
     HiResScreenshot(a1, 8);
 }

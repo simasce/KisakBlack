@@ -10,7 +10,7 @@ void __thiscall pulse_sum_normal::set_pulse_sum_limits_parent_ratio(
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\constraint_solver\\pulse_sum_normal.h",
          269,
          "limit_ratio >= 0.0f",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -19,7 +19,7 @@ void __thiscall pulse_sum_normal::set_pulse_sum_limits_parent_ratio(
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\constraint_solver\\pulse_sum_normal.h",
          270,
          "parent",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -42,7 +42,7 @@ void __thiscall pulse_sum_wheel::set_side_fwd_ratios(
            "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\constraint_solver\\pulse_sum_wheel.h",
            34,
            "m_side && m_fwd",
-           &toastPopupTitle) )
+           "") )
     {
       __debugbreak();
     }
@@ -217,7 +217,7 @@ void __userpurge rigid_body_constraint_wheel::get_wheel_collide_segment(
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_math.h",
          444,
          "uint(v) % PHYS_ALIGNOF(phys_vec3) == 0",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -226,7 +226,7 @@ void __userpurge rigid_body_constraint_wheel::get_wheel_collide_segment(
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_math.h",
          444,
          "uint(v) % PHYS_ALIGNOF(phys_vec3) == 0",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -784,7 +784,7 @@ pulse_sum_normal *__thiscall pulse_sum_constraint_solver::create_pulse_sum_wheel
          "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\constraint_solver\\pulse_sum_constraint_solver.h",
          196,
          "psw->m_side",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -814,7 +814,7 @@ pulse_sum_wheel *__thiscall pulse_sum_constraint_solver::create_pulse_sum_wheel(
          "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mem.h",
          230,
          "m_last_next_ptr",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }

@@ -34,18 +34,6 @@ bool g_restricted_ranked;
 
 int callDepth;
 
-int g_console_field_width = 620;
-float g_console_char_height = 16.0f;
-const float con_screenPadding = 4.0f;
-
-int con_inputMaxMatchesShown = 24;
-
-const float defaultGameMessageTimes[3] =
-{ 5.0, 8.0, 5.0 };
-
-const int defaultGameMessageWindowLineCounts[3] =
-{ 4, 1, 7 };
-
 bool con_ignoreMatchPrefixOnly;
 
 char con_gameMsgWindowNMsgTime_Descs[3][69];
@@ -2801,7 +2789,7 @@ void __cdecl TypewriterSounds(int localClientNum, const MessageWindow *msgwnd, M
                                                 / con_typewriterPrintSpeed->current.integer) )
         {
             entHandle.field = SND_EntHandle(localClientNum, 4095, 0, 0, 1, TEAM_FREE).field;
-            SND_Play("uin_typewriter", 0, 1.0, entHandle, 0, 0, 0);
+            SND_Play((char*)"uin_typewriter", 0, 1.0, entHandle, 0, 0, 0);
             line->lastTypingSoundTime = LocalClientGlobals->serverTime;
         }
     }
@@ -4138,7 +4126,7 @@ void __cdecl CL_PlayTextFXPulseSounds(
                 if ( lastSoundTime < fxLetterTime * (timeElapsed / fxLetterTime) )
                 {
                     v7.field = SND_EntHandle(localClientNum, 4095, 0, 0, 1, TEAM_FREE).field;
-                    SND_Play("uin_pulse_text_type", 0, 1.0, v7, 0, 0, 0);
+                    SND_Play((char *)"uin_pulse_text_type", 0, 1.0, v7, 0, 0, 0);
                     *soundTimeKeeper = currentTime;
                 }
             }
@@ -4146,7 +4134,7 @@ void __cdecl CL_PlayTextFXPulseSounds(
         else if ( lastSoundTime < decayStartTime )
         {
             entHandle.field = SND_EntHandle(localClientNum, 4095, 0, 0, 1, TEAM_FREE).field;
-            SND_Play("uin_pulse_text_delete", 0, 1.0, entHandle, 0, 0, 0);
+            SND_Play((char*)"uin_pulse_text_delete", 0, 1.0, entHandle, 0, 0, 0);
             *soundTimeKeeper = currentTime;
         }
     }

@@ -1,4 +1,5 @@
 #pragma once
+#include <client_mp/cl_main_mp.h>
 
 void __cdecl CL_DebugInitSVThreadVariables();
 void __cdecl CL_AddDebugString(const float *xyz, const float *color, float scale, char *text, int duration);

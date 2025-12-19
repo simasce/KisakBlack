@@ -337,3 +337,4 @@ extern const dvar_t *band_lotsplayers;
 extern const dvar_t *band_dedicated;
 
 extern int com_frameNumber;
+extern int com_errorEntered;

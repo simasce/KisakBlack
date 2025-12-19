@@ -1,6 +1,8 @@
 #pragma once
 #include "msg_mp.h"
 
+#include <universal/dvar.h>
+
 enum netadrtype_t : __int32
 {                                                                             // XREF: netadr_t/r
         NA_BOT             = 0x0,
@@ -78,6 +80,36 @@ struct netchan_t // sizeof=0x6C0
         netProfileInfo_t prof;
 };
 
+struct loopmsg_t // sizeof=0x4F8
+{                                       // XREF: loopback_t/r
+    unsigned __int8 data[1264];
+    int datalen;
+    int port;
+};
+
+struct loopback_t // sizeof=0x4F88
+{                                       // XREF: .data:loopbacks/r
+    loopmsg_t msgs[16];
+    volatile unsigned int get;
+    volatile unsigned int send;
+};
+
+struct DeferredMsg // sizeof=0x508
+{                                       // XREF: DeferredQueue/r
+    netadr_t addr;
+    unsigned __int8 data[1264];
+    int datalen;
+    netsrc_t targetLocalNetID;
+};
+
+struct DeferredQueue // sizeof=0x5088
+{                                       // XREF: .data:deferredQueue/r
+    DeferredMsg msgs[16];
+    volatile unsigned int get;                   // XREF: NET_GetDeferredClientPacket(netadr_t *,msg_t *)+96/r
+    volatile unsigned int send;                  // XREF: NET_DeferPacketToClient(netadr_t *,msg_t *):loc_6EAC58/r
+                                        // NET_DeferPacketToClient(netadr_t *,msg_t *)+AC/o ...
+};
+
 char *__cdecl NET_AdrToString(netadr_t a);
 char *__cdecl NET_AdrToStringDW(netadr_t a);
 void __cdecl NetProf_PrepProfiling(netProfileInfo_t *prof);
@@ -128,3 +160,17 @@ void __cdecl Int64ToString(__int64 int64, char *str);
 __int64 __cdecl StringToInt64(const char *str);
 void __cdecl XUIDToString(unsigned __int64 *xuid, char *str);
 void __cdecl StringToXUID(const char *str, unsigned __int64 *xuid);
+
+
+extern const dvar_t *showpackets;
+extern const dvar_t *showdrop;
+extern const dvar_t *packetDebug;
+extern const dvar_t *net_profile;
+extern const dvar_t *net_showprofile;
+extern const dvar_t *net_minigraph;
+extern const dvar_t *net_lanauthorize;
+extern const dvar_t *msg_printEntityNums;
+extern const dvar_t *msg_dumpEnts;
+extern const dvar_t *msg_zlibCompress;
+extern const dvar_t *msg_zlibCompressOutput;
+extern const dvar_t *msg_hudelemspew;

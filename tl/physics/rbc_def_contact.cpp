@@ -16,7 +16,7 @@ void __thiscall rigid_body_constraint_contact::verify_constraint(
            "source/rbc_def_contact.cpp",
            14,
            "(b1 == b1_ && b2 == b2_) || (b1 == b2_ && b2 == b1_)",
-           &toastPopupTitle) )
+           "") )
     {
       __debugbreak();
     }
@@ -57,7 +57,7 @@ void __thiscall phys_link_list<pulse_sum_contact>::add(phys_link_list<pulse_sum_
          "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mem.h",
          230,
          "m_last_next_ptr",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -171,7 +171,7 @@ void __thiscall phys_inplace_avl_tree<rigid_body_pair_key,rigid_body_constraint_
              "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_avl_tree.h",
              161,
              "root",
-             &toastPopupTitle) )
+             "") )
       {
         __debugbreak();
       }
@@ -180,7 +180,7 @@ void __thiscall phys_inplace_avl_tree<rigid_body_pair_key,rigid_body_constraint_
              "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_avl_tree.h",
              162,
              "cur_item + 1 - the_stack < 32",
-             &toastPopupTitle) )
+             "") )
       {
         __debugbreak();
       }
@@ -211,7 +211,7 @@ void __thiscall phys_inplace_avl_tree<rigid_body_pair_key,rigid_body_constraint_
          "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_avl_tree.h",
          176,
          "key == accessor::get_avl_key(root)",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -235,7 +235,7 @@ void __thiscall phys_inplace_avl_tree<rigid_body_pair_key,rigid_body_constraint_
                "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_avl_tree.h",
                191,
                "cur_item + 1 - the_stack < 32",
-               &toastPopupTitle) )
+               "") )
         {
           __debugbreak();
         }
@@ -299,7 +299,7 @@ void __thiscall phys_inplace_avl_tree<rigid_body_pair_key,rigid_body_constraint_
                 "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_avl_tree.h",
                 218,
                 "accessor::get_avl_node(root)->m_balance == 0 || accessor::get_avl_node(root)->m_balance == +1",
-                &toastPopupTitle);
+                "");
       }
       else
       {
@@ -337,7 +337,7 @@ void __thiscall phys_inplace_avl_tree<rigid_body_pair_key,rigid_body_constraint_
                 "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_avl_tree.h",
                 225,
                 "accessor::get_avl_node(root)->m_balance == 0 || accessor::get_avl_node(root)->m_balance == -1",
-                &toastPopupTitle);
+                "");
       }
       if ( v24 )
         __debugbreak();

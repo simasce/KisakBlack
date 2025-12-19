@@ -279,7 +279,7 @@ void __userpurge rigid_body_constraint_custom_path::setup_constraint(
   b2_pt.w = 0.0;
   phys_multiply((const phys_vec3 *)v38, &b1->m_mat, &this->b1_r_loc);
   phys_multiply((phys_vec3 *)&b1_r.y, &this->b2->m_mat, (phys_vec3 *)&b2_pt.y);
-  if ( !this->m_urb && _tlAssert("source/rbc_def_custom.cpp", 148, "m_urb", &toastPopupTitle) )
+  if ( !this->m_urb && _tlAssert("source/rbc_def_custom.cpp", 148, "m_urb", "") )
     __debugbreak();
   *((float *)&psa_cfm + 1) = 1.0 / this->b1->m_inv_mass;
   v6 = *((float *)&psa_cfm + 1);

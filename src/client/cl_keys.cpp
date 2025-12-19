@@ -1,6 +1,15 @@
 #include "cl_keys.h"
+#include <gfx_d3d/r_font.h>
+#include <client_mp/cl_main_mp.h>
+#include <stringed/stringed_hooks.h>
+#include "cl_console.h"
+#include <win32/win_main.h>
 
 PlayerKeyState playerKeys[1];
+
+bool s_shouldCompleteCmd;
+int nextHistoryLine;
+int historyLine;
 
 void __cdecl Field_DrawTextOverride(
                 int localClientNum,
@@ -235,7 +244,7 @@ void __cdecl Console_Key(int localClientNum, int key)
             Con_Restricted_AddBuf(&g_consoleField.buffer[1]);
         }
         else if ( Console_IsClientDisconnected()
-                     && I_strnicmp(g_consoleField.buffer, aQuit_1, 4)
+                     && I_strnicmp(g_consoleField.buffer, "quit", 4)
                      && I_strnicmp(g_consoleField.buffer, "kill", 4) )
         {
             Con_Restricted_AddBuf(g_consoleField.buffer);

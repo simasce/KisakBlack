@@ -36,39 +36,6 @@ enum DevGuiInputButton : __int32
     INPUT_COUNT        = 0xD,
 };
 
-enum GamePadButton : __int32
-{                                       // XREF: ButtonToCodeMap_t/r
-                                        // GamePadCheat/r ...
-    GPAD_NONE    = 0x0,
-    GPAD_UP      = 0x10000001,          // XREF: .data:s_butMapsGamepad/s
-    GPAD_DOWN    = 0x10000002,          // XREF: .data:s_butMapsGamepad/s
-    GPAD_LEFT    = 0x10000004,          // XREF: .data:s_butMapsGamepad/s
-    GPAD_RIGHT   = 0x10000008,          // XREF: .data:s_butMapsGamepad/s
-    GPAD_START   = 0x10000010,          // XREF: .data:s_butMapsGamepad/s
-    GPAD_BACK    = 0x10000020,
-    GPAD_L3      = 0x10000040,
-    GPAD_R3      = 0x10000080,
-    GPAD_A       = 0x10001000,          // XREF: .data:s_butMapsGamepad/s
-    GPAD_B       = 0x10002000,          // XREF: .data:s_butMapsGamepad/s
-    GPAD_X       = 0x10004000,          // XREF: .data:s_butMapsGamepad/s
-                                        // .data:ButtonToCodeMap_t * buttonList/s
-    GPAD_Y       = 0x10008000,          // XREF: .data:s_butMapsGamepad/s
-    GPAD_L_SHLDR = 0x10000100,          // XREF: .data:s_butMapsGamepad/s
-    GPAD_R_SHLDR = 0x10000200,          // XREF: .data:s_butMapsGamepad/s
-    GPAD_L_TRIG  = 0x20000000,
-    GPAD_R_TRIG  = 0x20000001,
-};
-
-enum GamePadStick : __int32
-{                                       // XREF: StickToCodeMap_t/r
-                                        // ?GPad_GetStick@@YAMHW4GamePadStick@@@Z/r ...
-    GPAD_INVALID = 0x0,
-    GPAD_LX      = 0x40000000,          // XREF: .data:StickToCodeMap_t * analogStickList/s
-    GPAD_LY      = 0x40000001,          // XREF: .data:StickToCodeMap_t * analogStickList/s
-    GPAD_RX      = 0x40000002,
-    GPAD_RY      = 0x40000003,
-};
-
 struct DevGuiInput // sizeof=0x7C
 {                                       // XREF: .data:s_input/r
     int selectedGamePadIndex;           // XREF: DevGui_SelectGamepad(int)+6/w

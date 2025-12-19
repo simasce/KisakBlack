@@ -1776,6 +1776,7 @@
     <ClInclude Include="src\stringed\stringed_interface.h" />
     <ClInclude Include="src\stringed\stringed_remote.h" />
     <ClInclude Include="src\turret\turret_placement.h" />
+    <ClInclude Include="src\ui\keycodes.h" />
     <ClInclude Include="src\ui\l_memory.h" />
     <ClInclude Include="src\ui\l_precomp.h" />
     <ClInclude Include="src\ui\l_script.h" />

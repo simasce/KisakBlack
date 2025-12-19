@@ -48,6 +48,8 @@ r_globals_t rg;
 GfxMetrics gfxMetrics;
 GfxGlobals r_glob;
 GfxDrawConsts g_drawConsts;
+GfxWorldDpvsStatic *g_worldDpvs;
+GfxWorldDpvsPlanes *g_worldDpvsPlanes;
 
 bool g_allocateMinimalResources;
 GfxAssets gfxAssets;

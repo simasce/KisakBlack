@@ -966,4 +966,7 @@ extern r_globals_t rg;
 extern GfxMetrics gfxMetrics;
 extern GfxGlobals r_glob;
 
+extern GfxWorldDpvsStatic *g_worldDpvs;
+extern GfxWorldDpvsPlanes *g_worldDpvsPlanes;
+
 extern int g_disableRendering;

@@ -1,5 +1,78 @@
 #pragma once
 
+#include "DynEntity_gamestate.h"
+#include <universal/q_parse.h>
+#include <physics/physconstraints_load_obj.h>
+
+struct DynEntityConstraintCreateParams // sizeof=0x18C
+{                                       // XREF: ?DynEnt_LoadEntities@@YAXXZ/r
+    char classname[64];
+    char targetname[64];
+    char target[64];
+    char target2[64];
+    float origin[3];
+    float origin2[3];
+    float angles[3];
+    int health;
+    float minAngle;
+    float maxAngle;
+    float damp;
+    float distance;
+    float scale;
+    float force_scale;
+    float width;
+    int spawnflags;
+    float timeout;
+    char materialname[64];
+};
+
+struct __declspec(align(4)) DynEntityCreateParams // sizeof=0x2BC
+{
+    char typeName[64];
+    char modelName[64];
+    char physModelName[64];
+    char destroyFxFile[64];
+    char destroySound[64];
+    char destroyPiecesFile[64];
+    char physPresetFile[64];
+    char targetname[64];
+    char target[64];
+    char destroyedModelName[64];
+    float origin[3];
+    float angles[3];
+    int health;
+    float mass;
+    float bounce;
+    float friction;
+    float centerOfMass[3];
+    bool startInPhysics;
+    bool autoActivate;
+    bool noBulletDamage;
+    bool noExplosiveDamage;
+    bool alwaysFloats;
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
+struct DynEntityProps // sizeof=0x8
+{                                       // XREF: .rdata:dynEntProps/r
+    const char *name;                   // XREF: DynEnt_GetType+4B/r
+    bool clientOnly;                    // XREF: DynEnt_CompareEntities+102/r
+                                        // DynEnt_CompareEntities+118/r
+    bool clipMove;
+    bool usePhysics;
+    bool destroyable;
+};
+
+struct DynEntityServer // sizeof=0x8
+{
+    unsigned __int16 flags;
+    // padding byte
+    // padding byte
+    int health;
+};
+
 const DynEntityDef *__cdecl DynEnt_GetEntityDef(unsigned __int16 dynEntId, DynEntityDrawType drawType);
 DynEntityClient *__cdecl DynEnt_GetClientEntity(unsigned __int16 dynEntId, DynEntityDrawType drawType);
 PhysPreset *__cdecl DynEnt_PhysPresetPrecache(const char *name);

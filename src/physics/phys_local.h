@@ -67,14 +67,14 @@ struct minspec_mutex // sizeof=0x4
         //        "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mutex.h",
         //        85,
         //        "GetStuff32(&m_token) == 1",
-        //        &toastPopupTitle))
+        //        ""))
         //{
         //    __debugbreak();
         //}
         if (_InterlockedCompareExchange(&this->m_token, 0, 1) != 1)
         {
             iassert(0);
-            //if (_tlAssert("c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mutex.h", 88, "retv", &toastPopupTitle))
+            //if (_tlAssert("c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mutex.h", 88, "retv", ""))
             //    __debugbreak();
         }
     }
@@ -115,7 +115,7 @@ struct minspec_read_write_mutex // sizeof=0x4
             //        "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mutex.h",
             //        116,
             //        "count > 1",
-            //        &toastPopupTitle))
+            //        ""))
             //    {
             //        __debugbreak();
             //    }
@@ -145,13 +145,13 @@ struct minspec_read_write_mutex // sizeof=0x4
         //        "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mutex.h",
         //        135,
         //        "GetStuff32(&m_count) == 0",
-        //        &toastPopupTitle))
+        //        ""))
         //{
         //    __debugbreak();
         //}
         if (_InterlockedCompareExchange(&this->m_count, 1, 0) != 0)
         {
-            //if (_tlAssert("c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mutex.h", 138, "retv", &toastPopupTitle))
+            //if (_tlAssert("c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mutex.h", 138, "retv", ""))
             //    __debugbreak();
         }
     }
@@ -470,7 +470,7 @@ struct minspec_hash_table//<phys_slot_pool,64> // sizeof=0x10C
         //    //    "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_hash_table.h",
         //    //    38,
         //    //    "find(key) == NULL",
-        //    //    &toastPopupTitle))
+        //    //    ""))
         //    //{
         //    //    __debugbreak();
         //    //}
@@ -530,7 +530,7 @@ struct minspec_hash_table//<phys_slot_pool,64> // sizeof=0x10C
         //        "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_hash_table.h",
         //        83,
         //        "m_mod > 0 && m_mod < TABLE_SIZE",
-        //        &toastPopupTitle))
+        //        ""))
         //{
         //    __debugbreak();
         //}
@@ -832,7 +832,7 @@ public:
             iassert(data);
             //if (!m_next_T_internal)
             //{
-            //    if (_tlAssert("c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mem.h", 477, "data", &toastPopupTitle))
+            //    if (_tlAssert("c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mem.h", 477, "data", ""))
             //        __debugbreak();
             //}
             --this->m_list_count;

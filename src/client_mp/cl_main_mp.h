@@ -8,6 +8,7 @@
 #include <qcommon/net_chan_mp.h>
 #include <client/screen_placement.h>
 #include <universal/dvar.h>
+#include <ui/ui_main.h>
 
 struct ClientArchiveData // sizeof=0x30
 {                                                                             // XREF: demoInitialStateBuffer_t/r

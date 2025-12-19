@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <universal/assertive.h>
+#include <client/cl_gamepad.h>
 
 DevGuiInput s_input;
 

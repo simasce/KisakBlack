@@ -5294,5 +5294,8 @@
     <ClInclude Include="src\groupvoice\directsound.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\keycodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

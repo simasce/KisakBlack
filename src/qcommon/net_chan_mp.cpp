@@ -1,5 +1,58 @@
 #include "net_chan_mp.h"
+#include "cmd.h"
+#include <client/cl_main.h>
+#include "common.h"
+#include <win32/win_shared.h>
+#include <client_mp/cl_net_chan_mp.h>
+#include <universal/com_files.h>
+#include <DW/dwNet.h>
+#include <win32/win_net.h>
 
+#include <Windows.h>
+#include "threads.h"
+#include <server_mp/sv_net_chan_mp.h>
+
+loopback_t loopbacks[2];
+
+const dvar_t *showpackets;
+const dvar_t *showdrop;
+const dvar_t *packetDebug;
+const dvar_t *net_profile;
+const dvar_t *net_showprofile;
+const dvar_t *net_minigraph;
+const dvar_t *net_lanauthorize;
+const dvar_t *msg_printEntityNums;
+const dvar_t *msg_dumpEnts;
+const dvar_t *msg_zlibCompress;
+const dvar_t *msg_zlibCompressOutput;
+const dvar_t *msg_hudelemspew;
+
+unsigned __int8 tempNetchanPacketBuf[65536];
+
+DeferredQueue deferredQueue;
+
+int net_iProfilingOn;
+int g_qport;
+
+const char *netsrcString[2] =
+{ "client1", "server" };
+
+const char *connectionString_135[11] =
+{
+  "CA_DISCONNECTED",
+  "CA_CINEMATIC",
+  "CA_UICINEMATIC",
+  "CA_LOGO",
+  "CA_CONNECTING",
+  "CA_CHALLENGING",
+  "CA_CONNECTED",
+  "CA_SENDINGSTATS",
+  "CA_LOADING",
+  "CA_PRIMED",
+  "CA_ACTIVE"
+};
+
+char s_1[64];
 char *__cdecl NET_AdrToString(netadr_t a)
 {
     __int16 v1; // ax
@@ -17,6 +70,7 @@ char *__cdecl NET_AdrToString(netadr_t a)
     return s_1;
 }
 
+char s_2[64];
 char *__cdecl NET_AdrToStringDW(netadr_t a)
 {
     Com_sprintf(s_2, 0x40u, "unknown");
@@ -211,12 +265,21 @@ void __cdecl Net_DisplayProfile(int localClientNum)
         Dvar_SetInt((dvar_s *)net_profile, 2 - com_sv_running->current.enabled);
     if ( net_iProfilingOn )
     {
-        if ( net_iProfilingOn == 1 )
+        if (net_iProfilingOn == 1)
+        {
             CL_Netchan_PrintProfileStats(localClientNum, 0);
+        }
         else
+        {
             //BLOPS_NULLSUB();
+        }
     }
 }
+
+cmd_function_s Net_DumpProfile_f_VAR;
+cmd_function_s MSG_DumpNetFieldChanges_f_VAR;
+cmd_function_s Net_GetQPort_f_VAR;
+cmd_function_s Net_SetQPort_f_VAR;
 
 void __cdecl Netchan_Init(__int16 port)
 {
@@ -233,20 +296,24 @@ void __cdecl Netchan_Init(__int16 port)
     msg_zlibCompress = _Dvar_RegisterBool("msg_zlibCompress", 0, 0, "Enable zlib compression");
     msg_zlibCompressOutput = _Dvar_RegisterBool("msg_zlibCompressOutput", 0, 0, "Enable zlib compression console output");
     msg_hudelemspew = _Dvar_RegisterBool("msg_hudelemspew", 0, 0, "Debug hudelem fields changing");
-    Cmd_AddCommandInternal("net_dumpprofile", Net_Dump//Profile_f, &Net_Dump//Profile_f_VAR);
+    Cmd_AddCommandInternal("net_dumpprofile", Net_DumpProfile_f, &Net_DumpProfile_f_VAR);
     Cmd_AddCommandInternal("net_dumpnetfieldchanges", MSG_DumpNetFieldChanges_f, &MSG_DumpNetFieldChanges_f_VAR);
     Cmd_AddCommandInternal("getqport", Net_GetQPort_f, &Net_GetQPort_f_VAR);
     Cmd_AddCommandInternal("setqport", Net_SetQPort_f, &Net_SetQPort_f_VAR);
 }
 
-void __cdecl Net_Dump//Profile_f()
+void __cdecl Net_DumpProfile_f()
 {
     if ( net_iProfilingOn )
     {
-        if ( net_iProfilingOn == 1 )
+        if (net_iProfilingOn == 1)
+        {
             CL_Netchan_PrintProfileStats(0, 1);
+        }
         else
+        {
             //BLOPS_NULLSUB();
+        }
     }
     else
     {
@@ -413,13 +480,13 @@ bool __cdecl Netchan_Transmit(netchan_t *chan, int length, char *data, bool reli
 
     if ( length > 0x10000 )
     {
-        file = FS_FOpenFileWrite("badpacket.dat");
+        file = FS_FOpenFileWrite((char*)"badpacket.dat");
         if ( file )
         {
             FS_Write(data, length, file);
             FS_FCloseFile(file);
         }
-        Com_Error(ERR_DROP, &byte_CD83E8, length);
+        Com_Error(ERR_DROP, "Netchan_Transmit: length = %i", length);
     }
     chan->unsentFragmentStart = 0;
     if ( chan->remoteAddress.type )
@@ -490,7 +557,7 @@ bool __cdecl Netchan_Transmit(netchan_t *chan, int length, char *data, bool reli
 
 int __cdecl Netchan_Process(netchan_t *chan, msg_t *msg)
 {
-    unsigned intv2; // eax
+    unsigned int v2; // eax
     char *v4; // eax
     char *v5; // [esp-8h] [ebp-890h]
     int incomingSequence; // [esp-4h] [ebp-88Ch]
@@ -764,7 +831,7 @@ void __cdecl NET_SendLoopPacket(netsrc_t sock, unsigned int length, unsigned __i
     if ( sock >= NS_SERVER )
     {
         if ( sock == NS_SERVER )
-            sock = to.port;
+            sock = (netsrc_t)to.port;
     }
     else
     {
@@ -974,7 +1041,7 @@ int __cdecl NET_StringToAdr(const char *s, netadr_t *a)
     else
     {
         I_strncpyz(base, s, 1024);
-        strstr((unsigned __int8 *)base, ":");
+        v3 = strstr(base, ":");
         port = v3;
         if ( v3 )
             *port++ = 0;

@@ -486,3 +486,13 @@ extern const dvar_t *con_typewriterColorGlowCheckpoint;
 extern const dvar_t *con_restricted;
 extern const dvar_t *con_restricted_access;
 extern const dvar_t *con_matchPrefixOnly;
+
+extern field_t g_consoleField;
+extern field_t historyEditLines[32];
+
+static const int g_console_field_width = 620;
+static const float g_console_char_height = 16.0f;
+static const float con_screenPadding = 4.0f;
+static const int con_inputMaxMatchesShown = 24;
+static const float defaultGameMessageTimes[3] = { 5.0, 8.0, 5.0 };
+static const int defaultGameMessageWindowLineCounts[3] = { 4, 1, 7 };

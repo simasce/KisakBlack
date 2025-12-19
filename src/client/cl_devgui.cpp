@@ -1,4 +1,33 @@
 #include "cl_devgui.h"
+#include <universal/dvar.h>
+#include <universal/q_shared.h>
+#include <qcommon/com_clients.h>
+#include <qcommon/cmd.h>
+#include <gfx_d3d/r_devgui.h>
+#include <cgame/cg_visionsets.h>
+#include <universal/com_files.h>
+#include <devgui/devgui.h>
+
+const char *emptyEnumList[1];
+
+struct $C9973E8CB98117584CC11D7AF6800567 // sizeof=0x248
+{                                       // XREF: .data:clGuiGlob/r
+    bool inited;                        // XREF: CL_CreateDevGui(void)+3/r
+                                        // CL_CreateDevGui(void):loc_54F664/w ...
+    // padding byte
+    // padding byte
+    // padding byte
+    int mapDirCount;                    // XREF: CL_DevGuiFrame(int)+1B/r
+                                        // CL_CreateMapMenuEntries:loc_54F824/w ...
+    char mapDirs[8][64];                // XREF: CL_DevGuiFrame(int)+60/o
+                                        // CL_AddMapDirSlider+10F/o
+    const char **mapNames[8];           // XREF: CL_AddMapDirSlider+127/w
+                                        // CL_DestroyDevGui(void)+70/r
+    const dvar_s *mapEnumDvar[8];       // XREF: CL_DevGuiFrame(int)+2A/r
+                                        // CL_RegisterDevGuiDvars+21/w ...
+};
+
+$C9973E8CB98117584CC11D7AF6800567 clGuiGlob;
 
 void __cdecl CL_DevGuiFrame(int localClientNum)
 {
@@ -44,10 +73,8 @@ void __cdecl CL_CreateDevGui()
     Cbuf_InsertText(0, "exec devgui_art");
 }
 
-const dvar_s *CL_RegisterDevGuiDvars()
+void __stdcall CL_RegisterDevGuiDvars()
 {
-    const dvar_s *result; // eax
-
     clGuiGlob.mapEnumDvar[0] = _Dvar_RegisterEnum("mapEnum0", emptyEnumList, 0, 0x840u, "");
     clGuiGlob.mapEnumDvar[1] = _Dvar_RegisterEnum("mapEnum1", emptyEnumList, 0, 0x840u, "");
     clGuiGlob.mapEnumDvar[2] = _Dvar_RegisterEnum("mapEnum2", emptyEnumList, 0, 0x840u, "");
@@ -55,9 +82,7 @@ const dvar_s *CL_RegisterDevGuiDvars()
     clGuiGlob.mapEnumDvar[4] = _Dvar_RegisterEnum("mapEnum4", emptyEnumList, 0, 0x840u, "");
     clGuiGlob.mapEnumDvar[5] = _Dvar_RegisterEnum("mapEnum5", emptyEnumList, 0, 0x840u, "");
     clGuiGlob.mapEnumDvar[6] = _Dvar_RegisterEnum("mapEnum6", emptyEnumList, 0, 0x840u, "");
-    result = _Dvar_RegisterEnum("mapEnum7", emptyEnumList, 0, 0x840u, "");
-    clGuiGlob.mapEnumDvar[7] = result;
-    return result;
+    clGuiGlob.mapEnumDvar[7] = _Dvar_RegisterEnum("mapEnum7", emptyEnumList, 0, 0x840u, "");
 }
 
 void CL_CreateMapMenuEntries()
@@ -80,7 +105,7 @@ void __cdecl CL_CreateMapMenuEntriesForLocation(int locationFlags, const char *l
     int dirIndex; // [esp+8h] [ebp-4h]
 
     CL_AddMapDirSlider("", locationFlags, locationName);
-    dirList = FS_ListFiles("maps", "/", FS_LIST_PURE_ONLY, &dirCount);
+    dirList = FS_ListFiles("maps", (char*)"/", FS_LIST_PURE_ONLY, &dirCount);
     for ( dirIndex = 0; dirIndex != dirCount; ++dirIndex )
         CL_AddMapDirSlider(dirList[dirIndex], locationFlags, locationName);
     FS_FreeFileList(dirList);
@@ -96,7 +121,7 @@ void __cdecl CL_AddMapDirSlider(const char *dir, int locationFlags, const char *
     int fileCount; // [esp+14h] [ebp-4h] BYREF
 
     fullDir = va("%s%s", "maps/", dir);
-    fileList = FS_ListFilesInLocation(fullDir, "d3dbsp", FS_LIST_PURE_ONLY, &fileCount, locationFlags);
+    fileList = FS_ListFilesInLocation(fullDir, (char*)"d3dbsp", FS_LIST_PURE_ONLY, &fileCount, locationFlags);
     if ( fileCount < 0
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_devgui.cpp", 83, 0, "%s", "fileCount >= 0") )
     {

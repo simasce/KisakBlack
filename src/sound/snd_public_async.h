@@ -95,7 +95,7 @@ bool __cdecl SND_IsPlaying(int playbackId);
 snd_playback *__cdecl SND_FindPlayback(int playbackId);
 int __cdecl SND_GetPlaybackTime(int playbackId);
 char __cdecl SND_GetKnownLength(int playbackId, int *msec);
-void SND_Update(void *thisp);
+void SND_Update();
 void __cdecl SND_UpdateWait();
 int __cdecl updatesound_workerCallback(jqBatch *batch);
 void SND_Frame();

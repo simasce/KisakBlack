@@ -30,7 +30,7 @@ const phys_vec3 *__cdecl construct_orth_ud(const phys_vec3 *result, const phys_v
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\old_phys_math.h",
          298,
          "fabsf(nud - 1.0f) < .0001f",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -93,7 +93,7 @@ void __cdecl PHYS_ASSERT_UNIT(const phys_vec3 *v)
            "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_math.h",
            420,
            "fabsf(nv - 1.0f) < 0.001f",
-           &toastPopupTitle) )
+           "") )
     {
       __debugbreak();
     }
@@ -113,7 +113,7 @@ void __cdecl PHYS_ASSERT_ORTHOGONAL(const phys_vec3 *v1, const phys_vec3 *v2)
            "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_math.h",
            425,
            "fabsf(d) < 0.001f",
-           &toastPopupTitle) )
+           "") )
     {
       __debugbreak();
     }
@@ -161,7 +161,7 @@ void __cdecl PHYS_ASSERT_ORTHONORMAL(const phys_mat44 *m)
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_math.h",
          435,
          "fabsf(nx - 1.0f) < 0.001f",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -172,7 +172,7 @@ void __cdecl PHYS_ASSERT_ORTHONORMAL(const phys_mat44 *m)
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_math.h",
          436,
          "fabsf(ny - 1.0f) < 0.001f",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -183,7 +183,7 @@ void __cdecl PHYS_ASSERT_ORTHONORMAL(const phys_mat44 *m)
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_math.h",
          437,
          "fabsf(nz - 1.0f) < 0.001f",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -193,7 +193,7 @@ void __cdecl PHYS_ASSERT_ORTHONORMAL(const phys_mat44 *m)
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_math.h",
          438,
          "fabsf(dxy) < 0.001f",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -203,7 +203,7 @@ void __cdecl PHYS_ASSERT_ORTHONORMAL(const phys_mat44 *m)
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_math.h",
          439,
          "fabsf(dxz) < 0.001f",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -214,7 +214,7 @@ void __cdecl PHYS_ASSERT_ORTHONORMAL(const phys_mat44 *m)
            "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_math.h",
            440,
            "fabsf(dyz) < 0.001f",
-           &toastPopupTitle) )
+           "") )
     {
       __debugbreak();
     }
@@ -902,12 +902,12 @@ void __userpurge rigid_body_constraint_distance::setup_constraint(
   if ( (this->m_flags & 1) != 0 )
   {
     if ( this->m_min_distance < 0.0
-      && _tlAssert("source/rbc_def_generic.cpp", 137, "m_min_distance >= 0.0f", &toastPopupTitle) )
+      && _tlAssert("source/rbc_def_generic.cpp", 137, "m_min_distance >= 0.0f", "") )
     {
       __debugbreak();
     }
     if ( this->m_max_distance < (double)this->m_min_distance
-      && _tlAssert("source/rbc_def_generic.cpp", 138, "m_min_distance <= m_max_distance", &toastPopupTitle) )
+      && _tlAssert("source/rbc_def_generic.cpp", 138, "m_min_distance <= m_max_distance", "") )
     {
       __debugbreak();
     }
@@ -1291,7 +1291,7 @@ pulse_sum_normal *__thiscall pulse_sum_constraint_solver::create_pulse_sum_norma
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mem.h",
          230,
          "m_last_next_ptr",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -1330,7 +1330,7 @@ void __thiscall pulse_sum_constraint_solver::create_point(
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mem.h",
          230,
          "m_last_next_ptr",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }
@@ -1366,7 +1366,7 @@ pulse_sum_angular *__thiscall pulse_sum_constraint_solver::create_pulse_sum_angu
          "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mem.h",
          230,
          "m_last_next_ptr",
-         &toastPopupTitle) )
+         "") )
   {
     __debugbreak();
   }

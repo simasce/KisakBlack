@@ -104,7 +104,7 @@ void __userpurge ragdoll_joint_limit_info::set(
 
   v10 = a2;
   v11 = retaddr;
-  if ( theta_limit <= 0.0 && _tlAssert("source/rbc_def_ragdoll.cpp", 7, "theta_limit > 0.0f", &toastPopupTitle) )
+  if ( theta_limit <= 0.0 && _tlAssert("source/rbc_def_ragdoll.cpp", 7, "theta_limit > 0.0f", "") )
     __debugbreak();
   v5 = phys_Unitize(&v8, b1_ud_loc);
   this->m_b1_ud_loc.x = v5->x;
@@ -135,7 +135,7 @@ void __thiscall ragdoll_joint_limit_info::set_theta_limit(ragdoll_joint_limit_in
   float theta_limitb; // [esp+10h] [ebp+8h]
   float theta_limitc; // [esp+10h] [ebp+8h]
 
-  if ( theta_limit <= 0.0 && _tlAssert("source/rbc_def_ragdoll.cpp", 23, "theta_limit > 0.0f", &toastPopupTitle) )
+  if ( theta_limit <= 0.0 && _tlAssert("source/rbc_def_ragdoll.cpp", 23, "theta_limit > 0.0f", "") )
     __debugbreak();
   v4 = cos(theta_limit);
   this->m_b1_ud_limit_co_ = v4;
@@ -311,7 +311,7 @@ void __thiscall rigid_body_constraint_ragdoll::add_joint_limit(
   int savedregs; // [esp+8h] [ebp+0h] BYREF
 
   if ( this->m_joint_limits_count >= 2
-    && _tlAssert("source/rbc_def_ragdoll.cpp", 102, "m_joint_limits_count < MAX_JOINT_LIMITS", &toastPopupTitle) )
+    && _tlAssert("source/rbc_def_ragdoll.cpp", 102, "m_joint_limits_count < MAX_JOINT_LIMITS", "") )
   {
     __debugbreak();
   }

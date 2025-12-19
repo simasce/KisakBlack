@@ -1,4 +1,53 @@
 #include "r_stream.h"
+#include "r_dvars.h"
+#include <xanim/xanim.h>
+#include <xanim/xmodel_utils.h>
+#include <qcommon/threads.h>
+#include <universal/q_shared.h>
+#include <xanim/dobj_utils.h>
+#include <bgame/bg_local.h>
+#include "r_streamalloc.h"
+#include <win32/win_common.h>
+#include <qcommon/common.h>
+#include "r_image_load_obj.h"
+#include <win32/win_net.h>
+#include <universal/com_memory.h>
+#include "r_image.h"
+#include "rb_resource.h"
+#include <database/db_file_load.h>
+#include <universal/com_workercmds.h>
+#include <cgame/cg_compass.h>
+#include <win32/win_shared.h>
+#include <xanim/xmodel.h>
+
+#include <algorithm>
+#include <DynEntity/DynEntity_load_obj.h>
+#include <DynEntity/DynEntity_client.h>
+
+jqWorkerCmd r_stream_sortWorkerCmd;
+jqWorkerCmd r_stream_updateWorkerCmd;
+jqWorkerCmd r_stream_combineWorkerCmd;
+jqModule r_stream_combineModule;
+jqModule r_stream_updateModule;
+jqModule r_stream_update_staticmodelsModule;
+jqModule r_stream_update_staticsurfacesModule;
+
+Material *s_preventMaterials[32];
+
+int s_numForcedLoadEntities;
+const DObj *s_forcedLoadEntities[4];
+
+StreamFrontendGlob streamFrontendGlob;
+volatile unsigned int streamDisabledCount;
+bool streamIsInitialized;
+
+char streamUIConfigSet; // not a real name
+
+int s_numStreamHintsActive;
+streamerHintInfo s_streamHints[4];
+
+pendingRequest s_pendingRequests[10];
+int lastIdx;
 
 bool __cdecl R_StreamIsEnabled()
 {
@@ -26,37 +75,39 @@ void __cdecl R_StreamSetInitData(int buffer_size)
 
 void __cdecl R_StreamSetDefaultConfig(bool clear)
 {
-    byte_ADD7015 = 0;
-    *(float *)&streamFrontendGlob.sortedImages[346] = FLOAT_1_7014117e38;
-    *(_QWORD *)&streamFrontendGlob.sortedImages[347] = __PAIR64__(
-                                                                                                             LODWORD(FLOAT_1_7014117e38),
-                                                                                                             LODWORD(FLOAT_8_5070587e37));
-    if ( clear )
+    streamFrontendGlob.forceDiskOrder = 0;
+    streamFrontendGlob.touchedImageImportance = 1.7014117e38f;
+    //*(_QWORD *)&streamFrontendGlob.initialImageImportance = __PAIR64__(
+    //    LODWORD(FLOAT_1_7014117e38),
+    //    LODWORD(FLOAT_8_5070587e37));
+    streamFrontendGlob.initialImageImportance = 1.7014117e38f;
+    streamFrontendGlob.forcedImageImportance = 8.5070587e37f;
+    if (clear)
     {
-        memset((unsigned __int8 *)&streamFrontendGlob.imageTouchBits[1][108], 0, 0x210u);
-        memset((unsigned __int8 *)&streamFrontendGlob.imageTouchBits[0][104], 0, 0x210u);
-        LOBYTE(streamFrontendGlob.sortedImages[349]) = 0;
-        streamFrontendGlob.sortedImages[350] = 0;
-        LOBYTE(streamFrontendGlob.sortedImages[351]) = 0;
+        memset((unsigned __int8 *)streamFrontendGlob.imageInitialBits, 0, 528u);
+        memset((unsigned __int8 *)streamFrontendGlob.imageForceBits, 0, 528u);
+        streamFrontendGlob.imageInitialBitsSet = 0;
+        streamFrontendGlob.initialLoadAllocFailures = 0;
+        streamFrontendGlob.preloadCancelled = 0;
     }
-    BYTE1(streamFrontendGlob.sortedImages[351]) = 1;
+    streamFrontendGlob.diskOrderImagesNeedSorting = 1;
 }
 
 void __cdecl R_StreamSetUIConfig(bool clear)
 {
-    byte_ADD7015 = 1;
-    *(float *)&streamFrontendGlob.sortedImages[346] = FLOAT_1_7014117e38;
-    *(float *)&streamFrontendGlob.sortedImages[348] = FLOAT_0_0000099999997;
-    *(float *)&streamFrontendGlob.sortedImages[347] = FLOAT_8_5070587e37;
-    if ( clear )
+    streamFrontendGlob.forceDiskOrder = 1;
+    streamFrontendGlob.touchedImageImportance = 1.7014117e38f;
+    streamFrontendGlob.forcedImageImportance =  0.0000099999997f;
+    streamFrontendGlob.initialImageImportance = 8.5070587e37f;
+    if (clear)
     {
-        memset((unsigned __int8 *)&streamFrontendGlob.imageTouchBits[1][108], 0, 0x210u);
-        memset((unsigned __int8 *)&streamFrontendGlob.imageTouchBits[0][104], 0, 0x210u);
-        LOBYTE(streamFrontendGlob.sortedImages[349]) = 0;
-        streamFrontendGlob.sortedImages[350] = 0;
-        LOBYTE(streamFrontendGlob.sortedImages[351]) = 0;
+        memset((unsigned __int8 *)streamFrontendGlob.imageInitialBits, 0, 528u);
+        memset((unsigned __int8 *)streamFrontendGlob.imageForceBits, 0, 528u);
+        streamFrontendGlob.imageInitialBitsSet = 0;
+        streamFrontendGlob.initialLoadAllocFailures = 0;
+        streamFrontendGlob.preloadCancelled = 0;
     }
-    BYTE1(streamFrontendGlob.sortedImages[351]) = 1;
+    streamFrontendGlob.diskOrderImagesNeedSorting = 1;
 }
 
 double __cdecl R_Stream_GetProgress()
@@ -66,21 +117,21 @@ double __cdecl R_Stream_GetProgress()
     unsigned int bits; // [esp+30h] [ebp-8h]
     int idx; // [esp+34h] [ebp-4h]
 
-    if ( !com_waitForStreamer->current.integer )
+    if (!com_waitForStreamer->current.integer)
         return 1.0;
-    if ( streamFrontendGlob.sortedImages[350] > 0 )
+    if (streamFrontendGlob.initialLoadAllocFailures > 0)
         return 1.0;
-    if ( !LOBYTE(streamFrontendGlob.sortedImages[349]) )
+    if (!streamFrontendGlob.imageInitialBitsSet)
         return 0.0;
     total = 0;
     complete = 0;
-    for ( idx = 0; idx < 132; ++idx )
+    for (idx = 0; idx < 132; ++idx)
     {
-        bits = streamFrontendGlob.imageTouchBits[1][idx + 108] | streamFrontendGlob.imageTouchBits[0][idx + 104];
+        bits = streamFrontendGlob.imageInitialBits[idx] | streamFrontendGlob.imageForceBits[idx];
         total += CountBitsEnabled(bits);
-        complete += CountBitsEnabled(streamFrontendGlob.imageInitialBits[idx + 100] & bits);
+        complete += CountBitsEnabled(streamFrontendGlob.imageUseBits[idx - 4] & bits);
     }
-    if ( total )
+    if (total)
         return (double)complete / (double)total + 0.001;
     else
         return 1.0;
@@ -133,61 +184,61 @@ bool __cdecl R_StreamUpdate_ProcessFileCallbacks()
     bool workDone; // [esp+1Bh] [ebp-1h]
 
     workDone = 0;
-    for ( i = 0; i < 10; ++i )
+    for (i = 0; i < 10; ++i)
     {
         request = &s_pendingRequests[i];
-        if ( request->status >= (unsigned int)STREAM_STATUS_CANCELLED )
+        if (request->status >= (unsigned int)STREAM_STATUS_CANCELLED)
         {
             image = request->image;
-            if ( !image
-                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1189, 0, "%s", "image != NULL") )
+            if (!image
+                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1189, 0, "%s", "image != NULL"))
             {
                 __debugbreak();
             }
             imageIndex = DB_GetImageIndex(image);
-            if ( (streamFrontendGlob.imageInitialBits[(imageIndex >> 5) - 32] & (1 << (imageIndex & 0x1F))) == 0
+            if ((streamFrontendGlob.imageLoading[(imageIndex >> 5) - 8] & (1 << (imageIndex & 0x1F))) == 0
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                            1192,
-                            0,
-                            "%s",
-                            "( streamFrontendGlob.imageLoading[ BIT_INDEX_32( imageIndex ) ] & BIT_MASK_32( imageIndex ) )") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                    1192,
+                    0,
+                    "%s",
+                    "( streamFrontendGlob.imageLoading[ BIT_INDEX_32( imageIndex ) ] & BIT_MASK_32( imageIndex ) )"))
             {
                 __debugbreak();
             }
-            if ( request->status == STREAM_STATUS_CANCELLED
+            if (request->status == STREAM_STATUS_CANCELLED
                 || request->status == STREAM_STATUS_READFAILED
-                || request->status == STREAM_STATUS_EOF )
+                || request->status == STREAM_STATUS_EOF)
             {
-                streamFrontendGlob.imageInitialBits[(imageIndex >> 5) - 32] &= ~(1 << (imageIndex & 0x1F));
+                streamFrontendGlob.imageLoading[(imageIndex >> 5) - 8] &= ~(1 << (imageIndex & 0x1F));
                 Z_VirtualFree(request->buffer, 20);
                 R_Stream_InvalidateRequest(request);
             }
             else
             {
                 workDone = 1;
-                if ( request->status != STREAM_STATUS_FINISHED
+                if (request->status != STREAM_STATUS_FINISHED
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                                1207,
-                                0,
-                                "%s\n\t(request->status) = %i",
-                                "(request->status == STREAM_STATUS_FINISHED)",
-                                request->status) )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                        1207,
+                        0,
+                        "%s\n\t(request->status) = %i",
+                        "(request->status == STREAM_STATUS_FINISHED)",
+                        request->status))
                 {
                     __debugbreak();
                 }
-                if ( Sys_IsRenderThread() )
+                if (Sys_IsRenderThread())
                 {
                     fileHeader = (GfxImageFileHeader *)request->buffer;
                     Image_Release(image);
-                    if ( image->texture.basemap
+                    if (image->texture.basemap
                         && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                                    1219,
-                                    0,
-                                    "%s",
-                                    "!image->texture.basemap") )
+                            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                            1219,
+                            0,
+                            "%s",
+                            "!image->texture.basemap"))
                     {
                         __debugbreak();
                     }
@@ -198,42 +249,41 @@ bool __cdecl R_StreamUpdate_ProcessFileCallbacks()
                 {
                     RB_Resource_ReloadTexture(image, request->buffer);
                 }
-                if ( request->highMip )
+                if (request->highMip)
                 {
-                    if ( (streamFrontendGlob.imageInitialBits[(imageIndex >> 5) + 100] & (1 << (imageIndex & 0x1F))) != 0
+                    if ((streamFrontendGlob.imageUseBits[(imageIndex >> 5) - 4] & (1 << (imageIndex & 0x1F))) != 0
                         && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                                    1227,
-                                    0,
-                                    "%s",
-                                    "!(streamFrontendGlob.imageUseBits[BIT_INDEX_32(imageIndex)] & BIT_MASK_32(imageIndex))") )
+                            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                            1227,
+                            0,
+                            "%s",
+                            "!(streamFrontendGlob.imageUseBits[BIT_INDEX_32(imageIndex)] & BIT_MASK_32(imageIndex))"))
                     {
                         __debugbreak();
                     }
-                    streamFrontendGlob.imageInitialBits[(imageIndex >> 5) + 100] |= 1 << (imageIndex & 0x1F);
+                    streamFrontendGlob.imageUseBits[(imageIndex >> 5) - 4] |= 1 << (imageIndex & 0x1F);
                 }
                 else
                 {
-                    if ( (streamFrontendGlob.imageInitialBits[(imageIndex >> 5) + 100] & (1 << (imageIndex & 0x1F))) == 0
+                    if ((streamFrontendGlob.imageUseBits[(imageIndex >> 5) - 4] & (1 << (imageIndex & 0x1F))) == 0
                         && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                                    1232,
-                                    0,
-                                    "%s",
-                                    "streamFrontendGlob.imageUseBits[BIT_INDEX_32(imageIndex)] & BIT_MASK_32(imageIndex)") )
+                            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                            1232,
+                            0,
+                            "%s",
+                            "streamFrontendGlob.imageUseBits[BIT_INDEX_32(imageIndex)] & BIT_MASK_32(imageIndex)"))
                     {
                         __debugbreak();
                     }
-                    streamFrontendGlob.imageInitialBits[(imageIndex >> 5) + 100] &= ~(1 << (imageIndex & 0x1F));
+                    streamFrontendGlob.imageUseBits[(imageIndex >> 5) - 4] &= ~(1 << (imageIndex & 0x1F));
                 }
-                streamFrontendGlob.imageInitialBits[(imageIndex >> 5) - 32] &= ~(1 << (imageIndex & 0x1F));
+                streamFrontendGlob.imageLoading[(imageIndex >> 5) - 8] &= ~(1 << (imageIndex & 0x1F));
                 R_Stream_InvalidateRequest(request);
             }
         }
     }
     return workDone;
 }
-
 void __cdecl R_Stream_InvalidateRequest(pendingRequest *request)
 {
     memset((unsigned __int8 *)request, 0, sizeof(pendingRequest));
@@ -243,13 +293,18 @@ void __cdecl R_Stream_InvalidateRequest(pendingRequest *request)
 void __cdecl R_StreamUpdate_SetupInitialImageList()
 {
     R_StreamSetDefaultConfig(1);
-    if ( r_streamLowDetail && r_streamLowDetail->current.enabled )
-        //BLOPS_NULLSUB();
+    if (r_streamLowDetail && r_streamLowDetail->current.enabled)
+    {
+        //BG_EvalVehicleName();
+    }
     else
-        memset((unsigned __int8 *)&streamFrontendGlob.imageTouchBits[0][104], 0, 0x210u);
-    LOBYTE(streamFrontendGlob.sortedImages[349]) = 1;
-    streamFrontendGlob.sortedImages[350] = 0;
-    LOWORD(streamFrontendGlob.sortedImages[351]) = 256;
+    {
+        memset((unsigned __int8 *)streamFrontendGlob.imageForceBits, 0, 0x210u);
+    }
+    streamFrontendGlob.diskOrderImagesNeedSorting = 1;
+    streamFrontendGlob.imageInitialBitsSet = 1;
+    streamFrontendGlob.initialLoadAllocFailures = 0;
+    streamFrontendGlob.preloadCancelled = 0;
 }
 
 void __cdecl R_Stream_ForceLoadMaterial(Material *material, int part)
@@ -294,41 +349,40 @@ void __cdecl R_Stream_ForceLoadImage(GfxImage *image, int part)
     int partIndexa; // [esp+10h] [ebp-4h]
     int partIndexb; // [esp+10h] [ebp-4h]
 
-    if ( image && image->streaming )
+    if (image && image->streaming)
     {
-        if ( part )
+        if (part)
         {
-            if ( part >= 0 )
+            if (part >= 0)
             {
-                for ( partIndexb = 0; partIndexb < part && partIndexb < 1; ++partIndexb )
+                for (partIndexb = 0; partIndexb < part && partIndexb < 1; ++partIndexb)
                 {
                     ImageIndex = DB_GetImageIndex(image);
-                    streamFrontendGlob.imageTouchBits[0][((partIndexb + ImageIndex) >> 5) + 104] |= 1 << ((partIndexb + ImageIndex)
-                                                                                                                                                                                            & 0x1F);
+                    streamFrontendGlob.imageForceBits[(partIndexb + ImageIndex) >> 5] |= 1 << ((partIndexb + ImageIndex) & 0x1F);
                 }
             }
             else
             {
-                if ( part + 1 < 0 )
+                if (part + 1 < 0)
                     v5 = 0;
                 else
                     v5 = part + 1;
-                for ( partIndexa = v5; partIndexa >= 0; --partIndexa )
+                for (partIndexa = v5; partIndexa >= 0; --partIndexa)
                 {
                     v3 = DB_GetImageIndex(image);
-                    streamFrontendGlob.imageTouchBits[0][((partIndexa + v3) >> 5) + 104] |= 1 << ((partIndexa + v3) & 0x1F);
+                    streamFrontendGlob.imageForceBits[(partIndexa + v3) >> 5] |= 1 << ((partIndexa + v3) & 0x1F);
                 }
             }
         }
         else
         {
-            for ( partIndex = 0; partIndex < 1; ++partIndex )
+            for (partIndex = 0; partIndex < 1; ++partIndex)
             {
                 v2 = DB_GetImageIndex(image);
-                streamFrontendGlob.imageTouchBits[0][((partIndex + v2) >> 5) + 104] &= ~(1 << ((partIndex + v2) & 0x1F));
+                streamFrontendGlob.imageForceBits[(partIndex + v2) >> 5] &= ~(1 << ((partIndex + v2) & 0x1F));
             }
         }
-        BYTE1(streamFrontendGlob.sortedImages[351]) = 1;
+        streamFrontendGlob.diskOrderImagesNeedSorting = 1;
     }
 }
 
@@ -378,53 +432,53 @@ char __cdecl R_StreamTouchDObjAndCheck(const DObj *obj, int level)
     unsigned int modelCount; // [esp+88h] [ebp-8h]
     unsigned int modelIndex; // [esp+8Ch] [ebp-4h]
 
-    if ( !obj && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1704, 0, "%s", "obj") )
+    if (!obj && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1704, 0, "%s", "obj"))
         __debugbreak();
-    if ( !Sys_IsMainThread()
+    if (!Sys_IsMainThread()
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    1705,
-                    0,
-                    "%s",
-                    "Sys_IsMainThread()") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            1705,
+            0,
+            "%s",
+            "Sys_IsMainThread()"))
     {
         __debugbreak();
     }
-    if ( !useFastFile->current.enabled
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1706, 0, "%s", "IsFastFileLoad()") )
+    if (!useFastFile->current.enabled
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1706, 0, "%s", "IsFastFileLoad()"))
     {
         __debugbreak();
     }
     boneIndex = 0;
     modelCount = DObjGetNumModels(obj);
-    if ( modelCount > 0x20
+    if (modelCount > 0x20
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    1710,
-                    1,
-                    "%s",
-                    "modelCount <= DOBJ_MAX_SUBMODELS") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            1710,
+            1,
+            "%s",
+            "modelCount <= DOBJ_MAX_SUBMODELS"))
     {
         __debugbreak();
     }
     memset(surfPartBits, 0, sizeof(surfPartBits));
     streamed = 1;
     modelIndex = 0;
-    while ( modelIndex < modelCount )
+    while (modelIndex < modelCount)
     {
         model = DObjGetModel(obj, modelIndex);
-        if ( !model && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1719, 0, "%s", "model") )
+        if (!model && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1719, 0, "%s", "model"))
             __debugbreak();
         materials = XModelGetSkins(model, 0);
         boneCount = XModelNumBones((const cpose_t *)model);
         surfaceCount = XModelGetSurfaces(model, &surfaces, 0);
-        if ( !surfaces
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1726, 0, "%s", "surfaces") )
+        if (!surfaces
+            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1726, 0, "%s", "surfaces"))
         {
             __debugbreak();
         }
-        if ( !surfaceCount
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1727, 0, "%s", "surfaceCount") )
+        if (!surfaceCount
+            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 1727, 0, "%s", "surfaceCount"))
         {
             __debugbreak();
         }
@@ -432,33 +486,33 @@ char __cdecl R_StreamTouchDObjAndCheck(const DObj *obj, int level)
         targBoneIndexLow = boneIndex & 0x1F;
         invTargBoneIndexLow = 32 - (boneIndex & 0x1F);
         DObjGetHidePartBits(obj, hidePartBits);
-        if ( surfaceCount > 0x80
+        if (surfaceCount > 0x80
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                        1735,
-                        0,
-                        "%s\n\t(surfaceCount) = %i",
-                        "(surfaceCount <= DOBJ_MAX_SURFS)",
-                        surfaceCount) )
+                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                1735,
+                0,
+                "%s\n\t(surfaceCount) = %i",
+                "(surfaceCount <= DOBJ_MAX_SURFS)",
+                surfaceCount))
         {
             __debugbreak();
         }
-        for ( surfaceIndex = 0; surfaceIndex < surfaceCount; ++surfaceIndex )
+        for (surfaceIndex = 0; surfaceIndex < surfaceCount; ++surfaceIndex)
         {
             xsurf = &surfaces[surfaceIndex];
-            for ( i = 0; i < 5; ++i )
+            for (i = 0; i < 5; ++i)
                 surfPartBits[i + 4] = xsurf->partBits[i];
-            if ( (boneIndex & 0x1F) != 0 )
+            if ((boneIndex & 0x1F) != 0)
             {
                 partBits[0] = (unsigned int)surfPartBits[4 - targBoneIndexHigh] >> targBoneIndexLow;
                 partBits[1] = ((unsigned int)surfPartBits[5 - targBoneIndexHigh] >> targBoneIndexLow)
-                                        | (surfPartBits[4 - targBoneIndexHigh] << invTargBoneIndexLow);
+                    | (surfPartBits[4 - targBoneIndexHigh] << invTargBoneIndexLow);
                 partBits[2] = ((unsigned int)surfPartBits[6 - targBoneIndexHigh] >> targBoneIndexLow)
-                                        | (surfPartBits[5 - targBoneIndexHigh] << invTargBoneIndexLow);
+                    | (surfPartBits[5 - targBoneIndexHigh] << invTargBoneIndexLow);
                 partBits[3] = ((unsigned int)surfPartBits[7 - targBoneIndexHigh] >> targBoneIndexLow)
-                                        | (surfPartBits[6 - targBoneIndexHigh] << invTargBoneIndexLow);
+                    | (surfPartBits[6 - targBoneIndexHigh] << invTargBoneIndexLow);
                 partBits[4] = ((unsigned int)surfPartBits[8 - targBoneIndexHigh] >> targBoneIndexLow)
-                                        | (surfPartBits[7 - targBoneIndexHigh] << invTargBoneIndexLow);
+                    | (surfPartBits[7 - targBoneIndexHigh] << invTargBoneIndexLow);
             }
             else
             {
@@ -468,11 +522,11 @@ char __cdecl R_StreamTouchDObjAndCheck(const DObj *obj, int level)
                 partBits[3] = surfPartBits[7 - targBoneIndexHigh];
                 partBits[4] = surfPartBits[8 - targBoneIndexHigh];
             }
-            if ( !(partBits[4] & hidePartBits[4]
-                     | partBits[3] & hidePartBits[3]
-                     | partBits[2] & hidePartBits[2]
-                     | partBits[1] & hidePartBits[1]
-                     | partBits[0] & hidePartBits[0]) )
+            if (!(partBits[4] & hidePartBits[4]
+                | partBits[3] & hidePartBits[3]
+                | partBits[2] & hidePartBits[2]
+                | partBits[1] & hidePartBits[1]
+                | partBits[0] & hidePartBits[0]))
                 streamed &= R_StreamTouchMaterialAndCheck(materials[surfaceIndex], level);
         }
         ++modelIndex;
@@ -528,12 +582,12 @@ void __cdecl R_StreamTouchImage(GfxImage *image)
     int part; // [esp+4h] [ebp-Ch]
     int imagePartIndex; // [esp+Ch] [ebp-4h]
 
-    if ( image->streaming )
+    if (image->streaming)
     {
         imagePartIndex = DB_GetImageIndex(image);
-        for ( part = 0; part < 1; ++part )
+        for (part = 0; part < 1; ++part)
         {
-            streamFrontendGlob.sortedImages[132 * streamFrontendGlob.sortedImages[345] + 81 + (imagePartIndex >> 5)] |= 1 << (imagePartIndex & 0x1F);
+            streamFrontendGlob.imageTouchBits[streamFrontendGlob.activeImageTouchBits][imagePartIndex >> 5] |= 1 << (imagePartIndex & 0x1F);
             ++imagePartIndex;
         }
     }
@@ -546,31 +600,31 @@ bool __cdecl R_StreamTouchImageAndCheck(GfxImage *image, int level)
     int imagePartIndex; // [esp+10h] [ebp-Ch]
     int levelPartIndex; // [esp+18h] [ebp-4h]
 
-    if ( level
+    if (level
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    1833,
-                    0,
-                    "level doesn't index MAX_IMAGE_STREAMED_PARTS\n\t%i not in [0, %i)",
-                    level,
-                    1) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            1833,
+            0,
+            "level doesn't index MAX_IMAGE_STREAMED_PARTS\n\t%i not in [0, %i)",
+            level,
+            1))
     {
         __debugbreak();
     }
-    if ( !image->streaming )
+    if (!image->streaming)
         return 1;
-    if ( level > 0 )
+    if (level > 0)
         v3 = 0;
     else
         v3 = level;
     imagePartIndex = DB_GetImageIndex(image);
     levelPartIndex = imagePartIndex - v3;
-    for ( part = 0; part < 1; ++part )
+    for (part = 0; part < 1; ++part)
     {
-        streamFrontendGlob.sortedImages[132 * streamFrontendGlob.sortedImages[345] + 81 + (imagePartIndex >> 5)] |= 1 << (imagePartIndex & 0x1F);
+        streamFrontendGlob.imageTouchBits[streamFrontendGlob.activeImageTouchBits][imagePartIndex >> 5] |= 1 << (imagePartIndex & 0x1F);
         ++imagePartIndex;
     }
-    return (streamFrontendGlob.imageInitialBits[(levelPartIndex >> 5) + 100] & (1 << (levelPartIndex & 0x1F))) != 0;
+    return (streamFrontendGlob.imageUseBits[(levelPartIndex >> 5) - 4] & (1 << (levelPartIndex & 0x1F))) != 0;
 }
 
 bool __cdecl R_StreamImageCheck(GfxImage *image, int level)
@@ -578,25 +632,25 @@ bool __cdecl R_StreamImageCheck(GfxImage *image, int level)
     int v3; // [esp+0h] [ebp-14h]
     int imagePartIndex; // [esp+8h] [ebp-Ch]
 
-    if ( level
+    if (level
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    1861,
-                    0,
-                    "level doesn't index MAX_IMAGE_STREAMED_PARTS\n\t%i not in [0, %i)",
-                    level,
-                    1) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            1861,
+            0,
+            "level doesn't index MAX_IMAGE_STREAMED_PARTS\n\t%i not in [0, %i)",
+            level,
+            1))
     {
         __debugbreak();
     }
-    if ( !image->streaming )
+    if (!image->streaming)
         return 1;
-    if ( level > 0 )
+    if (level > 0)
         v3 = 0;
     else
         v3 = level;
     imagePartIndex = DB_GetImageIndex(image);
-    return (streamFrontendGlob.imageInitialBits[((imagePartIndex - v3) >> 5) + 100] & (1 << ((imagePartIndex - v3) & 0x1F))) != 0;
+    return (streamFrontendGlob.imageUseBits[((imagePartIndex - v3) >> 5) - 4] & (1 << ((imagePartIndex - v3) & 0x1F))) != 0;
 }
 
 void __cdecl R_Stream_ResetHintEntities()
@@ -611,14 +665,14 @@ void __cdecl R_StreamInit()
 
     R_StreamAlloc_InitTempImages();
     streamFrontendGlob.frame = 0;
-    dword_ADD7010 = 0;
-    dword_ADD700C = -1;
-    for ( i = 0; i < 10; ++i )
+    streamFrontendGlob.queryInProgress = 0;
+    streamFrontendGlob.queryClient = -1;
+    for (i = 0; i < 10; ++i)
         R_Stream_InvalidateRequest(&s_pendingRequests[i]);
     memset((unsigned __int8 *)streamFrontendGlob.imageInSortedListBits, 0, 0x210u);
     memset((unsigned __int8 *)s_preventMaterials, 0, sizeof(s_preventMaterials));
-    list_count = 0;
-    BYTE1(streamFrontendGlob.sortedImages[351]) = 1;
+    streamFrontendGlob.totalBytesWanted = 0;
+    streamFrontendGlob.diskOrderImagesNeedSorting = 1;
     streamIsInitialized = 1;
 }
 
@@ -627,8 +681,8 @@ void __cdecl R_StreamShutdown()
     R_StreamSetDefaultConfig(1);
     memset((unsigned __int8 *)s_preventMaterials, 0, sizeof(s_preventMaterials));
     memset((unsigned __int8 *)streamFrontendGlob.imageInSortedListBits, 0, 0x210u);
-    list_count = 0;
-    BYTE1(streamFrontendGlob.sortedImages[351]) = 1;
+    streamFrontendGlob.totalBytesWanted = 0;
+    streamFrontendGlob.diskOrderImagesNeedSorting = 1;
 }
 
 void __cdecl R_Stream_ReleaseImage(GfxImage *image, bool lock, bool delayDirty)
@@ -639,33 +693,31 @@ void __cdecl R_Stream_ReleaseImage(GfxImage *image, bool lock, bool delayDirty)
     int imagePartIndex; // [esp+Ch] [ebp-8h]
     int imageIndex; // [esp+10h] [ebp-4h]
 
-    if ( !image && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 2204, 0, "%s", "image") )
+    if (!image && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 2204, 0, "%s", "image"))
         __debugbreak();
-    if ( image->streaming )
+    if (image->streaming)
     {
-        if ( lock )
+        if (lock)
             R_StreamAlloc_Lock();
         memory = R_StreamAlloc_FreeImage(image, 0, delayDirty, &freedSize);
-        if ( freedSize > 0 )
+        if (freedSize > 0)
         {
-            if ( !memory
-                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 2224, 0, "%s", "memory") )
+            if (!memory
+                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 2224, 0, "%s", "memory"))
             {
                 __debugbreak();
             }
-            //BLOPS_NULLSUB();
+            //BG_EvalVehicleName();
         }
         imageIndex = DB_GetImageIndex(image);
         imagePartIndex = imageIndex;
-        for ( part = 0; part < 1; ++part )
+        for (part = 0; part < 1; ++part)
         {
-            streamFrontendGlob.imageTouchBits[1][((imagePartIndex + part) >> 5) + 108] &= ~(1 << ((imagePartIndex + part)
-                                                                                                                                                                                    & 0x1F));
-            streamFrontendGlob.imageTouchBits[0][((imagePartIndex + part) >> 5) + 104] &= ~(1 << ((imagePartIndex + part)
-                                                                                                                                                                                    & 0x1F));
+            streamFrontendGlob.imageInitialBits[(imagePartIndex + part) >> 5] &= ~(1 << ((imagePartIndex + part) & 0x1F));
+            streamFrontendGlob.imageForceBits[(imagePartIndex + part) >> 5] &= ~(1 << ((imagePartIndex + part) & 0x1F));
         }
-        BYTE1(streamFrontendGlob.sortedImages[351]) = 1;
-        if ( lock )
+        streamFrontendGlob.diskOrderImagesNeedSorting = 1;
+        if (lock)
             R_StreamAlloc_Unlock();
     }
 }
@@ -674,23 +726,23 @@ void __cdecl R_StreamSyncThenFlush(bool flushAll)
 {
     int i; // [esp+0h] [ebp-4h]
 
-    if ( streamIsInitialized )
+    if (streamIsInitialized)
     {
         Sys_EnterCriticalSection(CRITSECT_STREAM_SYNC_COMMAND);
         R_StreamPushDisable();
         R_Stream_Sync();
-        if ( flushAll )
+        if (flushAll)
         {
             R_StreamAlloc_Lock();
             R_StreamAlloc_Flush();
             R_StreamAlloc_Unlock();
         }
         streamFrontendGlob.frame = 0;
-        dword_ADD7010 = 0;
-        byte_ADD7004 = 0;
+        streamFrontendGlob.queryInProgress = 0;
+        streamFrontendGlob.syncThing = 0;
         Sys_EnterCriticalSection(CRITSECT_STREAM_FORCE_LOAD_COMMAND);
         s_numForcedLoadEntities = 0;
-        for ( i = 0; i < 4; ++i )
+        for (i = 0; i < 4; ++i)
             s_forcedLoadEntities[i] = 0;
         Sys_LeaveCriticalSection(CRITSECT_STREAM_FORCE_LOAD_COMMAND);
         R_StreamPopDisable();
@@ -706,65 +758,65 @@ void R_Stream_Sync()
     int imageIndexa; // [esp+8h] [ebp-4h]
     int imageIndexb; // [esp+8h] [ebp-4h]
 
-    if ( !streamIsInitialized
+    if (!streamIsInitialized
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    2279,
-                    0,
-                    "%s",
-                    "streamIsInitialized") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            2279,
+            0,
+            "%s",
+            "streamIsInitialized"))
     {
         __debugbreak();
     }
-    if ( R_StreamIsEnabled()
+    if (R_StreamIsEnabled()
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    2286,
-                    0,
-                    "%s",
-                    "!R_StreamIsEnabled()") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            2286,
+            0,
+            "%s",
+            "!R_StreamIsEnabled()"))
     {
         __debugbreak();
     }
-    if ( dword_ADD7010 )
+    if (streamFrontendGlob.queryInProgress)
         R_StreamUpdate_EndQuery();
-    if ( dword_ADD7010
+    if (streamFrontendGlob.queryInProgress
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    2290,
-                    0,
-                    "%s",
-                    "!streamFrontendGlob.queryInProgress") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            2290,
+            0,
+            "%s",
+            "!streamFrontendGlob.queryInProgress"))
     {
         __debugbreak();
     }
     R_StreamAlloc_Lock();
-    for ( i = 0; i < 10; ++i )
+    for (i = 0; i < 10; ++i)
     {
         request = &s_pendingRequests[i];
-        switch ( request->status )
+        switch (request->status)
         {
-            case STREAM_STATUS_PRE:
-            case STREAM_STATUS_QUEUED:
-                imageIndex = DB_GetImageIndex(request->image);
-                streamFrontendGlob.imageInitialBits[(imageIndex >> 5) - 32] &= ~(1 << (imageIndex & 0x1F));
-                R_Stream_InvalidateRequest(request);
-                break;
-            case STREAM_STATUS_FINISHED:
-                imageIndexa = DB_GetImageIndex(request->image);
-                streamFrontendGlob.imageInitialBits[(imageIndexa >> 5) - 32] &= ~(1 << (imageIndexa & 0x1F));
-                Z_VirtualFree(request->buffer, 20);
-                R_Stream_InvalidateRequest(request);
-                break;
-            case STREAM_STATUS_INPROGRESS:
-                while ( s_pendingRequests[i].status < STREAM_STATUS_CANCELLED
-                         || s_pendingRequests[i].status > STREAM_STATUS_FINISHED )
-                    NET_Sleep(1u);
-                imageIndexb = DB_GetImageIndex(request->image);
-                streamFrontendGlob.imageInitialBits[(imageIndexb >> 5) - 32] &= ~(1 << (imageIndexb & 0x1F));
-                Z_VirtualFree(request->buffer, 20);
-                R_Stream_InvalidateRequest(request);
-                break;
+        case STREAM_STATUS_PRE:
+        case STREAM_STATUS_QUEUED:
+            imageIndex = DB_GetImageIndex(request->image);
+            streamFrontendGlob.imageLoading[(imageIndex >> 5) - 8] &= ~(1 << (imageIndex & 0x1F));
+            R_Stream_InvalidateRequest(request);
+            break;
+        case STREAM_STATUS_FINISHED:
+            imageIndexa = DB_GetImageIndex(request->image);
+            streamFrontendGlob.imageLoading[(imageIndexa >> 5) - 8] &= ~(1 << (imageIndexa & 0x1F));
+            Z_VirtualFree(request->buffer, 20);
+            R_Stream_InvalidateRequest(request);
+            break;
+        case STREAM_STATUS_INPROGRESS:
+            while (s_pendingRequests[i].status < STREAM_STATUS_CANCELLED
+                || s_pendingRequests[i].status > STREAM_STATUS_FINISHED)
+                NET_Sleep(1u);
+            imageIndexb = DB_GetImageIndex(request->image);
+            streamFrontendGlob.imageLoading[(imageIndexb >> 5) - 8] &= ~(1 << (imageIndexb & 0x1F));
+            Z_VirtualFree(request->buffer, 20);
+            R_Stream_InvalidateRequest(request);
+            break;
         }
     }
     R_StreamAlloc_Unlock();
@@ -819,21 +871,21 @@ void __cdecl R_StreamUpdate_Idle()
     }
 }
 
-void __cdecl R_StreamUpdate_CompletePreload(void (__cdecl *pumpfunc)())
+void __cdecl R_StreamUpdate_CompletePreload(void(__cdecl *pumpfunc)())
 {
     float progress; // [esp+0h] [ebp-4h]
 
     R_BeginRemoteScreenUpdate();
-    while ( R_IsRemoteScreenUpdateActive() )
+    while (R_IsRemoteScreenUpdateActive())
     {
-        if ( !R_StreamIsEnabled() )
+        if (!R_StreamIsEnabled())
             break;
-        if ( LOBYTE(streamFrontendGlob.sortedImages[351]) )
+        if (streamFrontendGlob.preloadCancelled)
             break;
         R_StreamAlloc_Lock();
         progress = R_Stream_GetProgress();
         R_StreamAlloc_Unlock();
-        if ( progress >= 1.0 || streamFrontendGlob.sortedImages[350] > 0 )
+        if (progress >= 1.0 || streamFrontendGlob.initialLoadAllocFailures > 0)
             break;
         NET_Sleep(0xAu);
     }
@@ -846,39 +898,43 @@ char __cdecl R_StreamUpdate(const float *viewPos)
 
     //PIXBeginNamedEvent(-1, "stream update");
     updateCalled = 0;
-    if ( r_streamClear->current.enabled || r_stream->modified )
+    if (r_streamClear->current.enabled || r_stream->modified)
     {
         R_StreamSyncThenFlush(1);
         Dvar_ClearModified(r_streamSize);
         Dvar_ClearModified(r_stream);
-        Dvar_SetBool((dvar_s *)r_streamClear, 0);
+        Dvar_SetBool((dvar_s*)r_streamClear, 0);
     }
-    if ( r_streamSize->modified )
+    if (r_streamSize->modified)
     {
         R_StreamSyncThenFlush(0);
         Dvar_ClearModified(r_streamSize);
     }
-    if ( r_streamLowDetail->modified )
+    if (r_streamLowDetail->modified)
     {
-        if ( r_streamLowDetail->current.enabled )
-            //BLOPS_NULLSUB();
+        if (r_streamLowDetail->current.enabled)
+        {
+            //BG_EvalVehicleName();
+        }
         else
-            memset((unsigned __int8 *)&streamFrontendGlob.imageTouchBits[0][104], 0, 0x210u);
+        {
+            memset((unsigned __int8 *)streamFrontendGlob.imageForceBits, 0, 0x210u);
+        }
         Dvar_ClearModified(r_streamLowDetail);
-        BYTE1(streamFrontendGlob.sortedImages[351]) = 1;
+        streamFrontendGlob.diskOrderImagesNeedSorting = 1;
     }
-    if ( r_reflectionProbeGenerate->current.enabled )
+    if (r_reflectionProbeGenerate->current.enabled)
     {
-        //if ( GetCurrentThreadId() == g_DXDeviceThread )
-            //D3DPERF_EndEvent();
+        //if (GetCurrentThreadId() == g_DXDeviceThread)
+        //    D3DPERF_EndEvent();
         return 0;
     }
     else
     {
-        if ( r_stream->current.integer > 0 )
+        if (r_stream->current.integer > 0)
             updateCalled = R_StreamUpdate_FindImageAndOptimize(viewPos);
-        //if ( g_DXDeviceThread == GetCurrentThreadId() )
-            //D3DPERF_EndEvent();
+        //if (g_DXDeviceThread == GetCurrentThreadId())
+        //    D3DPERF_EndEvent();
         return updateCalled;
     }
 }
@@ -887,29 +943,31 @@ void __cdecl R_Stream_AddImagePartImportance(int imagePartIndex, unsigned int im
 {
     unsigned int v2; // [esp+0h] [ebp-8h]
 
-    if ( (unsigned int)imagePartIndex >= 0x1080
+    if ((unsigned int)imagePartIndex >= 4224
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    3345,
-                    0,
-                    "imagePartIndex doesn't index TOTAL_IMAGE_PARTS\n\t%i not in [0, %i)",
-                    imagePartIndex,
-                    4224) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            3345,
+            0,
+            "imagePartIndex doesn't index TOTAL_IMAGE_PARTS\n\t%i not in [0, %i)",
+            imagePartIndex,
+            4224))
     {
         __debugbreak();
     }
-    if ( (float)(*(float *)&importance - *(float *)&streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064]) < 0.0 )
+
+    // KISAKTODO: this abuses imageImportance array neighbors, change index to match
+    if ((float)(*(float *)&importance - *(float *)&streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064]) < 0.0)
         v2 = streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064];
     else
         v2 = importance;
     streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064] = v2;
-    if ( (streamFrontendGlob.dynamicImageImportanceBits[(imagePartIndex >> 5) - 4064] & (1 << (imagePartIndex & 0x1F))) == 0 )
+    if ((streamFrontendGlob.dynamicImageImportanceBits[(imagePartIndex >> 5) - 4064] & (1 << (imagePartIndex & 0x1F))) == 0)
     {
         streamFrontendGlob.dynamicImageImportanceBits[(imagePartIndex >> 5) - 4064] |= 1 << (imagePartIndex & 0x1F);
-        if ( (streamFrontendGlob.imageInSortedListBits[imagePartIndex >> 5] & (1 << (imagePartIndex & 0x1F))) == 0 )
+        if ((streamFrontendGlob.imageInSortedListBits[imagePartIndex >> 5] & (1 << (imagePartIndex & 0x1F))) == 0)
         {
             streamFrontendGlob.imageInSortedListBits[imagePartIndex >> 5] |= 1 << (imagePartIndex & 0x1F);
-            streamFrontendGlob.sortedImages[list_count++ + 352] = (__int16)imagePartIndex;
+            *(int *)((char *)&streamFrontendGlob.sortedImages[streamFrontendGlob.totalBytesWanted++] + 2) = (__int16)imagePartIndex;
         }
     }
 }
@@ -928,6 +986,7 @@ bool __cdecl importance_compare_func(void *a, void *b)
     return (signed int)streamFrontendGlob.imageImportanceBits[(unsigned int)a - 4064] > (signed int)streamFrontendGlob.imageImportanceBits[(unsigned int)b - 4064];
 }
 
+void *aux_buffer[2113];
 void __cdecl importance_merge_sort(void **list, int list_count)
 {
     void **t; // [esp+0h] [ebp-14h]
@@ -971,30 +1030,29 @@ void __cdecl importance_merge_sort(void **list, int list_count)
 
 void __cdecl R_StreamUpdate_EndQuery()
 {
-    if ( dword_ADD7010 != 1
+    if (streamFrontendGlob.queryInProgress != 1
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    4517,
-                    0,
-                    "%s",
-                    "streamFrontendGlob.queryInProgress == 1") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            4517,
+            0,
+            "%s",
+            "streamFrontendGlob.queryInProgress == 1"))
     {
         __debugbreak();
     }
     //PIXBeginNamedEvent(-1, "wait r_stream_sort");
     Sys_WaitWorkerCmdInternal(&r_stream_sortWorkerCmd);
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //D3DPERF_EndEvent();
-    dword_ADD7010 = 0;
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
+    streamFrontendGlob.queryInProgress = 0;
     R_StreamAlloc_Lock();
     R_StreamUpdate_EndQuery_Internal();
     R_StreamAlloc_Unlock();
 }
 
-unsigned intR_StreamUpdate_EndQuery_Internal()
+void  R_StreamUpdate_EndQuery_Internal()
 {
-    unsigned intresult; // eax
-    unsigned int v1; // eax
+    unsigned int v0; // eax
     int i; // [esp+28h] [ebp-24h]
     int sortedIndex; // [esp+2Ch] [ebp-20h]
     XAssetPoolEntry<GfxImage> *image; // [esp+30h] [ebp-1Ch]
@@ -1005,18 +1063,18 @@ unsigned intR_StreamUpdate_EndQuery_Internal()
 
     sortedIndex = 0;
     //PIXBeginNamedEvent(-1, "R_Stream EndQuery");
-    if ( Sys_IsRenderThread() )
+    if (Sys_IsRenderThread())
         R_StreamUpdate_ProcessFileCallbacks();
 LABEL_3:
-    while ( sortedIndex != list_count )
+    while (sortedIndex != streamFrontendGlob.totalBytesWanted)
     {
         movesPending = CG_IsShowingZombieMap();
         request = 0;
-        for ( i = 0; i < 10; ++i )
+        for (i = 0; i < 10; ++i)
         {
-            if ( request || s_pendingRequests[i].status )
+            if (request || s_pendingRequests[i].status)
             {
-                if ( s_pendingRequests[i].status == STREAM_STATUS_PRE && !movesPending )
+                if (s_pendingRequests[i].status == STREAM_STATUS_PRE && !movesPending)
                     R_StreamRequestImageRead(&s_pendingRequests[i]);
             }
             else
@@ -1024,55 +1082,48 @@ LABEL_3:
                 request = &s_pendingRequests[i];
             }
         }
-        if ( !request )
+        if (!request)
         {
-            result = GetCurrentThreadId();
-            if ( result != g_DXDeviceThread )
-                return result;
-            return //D3DPERF_EndEvent();
+            //if (GetCurrentThreadId() != g_DXDeviceThread)
+            //    return;
+            goto LABEL_39;
         }
-        while ( sortedIndex < list_count )
+        while (sortedIndex < streamFrontendGlob.totalBytesWanted)
         {
-            imagePartIndex = streamFrontendGlob.sortedImages[sortedIndex + 352];
-            if ( (streamFrontendGlob.imageInitialBits[(imagePartIndex >> 5) + 100] & (1 << (imagePartIndex & 0x1F))) == 0 )
+            imagePartIndex = *(int *)((char *)&streamFrontendGlob.sortedImages[sortedIndex] + 2);
+            if ((streamFrontendGlob.imageUseBits[(imagePartIndex >> 5) - 4] & (1 << (imagePartIndex & 0x1F))) == 0)
             {
-                v1 = imagePartIndex & 0x80000000;
-                if ( imagePartIndex < 0 )
-                    v1 = 0;
-                imagePart = v1;
-                if ( (streamFrontendGlob.imageInitialBits[(imagePartIndex >> 5) - 32] & (1 << (imagePartIndex & 0x1F))) == 0 )
+                v0 = imagePartIndex & 0x80000000;
+                if (imagePartIndex < 0)
+                    v0 = 0;
+                imagePart = v0;
+                if ((streamFrontendGlob.imageLoading[(imagePartIndex >> 5) - 8] & (1 << (imagePartIndex & 0x1F))) == 0)
                 {
                     image = DB_GetImageAtIndex(imagePartIndex);
-                    if ( image->entry.streaming )
+                    if (image->entry.streaming)
                     {
-                        if ( image->entry.streaming != 3 && image->entry.skippedMipLevels )
+                        if (image->entry.streaming != 3 && image->entry.skippedMipLevels)
                         {
-                            if ( R_StreamRequestImageAllocation(
-                                         request,
-                                         &image->entry,
-                                         1,
-                                         imagePart,
-                                         *(float *)&streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064]) )
+                            if (R_StreamRequestImageAllocation(
+                                request,
+                                &image->entry,
+                                1,
+                                imagePart,
+                                *(float *)&streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064]))
                             {
-                                streamFrontendGlob.sortedImages[350] = 0;
-                                if ( CG_IsShowingZombieMap() || R_StreamRequestImageRead(request) )
+                                streamFrontendGlob.initialLoadAllocFailures = 0;
+                                if (CG_IsShowingZombieMap() || R_StreamRequestImageRead(request))
                                     goto LABEL_3;
-                                result = GetCurrentThreadId();
-                                if ( result == g_DXDeviceThread )
-                                    return //D3DPERF_EndEvent();
+                                //if (GetCurrentThreadId() == g_DXDeviceThread)
+                                //    goto LABEL_39;
                             }
                             else
                             {
-                                ++streamFrontendGlob.sortedImages[350];
-                                result = GetCurrentThreadId();
-                                if ( result == (unsigned int)g_DXDeviceThread )
-                                {
-                                    result = 0;
-                                    if ( !HIDWORD(g_DXDeviceThread) )
-                                        return //D3DPERF_EndEvent();
-                                }
+                                ++streamFrontendGlob.initialLoadAllocFailures;
+                                //if (GetCurrentThreadId() == g_DXDeviceThread)
+                                //    goto LABEL_39;
                             }
-                            return result;
+                            return;
                         }
                     }
                 }
@@ -1080,62 +1131,59 @@ LABEL_3:
             ++sortedIndex;
         }
     }
-    result = GetCurrentThreadId();
-    if ( result == (unsigned int)g_DXDeviceThread )
-    {
-        result = 0;
-        if ( !HIDWORD(g_DXDeviceThread) )
-            return //D3DPERF_EndEvent();
-    }
-    return result;
+    //if (GetCurrentThreadId() != g_DXDeviceThread)
+    //    return;
+LABEL_39:
+    ;
+    //D3DPERF_EndEvent();
 }
 
 char __cdecl R_StreamRequestImageAllocation(
-                pendingRequest *request,
-                GfxImage *image,
-                bool highMip,
-                int imagePart,
-                float importance)
+    pendingRequest *request,
+    GfxImage *image,
+    bool highMip,
+    int imagePart,
+    float importance)
 {
-    const char *v6; // eax
+    char *v6; // eax
     int imageIndex; // [esp+Ch] [ebp-4h]
 
-    if ( !image && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 749, 0, "%s", "image") )
+    if (!image && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 749, 0, "%s", "image"))
         __debugbreak();
-    if ( !request
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 750, 0, "%s", "request") )
+    if (!request
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 750, 0, "%s", "request"))
     {
         __debugbreak();
     }
-    if ( image->streaming == 3
+    if (image->streaming == 3
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    752,
-                    0,
-                    "%s",
-                    "image->streaming != GFX_TEMP_STREAMING") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            752,
+            0,
+            "%s",
+            "image->streaming != GFX_TEMP_STREAMING"))
     {
         __debugbreak();
     }
-    if ( !image->streaming )
+    if (!image->streaming)
         return 0;
-    if ( request->image
+    if (request->image
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    758,
-                    0,
-                    "%s",
-                    "request->image == NULL") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            758,
+            0,
+            "%s",
+            "request->image == NULL"))
     {
         __debugbreak();
     }
-    if ( request->status
+    if (request->status
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    759,
-                    0,
-                    "%s",
-                    "request->status == STREAM_STATUS_INVALID") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            759,
+            0,
+            "%s",
+            "request->status == STREAM_STATUS_INVALID"))
     {
         __debugbreak();
     }
@@ -1146,28 +1194,28 @@ char __cdecl R_StreamRequestImageAllocation(
     request->bufferSize = 0;
     request->buffer = 0;
     request->highMip = highMip;
-    if ( r_streamLog && r_streamLog->current.value > 0.0 )
+    if (r_streamLog && r_streamLog->current.value > 0.0)
     {
         v6 = va(
-                     "-STREAM-allocation complete. bytes=%d,image=%s,imagePart=%d,importance=%f\n",
-                     request->bufferSize,
-                     image->name,
-                     imagePart,
-                     importance);
+            "-STREAM-allocation complete. bytes=%d,image=%s,imagePart=%d,importance=%f\n",
+            request->bufferSize,
+            image->name,
+            imagePart,
+            importance);
         Com_PrintMessage(16, v6, 0);
     }
     imageIndex = DB_GetImageIndex(image);
-    if ( (streamFrontendGlob.imageInitialBits[(imageIndex >> 5) - 32] & (1 << (imageIndex & 0x1F))) != 0
+    if ((streamFrontendGlob.imageLoading[(imageIndex >> 5) - 8] & (1 << (imageIndex & 0x1F))) != 0
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    786,
-                    0,
-                    "%s",
-                    "!( streamFrontendGlob.imageLoading[ BIT_INDEX_32( imageIndex ) ] & BIT_MASK_32( imageIndex ) )") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            786,
+            0,
+            "%s",
+            "!( streamFrontendGlob.imageLoading[ BIT_INDEX_32( imageIndex ) ] & BIT_MASK_32( imageIndex ) )"))
     {
         __debugbreak();
     }
-    streamFrontendGlob.imageInitialBits[(imageIndex >> 5) - 32] |= 1 << (imageIndex & 0x1F);
+    streamFrontendGlob.imageLoading[(imageIndex >> 5) - 8] |= 1 << (imageIndex & 0x1F);
     request->status = STREAM_STATUS_PRE;
     request->id[0] = -1;
     return 1;
@@ -1185,49 +1233,48 @@ char __cdecl R_StreamRequestImageRead(pendingRequest *request)
     image = request->image;
     imageIndex = DB_GetImageIndex(image);
     request->status = STREAM_STATUS_QUEUED;
-    if ( request->highMip )
+    if (request->highMip)
     {
         unloadImage = 0;
-        if ( R_StreamAlloc_CanAllocate(image->baseSize, request->importance, &unloadImage) && unloadImage )
+        if (R_StreamAlloc_CanAllocate(image->baseSize, request->importance, &unloadImage) && unloadImage)
         {
             unloadRequest = 0;
-            for ( i = 0; i < 10; ++i )
+            for (i = 0; i < 10; ++i)
             {
-                if ( s_pendingRequests[i].status == STREAM_STATUS_INVALID )
+                if (s_pendingRequests[i].status == STREAM_STATUS_INVALID)
                 {
                     unloadRequest = &s_pendingRequests[i];
                     break;
                 }
             }
-            if ( unloadRequest )
+            if (unloadRequest)
             {
                 unloadImagePartIndex = DB_GetImageIndex(unloadImage);
-                if ( (streamFrontendGlob.imageInitialBits[(unloadImagePartIndex >> 5) + 100]
-                        & (1 << (unloadImagePartIndex & 0x1F))) == 0
+                if ((streamFrontendGlob.imageUseBits[(unloadImagePartIndex >> 5) - 4] & (1 << (unloadImagePartIndex & 0x1F))) == 0
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                                890,
-                                0,
-                                "%s",
-                                "streamFrontendGlob.imageUseBits[BIT_INDEX_32(unloadImagePartIndex)] & BIT_MASK_32(unloadImagePartIndex)") )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                        890,
+                        0,
+                        "%s",
+                        "streamFrontendGlob.imageUseBits[BIT_INDEX_32(unloadImagePartIndex)] & BIT_MASK_32(unloadImagePartIndex)"))
                 {
                     __debugbreak();
                 }
-                if ( R_StreamRequestImageAllocation(
-                             unloadRequest,
-                             unloadImage,
-                             0,
-                             0,
-                             *(float *)&streamFrontendGlob.imageImportanceBits[unloadImagePartIndex - 4064])
-                    && R_StreamRequestImageRead(unloadRequest) )
+                if (R_StreamRequestImageAllocation(
+                    unloadRequest,
+                    unloadImage,
+                    0,
+                    0,
+                    *(float *)&streamFrontendGlob.imageImportanceBits[unloadImagePartIndex - 4064])
+                    && R_StreamRequestImageRead(unloadRequest))
                 {
                     unloadImage = 0;
                 }
             }
         }
-        if ( unloadImage )
+        if (unloadImage)
         {
-            streamFrontendGlob.imageInitialBits[(imageIndex >> 5) - 32] &= ~(1 << (imageIndex & 0x1F));
+            streamFrontendGlob.imageLoading[(imageIndex >> 5) - 8] &= ~(1 << (imageIndex & 0x1F));
             R_Stream_InvalidateRequest(request);
             return 0;
         }
@@ -1251,51 +1298,51 @@ char __cdecl R_StreamUpdate_FindImageAndOptimize(const float *viewPos)
     float maxDistSq; // [esp+3Ch] [ebp-Ch]
     StreamSortCmd sortCmd; // [esp+40h] [ebp-8h] BYREF
 
-    if ( !streamIsInitialized
+    if (!streamIsInitialized
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    4536,
-                    0,
-                    "%s",
-                    "streamIsInitialized") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            4536,
+            0,
+            "%s",
+            "streamIsInitialized"))
     {
         __debugbreak();
     }
-    if ( r_streamFreezeState->current.enabled )
+    if (r_streamFreezeState->current.enabled)
         return 0;
-    if ( r_streamCheckAabb->current.enabled )
+    if (r_streamCheckAabb->current.enabled)
         R_CheckHighmipAabbs();
     Sys_EnterCriticalSection(CRITSECT_STREAM_SYNC_COMMAND);
-    if ( dword_ADD7010 )
+    if (streamFrontendGlob.queryInProgress)
         R_StreamUpdate_EndQuery();
-    if ( R_StreamUpdate_TryBeginQuery() )
+    if (R_StreamUpdate_TryBeginQuery())
     {
-        if ( dword_ADD700C != -1
+        if (streamFrontendGlob.queryClient != -1
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                        4559,
-                        0,
-                        "%s",
-                        "streamFrontendGlob.queryClient == -1") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                4559,
+                0,
+                "%s",
+                "streamFrontendGlob.queryClient == -1"))
         {
             __debugbreak();
         }
         maxDistSq = r_streamMaxDist->current.value * r_streamMaxDist->current.value;
         //PIXBeginNamedEvent(-1, "R_Stream update");
-        dword_ADD7010 = 1;
-        dword_ADD700C = 0;
-        if ( rgp.world && viewPos )
+        streamFrontendGlob.queryInProgress = 1;
+        streamFrontendGlob.queryClient = 0;
+        if (rgp.world && viewPos)
         {
-            BYTE1(streamFrontendGlob.sortedImages[351]) = 1;
+            streamFrontendGlob.diskOrderImagesNeedSorting = 1;
             ++streamFrontendGlob.frame;
-            byte_ADD7014 = byte_ADD7015;
+            streamFrontendGlob.diskOrder = streamFrontendGlob.forceDiskOrder;
             R_StreamUpdatePreventedMaterials();
             R_StreamUpdateForcedModels();
             R_StreamUpdateTouchedModels();
             memset((unsigned __int8 *)streamFrontendGlob.modelTouchBits, 0, sizeof(streamFrontendGlob.modelTouchBits));
             R_StreamUpdate_AddForcedImages(
-                *(float *)&streamFrontendGlob.sortedImages[348],
-                *(float *)&streamFrontendGlob.sortedImages[346]);
+                streamFrontendGlob.forcedImageImportance,
+                streamFrontendGlob.touchedImageImportance);
             updateCmd.frontend = &streamFrontendGlob;
             updateCmd.viewPos[0] = *viewPos;
             updateCmd.viewPos[1] = viewPos[1];
@@ -1304,9 +1351,9 @@ char __cdecl R_StreamUpdate_FindImageAndOptimize(const float *viewPos)
             updateCmd.distanceScale[1] = 1.0f;
             LODWORD(updateCmd.distanceScale[0]) = r_streamHiddenPush->current.integer;
             Sys_AddWorkerCmdInternal(&r_stream_updateWorkerCmd, (unsigned __int8 *)&updateCmd, 0);
-            for ( hint = 0; hint < 4; ++hint )
+            for (hint = 0; hint < 4; ++hint)
             {
-                if ( s_streamHints[hint].importance > 0.0 )
+                if (s_streamHints[hint].importance > 0.0)
                 {
                     updateCmd.distanceScale[1] = 1.0 / s_streamHints[hint].importance;
                     updateCmd.distanceScale[0] = updateCmd.distanceScale[1];
@@ -1317,25 +1364,25 @@ char __cdecl R_StreamUpdate_FindImageAndOptimize(const float *viewPos)
                 }
             }
             Sys_LeaveCriticalSection(CRITSECT_STREAM_SYNC_COMMAND);
-            //if ( GetCurrentThreadId() == g_DXDeviceThread )
-                //D3DPERF_EndEvent();
+            //if (GetCurrentThreadId() == g_DXDeviceThread)
+            //    D3DPERF_EndEvent();
             return 1;
         }
         else
         {
             ++streamFrontendGlob.frame;
-            byte_ADD7014 = 1;
+            streamFrontendGlob.diskOrder = 1;
             R_StreamUpdate_AddForcedImages(
-                *(float *)&streamFrontendGlob.sortedImages[348],
-                *(float *)&streamFrontendGlob.sortedImages[346]);
-            R_StreamUpdate_AddInitialImages(streamFrontendGlob.sortedImages[347]);
+                streamFrontendGlob.forcedImageImportance,
+                streamFrontendGlob.touchedImageImportance);
+            R_StreamUpdate_AddInitialImages(streamFrontendGlob.initialImageImportance);
             sortCmd.frontend = &streamFrontendGlob;
             sortCmd.diskOrder = 1;
             Sys_AddWorkerCmdInternal(&r_stream_sortWorkerCmd, (unsigned __int8 *)&sortCmd, 0);
-            dword_ADD700C = -1;
+            streamFrontendGlob.queryClient = -1;
             Sys_LeaveCriticalSection(CRITSECT_STREAM_SYNC_COMMAND);
-            //if ( GetCurrentThreadId() == g_DXDeviceThread )
-                //D3DPERF_EndEvent();
+            //if (GetCurrentThreadId() == g_DXDeviceThread)
+            //    D3DPERF_EndEvent();
             return 1;
         }
     }
@@ -1350,95 +1397,59 @@ void __cdecl R_StreamUpdate_AddInitialImages(unsigned int importance)
 {
     int imagePartIndex; // [esp+4h] [ebp-4h]
 
-    for ( imagePartIndex = 0; imagePartIndex < 4224; ++imagePartIndex )
+    for (imagePartIndex = 0; imagePartIndex < 4224; ++imagePartIndex)
     {
-        if ( (streamFrontendGlob.imageTouchBits[1][(imagePartIndex >> 5) + 108] & (1 << (imagePartIndex & 0x1F))) != 0 )
+        if ((streamFrontendGlob.imageInitialBits[imagePartIndex >> 5] & (1 << (imagePartIndex & 0x1F))) != 0)
             R_Stream_AddImagePartImportance(imagePartIndex, importance);
     }
 }
 
-void __cdecl R_StreamUpdate_AddForcedImages(float forceImportance, float touchImportance)
+// aislop to remove bitscan
+void R_StreamUpdate_AddForcedImages(float forceImportance, float touchImportance)
 {
-    bool v2; // zf
-    int v3; // eax
-    unsigned int v4; // ecx
-    int v5; // eax
-    int v6; // eax
-    int v7; // eax
-    unsigned int mask; // [esp+1Ch] [ebp-1Ch]
-    unsigned int useBits; // [esp+20h] [ebp-18h]
-    unsigned int forceBits; // [esp+24h] [ebp-14h]
-    unsigned int touchBits; // [esp+28h] [ebp-10h]
-    int part; // [esp+2Ch] [ebp-Ch]
-    int bitIndex; // [esp+30h] [ebp-8h]
-    int bitIndexa; // [esp+30h] [ebp-8h]
-    int index; // [esp+34h] [ebp-4h]
+    streamFrontendGlob.activeImageTouchBits ^= 1u;
 
-    //PIXBeginNamedEvent(-1, "r_stream_add_forced_images");
-    streamFrontendGlob.sortedImages[345] ^= 1u;
-    for ( index = 0; index < 132; ++index )
+    for (int index = 0; index < 132; ++index)
     {
-        touchBits = streamFrontendGlob.sortedImages[index + 213] | streamFrontendGlob.sortedImages[index + 81];
-        forceBits = streamFrontendGlob.imageTouchBits[0][index + 104] | touchBits;
-        useBits = streamFrontendGlob.imageInitialBits[index + 100] & ~forceBits;
-        v2 = !_BitScanReverse((unsigned int *)&v3, forceBits);
-        if ( v2 )
-            v3 = `CountLeadingZeros'::`2'::notFound;
-        for ( bitIndex = 31 - (v3 ^ 0x1F); bitIndex >= 0; bitIndex = 31 - (v5 ^ 0x1F) )
+        unsigned int touchBits = streamFrontendGlob.imageTouchBits[1][index] | streamFrontendGlob.imageTouchBits[0][index];
+        unsigned int forceBits = streamFrontendGlob.imageForceBits[index] | touchBits;
+        unsigned int useBits = streamFrontendGlob.imageUseBits[index - 4] & ~forceBits;
+
+        // process forced/touched bits
+        for (int bitIndex = 0; bitIndex < 32; ++bitIndex)
         {
-            mask = 1 << (bitIndex & 0x1F);
-            if ( (forceBits & mask) == 0
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                            1498,
-                            0,
-                            "%s",
-                            "forceBits & BIT_MASK_32( bitIndex )") )
+            unsigned int mask = 1u << bitIndex;
+            if (forceBits & mask)
             {
-                __debugbreak();
+                forceBits &= ~mask;
+
+                int part = 1 + bitIndex + 32 * index; // or 1-based as original
+                float importance = (touchBits & mask) ? touchImportance / static_cast<float>(part)
+                    : forceImportance / static_cast<float>(part);
+                R_Stream_AddImagePartImportance(bitIndex + 32 * index, *reinterpret_cast<unsigned int *>(&importance));
             }
-            forceBits &= ~mask;
-            v4 = (bitIndex + 32 * index) & 0x80000000;
-            if ( bitIndex + 32 * index < 0 )
-                v4 = 0;
-            part = v4 + 1;
-            if ( (mask & touchBits) != 0 )
-                R_Stream_AddImagePartImportance(bitIndex + 32 * index, COERCE_UNSIGNED_INT(touchImportance / (float)part));
-            else
-                R_Stream_AddImagePartImportance(bitIndex + 32 * index, COERCE_UNSIGNED_INT(forceImportance / (float)part));
-            v2 = !_BitScanReverse((unsigned int *)&v5, forceBits);
-            if ( v2 )
-                v5 = `CountLeadingZeros'::`2'::notFound;
         }
-        v2 = !_BitScanReverse((unsigned int *)&v6, useBits);
-        if ( v2 )
-            v6 = `CountLeadingZeros'::`2'::notFound;
-        for ( bitIndexa = 31 - (v6 ^ 0x1F); bitIndexa >= 0; bitIndexa = 31 - (v7 ^ 0x1F) )
+
+        // process remaining useBits
+        for (int bitIndex = 0; bitIndex < 32; ++bitIndex)
         {
-            if ( (useBits & (1 << (bitIndexa & 0x1F))) == 0
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                            1513,
-                            0,
-                            "%s",
-                            "useBits & BIT_MASK_32( bitIndex )") )
+            unsigned int mask = 1u << bitIndex;
+            if (useBits & mask)
             {
-                __debugbreak();
+                useBits &= ~mask;
+                float zeroImportance = 0.0f;
+                R_Stream_AddImagePartImportance(bitIndex + 32 * index, *reinterpret_cast<unsigned int *>(&zeroImportance));
             }
-            useBits &= ~(1 << (bitIndexa & 0x1F));
-            R_Stream_AddImagePartImportance(bitIndexa + 32 * index, COERCE_UNSIGNED_INT(0.0));
-            v2 = !_BitScanReverse((unsigned int *)&v7, useBits);
-            if ( v2 )
-                v7 = `CountLeadingZeros'::`2'::notFound;
         }
     }
+
     memset(
-        (unsigned __int8 *)&streamFrontendGlob.sortedImages[132 * (streamFrontendGlob.sortedImages[345] ^ 1) + 81],
+        streamFrontendGlob.imageTouchBits[streamFrontendGlob.activeImageTouchBits ^ 1],
         0,
-        0x210u);
-    //if ( g_DXDeviceThread == GetCurrentThreadId() )
-        //D3DPERF_EndEvent();
+        sizeof(streamFrontendGlob.imageTouchBits[streamFrontendGlob.activeImageTouchBits ^ 1])
+    );
 }
+
 
 void R_StreamUpdatePreventedMaterials()
 {
@@ -1446,9 +1457,9 @@ void R_StreamUpdatePreventedMaterials()
     int i; // [esp+4h] [ebp-4h]
 
     memset((unsigned __int8 *)streamFrontendGlob.materialPreventBits, 0, sizeof(streamFrontendGlob.materialPreventBits));
-    for ( i = 0; i < 32; ++i )
+    for (i = 0; i < 32; ++i)
     {
-        if ( s_preventMaterials[i] )
+        if (s_preventMaterials[i])
         {
             materialIndex = DB_GetMaterialIndex(s_preventMaterials[i]);
             streamFrontendGlob.materialPreventBits[materialIndex >> 5] |= 1 << (materialIndex & 0x1F);
@@ -1464,9 +1475,9 @@ void R_CheckHighmipAabbs()
     maxs[0] = 131072.0f;
     maxs[1] = 131072.0f;
     maxs[2] = 131072.0f;
-    mins[0] = FLOAT_N131072_0;
-    mins[1] = FLOAT_N131072_0;
-    mins[2] = FLOAT_N131072_0;
+    mins[0] = -131072.0f;
+    mins[1] = -131072.0f;
+    mins[2] = -131072.0f;
     R_CheckHighmipAabbs_r(rgp.world, 0, mins, maxs);
 }
 
@@ -1561,12 +1572,12 @@ void __cdecl R_CheckHighmipAabbs_r(GfxWorld *world, int aabbTreeNode, float *min
 
 char __cdecl R_StreamUpdate_TryBeginQuery()
 {
-    if ( dword_ADD7010 || !R_StreamIsEnabled() )
+    if (streamFrontendGlob.queryInProgress || !R_StreamIsEnabled())
         return 0;
-    if ( byte_ADD7016 )
+    if (streamFrontendGlob.outputImageList)
     {
         R_ImageList_Output();
-        byte_ADD7016 = 0;
+        streamFrontendGlob.outputImageList = 0;
     }
     memset((unsigned __int8 *)streamFrontendGlob.materialImportance, 0, sizeof(streamFrontendGlob.materialImportance));
     memset(
@@ -1576,7 +1587,7 @@ char __cdecl R_StreamUpdate_TryBeginQuery()
     memset((unsigned __int8 *)streamFrontendGlob.modelDistance, 0, sizeof(streamFrontendGlob.modelDistance));
     memset((unsigned __int8 *)streamFrontendGlob.modelDistanceBits, 0, sizeof(streamFrontendGlob.modelDistanceBits));
     memset((unsigned __int8 *)&streamFrontendGlob.imageImportance[32], 0, 0x4200u);
-    memset((unsigned __int8 *)&streamFrontendGlob.dynamicImageImportance[32], 0, 0x210u);
+    memset((unsigned __int8 *)&streamFrontendGlob.dynamicImageImportance[32], 0, 528u);
     memset((unsigned __int8 *)streamFrontendGlob.dynamicModelDistance, 0, sizeof(streamFrontendGlob.dynamicModelDistance));
     memset(
         (unsigned __int8 *)streamFrontendGlob.dynamicModelDistanceBits,
@@ -1590,13 +1601,13 @@ void R_StreamUpdateTouchedModels()
     XAssetPoolEntry<XModel> *model; // [esp+0h] [ebp-8h]
     signed int modelIndex; // [esp+4h] [ebp-4h]
 
-    for ( modelIndex = 0; (unsigned int)modelIndex < 0x3E8; ++modelIndex )
+    for (modelIndex = 0; (unsigned int)modelIndex < 0x3E8; ++modelIndex)
     {
-        if ( (streamFrontendGlob.modelTouchBits[modelIndex >> 5] & (1 << (modelIndex & 0x1F))) != 0 )
+        if ((streamFrontendGlob.modelTouchBits[modelIndex >> 5] & (1 << (modelIndex & 0x1F))) != 0)
         {
             model = DB_GetXModelAtIndex(modelIndex);
-            if ( !model
-                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 3570, 0, "%s", "model") )
+            if (!model
+                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 3570, 0, "%s", "model"))
             {
                 __debugbreak();
             }
@@ -1633,7 +1644,7 @@ void __cdecl R_StreamUpdateForXModelTouched(const XModel *model)
 void __cdecl R_StreamUpdateForcedModels()
 {
     int lod; // [esp+24h] [ebp-30h]
-    unsigned int distSq; // [esp+28h] [ebp-2Ch]
+    float distSq; // [esp+28h] [ebp-2Ch]
     int i; // [esp+30h] [ebp-24h]
     XModel *model; // [esp+34h] [ebp-20h]
     Material **material; // [esp+38h] [ebp-1Ch]
@@ -1646,21 +1657,21 @@ void __cdecl R_StreamUpdateForcedModels()
 
     surfCountPrevLods = 0;
     Sys_EnterCriticalSection(CRITSECT_STREAM_FORCE_LOAD_COMMAND);
-    for ( i = 0; i < s_numForcedLoadEntities; ++i )
+    for (i = 0; i < s_numForcedLoadEntities; ++i)
     {
         modelCount = DObjGetNumModels(s_forcedLoadEntities[i]);
-        distSq = streamFrontendGlob.sortedImages[348];
-        for ( modelIter = 0; modelIter != modelCount; ++modelIter )
+        distSq = streamFrontendGlob.forcedImageImportance;
+        for (modelIter = 0; modelIter != modelCount; ++modelIter)
         {
             model = DObjGetModel(s_forcedLoadEntities[i], modelIter);
-            for ( lod = 0; lod < 4; ++lod )
+            for (lod = 0; lod < 4; ++lod)
             {
                 surfCount = XModelGetSurfaces(model, &surfaces, lod);
                 material = XModelGetSkins(model, lod);
                 surfIter = 0;
-                while ( surfIter != surfCount )
+                while (surfIter != surfCount)
                 {
-                    if ( (*material)->textureCount )
+                    if ((*material)->textureCount)
                         R_StreamTouchImagesFromMaterial(*material, distSq);
                     ++surfIter;
                     ++material;
@@ -1717,24 +1728,24 @@ void __cdecl R_StreamUpdatePerClient(const float *viewPos)
     float distanceScale[2]; // [esp+30h] [ebp-Ch] BYREF
     float maxDistSq; // [esp+38h] [ebp-4h]
 
-    if ( !streamIsInitialized
+    if (!streamIsInitialized
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    4649,
-                    0,
-                    "%s",
-                    "streamIsInitialized") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            4649,
+            0,
+            "%s",
+            "streamIsInitialized"))
     {
         __debugbreak();
     }
-    if ( !r_streamFreezeState->current.enabled && rgp.world && viewPos )
+    if (!r_streamFreezeState->current.enabled && rgp.world && viewPos)
     {
         Sys_EnterCriticalSection(CRITSECT_STREAM_SYNC_COMMAND);
-        if ( dword_ADD7010 && dword_ADD700C != -1 )
+        if (streamFrontendGlob.queryInProgress && streamFrontendGlob.queryClient != -1)
         {
             //PIXBeginNamedEvent(-1, "R_Stream update per client");
             maxDistSq = r_streamMaxDist->current.value * r_streamMaxDist->current.value;
-            if ( dword_ADD700C > 0 )
+            if (streamFrontendGlob.queryClient > 0)
             {
                 updateCmd.frontend = &streamFrontendGlob;
                 updateCmd.viewPos[0] = *viewPos;
@@ -1748,10 +1759,10 @@ void __cdecl R_StreamUpdatePerClient(const float *viewPos)
             distanceScale[1] = 1.0f;
             distanceScale[0] = r_streamHiddenPush->current.value;
             R_StreamUpdateDynamicModels(viewPos, maxDistSq, streamFrontendGlob.frame, distanceScale);
-            ++dword_ADD700C;
+            ++streamFrontendGlob.queryClient;
             Sys_LeaveCriticalSection(CRITSECT_STREAM_SYNC_COMMAND);
-            //if ( g_DXDeviceThread == GetCurrentThreadId() )
-                //D3DPERF_EndEvent();
+            //if (g_DXDeviceThread == GetCurrentThreadId())
+            //    D3DPERF_EndEvent();
         }
         else
         {
@@ -1761,10 +1772,10 @@ void __cdecl R_StreamUpdatePerClient(const float *viewPos)
 }
 
 void __cdecl R_StreamUpdateDynamicModels(
-                const float *viewPos,
-                float maxDistSq,
-                unsigned int frame,
-                float *distanceScale)
+    const float *viewPos,
+    float maxDistSq,
+    unsigned int frame,
+    float *distanceScale)
 {
     unsigned __int16 physicsBrushModel; // [esp+1Ah] [ebp-12Eh]
     volatile int brushModelIndex; // [esp+104h] [ebp-44h]
@@ -1792,14 +1803,14 @@ void __cdecl R_StreamUpdateDynamicModels(
     volatile int entCountd; // [esp+144h] [ebp-4h]
 
     entCount = scene.sceneDObjCount;
-    for ( entIndex = 0; entIndex < entCount; ++entIndex )
+    for (entIndex = 0; entIndex < entCount; ++entIndex)
     {
         sceneEnt = &scene.sceneDObj[entIndex];
-        if ( (!rg.enablePlayerShadowFlag || !DObjIsPlayerShadow(sceneEnt->obj))
-            && (frontEndDataOut->gfxEnts[sceneEnt->gfxEntIndex].renderFxFlags & 1) == 0 )
+        if ((!rg.enablePlayerShadowFlag || !DObjIsPlayerShadow(sceneEnt->obj))
+            && (frontEndDataOut->gfxEnts[sceneEnt->gfxEntIndex].renderFxFlags & 1) == 0)
         {
             modelCount = DObjGetNumModels(sceneEnt->obj);
-            for ( modelIter = 0; modelIter != modelCount; ++modelIter )
+            for (modelIter = 0; modelIter != modelCount; ++modelIter)
             {
                 model = DObjGetModel(sceneEnt->obj, modelIter);
                 R_StreamUpdate_AddDynamicXModelDistance(
@@ -1813,7 +1824,7 @@ void __cdecl R_StreamUpdateDynamicModels(
         }
     }
     entCounta = scene.sceneModelCount;
-    for ( entIndexa = 0; entIndexa < entCounta; ++entIndexa )
+    for (entIndexa = 0; entIndexa < entCounta; ++entIndexa)
         R_StreamUpdate_AddDynamicXModelDistance(
             scene.sceneModel[entIndexa].model,
             viewPos,
@@ -1822,12 +1833,12 @@ void __cdecl R_StreamUpdateDynamicModels(
             scene.sceneModelVisData[0][entIndexa] == 1,
             distanceScale);
     entCountb = scene.sceneDynBrushCount;
-    for ( entIndexb = 0; entIndexb < entCountb; ++entIndexb )
+    for (entIndexb = 0; entIndexb < entCountb; ++entIndexb)
     {
         sceneDynBrush = &rgp.world->sceneDynBrush[entIndexb];
         dynEntId = sceneDynBrush->dynEntId;
         dynEntDef = DynEnt_GetEntityDef(dynEntId, DYNENT_DRAW_BRUSH);
-        if ( dynEntDef->physicsBrushModel )
+        if (dynEntDef->physicsBrushModel)
             physicsBrushModel = dynEntDef->physicsBrushModel;
         else
             physicsBrushModel = dynEntDef->brushModel;
@@ -1845,7 +1856,7 @@ void __cdecl R_StreamUpdateDynamicModels(
             distanceScale);
     }
     entCountc = scene.sceneDynModelCount;
-    for ( entIndexc = 0; entIndexc < entCountc; ++entIndexc )
+    for (entIndexc = 0; entIndexc < entCountc; ++entIndexc)
     {
         dynEntIda = rgp.world->sceneDynModel[entIndexc].dynEntId;
         dynEntDefa = DynEnt_GetEntityDef(dynEntIda, DYNENT_DRAW_MODEL);
@@ -1853,7 +1864,7 @@ void __cdecl R_StreamUpdateDynamicModels(
         _mm_prefetch((const char *)dynEntDefa->destroyedxModel, 1);
         ClientPose = DynEnt_GetClientPose(dynEntIda, DYNENT_DRAW_MODEL);
         R_StreamUpdate_AddDynamicXModelDistance(dynEntDefa->xModel, viewPos, ClientPose->pose.origin, 1.0, 1, distanceScale);
-        if ( dynEntDefa->destroyedxModel )
+        if (dynEntDefa->destroyedxModel)
             R_StreamUpdate_AddDynamicXModelDistance(
                 dynEntDefa->destroyedxModel,
                 viewPos,
@@ -1862,9 +1873,9 @@ void __cdecl R_StreamUpdateDynamicModels(
                 1,
                 distanceScale);
     }
-    for ( brushModelIndex = 0; brushModelIndex < scene.sceneBrushCount; ++brushModelIndex )
+    for (brushModelIndex = 0; brushModelIndex < scene.sceneBrushCount; ++brushModelIndex)
     {
-        if ( scene.sceneBrushVisData[0][brushModelIndex] == 1 )
+        if (scene.sceneBrushVisData[0][brushModelIndex] == 1)
             R_StreamUpdateForBModel(
                 viewPos,
                 frame,
@@ -1877,9 +1888,9 @@ void __cdecl R_StreamUpdateDynamicModels(
                 distanceScale);
     }
     entCountd = scene.glassBrushCount;
-    for ( entIndexd = 0; entIndexd < entCountd; ++entIndexd )
+    for (entIndexd = 0; entIndexd < entCountd; ++entIndexd)
     {
-        if ( scene.glassBrushVisData[entIndexd] == 1 )
+        if (scene.glassBrushVisData[entIndexd] == 1)
             R_StreamUpdateForBModel(
                 viewPos,
                 frame,
@@ -1894,15 +1905,15 @@ void __cdecl R_StreamUpdateDynamicModels(
 }
 
 void __cdecl R_StreamUpdateForBModel(
-                const float *viewPos,
-                unsigned int frame,
-                unsigned int surfId,
-                const GfxBrushModel *bmodel,
-                const float *origin,
-                float maxDistSq,
-                Material *altMaterial,
-                bool isVisible,
-                float *distanceScale)
+    const float *viewPos,
+    unsigned int frame,
+    unsigned int surfId,
+    const GfxBrushModel *bmodel,
+    const float *origin,
+    float maxDistSq,
+    Material *altMaterial,
+    bool isVisible,
+    float *distanceScale)
 {
     float mip1radiusSq; // [esp+50h] [ebp-44h]
     float v10; // [esp+54h] [ebp-40h]
@@ -1916,22 +1927,22 @@ void __cdecl R_StreamUpdateForBModel(
     modelSurf = (BModelSurface *)((char *)frontEndDataOut + 4 * surfId);
     count = 0;
     surfIndex = bmodel->startSurfIndex;
-    while ( count < bmodel->surfaceCount )
+    while (count < bmodel->surfaceCount)
     {
         material = modelSurf->surf->material;
-        if ( material && material->textureCount )
+        if (material && material->textureCount)
         {
             _mm_prefetch((const char *)&modelSurf[1], 1);
-            if ( rg.renderHiResShot && !isVisible )
+            if (rg.renderHiResShot && !isVisible)
                 return;
             mip1radiusSq = bmodel->writable.mip1radiusSq;
             v10 = distanceScale[isVisible];
             distSq_4 = PointDistSqFromBounds(viewPos, bmodel->writable.mins, bmodel->writable.maxs) * v10;
             distSq = mip1radiusSq / (float)(distSq_4 + 100.0);
             _mm_prefetch((const char *)modelSurf[1].surf, 1);
-            R_StreamTouchImagesFromMaterial(material, LODWORD(distSq));
-            if ( altMaterial )
-                R_StreamTouchImagesFromMaterial(altMaterial, LODWORD(distSq));
+            R_StreamTouchImagesFromMaterial(material, distSq);
+            if (altMaterial)
+                R_StreamTouchImagesFromMaterial(altMaterial, distSq);
         }
         ++count;
         ++surfIndex;
@@ -1979,12 +1990,12 @@ double __cdecl PointDistSqFromBounds(const float *v, const float *mins, const fl
 }
 
 void __cdecl R_StreamUpdate_AddDynamicXModelDistance(
-                const XModel *model,
-                const float *viewPos,
-                const float *origin,
-                float scale,
-                bool visible,
-                float *distanceScale)
+    const XModel *model,
+    const float *viewPos,
+    const float *origin,
+    float scale,
+    bool visible,
+    float *distanceScale)
 {
     float v6; // [esp+0h] [ebp-1Ch]
     int modelIndex; // [esp+14h] [ebp-8h]
@@ -1992,9 +2003,9 @@ void __cdecl R_StreamUpdate_AddDynamicXModelDistance(
 
     modelIndex = DB_GetXModelIndex(model);
     distSq = Vec3DistanceSq(viewPos, origin) / scale * distanceScale[visible];
-    if ( (streamFrontendGlob.modelTouchBits[(modelIndex >> 5) - 32] & (1 << (modelIndex & 0x1F))) != 0 )
+    if ((streamFrontendGlob.dynamicModelDistanceBits[modelIndex >> 5] & (1 << (modelIndex & 0x1F))) != 0)
     {
-        if ( (float)(distSq - streamFrontendGlob.dynamicModelDistance[modelIndex]) < 0.0 )
+        if ((float)(distSq - streamFrontendGlob.dynamicModelDistance[modelIndex]) < 0.0)
             v6 = distSq;
         else
             v6 = streamFrontendGlob.dynamicModelDistance[modelIndex];
@@ -2003,7 +2014,7 @@ void __cdecl R_StreamUpdate_AddDynamicXModelDistance(
     else
     {
         streamFrontendGlob.dynamicModelDistance[modelIndex] = distSq;
-        streamFrontendGlob.modelTouchBits[(modelIndex >> 5) - 32] |= 1 << (modelIndex & 0x1F);
+        streamFrontendGlob.dynamicModelDistanceBits[modelIndex >> 5] |= 1 << (modelIndex & 0x1F);
     }
 }
 
@@ -2012,13 +2023,13 @@ void __cdecl R_StreamUpdate_End()
     StreamCombineCmd combineCmd; // [esp+0h] [ebp-Ch] BYREF
     StreamSortCmd sortCmd; // [esp+4h] [ebp-8h] BYREF
 
-    if ( dword_ADD700C <= 0
+    if (streamFrontendGlob.queryClient <= 0
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    4709,
-                    0,
-                    "%s",
-                    "streamFrontendGlob.queryClient > 0") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            4709,
+            0,
+            "%s",
+            "streamFrontendGlob.queryClient > 0"))
     {
         __debugbreak();
     }
@@ -2026,22 +2037,23 @@ void __cdecl R_StreamUpdate_End()
     combineCmd.frontend = &streamFrontendGlob;
     Sys_AddWorkerCmdInternal(&r_stream_combineWorkerCmd, (unsigned __int8 *)&combineCmd, 0);
     sortCmd.frontend = &streamFrontendGlob;
-    sortCmd.diskOrder = byte_ADD7014;
+    sortCmd.diskOrder = streamFrontendGlob.diskOrder;
     Sys_AddWorkerCmdInternal(&r_stream_sortWorkerCmd, (unsigned __int8 *)&sortCmd, 0);
-    dword_ADD700C = -1;
+    streamFrontendGlob.queryClient = -1;
     Sys_LeaveCriticalSection(CRITSECT_STREAM_SYNC_COMMAND);
 }
 
+float4 s_viewPos;
 void __cdecl R_Stream_UpdateStaticModelsCmd(char *data)
 {
     unsigned int instId; // [esp+34h] [ebp-8h]
 
     //PIXBeginNamedEvent(-1, "R_Stream_UpdateStaticModelsCmd");
     s_viewPos = *(float4 *)(data + 4);
-    for ( instId = 0; instId < g_worldDpvs->smodelCount; ++instId )
+    for (instId = 0; instId < g_worldDpvs->smodelCount; ++instId)
         R_StreamUpdateStaticModel(instId, (const float *)data + 1, *((float *)data + 4), (float *)data + 5);
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //D3DPERF_EndEvent();
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
 }
 
 void __cdecl R_StreamUpdateStaticModel(
@@ -2060,12 +2072,12 @@ void __cdecl R_StreamUpdateStaticModel(
 }
 
 void __cdecl R_StreamUpdate_AddXModelDistance(
-                const XModel *model,
-                const float *viewPos,
-                const float *origin,
-                float scale,
-                bool visible,
-                float *distanceScale)
+    const XModel *model,
+    const float *viewPos,
+    const float *origin,
+    float scale,
+    bool visible,
+    float *distanceScale)
 {
     float v6; // [esp+0h] [ebp-1Ch]
     int modelIndex; // [esp+14h] [ebp-8h]
@@ -2073,9 +2085,9 @@ void __cdecl R_StreamUpdate_AddXModelDistance(
 
     modelIndex = DB_GetXModelIndex(model);
     distSq = Vec3DistanceSq(viewPos, origin) / scale * distanceScale[visible];
-    if ( (LODWORD(streamFrontendGlob.dynamicModelDistance[(modelIndex >> 5) - 32]) & (1 << (modelIndex & 0x1F))) != 0 )
+    if ((streamFrontendGlob.modelDistanceBits[modelIndex >> 5] & (1 << (modelIndex & 0x1F))) != 0)
     {
-        if ( (float)(distSq - streamFrontendGlob.modelDistance[modelIndex]) < 0.0 )
+        if ((float)(distSq - streamFrontendGlob.modelDistance[modelIndex]) < 0.0)
             v6 = distSq;
         else
             v6 = streamFrontendGlob.modelDistance[modelIndex];
@@ -2084,7 +2096,7 @@ void __cdecl R_StreamUpdate_AddXModelDistance(
     else
     {
         streamFrontendGlob.modelDistance[modelIndex] = distSq;
-        LODWORD(streamFrontendGlob.dynamicModelDistance[(modelIndex >> 5) - 32]) |= 1 << (modelIndex & 0x1F);
+        streamFrontendGlob.modelDistanceBits[modelIndex >> 5] |= 1 << (modelIndex & 0x1F);
     }
 }
 
@@ -2102,24 +2114,24 @@ void __cdecl R_Stream_UpdateStaticSurfacesCmd(char *data)
 
 void __cdecl R_StreamUpdateWorldSurface(int surfId, const float *viewPos, float maxDistSq, float *distanceScale)
 {
-    unsigned int importance_low; // [esp+8h] [ebp-120h]
+    float importance; // [esp+8h] [ebp-120h]
     int materialIndex; // [esp+110h] [ebp-18h]
     const GfxSurface *surface; // [esp+11Ch] [ebp-Ch]
     distance_data distSq; // [esp+120h] [ebp-8h] BYREF
 
-    if ( (surfId < 0 || surfId >= rgp.world->surfaceCount)
+    if ((surfId < 0 || surfId >= rgp.world->surfaceCount)
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                    3833,
-                    0,
-                    "%s\n\t(surfId) = %i",
-                    "(surfId >= 0 && surfId < rgp.world->surfaceCount)",
-                    surfId) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+            3833,
+            0,
+            "%s\n\t(surfId) = %i",
+            "(surfId >= 0 && surfId < rgp.world->surfaceCount)",
+            surfId))
     {
         __debugbreak();
     }
     surface = &rgp.world->dpvs.surfaces[surfId];
-    if ( !rg.renderHiResShot || rgp.world->dpvs.surfaceVisDataCameraSaved[surfId] )
+    if (!rg.renderHiResShot || rgp.world->dpvs.surfaceVisDataCameraSaved[surfId])
     {
         MultiplePointDistSqFromBounds(
             &distSq,
@@ -2129,11 +2141,11 @@ void __cdecl R_StreamUpdateWorldSurface(int surfId, const float *viewPos, float 
             surface->tris.himipRadiusSq,
             distanceScale[rgp.world->dpvs.surfaceVisDataCameraSaved[surfId] != 0]);
         materialIndex = DB_GetMaterialIndex(surface->material);
-        if ( (float)(distSq.importance - *(float *)&streamFrontendGlob.materialImportanceBits[materialIndex - 4096]) < 0.0 )
-            importance_low = streamFrontendGlob.materialImportanceBits[materialIndex - 4096];
+        if ((float)(distSq.importance - streamFrontendGlob.materialImportance[materialIndex]) < 0.0)
+            importance = streamFrontendGlob.materialImportance[materialIndex];
         else
-            importance_low = LODWORD(distSq.importance);
-        streamFrontendGlob.materialImportanceBits[materialIndex - 4096] = importance_low;
+            importance = distSq.importance;
+        streamFrontendGlob.materialImportance[materialIndex] = importance;
     }
 }
 
@@ -2232,6 +2244,16 @@ void __cdecl R_Stream_SortCmd(_BYTE *data)
         //D3DPERF_EndEvent();
 }
 
+// aislop
+struct importance_and_offset_pred
+{
+    bool operator()(int a, int b) const
+    {
+        // Compare based on importance stored in streamFrontendGlob
+        return streamFrontendGlob.imageImportanceBits[a - 4064] > streamFrontendGlob.imageImportanceBits[b - 4064];
+    }
+};
+
 void __cdecl R_StreamUpdate_EndQuerySort(bool diskOrder)
 {
     int index; // [esp+A0h] [ebp-8h]
@@ -2239,48 +2261,52 @@ void __cdecl R_StreamUpdate_EndQuerySort(bool diskOrder)
 
     //PIXBeginNamedEvent(-1, "R_Stream EndQuerySort");
     index = 0;
-    while ( index < list_count )
+    while (index < streamFrontendGlob.totalBytesWanted)
     {
-        imagePartIndex = streamFrontendGlob.sortedImages[index + 352];
-        if ( (streamFrontendGlob.imageInSortedListBits[imagePartIndex >> 5]
-                & (1 << (streamFrontendGlob.sortedImages[index + 352] & 0x1F))) == 0
+        imagePartIndex = *(int *)((char *)&streamFrontendGlob.sortedImages[index] + 2);
+        if ((streamFrontendGlob.imageInSortedListBits[imagePartIndex >> 5]
+            & (1 << (BYTE2(streamFrontendGlob.sortedImages[index]) & 0x1F))) == 0
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                        4178,
-                        0,
-                        "%s",
-                        "streamFrontendGlob.imageInSortedListBits[ BIT_INDEX_32( imagePartIndex ) ] & BIT_MASK_32( imagePartIndex )") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                4178,
+                0,
+                "%s",
+                "streamFrontendGlob.imageInSortedListBits[ BIT_INDEX_32( imagePartIndex ) ] & BIT_MASK_32( imagePartIndex )"))
         {
             __debugbreak();
         }
-        if ( (streamFrontendGlob.dynamicImageImportanceBits[(imagePartIndex >> 5) - 4064] & (1 << (imagePartIndex & 0x1F))) != 0 )
+        if ((streamFrontendGlob.dynamicImageImportanceBits[(imagePartIndex >> 5) - 4064] & (1 << (imagePartIndex & 0x1F))) != 0)
         {
             ++index;
         }
         else
         {
-            streamFrontendGlob.sortedImages[index + 352] = streamFrontendGlob.sortedImages[--list_count + 352];
+            *(int *)((char *)&streamFrontendGlob.sortedImages[index] + 2) = *(int *)((char *)&streamFrontendGlob.sortedImages[--streamFrontendGlob.totalBytesWanted]
+                + 2);
             streamFrontendGlob.imageInSortedListBits[imagePartIndex >> 5] &= ~(1 << (imagePartIndex & 0x1F));
         }
     }
-    if ( diskOrder )
+    if (diskOrder)
     {
-        if ( BYTE1(streamFrontendGlob.sortedImages[351]) || byte_ADD7015 )
+        if (streamFrontendGlob.diskOrderImagesNeedSorting || streamFrontendGlob.forceDiskOrder)
         {
-            std::_Sort<int *,int,importance_and_offset_pred>(
-                &streamFrontendGlob.sortedImages[352],
-                (int *)(4 * list_count + 182267392),
-                (4 * list_count + 182267392 - (int)&streamFrontendGlob.sortedImages[352]) >> 2,
-                0);
-            BYTE1(streamFrontendGlob.sortedImages[351]) = 0;
+            //std::_Sort<int *, int, importance_and_offset_pred>(
+            //    (int *)((char *)streamFrontendGlob.sortedImages + 2),
+            //    (int *)((char *)&streamFrontendGlob.sortedImages[streamFrontendGlob.totalBytesWanted] + 2),
+            //    (4 * streamFrontendGlob.totalBytesWanted) >> 2,
+            //    0);
+
+            std::sort((int *)((char *)streamFrontendGlob.sortedImages + 2), (int *)((char *)&streamFrontendGlob.sortedImages[streamFrontendGlob.totalBytesWanted] + 2), importance_and_offset_pred{});
+
+            streamFrontendGlob.diskOrderImagesNeedSorting = 0;
         }
     }
     else
     {
-        importance_merge_sort((void **)&streamFrontendGlob.sortedImages[352], list_count);
+        importance_merge_sort((void **)((char *)streamFrontendGlob.sortedImages + 2), streamFrontendGlob.totalBytesWanted);
     }
-    //if ( g_DXDeviceThread == GetCurrentThreadId() )
-        //D3DPERF_EndEvent();
+    //if (g_DXDeviceThread == GetCurrentThreadId())
+    //    D3DPERF_EndEvent();
 }
 
 void __cdecl R_Stream_CombineCmd()
@@ -2291,9 +2317,9 @@ void __cdecl R_Stream_CombineCmd()
         //D3DPERF_EndEvent();
 }
 
-unsigned intR_StreamUpdate_CombineImportance()
+DWORD R_StreamUpdate_CombineImportance()
 {
-    unsigned intresult; // eax
+    DWORD result; // eax
     float distSq; // [esp+4h] [ebp-104h]
     XAssetPoolEntry<Material> *material; // [esp+E8h] [ebp-20h]
     XAssetPoolEntry<XModel> *model; // [esp+ECh] [ebp-1Ch]
@@ -2306,74 +2332,72 @@ unsigned intR_StreamUpdate_CombineImportance()
     unsigned int modelIndex; // [esp+104h] [ebp-4h]
 
     //PIXBeginNamedEvent(-1, "R_Stream combine xmodels");
-    for ( modelIndex = 0; modelIndex < 0x3E8; ++modelIndex )
+    for (modelIndex = 0; modelIndex < 1000; ++modelIndex)
     {
         mask = 1 << (modelIndex & 0x1F);
-        staticBit = mask & LODWORD(streamFrontendGlob.dynamicModelDistance[(modelIndex >> 5) - 32]);
-        dynamicBit = mask & streamFrontendGlob.modelTouchBits[(modelIndex >> 5) - 32];
-        if ( (dynamicBit & staticBit) != 0 )
+        staticBit = mask & streamFrontendGlob.modelDistanceBits[modelIndex >> 5];
+        dynamicBit = mask & streamFrontendGlob.dynamicModelDistanceBits[modelIndex >> 5];
+        if ((dynamicBit & staticBit) != 0)
         {
             model = DB_GetXModelAtIndex(modelIndex);
-            if ( !model
-                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 3911, 0, "%s", "model") )
+            if (!model
+                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 3911, 0, "%s", "model"))
             {
                 __debugbreak();
             }
-            if ( (float)(streamFrontendGlob.dynamicModelDistance[modelIndex] - streamFrontendGlob.modelDistance[modelIndex]) < 0.0 )
+            if ((float)(streamFrontendGlob.dynamicModelDistance[modelIndex] - streamFrontendGlob.modelDistance[modelIndex]) < 0.0)
                 distSq = streamFrontendGlob.dynamicModelDistance[modelIndex];
             else
                 distSq = streamFrontendGlob.modelDistance[modelIndex];
             R_StreamUpdateForXModel(&model->entry, distSq);
         }
-        else if ( staticBit )
+        else if (staticBit)
         {
             modela = DB_GetXModelAtIndex(modelIndex);
-            if ( !modela
-                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 3917, 0, "%s", "model") )
+            if (!modela
+                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 3917, 0, "%s", "model"))
             {
                 __debugbreak();
             }
             R_StreamUpdateForXModel(&modela->entry, streamFrontendGlob.modelDistance[modelIndex]);
         }
-        else if ( dynamicBit )
+        else if (dynamicBit)
         {
             modelb = DB_GetXModelAtIndex(modelIndex);
-            if ( !modelb
-                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 3923, 0, "%s", "model") )
+            if (!modelb
+                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 3923, 0, "%s", "model"))
             {
                 __debugbreak();
             }
             R_StreamUpdateForXModel(&modelb->entry, streamFrontendGlob.dynamicModelDistance[modelIndex]);
         }
     }
-    //if ( g_DXDeviceThread == GetCurrentThreadId() )
-        //D3DPERF_EndEvent();
+    //if (g_DXDeviceThread == GetCurrentThreadId())
+    //    D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "R_Stream combine materials");
-    for ( materialIndex = 0; materialIndex < 0x1000; ++materialIndex )
+    for (materialIndex = 0; materialIndex < 0x1000; ++materialIndex)
     {
-        if ( *(float *)&streamFrontendGlob.materialImportanceBits[materialIndex - 4096] != 0.0
-            && (streamFrontendGlob.materialPreventBits[materialIndex >> 5] & (1 << (materialIndex & 0x1F))) == 0 )
+        if (streamFrontendGlob.materialImportance[materialIndex] != 0.0
+            && (streamFrontendGlob.materialPreventBits[materialIndex >> 5] & (1 << (materialIndex & 0x1F))) == 0)
         {
             material = DB_GetMaterialAtIndex(materialIndex);
-            if ( !material
-                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 3937, 0, "%s", "material") )
+            if (!material
+                && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp", 3937, 0, "%s", "material"))
             {
                 __debugbreak();
             }
-            R_StreamTouchImagesFromMaterial(
-                &material->entry,
-                COERCE_UNSIGNED_INT(*(float *)&streamFrontendGlob.materialImportanceBits[materialIndex - 4096]));
+            R_StreamTouchImagesFromMaterial(&material->entry, streamFrontendGlob.materialImportance[materialIndex]);
         }
     }
     result = GetCurrentThreadId();
-    if ( result == g_DXDeviceThread )
-        return //D3DPERF_EndEvent();
+    //if (result == g_DXDeviceThread)
+    //    return D3DPERF_EndEvent();
     return result;
 }
 
 void __cdecl R_StreamUpdateForXModel(const XModel *remoteModel, float distSq)
 {
-    unsigned int v2; // [esp+0h] [ebp-40h]
+    float v2; // [esp+0h] [ebp-40h]
     float v3; // [esp+4h] [ebp-3Ch]
     float v4; // [esp+10h] [ebp-30h]
     int materialIndex; // [esp+1Ch] [ebp-24h]
@@ -2387,45 +2411,45 @@ void __cdecl R_StreamUpdateForXModel(const XModel *remoteModel, float distSq)
     distNotSq = sqrtf(distSq);
     materialHandles = remoteModel->materialHandles;
     highMipBounds = remoteModel->streamInfo.highMipBounds;
-    for ( surf = 0; surf < remoteModel->numsurfs; ++surf )
+    for (surf = 0; surf < remoteModel->numsurfs; ++surf)
     {
-        if ( materialHandles[surf]->textureCount )
+        if (materialHandles[surf]->textureCount)
         {
             bounds = &highMipBounds[surf];
-            if ( bounds->himipRadiusSq != 0.0 )
+            if (bounds->himipRadiusSq != 0.0)
             {
                 v4 = distNotSq - Abs(bounds->center);
-                if ( (float)((float)(v4 * v4) - 0.0) < 0.0 )
+                if ((float)((float)(v4 * v4) - 0.0) < 0.0)
                     v3 = 0.0f;
                 else
                     v3 = v4 * v4;
                 importance = bounds->himipRadiusSq / (float)(v3 + 100.0);
                 materialIndex = DB_GetMaterialIndex(materialHandles[surf]);
-                if ( materialIndex < 0
+                if (materialIndex < 0
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                                3531,
-                                0,
-                                "%s",
-                                "materialIndex >= 0") )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                        3531,
+                        0,
+                        "%s",
+                        "materialIndex >= 0"))
                 {
                     __debugbreak();
                 }
-                if ( materialIndex >= 4096
+                if (materialIndex >= 4096
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
-                                3532,
-                                0,
-                                "%s",
-                                "materialIndex < MAX_MATERIAL_POOL_SIZE") )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+                        3532,
+                        0,
+                        "%s",
+                        "materialIndex < MAX_MATERIAL_POOL_SIZE"))
                 {
                     __debugbreak();
                 }
-                if ( (float)(importance - *(float *)&streamFrontendGlob.materialImportanceBits[materialIndex - 4096]) < 0.0 )
-                    v2 = streamFrontendGlob.materialImportanceBits[materialIndex - 4096];
+                if ((float)(importance - streamFrontendGlob.materialImportance[materialIndex]) < 0.0)
+                    v2 = streamFrontendGlob.materialImportance[materialIndex];
                 else
-                    v2 = LODWORD(importance);
-                streamFrontendGlob.materialImportanceBits[materialIndex - 4096] = v2;
+                    v2 = importance;
+                streamFrontendGlob.materialImportance[materialIndex] = v2;
             }
         }
     }
@@ -2462,7 +2486,7 @@ int __cdecl r_stream_sortCallback(jqBatch *batch)
     if ( jqPoll(&r_stream_combineModule.Group) || jqPoll(&r_stream_updateModule.Group) )
         return 1;
     data = jqLockData(batch);
-    R_Stream_SortCmd(data);
+    R_Stream_SortCmd((unsigned char*)data);
     jqUnlockData(batch);
     return 0;
 }
@@ -2492,6 +2516,52 @@ int __cdecl r_stream_updateCallback(jqBatch *batch)
     R_StreamUpdateStatic((const float *)cmd + 1, *((float *)cmd + 4), (float *)cmd + 5);
     jqUnlockData(batch);
     return 0;
+}
+
+void __cdecl R_StreamUpdateAabbNode_r_0_(int aabbTreeNode, const float *viewPos, float maxDistSq, float *distanceScale)
+{
+  int ref; // [esp+4Ch] [ebp-24h]
+  int childIter; // [esp+50h] [ebp-20h]
+  GfxStreamingAabbTree *tree; // [esp+54h] [ebp-1Ch]
+  int childEnd; // [esp+58h] [ebp-18h]
+  int *leafRefEnd; // [esp+60h] [ebp-10h]
+  int *leafRefIter; // [esp+68h] [ebp-8h]
+  float distSq; // [esp+6Ch] [ebp-4h]
+
+  if ( (aabbTreeNode < 0 || aabbTreeNode >= rgp.world->streamInfo.aabbTreeCount)
+    && !Assert_MyHandler(
+          "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_stream.cpp",
+          3963,
+          0,
+          "%s\n\t(aabbTreeNode) = %i",
+          "(aabbTreeNode >= 0 && aabbTreeNode < rgp.world->streamInfo.aabbTreeCount)",
+          aabbTreeNode) )
+  {
+    __debugbreak();
+  }
+  tree = &rgp.world->streamInfo.aabbTrees[aabbTreeNode];
+  distSq = PointDistSqFromBounds(viewPos, tree->mins, tree->maxs);
+  if ( distSq <= maxDistSq )
+  {
+    if ( tree->childCount )
+    {
+      childEnd = tree->childCount + tree->firstChild;
+      for ( childIter = tree->firstChild; childIter != childEnd; ++childIter )
+        R_StreamUpdateAabbNode_r_0_(childIter, viewPos, maxDistSq, distanceScale);
+    }
+    else
+    {
+      leafRefEnd = &rgp.world->streamInfo.leafRefs[tree->firstItem + tree->itemCount];
+      for ( leafRefIter = &rgp.world->streamInfo.leafRefs[tree->firstItem]; leafRefIter != leafRefEnd; ++leafRefIter )
+      {
+        ref = *leafRefIter;
+        if ( *leafRefIter < 0 )
+          R_StreamUpdateStaticModel(~ref, viewPos, maxDistSq, distanceScale);
+        else
+          R_StreamUpdateWorldSurface(ref, viewPos, maxDistSq, distanceScale);
+      }
+    }
+  }
 }
 
 void __cdecl R_StreamUpdateStatic(const float *viewPos, float maxDistSq, float *distanceScale)

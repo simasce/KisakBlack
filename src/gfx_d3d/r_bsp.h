@@ -22,33 +22,6 @@ struct GfxWorldStreamInfo // sizeof=0x10
                                         // R_GenerateHighmipAabbs+1C1/r
 };
 
-struct GfxImage // sizeof=0x34
-{                                       // XREF: .data:g_imageProgs/r
-    GfxTexture texture;
-    unsigned __int8 mapType;            // XREF: R_ImageList_Output(void)+88/r
-    unsigned __int8 semantic;
-    unsigned __int8 category;
-    bool delayLoadPixels;
-    Picmip picmip;
-    bool noPicmip;
-    unsigned __int8 track;
-    CardMemory cardMemory;
-    unsigned __int16 width;
-    unsigned __int16 height;
-    unsigned __int16 depth;
-    unsigned __int8 levelCount;
-    unsigned __int8 streaming;
-    unsigned int baseSize;
-    unsigned __int8 *pixels;
-    unsigned int loadedSize;
-    unsigned __int8 skippedMipLevels;
-    // padding byte
-    // padding byte
-    // padding byte
-    const char *name;
-    unsigned int hash;
-};
-
 struct GfxWorldSunColor // sizeof=0x6C
 {                                       // XREF: SunLightParseParams/r
     unsigned int control;
@@ -110,12 +83,97 @@ struct GfxSkyDynamicIntensity // sizeof=0x10
     float factor1;                      // XREF: R_LoadInitSkyIntensity+3B/w
 };
 
+struct GfxStaticModelInst // sizeof=0x28
+{                                       // XREF: GfxStaticModelCombinedInst/r
+    float mins[3];
+    float maxs[3];
+    float lightingOrigin[3];
+    GfxColor groundLighting;
+};
+
+struct GfxCullGroup // sizeof=0x20
+{
+    float mins[3];
+    float maxs[3];
+    int surfaceCount;
+    int startSurfIndex;
+};
+
+struct GfxPackedPlacement // sizeof=0x34
+{                                       // XREF: GfxStaticModelDrawInst/r
+    float origin[3];
+    float axis[3][3];
+    float scale;
+};
+
+struct GfxStaticModelDrawInst // sizeof=0x4C
+{                                       // XREF: GfxStaticModelCombinedInst/r
+    float cullDist;
+    GfxPackedPlacement placement;
+    XModel *model;
+    int flags;
+    unsigned __int16 smodelCacheIndex[4];
+    unsigned __int16 lightingHandle;
+    unsigned __int8 reflectionProbeIndex;
+    unsigned __int8 primaryLightIndex;
+};
+
+struct GfxWorldDpvsStatic // sizeof=0x70
+{                                       // XREF: GfxWorld/r
+    unsigned int smodelCount;           // XREF: R_PostLoadEntities+41/r
+                                        // R_PostLoadEntities+72/r ...
+    unsigned int dynamicSModelCount;    // XREF: R_PostLoadEntities+1CE/r
+                                        // R_PostLoadEntities+225/w ...
+    unsigned int staticSurfaceCount;    // XREF: R_LoadWorldRuntime+1BD/w
+                                        // R_LoadWorldRuntime+1C2/r ...
+    unsigned int litSurfsBegin;         // XREF: R_SortSurfaces+219/w
+    unsigned int litSurfsEnd;           // XREF: R_SortSurfaces+2AF/w
+    unsigned int decalSurfsBegin;       // XREF: R_SortSurfaces+2B8/w
+    unsigned int decalSurfsEnd;         // XREF: R_SortSurfaces+351/w
+    unsigned int emissiveSurfsBegin;    // XREF: R_SortSurfaces+35A/w
+    unsigned int emissiveSurfsEnd;      // XREF: R_SortSurfaces+3B3/w
+    unsigned int smodelVisDataCount;    // XREF: R_LoadWorldRuntime+31/w
+                                        // R_LoadWorldRuntime+18C/r
+    unsigned int surfaceVisDataCount;   // XREF: R_LoadWorldRuntime+49/w
+                                        // R_LoadWorldRuntime+209/r
+    unsigned __int8 *smodelVisData[3];  // XREF: R_LoadWorldRuntime+7F/w
+    unsigned __int8 *surfaceVisData[3]; // XREF: R_LoadWorldRuntime+BD/w
+    unsigned __int8 *smodelVisDataCameraSaved;
+                                        // XREF: R_LoadWorldRuntime+13D/w
+    unsigned __int8 *surfaceVisDataCameraSaved;
+                                        // XREF: R_LoadWorldRuntime+176/w
+    unsigned int *lodData;              // XREF: R_LoadWorldRuntime+1AE/w
+    unsigned __int16 *sortedSurfIndex;  // XREF: R_SortSurfaces+AC/w
+                                        // R_SortSurfaces+DE/r ...
+    GfxStaticModelInst *smodelInsts;    // XREF: R_PostLoadEntities+A0/r
+                                        // R_PostLoadEntities+1AA/r ...
+    GfxSurface *surfaces;               // XREF: R_SortSurfaces+D2/r
+                                        // R_SortSurfaces+134/r ...
+    GfxCullGroup *cullGroups;           // XREF: R_LoadCullGroups+36/w
+                                        // R_LoadCullGroupIndices+41/r
+    GfxStaticModelDrawInst *smodelDrawInsts;
+                                        // XREF: R_PostLoadEntities+84/r
+                                        // R_PostLoadEntities+18A/r ...
+    GfxDrawSurf *surfaceMaterials;      // XREF: R_LoadWorldRuntime+1F3/w
+    unsigned int *surfaceCastsSunShadow; // XREF: R_LoadWorldRuntime+229/w
+    volatile int usageCount;
+};
+
 struct GfxWorldDpvsPlanes // sizeof=0x10
 {                                       // XREF: GfxWorld/r
     int cellCount;                      // XREF: R_PostLoadEntities+2C0/r
     struct cplane_s *planes;                   // XREF: R_LoadWorldInternal(char const *)+1AF/w
     unsigned __int16 *nodes;            // XREF: R_PostLoadEntities:loc_A9921B/r
     unsigned int *sceneEntCellBits;     // XREF: R_LoadWorldRuntime+2A8/w
+};
+
+struct BModelSurface // sizeof=0x14
+{
+    GfxScaledPlacement *placement;
+    GfxSurface *surf;
+    ShaderConstantSet *shaderConstSet;
+    float bmodelBurnAmt;
+    float bmodelFadeAmt;
 };
 
 struct GfxAabbTree // sizeof=0x28

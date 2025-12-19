@@ -440,143 +440,269 @@ bool __cdecl R_HW_IsFencePending(IDirect3DQuery9 *const *fence)
 }
 
 // local variable allocation has failed, the output may be wrong!
-char    CL_CompositeDrawEmblemPhysical(
-                float x,
-                float y,
-                float w,
-                float h,
-                const float *color,
-                CompositeEmblemLayer *layers,
-                int layerCount)
-{
-    float v9; // xmm0_4
-    float v10; // xmm0_4
-    long double smoothSize; // [esp+Ch] [ebp-16Ch]
-    long double v12; // [esp+Ch] [ebp-16Ch]
-    long double v13; // [esp+14h] [ebp-164h]
-    long double v14; // [esp+14h] [ebp-164h]
-    float *p_packed; // [esp+1Ch] [ebp-15Ch]
-    float v16[3]; // [esp+20h] [ebp-158h] BYREF
-    _BYTE matPlacement_12[32]; // [esp+38h] [ebp-140h] OVERLAPPED BYREF
-    float matScale[3][3]; // [esp+58h] [ebp-120h] BYREF
-    float matRotate[3][3]; // [esp+7Ch] [ebp-FCh] BYREF
-    float matResult[3][3]; // [esp+A0h] [ebp-D8h]
-    float outlineSize; // [esp+C4h] [ebp-B4h] BYREF
-    GfxImage *image; // [esp+C8h] [ebp-B0h]
-    const CompositeEmblemLayer *layer; // [esp+CCh] [ebp-ACh] BYREF
-    float coords[4][2]; // [esp+D0h] [ebp-A8h] BYREF
-    int layerIdx; // [esp+F0h] [ebp-88h]
-    float v26; // [esp+F4h] [ebp-84h]
-    float v27; // [esp+F8h] [ebp-80h]
-    float v28; // [esp+FCh] [ebp-7Ch]
-    float smooth; // [esp+100h] [ebp-78h]
-    float widthRange; // [esp+104h] [ebp-74h]
-    float smoothRange; // [esp+108h] [ebp-70h]
-    float widthMax; // [esp+10Ch] [ebp-6Ch]
-    float widthMin; // [esp+110h] [ebp-68h]
-    float smoothMin; // [esp+114h] [ebp-64h] BYREF
-    float smoothMax; // [esp+118h] [ebp-60h]
-    GfxQuadVertex verts[4]; // [esp+120h] [ebp-58h] BYREF
-    Material *emblemMaterial; // [esp+170h] [ebp-8h]
-    Material *retaddr; // [esp+178h] [ebp+0h]
+//char    CL_CompositeDrawEmblemPhysical(
+//                float x,
+//                float y,
+//                float w,
+//                float h,
+//                const float *color,
+//                CompositeEmblemLayer *layers,
+//                int layerCount)
+//{
+//    float v9; // xmm0_4
+//    float v10; // xmm0_4
+//    long double smoothSize; // [esp+Ch] [ebp-16Ch]
+//    long double v12; // [esp+Ch] [ebp-16Ch]
+//    long double v13; // [esp+14h] [ebp-164h]
+//    long double v14; // [esp+14h] [ebp-164h]
+//    float *p_packed; // [esp+1Ch] [ebp-15Ch]
+//    float v16[3]; // [esp+20h] [ebp-158h] BYREF
+//    _BYTE matPlacement_12[32]; // [esp+38h] [ebp-140h] OVERLAPPED BYREF
+//    float matScale[3][3]; // [esp+58h] [ebp-120h] BYREF
+//    float matRotate[3][3]; // [esp+7Ch] [ebp-FCh] BYREF
+//    float matResult[3][3]; // [esp+A0h] [ebp-D8h]
+//    float outlineSize; // [esp+C4h] [ebp-B4h] BYREF
+//    GfxImage *image; // [esp+C8h] [ebp-B0h]
+//    const CompositeEmblemLayer *layer; // [esp+CCh] [ebp-ACh] BYREF
+//    float coords[4][2]; // [esp+D0h] [ebp-A8h] BYREF
+//    int layerIdx; // [esp+F0h] [ebp-88h]
+//    float v26; // [esp+F4h] [ebp-84h]
+//    float v27; // [esp+F8h] [ebp-80h]
+//    float v28; // [esp+FCh] [ebp-7Ch]
+//    float smooth; // [esp+100h] [ebp-78h]
+//    float widthRange; // [esp+104h] [ebp-74h]
+//    float smoothRange; // [esp+108h] [ebp-70h]
+//    float widthMax; // [esp+10Ch] [ebp-6Ch]
+//    float widthMin; // [esp+110h] [ebp-68h]
+//    float smoothMin; // [esp+114h] [ebp-64h] BYREF
+//    float smoothMax; // [esp+118h] [ebp-60h]
+//    GfxQuadVertex verts[4]; // [esp+120h] [ebp-58h] BYREF
+//    Material *emblemMaterial; // [esp+170h] [ebp-8h]
+//    Material *retaddr; // [esp+178h] [ebp+0h]
+//
+//    verts[3].color = a1;
+//    emblemMaterial = retaddr;
+//    if ( !CL_CompositeCheckStreaming(layers, layerCount) )
+//        return 0;
+//    LODWORD(verts[3].st[0]) = Material_Register("emblem_lut", 3);
+//    smoothMin = x;
+//    smoothMax = y;
+//    verts[0].st[0] = (float)(x + w) - 1.0;
+//    verts[0].st[1] = y;
+//    verts[1].st[0] = verts[0].st[0];
+//    verts[1].st[1] = (float)(y + h) - 1.0;
+//    verts[2].st[0] = x;
+//    verts[2].st[1] = verts[1].st[1];
+//    for ( widthMin = 0.0; SLODWORD(widthMin) < 4; ++LODWORD(widthMin) )
+//        R_ConvertColorToBytes(color, (unsigned __int8 *)&verts[LODWORD(widthMin)].xy[1]);
+//    widthMax = 0.48f;
+//    smoothRange = 0.1f;
+//    widthRange = 314.0f;
+//    smooth = 64.0f;
+//    v28 = 0.47999999 - 0.1;
+//    v27 = 64.0 - 314.0;
+//    *(float *)&layerIdx = (float)((float)((float)(w - 314.0) / (float)(64.0 - 314.0)) * (float)(0.47999999 - 0.1)) + 0.1;
+//    if ( (float)(*(float *)&layerIdx - 0.47999999) < 0.0 )
+//        v9 = *(float *)&layerIdx;
+//    else
+//        v9 = widthMax;
+//    coords[3][1] = v9;
+//    if ( (float)(smoothRange - *(float *)&layerIdx) < 0.0 )
+//        v10 = coords[3][1];
+//    else
+//        v10 = smoothRange;
+//    coords[3][0] = v10;
+//    v26 = v10;
+//    LODWORD(coords[2][1]) = layerCount - 1;
+//    while ( coords[2][1] >= 0.0 )
+//    {
+//        outlineSize = -0.5f;
+//        image = (GfxImage *)LODWORD(-0.5f);
+//        layer = (const CompositeEmblemLayer *)LODWORD(0.5f);
+//        *(_QWORD *)&coords[0][0] = __PAIR64__(LODWORD(0.5f), LODWORD(-0.5f));
+//        *(_QWORD *)&coords[1][0] = __PAIR64__(LODWORD(-0.5f), LODWORD(0.5f));
+//        coords[2][0] = 0.5f;
+//        LODWORD(matResult[2][2]) = &layers[LODWORD(coords[2][1])];
+//        LODWORD(matResult[2][1]) = BG_EmblemsGetIconImage(*(_WORD *)LODWORD(matResult[2][2]));
+//        if ( *(_BYTE *)(LODWORD(matResult[2][2]) + 28) )
+//            matResult[2][0] = BG_EmblemsGetIconOutlineSize(*(_WORD *)LODWORD(matResult[2][2]));
+//        else
+//            matResult[2][0] = 0.0f;
+//        if ( LODWORD(matResult[2][1]) && R_StreamTouchImageAndCheck((GfxImage *)LODWORD(matResult[2][1]), 0) )
+//        {
+//            MatrixIdentity33((float (*)[3])matRotate[2]);
+//            matResult[1][0] = 0.5f;
+//            matResult[1][1] = 0.5f;
+//            MatrixRotationZ((float (*)[3])matScale[2], *(float *)(LODWORD(matResult[2][2]) + 24));
+//            MatrixIdentity33((float (*)[3])&matPlacement_12[20]);
+//            *(unsigned int *)&matPlacement_12[16] = *(unsigned int *)(LODWORD(matResult[2][2]) + 16);
+//            __libm_sse2_pow(smoothSize, v13);
+//            *(float *)&matPlacement_12[20] = 1.0 / (float)2.0;
+//            *(unsigned int *)&matPlacement_12[12] = *(unsigned int *)(LODWORD(matResult[2][2]) + 20);
+//            __libm_sse2_pow(v12, v14);
+//            matScale[0][1] = 1.0 / (float)2.0;
+//            if ( *(_BYTE *)(LODWORD(matResult[2][2]) + 29) )
+//                *(unsigned int *)&matPlacement_12[20] ^= _mask__NegFloat_;
+//            MatrixIdentity33((float (*)[3])v16);
+//            *(unsigned int *)matPlacement_12 = *(unsigned int *)(LODWORD(matResult[2][2]) + 8) ^ _mask__NegFloat_;
+//            *(unsigned int *)&matPlacement_12[4] = *(unsigned int *)(LODWORD(matResult[2][2]) + 12) ^ _mask__NegFloat_;
+//            MatrixMultiplyEquals((const float (*)[3])&matPlacement_12[20], (float (*)[3])matRotate[2]);
+//            MatrixMultiplyEquals((const float (*)[3])matScale[2], (float (*)[3])matRotate[2]);
+//            MatrixMultiplyEquals((const float (*)[3])v16, (float (*)[3])matRotate[2]);
+//            UV_Transform((const float (*)[3])matRotate[2], &outlineSize);
+//            UV_Transform((const float (*)[3])matRotate[2], (float *)&layer);
+//            UV_Transform((const float (*)[3])matRotate[2], &coords[0][1]);
+//            UV_Transform((const float (*)[3])matRotate[2], &coords[1][1]);
+//            for ( widthMin = 0.0; SLODWORD(widthMin) < 4; ++LODWORD(widthMin) )
+//            {
+//                p_packed = (float *)&verts[LODWORD(widthMin) - 1].color.packed;
+//                HIDWORD(v13) = &outlineSize + 2 * LODWORD(widthMin);
+//                *p_packed = *(float *)HIDWORD(v13);
+//                p_packed[1] = *(float *)(HIDWORD(v13) + 4);
+//            }
+//            *(float *)&v13 = v26 - matResult[2][0];
+//            if ( (float)(0.1 - (float)(v26 - matResult[2][0])) < 0.0 )
+//                *((float *)&smoothSize + 1) = v26 - matResult[2][0];
+//            else
+//                *((float *)&smoothSize + 1) = 0.1f;
+//            R_AddCmdDrawEmblemLayer(
+//                (Material *)LODWORD(verts[3].st[0]),
+//                (const GfxImage *)LODWORD(matResult[2][1]),
+//                *(unsigned int *)(LODWORD(matResult[2][2]) + 4),
+//                matResult[2][0],
+//                *((float *)&smoothSize + 1),
+//                (GfxQuadVertex *)&smoothMin);
+//        }
+//        --LODWORD(coords[2][1]);
+//    }
+//    return 1;
+//}
 
-    verts[3].color = a1;
-    emblemMaterial = retaddr;
-    if ( !CL_CompositeCheckStreaming(layers, layerCount) )
+// aislop 
+char CL_CompositeDrawEmblemPhysical(
+    float x,
+    float y,
+    float w,
+    float h,
+    const float *color,
+    CompositeEmblemLayer *layers,
+    int layerCount)
+{
+    int i;
+    float smooth;
+    float smoothMin = 0.1f;
+    float smoothMax = 0.48f;
+
+    GfxQuadVertex verts[4];
+    float coords[4][2];
+
+    if (!CL_CompositeCheckStreaming(layers, layerCount))
         return 0;
-    LODWORD(verts[3].st[0]) = Material_Register("emblem_lut", 3);
-    smoothMin = x;
-    smoothMax = y;
-    verts[0].st[0] = (float)(x + w) - 1.0;
-    verts[0].st[1] = y;
-    verts[1].st[0] = verts[0].st[0];
-    verts[1].st[1] = (float)(y + h) - 1.0;
-    verts[2].st[0] = x;
-    verts[2].st[1] = verts[1].st[1];
-    for ( widthMin = 0.0; SLODWORD(widthMin) < 4; ++LODWORD(widthMin) )
-        R_ConvertColorToBytes(color, (unsigned __int8 *)&verts[LODWORD(widthMin)].xy[1]);
-    widthMax = 0.48f;
-    smoothRange = 0.1f;
-    widthRange = 314.0f;
-    smooth = 64.0f;
-    v28 = 0.47999999 - 0.1;
-    v27 = 64.0 - 314.0;
-    *(float *)&layerIdx = (float)((float)((float)(w - 314.0) / (float)(64.0 - 314.0)) * (float)(0.47999999 - 0.1)) + 0.1;
-    if ( (float)(*(float *)&layerIdx - 0.47999999) < 0.0 )
-        v9 = *(float *)&layerIdx;
-    else
-        v9 = widthMax;
-    coords[3][1] = v9;
-    if ( (float)(smoothRange - *(float *)&layerIdx) < 0.0 )
-        v10 = coords[3][1];
-    else
-        v10 = smoothRange;
-    coords[3][0] = v10;
-    v26 = v10;
-    LODWORD(coords[2][1]) = layerCount - 1;
-    while ( coords[2][1] >= 0.0 )
+
+    Material *emblemMaterial = Material_Register((char*)"emblem_lut", 3);
+
+    /* screen quad */
+    verts[0].xy[0] = x;
+    verts[0].xy[1] = y;
+
+    verts[1].xy[0] = (x + w) - 1.0f;
+    verts[1].xy[1] = y;
+
+    verts[2].xy[0] = verts[1].xy[0];
+    verts[2].xy[1] = (y + h) - 1.0f;
+
+    verts[3].xy[0] = x;
+    verts[3].xy[1] = verts[2].xy[1];
+
+    for (i = 0; i < 4; ++i)
+        R_ConvertColorToBytes(color, (unsigned __int8 *)&verts[i].color);
+
+    /* smooth width remap */
     {
-        outlineSize = -0.5f;
-        image = (GfxImage *)LODWORD(-0.5f);
-        layer = (const CompositeEmblemLayer *)LODWORD(0.5f);
-        *(_QWORD *)&coords[0][0] = __PAIR64__(LODWORD(0.5f), LODWORD(-0.5f));
-        *(_QWORD *)&coords[1][0] = __PAIR64__(LODWORD(-0.5f), LODWORD(0.5f));
-        coords[2][0] = 0.5f;
-        LODWORD(matResult[2][2]) = &layers[LODWORD(coords[2][1])];
-        LODWORD(matResult[2][1]) = BG_EmblemsGetIconImage(*(_WORD *)LODWORD(matResult[2][2]));
-        if ( *(_BYTE *)(LODWORD(matResult[2][2]) + 28) )
-            matResult[2][0] = BG_EmblemsGetIconOutlineSize(*(_WORD *)LODWORD(matResult[2][2]));
-        else
-            matResult[2][0] = 0.0f;
-        if ( LODWORD(matResult[2][1]) && R_StreamTouchImageAndCheck((GfxImage *)LODWORD(matResult[2][1]), 0) )
-        {
-            MatrixIdentity33((float (*)[3])matRotate[2]);
-            matResult[1][0] = 0.5f;
-            matResult[1][1] = 0.5f;
-            MatrixRotationZ((float (*)[3])matScale[2], *(float *)(LODWORD(matResult[2][2]) + 24));
-            MatrixIdentity33((float (*)[3])&matPlacement_12[20]);
-            *(unsigned int *)&matPlacement_12[16] = *(unsigned int *)(LODWORD(matResult[2][2]) + 16);
-            __libm_sse2_pow(smoothSize, v13);
-            *(float *)&matPlacement_12[20] = 1.0 / (float)2.0;
-            *(unsigned int *)&matPlacement_12[12] = *(unsigned int *)(LODWORD(matResult[2][2]) + 20);
-            __libm_sse2_pow(v12, v14);
-            matScale[0][1] = 1.0 / (float)2.0;
-            if ( *(_BYTE *)(LODWORD(matResult[2][2]) + 29) )
-                *(unsigned int *)&matPlacement_12[20] ^= _mask__NegFloat_;
-            MatrixIdentity33((float (*)[3])v16);
-            *(unsigned int *)matPlacement_12 = *(unsigned int *)(LODWORD(matResult[2][2]) + 8) ^ _mask__NegFloat_;
-            *(unsigned int *)&matPlacement_12[4] = *(unsigned int *)(LODWORD(matResult[2][2]) + 12) ^ _mask__NegFloat_;
-            MatrixMultiplyEquals((const float (*)[3])&matPlacement_12[20], (float (*)[3])matRotate[2]);
-            MatrixMultiplyEquals((const float (*)[3])matScale[2], (float (*)[3])matRotate[2]);
-            MatrixMultiplyEquals((const float (*)[3])v16, (float (*)[3])matRotate[2]);
-            UV_Transform((const float (*)[3])matRotate[2], &outlineSize);
-            UV_Transform((const float (*)[3])matRotate[2], (float *)&layer);
-            UV_Transform((const float (*)[3])matRotate[2], &coords[0][1]);
-            UV_Transform((const float (*)[3])matRotate[2], &coords[1][1]);
-            for ( widthMin = 0.0; SLODWORD(widthMin) < 4; ++LODWORD(widthMin) )
-            {
-                p_packed = (float *)&verts[LODWORD(widthMin) - 1].color.packed;
-                HIDWORD(v13) = &outlineSize + 2 * LODWORD(widthMin);
-                *p_packed = *(float *)HIDWORD(v13);
-                p_packed[1] = *(float *)(HIDWORD(v13) + 4);
-            }
-            *(float *)&v13 = v26 - matResult[2][0];
-            if ( (float)(0.1 - (float)(v26 - matResult[2][0])) < 0.0 )
-                *((float *)&smoothSize + 1) = v26 - matResult[2][0];
-            else
-                *((float *)&smoothSize + 1) = 0.1f;
-            R_AddCmdDrawEmblemLayer(
-                (Material *)LODWORD(verts[3].st[0]),
-                (const GfxImage *)LODWORD(matResult[2][1]),
-                *(unsigned int *)(LODWORD(matResult[2][2]) + 4),
-                matResult[2][0],
-                *((float *)&smoothSize + 1),
-                (GfxQuadVertex *)&smoothMin);
-        }
-        --LODWORD(coords[2][1]);
+        float t = (w - 314.0f) / (64.0f - 314.0f);
+        float s = (t * (smoothMax - smoothMin)) + smoothMin;
+
+        if (s > smoothMax)
+            s = smoothMax;
+        if (s < smoothMin)
+            s = smoothMin;
+
+        coords[3][0] = s;
+        coords[3][1] = s;
+        smooth = s;
     }
+
+    /* draw layers back-to-front */
+    for (i = layerCount - 1; i >= 0; --i)
+    {
+        CompositeEmblemLayer *layer = &layers[i];
+        GfxImage *image;
+        float outlineSize = -0.5f;
+
+        coords[0][0] = 0.5f; coords[0][1] = -0.5f;
+        coords[1][0] = -0.5f; coords[1][1] = 0.5f;
+        coords[2][0] = 0.5f;
+
+        image = BG_EmblemsGetIconImage(layer->icon);
+
+        if (layer->outline)
+            outlineSize = BG_EmblemsGetIconOutlineSize(layer->icon);
+
+        if (image && R_StreamTouchImageAndCheck(image, 0))
+        {
+            float matRotate[3][3];
+            float matScale[3][3];
+            float matTranslate[3][3];
+            float matTemp[3][3];
+
+            MatrixIdentity33(matRotate);
+
+            MatrixRotationZ(matScale, layer->angle);
+
+            MatrixIdentity33(matTranslate);
+            matTranslate[2][0] = -layer->pos[0];
+            matTranslate[2][1] = -layer->pos[1];
+
+            MatrixIdentity33(matTemp);
+
+            /* combine UV transforms */
+            MatrixMultiplyEquals(matTranslate, matRotate);
+            MatrixMultiplyEquals(matScale, matRotate);
+            MatrixMultiplyEquals(matTemp, matRotate);
+
+            if (layer->flip)
+                matRotate[2][0] = -matRotate[2][0];
+
+            UV_Transform(matRotate, &outlineSize);
+            UV_Transform(matRotate, (float *)&layer->pos);
+            UV_Transform(matRotate, &coords[0][1]);
+            UV_Transform(matRotate, &coords[1][1]);
+
+            for (int v = 0; v < 4; ++v)
+            {
+                verts[v].st[0] = (&outlineSize)[v * 2 + 0];
+                verts[v].st[1] = (&outlineSize)[v * 2 + 1];
+            }
+
+            {
+                float smoothOut = smooth - outlineSize;
+                if (smoothOut < smoothMin)
+                    smoothOut = smoothMin;
+
+                R_AddCmdDrawEmblemLayer(
+                    emblemMaterial,
+                    image,
+                    layer->colorIdx,
+                    outlineSize,
+                    smoothOut,
+                    verts);
+            }
+        }
+    }
+
     return 1;
 }
+
 
 void __cdecl UV_Transform(const float (*mat)[3], float *vec)
 {

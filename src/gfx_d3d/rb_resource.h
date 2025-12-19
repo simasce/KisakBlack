@@ -1,5 +1,17 @@
 #pragma once
 
+#include "r_bsp.h"
+
+struct r_resource_action // sizeof=0x18
+{                                       // XREF: .data:r_resource_action * resourceActions/r
+    int action;
+    void *resource;
+    void *data;
+    int p1;
+    int p2;
+    int p3;
+};
+
 void __cdecl RB_Resource_Lock();
 void __cdecl RB_Resource_Unlock();
 void __cdecl RB_Resource_CreateTexture(
