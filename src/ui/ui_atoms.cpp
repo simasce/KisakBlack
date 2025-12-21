@@ -7,8 +7,6 @@
 #include <database/db_file_load.h>
 #include "ui_shared.h"
 
-int com_expectedHunkUsage;
-
 void __cdecl UI_DrawHandlePic(
                 const ScreenPlacement *scrPlace,
                 float x,

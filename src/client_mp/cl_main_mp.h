@@ -9,6 +9,8 @@
 #include <client/screen_placement.h>
 #include <universal/dvar.h>
 #include <ui/ui_main.h>
+#include <gfx_d3d/fxprimitives.h>
+#include <cgame/cg_shellshock.h>
 
 struct ClientArchiveData // sizeof=0x30
 {                                                                             // XREF: demoInitialStateBuffer_t/r
@@ -746,7 +748,7 @@ struct clientStatic_t // sizeof=0x1CF2800
                                                                                 // CL_ParseWWWDownload(int,msg_t *)+7D/w ...
         char originalDownloadName[64];            // XREF: CL_ClearStaticDownload(void)+4A/w
                                                                                 // CL_WWWDownload(void)+82/o ...
-        volatile int scriptError;                     // XREF: CL_Frame(int,int)+49/o
+        volatile unsigned int scriptError;                     // XREF: CL_Frame(int,int)+49/o
                                                                                 // Com_Error(errorParm_t,char const *,...)+1A7/o
         float debugRenderForward[3];                // XREF: CL_GetDebugViewForward(float * const)+6/r
                                                                                 // CL_GetDebugViewForward(float * const)+15/r ...
@@ -837,6 +839,52 @@ struct __declspec(align(8)) clientConnection_t // sizeof=0xAFF48
         // padding byte
 };
 
+struct cgs_t // sizeof=0x3188
+{
+    int viewX;
+    int viewY;
+    int viewWidth;
+    int viewHeight;
+    float viewAspect;
+    int serverCommandSequence;
+    int processedSnapshotNum;
+    int localServer;
+    char gametype[32];
+    char szHostName[256];
+    int maxclients;
+    char mapname[64];
+    int gameEndTime;
+    int voteTime;
+    int voteYes;
+    int voteNo;
+    char voteString[256];
+    XModel *gameModels[512];
+    const FxEffectDef *fxs[196];
+    const FxEffectDef *grenadeFx[27];
+    const FxEffectDef *playerFireFx[3];
+    shellshock_parms_t holdBreathParams;
+    char teamChatMsgs[8][241];
+    int teamChatMsgTimes[8];
+    int teamChatPos;
+    int teamLastChatPos;
+    float compassWidth;
+    float compassHeight;
+    float compassY;
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    _BYTE corpseinfo[5888];
+    actorInfo_t actorCorpseInfo[8];
+    bool entUpdateToggleContextKey;
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+};
 
 struct voiceCommunication_t;
 struct GfxConfiguration;
@@ -1200,6 +1248,8 @@ bool __cdecl CL_IsLocalClientInGame(int localClientNum);
 extern clientStatic_t cls;
 extern clientConnection_t *clientConnections;
 extern UiContext cgDC[1];
+
+extern bool cl_serverLoadingMap;
 
 
 extern const dvar_t *cl_noprint;

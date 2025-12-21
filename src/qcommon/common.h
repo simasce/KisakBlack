@@ -198,7 +198,7 @@ void __cdecl Com_AssetLoadUI();
 void __cdecl Com_ResetFrametime();
 void __cdecl Com_CheckSyncFrame();
 void __cdecl Com_Frame();
-unsigned intCom_Frame_Try_Block_Function();
+unsigned int Com_Frame_Try_Block_Function();
 void __cdecl Com_WriteConfiguration(int localClientNum);
 int __cdecl Com_ModifyMsec(int msec);
 void Com_Statmon();
@@ -338,3 +338,4 @@ extern const dvar_t *band_dedicated;
 
 extern int com_frameNumber;
 extern int com_errorEntered;
+extern int com_expectedHunkUsage;

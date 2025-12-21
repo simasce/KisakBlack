@@ -1,4 +1,12 @@
 #pragma once
+#include <client/cl_main.h>
+
+struct Material;
+struct usercmd_s;
+struct DObj;
+struct DObjAnimMat;
+struct refdef_s;
+
 
 void __cdecl CL_GetScreenDimensions(int *width, int *height, float *aspect);
 double __cdecl CL_GetScreenAspectRatioDisplayPixel();
@@ -151,7 +159,7 @@ void __cdecl CL_ClampViewAngle(int localClientNum, unsigned int angle, float min
 void __cdecl CL_SyncTimes(int localClientNum);
 int __cdecl LoadWorld(char *mapname);
 void __cdecl CL_UpdateLevelHunkUsage();
-void    CL_StartLoading(int a1@<esi>);
+void    CL_StartLoading();
 void __cdecl CL_InitCGame(int localClientNum);
 void __cdecl CL_SetLocalClientConnectionState(int client, connstate_t state);
 void __cdecl CL_LocalClient_SetCUIFlag(int localClientNum, int flag);

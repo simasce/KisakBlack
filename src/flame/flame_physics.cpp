@@ -1,5 +1,8 @@
 #include "flame_physics.h"
 
+cdl_proftimer sv_flame_proftimer;
+cdl_proftimer cl_flame_proftimer;
+
 void __thiscall colgeom_visitor_inlined_t<500>::reset(colgeom_visitor_inlined_t<200> *this)
 {
     hybrid_vector *p_m_mx; // ecx

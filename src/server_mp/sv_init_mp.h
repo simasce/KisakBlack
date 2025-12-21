@@ -35,7 +35,6 @@ void __cdecl SV_CheckThread();
 
 
 extern const dvar_t *sv_gametype;
-extern const dvar_t *sv_mapname;
 extern const dvar_t *sv_privateClients;
 extern const dvar_t *sv_hostname;
 extern const dvar_t *sv_noname;

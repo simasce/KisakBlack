@@ -216,6 +216,8 @@ struct cdl_proftimer // sizeof=0x60
     cdl_proftimer();
 
     void start_capture();
+
+    void reset();
 };
 
 void __cdecl destroy_gjk_geom(gjk_aabb_t *geom);

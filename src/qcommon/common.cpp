@@ -2,6 +2,141 @@
 
 #include <string.h>
 #include <universal/mem_userhunk.h>
+#include <game_mp/g_main_mp.h>
+#include <client/con_channels.h>
+#include <win32/win_common.h>
+#include <client/cl_console.h>
+#include <win32/win_net.h>
+#include <win32/win_main.h>
+#include <monkey/monkey.h>
+#include <universal/com_files.h>
+#include <ctime>
+#include "threads.h"
+#include <universal/com_buildinfo.h>
+#include <server_mp/sv_main_mp.h>
+#include <server_mp/sv_init_mp.h>
+#include <gfx_d3d/r_water_sim.h>
+#include <gfx_d3d/r_extracam.h>
+#include <gfx_d3d/r_ui3d.h>
+#include <gfx_d3d/rb_resource.h>
+#include <glass/glass_client.h>
+#include <demo/demo_playback.h>
+#include <stringed/stringed_hooks.h>
+#include <gfx_d3d/r_singlethreaded_device_pc.h>
+#include <universal/com_tasks.h>
+#include <csetjmp>
+#include <win32/win_splash.h>
+#include <clientscript/cscr_stringlist.h>
+#include <universal/com_memory.h>
+#include "dvar_cmds.h"
+#include <win32/win_shared.h>
+#include "com_clients.h"
+#include <client/cl_keys.h>
+#include <win32/win_local.h>
+#include <client/splitscreen.h>
+#include <universal/q_parse.h>
+#include <clientscript/cscr_vm.h>
+#include <game_mp/ui_gameinfo_mp.h>
+#include <bgame/bg_fire.h>
+#include <EffectsCore/fx_load_obj.h>
+#include "com_profilemapload.h"
+#include "files.h"
+#include <ui/ui_shared.h>
+#include <ui_mp/ui_main_mp.h>
+#include "com_bsp_load_obj.h"
+#include <client/cl_debugdata.h>
+#include <ik/ik.h>
+#include <universal/physicalmemory.h>
+#include <live/live_steam.h>
+#include <win32/win_stream.h>
+#include <client/cl_gamepad.h>
+#include <ddl/ddl_api.h>
+#include <DW/dwLogOn_pc.h>
+#include <gfx_d3d/r_stream.h>
+#include <universal/reliablemsg.h>
+#include <client_mp/cl_scrn_mp.h>
+#include <win32/win_workercmds.h>
+#include <live/live.h>
+#include <live/live_win.h>
+#include <ui/ui_playlists.h>
+#include <bgame/bg_emblems.h>
+#include <demo/demo_files.h>
+#include <mjpeg/mjpeg.h>
+#include <game_mp/pregame.h>
+#include <database/db_file_load.h>
+#include <universal/com_loadutils.h>
+#include <ui/ui_viewer.h>
+#include <clientscript/cscr_debugger.h>
+#include <clientscript/cscr_memorytree.h>
+#include <win32/win_wndproc.h>
+#include <tl/gdt_remote.h>
+#include <stringed/stringed_remote.h>
+#include <client/cl_main.h>
+#include <client/client.h>
+#include <cgame/cg_compass.h>
+#include <win32/win_input.h>
+#include "dobj_management.h"
+#include "cm_load.h"
+#include <ui/ui_screenshot.h>
+#include <live/live_fileshare_cache.h>
+#include <server/sv_game.h>
+#include <cgame_mp/cg_ents_mp.h>
+#include <bgame/bg_weapons_def.h>
+#include <universal/com_workercmds.h>
+
+const dvar_t *collectors;
+const dvar_t *primaryWeaponOffset;
+const dvar_t *scr_xpcollectorsscale;
+const dvar_t *scr_xpscale;
+const dvar_t *scr_xpzmscale;
+const dvar_t *scr_codpointsxpscale;
+const dvar_t *scr_codpointsmatchscale;
+const dvar_t *scr_codpointsperchallenge;
+const dvar_t *scr_rankXpCap;
+const dvar_t *scr_codPointsCap;
+const dvar_t *version;
+const dvar_t *shortversion;
+
+const dvar_s *com_recommendedSet;
+
+cmd_function_s Com_Error_f_VAR;
+cmd_function_s Com_Crash_f_VAR;
+cmd_function_s Com_Freeze_f_VAR;
+cmd_function_s Com_Assert_f_VAR;
+cmd_function_s Com_Quit_f_VAR;
+cmd_function_s Com_WriteConfig_f_VAR;
+cmd_function_s Com_WriteKeyConfig_f_VAR;
+cmd_function_s Com_SaveKeys_f_VAR;
+cmd_function_s Com_RestoreKeys_f_VAR;
+cmd_function_s Com_WriteDefaults_f_VAR;
+
+char asc_CD51B0[3] = { '[', ']', '\0'};
+
+char cl_cdkey[34];
+char cl_cdkey_dw[34];
+char cl_cdkeychecksum[10] =
+{ ' ', ' ', ' ', ' ', '\0', '\0', '\0', '\0', '\0', '\0' };
+
+
+const char *noticeErrors[14] =
+{
+  "EXE_SERVER_DISCONNECTED",
+  "EXE_DISCONNECTED",
+  "EXE_SERVERISFULL",
+  "XBOXLIVE_SIGNEDOUTOFLIVE",
+  "XBOXLIVE_CANTJOINSESSION",
+  "XBOXLIVE_MPNOTALLOWED",
+  "XBOXLIVE_MUSTLOGIN",
+  "MENU_RESETCUSTOMCLASSES",
+  "MP_BETACLOSED",
+  "XBOXLIVE_SIGNINCHANGED",
+  "XBOXLIVE_SIGNEDOUT",
+  "XBOXLIVE_SIGNEDOUT_SPLITSCREEN",
+  "XBOXLIVE_NETCONNECTION",
+  ""
+};
+
+static const int maxDemoMsec = 200;
 
 const dvar_s *useFastFile;
 const dvar_s *sys_smp_allowed;
@@ -71,6 +206,49 @@ const dvar_t *band_dedicated;
 
 int com_errorEntered;
 int com_frameNumber;
+int com_expectedHunkUsage;
+
+char *rd_buffer;
+unsigned int rd_buffersize;
+void(__cdecl *rd_flush)(char *);
+int logfile;
+
+int opening_qconsole;
+int com_consoleLogOpenFailed;
+unsigned int com_errorPrintsCount;
+
+float com_codeTimeScale;
+
+char g_stackTrace[32768];
+char com_consoleBuffer[100][256];
+int com_consoleBufferCurLine;
+int com_numConsoleLines;
+char *com_consoleLines[32];
+
+int weaponInfoSource;
+
+int com_safemode;
+int com_errorEntered;
+int com_fixedConsolePosition;
+
+float com_timescaleValue;
+int timeClientFrame;
+
+int com_fileAccessed;
+
+int com_frameTime;
+int com_fullyInitialized;
+int com_lastFrameTime[1];
+int com_lastFrameIndex;
+
+HunkUser *liveMemHunk;
+char s_liveAllocatorMem[0x40000];
+
+char com_errorMessage[4096];
+errorParm_t errorcode;
+
+const dvar_t *ui_errorMessage;
+const dvar_t *ui_errorTitle;
 
 void *__cdecl Com_LiveAllocate(unsigned int size)
 {
@@ -188,7 +366,7 @@ void __cdecl Com_PrintMessage(int channel, char *msg, int error)
         }
         else
         {
-            strncpy((unsigned __int8 *)com_consoleBuffer[com_consoleBufferCurLine], (unsigned __int8 *)msg, 0xFFu);
+            strncpy(com_consoleBuffer[com_consoleBufferCurLine], msg, 0xFFu);
             com_consoleBuffer[com_consoleBufferCurLine][255] = 0;
         }
         if ( ++com_consoleBufferCurLine >= 100 )
@@ -267,9 +445,9 @@ void Com_OpenLogFile()
         _time64(&aclock);
         newtime = _localtime64(&aclock);
         if ( log_append && log_append->current.enabled )
-            logfile = FS_FOpenFileAppend("console_mp.log");
+            logfile = FS_FOpenFileAppend((char*)"console_mp.log");
         else
-            logfile = FS_FOpenTextFileWrite("console_mp.log");
+            logfile = FS_FOpenTextFileWrite((char*)"console_mp.log");
         com_consoleLogOpenFailed = logfile == 0;
         v1 = asctime(newtime);
         BuildNumber = Com_GetBuildNumber();
@@ -311,7 +489,7 @@ void Com_DPrintf(int channel, const char *fmt, ...)
 void Com_PrintError(int channel, const char *fmt, ...)
 {
     char dest; // [esp+14h] [ebp-1008h] BYREF
-    _BYTE v3[4095]; // [esp+15h] [ebp-1007h] BYREF
+    char v3[4095]; // [esp+15h] [ebp-1007h] BYREF
     int v4; // [esp+1018h] [ebp-4h]
     va_list va; // [esp+102Ch] [ebp+10h] BYREF
 
@@ -330,7 +508,7 @@ void Com_PrintError(int channel, const char *fmt, ...)
 void Com_PrintWarning(int channel, const char *fmt, ...)
 {
     char dest; // [esp+14h] [ebp-1008h] BYREF
-    _BYTE v3[4095]; // [esp+15h] [ebp-1007h] BYREF
+    char v3[4095]; // [esp+15h] [ebp-1007h] BYREF
     int v4; // [esp+1018h] [ebp-4h]
     va_list va; // [esp+102Ch] [ebp+10h] BYREF
 
@@ -389,8 +567,10 @@ void __cdecl Com_InitDynamicMemorySystems()
     Demo_AllocatePlaybackMemory(IsMenuLevel);
     Com_IsMenuLevel(0);
     //BLOPS_NULLSUB();
-    if ( useFastFile->current.enabled )
+    if (useFastFile->current.enabled)
+    {
         //BLOPS_NULLSUB();
+    }
 }
 
 void __cdecl Com_ShutdownDynamicMemorySystems()
@@ -473,7 +653,7 @@ void __cdecl Com_PrintStackTrace()
 
 void __cdecl    Com_ErrorAbort()
 {
-    Sys_Error("%s", com_errorMessage);
+    Sys_Error((char*)"%s", com_errorMessage);
 }
 
 void Com_Error(errorParm_t code, const char *fmt, ...)
@@ -486,7 +666,7 @@ void Com_Error(errorParm_t code, const char *fmt, ...)
     if ( (code == ERR_DROP || code == ERR_SCRIPT_DROP) && G_ExitAfterToolComplete() )
     {
         _vsnprintf(com_errorMessage, 0x1000u, fmt, va);
-        byte_3FC29AF = 0;
+        com_errorEntered = 0;
         printf(com_errorMessage);
         Com_Printf(16, com_errorMessage);
         Com_PrintStackTrace();
@@ -502,10 +682,10 @@ void Com_Error(errorParm_t code, const char *fmt, ...)
         if ( !Demo_IsIdle() && code != ERR_SCRIPT )
             Demo_End(1);
         if ( com_errorEntered )
-            Sys_Error("%s", com_errorMessage);
+            Sys_Error((char*)"%s", com_errorMessage);
         com_errorEntered = 1;
         _vsnprintf(com_errorMessage, 0x1000u, fmt, va);
-        byte_3FC29AF = 0;
+        com_errorEntered = 0;
         if ( code != ERR_DISCONNECT && Monkey_IsRunning() )
         {
             Com_Printf(16, com_errorMessage);
@@ -514,7 +694,7 @@ void Com_Error(errorParm_t code, const char *fmt, ...)
         }
         if ( code == ERR_SCRIPT )
         {
-            StatMon_Warning(10, 3000, "code_warning_scripterrors");
+            StatMon_Warning(10, 3000, (char *)"code_warning_scripterrors");
         }
         else if ( code != ERR_LOCALIZATION )
         {
@@ -538,8 +718,9 @@ void Com_Error(errorParm_t code, const char *fmt, ...)
             {
                 printf("Fatal Error: %s\n", com_errorMessage);
                 Sys_NormalExit();
-                v2 = __iob_func();
-                fflush(v2 + 1);
+                //v2 = __iob_func();
+                //fflush(v2 + 1);
+                fflush(stdout);
                 ExitProcess(0xFFFFFFFF);
             }
             TaskManager2_ComErrorCleanup();
@@ -798,10 +979,10 @@ void __cdecl Com_ServerPacketEvent()
     msg_t netmsg; // [esp+0h] [ebp-50h] BYREF
     unsigned __int8 (*msgBuf)[65536]; // [esp+30h] [ebp-20h]
     netadr_t adr; // [esp+34h] [ebp-1Ch] BYREF
-    LargeLocal msgBuf_large_local; // [esp+48h] [ebp-8h] BYREF
+    LargeLocal msgBuf_large_local(0x10000); // [esp+48h] [ebp-8h] BYREF
 
-    LargeLocal::LargeLocal(&msgBuf_large_local, 0x10000);
-    msgBuf = (unsigned __int8 (*)[65536])LargeLocal::GetBuf(&msgBuf_large_local);
+    //LargeLocal::LargeLocal(&msgBuf_large_local, 0x10000);
+    msgBuf = (unsigned __int8 (*)[65536])msgBuf_large_local.GetBuf(); // LargeLocal::GetBuf(&msgBuf_large_local);
     MSG_Init(&netmsg, (unsigned __int8 *)msgBuf, 0x10000);
     if ( com_sv_running->current.enabled )
     {
@@ -813,7 +994,7 @@ void __cdecl Com_ServerPacketEvent()
         if ( com_sv_running->current.enabled )
             SV_PacketEvent(adr, &netmsg);
     }
-    LargeLocal::~LargeLocal(&msgBuf_large_local);
+    //LargeLocal::~LargeLocal(&msgBuf_large_local);
 }
 
 void __cdecl Com_EventLoop()
@@ -823,30 +1004,30 @@ void __cdecl Com_EventLoop()
     sysEvent_t ev; // [esp+4Ch] [ebp-18h]
 
     //PIXBeginNamedEvent(-1, "Com_EventLoop");
-    while ( 1 )
+    while (1)
     {
         v1 = *Sys_GetEvent(&result);
         ev = v1;
-        switch ( v1.evType )
+        switch (v1.evType)
         {
-            case SE_NONE:
-                Com_ClientPacketEvent(v1.evType);
-                if ( GetCurrentThreadId() == (unsigned int)g_DXDeviceThread && !MEMORY[0xA8402BC] )
-                    //D3DPERF_EndEvent();
-                return;
-            case SE_KEY:
-                CL_KeyEvent(0, ev.evValue, ev.evValue2, ev.evTime);
-                break;
-            case SE_CHAR:
-                CL_CharEvent(0, ev.evValue);
-                break;
-            case SE_CONSOLE:
-                Con_Restricted_AddBuf((const char *)ev.evPtr);
-                Com_FreeEvent(ev.evPtr);
-                break;
-            default:
-                Com_Error(ERR_FATAL, &byte_CD39AC, ev.evType);
-                break;
+        case SE_NONE:
+            Com_ClientPacketEvent();
+            //if (g_DXDeviceThread == GetCurrentThreadId())
+            //    D3DPERF_EndEvent();
+            return;
+        case SE_KEY:
+            CL_KeyEvent(0, ev.evValue, ev.evValue2, ev.evTime);
+            break;
+        case SE_CHAR:
+            CL_CharEvent(0, ev.evValue);
+            break;
+        case SE_CONSOLE:
+            Con_Restricted_AddBuf((char *)ev.evPtr);
+            Com_FreeEvent((char *)ev.evPtr);
+            break;
+        default:
+            Com_Error(ERR_FATAL, "Com_EventLoop: bad event type %i", ev.evType);
+            break;
         }
     }
 }
@@ -856,17 +1037,17 @@ void Com_ClientPacketEvent()
     msg_t netmsg; // [esp+0h] [ebp-50h] BYREF
     unsigned __int8 (*msgBuf)[65536]; // [esp+30h] [ebp-20h]
     netadr_t adr; // [esp+34h] [ebp-1Ch] BYREF
-    LargeLocal msgBuf_large_local; // [esp+48h] [ebp-8h] BYREF
+    LargeLocal msgBuf_large_local(0x10000); // [esp+48h] [ebp-8h] BYREF
 
-    LargeLocal::LargeLocal(&msgBuf_large_local, 0x10000);
-    msgBuf = (unsigned __int8 (*)[65536])LargeLocal::GetBuf(&msgBuf_large_local);
+    //LargeLocal::LargeLocal(&msgBuf_large_local, 0x10000);
+    msgBuf = (unsigned __int8 (*)[65536])msgBuf_large_local.GetBuf(); // LargeLocal::GetBuf(&msgBuf_large_local);
     MSG_Init(&netmsg, (unsigned __int8 *)msgBuf, 0x10000);
     Com_PacketEventLoop(0, &netmsg);
     while ( NET_GetDeferredClientPacket(&adr, &netmsg) )
         Com_DispatchClientPacketEvent(adr, &netmsg);
     if ( com_sv_running->current.enabled )
     {
-        LargeLocal::~LargeLocal(&msgBuf_large_local);
+        //LargeLocal::~LargeLocal(&msgBuf_large_local);
     }
     else
     {
@@ -875,7 +1056,7 @@ void Com_ClientPacketEvent()
         while ( Sys_SocketPool_GetPacket(&adr, &netmsg) )
             Com_DispatchClientPacketEvent(adr, &netmsg);
         Sys_CheckForNATOverflow();
-        LargeLocal::~LargeLocal(&msgBuf_large_local);
+        //LargeLocal::~LargeLocal(&msgBuf_large_local);
     }
 }
 
@@ -888,7 +1069,7 @@ void __cdecl Com_PacketEventLoop(int localClientNum, msg_t *netmsg)
 
     while ( 1 )
     {
-        NetworkID = Com_LocalClient_GetNetworkID(localClientNum);
+        NetworkID = (netsrc_t)Com_LocalClient_GetNetworkID(localClientNum);
         if ( !NET_GetLoopPacket(NetworkID, &adr, netmsg) )
             break;
         v4 = clientConnections == 0;
@@ -921,7 +1102,7 @@ void __cdecl Com_ReadCDKey()
                     memcpy((unsigned __int8 *)cl_cdkey, (unsigned __int8 *)regkey, 0x15u),
                     cl_cdkey[22] = 0,
                     *(unsigned int *)cl_cdkeychecksum = *(unsigned int *)&regkey[16],
-                    byte_E0AA3C = 0,
+                    //byte_E0AA3C = 0,
                     CL_LocalClient_GetActiveCount()) )
         {
             CL_ConvertRegKeytoDWKey(cl_cdkey, 0x15u);
@@ -968,17 +1149,17 @@ void __cdecl Com_SetRecommended(int localClientNum, int restart)
         info.sysMB = 128;
     filesize = FS_ReadFile("configure_mp.csv", (void **)&csv);
     if ( filesize < 0 )
-        Com_Error(ERR_FATAL, aExeErrNotFound_0);
+        Com_Error(ERR_FATAL, "EXE_ERR_NOT_FOUND");
     text = csv;
     Com_BeginParseSession("configure_mp.csv");
     Com_SetCSV(1);
     if ( !Com_SetRecommendedCpu(localClientNum, &info, (char **)&text) )
     {
         Sys_GetInfo(&info);
-        Com_Error(ERR_FATAL, &byte_CD3A4C, info.configureGHz, info.sysMB);
+        Com_Error(ERR_FATAL, "configure_mp.csv: EXE_ERR_COULDNT_CONFIGURE %.0f GHZ %i MB", info.configureGHz, info.sysMB);
     }
     if ( !Com_SetRecommendedGpu(&info, (char **)&text) )
-        Com_Error(ERR_FATAL, &byte_CD3A14, info.gpuDescription);
+        Com_Error(ERR_FATAL, "configure_mp.csv: EXE_ERR_COULDNT_CONFIGURE %s", info.gpuDescription);
     Com_EndParseSession();
     checksum = Com_ConfigureChecksum(csv, filesize);
     FS_FreeFile(csv);
@@ -1013,7 +1194,7 @@ char __cdecl Com_SetRecommendedCpu(int localClientNum, const SysInfo *info, char
     char *s0; // [esp+14E8h] [ebp-4h]
 
     dvarCount = 0;
-    v7[0] = DOUBLE_N1_0;
+    v7[0] = -1.0;
     LODWORD(v7[3]) = 0;
     v8 = 0;
     while ( 1 )
@@ -1032,11 +1213,11 @@ char __cdecl Com_SetRecommendedCpu(int localClientNum, const SysInfo *info, char
             {
                 v10[0] = atof(s0);
                 if ( v10[0] < 0.0 )
-                    Com_Error(ERR_FATAL, &byte_CD3B80, v10[0]);
+                    Com_Error(ERR_FATAL, "configure_mp.csv: cpu ghz %g not allowed to be less than 0", v10[0]);
                 s0 = (char *)Com_ParseOnLine((const char **)text);
                 LODWORD(v10[3]) = atoi(s0);
                 if ( SLODWORD(v10[3]) < 128 )
-                    Com_Error(ERR_FATAL, &byte_CD3B40, LODWORD(v10[3]));
+                    Com_Error(ERR_FATAL, "configure_mp.csv: sys mb %i not allowed to be less than 128", LODWORD(v10[3]));
                 v9 = 0;
                 if ( info->configureGHz >= v10[0]
                     && info->sysMB >= SLODWORD(v10[3])
@@ -1051,10 +1232,10 @@ char __cdecl Com_SetRecommendedCpu(int localClientNum, const SysInfo *info, char
             else
             {
                 if ( I_stricmp(s0, "cpu ghz") )
-                    Com_Error(ERR_FATAL, &byte_CD3C04);
+                    Com_Error(ERR_FATAL, "configure_mp.csv: \"cpu ghz\" should be the first column");
                 s0 = (char *)Com_ParseOnLine((const char **)text);
                 if ( I_stricmp(s0, "sys mb") )
-                    Com_Error(ERR_FATAL, &byte_CD3BC0);
+                    Com_Error(ERR_FATAL, "configure_mp.csv: \"sys mb\" should be the second column");
                 dvarCount = Com_GetConfigureDvarNames((const char **)text, (char (*)[32])dvarNames);
             }
         }
@@ -1081,13 +1262,13 @@ int __cdecl Com_GetConfigureDvarNames(const char **text, char (*dvarNames)[32])
     {
         token = Com_ParseOnLine(text);
         if ( !*text )
-            Com_Error(ERR_FATAL, &byte_CD3CA8);
+            Com_Error(ERR_FATAL, "configure_mp.csv: unexpected end-of-file");
         if ( !token->token[0] )
             break;
-        if ( strlen(token->token) > 0x1F )
-            Com_Error(ERR_FATAL, &byte_CD3C74, token, 31);
+        if ( strlen(token->token) > 31 )
+            Com_Error(ERR_FATAL, "configure_mp.csv: dvar name \"%s\" longer than %i", token, 31);
         if ( dvarCount >= 64 )
-            Com_Error(ERR_FATAL, &byte_CD3C4C, 64);
+            Com_Error(ERR_FATAL, "configure_mp.csv: more than %i dvars", 64);
         I_strncpyz(&(*dvarNames)[32 * dvarCount], token->token, 32);
     }
     return dvarCount;
@@ -1103,17 +1284,17 @@ void __cdecl Com_GetConfigureDvarValues(int dvarCount, const char **text, char (
     {
         token = Com_ParseOnLine(text);
         if ( !*text )
-            Com_Error(ERR_FATAL, &byte_CD3CA8);
+            Com_Error(ERR_FATAL, "configure_mp.csv: unexpected end-of-file");
         if ( !token->token[0] )
-            Com_Error(ERR_FATAL, &byte_CD3D5C, dvarIndex);
+            Com_Error(ERR_FATAL, "configure_mp.csv: missing entry in dvar value column %i", dvarIndex);
         if ( strlen(token->token) > 0x1F )
-            Com_Error(ERR_FATAL, &byte_CD3D10, token, dvarIndex, 31);
+            Com_Error(ERR_FATAL, "configure_mp.csv: entry \"%s\" in davr value column %i is loinger than %i", token, dvarIndex, 31);
         if ( dvarValues )
             I_strncpyz(&(*dvarValues)[32 * dvarIndex], token->token, 32);
     }
     tokena = Com_ParseOnLine(text);
     if ( tokena->token[0] )
-        Com_Error(ERR_FATAL, &byte_CD3CD4, tokena);
+        Com_Error(ERR_FATAL, "configure_mp.csv: extra dvar value column(s): value = %s", tokena);
 }
 
 void __cdecl Com_SetConfigureDvars(int dvarCount, const char (*dvarNames)[32], const char (*dvarValues)[32])
@@ -1194,7 +1375,7 @@ bool __cdecl Com_DoesGpuStringMatch(const char *find, const char *ref)
             wildcardTemplate[wildcardLen] = find[findLen];
 LABEL_11:
             if ( ++wildcardLen == 1023 )
-                Com_Error(ERR_FATAL, &byte_CD3DC8);
+                Com_Error(ERR_FATAL, "configure_mp.csv: \"find\" string is too long");
             continue;
         }
         if ( wildcardLen < 1
@@ -1277,7 +1458,7 @@ bool __cdecl Com_HasConfigureFileChanged()
 
     filesize = FS_ReadFile("configure_mp.csv", (void **)&csv);
     if ( filesize < 0 )
-        Com_Error(ERR_FATAL, aExeErrNotFound_0);
+        Com_Error(ERR_FATAL, "EXE_ERR_NOT_FOUND");
     checksum = Com_ConfigureChecksum(csv, filesize);
     FS_FreeFile(csv);
     return Sys_HasConfigureChecksumChanged(checksum);
@@ -1299,7 +1480,7 @@ void __cdecl Com_RunAutoExec(int localClientNum, int controllerIndex)
     if ( localClientNum >= 0 )
     {
         Dvar_SetInAutoExec(1);
-        Cmd_ExecuteSingleCommand(localClientNum, controllerIndex, "exec autoexec_dev_mp.cfg");
+        Cmd_ExecuteSingleCommand(localClientNum, controllerIndex, (char*)"exec autoexec_dev_mp.cfg");
         Dvar_SetInAutoExec(0);
     }
 }
@@ -1350,7 +1531,8 @@ void __cdecl Com_Init(char *commandLine)
     void *v3; // eax
 
     Value = Sys_GetValue(2);
-    if ( _setjmp3(Value, 0) )
+    //if ( _setjmp3(Value, 0) )
+    if ( _setjmp((int *)Value) )
     {
         v2 = va("Error during initialization:\n%s\n", com_errorMessage);
         Sys_Error(v2);
@@ -1358,7 +1540,8 @@ void __cdecl Com_Init(char *commandLine)
     Com_Init_Try_Block_Function(commandLine);
     Monkey_Start();
     v3 = Sys_GetValue(2);
-    if ( !_setjmp3(v3, 0) )
+    //if ( !_setjmp3(v3, 0) )
+    if ( !_setjmp((int*)v3) )
         Com_AddStartupCommands();
     if ( !I_strcmp(sv_mapname->current.string, "") )
         Com_InitUIAndCommonXAssets();
@@ -1376,6 +1559,8 @@ void __cdecl Com_Init(char *commandLine)
     UI_LoadMaps();
 }
 
+int lastErrorTime;
+int errorCount;
 void Com_ErrorCleanup()
 {
     int Primary; // eax
@@ -1384,7 +1569,7 @@ void Com_ErrorCleanup()
     char *v3; // [esp+8h] [ebp-101Ch]
     char *v4; // [esp+Ch] [ebp-1018h]
     const char *src; // [esp+14h] [ebp-1010h]
-    unsigned intv6; // [esp+18h] [ebp-100Ch]
+    unsigned int v6; // [esp+18h] [ebp-100Ch]
     char finalmsg[4100]; // [esp+1Ch] [ebp-1008h] BYREF
 
     Dvar_RestoreDvars();
@@ -1428,7 +1613,7 @@ void Com_ErrorCleanup()
     {
         if ( cls.uiStarted && errorcode != ERR_DROP )
         {
-            MenuScreenForError = UI_GetMenuScreenForError();
+            MenuScreenForError = (uiMenuCommand_t)UI_GetMenuScreenForError();
             Primary = Com_LocalClients_GetPrimary();
             UI_SetActiveMenu(Primary, MenuScreenForError);
         }
@@ -1455,7 +1640,7 @@ void Com_ErrorCleanup()
     }
     lastErrorTime = v6;
     if ( errorcode != ERR_SERVERDISCONNECT && errorcode != ERR_DROP && errorcode != ERR_DISCONNECT )
-        Sys_Error("%s", com_errorMessage);
+        Sys_Error((char*)"%s", com_errorMessage);
     updateScreenCalled = 0;
     if ( errorcode == ERR_SERVERDISCONNECT )
     {
@@ -1489,7 +1674,8 @@ void Com_ErrorCleanup()
         if ( errorcode == ERR_DROP && QuitOnError() )
             Com_Quit_f();
     }
-    *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) = 0;
+    //*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) = 0;
+    bgs = NULL;
     com_fixedConsolePosition = 0;
     NET_RestartDebug();
     com_errorEntered = 0;
@@ -1524,7 +1710,7 @@ void __cdecl Com_Init_Try_Block_Function(char *commandLine)
     int v3; // eax
     const char *BuildDisplayName; // eax
     void *v5; // ecx
-    unsigned intv6; // eax
+    unsigned int v6; // eax
     const char *max; // [esp+8h] [ebp-5Ch]
     const char *maxa; // [esp+8h] [ebp-5Ch]
     char *v9; // [esp+Ch] [ebp-58h]
@@ -1615,7 +1801,7 @@ void __cdecl Com_Init_Try_Block_Function(char *commandLine)
         Cmd_AddCommandInternal("freeze", Com_Freeze_f, &Com_Freeze_f_VAR);
         Cmd_AddCommandInternal("assert", Com_Assert_f, &Com_Assert_f_VAR);
     }
-    Cmd_AddCommandInternal(aQuit_1, (void (__cdecl *)())Com_Quit_f, &Com_Quit_f_VAR);
+    Cmd_AddCommandInternal("quit", (void(__cdecl *)())Com_Quit_f, &Com_Quit_f_VAR);
     Cmd_AddCommandInternal("writeconfig", Com_WriteConfig_f, &Com_WriteConfig_f_VAR);
     Cmd_AddCommandInternal("writekeyconfig", Com_WriteKeyConfig_f, &Com_WriteKeyConfig_f_VAR);
     Cmd_AddCommandInternal("savekeys", Com_SaveKeys_f, &Com_SaveKeys_f_VAR);
@@ -1687,15 +1873,15 @@ void __cdecl Com_ParseCommandLine(char *commandLine)
 void __cdecl Com_Error_f()
 {
     if ( Cmd_Argc() <= 1 )
-        Com_Error(ERR_FATAL, &byte_CD4270);
+        Com_Error(ERR_FATAL, "Testing fatal error");
     else
-        Com_Error(ERR_DROP, &byte_CD4288);
+        Com_Error(ERR_DROP, "Testing drop error");
 }
 
 void __cdecl Com_Freeze_f()
 {
     const char *v0; // eax
-    unsigned intstart; // [esp+10h] [ebp-Ch]
+    unsigned int start; // [esp+10h] [ebp-Ch]
     float s; // [esp+18h] [ebp-4h]
 
     if ( Cmd_Argc() == 2 )
@@ -1899,6 +2085,7 @@ void __cdecl Com_StartupConfigs(int localClientNum)
         Com_ExecStartupConfigs(localClientNum, 0);
 }
 
+int g_loadedPreXAssets = 0;
 void __cdecl Com_InitCodeXAssets()
 {
     XZoneInfo zoneInfo[4]; // [esp+0h] [ebp-34h] BYREF
@@ -1924,7 +2111,7 @@ void __cdecl Com_WriteDefaultsToFile(char *filename)
     f = FS_FOpenFileWrite(filename);
     if ( f )
     {
-        FS_Printf(f, "// generated by Call of Duty, do not modify\n");
+        FS_Printf(f, (char*)"// generated by Call of Duty, do not modify\n");
         Dvar_WriteDefaults(f);
         FS_FCloseFile(f);
     }
@@ -1957,10 +2144,10 @@ void __cdecl Com_WriteConfigToFile(int localClientNum, char *filename)
 {
     int f; // [esp+4h] [ebp-4h]
 
-    f = FS_FOpenFileWriteToDir(filename, "players", fs_homepath->current.string);
+    f = FS_FOpenFileWriteToDir(filename, (char*)"players", fs_homepath->current.string);
     if ( f )
     {
-        FS_Printf(f, "// generated by Call of Duty, do not modify\n");
+        FS_Printf(f, (char*)"// generated by Call of Duty, do not modify\n");
         Gamepad_WriteBindings(localClientNum, f);
         Dvar_WriteVariables(f);
         Con_WriteFilterConfigString(f);
@@ -1999,10 +2186,10 @@ void __cdecl Com_WriteKeyConfigToFile(int localClientNum, char *filename)
     int i; // [esp+20h] [ebp-8h]
     const dvar_s *dvar; // [esp+24h] [ebp-4h]
 
-    f = FS_FOpenFileWriteToDir(filename, "players", fs_homepath->current.string);
+    f = FS_FOpenFileWriteToDir(filename, (char*)"players", fs_homepath->current.string);
     if ( f )
     {
-        FS_Printf(f, "// generated by Call of Duty, do not modify\n");
+        FS_Printf(f, (char *)"// generated by Call of Duty, do not modify\n");
         dvars[0] = "sensitivity";
         dvars[1] = "cl_freelook";
         dvars[2] = "ui_mousePitch";
@@ -2015,7 +2202,7 @@ void __cdecl Com_WriteKeyConfigToFile(int localClientNum, char *filename)
             if ( dvar )
             {
                 v2 = Dvar_DisplayableValue(dvar);
-                FS_Printf(f, "set %s \"%s\"\n", dvar->name, v2);
+                FS_Printf(f, (char *)"set %s \"%s\"\n", dvar->name, v2);
             }
         }
         FS_FCloseFile(f);
@@ -2101,7 +2288,7 @@ void __cdecl Com_LoadLevelFastFiles(char *mapName)
     UI_SetLoadingScreenMaterial();
     Com_sprintf(levelPatchZoneName, 0x40u, "%s_patch", mapName);
     ControllerIndex = Com_LocalClient_GetControllerIndex(0);
-    Cbuf_ExecuteBuffer(0, ControllerIndex, "ui_animate connect * meet 500 1;\n");
+    Cbuf_ExecuteBuffer(0, ControllerIndex, (char *)"ui_animate connect * meet 500 1;\n");
     DB_AddUserMapDir(mapName);
     zoneInfo[zoneCount].name = 0;
     zoneInfo[zoneCount].allocFlags = 0;
@@ -2151,6 +2338,9 @@ void __cdecl Com_LoadLevelFastFiles(char *mapName)
     R_EndRemoteScreenUpdate(0);
 }
 
+int gLevelDependenciesInited = 0;
+int gLevelDependenciesCount;
+char gLevelDependencies[16][2][64];
 char *__cdecl Com_GetLevelSharedFastFile(char *mapName)
 {
     int i; // [esp+0h] [ebp-4010h]
@@ -2161,7 +2351,7 @@ char *__cdecl Com_GetLevelSharedFastFile(char *mapName)
     if ( !gLevelDependenciesInited )
     {
         gLevelDependenciesInited = 1;
-        data_p = Com_LoadInfoString("level_dependencies.csv", "level_dependency_info", "", loadBuffer);
+        data_p = Com_LoadInfoString((char*)"level_dependencies.csv", "level_dependency_info", "", loadBuffer);
         Com_BeginParseSession("level_dependencies.csv");
         Com_SetCSV(1);
         while ( 1 )
@@ -2239,7 +2429,10 @@ void Com_LoadCommonFastFile()
 
 void __cdecl Com_LoadFrontEnd()
 {
+    // KISAKTODO: seems missing?
+#if 0
     Dvar_SetBool((dvar_s *)xblive_matchEndingSoon, 0);
+#endif
 }
 
 void __cdecl Com_UnloadFrontEnd()
@@ -2286,7 +2479,7 @@ void __cdecl Com_AssetLoadUI()
 
 void __cdecl Com_ResetFrametime()
 {
-    unsigned inttimeMsec; // [esp+0h] [ebp-8h]
+    unsigned int timeMsec; // [esp+0h] [ebp-8h]
     unsigned int lastFrameIndex; // [esp+4h] [ebp-4h]
 
     timeMsec = Sys_Milliseconds();
@@ -2305,11 +2498,12 @@ void __cdecl Com_Frame()
 {
     void *Value; // eax
 
-    cdl_proftimer::reset(&proftimer_physics_frame_advance);
-    cdl_proftimer::reset(&sv_flame_proftimer);
-    cdl_proftimer::reset(&cl_flame_proftimer);
+    proftimer_physics_frame_advance.reset();
+    sv_flame_proftimer.reset();
+    cl_flame_proftimer.reset();
     Value = Sys_GetValue(2);
-    if ( !_setjmp3(Value, 0) )
+    //if ( !_setjmp3(Value, 0) )
+    if ( !_setjmp((int*)Value) )
     {
         R_ReleaseDXDeviceOwnership();
         Com_CheckSyncFrame();
@@ -2322,13 +2516,13 @@ void __cdecl Com_Frame()
     Sys_LeaveCriticalSection(CRITSECT_COM_ERROR);
 }
 
-unsigned intCom_Frame_Try_Block_Function()
+unsigned int Com_Frame_Try_Block_Function()
 {
     CmdArgs *v0; // eax
     unsigned int v1; // edx
     int ControllerIndex; // eax
     int v3; // eax
-    unsigned intresult; // eax
+    unsigned int result; // eax
     int localControllerIndex; // [esp+3Ch] [ebp-20h]
     int i; // [esp+44h] [ebp-18h]
     int lastFrameIndex; // [esp+48h] [ebp-14h]
@@ -2401,8 +2595,8 @@ unsigned intCom_Frame_Try_Block_Function()
     Phys_RunToTime(svsHeader.time);
     DWDedicatedLobbyPump();
     result = GetCurrentThreadId();
-    if ( result == g_DXDeviceThread )
-        return //D3DPERF_EndEvent();
+    //if ( result == g_DXDeviceThread )
+    //    return //D3DPERF_EndEvent();
     return result;
 }
 
@@ -2467,7 +2661,7 @@ void Com_Statmon()
     {
         if ( com_fileAccessed )
         {
-            StatMon_Warning(1, 3000, "code_warning_file");
+            StatMon_Warning(1, 3000, (char*)"code_warning_file");
             com_fileAccessed = 0;
         }
         timePrevFrame = timeClientFrame;
@@ -2475,9 +2669,9 @@ void Com_Statmon()
         if ( com_statmon->current.enabled )
         {
             if ( timeClientFrame - timePrevFrame > 33 && timePrevFrame )
-                StatMon_Warning(0, 3000, "code_warning_fps");
+                StatMon_Warning(0, 3000, (char *)"code_warning_fps");
             if ( *(int *)&sv.gametype[60] > 50 )
-                StatMon_Warning(6, 3000, "code_warning_serverfps");
+                StatMon_Warning(6, 3000, (char *)"code_warning_serverfps");
         }
     }
 }
@@ -2506,11 +2700,11 @@ char Com_UpdateMenu()
     IsFullscreen = UI_IsFullscreen(0);
     if ( !IsFullscreen && (clcState == CA_DISCONNECTED || clcState == CA_UICINEMATIC) )
     {
-        LOBYTE(IsFullscreen) = CG_IsShowingZombieMap();
+        IsFullscreen = CG_IsShowingZombieMap();
         if ( !(_BYTE)IsFullscreen )
         {
-            MenuScreen = UI_GetMenuScreen();
-            LOBYTE(IsFullscreen) = UI_SetActiveMenu(0, MenuScreen);
+            MenuScreen = (uiMenuCommand_t)UI_GetMenuScreen();
+            IsFullscreen = UI_SetActiveMenu(0, MenuScreen);
         }
     }
     return IsFullscreen;
@@ -2523,48 +2717,18 @@ void Com_StartHunkUsers()
     uiMenuCommand_t MenuScreen; // [esp-4h] [ebp-4h]
 
     Value = Sys_GetValue(2);
-    if ( _setjmp3(Value, 0) )
-        Sys_Error("Error during initialization:\n%s\n", com_errorMessage);
+    //if ( _setjmp3(Value, 0) )
+    if (_setjmp((int *)Value))
+    {
+        Sys_Error((char*)"Error during initialization:\n%s\n", com_errorMessage);
+
+    }
     Com_AssetLoadUI();
-    MenuScreen = UI_GetMenuScreen();
+    MenuScreen = (uiMenuCommand_t)UI_GetMenuScreen();
     Primary = Com_LocalClients_GetPrimary();
     UI_SetActiveMenu(Primary, MenuScreen);
     IN_Frame();
     Com_EventLoop();
-}
-
-void __thiscall cdl_proftimer::reset(cdl_proftimer *this)
-{
-    unsigned __int64 tmp; // [esp+20h] [ebp-10h]
-    int i; // [esp+28h] [ebp-8h]
-    bool swap; // [esp+2Fh] [ebp-1h]
-
-    this->calls = 0;
-    this->avr = (this->value + 9 * this->avr) / 0xA;
-    if ( this->capture )
-    {
-        this->tot += this->value;
-        this->mx[0] = this->value;
-        do
-        {
-            swap = 0;
-            for ( i = 0; i < 5; ++i )
-            {
-                if ( this->mx[i] > this->mx[i + 1] )
-                {
-                    tmp = this->mx[i];
-                    LODWORD(this->mx[i]) = this->mx[i + 1];
-                    HIDWORD(this->mx[i]) = HIDWORD(this->mx[i + 1]);
-                    this->mx[i + 1] = tmp;
-                    swap = 1;
-                }
-            }
-        }
-        while ( swap );
-        if ( ++this->capture_count >= 0xB4 )
-            this->capture = 0;
-    }
-    this->value = 0;
 }
 
 void __cdecl Com_CloseLogfiles()

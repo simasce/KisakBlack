@@ -24,3 +24,5 @@ void    CL_TakeHiResShot2();
 void    CL_TakeHiResShot3();
 void    CL_TakeHiResShot4();
 void    CL_TakeHiResShot8();
+
+extern bool updateScreenCalled;

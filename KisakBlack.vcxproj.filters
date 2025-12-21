@@ -3069,6 +3069,9 @@
     <ClCompile Include="src\groupvoice\speex\vq.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\qcommon\legacyhacks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\libs\libtomcrypt-1.17\src\headers\tomcrypt.h">
@@ -5295,6 +5298,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\keycodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\qcommon\legacyhacks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\win32\win_local.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

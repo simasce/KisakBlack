@@ -1,5 +1,8 @@
 #pragma once
 
+#include <win32/win_local.h>
+#include <Windows.h>
+
 bool __cdecl PC_StartWithNoSounds();
 void __cdecl Sys_GetInfo(SysInfo *info);
 bool __cdecl Sys_HasConfigureChecksumChanged(int checksum);

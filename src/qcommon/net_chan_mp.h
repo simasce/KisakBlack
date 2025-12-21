@@ -174,3 +174,5 @@ extern const dvar_t *msg_dumpEnts;
 extern const dvar_t *msg_zlibCompress;
 extern const dvar_t *msg_zlibCompressOutput;
 extern const dvar_t *msg_hudelemspew;
+
+extern int g_qport;

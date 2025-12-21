@@ -4607,6 +4607,39 @@ void __thiscall cdl_proftimer::start_capture(cdl_proftimer *this)
     }
 }
 
+void __thiscall cdl_proftimer::reset(cdl_proftimer *this)
+{
+    unsigned __int64 tmp; // [esp+20h] [ebp-10h]
+    int i; // [esp+28h] [ebp-8h]
+    bool swap; // [esp+2Fh] [ebp-1h]
+
+    this->calls = 0;
+    this->avr = (this->value + 9 * this->avr) / 0xA;
+    if (this->capture)
+    {
+        this->tot += this->value;
+        this->mx[0] = this->value;
+        do
+        {
+            swap = 0;
+            for (i = 0; i < 5; ++i)
+            {
+                if (this->mx[i] > this->mx[i + 1])
+                {
+                    tmp = this->mx[i];
+                    LODWORD(this->mx[i]) = this->mx[i + 1];
+                    HIDWORD(this->mx[i]) = HIDWORD(this->mx[i + 1]);
+                    this->mx[i + 1] = tmp;
+                    swap = 1;
+                }
+            }
+        } while (swap);
+        if (++this->capture_count >= 0xB4)
+            this->capture = 0;
+    }
+    this->value = 0;
+}
+
 char __cdecl Phys_ShouldCollideCallback(const broad_phase_base *bpi1, const broad_phase_base *bpi2)
 {
     if ( (bpi1->m_my_collision_type_flags & 0x40) != 0 )

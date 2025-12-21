@@ -1,4 +1,16 @@
 #include "cl_parse_mp.h"
+#include "cl_main_mp.h"
+#include <qcommon/common.h>
+#include <qcommon/msg.h>
+#include "cl_cgame_mp.h"
+#include <universal/mem_largelocal.h>
+#include <cgame_mp/cg_main_mp.h>
+#include <client/client.h>
+#include <ui_mp/ui_gametype_custom_mp.h>
+#include <qcommon/files.h>
+#include <client/cl_console.h>
+
+int cl_connectedToPureServer;
 
 void __cdecl SHOWNET(msg_t *msg, char *s)
 {
@@ -224,24 +236,24 @@ void __cdecl CL_SystemInfoChanged(int localClientNum)
     char *v4; // eax
     char *t; // [esp+4h] [ebp-24h]
     char *ta; // [esp+4h] [ebp-24h]
-    LargeLocal value_large_local; // [esp+8h] [ebp-20h] BYREF
+    LargeLocal value_large_local(0x2000); // [esp+8h] [ebp-20h] BYREF
     const char *systemInfo; // [esp+10h] [ebp-18h]
     char (*key)[8192]; // [esp+14h] [ebp-14h]
-    LargeLocal key_large_local; // [esp+18h] [ebp-10h] BYREF
+    LargeLocal key_large_local(0x2000); // [esp+18h] [ebp-10h] BYREF
     const char *s; // [esp+20h] [ebp-8h] BYREF
     char (*value)[8192]; // [esp+24h] [ebp-4h]
 
-    LargeLocal::LargeLocal(&key_large_local, 0x2000);
-    key = (char (*)[8192])LargeLocal::GetBuf(&key_large_local);
-    LargeLocal::LargeLocal(&value_large_local, 0x2000);
-    value = (char (*)[8192])LargeLocal::GetBuf(&value_large_local);
+    //LargeLocal::LargeLocal(&key_large_local, 0x2000);
+    key = (char (*)[8192])key_large_local.GetBuf(); // LargeLocal::GetBuf(&key_large_local);
+    //LargeLocal::LargeLocal(&value_large_local, 0x2000);
+    value = (char (*)[8192])value_large_local.GetBuf(); // LargeLocal::GetBuf(&value_large_local);
     systemInfo = CL_GetConfigString(1u);
     if ( CL_GetLocalClientConnection(localClientNum)->demoplaying )
     {
-        s = Info_ValueForKey((char *)systemInfo, "fs_game");
+        s = Info_ValueForKey((char *)systemInfo, (char*)"fs_game");
         if ( *s && (v1 = Dvar_GetString("fs_game"), I_strcmp(s, v1)) )
         {
-            v2 = va(aPatchLoadmodDe, s);
+            v2 = va("PATCH_LOADMOD_DEMO", s);
             Com_Error(ERR_DROP, v2);
         }
         else
@@ -255,8 +267,8 @@ void __cdecl CL_SystemInfoChanged(int localClientNum)
     if ( Demo_IsPlaying() )
     {
 LABEL_9:
-        LargeLocal::~LargeLocal(&value_large_local);
-        LargeLocal::~LargeLocal(&key_large_local);
+        //LargeLocal::~LargeLocal(&value_large_local);
+        //LargeLocal::~LargeLocal(&key_large_local);
         return;
     }
     if ( !com_sv_running->current.enabled && CL_GetLocalClientConnectionState(localClientNum) < 10 )
@@ -290,8 +302,8 @@ LABEL_9:
         }
     }
     cl_connectedToPureServer = Dvar_GetBool("sv_pure");
-    LargeLocal::~LargeLocal(&value_large_local);
-    LargeLocal::~LargeLocal(&key_large_local);
+    //LargeLocal::~LargeLocal(&value_large_local);
+    //LargeLocal::~LargeLocal(&key_large_local);
 }
 
 void __cdecl CL_ParseMapCenter()

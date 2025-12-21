@@ -91,3 +91,6 @@ void __cdecl Flame_Phys_Update_Item_Drip(
 //                int mask,
 //                const float *expand_vec);
 //
+
+extern cdl_proftimer sv_flame_proftimer;
+extern cdl_proftimer cl_flame_proftimer;

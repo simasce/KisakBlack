@@ -10,6 +10,44 @@
 #include <client/cl_main.h>
 #include <qcommon/files.h>
 #include <universal/com_memory.h>
+#include <universal/com_constantconfigstrings.h>
+#include <qcommon/dvar_cmds.h>
+#include <server_mp/sv_main_mp.h>
+#include <DynEntity/DynEntity_gamestate.h>
+#include <physics/rope_gamestate.h>
+#include <glass/glass_client.h>
+#include "cl_parse_mp.h"
+#include <client/cl_devgui.h>
+#include <devgui/devgui.h>
+#include "cl_cgame_mp.h"
+#include "cl_ui_mp.h"
+#include <live/live_fileshare.h>
+#include <live/live_fileshare_cache.h>
+#include <qcommon/threads.h>
+#include <gfx_d3d/r_rendercmds.h>
+#include <qcommon/mem_track.h>
+#include <live/live_storage_win.h>
+#include <client/splitscreen.h>
+#include <sound/snd_public_async.h>
+#include <server_mp/sv_init_mp.h>
+#include <qcommon/dl_main.h>
+#include <qcommon/dobj_management.h>
+#include <qcommon/com_gamemodes.h>
+#include <demo/demo_playback.h>
+#include <live/live_leaderboard.h>
+#include <live/live_stats.h>
+#include <live/live_win.h>
+#include <cgame_mp/cg_newDraw_mp.h>
+#include <cgame_mp/cg_consolecmds_mp.h>
+#include <cgame/cg_sound.h>
+#include <live/live_steam.h>
+#include <qcommon/legacyhacks.h>
+#include "cl_main_pc_mp.h"
+#include <DynEntity/DynEntity_client.h>
+#include <client/cl_cin.h>
+#include "cl_input_mp.h"
+#include <DW/dwNet.h>
+#include <DW/dwMatchMaking.h>
 
 const dvar_t *cl_noprint;
 const dvar_t *playlist;
@@ -99,6 +137,8 @@ UiContext cgDC[1];
 
 clientStatic_t cls;
 clientConnection_t *clientConnections;
+
+bool cl_serverLoadingMap;
 
 void __cdecl CL_AddReliableCommand(int localClientNum, const char *cmd)
 {
@@ -726,8 +766,8 @@ void __cdecl CL_WriteUncompressedDemoInfo(int localClientNum)
         CL_WriteAllDemoClientArchive(localClientNum);
         clc->lastClientArchiveIndex = LocalClientGlobals->clientArchiveIndex;
     }
-    LargeLocal::~LargeLocal(&bufData_large_local);
-    LargeLocal::~LargeLocal(&compressedBuf_large_local);
+    //LargeLocal::~LargeLocal(&bufData_large_local);
+    //LargeLocal::~LargeLocal(&compressedBuf_large_local);
 }
 
 void __cdecl CL_WriteAllDemoClientArchive(int localClientNum)
@@ -881,11 +921,11 @@ void __cdecl CL_ReadDemoNetworkPacket(int localClientNum)
     unsigned __int8 *bufData; // [esp+4h] [ebp-44h]
     msg_t buf; // [esp+8h] [ebp-40h] BYREF
     clientConnection_t *clc; // [esp+38h] [ebp-10h]
-    LargeLocal bufData_large_local; // [esp+3Ch] [ebp-Ch] BYREF
+    LargeLocal bufData_large_local(0x10000); // [esp+3Ch] [ebp-Ch] BYREF
     int s; // [esp+44h] [ebp-4h] BYREF
 
-    LargeLocal::LargeLocal(&bufData_large_local, 0x10000);
-    bufData = LargeLocal::GetBuf(&bufData_large_local);
+    //LargeLocal::LargeLocal(&bufData_large_local, 0x10000);
+    bufData = bufData_large_local.GetBuf(); // LargeLocal::GetBuf(&bufData_large_local);
     clc = CL_GetLocalClientConnection(localClientNum);
     if ( FS_Read((unsigned __int8 *)&s, 4u, clc->demofile) == 4 )
     {
@@ -907,12 +947,12 @@ void __cdecl CL_ReadDemoNetworkPacket(int localClientNum)
         {
 LABEL_4:
             CL_DemoCompleted(localClientNum);
-            LargeLocal::~LargeLocal(&bufData_large_local);
+            //LargeLocal::~LargeLocal(&bufData_large_local);
         }
         else
         {
             if ( buf.cursize > buf.maxsize )
-                Com_Error(ERR_DROP, &byte_C9B064);
+                Com_Error(ERR_DROP, "CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN");
             v1 = FS_Read(buf.data, buf.cursize, clc->demofile);
             if ( v1 == buf.cursize )
             {
@@ -924,20 +964,20 @@ LABEL_4:
                     CL_ParseServerMessage(localClientNum, &buf);
                 else
                     clc->reliableAcknowledge = clc->reliableSequence;
-                LargeLocal::~LargeLocal(&bufData_large_local);
+                //LargeLocal::~LargeLocal(&bufData_large_local);
             }
             else
             {
                 Com_Printf(14, "Demo file was truncated.\n");
                 CL_DemoCompleted(localClientNum);
-                LargeLocal::~LargeLocal(&bufData_large_local);
+                //LargeLocal::~LargeLocal(&bufData_large_local);
             }
         }
     }
     else
     {
         CL_DemoCompleted(localClientNum);
-        LargeLocal::~LargeLocal(&bufData_large_local);
+        //LargeLocal::~LargeLocal(&bufData_large_local);
     }
 }
 
@@ -1053,41 +1093,41 @@ void __cdecl CL_MapLoading(const char *mapname)
     clientConnection_t *clc; // [esp+Ch] [ebp-8h]
     clientConnection_t *clca; // [esp+Ch] [ebp-8h]
 
-    if ( CL_AnyLocalClientsRunning() )
+    if (CL_AnyLocalClientsRunning())
     {
         g_waitingForServer = 0;
         FS_DisablePureCheck(0);
-        for ( localClientNum = 0; localClientNum < 1; ++localClientNum )
+        for (localClientNum = 0; localClientNum < 1; ++localClientNum)
         {
             Con_Close(localClientNum);
-            dword_FB2C38[4 * localClientNum] = 0;
+            clientUIActives[localClientNum].keyCatchers = 0;
             CL_LocalClient_ClearCUIFlag(localClientNum, 64);
         }
-        //BLOPS_NULLSUB();
+        //BG_EvalVehicleName();
         LiveStorage_UploadStats();
         UI_CloseAllMenus(0);
         cl_serverLoadingMap = 1;
-        if ( !com_sv_running->current.enabled )
+        if (!com_sv_running->current.enabled)
             Cbuf_ExecuteBuffer(0, 0, "selectStringTableEntryInDvar mp/didyouknow.csv 0 didyouknow");
-        if ( dword_FB2C3C[0] >= 6 && !I_stricmp(cls.servername, "localhost") )
+        if (clientUIActives[0].connectionState >= CA_CONNECTED && !I_stricmp(cls.servername, "localhost"))
         {
-            for ( localClientNuma = 0; localClientNuma < 1; ++localClientNuma )
+            for (localClientNuma = 0; localClientNuma < 1; ++localClientNuma)
             {
-                if ( CL_LocalClient_IsActive(localClientNuma) )
+                if (CL_LocalClient_IsActive(localClientNuma))
                 {
                     CL_GetLocalClientGlobals(localClientNuma);
                     clc = CL_GetLocalClientConnection(localClientNuma);
-                    dword_FB2C3C[4 * localClientNuma] = 6;
+                    clientUIActives[localClientNuma].connectionState = CA_CONNECTED;
                     memset((unsigned __int8 *)clc->serverMessage, 0, sizeof(clc->serverMessage));
                     memset((unsigned __int8 *)&cls.gameState, 0, sizeof(cls.gameState));
                     clc->lastPacketSentTime = -9999;
-                    if ( !*mapname
+                    if (!*mapname
                         && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\client_mp\\cl_main_mp.cpp",
-                                    2595,
-                                    0,
-                                    "%s",
-                                    "mapname[0]") )
+                            "C:\\projects_pc\\cod\\codsrc\\src\\client_mp\\cl_main_mp.cpp",
+                            2595,
+                            0,
+                            "%s",
+                            "mapname[0]"))
                     {
                         __debugbreak();
                     }
@@ -1097,28 +1137,28 @@ void __cdecl CL_MapLoading(const char *mapname)
         }
         else
         {
-            Dvar_SetString((dvar_s *)nextmap, "");
+            Dvar_SetString((dvar_s*)nextmap, "");
             I_strncpyz(cls.servername, "localhost", 256);
-            for ( localClientNumb = 0; localClientNumb < 1; ++localClientNumb )
+            for (localClientNumb = 0; localClientNumb < 1; ++localClientNumb)
             {
-                if ( CL_LocalClient_IsActive(localClientNumb) && Com_LocalClient_GetControllerIndex(localClientNumb) >= 0 )
+                if (CL_LocalClient_IsActive(localClientNumb) && Com_LocalClient_GetControllerIndex(localClientNumb) >= 0)
                 {
                     CL_Disconnect(localClientNumb, 0);
-                    //BLOPS_NULLSUB();
+                    //BG_EvalVehicleName();
                     UI_CloseAll(localClientNumb);
-                    dword_FB2C3C[4 * localClientNumb] = 5;
+                    clientUIActives[localClientNumb].connectionState = CA_CHALLENGING;
                     clca = CL_GetLocalClientConnection(localClientNumb);
                     clca->connectTime = -3000;
                     clca->qport = localClientNumb + g_qport;
                     NET_StringToAdr(cls.servername, &clca->serverAddress);
                     CL_CheckForResend(localClientNumb);
-                    if ( !*mapname
+                    if (!*mapname
                         && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\client_mp\\cl_main_mp.cpp",
-                                    2626,
-                                    0,
-                                    "%s",
-                                    "mapname[0]") )
+                            "C:\\projects_pc\\cod\\codsrc\\src\\client_mp\\cl_main_mp.cpp",
+                            2626,
+                            0,
+                            "%s",
+                            "mapname[0]"))
                     {
                         __debugbreak();
                     }
@@ -1222,7 +1262,6 @@ void __cdecl CL_Disconnect(unsigned int localClientNum, bool deactivateClient)
     int v4; // eax
     int v5; // eax
     int v6; // eax
-    bdSessionID sessID; // [esp+0h] [ebp-20h] BYREF
     clientUIActive_t *clientUIActive; // [esp+10h] [ebp-10h]
     connstate_t connstate; // [esp+14h] [ebp-Ch]
     clientConnection_t *clc; // [esp+18h] [ebp-8h]
@@ -1259,12 +1298,12 @@ void __cdecl CL_Disconnect(unsigned int localClientNum, bool deactivateClient)
             if ( clc->demoUseMemoryBuffer )
             {
                 ControllerIndex = Com_LocalClient_GetControllerIndex(localClientNum);
-                Cmd_ExecuteSingleCommand(localClientNum, ControllerIndex, "togglecoolmomentrecording");
+                Cmd_ExecuteSingleCommand(localClientNum, ControllerIndex, (char*)"togglecoolmomentrecording");
             }
             else
             {
                 v4 = Com_LocalClient_GetControllerIndex(localClientNum);
-                Cmd_ExecuteSingleCommand(localClientNum, v4, "stoprecord");
+                Cmd_ExecuteSingleCommand(localClientNum, v4, (char *)"stoprecord");
             }
         }
         if ( !cls.wwwDlDisconnected )
@@ -1305,11 +1344,13 @@ void __cdecl CL_Disconnect(unsigned int localClientNum, bool deactivateClient)
             dwCloseConnection(&clc->serverAddress);
             dwNetPump();
             dwNetPump();
-            bdSessionID::bdSessionID(&sessID);
+            bdSessionID sessID; // [esp+0h] [ebp-20h] BYREF
+
+            //bdSessionID::bdSessionID(&sessID);
             *(unsigned int *)sessID.m_sessionID.ab = 0;
             *(unsigned int *)&sessID.m_sessionID.ab[4] = 0;
             dwSetSessionID(&sessID);
-            bdTaskResult::~bdTaskResult(&sessID);
+            //bdTaskResult::~bdTaskResult(&sessID);
         }
         if ( clc )
         {

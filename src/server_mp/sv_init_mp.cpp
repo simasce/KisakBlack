@@ -6,7 +6,6 @@
 #include <cstring>
 
 const dvar_t *sv_gametype;
-const dvar_t *sv_mapname;
 const dvar_t *sv_privateClients;
 const dvar_t *sv_hostname;
 const dvar_t *sv_noname;

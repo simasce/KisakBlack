@@ -1,4 +1,5 @@
 #pragma once
+#include <qcommon/msg_mp.h>
 
 void __cdecl SHOWNET(msg_t *msg, char *s);
 void __cdecl CL_SavePredictedOriginForServerTime(
@@ -56,3 +57,5 @@ void __cdecl CL_ParsePacketClients(
                 clSnapshot_t *newframe);
 void __cdecl CL_ParseDownload(int localClientNum, msg_t *msg);
 void __cdecl CL_ParseCommandString(int localClientNum, msg_t *msg);
+
+extern int cl_connectedToPureServer;

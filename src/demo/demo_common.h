@@ -50,6 +50,13 @@ struct bdTaskResult // sizeof=0x4
         virtual unsigned int sizeOf();
 };
 
+struct bdSessionID : bdTaskResult // sizeof=0xC
+{                                       // XREF: .data:bdSessionID g_sessionID/r
+                                        // bdSessionInvite/r ...
+    bdSecurityID m_sessionID;           // XREF: CL_Disconnect(int,bool)+271/w
+                                        // CL_Disconnect(int,bool)+274/w ...
+};
+
 struct bdTag : bdTaskResult // sizeof=0x18
 {                                                                             // XREF: bdFileMetaData/r
                                                                                 // demoRecordedFileUploadInfo/r ...

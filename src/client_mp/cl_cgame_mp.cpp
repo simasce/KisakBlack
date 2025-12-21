@@ -7,7 +7,36 @@
 #include <qcommon/statmonitor.h>
 #include <demo/demo_playback.h>
 #include <cgame_mp/cg_main_mp.h>
+#include <stringed/stringed_hooks.h>
+#include <client/cl_console.h>
+#include <universal/mem_largelocal.h>
+#include "cl_parse_mp.h"
+#include <universal/com_files.h>
+#include <universal/com_memory.h>
+#include <universal/q_parse.h>
+#include <qcommon/com_bsp_load_obj.h>
+#include <qcommon/cm_load.h>
+#include <qcommon/cm_world.h>
+#include <cgame_mp/cg_consolecmds_mp.h>
+#include <qcommon/mem_track.h>
+#include <client/cl_main.h>
+#include "cl_pose_mp.h"
+#include <xanim/dobj_utils.h>
+#include <gfx_d3d/r_model.h>
+#include <gfx_d3d/r_material.h>
+#include <client/client.h>
+#include "cl_scrn_mp.h"
+#include <win32/win_shared.h>
+#include <live/live_steam.h>
+#include <qcommon/dobj_management.h>
+#include <client/con_channels.h>
+#include <qcommon/com_clients.h>
+#include <cgame/cg_main.h>
+#include <cgame_mp/cg_snapshot_mp.h>
+#include <cgame_mp/cg_servercmds_mp.h>
+#include <EffectsCore/fx_system.h>
 
+char bigConfigString[16384];
 
 void __cdecl CL_GetScreenDimensions(int *width, int *height, float *aspect)
 {
@@ -342,7 +371,7 @@ int __cdecl CL_CGameNeedsServerCommand(int localClientNum, int serverCommandNumb
                     v9 = Cmd_Argv(1);
                     v4 = SEH_SafeTranslateString("EXE_SERVERDISCONNECTREASON");
                     v5 = UI_ReplaceConversionString(v4, v9);
-                    v6 = va(off_C5DB40, v5);
+                    v6 = va("%s", v5);
                     Com_Error(ERR_SERVERDISCONNECT, v6);
                 }
                 else if ( argc >= 2 )
@@ -370,7 +399,7 @@ $LN7_31:
                 Cmd_TokenizeStringWithLimit(s, 3);
                 sa = Cmd_Argv(2);
                 if ( strlen(sa) + strlen(bigConfigString) >= 0x4000 )
-                    Com_Error(ERR_DROP, &byte_C96624);
+                    Com_Error(ERR_DROP, "bcs exceeded BIG_INFO_STRING");
                 strcat(bigConfigString, sa);
                 Cmd_EndTokenizedString();
                 result = 0;
@@ -380,7 +409,7 @@ $LN7_31:
                 Cmd_TokenizeStringWithLimit(s, 3);
                 sb = Cmd_Argv(2);
                 if ( strlen(bigConfigString) + strlen(sb) + 1 >= 0x4000 )
-                    Com_Error(ERR_DROP, &byte_C96624);
+                    Com_Error(ERR_DROP, "bcs exceeded BIG_INFO_STRING");
                 strcat(bigConfigString, sb);
                 s = bigConfigString;
                 Cmd_EndTokenizedString();
@@ -400,18 +429,18 @@ void __cdecl CL_ConfigstringModified(int localClientNum)
     clientActive_t *LocalClientGlobals; // [esp+34h] [ebp-28h]
     unsigned __int8 *oldGs; // [esp+38h] [ebp-24h]
     char *dup; // [esp+3Ch] [ebp-20h]
-    LargeLocal oldGs_large_local; // [esp+44h] [ebp-18h] BYREF
+    LargeLocal oldGs_large_local(78584); // [esp+44h] [ebp-18h] BYREF
     int index; // [esp+4Ch] [ebp-10h]
     const char *s; // [esp+50h] [ebp-Ch]
     int i; // [esp+54h] [ebp-8h]
     const char *old; // [esp+58h] [ebp-4h]
 
-    LargeLocal::LargeLocal(&oldGs_large_local, 78584);
-    oldGs = LargeLocal::GetBuf(&oldGs_large_local);
+    //LargeLocal::LargeLocal(&oldGs_large_local, 78584);
+    oldGs = oldGs_large_local.GetBuf(); // LargeLocal::GetBuf(&oldGs_large_local);
     v1 = Cmd_Argv(1);
     index = atoi(v1);
     if ( (unsigned int)index >= 0xCBC )
-        Com_Error(ERR_DROP, &byte_C9678C);
+        Com_Error(ERR_DROP, "configstring > MAX_CONFIGSTRINGS");
     s = Cmd_Argv(2);
     LocalClientGlobals = CL_GetLocalClientGlobals(localClientNum);
     old = CL_GetConfigString(index);
@@ -436,7 +465,7 @@ void __cdecl CL_ConfigstringModified(int localClientNum)
             {
                 v2 = strlen(dup);
                 if ( (int)(v2 + cls.gameState.dataCount + 1) > 0x10000 )
-                    Com_Error(ERR_DROP, &byte_C9676C);
+                    Com_Error(ERR_DROP, "MAX_GAMESTATE_CHARS exceeded");
                 cls.gameState.stringOffsets[i] = cls.gameState.dataCount;
                 memcpy((unsigned __int8 *)&cls.gameState.stringData[cls.gameState.dataCount], (unsigned __int8 *)dup, v2 + 1);
                 cls.gameState.dataCount += v2 + 1;
@@ -455,20 +484,20 @@ void __cdecl CL_ConfigstringModified(int localClientNum)
         if ( index == 3 )
             CL_ServerIdChanged(localClientNum);
     }
-    LargeLocal::~LargeLocal(&oldGs_large_local);
+    //LargeLocal::~LargeLocal(&oldGs_large_local);
 }
 
 void __cdecl CL_SetExpectedHunkUsage(const char *mapname)
 {
     int handle; // [esp+0h] [ebp-18h] BYREF
-    char *memlistfile; // [esp+4h] [ebp-14h]
+    const char *memlistfile; // [esp+4h] [ebp-14h]
     char *buf; // [esp+8h] [ebp-10h]
     int len; // [esp+Ch] [ebp-Ch]
     const char *token; // [esp+10h] [ebp-8h]
     const char *buftrav; // [esp+14h] [ebp-4h] BYREF
 
     memlistfile = "hunkusage.dat";
-    len = FS_FOpenFileByMode("hunkusage.dat", &handle, FS_READ);
+    len = FS_FOpenFileByMode((char*)"hunkusage.dat", &handle, FS_READ);
     if ( len >= 0 )
     {
         buf = (char *)Z_Malloc(len + 1, "CL_SetExpectedHunkUsage", 11);
@@ -565,6 +594,7 @@ void __cdecl CL_ShutdownAllClientsCGame()
     CG_ShutdownOnceForAllClients();
 }
 
+int warnCount;
 bool __cdecl CL_DObjCreateSkelForBone(DObj *obj, int boneIndex, DObjAnimMat **pMatOut)
 {
     char *buf; // [esp+0h] [ebp-Ch]
@@ -607,7 +637,7 @@ void __cdecl CL_SubtitlePrint(int localClientNum, const char *text, int duration
     const char *translation; // [esp+0h] [ebp-4h]
     char *translationa; // [esp+0h] [ebp-4h]
 
-    translation = SEH_StringEd_GetString(text);
+    translation = SEH_StringEd_GetString((char*)text);
     if ( translation )
         goto LABEL_8;
     if ( !loc_warnings->current.enabled )
@@ -950,7 +980,7 @@ void __cdecl CL_UpdateLevelHunkUsage()
     unsigned int v2; // eax
     int handle; // [esp+20h] [ebp-130h] BYREF
     clientActive_t *LocalClientGlobals; // [esp+24h] [ebp-12Ch]
-    char *memlistfile; // [esp+28h] [ebp-128h]
+    const char *memlistfile; // [esp+28h] [ebp-128h]
     char *buf; // [esp+2Ch] [ebp-124h]
     int localClientNum; // [esp+30h] [ebp-120h]
     int len; // [esp+34h] [ebp-11Ch]
@@ -965,7 +995,7 @@ void __cdecl CL_UpdateLevelHunkUsage()
     memusage = Hunk_Used();
     localClientNum = 0;
     LocalClientGlobals = CL_GetLocalClientGlobals(0);
-    len = FS_FOpenFileByMode("hunkusage.dat", &handle, FS_READ);
+    len = FS_FOpenFileByMode((char*)"hunkusage.dat", &handle, FS_READ);
     if ( len >= 0 )
     {
         buf = (char *)Z_Malloc(len + 1, "CL_UpdateLevelHunkUsage", 11);
@@ -1015,38 +1045,38 @@ void __cdecl CL_UpdateLevelHunkUsage()
                 }
             }
         }
-        handle = FS_FOpenFileWrite(memlistfile);
+        handle = FS_FOpenFileWrite((char*)memlistfile);
         if ( !handle )
         {
-            v1 = va(aExeErrCantCrea, memlistfile);
+            v1 = va("EXE_ERR_CANT_CREATE", memlistfile);
             Com_Error(ERR_DROP, v1);
         }
         len = strlen(outbuf);
         v2 = FS_Write(outbuf, len, handle);
         if ( v2 != len )
-            Com_Error(ERR_DROP, aExeErrCantWrit, memlistfile);
+            Com_Error(ERR_DROP, "EXE_ERR_CANT_WRITE", memlistfile);
         FS_FCloseFile(handle);
         Z_Free(buf, 11);
         Z_Free(outbuf, 11);
     }
-    FS_FOpenFileByMode(memlistfile, &handle, FS_APPEND);
+    FS_FOpenFileByMode((char*)memlistfile, &handle, FS_APPEND);
     if ( !handle )
         Com_Error(ERR_DROP, "EXE_ERR_HUNKUSAGE_CANT_WRITE");
     Com_sprintf(outstr, 0x100u, "%s %i\n", LocalClientGlobals->mapname, memusage);
     FS_Write(outstr, &outstr[strlen(outstr) + 1] - &outstr[1], handle);
     FS_FCloseFile(handle);
-    len = FS_FOpenFileByMode(memlistfile, &handle, FS_READ);
+    len = FS_FOpenFileByMode((char *)memlistfile, &handle, FS_READ);
     if ( len >= 0 )
         FS_FCloseFile(handle);
 }
 
-void    CL_StartLoading(int a1@<esi>)
+void    CL_StartLoading()
 {
     if ( CL_AnyLocalClientsRunning() )
     {
         CL_InitRenderer();
         CL_StartHunkUsers();
-        SCR_UpdateScreen(a1);
+        SCR_UpdateScreen();
     }
 }
 
@@ -1057,7 +1087,7 @@ void __cdecl CL_InitCGame(int localClientNum)
     int ControllerIndex; // eax
     clientActive_t *LocalClientGlobals; // [esp+Ch] [ebp-5Ch]
     char *info; // [esp+10h] [ebp-58h]
-    unsigned intt1; // [esp+14h] [ebp-54h]
+    unsigned int t1; // [esp+14h] [ebp-54h]
     clientConnection_t *clc; // [esp+18h] [ebp-50h]
     char mapname[68]; // [esp+20h] [ebp-48h] BYREF
 
@@ -1065,7 +1095,7 @@ void __cdecl CL_InitCGame(int localClientNum)
     Con_Close(localClientNum);
     LocalClientGlobals = CL_GetLocalClientGlobals(localClientNum);
     info = CL_GetConfigString(0);
-    v1 = Info_ValueForKey(info, "mapname");
+    v1 = Info_ValueForKey(info, (char *)"mapname");
     I_strncpyz(mapname, v1, 64);
     LiveSteam_CheckAccess();
     Dvar_SetStringByName("mapname", mapname);
@@ -1099,7 +1129,7 @@ void __cdecl CL_InitCGame(int localClientNum)
     if ( !useFastFile->current.enabled )
     {
         ControllerIndex = Com_LocalClient_GetControllerIndex(localClientNum);
-        Cmd_ExecuteSingleCommand(localClientNum, ControllerIndex, "updatehunkusage");
+        Cmd_ExecuteSingleCommand(localClientNum, ControllerIndex, (char*)"updatehunkusage");
     }
     R_EndRemoteScreenUpdate(0);
     if ( useFastFile->current.enabled )
@@ -1112,23 +1142,38 @@ void __cdecl CL_InitCGame(int localClientNum)
     CG_ClientDoneWithInitialization();
 }
 
+const char *connectionString_39[11] =
+{
+  "CA_DISCONNECTED",
+  "CA_CINEMATIC",
+  "CA_UICINEMATIC",
+  "CA_LOGO",
+  "CA_CONNECTING",
+  "CA_CHALLENGING",
+  "CA_CONNECTED",
+  "CA_SENDINGSTATS",
+  "CA_LOADING",
+  "CA_PRIMED",
+  "CA_ACTIVE"
+};
+
 void __cdecl CL_SetLocalClientConnectionState(int client, connstate_t state)
 {
-    unsigned intv2; // eax
+    DWORD v2; // eax
     const char *v3; // [esp-4h] [ebp-4h]
 
-    if ( client
+    if (client
         && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\client_mp\\../client/client.h",
-                    242,
-                    0,
-                    "client doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
-                    client,
-                    1) )
+            "c:\\projects_pc\\cod\\codsrc\\src\\client_mp\\../client/client.h",
+            242,
+            0,
+            "client doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
+            client,
+            1))
     {
         __debugbreak();
     }
-    dword_FB2C3C[4 * client] = state;
+    clientUIActives[client].connectionState = state;
     v3 = connectionString_39[state];
     v2 = Sys_Milliseconds();
     Com_DPrintf(14, "[%08d] %d: %s\n", v2, client, v3);
