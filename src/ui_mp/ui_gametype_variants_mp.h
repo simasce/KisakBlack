@@ -128,7 +128,70 @@ struct _CustomClassData_modifierDef // sizeof=0x8
 
 struct _CustomClassData // sizeof=0x50
 {                                       // XREF: CustomClassData/r
-                                        // ?UI_Gametype_UpdateClassDataFromDvars_f@@YAXXZ/r
+    struct modifierDef // sizeof=0x8
+    {
+        const char *modifierName;
+        int modifierOffset;
+    };
+
+    static constexpr _CustomClassData::modifierDef modifierIndex[9] =
+    {
+      { "active", 0 },
+      { "team", 44 },
+      { "health", 52 },
+      { "healthRegeneration", 56 },
+      { "healthVampirism", 60 },
+      { "movementSpeed", 64 },
+      { "movementSprintSpeed", 68 },
+      { "damage", 72 },
+      { "damageExplosive", 76 }
+    };
+
+    static constexpr const char *itemNames[39] =
+    {
+      "primary",
+      "primaryattachment",
+      "primaryattachmenttop",
+      "primaryattachmentbottom",
+      "primaryattachmenttrigger",
+      "primaryattachmentmuzzle",
+      "primarycamo",
+      "primaryreticle",
+      "primaryreticlecolor",
+      "primarylens",
+      "primaryemblem",
+      "primarytag",
+      "secondary",
+      "secondaryattachment",
+      "secondaryattachmenttop",
+      "secondaryattachmentbottom",
+      "secondaryattachmenttrigger",
+      "secondaryattachmentmuzzle",
+      "secondarycamo",
+      "secondaryreticle",
+      "secondaryreticlecolor",
+      "secondarylens",
+      "secondaryemblem",
+      "secondarytag",
+      "specialty1",
+      "specialty2",
+      "specialty3",
+      "classbonus",
+      "head",
+      "body",
+      "primarygrenade",
+      "specialgrenade",
+      "equipment",
+      "facepaintpattern",
+      "facepaintcolor",
+      "killstreak1",
+      "killstreak2",
+      "killstreak3",
+      "deathstreak"
+    };
+
+
+
     int isActive;
     unsigned __int8 primary;
     unsigned __int8 primaryattachment;
@@ -179,6 +242,14 @@ struct _CustomClassData // sizeof=0x50
     int movementSprintSpeed;
     int damage;
     int damageExplosive;
+
+    int  GetClassModifierValue(const char *modifierName);
+    unsigned __int8  GetLoadoutItem(const char *itemName);
+    void  SetLoadoutItem(const char *itemName, unsigned __int8 itemIndex);
+    void  PopulateCustomDvarsFromClassData();
+    void  SaveClassDataFromDvars();
+    void  WriteClassToClientData(msg_t *msg);
+    void  ReadClassFromClientData(msg_t *msg);
 };
 
 struct _CustomClassDescription // sizeof=0x10
@@ -284,3 +355,6 @@ void __cdecl Scr_GameVariants_GetRule();
 
 extern const dvar_t *ui_gv_rulecount;
 extern const dvar_t *ui_gv_reloadSpeedModifier;
+extern const dvar_s *custom_class_mode;
+
+extern _CustomClassData g_customGameModeClasses[10];

@@ -54,7 +54,6 @@ void __cdecl CG_SetFireToTerrain(
 void __cdecl AddBurnCell(float *pos);
 void __cdecl SetTerrainScorchInitialState();
 void __cdecl Sync_VisualBurn_To_FM_State();
-//void __cdecl MemFile_WriteInt(MemoryFile *memFile, int value);
 void __cdecl CG_GenerateFireSounds(int localClientNum);
 
 extern const dvar_t *fire_audio_repeat_duration;

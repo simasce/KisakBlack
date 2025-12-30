@@ -1612,7 +1612,7 @@ void __cdecl G_LocationalTrace(
     col_context_t context; // [esp+Ch] [ebp-28h] BYREF
 
     SV_SetupIgnoreEntParams(&ignoreEntParams, passEntityNum);
-    col_context_t::col_context_t(&context, contentmask);
+    //col_context_t::col_context_t(&context, contentmask);
     context.ignoreEntParams = &ignoreEntParams;
     col_context_t::init_locational(&context, passEntityNum);
     context.priorityMap = priorityMap;
@@ -1633,7 +1633,7 @@ void __cdecl G_LocationalTraceAllowChildren(
 
     SV_SetupIgnoreEntParams(&ignoreEntParams, passEntityNum);
     ignoreEntParams.ignoreChildren = 0;
-    col_context_t::col_context_t(&context, contentmask);
+    //col_context_t::col_context_t(&context, contentmask);
     context.ignoreEntParams = &ignoreEntParams;
     col_context_t::init_locational(&context, passEntityNum);
     context.priorityMap = priorityMap;

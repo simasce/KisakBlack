@@ -1273,7 +1273,7 @@ int __cdecl FX_UpdateElementPosition_CollidingStep(
 
     memset(&trace, 0, 16);
     traceMask = 2065;
-    col_context_t::col_context_t(&context, 2065);
+    //col_context_t::col_context_t(&context, 2065);
     elemDef = FX_GetUpdateElemDef(update);
     if ( (elemDef->flags & 0x2000) != 0 )
         traceMask |= 0x400u;

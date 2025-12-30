@@ -1251,6 +1251,7 @@ extern UiContext cgDC[1];
 
 extern bool cl_serverLoadingMap;
 extern bool g_waitingForServer;
+extern bool cl_waitingOnServerToLoadMap[1];
 
 
 extern const dvar_t *cl_noprint;

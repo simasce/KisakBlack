@@ -1,4 +1,15 @@
 #pragma once
+#include <bgame/bg_local.h>
+
+struct CEntityAreaParms // sizeof=0x18
+{                                       // XREF: ?CG_AreaEntities@@YAHQBM0PAHHH@Z/r
+    const float *mins;                  // XREF: CG_AreaEntities(float const * const,float const * const,int *,int,int)+297/w
+    const float *maxs;                  // XREF: CG_AreaEntities(float const * const,float const * const,int *,int,int)+29D/w
+    int contentMask;                    // XREF: CG_AreaEntities(float const * const,float const * const,int *,int,int)+2A3/w
+    int *list;                          // XREF: CG_AreaEntities(float const * const,float const * const,int *,int,int)+2A9/w
+    int maxCount;                       // XREF: CG_AreaEntities(float const * const,float const * const,int *,int,int)+2AF/w
+    int count;                          // XREF: CG_AreaEntities(float const * const,float const * const,int *,int,int)+2B2/w
+};
 
 int __cdecl CG_GetEntityBModelContents(const centity_s *cent);
 void    CG_GetEntityBModelBounds(
@@ -78,7 +89,6 @@ void __cdecl CG_AreaEntities_r(unsigned __int16 sectorIndex, CEntityAreaParms *a
 char __cdecl CG_EntityInArea(unsigned int entIndex, const float *mins, const float *maxs, int contentMask);
 int __cdecl CG_AreaEntities(const float *mins, const float *maxs, int *entityList, int maxEntities, int contentMask);
 bool __cdecl CG_SightTracePointInternal(int *hitNum, const float *start, const float *end, int mask, trace_t *trace);
-traceWork_t *__thiscall traceWork_t::traceWork_t(traceWork_t *this);
 bool __cdecl CG_SightTracePoint(int *hitNum, const float *start, const float *end, int mask, trace_t *trace);
 int __cdecl cmpr(float *e0, float *e1);
 int __cdecl CG_GetEntityBoneInfo(int entID, int boneIndex, float *bonePos, float (*boneAxis)[3], char **boneName);

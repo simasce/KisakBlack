@@ -49,7 +49,7 @@ char __fastcall Actor_SightTrace(actor_s *self, const float *start, const float 
     int hitNum; // [esp+70h] [ebp-4h] BYREF
 
     //PIXBeginNamedEvent(-1, "Actor_SightTrace");
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     ++self->iTraceCount;
     if ( g_visitor )
     {

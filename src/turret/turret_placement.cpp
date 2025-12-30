@@ -165,7 +165,7 @@ int __cdecl Turret_PlaceTurret_Internal(
         CG_DebugBox(traceStart, mins, maxs, viewAngles[1], colorYellow, 0, 0);
         CG_DebugBox(traceEnd, mins, maxs, viewAngles[1], colorGreen, 0, 0);
     }
-    //col_context_t::col_context_t(&context);
+    ////col_context_t::col_context_t(&context);
     Turret_PlaceTurret_Trace(handler, &trace, traceStart, mins, maxs, traceEnd, moverEntNum, 0x2818011, &context);
     Vec3Lerp(traceStart, traceEnd, trace.fraction, outOrigin);
     if ( trace.startsolid
@@ -364,7 +364,7 @@ bool __cdecl Turret_PlaceTurret_UpdateFooting(
         traceEnd[0] = (float)(v9 * (*outAxis)[6]) + legPosition[legIndex][0];
         traceEnd[1] = (float)(v9 * (*outAxis)[7]) + legPosition[legIndex][1];
         traceEnd[2] = (float)(v9 * (*outAxis)[8]) + legPosition[legIndex][2];
-        //col_context_t::col_context_t(&context);
+        ////col_context_t::col_context_t(&context);
         Turret_PlaceTurret_Trace(
             handler,
             trace,

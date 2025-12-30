@@ -898,7 +898,7 @@ double __cdecl CanDamage(
     {
         inflictorNum = 1023;
     }
-    col_context_t::col_context_t(&context, contentMask);
+    //col_context_t::col_context_t(&context, contentMask);
     col_context_t::init_locational(&context, targ->s.number, inflictorNum);
     hitnum = -1;
     if ( targ->client )
@@ -1194,7 +1194,7 @@ void __cdecl FlashbangBlastEnt(
             if ( dist <= radius_max )
             {
                 GetFlashbangViewPos(ent, playerEyes);
-                col_context_t::col_context_t(&context, 8419363);
+                //col_context_t::col_context_t(&context, 8419363);
                 context.passEntityNum0 = ent->s.number;
                 SV_SightTracePoint(&hitNum, playerEyes, blastOrigin, &context);
                 if ( hitNum == -1 || !hitNum )

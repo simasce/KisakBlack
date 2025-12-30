@@ -1023,7 +1023,7 @@ void __cdecl Flame_Phys_Update_Items_PerStream(bool is_server, int nitems, flame
         expand_vec[1] = 1.0f;
         expand_vec[2] = 1.0f;
         proximity_cache->update(mn, mx, (int)&cls.recentServers[18701].score + 3, expand_vec);
-        //col_context_t::col_context_t(&context);
+        ////col_context_t::col_context_t(&context);
         context.prims = proximity_cache->prims;
         context.nprims = proximity_cache->nprims;
         for ( drawType = 0; drawType < 2; ++drawType )

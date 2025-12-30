@@ -759,7 +759,7 @@ void __cdecl SpawnSystem_CalculateCylinderLength(SpawnInfluencer *influencer)
     {
         __debugbreak();
     }
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( influencer->active && g_spawnSystemDebugMode == SS_DEBUG_OFF )
     {
         if ( influencer->preset->type == INFLUENCER_TYPE_VEHICLE && EntHandle::isDefined(&influencer->entity) )
@@ -1810,7 +1810,7 @@ char __cdecl SpawnSystem_IsSpawnPointVisible(
     sight_point[0] = *origin;
     sight_point[1] = v8;
     sight_point[2] = v9;
-    col_context_t::col_context_t(&context, iClipMask);
+    //col_context_t::col_context_t(&context, iClipMask);
     col_context_t::init_locational(&context, iIgnoreEntNum);
     hitnum = -1;
     for ( index = 0; index < com_maxclients->current.integer; ++index )
@@ -1908,7 +1908,7 @@ void __cdecl SpawnSystem_DebugRenderVisibilityCheck(
     float start[3]; // [esp+80h] [ebp-10h] BYREF
     int time; // [esp+8Ch] [ebp-4h]
 
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     time = 500;
     if ( spawnsystem_debug_visibility_time )
         time = spawnsystem_debug_visibility_time->current.integer;

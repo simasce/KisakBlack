@@ -1,4 +1,21 @@
 #pragma once
+#include <database/db_registry.h>
+
+enum milestoneTableColumns_t : __int32
+{                                       // XREF: ?GetStatsMilestoneData@@YAPBDW4milestoneTableColumns_t@@PBD01010@Z/r
+                                        // ?GetStatsMilestoneData@@YAPBDW4milestoneTableColumns_t@@PBD01010@Z/r ...
+    MILESTONE_COLUMN_INDEX = 0x0,
+    MILESTONE_COLUMN_TIERID = 0x1,
+    MILESTONE_COLUMN_TARGETVALUE = 0x2,
+    MILESTONE_COLUMN_STATTYPE = 0x3,
+    MILESTONE_COLUMN_STATNAME = 0x4,
+    MILESTONE_COLUMN_STRING = 0x5,
+    MILESTONE_COLUMN_XPEARNED = 0x6,
+    MILESTONE_COLUMN_CPEARNED = 0x7,
+    MILESTONE_COLUMN_EXCLUDE = 0x8,
+    MILESTONE_COLUMN_UNLOCKITEM = 0x9,
+    MILESTONE_COLUMN_PERKNAME = 0xA,
+};
 
 int __cdecl CL_GetMilestoneRowNum(
                 XAssetHeader *stringTable,

@@ -129,6 +129,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DemonWare\bdCore\bdMemory\bdMemory.cpp" />
+    <ClCompile Include="DemonWare\bdCore\bdThread\bdMutex.cpp" />
+    <ClCompile Include="DemonWare\bdPlatform\bdPlatformThread\bdPlatformMutex.cpp" />
     <ClCompile Include="src\aim_assist\aim_assist.cpp" />
     <ClCompile Include="src\aim_assist\aim_target.cpp" />
     <ClCompile Include="src\bgame\bg_actor_prone.cpp" />
@@ -1150,6 +1153,9 @@
     <ClCompile Include="tl\tl_system.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DemonWare\bdCore\bdMemory\bdMemory.h" />
+    <ClInclude Include="DemonWare\bdCore\bdThread\bdMutex.h" />
+    <ClInclude Include="DemonWare\bdPlatform\bdPlatformThread\bdPlatformMutex.h" />
     <ClInclude Include="src\aim_assist\aim_assist.h" />
     <ClInclude Include="src\aim_assist\aim_target.h" />
     <ClInclude Include="src\bgame\bg_actor_prone.h" />

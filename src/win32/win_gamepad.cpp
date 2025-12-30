@@ -1,4 +1,30 @@
 #include "win_gamepad.h"
+#include <universal/assertive.h>
+#include <cmath>
+#include <universal/com_math.h>
+
+const dvar_t *gpad_debug;
+const dvar_t *gpad_button_lstick_deflect_max;
+const dvar_t *gpad_button_rstick_deflect_max;
+const dvar_t *gpad_button_deadzone;
+const dvar_t *gpad_stick_deadzone_min;
+const dvar_t *gpad_stick_deadzone_max;
+const dvar_t *gpad_stick_pressed;
+const dvar_t *gpad_stick_pressed_hysteresis;
+const dvar_t *gpad_rumble;
+const dvar_t *gpad_menu_scroll_delay_first;
+const dvar_t *gpad_menu_scroll_delay_rest;
+const dvar_t *gpad_buttonsConfig;
+const dvar_t *gpad_sticksConfig;
+const dvar_t *gpad_enabled;
+const dvar_t *gpad_present;
+
+GamePad s_gamePads[1];
+int inputCounter;
+bool hasInput[1];
+_XINPUT_STATE delayedInputState[1];
+void(__cdecl *s_removedCB)(int);
+void(__cdecl *s_insertedCB)(int);
 
 void __cdecl GPad_InitAll()
 {
@@ -343,7 +369,8 @@ void __cdecl GPad_UpdateSticksDown(GamePad *gPad)
                 {
                     __debugbreak();
                 }
-                gPad->stickDown[stickIter][dir] = COERCE_FLOAT(LODWORD(thresholda) ^ _mask__NegFloat_) > gPad->sticks[stickIter];
+                //gPad->stickDown[stickIter][dir] = COERCE_FLOAT(LODWORD(thresholda) ^ _mask__NegFloat_) > gPad->sticks[stickIter];
+                gPad->stickDown[stickIter][dir] = -thresholda > gPad->sticks[stickIter];
             }
             else
             {

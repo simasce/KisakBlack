@@ -79,7 +79,7 @@ void __cdecl ai_physics_trace(
     }
     else
     {
-        col_context_t::col_context_t(&context);
+        //col_context_t::col_context_t(&context);
         colgeom_visitor_inlined_t<200>::update(
             &pPhys->proximity_data,
             start,
@@ -160,7 +160,7 @@ void __cdecl AIPhys_FoliageSounds(actor_physics_t *pPhys)
                 vMins,
                 vMaxs,
                 (int)&cls.recentServers[7995].countrycode[1]);
-            col_context_t::col_context_t(&context);
+            //col_context_t::col_context_t(&context);
             context.prims = pPhys->proximity_data.prims;
             context.nprims = pPhys->proximity_data.nprims;
             G_TraceCapsule(&trace, pPhys->vOrigin, vMins, vMaxs, pPhys->vOrigin, pPhys->iEntNum, 2, &context);

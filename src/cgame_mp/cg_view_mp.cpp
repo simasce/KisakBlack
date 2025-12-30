@@ -1008,13 +1008,6 @@ void __cdecl CG_UpdateVehicleKillCam(int localClientNum)
     CG_CalcFov(localClientNum, info->killcamFOV);
 }
 
-void __cdecl Vec3Copy(const float *from, float *to)
-{
-    *to = *from;
-    to[1] = from[1];
-    to[2] = from[2];
-}
-
 void __cdecl CG_GetKillCamEntityOrgAngles(int localClientNum, float *origin, float *angles)
 {
     cg_s *cgameGlob; // [esp+8h] [ebp-4h]
@@ -1468,7 +1461,7 @@ void __cdecl CG_UpdateArtilleryKillCam(int localClientNum)
     originalBombOrigin[1] = bombOrigin[1];
     originalBombOrigin[2] = bombOrigin[2];
     mask = 17;
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     CG_TraceCapsule(
         &trace,
         bombOrigin,
@@ -1856,7 +1849,7 @@ void __cdecl LerpKillCamView(int localClientNum)
             predictedEndPos[2] = (float)((float)timeRemaining * entityVel[2]) + cgameGlob->refdef.vieworg[2];
             cam_mins = CAM_MINS;
             cam_maxs = CAM_MAXS;
-            col_context_t::col_context_t(&context);
+            //col_context_t::col_context_t(&context);
             CG_TraceCapsule(
                 &trace,
                 cgameGlob->refdef.vieworg,
@@ -3141,7 +3134,7 @@ void __cdecl CG_UpdateExplosiveKillCam(int localClientNum, KillCamEntityType kil
                 bombEndPos[0] = (float)(desiredStopDist * dir[0]) + realBombOrigin[0];
                 bombEndPos[1] = (float)(desiredStopDist * dir[1]) + realBombOrigin[1];
                 bombEndPos[2] = (float)(desiredStopDist * dir[2]) + realBombOrigin[2];
-                col_context_t::col_context_t(&context);
+                //col_context_t::col_context_t(&context);
                 CG_TraceCapsule(
                     &results,
                     realBombOrigin,
@@ -3290,7 +3283,7 @@ void __cdecl CG_KillcamCameraTrace(
     *campos = *desiredCamPos;
     campos[1] = desiredCamPos[1];
     campos[2] = desiredCamPos[2];
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     CG_TraceCapsule(&trace, bombOrigin, cam_mins, cam_maxs, campos, passEntIndex, 2065, &context);
     for ( tryCount = 0; tryCount < 3; ++tryCount )
     {
@@ -3532,7 +3525,7 @@ void __cdecl GetCeilingHeight(cg_s *cgameGlob)
         endPos[1] = cgameGlob->predictedPlayerState.origin[1];
         endPos[2] = cgameGlob->predictedPlayerState.origin[2];
         endPos[2] = endPos[2] + 1024.0;
-        col_context_t::col_context_t(&context);
+        //col_context_t::col_context_t(&context);
         CG_TraceCapsule(&result, cgameGlob->predictedPlayerState.origin, playerMins, playerMaxs, endPos, 1023, 1, &context);
         if ( result.fraction < 1.0 )
         {
@@ -4792,7 +4785,7 @@ void __cdecl CG_UpdateAdsDof(int localClientNum, GfxDepthOfField *dof)
         traceEnd[0] = (float)(8192.0 * cgameGlob->refdef.viewaxis[0][0]) + cgameGlob->refdef.vieworg[0];
         traceEnd[1] = (float)(8192.0 * cgameGlob->refdef.viewaxis[0][1]) + cgameGlob->refdef.vieworg[1];
         traceEnd[2] = (float)(8192.0 * cgameGlob->refdef.viewaxis[0][2]) + cgameGlob->refdef.vieworg[2];
-        col_context_t::col_context_t(&context);
+        //col_context_t::col_context_t(&context);
         CG_TraceCapsule(
             &trace,
             cgameGlob->refdef.vieworg,

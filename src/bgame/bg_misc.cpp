@@ -3094,7 +3094,7 @@ char    BG_CheckProne(
 
     bFirstTraceHit = 0;
     success = 1;
-    //col_context_t::col_context_t(&context);
+    ////col_context_t::col_context_t(&context);
     v44 = ps && (ps->pm_flags & 0x400000) != 0 && !Dtp_IsSliding(ps);
     skip_adjustments = v44;
     fWaistDistance = PRONE_WAIST_DIST;

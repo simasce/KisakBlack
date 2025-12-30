@@ -1,4 +1,9 @@
 #include "cl_medal.h"
+#include <universal/com_stringtable.h>
+#include <universal/assertive.h>
+#include <universal/q_shared.h>
+#include <ui/ui_main.h>
+#include <stdlib.h>
 
 const char *__cdecl CG_GetMedalData(int medalIndex, medalTableColumns_t column)
 {

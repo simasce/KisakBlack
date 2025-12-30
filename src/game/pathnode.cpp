@@ -2191,7 +2191,7 @@ pathnode_t *__cdecl Path_NearestNodeNotCrossPlanes(
     int hitNum; // [esp+4DCh] [ebp-8h] BYREF
     int iFailedNodeCount; // [esp+4E0h] [ebp-4h]
 
-    col_context_t::col_context_t(&context, (int)&loc_82000C + 5);
+    //col_context_t::col_context_t(&context, (int)&loc_82000C + 5);
     if ( heightCheck )
     {
         iNodeCount = Path_NodesInRadius(vOrigin, fMaxDist, nodes, maxNodes, typeFlags);

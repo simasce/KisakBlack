@@ -404,7 +404,7 @@ int __cdecl MayMove_TraceCheck(actor_s *self, float *vStart, float *vEnd, int al
     vPointLow[2] = vEnd[2];
     vPointHigh[2] = vPointHigh[2] + 48.0;
     vPointLow[2] = vPointLow[2] - 48.0;
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     G_TraceCapsule(
         &results,
         vPointHigh,

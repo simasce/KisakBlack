@@ -2265,7 +2265,7 @@ bool __fastcall Path_PredictionTrace(
     vSource[0] = *vStartPos;
     vSource[1] = vStartPos[1];
     vSource[2] = vStartPos[2];
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     while ( 1 )
     {
         G_TraceCapsule(&trace, vSource, traceMin, PREDICTION_TRACE_MAX, vDest, entityIgnore, mask, &context);

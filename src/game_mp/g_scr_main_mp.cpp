@@ -6373,7 +6373,7 @@ void Scr_BulletTracePassed()
         pIgnoreEnt = Scr_GetEntity(3u);
         iIgnoreEntNum = pIgnoreEnt->s.number;
     }
-    col_context_t::col_context_t(&context, iClipMask);
+    //col_context_t::col_context_t(&context, iClipMask);
     col_context_t::init_locational(&context, iIgnoreEntNum);
     hitnum = -1;
     v0 = SV_SightTracePoint(&hitnum, vStart, vEnd, &context);
@@ -6402,7 +6402,7 @@ void __cdecl Scr_SightTracePassed()
         pIgnoreEnt = Scr_GetEntity(3u);
         iIgnoreEntNum = pIgnoreEnt->s.number;
     }
-    col_context_t::col_context_t(&context, iClipMask);
+    //col_context_t::col_context_t(&context, iClipMask);
     context.passEntityNum0 = iIgnoreEntNum;
     SV_SightTracePoint(&hitNum, vStart, vEnd, &context);
     Scr_AddBool(hitNum == 0, SCRIPTINSTANCE_SERVER);
@@ -6471,7 +6471,7 @@ $LN11_33:
         if ( (maskType & (1 << i)) != 0 )
             mask |= scriptMaskToPhysicsMask[i];
     }
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     G_TraceCapsule(&trace, start, mins, maxs, end, iIgnoreEntNum, mask, &context);
     Vec3Lerp(start, end, trace.fraction, endpos);
     Scr_MakeArray(SCRIPTINSTANCE_SERVER);
@@ -6518,7 +6518,7 @@ void Scr_PlayerPhysicsTrace()
     memset(&trace, 0, 16);
     Scr_GetVector(0, start, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(1u, end, SCRIPTINSTANCE_SERVER);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     G_TraceCapsule(&trace, start, playerMins, playerMaxs, end, 1023, 8519697, &context);
     Vec3Lerp(start, end, trace.fraction, endpos);
     Scr_AddVector(endpos, SCRIPTINSTANCE_SERVER);
@@ -7981,7 +7981,7 @@ int Scr_GrenadeExplosionEffect()
     float vPos[3]; // [esp+8Ch] [ebp-Ch] BYREF
 
     memset(&trace, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     Scr_GetVector(0, vOrg, SCRIPTINSTANCE_SERVER);
     vPos[0] = vOrg[0];
     vPos[1] = vOrg[1];
@@ -8193,7 +8193,7 @@ void __cdecl GScr_PlayerSightTrace(scr_entref_t entref)
     dot = (float)((float)(viewdir[0] * objdir[0]) + (float)(viewdir[1] * objdir[1])) + (float)(viewdir[2] * objdir[2]);
     if ( dot >= 0.70700002 && dist <= (float)distance || dist < 100.0 && dot > 0.0 )
     {
-        col_context_t::col_context_t(&context, (int)&loc_806823);
+        //col_context_t::col_context_t(&context, (int)&loc_806823);
         context.passEntityNum0 = ent->s.number;
         SV_SightTracePoint(&hitNum, playerEyes, itemPosition, &context);
         Scr_AddInt(hitNum, SCRIPTINSTANCE_SERVER);
@@ -8223,7 +8223,7 @@ void __cdecl GScr_HeliTurretSightTrace(scr_entref_t entref)
     playerEyes[2] = client->ps.origin[2];
     playerEyes[2] = playerEyes[2] + player->client->ps.viewHeightCurrent;
     hitNum = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
-    col_context_t::col_context_t(&context, 14337);
+    //col_context_t::col_context_t(&context, 14337);
     context.passEntityNum0 = copterEnt->s.number;
     SV_SightTracePoint(&hitNum, playerEyes, turretPosition, &context);
     Scr_AddInt(hitNum, SCRIPTINSTANCE_SERVER);
@@ -8246,7 +8246,7 @@ void __cdecl GScr_HeliTurretDogTrace(scr_entref_t entref)
     dogEyes[2] = dog->r.currentOrigin[2];
     dogEyes[2] = dogEyes[2] + 24.0;
     hitNum = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
-    col_context_t::col_context_t(&context, 14337);
+    //col_context_t::col_context_t(&context, 14337);
     context.passEntityNum0 = copterEnt->s.number;
     SV_SightTracePoint(&hitNum, dogEyes, turretPosition, &context);
     Scr_AddInt(hitNum, SCRIPTINSTANCE_SERVER);
@@ -10234,7 +10234,7 @@ void __cdecl GScr_PlaceSpawnPoint(scr_entref_t entref)
     float vStart[3]; // [esp+84h] [ebp-Ch] BYREF
 
     memset(&trace, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     pEnt = GetEntity(entref);
     vStart[0] = pEnt->r.currentOrigin[0];
     vStart[1] = pEnt->r.currentOrigin[1];
@@ -10357,7 +10357,7 @@ void GScr_TestSpawnPoint()
     float point[3]; // [esp+64h] [ebp-Ch] BYREF
 
     memset(&trace, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     Scr_GetVector(0, point, SCRIPTINSTANCE_SERVER);
     G_TraceCapsule(&trace, point, playerMins, playerMaxs, point, 1023, (int)&loc_810011, &context);
     if ( trace.startsolid || trace.allsolid )

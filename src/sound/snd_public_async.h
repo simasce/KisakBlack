@@ -28,6 +28,17 @@ void __cdecl SND_Play(
                 const float *position,
                 const float *direction,
                 bool notify);
+inline void SND_Play(
+    const char *alias,
+    int fadeTimeMs,
+    float attenuation,
+    SndEntHandle entHandle,
+    const float *position,
+    const float *direction,
+    bool notify)
+{
+    SND_Play((char *)alias, fadeTimeMs, attenuation, entHandle, position, direction, notify);
+}
 int __cdecl SND_Playback(
                 unsigned int alias,
                 int fadeTimeMs,

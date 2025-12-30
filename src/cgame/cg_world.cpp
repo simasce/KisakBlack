@@ -1,4 +1,28 @@
 #include "cg_world.h"
+#include <qcommon/dobj_management.h>
+#include <cgame_mp/cg_local_mp.h>
+#include "cg_colltree.h"
+#include <universal/com_math_anglevectors.h>
+#include <cgame_mp/cg_ents_mp.h>
+#include <bgame/bg_slidemove.h>
+#include <qcommon/cm_load.h>
+#include <qcommon/cm_tracebox.h>
+#include <cgame_mp/cg_pose_mp.h>
+#include <glass/glass_client.h>
+#include <bgame/bg_misc.h>
+#include <qcommon/cm_world.h>
+#include <game_mp/g_combat_mp.h>
+#include <physics/rope.h>
+#include <xanim/xmodel.h>
+#include <xanim/dobj_utils.h>
+#include <clientscript/cscr_stringlist.h>
+
+float actorLocationalMinsBig[3] = { -54.0, -54.0, -32.0 };
+float actorLocationalMaxsBig[3] = { 54.0, 54.0, 72.0 };
+float actorLocationalMins[3] = { -36.0, -36.0, -10.0 };
+float actorLocationalMaxs[3] = { 36.0, 36.0, 72.0 };
+
+int cgCollWorldLocalClientNum;
 
 int __cdecl CG_GetEntityBModelContents(const centity_s *cent)
 {
@@ -25,129 +49,86 @@ int __cdecl CG_GetEntityBModelContents(const centity_s *cent)
     }
     return 1;
 }
-
-void    CG_GetEntityBModelBounds(
-                const centity_s *cent,
-                float *mins,
-                float *maxs,
-                float *absMins,
-                float *absMaxs)
+void CG_GetEntityBModelBounds(
+    const centity_s *cent,
+    float *mins,
+    float *maxs,
+    float *absMins,
+    float *absMaxs)
 {
-    _BYTE v6[12]; // [esp-Ch] [ebp-16Ch] BYREF
-    phys_vec3 aabb_mn; // [esp+0h] [ebp-160h] BYREF
-    phys_vec3 aabb_mx; // [esp+10h] [ebp-150h] BYREF
-    phys_mat44 xform; // [esp+20h] [ebp-140h] BYREF
-    float v10[9]; // [esp+60h] [ebp-100h] BYREF
-    float v11[3]; // [esp+84h] [ebp-DCh] BYREF
-    phys_vec3 ctr; // [esp+90h] [ebp-D0h]
-    float v13; // [esp+A8h] [ebp-B8h]
-    float v14; // [esp+ACh] [ebp-B4h]
-    float v15; // [esp+B0h] [ebp-B0h]
-    float v16; // [esp+B4h] [ebp-ACh]
-    float v17; // [esp+B8h] [ebp-A8h]
-    float v18; // [esp+BCh] [ebp-A4h]
-    float v19; // [esp+C8h] [ebp-98h]
-    float v20; // [esp+CCh] [ebp-94h]
-    float v21; // [esp+D0h] [ebp-90h]
-    float v22[3]; // [esp+D4h] [ebp-8Ch] BYREF
-    phys_vec3 rvec; // [esp+E0h] [ebp-80h]
-    float v24; // [esp+F8h] [ebp-68h]
-    float v25; // [esp+FCh] [ebp-64h]
-    float v26; // [esp+100h] [ebp-60h]
-    float v27; // [esp+104h] [ebp-5Ch]
-    float v28; // [esp+108h] [ebp-58h]
-    float v29; // [esp+10Ch] [ebp-54h]
-    float v30; // [esp+118h] [ebp-48h]
-    float v31; // [esp+11Ch] [ebp-44h]
-    float v32; // [esp+120h] [ebp-40h]
-    float v33; // [esp+124h] [ebp-3Ch] BYREF
-    float v34; // [esp+128h] [ebp-38h]
-    float v35; // [esp+12Ch] [ebp-34h]
-    phys_vec3 mx; // [esp+130h] [ebp-30h] BYREF
-    phys_vec3 mn; // [esp+140h] [ebp-20h]
-    int zu; // [esp+150h] [ebp-10h]
-    int zd; // [esp+154h] [ebp-Ch] BYREF
-    int x; // [esp+158h] [ebp-8h]
-    int retaddr; // [esp+160h] [ebp+0h]
+    const entityState_s *es;
 
-    zd = a1;
-    x = retaddr;
-    if ( !cent && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_world.cpp", 75, 0, "%s", "cent") )
-        __debugbreak();
-    if ( !mins && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_world.cpp", 76, 0, "%s", "mins") )
-        __debugbreak();
-    if ( !maxs && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_world.cpp", 77, 0, "%s", "maxs") )
-        __debugbreak();
-    zu = (int)&cent->nextState;
-    if ( !cent->nextState.solid
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_world.cpp", 80, 0, "%s", "es->solid") )
+    iassert(cent);
+    iassert(mins);
+    iassert(maxs);
+    iassert(absMins);
+    iassert(absMaxs);
+
+    es = &cent->nextState;
+    iassert(es->solid);
+
+    if (es->solid == 0xFFFFFF)
     {
-        __debugbreak();
-    }
-    if ( *(clientStatic_t **)(zu + 128) == (clientStatic_t *)&cls.rankedServers[711].game[34] )
-    {
-        CM_ModelBounds(*(__int16 *)(zu + 194), mins, maxs);
+        CM_ModelBounds(es->index.brushmodel, mins, maxs);
     }
     else
     {
-        LODWORD(mn.w) = (unsigned __int8)*(unsigned int *)(zu + 128);
-        LODWORD(mn.z) = (unsigned __int8)BYTE1(*(unsigned int *)(zu + 128)) - 1;
-        LODWORD(mn.y) = (unsigned __int8)BYTE2(*(unsigned int *)(zu + 128)) - 32;
-        mins[1] = COERCE_FLOAT(COERCE_UNSIGNED_INT((float)SLODWORD(mn.w)) ^ _mask__NegFloat_) + 1.0;
-        *mins = mins[1];
-        maxs[1] = (float)SLODWORD(mn.w) - 1.0;
-        *maxs = maxs[1];
-        mins[2] = COERCE_FLOAT(COERCE_UNSIGNED_INT((float)SLODWORD(mn.z)) ^ _mask__NegFloat_) + 1.0;
-        maxs[2] = (float)SLODWORD(mn.y) - 1.0;
+        int x = (uint8_t)(es->solid);
+        int zd = (uint8_t)(es->solid >> 8) - 1;
+        int zu = (uint8_t)(es->solid >> 16) - 32;
+
+        mins[0] = 1.0f - x;
+        mins[1] = 1.0f - x;
+        mins[2] = 1.0f - zd;
+
+        maxs[0] = x - 1.0f;
+        maxs[1] = x - 1.0f;
+        maxs[2] = zu - 1.0f;
     }
-    if ( absMins )
-    {
-        Phys_Vec3ToNitrousVec(mins, (phys_vec3 *)&mx.y);
-        Phys_Vec3ToNitrousVec(maxs, (phys_vec3 *)&v33);
-        v32 = v33 - mx.y;
-        v31 = v34 - mx.z;
-        v30 = v35 - mx.w;
-        v27 = v33 - mx.y;
-        v28 = v34 - mx.z;
-        v29 = v35 - mx.w;
-        v26 = 0.5 * (float)(v33 - mx.y);
-        v25 = 0.5 * (float)(v34 - mx.z);
-        v24 = 0.5 * (float)(v35 - mx.w);
-        rvec.y = v26;
-        rvec.z = v25;
-        rvec.w = v24;
-        v22[0] = v26;
-        v22[1] = v25;
-        v22[2] = v24;
-        v21 = v33 + mx.y;
-        v20 = v34 + mx.z;
-        v19 = v35 + mx.w;
-        v16 = v33 + mx.y;
-        v17 = v34 + mx.z;
-        v18 = v35 + mx.w;
-        v15 = 0.5 * (float)(v33 + mx.y);
-        v14 = 0.5 * (float)(v34 + mx.z);
-        v13 = 0.5 * (float)(v35 + mx.w);
-        ctr.y = v15;
-        ctr.z = v14;
-        ctr.w = v13;
-        v11[0] = v15;
-        v11[1] = v14;
-        v11[2] = v13;
-        AnglesToAxis(cent->pose.angles, (float (*)[3])v10);
-        Phys_AxisToNitrousMat((float (*)[3])v10, (phys_mat44 *)&aabb_mx.y);
-        Phys_Vec3ToNitrousVec(cent->pose.origin, (phys_vec3 *)&xform.z.y);
-        phys_calc_world_aabb(
-            COERCE_FLOAT(&zd),
-            (const phys_vec3 *)v11,
-            (const phys_vec3 *)v22,
-            (const phys_mat44 *)&aabb_mx.y,
-            (phys_vec3 *)v6,
-            (phys_vec3 *)&aabb_mn.y);
-        Phys_NitrousVecToVec3((const phys_vec3 *)v6, absMins);
-        Phys_NitrousVecToVec3((phys_vec3 *)&aabb_mn.y, absMaxs);
-    }
+
+    // aislop to cleanup stack
+    if (!absMins || !absMaxs)
+        return;
+
+    phys_vec3 localMin, localMax;
+    phys_vec3 center, halfExtents;
+    phys_mat44 axis;
+    float axis3x3[3][3];
+
+    /* Convert to phys vectors */
+    Phys_Vec3ToNitrousVec(mins, &localMin);
+    Phys_Vec3ToNitrousVec(maxs, &localMax);
+
+    /* Half-extents */
+    halfExtents.x = (localMax.x - localMin.x) * 0.5f;
+    halfExtents.y = (localMax.y - localMin.y) * 0.5f;
+    halfExtents.z = (localMax.z - localMin.z) * 0.5f;
+
+    /* Center */
+    center.x = (localMax.x + localMin.x) * 0.5f;
+    center.y = (localMax.y + localMin.y) * 0.5f;
+    center.z = (localMax.z + localMin.z) * 0.5f;
+
+    /* Orientation */
+    AnglesToAxis(cent->pose.angles, axis3x3);
+    Phys_AxisToNitrousMat(axis3x3, &axis);
+
+    /* Translation */
+    Phys_Vec3ToNitrousVec(cent->pose.origin, &axis.w);
+
+    /* Compute world AABB */
+    phys_calc_world_aabb(
+        &center,
+        &halfExtents,
+        &axis,
+        &localMin,
+        &localMax);
+
+    Phys_NitrousVecToVec3(&localMin, absMins);
+    Phys_NitrousVecToVec3(&localMax, absMaxs);
 }
+
+
 
 void __cdecl CG_GetEntityDobjBounds(
                 const centity_s *cent,
@@ -183,17 +164,17 @@ unsigned int __cdecl CG_GetEntityDObjContents(const centity_s *cent, const DObj 
     int contents; // [esp+4h] [ebp-4h]
 
     contents = DObjGetContents(dobj);
-    switch ( cent->nextState.eType )
+    switch (cent->nextState.eType)
     {
-        case 1:
-        case 2:
-            return (unsigned int)&cls.wagerServers[5331].basictraining | contents;
-        case 0xE:
-        case 0x10:
-            return (unsigned int)&loc_800000 | contents;
-        case 0x11:
-        case 0x13:
-            return contents | 0x8000;
+    case 1:
+    case 2:
+        return contents | 0x2000000;
+    case 0xE:
+    case 0x10:
+        return contents | 0x800000;
+    case 0x11:
+    case 0x13:
+        return contents | 0x8000;
     }
     DObjHasCollmap(dobj);
     return contents;
@@ -236,7 +217,7 @@ void __cdecl CG_CalcWorldBounds(centity_s *cent, DObj *dobj)
     float v2; // [esp+0h] [ebp-B0h]
     float v3; // [esp+4h] [ebp-ACh]
     float v4; // [esp+8h] [ebp-A8h]
-    bool v5; // [esp+Ch] [ebp-A4h]
+    BOOL v5; // [esp+Ch] [ebp-A4h]
     int k; // [esp+50h] [ebp-60h]
     float xform[3][3]; // [esp+54h] [ebp-5Ch] BYREF
     float mins[3]; // [esp+78h] [ebp-38h] BYREF
@@ -251,23 +232,23 @@ void __cdecl CG_CalcWorldBounds(centity_s *cent, DObj *dobj)
     character = cent->nextState.eType == 1 || cent->nextState.eType == 2;
     v5 = cent->nextState.surfType == 7 && !hasCollMap;
     character |= v5 || cent->nextState.eType == 17 || cent->nextState.eType == 19;
-    if ( cent->pose.isRagdoll )
+    if (cent->pose.isRagdoll)
     {
         cent->pose.absmin[0] = cent->pose.origin[0] + actorLocationalMinsBig[0];
-        cent->pose.absmin[1] = cent->pose.origin[1] + *(float *)&dword_E0B7FC;
-        cent->pose.absmin[2] = cent->pose.origin[2] + *(float *)&dword_E0B800;
+        cent->pose.absmin[1] = cent->pose.origin[1] + actorLocationalMinsBig[1];
+        cent->pose.absmin[2] = cent->pose.origin[2] + actorLocationalMinsBig[2];
         cent->pose.absmax[0] = cent->pose.origin[0] + actorLocationalMaxsBig[0];
-        cent->pose.absmax[1] = cent->pose.origin[1] + *(float *)&dword_E0B808;
-        cent->pose.absmax[2] = cent->pose.origin[2] + *(float *)&dword_E0B80C;
+        cent->pose.absmax[1] = cent->pose.origin[1] + actorLocationalMaxsBig[1];
+        cent->pose.absmax[2] = cent->pose.origin[2] + actorLocationalMaxsBig[2];
     }
-    else if ( character )
+    else if (character)
     {
         cent->pose.absmin[0] = cent->pose.origin[0] + actorLocationalMins[0];
-        cent->pose.absmin[1] = cent->pose.origin[1] + *(float *)&dword_E0B814;
-        cent->pose.absmin[2] = cent->pose.origin[2] + *(float *)&dword_E0B818;
+        cent->pose.absmin[1] = cent->pose.origin[1] + actorLocationalMins[1];
+        cent->pose.absmin[2] = cent->pose.origin[2] + actorLocationalMins[2];
         cent->pose.absmax[0] = cent->pose.origin[0] + actorLocationalMaxs[0];
-        cent->pose.absmax[1] = cent->pose.origin[1] + *(float *)&dword_E0B820;
-        cent->pose.absmax[2] = cent->pose.origin[2] + *(float *)&dword_E0B824;
+        cent->pose.absmax[1] = cent->pose.origin[1] + actorLocationalMaxs[1];
+        cent->pose.absmax[2] = cent->pose.origin[2] + actorLocationalMaxs[2];
     }
     else
     {
@@ -279,19 +260,19 @@ void __cdecl CG_CalcWorldBounds(centity_s *cent, DObj *dobj)
         cent->pose.absmax[0] = -FLT_MAX;
         cent->pose.absmax[1] = -FLT_MAX;
         cent->pose.absmax[2] = -FLT_MAX;
-        for ( k = 0; k < 8; ++k )
+        for (k = 0; k < 8; ++k)
         {
-            if ( (k & 1) != 0 )
+            if ((k & 1) != 0)
                 v4 = mins[0];
             else
                 v4 = maxs[0];
             v[0] = v4;
-            if ( (k & 2) != 0 )
+            if ((k & 2) != 0)
                 v3 = mins[1];
             else
                 v3 = maxs[1];
             v[1] = v3;
-            if ( (k & 4) != 0 )
+            if ((k & 4) != 0)
                 v2 = mins[2];
             else
                 v2 = maxs[2];
@@ -350,7 +331,7 @@ void __cdecl CG_LinkEntity(int localClientNum, unsigned int entIndex)
     }
     else if ( p_nextState->solid )
     {
-        CG_GetEntityBModelBounds((int)&savedregs, cent, mins, maxs, cent->pose.absmin, cent->pose.absmax);
+        CG_GetEntityBModelBounds(cent, mins, maxs, cent->pose.absmin, cent->pose.absmax);
         CG_LinkEntityColl(localClientNum, entIndex, cent->pose.absmin, cent->pose.absmax);
     }
     else
@@ -420,14 +401,14 @@ void __cdecl CG_PointTraceToEntity(const pointtrace_t *clip, unsigned int entInd
         {
             if ( ignoreEntParams->ignoreSelf && entIndex == ignoreEntParams->baseEntity )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_97;
             }
             if ( ignoreEntParams->ignoreParent && entIndex == ignoreEntParams->parentEntity )
             {
-                if ( GetCurrentThreadId() != g_DXDeviceThread )
-                    return;
+                //if ( GetCurrentThreadId() != g_DXDeviceThread )
+                //    return;
 LABEL_97:
                 //D3DPERF_EndEvent();
                 return;
@@ -551,8 +532,8 @@ LABEL_97:
             {
                 //if ( GetCurrentThreadId() == g_DXDeviceThread )
                     //D3DPERF_EndEvent();
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
 LABEL_117:
                 //D3DPERF_EndEvent();
                 return;
@@ -578,8 +559,8 @@ LABEL_113:
             results->hitType = TRACE_HITTYPE_ENTITY;
             results->hitId = number;
             results->cflags = contents;
-            if ( g_DXDeviceThread != GetCurrentThreadId() )
-                return;
+            //if ( g_DXDeviceThread != GetCurrentThreadId() )
+            //    return;
             goto LABEL_117;
         }
         dobj = dobjEA;
@@ -632,8 +613,8 @@ LABEL_113:
             DObjTracelinePartBits(dobj, partBits);
             CG_DObjCalcPose(&centEA->pose, dobj, partBits);
             DObjTraceline(dobj, localStart, localEnd, clip->priorityMap, &objTrace);
-            if ( GetCurrentThreadId() != g_DXDeviceThread )
-                goto LABEL_57;
+            //if ( GetCurrentThreadId() != g_DXDeviceThread )
+            //    goto LABEL_57;
         }
         else
         {
@@ -643,7 +624,7 @@ LABEL_113:
             DObjGeomTracelinePartBits(dobj, clip->contentmask, partBits);
             CG_DObjCalcPose(&centEA->pose, dobj, partBits);
             DObjGeomTraceline(dobj, localStart, localEnd, clip->contentmask, &objTrace);
-            if ( GetCurrentThreadId() != g_DXDeviceThread )
+            //if ( GetCurrentThreadId() != g_DXDeviceThread )
             {
 LABEL_57:
                 if ( objTrace.fraction >= results->fraction )
@@ -877,7 +858,6 @@ void __cdecl CG_TraceCapsule(
                 int contentMask,
                 col_context_t *context)
 {
-    moveclip_t clip; // [esp+4Ch] [ebp-78h] BYREF
     float delta[3]; // [esp+B8h] [ebp-Ch]
 
     //PIXBeginNamedEvent(-1, "CG_TraceCapsule");
@@ -988,7 +968,9 @@ void __cdecl CG_TraceCapsule(
     }
     else
     {
-        TraceExtents::TraceExtents(&clip.extents);
+        moveclip_t clip; // [esp+4Ch] [ebp-78h] BYREF
+
+        //TraceExtents::TraceExtents(&clip.extents);
         clip.contentmask = contentMask;
         clip.passEntityNum = passEntityNum;
         clip.passOwnerNum = -1;
@@ -1212,7 +1194,8 @@ void __cdecl CG_ClipMoveToEntities_r(
                 v9 = p2[sector->tree.axis] - sector->tree.dist;
             else
                 v9 = p[sector->tree.axis] - sector->tree.dist;
-            if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) < v9 )
+            //if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) < v9 )
+            if ( -offset < v9 )
             {
                 if ( p[3] >= results->fraction )
                     return;
@@ -1430,7 +1413,7 @@ void __cdecl CG_ClipMoveToEntity(const moveclip_t *clip, int entIndex, trace_t *
                             absMaxs[0] = cent->pose.absmax[0];
                             absMaxs[1] = cent->pose.absmax[1];
                             absMaxs[2] = cent->pose.absmax[2];
-                            CG_GetEntityBModelBounds((int)&savedregs, cent, mins, maxs, 0, 0);
+                            CG_GetEntityBModelBounds(cent, mins, maxs, 0, 0);
                             cmodel = CM_TempBoxModel(mins, maxs, contents);
                             memset(angles, 0, sizeof(angles));
                         }
@@ -1484,7 +1467,7 @@ void __cdecl CG_LocationalTrace(
     col_context_t *p_tempContext; // [esp+0h] [ebp-30h]
     col_context_t tempContext; // [esp+8h] [ebp-28h] BYREF
 
-    col_context_t::col_context_t(&tempContext, contentMask);
+    ////col_context_t::col_context_t(&tempContext, contentMask);
     if ( context )
         p_tempContext = context;
     else
@@ -1505,7 +1488,6 @@ void __cdecl CG_TracePoint(
 {
     IgnoreEntParams *p_ignoreEntParams; // [esp+8h] [ebp-A8h]
     float _end[3]; // [esp+4Ch] [ebp-64h] BYREF
-    pointtrace_t clip; // [esp+58h] [ebp-58h] BYREF
     IgnoreEntParams ignoreEntParams; // [esp+A0h] [ebp-10h] BYREF
 
     //PIXBeginNamedEvent(-1, "CG_TracePoint");
@@ -1571,7 +1553,9 @@ void __cdecl CG_TracePoint(
     }
     else
     {
-        TraceExtents::TraceExtents(&clip.extents);
+        pointtrace_t clip; // [esp+58h] [ebp-58h] BYREF
+
+        //TraceExtents::TraceExtents(&clip.extents);
         if ( !staticModels )
             goto LABEL_34;
         CM_PointTraceStaticModels(results, start, end, contentMask);
@@ -1850,7 +1834,7 @@ bool __cdecl CG_SightTracePointInternal(int *hitNum, const float *start, const f
 {
     traceWork_t tw; // [esp+48h] [ebp-E8h] BYREF
 
-    traceWork_t::traceWork_t(&tw);
+    //traceWork_t::traceWork_t(&tw);
     if ( ((*(unsigned int *)start & 0x7F800000) == 0x7F800000
          || ((unsigned int)start[1] & 0x7F800000) == 0x7F800000
          || ((unsigned int)start[2] & 0x7F800000) == 0x7F800000)
@@ -1899,9 +1883,12 @@ bool __cdecl CG_SightTracePointInternal(int *hitNum, const float *start, const f
     tw.halfDelta.vec.v[1] = 0.5 * (float)(tw.extents.end.vec.v[1] - tw.extents.start.vec.v[1]);
     tw.halfDelta.vec.v[2] = 0.5 * (float)(tw.extents.end.vec.v[2] - tw.extents.start.vec.v[2]);
     memset(&tw.radiusOffset, 0, 12);
-    tw.halfDeltaAbs.vec.u[0] = tw.halfDelta.vec.u[0] & _mask__AbsFloat_;
-    tw.halfDeltaAbs.vec.u[1] = tw.halfDelta.vec.u[1] & _mask__AbsFloat_;
-    tw.halfDeltaAbs.vec.u[2] = tw.halfDelta.vec.u[2] & _mask__AbsFloat_;
+    //tw.halfDeltaAbs.vec.u[0] = tw.halfDelta.vec.u[0] & _mask__AbsFloat_;
+    //tw.halfDeltaAbs.vec.u[1] = tw.halfDelta.vec.u[1] & _mask__AbsFloat_;
+    //tw.halfDeltaAbs.vec.u[2] = tw.halfDelta.vec.u[2] & _mask__AbsFloat_;
+    tw.halfDeltaAbs.vec.u[0] = fabs(tw.halfDelta.vec.u[0]);
+    tw.halfDeltaAbs.vec.u[1] = fabs(tw.halfDelta.vec.u[1]);
+    tw.halfDeltaAbs.vec.u[2] = fabs(tw.halfDelta.vec.u[2]);
     CM_CalcTraceExtents(&tw.extents);
     tw.deltaLenSq = (float)((float)(tw.delta.vec.v[0] * tw.delta.vec.v[0]) + (float)(tw.delta.vec.v[1] * tw.delta.vec.v[1]))
                                 + (float)(tw.delta.vec.v[2] * tw.delta.vec.v[2]);
@@ -1915,49 +1902,6 @@ bool __cdecl CG_SightTracePointInternal(int *hitNum, const float *start, const f
     if ( !*hitNum )
         *hitNum = CM_SightTraceThroughTree(&tw, 0, tw.extents.start.vec.v, tw.extents.end.vec.v, trace);
     return *hitNum != 0;
-}
-
-traceWork_t *__thiscall traceWork_t::traceWork_t(traceWork_t *this)
-{
-    hybrid_vector *p_size; // ecx
-    int v4; // [esp+10h] [ebp-18h]
-    hybrid_vector *i; // [esp+14h] [ebp-14h]
-
-    this->delta.vec.u[0] = 0;
-    this->delta.vec.u[1] = 0;
-    this->delta.vec.u[2] = 0;
-    this->delta.vec.u[3] = 0;
-    this->midpoint.vec.u[0] = 0;
-    this->midpoint.vec.u[1] = 0;
-    this->midpoint.vec.u[2] = 0;
-    this->midpoint.vec.u[3] = 0;
-    this->halfDelta.vec.u[0] = 0;
-    this->halfDelta.vec.u[1] = 0;
-    this->halfDelta.vec.u[2] = 0;
-    this->halfDelta.vec.u[3] = 0;
-    this->halfDeltaAbs.vec.u[0] = 0;
-    this->halfDeltaAbs.vec.u[1] = 0;
-    this->halfDeltaAbs.vec.u[2] = 0;
-    this->halfDeltaAbs.vec.u[3] = 0;
-    this->size.vec.u[0] = 0;
-    this->size.vec.u[1] = 0;
-    p_size = &this->size;
-    p_size->vec.u[2] = 0;
-    p_size->vec.u[3] = 0;
-    v4 = 2;
-    for ( i = this->bounds; --v4 >= 0; ++i )
-    {
-        i->vec.u[0] = 0;
-        i->vec.u[1] = 0;
-        i->vec.u[2] = 0;
-        i->vec.u[3] = 0;
-    }
-    this->radiusOffset.vec.u[0] = 0;
-    this->radiusOffset.vec.u[1] = 0;
-    this->radiusOffset.vec.u[2] = 0;
-    this->radiusOffset.vec.u[3] = 0;
-    TraceExtents::TraceExtents(&this->extents);
-    return this;
 }
 
 bool __cdecl CG_SightTracePoint(int *hitNum, const float *start, const float *end, int mask, trace_t *trace)
@@ -1982,7 +1926,7 @@ bool __cdecl CG_SightTracePoint(int *hitNum, const float *start, const float *en
     TraceExtents extents; // [esp+16Ch] [ebp-38h] BYREF
     int oldHitNum; // [esp+1A0h] [ebp-4h]
 
-    TraceExtents::TraceExtents(&extents);
+    //TraceExtents::TraceExtents(&extents);
     *(_QWORD *)extents.start.vec.v = *(_QWORD *)start;
     extents.start.vec.v[2] = start[2];
     *(_QWORD *)extents.end.vec.v = *(_QWORD *)end;

@@ -1,4 +1,18 @@
 #include "live_stats.h"
+#include <universal/assertive.h>
+#include "live_storage.h"
+#include "live_win.h"
+#include <qcommon/com_gamemodes.h>
+#include <ui_mp/ui_gametype_custom_mp.h>
+
+ddlDef_t *g_statsDDL;
+
+const dvar_t *ui_challengeSort;
+const dvar_t *debugStats;
+const dvar_t *ui_numPersonalBests;
+const dvar_t *ui_challengeSort;
+const dvar_t *recordPointsSpent;
+const dvar_t *ui_challengeGameMode;
 
 int __cdecl LiveStats_GetDDLHeaderVersion(unsigned __int8 *statsBuffer)
 {
@@ -4632,6 +4646,21 @@ void __cdecl SV_UpdatePersonalBestsForClient(int clientnum)
         }
     }
 }
+
+cmd_function_s LiveStats_StatSetByNameCmd_VAR;
+cmd_function_s LiveStats_StatAddByNameCmd_VAR;
+cmd_function_s LiveStats_StatGetByNameInDvarCmd_VAR;
+cmd_function_s LiveStats_StatReadDDLCmd_VAR;
+cmd_function_s LiveStats_StatWriteDDLCmd_VAR;
+cmd_function_s LiveStats_ActivateContractCmd_VAR;
+cmd_function_s LiveStats_SetCurrentContractCmd_VAR;
+cmd_function_s LiveContracts_SetFilterCmd_VAR;
+cmd_function_s LiveStats_CompareStatsVsStableBufferCmd_VAR;
+cmd_function_s LiveStats_BuildChallengeListCmd_VAR;
+cmd_function_s LiveStats_BuildKillstreakChallengeListCmd_VAR;
+cmd_function_s LiveStats_BuildGlobalChallengesListCmd_VAR;
+cmd_function_s LiveStats_BuildAttachmentsListCmd_VAR;
+cmd_function_s LiveStats_PresetigeStatsResetCmd_VAR;
 
 void __cdecl LiveStats_Init()
 {

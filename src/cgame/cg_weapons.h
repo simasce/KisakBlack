@@ -1,5 +1,7 @@
 #pragma once
 #include <sound/snd.h>
+#include <bgame/bg_weapons_def.h>
+#include "cg_local.h"
 
 struct gentity_s;
 struct XModel;

@@ -234,6 +234,7 @@ void __cdecl Vec3Mul(const float *a, const float *b, float *product);
 void __cdecl Vec3Mad(const float *start, float scale, const float *dir, float *result);
 void __cdecl Vec3ScaleMad(float scale0, const float *dir0, float scale1, const float *dir1, float *result);
 void __cdecl Vec3Sub(const float *a, const float *b, float *diff);
+void __cdecl Vec3Copy(const float *from, float *to);
 
 void __cdecl Vec4Lerp(const float *from, const float *to, float frac, float *result);
 float __cdecl Vec4Normalize(float *v);

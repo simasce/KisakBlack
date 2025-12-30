@@ -49,3 +49,7 @@ void __cdecl CG_SortEntityCollSector(
                 const float *mins,
                 const float *maxs);
 unsigned __int16 __cdecl CG_AllocEntityCollSector(int localClientNum, const float *mins, const float *maxs);
+
+
+extern CgEntCollWorld cgEntCollWorld[1];
+extern CgEntCollNode *cgEntCollNodes[1];

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <zlib/zlib.h>
 
 struct DB_LoadData // sizeof=0x807C
 {                                       // XREF: .data:g_load/r

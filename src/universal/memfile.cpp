@@ -565,3 +565,18 @@ void __cdecl MemFile_ReadData(MemoryFile *memFile, int byteCount, unsigned __int
     }
 }
 
+void __cdecl MemFile_WriteInt(MemoryFile *memFile, int value)
+{
+    if ((unsigned int)(memFile->cacheBufferUsed + 4) >= 0x7FF8)
+        MemFile_WriteDataFlushInternal(memFile);
+    *(unsigned int *)&memFile->cacheBuffer[memFile->cacheBufferUsed] = value;
+    memFile->cacheBufferUsed += 4;
+}
+
+void __cdecl MemFile_WriteFloat(MemoryFile *memFile, float valuef)
+{
+    if ((unsigned int)(memFile->cacheBufferUsed + 4) >= 0x7FF8)
+        MemFile_WriteDataFlushInternal(memFile);
+    *(float *)&memFile->cacheBuffer[memFile->cacheBufferUsed] = valuef;
+    memFile->cacheBufferUsed += 4;
+}

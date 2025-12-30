@@ -1626,7 +1626,7 @@ char __cdecl Ragdoll_BoneTrace(trace_t *trace, trace_t *revTrace, const float *s
 {
     col_context_t context; // [esp+0h] [ebp-28h] BYREF
 
-    //col_context_t::col_context_t(&context);
+    ////col_context_t::col_context_t(&context);
     CM_BoxTrace(trace, start, end, vec3_origin, vec3_origin, (int)&cls.recentServers[7546].city[57], &context);
     if ( trace->startsolid )
     {

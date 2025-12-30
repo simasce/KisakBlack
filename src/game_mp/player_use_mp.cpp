@@ -778,7 +778,7 @@ LABEL_61:
         (bool (__cdecl *)(const MaterialMemory *, const MaterialMemory *))compare_use);
     v41 -= v47;
     v42 = 0;
-    col_context_t::col_context_t(&context, 17);
+    //col_context_t::col_context_t(&context, 17);
     context.passEntityNum0 = ps->clientNum;
     context.passEntityNum1 = ps->clientNum;
     hitNum = -1;

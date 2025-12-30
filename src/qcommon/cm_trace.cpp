@@ -1,4 +1,17 @@
 #include "cm_trace.h"
+#include "cm_load.h"
+#include "threads.h"
+#include "cm_tracebox.h"
+#include "common.h"
+#include "cm_mesh.h"
+#include "cm_test.h"
+#include <universal/com_math_anglevectors.h>
+#include <gfx_d3d/r_water_sim.h>
+#include <server/sv_world.h>
+#include <bgame/bg_misc.h>
+#include <server_mp/sv_main_mp.h>
+
+heli_height_lock_patches_t heli_height_lock_patches[32];
 
 void __cdecl RotatePoint(const float *v, const float *q, float *out)
 {
@@ -15,12 +28,15 @@ void __cdecl RotatePoint(const float *v, const float *q, float *out)
     t2 = q[3] * *q;
     t3 = q[3] * q[1];
     t4 = q[3] * q[2];
-    t5 = COERCE_FLOAT(*(unsigned int *)q ^ _mask__NegFloat_) * *q;
+    //t5 = COERCE_FLOAT(*(unsigned int *)q ^ _mask__NegFloat_) * *q;
+    t5 = -*q * *q;
     t6 = *q * q[1];
     t7 = *q * q[2];
-    t8 = COERCE_FLOAT(*((unsigned int *)q + 1) ^ _mask__NegFloat_) * q[1];
+    //t8 = COERCE_FLOAT(*((unsigned int *)q + 1) ^ _mask__NegFloat_) * q[1];
+    t8 = -q[1] * q[1];
     t9 = q[1] * q[2];
-    t10 = COERCE_FLOAT(*((unsigned int *)q + 2) ^ _mask__NegFloat_) * q[2];
+    //t10 = COERCE_FLOAT(*((unsigned int *)q + 2) ^ _mask__NegFloat_) * q[2];
+    t10 = -q[2] * q[2];
     *out = (float)((float)((float)((float)((float)(t8 + t10) * *v) + (float)((float)(t6 - t4) * v[1]))
                                              + (float)((float)(t3 + t7) * v[2]))
                              * 2.0)
@@ -35,7 +51,7 @@ void __cdecl RotatePoint(const float *v, const float *q, float *out)
                  + v[2];
 }
 
-col_context_t *__thiscall col_context_t::col_context_t(col_context_t *this)
+col_context_t::col_context_t()
 {
     this->mask = 0;
     this->prims = 0;
@@ -48,10 +64,9 @@ col_context_t *__thiscall col_context_t::col_context_t(col_context_t *this)
     this->staticmodels = 0;
     this->priorityMap = 0;
     this->collide_entity_func = 0;
-    return this;
 }
 
-col_context_t *__thiscall col_context_t::col_context_t(col_context_t *this, int _mask)
+col_context_t::col_context_t(int _mask)
 {
     this->mask = _mask;
     this->prims = 0;
@@ -63,17 +78,16 @@ col_context_t *__thiscall col_context_t::col_context_t(col_context_t *this, int 
     this->staticmodels = 0;
     this->priorityMap = 0;
     this->collide_entity_func = 0;
-    return this;
 }
 
-void __thiscall col_context_t::init_locational(col_context_t *this, int ent0)
+void __thiscall col_context_t::init_locational(int ent0)
 {
     this->passEntityNum0 = ent0;
     this->locational = 1;
     this->staticmodels = 1;
 }
 
-void __thiscall col_context_t::init_locational(col_context_t *this, int ent0, int ent1)
+void __thiscall col_context_t::init_locational(int ent0, int ent1)
 {
     this->passEntityNum0 = ent0;
     this->passEntityNum1 = ent1;
@@ -329,7 +343,7 @@ void __cdecl CM_Trace(
     _QWORD end_[2]; // [esp+170h] [ebp-10h] BYREF
 
     //PIXBeginNamedEvent(-1, "CM_Trace");
-    traceWork_t::traceWork_t(&tw);
+    ////traceWork_t::traceWork_t(&tw);
     if ( !cm.numNodes
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 1499, 0, "%s", "cm.numNodes") )
     {
@@ -372,7 +386,8 @@ void __cdecl CM_Trace(
         tw.midpoint.vec.v[i] = (float)(tw.extents.start.vec.v[i] + tw.extents.end.vec.v[i]) * 0.5;
         tw.delta.vec.v[i] = tw.extents.end.vec.v[i] - tw.extents.start.vec.v[i];
         tw.halfDelta.vec.v[i] = 0.5 * tw.delta.vec.v[i];
-        tw.halfDeltaAbs.vec.u[i] = tw.halfDelta.vec.u[i] & _mask__AbsFloat_;
+        //tw.halfDeltaAbs.vec.u[i] = tw.halfDelta.vec.u[i] & _mask__AbsFloat_;
+        tw.halfDeltaAbs.vec.u[i] = fabs(tw.halfDelta.vec.u[i]);
     }
     CM_CalcTraceExtents(&tw.extents);
     tw.deltaLenSq = (float)((float)(tw.delta.vec.v[0] * tw.delta.vec.v[0]) + (float)(tw.delta.vec.v[1] * tw.delta.vec.v[1]))
@@ -1066,7 +1081,8 @@ void __cdecl CM_TraceThroughLeafBrushNode_r(
         tmin = v8;
         if ( v8 < offset )
         {
-            if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) < tmax )
+            //if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) < tmax )
+            if ( -offset < tmax )
             {
                 if ( p1[3] >= trace->fraction )
                     return;
@@ -1138,7 +1154,8 @@ void __cdecl CM_TraceThroughLeafBrushNode_r(
         }
         else
         {
-            if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) >= tmax )
+            //if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) >= tmax )
+            if ( -offset >= tmax )
                 return;
             node += node->data.children.childOffset[0];
         }
@@ -1264,7 +1281,7 @@ void __cdecl CM_TraceThroughBrush(const traceWork_t *tw, const cbrush_t *brush, 
             else
             {
                 if ( (float)(0.125 - d1) < 0.0 )
-                    v5 = 0.1f25;
+                    v5 = 0.125f;
                 else
                     v5 = d1;
                 if ( d2 >= v5 )
@@ -1396,7 +1413,7 @@ void __cdecl CM_TraceThroughBrush(const traceWork_t *tw, const cbrush_t *brush, 
             else
             {
                 if ( (float)(0.125 - d1a) < 0.0 )
-                    v3 = 0.1f25;
+                    v3 = 0.125f;
                 else
                     v3 = d1a;
                 if ( d2 >= v3 )
@@ -1404,16 +1421,18 @@ void __cdecl CM_TraceThroughBrush(const traceWork_t *tw, const cbrush_t *brush, 
                 if ( d2 > 0.0 )
                     allsolid = 0;
                 delta = d1a - d2;
-                if ( (COERCE_UNSIGNED_INT(d1a - d2) & 0x7F800000) == 0x7F800000
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp",
-                                713,
-                                0,
-                                "%s",
-                                "!IS_NAN(delta)") )
-                {
-                    __debugbreak();
-                }
+
+                iassert(!IS_NAN(delta));
+                //if ( (COERCE_UNSIGNED_INT(d1a - d2) & 0x7F800000) == 0x7F800000
+                //    && !Assert_MyHandler(
+                //                "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp",
+                //                713,
+                //                0,
+                //                "%s",
+                //                "!IS_NAN(delta)") )
+                //{
+                //    __debugbreak();
+                //}
                 if ( delta <= 0.0
                     && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 715, 0, "%s", "delta > 0") )
                 {
@@ -1646,8 +1665,8 @@ int __cdecl CM_TraceSphereThroughSphere(
             if ( fDiscriminant >= 0.0 )
             {
                 fDeltaLen = Vec3NormalizeTo(vDelta, vNormal);
-                fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA)
-                             + (float)((float)(fDeltaLen * 0.125) / fB);
+                //fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA) + (float)((float)(fDeltaLen * 0.125) / fB);
+                fEntry = (float)((float)(-fB - sqrtf(fDiscriminant)) / fA) + (float)((float)(fDeltaLen * 0.125) / fB);
                 if ( trace->fraction <= fEntry )
                 {
                     return 1;
@@ -1755,7 +1774,8 @@ int __cdecl CM_TraceCylinderThroughCylinder(
                 vDelta[2] = 0.0f;
                 fDeltaLen = Vec3NormalizeTo(vDelta, vNormal);
                 fEpsilon = (float)(fDeltaLen * 0.125) / fB;
-                fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA) + fEpsilon;
+                //fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA) + fEpsilon;
+                fEntry = (float)((float)(-fB - sqrtf(fDiscriminant)) / fA) + fEpsilon;
                 if ( trace->fraction <= fEntry )
                 {
                     return 1;
@@ -1900,7 +1920,7 @@ void __cdecl CM_TraceThroughTree(const traceWork_t *tw, int num, const float *p1
                                  + (float)(plane->normal[2] * p2[2]))
                  - plane->dist;
             if ( tw->isPoint )
-                offset = 0.1f25;
+                offset = 0.125f;
             else
                 offset = tw->boundingRadius + 0.125;
         }
@@ -1920,7 +1940,8 @@ void __cdecl CM_TraceThroughTree(const traceWork_t *tw, int num, const float *p1
                 v8 = t2;
             else
                 v8 = t1;
-            if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) < v8 )
+            //if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) < v8 )
+            if ( -offset < v8 )
             {
                 if ( p1[3] >= trace->fraction )
                     return;
@@ -2079,7 +2100,7 @@ void __cdecl CM_TraceThroughPrimitives(
                 materialInfo = &cm.materials[tree->materialIndex];
                 if ( (materialInfo->contentFlags & tw->contents) != 0 )
                 {
-                    halfSize = tree->halfSize;
+                    halfSize = (float*)tree->halfSize;
                     v49 = &v10;
                     v10 = tree->halfSize[0];
                     v11 = tree->halfSize[1];
@@ -2090,11 +2111,11 @@ void __cdecl CM_TraceThroughPrimitives(
                     v7 = tree->origin[1];
                     v8 = tree->origin[2];
                     v9 = 0;
-                    p_midpoint = &tw->midpoint;
+                    p_midpoint = (hybrid_vector*)&tw->midpoint;
                     v41 = tw->midpoint.vec.v[0] - v6;
                     v42 = tw->midpoint.vec.v[1] - v7;
                     v43 = tw->midpoint.vec.v[2] - v8;
-                    p_size = &tw->size;
+                    p_size = (hybrid_vector *)&tw->size;
                     v44 = v10 + tw->size.vec.v[0];
                     v45 = v11 + tw->size.vec.v[1];
                     v46 = v12 + tw->size.vec.v[2];
@@ -2232,7 +2253,7 @@ void __cdecl CM_TransformedBoxTraceRotated(
     int i; // [esp+D4h] [ebp-8h]
     float oldFraction; // [esp+D8h] [ebp-4h]
 
-    col_context_t::col_context_t(&context);
+    ////col_context_t::col_context_t(&context);
     if ( !mins && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 1810, 0, "%s", "mins") )
         __debugbreak();
     if ( !maxs && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 1811, 0, "%s", "maxs") )
@@ -2314,7 +2335,7 @@ void __cdecl CM_TransformedBoxTrace(
     int i; // [esp+94h] [ebp-8h]
     float oldFraction; // [esp+98h] [ebp-4h]
 
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( !mins && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 1869, 0, "%s", "mins") )
         __debugbreak();
     if ( !maxs && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 1870, 0, "%s", "maxs") )
@@ -2584,16 +2605,17 @@ int __cdecl CM_SightTraceThroughBrush(const traceWork_t *tw, const cbrush_t *bru
         else
         {
             delta = d1a - d2a;
-            if ( (COERCE_UNSIGNED_INT(d1a - d2a) & 0x7F800000) == 0x7F800000
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp",
-                            2026,
-                            0,
-                            "%s",
-                            "!IS_NAN(delta)") )
-            {
-                __debugbreak();
-            }
+            iassert(!IS_NAN(delta));
+            //if ( (COERCE_UNSIGNED_INT(d1a - d2a) & 0x7F800000) == 0x7F800000
+            //    && !Assert_MyHandler(
+            //                "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp",
+            //                2026,
+            //                0,
+            //                "%s",
+            //                "!IS_NAN(delta)") )
+            //{
+            //    __debugbreak();
+            //}
             if ( d2a > 0.0 )
                 return 0;
             if ( delta <= 0.0
@@ -2805,16 +2827,17 @@ int __cdecl CM_SightTracePointThroughBrush(const TraceExtents *extents, const cb
         else
         {
             delta = d1a - d2a;
-            if ( (COERCE_UNSIGNED_INT(d1a - d2a) & 0x7F800000) == 0x7F800000
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp",
-                            2149,
-                            0,
-                            "%s",
-                            "!IS_NAN(delta)") )
-            {
-                __debugbreak();
-            }
+            iassert(!IS_NAN(delta));
+            //if ( (COERCE_UNSIGNED_INT(d1a - d2a) & 0x7F800000) == 0x7F800000
+            //    && !Assert_MyHandler(
+            //                "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp",
+            //                2149,
+            //                0,
+            //                "%s",
+            //                "!IS_NAN(delta)") )
+            //{
+            //    __debugbreak();
+            //}
             if ( d2a > 0.0 )
                 return 0;
             if ( delta <= 0.0
@@ -2878,7 +2901,7 @@ int __cdecl CM_SightTraceThroughTree(const traceWork_t *tw, int num, const float
                     t2 = (float)((float)((float)(plane->normal[0] * *p2) + (float)(plane->normal[1] * p2[1]))
                                          + (float)(plane->normal[2] * p2[2]))
                          - plane->dist;
-                    offset = tw->isPoint ? 0.1f25 : tw->boundingRadius + 0.125;
+                    offset = tw->isPoint ? 0.125f : tw->boundingRadius + 0.125;
                 }
                 else
                 {
@@ -2892,7 +2915,8 @@ int __cdecl CM_SightTraceThroughTree(const traceWork_t *tw, int num, const float
                 num = node->children[0];
             }
             v9 = (float)(t1 - t2) < 0.0 ? t2 : t1;
-            if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) < v9 )
+            //if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) < v9 )
+            if ( -offset < v9 )
                 break;
             num = node->children[1];
         }
@@ -3079,7 +3103,8 @@ LABEL_19:
         tmin = v9;
         if ( v9 < offset )
         {
-            if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) < tmax )
+            //if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) < tmax )
+            if ( -offset < tmax )
             {
                 diff = t2 - t1;
                 absDiff = fabs(t2 - t1);
@@ -3148,7 +3173,7 @@ LABEL_19:
         }
         else
         {
-            if ( COERCE_FLOAT(LODWORD(offset) ^ _mask__NegFloat_) >= tmax )
+            if ( -offset >= tmax )
                 return 0;
             remoteNode += remoteNode->data.children.childOffset[0];
         }
@@ -3193,7 +3218,7 @@ int __cdecl CM_BoxSightTrace(
     int hitNum; // [esp+188h] [ebp-4h]
     int oldHitNuma; // [esp+194h] [ebp+8h]
 
-    traceWork_t::traceWork_t(&tw);
+    //traceWork_t::traceWork_t(&tw);
     memset(&trace, 0, 16);
     if ( !cm.numNodes
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 2687, 0, "%s", "cm.numNodes") )
@@ -3228,7 +3253,8 @@ int __cdecl CM_BoxSightTrace(
         tw.midpoint.vec.v[i] = (float)(tw.extents.start.vec.v[i] + tw.extents.end.vec.v[i]) * 0.5;
         tw.delta.vec.v[i] = tw.extents.end.vec.v[i] - tw.extents.start.vec.v[i];
         tw.halfDelta.vec.v[i] = 0.5 * tw.delta.vec.v[i];
-        tw.halfDeltaAbs.vec.u[i] = tw.halfDelta.vec.u[i] & _mask__AbsFloat_;
+        //tw.halfDeltaAbs.vec.u[i] = tw.halfDelta.vec.u[i] & _mask__AbsFloat_;
+        tw.halfDeltaAbs.vec.u[i] = fabs(tw.halfDelta.vec.u[i]);
     }
     CM_CalcTraceExtents(&tw.extents);
     tw.deltaLenSq = (float)((float)(tw.delta.vec.v[0] * tw.delta.vec.v[0]) + (float)(tw.delta.vec.v[1] * tw.delta.vec.v[1]))
@@ -3468,8 +3494,8 @@ bool __cdecl CM_SightTraceSphereThroughSphere(
     if ( fDiscriminant < 0.0 )
         return 1;
     fDeltaLen = Vec3NormalizeTo(vDelta, vNormal);
-    return (float)((float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA)
-                             + (float)((float)(fB * 0.125) / fDeltaLen)) >= trace->fraction;
+    //return (float)((float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA) + (float)((float)(fB * 0.125) / fDeltaLen)) >= trace->fraction;
+    return (float)((float)((float)(-fB - sqrtf(fDiscriminant)) / fA) + (float)((float)(fB * 0.125) / fDeltaLen)) >= trace->fraction;
 }
 
 bool __cdecl CM_SightTraceCylinderThroughCylinder(
@@ -3509,7 +3535,8 @@ bool __cdecl CM_SightTraceCylinderThroughCylinder(
                 vDelta[2] = 0.0f;
                 fDeltaLen = Vec3NormalizeTo(vDelta, vNormal);
                 fEpsilon = (float)(fB * 0.125) / fDeltaLen;
-                fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA) + fEpsilon;
+                //fEntry = (float)((float)(COERCE_FLOAT(LODWORD(fB) ^ _mask__NegFloat_) - sqrtf(fDiscriminant)) / fA) + fEpsilon;
+                fEntry = (float)((float)(-fB - sqrtf(fDiscriminant)) / fA) + fEpsilon;
                 if ( fEntry < trace->fraction )
                 {
                     fTotalHeighta = (float)(tw->size.vec.v[2] - tw->radius) + fStationaryHalfHeight;
@@ -3573,7 +3600,7 @@ int __cdecl CM_SightTracePoint(int oldHitNum, const float *start, const float *e
     int brushmask; // [esp+19Ch] [ebp-4h]
     int oldHitNuma; // [esp+1A8h] [ebp+8h]
 
-    traceWork_t::traceWork_t(&tw);
+    //traceWork_t::traceWork_t(&tw);
     hitNum = 0;
     memset(&trace, 0, 16);
     brushmask = context->mask;
@@ -3600,7 +3627,8 @@ int __cdecl CM_SightTracePoint(int oldHitNum, const float *start, const float *e
         tw.midpoint.vec.v[i] = (float)(tw.extents.start.vec.v[i] + tw.extents.end.vec.v[i]) * 0.5;
         tw.delta.vec.v[i] = tw.extents.end.vec.v[i] - tw.extents.start.vec.v[i];
         tw.halfDelta.vec.v[i] = 0.5 * tw.delta.vec.v[i];
-        tw.halfDeltaAbs.vec.u[i] = tw.halfDelta.vec.u[i] & _mask__AbsFloat_;
+        //tw.halfDeltaAbs.vec.u[i] = tw.halfDelta.vec.u[i] & _mask__AbsFloat_;
+        tw.halfDeltaAbs.vec.u[i] = fabs(tw.halfDelta.vec.u[i]);
     }
     tw.contents = brushmask;
     tw.deltaLenSq = (float)((float)(tw.delta.vec.v[0] * tw.delta.vec.v[0]) + (float)(tw.delta.vec.v[1] * tw.delta.vec.v[1]))
@@ -3737,7 +3765,7 @@ int __cdecl CM_TracePointDown(
     _QWORD end_[2]; // [esp+170h] [ebp-10h] BYREF
 
     memset(&results, 0, 16);
-    traceWork_t::traceWork_t(&tw);
+    //traceWork_t::traceWork_t(&tw);
     if ( !start && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 2990, 0, "%s", "start") )
         __debugbreak();
     if ( !end && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 2991, 0, "%s", "end") )
@@ -3782,7 +3810,8 @@ int __cdecl CM_TracePointDown(
         tw.midpoint.vec.v[i] = (float)(tw.extents.start.vec.v[i] + tw.extents.end.vec.v[i]) * 0.5;
         tw.delta.vec.v[i] = tw.extents.end.vec.v[i] - tw.extents.start.vec.v[i];
         tw.halfDelta.vec.v[i] = 0.5 * tw.delta.vec.v[i];
-        tw.halfDeltaAbs.vec.u[i] = tw.halfDelta.vec.u[i] & _mask__AbsFloat_;
+        //tw.halfDeltaAbs.vec.u[i] = tw.halfDelta.vec.u[i] & _mask__AbsFloat_;
+        tw.halfDeltaAbs.vec.u[i] = fabs(tw.halfDelta.vec.u[i]);
     }
     CM_CalcTraceExtents(&tw.extents);
     tw.deltaLenSq = (float)((float)(tw.delta.vec.v[0] * tw.delta.vec.v[0]) + (float)(tw.delta.vec.v[1] * tw.delta.vec.v[1]))
@@ -3847,7 +3876,6 @@ int __cdecl CM_TracePointDown(
 double __cdecl CM_GetWaterHeight(const float *pos, float z_up, float z_down)
 {
     float p[3]; // [esp+14h] [ebp-BCh] BYREF
-    pointtrace_t clip; // [esp+20h] [ebp-B0h] BYREF
     trace_t trace; // [esp+60h] [ebp-70h] BYREF
     svEntity_s *check; // [esp+9Ch] [ebp-34h]
     float start[3]; // [esp+A0h] [ebp-30h] BYREF
@@ -3866,7 +3894,9 @@ double __cdecl CM_GetWaterHeight(const float *pos, float z_up, float z_down)
     entnum = waterbrush_entity->current.integer;
     if ( entnum > 0 )
     {
-        TraceExtents::TraceExtents(&clip.extents);
+        pointtrace_t clip; // [esp+20h] [ebp-B0h] BYREF
+
+        //TraceExtents::TraceExtents(&clip.extents);
         memset((unsigned __int8 *)&trace, 0, sizeof(trace));
         trace.fraction = 1.0f;
         check = (svEntity_s *)sv.svEntities[entnum].baseline.s.lerp.apos.trBase;
@@ -3947,24 +3977,23 @@ void __cdecl calc_closest(const float *v0, const float *v1, const float *v2, con
             if ( x21 < d_sqr21 || x02 > 0.0 )
             {
                 v02v10 = (float)((float)(v02[0] * v10[0]) + (float)(v02[1] * v10[1])) + (float)(v02[2] * v10[2]);
-                v10perp[0] = (float)(d_sqr10 * v02[0]) + (float)(COERCE_FLOAT(LODWORD(v02v10) ^ _mask__NegFloat_) * v10[0]);
-                v10perp[1] = (float)(d_sqr10 * v02[1]) + (float)(COERCE_FLOAT(LODWORD(v02v10) ^ _mask__NegFloat_) * v10[1]);
-                v10perp[2] = (float)(d_sqr10 * v02[2]) + (float)(COERCE_FLOAT(LODWORD(v02v10) ^ _mask__NegFloat_) * v10[2]);
+                v10perp[0] = (float)(d_sqr10 * v02[0]) + (float)(-v02v10 * v10[0]);
+                v10perp[1] = (float)(d_sqr10 * v02[1]) + (float)(-v02v10 * v10[1]);
+                v10perp[2] = (float)(d_sqr10 * v02[2]) + (float)(-v02v10 * v10[2]);
                 y10 = (float)((float)(pv0[0] * v10perp[0]) + (float)(pv0[1] * v10perp[1])) + (float)(pv0[2] * v10perp[2]);
                 if ( y10 < 0.0 || x10 < 0.0 || d_sqr10 < x10 )
                 {
                     Vec3ScaleMad(
                         d_sqr21,
                         v10,
-                        COERCE_FLOAT(
-                            COERCE_UNSIGNED_INT((float)((float)(v10[0] * v21[0]) + (float)(v10[1] * v21[1])) + (float)(v10[2] * v21[2]))
-                        ^ _mask__NegFloat_),
+                        -((float)((float)(v10[0] * v21[0]) + (float)(v10[1] * v21[1])) + (float)(v10[2] * v21[2])),
                         v21,
                         v21perp);
                     y21 = phys_dot((const phys_vec3 *)pv1, (const phys_vec3 *)v21perp);
                     if ( y21 < 0.0 || x21 < 0.0 || d_sqr21 < x21 )
                     {
-                        Vec3ScaleMad(COERCE_FLOAT(LODWORD(d_sqr02) ^ _mask__NegFloat_), v10, v02v10, v02, v02perp);
+                        //Vec3ScaleMad(COERCE_FLOAT(LODWORD(d_sqr02) ^ _mask__NegFloat_), v10, v02v10, v02, v02perp);
+                        Vec3ScaleMad(-d_sqr02, v10, v02v10, v02, v02perp);
                         y02 = phys_dot((const phys_vec3 *)pv0, (const phys_vec3 *)v02perp);
                         if ( y02 < 0.0 || x02 < 0.0 || d_sqr02 < x02 )
                             Vec3Copy(p, res);
@@ -4132,10 +4161,11 @@ char __cdecl trace_sphere_through_triangle(
     c1[0] = (float)(*t * *dir) + *c0;
     c1[1] = (float)(v11 * dir[1]) + c0[1];
     c1[2] = (float)(v11 * dir[2]) + c0[2];
-    LODWORD(offs) = COERCE_UNSIGNED_INT((float)((float)(*n * *v0) + (float)(n[1] * v0[1])) + (float)(n[2] * v0[2]))
-                                ^ _mask__NegFloat_;
+    //LODWORD(offs) = COERCE_UNSIGNED_INT((float)((float)(*n * *v0) + (float)(n[1] * v0[1])) + (float)(n[2] * v0[2])) ^ _mask__NegFloat_;
+    offs -((float)((float)(*n * *v0) + (float)(n[1] * v0[1])) + (float)(n[2] * v0[2]));
     d0 = (float)((float)((float)(*n * *c0) + (float)(n[1] * c0[1])) + (float)(n[2] * c0[2])) + offs;
-    if ( COERCE_FLOAT(LODWORD(r) ^ _mask__NegFloat_) >= d0 )
+    //if ( COERCE_FLOAT(LODWORD(r) ^ _mask__NegFloat_) >= d0 )
+    if ( -(r) >= d0 )
         return 0;
     if ( (float)((float)((float)((float)(*n * c1[0]) + (float)(n[1] * c1[1])) + (float)(n[2] * c1[2])) + offs) >= r )
         return 0;
@@ -4149,16 +4179,16 @@ char __cdecl trace_sphere_through_triangle(
     {
         if ( d0 <= r )
         {
-            proj[0] = (float)(COERCE_FLOAT(LODWORD(d0) ^ _mask__NegFloat_) * *n) + *c0;
-            proj[1] = (float)(COERCE_FLOAT(LODWORD(d0) ^ _mask__NegFloat_) * n[1]) + c0[1];
-            proj[2] = (float)(COERCE_FLOAT(LODWORD(d0) ^ _mask__NegFloat_) * n[2]) + c0[2];
+            proj[0] = (float)(-(d0) * *n) + *c0;
+            proj[1] = (float)(-(d0) * n[1]) + c0[1];
+            proj[2] = (float)(-(d0) * n[2]) + c0[2];
             _t = 0.0f;
         }
         else
         {
-            p0 = (float)(COERCE_FLOAT(LODWORD(r) ^ _mask__NegFloat_) * *n) + *c0;
-            p0_4 = (float)(COERCE_FLOAT(LODWORD(r) ^ _mask__NegFloat_) * n[1]) + c0[1];
-            p0_8 = (float)(COERCE_FLOAT(LODWORD(r) ^ _mask__NegFloat_) * n[2]) + c0[2];
+            p0 =   (float)(-(r) * *n) + *c0;
+            p0_4 = (float)(-(r) * n[1]) + c0[1];
+            p0_8 = (float)(-(r) * n[2]) + c0[2];
             _d0 = (float)((float)((float)(*n * p0) + (float)(n[1] * p0_4)) + (float)(n[2] * p0_8)) + offs;
             _t = _d0
                  / (float)(_d0
@@ -4175,7 +4205,8 @@ char __cdecl trace_sphere_through_triangle(
             return 1;
         }
     }
-    LODWORD(v10) = *(unsigned int *)t ^ _mask__NegFloat_;
+    //LODWORD(v10) = *(unsigned int *)t ^ _mask__NegFloat_;
+    v10 = -*t;
     rdir = v10 * *dir;
     rdir_4 = v10 * dir[1];
     rdir_8 = v10 * dir[2];
@@ -4210,11 +4241,17 @@ char __cdecl trace_sphere_through_triangle(
         c1[1] = (float)(v9 * rdir_4) + c0[1];
         c1[2] = (float)(v9 * rdir_8) + c0[2];
     }
-    v12 = COERCE_FLOAT(LODWORD(root1) ^ _mask__NegFloat_) / ndir2;
-    if ( v12 >= 0.0 )
+    //v12 = COERCE_FLOAT(LODWORD(root1) ^ _mask__NegFloat_) / ndir2;
+    v12 = -root1 / ndir2;
+    if (v12 >= 0.0)
+    {
         *t = 0.0f;
+    }
     else
-        *t = COERCE_FLOAT(LODWORD(v12) ^ _mask__NegFloat_) * *t;
+    {
+        //*t = COERCE_FLOAT(LODWORD(v12) ^ _mask__NegFloat_) * *t;
+        *t = -v12 * *t;
+    }
     return 1;
 }
 
@@ -4351,9 +4388,12 @@ void __cdecl trace_sphere_through_brush(
     c1[0] = *c0 + *dir;
     c1[1] = c0[1] + dir[1];
     c1[2] = c0[2] + dir[2];
-    LODWORD(neg_dir[0]) = *(unsigned int *)dir ^ _mask__NegFloat_;
-    LODWORD(neg_dir[1]) = *((unsigned int *)dir + 1) ^ _mask__NegFloat_;
-    LODWORD(neg_dir[2]) = *((unsigned int *)dir + 2) ^ _mask__NegFloat_;
+    //LODWORD(neg_dir[0]) = *(unsigned int *)dir ^ _mask__NegFloat_;
+    //LODWORD(neg_dir[1]) = *((unsigned int *)dir + 1) ^ _mask__NegFloat_;
+    //LODWORD(neg_dir[2]) = *((unsigned int *)dir + 2) ^ _mask__NegFloat_;
+    neg_dir[0] = -dir[0];
+    neg_dir[1] = -dir[1];
+    neg_dir[2] = -dir[2];
     if ( neg_dir[0] == 0.0 )
         v12 = 0.0f;
     else
@@ -4422,7 +4462,7 @@ void __cdecl trace_sphere_through_brush(
             else
             {
                 if ( (float)(0.125 - d1) < 0.0 )
-                    v9 = 0.1f25;
+                    v9 = 0.125f;
                 else
                     v9 = d1;
                 if ( d2 >= v9 )
@@ -4536,7 +4576,7 @@ void __cdecl trace_sphere_through_brush(
             else
             {
                 if ( (float)(0.125 - d1a) < 0.0 )
-                    v7 = 0.1f25;
+                    v7 = 0.125f;
                 else
                     v7 = d1a;
                 if ( d2 >= v7 )
@@ -4544,16 +4584,17 @@ void __cdecl trace_sphere_through_brush(
                 if ( d2 > 0.0 )
                     allsolid = 0;
                 delta = d1a - d2;
-                if ( (COERCE_UNSIGNED_INT(d1a - d2) & 0x7F800000) == 0x7F800000
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp",
-                                3488,
-                                0,
-                                "%s",
-                                "!IS_NAN(delta)") )
-                {
-                    __debugbreak();
-                }
+                iassert(!IS_NAN(delta));
+                //if ( (COERCE_UNSIGNED_INT(d1a - d2) & 0x7F800000) == 0x7F800000
+                //    && !Assert_MyHandler(
+                //                "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp",
+                //                3488,
+                //                0,
+                //                "%s",
+                //                "!IS_NAN(delta)") )
+                //{
+                //    __debugbreak();
+                //}
                 if ( delta <= 0.0
                     && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 3490, 0, "%s", "delta > 0") )
                 {
@@ -4676,9 +4717,13 @@ char __cdecl trace_point_through_triangle(
     c1[0] = *v2 - *v0;
     c1[1] = v2[1] - v0[1];
     c1[2] = v2[2] - v0[2];
-    LODWORD(c2[0]) = *(unsigned int *)u0 ^ _mask__NegFloat_;
-    LODWORD(c2[1]) = *((unsigned int *)u0 + 1) ^ _mask__NegFloat_;
-    LODWORD(c2[2]) = *((unsigned int *)u0 + 2) ^ _mask__NegFloat_;
+    //LODWORD(c2[0]) = *(unsigned int *)u0 ^ _mask__NegFloat_;
+    //LODWORD(c2[1]) = *((unsigned int *)u0 + 1) ^ _mask__NegFloat_;
+    //LODWORD(c2[2]) = *((unsigned int *)u0 + 2) ^ _mask__NegFloat_;
+    c2[0] = -u0[0];
+    c2[1] = -u0[1];
+    c2[2] = -u0[2];
+
     Vec3Cross(c0, c1, cr_c0_c1);
     det = (float)((float)(cr_c0_c1[0] * c2[0]) + (float)(cr_c0_c1[1] * c2[1])) + (float)(cr_c0_c1[2] * c2[2]);
     if ( fabs(det) < 0.000099999997 )
@@ -4691,10 +4736,8 @@ char __cdecl trace_point_through_triangle(
     if ( t_ < 0.0 || t_ > cur_t )
         return 0;
     Vec3Cross(rs, c2, cr_rs_c2);
-    a_ = COERCE_FLOAT(
-                 COERCE_UNSIGNED_INT((float)((float)(cr_rs_c2[0] * c1[0]) + (float)(cr_rs_c2[1] * c1[1])) + (float)(cr_rs_c2[2] * c1[2]))
-             ^ _mask__NegFloat_)
-         / det;
+    //a_ = COERCE_FLOAT(COERCE_UNSIGNED_INT((float)((float)(cr_rs_c2[0] * c1[0]) + (float)(cr_rs_c2[1] * c1[1])) + (float)(cr_rs_c2[2] * c1[2])) ^ _mask__NegFloat_) / det;
+    a_ = -(((float)((float)(cr_rs_c2[0] * c1[0]) + (float)(cr_rs_c2[1] * c1[1])) + (float)(cr_rs_c2[2] * c1[2]))) / det;
     if ( a_ < 0.0 )
         return 0;
     b_ = (float)((float)((float)(cr_rs_c2[0] * c0[0]) + (float)(cr_rs_c2[1] * c0[1])) + (float)(cr_rs_c2[2] * c0[2]))
@@ -5463,16 +5506,17 @@ int __cdecl collide_segment_brush(const float *p0, const float *p1, const cbrush
         else
         {
             delta = d1a - d2a;
-            if ( (COERCE_UNSIGNED_INT(d1a - d2a) & 0x7F800000) == 0x7F800000
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp",
-                            4177,
-                            0,
-                            "%s",
-                            "!IS_NAN(delta)") )
-            {
-                __debugbreak();
-            }
+            iassert(!IS_NAN(delta));
+            //if ( (COERCE_UNSIGNED_INT(d1a - d2a) & 0x7F800000) == 0x7F800000
+            //    && !Assert_MyHandler(
+            //                "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp",
+            //                4177,
+            //                0,
+            //                "%s",
+            //                "!IS_NAN(delta)") )
+            //{
+            //    __debugbreak();
+            //}
             if ( d2a > 0.0 )
                 return 0;
             if ( delta <= 0.0
@@ -5517,9 +5561,12 @@ bool __cdecl collide_segment_triangle(
     c1[0] = *v2 - *v0;
     c1[1] = v2[1] - v0[1];
     c1[2] = v2[2] - v0[2];
-    LODWORD(c2[0]) = *(unsigned int *)u0 ^ _mask__NegFloat_;
-    LODWORD(c2[1]) = *((unsigned int *)u0 + 1) ^ _mask__NegFloat_;
-    LODWORD(c2[2]) = *((unsigned int *)u0 + 2) ^ _mask__NegFloat_;
+    //LODWORD(c2[0]) = *(unsigned int *)u0 ^ _mask__NegFloat_;
+    //LODWORD(c2[1]) = *((unsigned int *)u0 + 1) ^ _mask__NegFloat_;
+    //LODWORD(c2[2]) = *((unsigned int *)u0 + 2) ^ _mask__NegFloat_;
+    c2[0] = -u0[0];
+    c2[1] = -u0[1];
+    c2[2] = -u0[2];
     Vec3Cross(c0, c1, cr_c0_c1);
     det = (float)((float)(cr_c0_c1[0] * c2[0]) + (float)(cr_c0_c1[1] * c2[1])) + (float)(cr_c0_c1[2] * c2[2]);
     if ( fabs(det) < 0.000099999997 )
@@ -5532,10 +5579,8 @@ bool __cdecl collide_segment_triangle(
     if ( t_ < 0.0 || t_ > 1.0 )
         return 0;
     Vec3Cross(rs, c2, cr_rs_c2);
-    a_ = COERCE_FLOAT(
-                 COERCE_UNSIGNED_INT((float)((float)(cr_rs_c2[0] * c1[0]) + (float)(cr_rs_c2[1] * c1[1])) + (float)(cr_rs_c2[2] * c1[2]))
-             ^ _mask__NegFloat_)
-         / det;
+    //a_ = COERCE_FLOAT(COERCE_UNSIGNED_INT((float)((float)(cr_rs_c2[0] * c1[0]) + (float)(cr_rs_c2[1] * c1[1])) + (float)(cr_rs_c2[2] * c1[2])) ^ _mask__NegFloat_) / det;
+    a_ = -(((float)((float)(cr_rs_c2[0] * c1[0]) + (float)(cr_rs_c2[1] * c1[1])) + (float)(cr_rs_c2[2] * c1[2]))) / det;
     if ( a_ < 0.0 )
         return 0;
     b_ = (float)((float)((float)(cr_rs_c2[0] * c0[0]) + (float)(cr_rs_c2[1] * c0[1])) + (float)(cr_rs_c2[2] * c0[2]))
@@ -5548,9 +5593,9 @@ int __cdecl collide_segment(const float *p0, const float *p1, col_context_t *con
     float *v5; // [esp+10h] [ebp-B4h]
     float *v6; // [esp+14h] [ebp-B0h]
     float *v7; // [esp+18h] [ebp-ACh]
-    float *v8; // [esp+20h] [ebp-A4h]
+    const float *v8; // [esp+20h] [ebp-A4h]
     const CollisionAabbTree *v9; // [esp+24h] [ebp-A0h]
-    float *halfSize; // [esp+28h] [ebp-9Ch]
+    const float *halfSize; // [esp+28h] [ebp-9Ch]
     const CollisionAabbTree *tree; // [esp+2Ch] [ebp-98h]
     int ti; // [esp+30h] [ebp-94h]
     const CollisionPartition *partition; // [esp+34h] [ebp-90h]
@@ -5673,11 +5718,16 @@ char __cdecl CM_GetWaterForce(const float *pt, float *dir, float *force)
     {
         if ( CM_TestPointInBrushModel(pt, undertow_volumes[i], undertow_origins[i]) )
         {
-            v4 = undertow_forces[i];
-            *dir = *v4;
-            dir[1] = v4[1];
-            dir[2] = v4[2];
-            *force = *(float *)&dword_3F3E00C[4 * i];
+            //v4 = undertow_forces[i];
+            //*dir = *v4;
+            //dir[1] = v4[1];
+            //dir[2] = v4[2];
+
+            dir[0] = undertow_forces[i][0];
+            dir[1] = undertow_forces[i][1];
+            dir[2] = undertow_forces[i][2];
+            *force = undertow_forces[i][3];
+
             return 1;
         }
     }
@@ -5693,7 +5743,7 @@ char __cdecl CM_GetHeliHeight(const float *pt, float checkdist, float *result)
     float start[3]; // [esp+58h] [ebp-18h] BYREF
     float end[3]; // [esp+64h] [ebp-Ch] BYREF
 
-    if ( !result && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 4340, 0, "%s", "result") )
+    if (!result && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_trace.cpp", 4340, 0, "%s", "result"))
         __debugbreak();
     start[0] = *pt;
     start[1] = pt[1];
@@ -5703,9 +5753,9 @@ char __cdecl CM_GetHeliHeight(const float *pt, float checkdist, float *result)
     end[2] = pt[2];
     start[2] = start[2] + checkdist;
     end[2] = end[2] - checkdist;
-    for ( i = 0; i < num_heli_height_lock_patches; ++i )
+    for (i = 0; i < num_heli_height_lock_patches; ++i)
     {
-        if ( dword_3F3CE9C[6 * i] )
+        if (heli_height_lock_patches[i].enabled)
         {
             brushmodel = heli_height_lock_patches[i].brushmodel;
             memset((unsigned __int8 *)&results, 0, sizeof(results));
@@ -5719,9 +5769,9 @@ char __cdecl CM_GetHeliHeight(const float *pt, float checkdist, float *result)
                 vec3_origin,
                 brushmodel,
                 -1,
-                (const float *)&unk_3F3CE8C + 6 * i,
+                heli_height_lock_patches[i].origin,
                 vec3_origin);
-            if ( results.fraction != 1.0 )
+            if (results.fraction != 1.0)
             {
                 Vec3Lerp(start, end, results.fraction, helipt);
                 *result = helipt[2];
@@ -5731,4 +5781,3 @@ char __cdecl CM_GetHeliHeight(const float *pt, float checkdist, float *result)
     }
     return 0;
 }
-

@@ -490,6 +490,8 @@ extern const dvar_t *con_matchPrefixOnly;
 extern field_t g_consoleField;
 extern field_t historyEditLines[32];
 
+extern bool con_ignoreMatchPrefixOnly;
+
 static const int g_console_field_width = 620;
 static const float g_console_char_height = 16.0f;
 static const float con_screenPadding = 4.0f;

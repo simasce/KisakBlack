@@ -241,7 +241,7 @@ void __cdecl G_PlayerTurretPositionAndBlend(gentity_s *ent, gentity_s *pTurretEn
     float vDelta[3]; // [esp+260h] [ebp-Ch]
 
     memset(&trace, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     clientNum = ent->s.clientNum;
     if ( (unsigned int)clientNum >= 0x20
         && !Assert_MyHandler(
@@ -1088,24 +1088,24 @@ int __cdecl turret_SightTrace(const float *start, const float *end, int passEnt1
     col_context_t context; // [esp+80h] [ebp-2Ch] BYREF
     int hitNum; // [esp+A8h] [ebp-4h] BYREF
 
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     hitNum = 0;
     if ( turret )
     {
         if ( (turret->pTurretInfo->flags & 0x20000) != 0 )
         {
-            col_context_t::col_context_t(&v8, (int)&cls.recentServers[7544].adr.port + 3);
+            //col_context_t::col_context_t(&v8, (int)&cls.recentServers[7544].adr.port + 3);
             memcpy(&context, &v8, sizeof(context));
         }
         else
         {
-            col_context_t::col_context_t(&v7, (int)&loc_810011);
+            //col_context_t::col_context_t(&v7, (int)&loc_810011);
             memcpy(&context, &v7, sizeof(context));
         }
     }
     else
     {
-        col_context_t::col_context_t(&v6, (int)&loc_801803);
+        //col_context_t::col_context_t(&v6, (int)&loc_801803);
         memcpy(&context, &v6, sizeof(context));
     }
     context.mask &= ~0x10u;
@@ -2269,7 +2269,7 @@ void __cdecl turret_find_max_angles(gentity_s *pOwner, gentity_s *pTurret)
     stepCount = 3.0f;
     dropTraceWidth = 0.25f;
     heightTestDist = 4.0f;
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     drawLines = cg_debugMounting->current.integer > 1;
     up[0] = 0.0f;
     up[1] = 0.0f;

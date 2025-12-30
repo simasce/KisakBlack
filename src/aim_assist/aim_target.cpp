@@ -579,7 +579,7 @@ bool __cdecl AimTarget_IsTargetVisible(int localClientNum, const centity_s *targ
     playerEyePos[1] = cgameGlob->refdef.vieworg[1];
     playerEyePos[2] = cgameGlob->refdef.vieworg[2];
     predictedPlayerState = &cgameGlob->predictedPlayerState;
-    //col_context_t::col_context_t(&context);
+    ////col_context_t::col_context_t(&context);
     CG_TraceCapsule(
         &trace,
         playerEyePos,

@@ -3072,6 +3072,15 @@
     <ClCompile Include="src\qcommon\legacyhacks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DemonWare\bdCore\bdMemory\bdMemory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DemonWare\bdCore\bdThread\bdMutex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DemonWare\bdPlatform\bdPlatformThread\bdPlatformMutex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\libs\libtomcrypt-1.17\src\headers\tomcrypt.h">
@@ -5304,6 +5313,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\win32\win_local.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdMemory\bdMemory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdThread\bdMutex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdPlatform\bdPlatformThread\bdPlatformMutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

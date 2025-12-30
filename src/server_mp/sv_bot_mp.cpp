@@ -298,7 +298,7 @@ void __cdecl Bot_UpdateSight(bot_info_t *botInfo, const client_t *bot)
     float botOrigin[3]; // [esp+94h] [ebp-Ch] BYREF
 
     //PIXBeginNamedEvent(-1, "Bot_UpdateSight");
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( botInfo->threat.enemy )
     {
         if ( botInfo->threat.distSq >= 3025.0 )
@@ -697,7 +697,7 @@ bool __cdecl Bot_ThreatSightCheck(const client_t *bot, const gentity_s *enemy, f
     int hitNum; // [esp+74h] [ebp-4h] BYREF
 
     //PIXBeginNamedEvent(-1, "Bot_ThreatSightCheck");
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( g_botFovCos <= fovDot )
     {
         currentOrigin = bot->gentity->r.currentOrigin;
@@ -939,7 +939,7 @@ void __cdecl Bot_GetStrafeInput(const client_t *bot, bot_info_t *botInfo, usercm
         Bot_PredictPosition(bot->gentity, ps, vEnd);
         vStart[2] = (float)(ps->viewHeightCurrent * 0.5) + vStart[2];
         vEnd[2] = (float)(ps->viewHeightCurrent * 0.5) + vEnd[2];
-        col_context_t::col_context_t(&context);
+        //col_context_t::col_context_t(&context);
         G_TraceCapsule(
             &trace,
             vStart,
@@ -1232,7 +1232,7 @@ char __cdecl Bot_PathValid(const gentity_s *bot, const path_t *path)
             vEnd[1] = mantleEnd->constant.vOrigin[1];
             vEnd[2] = mantleEnd->constant.vOrigin[2];
             vEnd[2] = vEnd[2] + 8.0;
-            col_context_t::col_context_t(&context);
+            //col_context_t::col_context_t(&context);
             G_TraceCapsule(
                 &trace,
                 vStart,
@@ -2426,7 +2426,7 @@ char __cdecl Bot_GrenadeSightTrace(const client_t *bot, float projectileSpeed, f
     float vStart[3]; // [esp+74h] [ebp-Ch] BYREF
 
     //PIXBeginNamedEvent(-1, "Bot_GrenadeSightTrace");
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     ps = (const playerState_s *)G_GetPlayerState(bot->gentity->s.number);
     angles[0] = ps->viewangles[0];
     angles[1] = ps->viewangles[1];

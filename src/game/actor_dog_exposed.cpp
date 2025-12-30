@@ -373,7 +373,7 @@ int __cdecl Actor_Dog_IsEnemyInAttackRange(actor_s *self, sentient_s *enemy, int
         mins[0] = actorMins[0];
         mins[1] = -15.0;
         mins[2] = 18.0f;
-        col_context_t::col_context_t(&context);
+        //col_context_t::col_context_t(&context);
         G_TraceCapsule(
             &trace,
             self->ent->r.currentOrigin,
@@ -506,7 +506,7 @@ char __fastcall Actor_SetMeleeAttackSpot(actor_s *self, const float *enemyPositi
         if ( (float)((float)(v7 * v7) + (float)(v8 * v8)) < (float)((float)(v9 * v9) + (float)(v10 * v10)) )
         {
 LABEL_33:
-            col_context_t::col_context_t(&context);
+            //col_context_t::col_context_t(&context);
             G_TraceCapsule(&trace, attackPosition, mins, maxs, attackPosition, enemy->ent->s.number, 0x20000, &context);
             if ( !trace.startsolid && !trace.allsolid )
                 G_TraceCapsule(&trace, attackPosition, mins, maxs, enemyPosition, enemy->ent->s.number, 41943057, &context);

@@ -1,4 +1,30 @@
 #include "offhandweapons.h"
+#include <cgame_mp/cg_local_mp.h>
+#include <cgame_mp/cg_newDraw_mp.h>
+#include <bgame/bg_weapons_def.h>
+#include <ui/ui_atoms.h>
+#include <bgame/bg_mantle.h>
+#include <sound/snd_bank.h>
+#include "cg_sound.h"
+#include "cg_event.h"
+#include <clientscript/scr_const.h>
+#include "cg_local.h"
+#include <cgame_mp/cg_ents_mp.h>
+#include <qcommon/dobj_management.h>
+#include <cgame_mp/cg_servercmds_mp.h>
+
+const char *offhandStrings[5] =
+{
+  "",
+  "WEAPON_FRAGGRENADE",
+  "WEAPON_SMOKEGRENADE",
+  "WEAPON_FLASHGRENADE",
+  NULL
+};
+
+
+const dvar_t *hud_flash_time_offhand;
+const dvar_t *hud_flash_period_offhand;
 
 void __cdecl CG_OffhandRegisterDvars()
 {
@@ -241,7 +267,7 @@ void __cdecl CG_DrawOffHandHighlight(
                         else
                         {
                             drawColor[0] = 0.89f;
-                            drawColor[1] = 0.1f8000001;
+                            drawColor[1] = 0.18000001;
                             drawColor[2] = 0.01f;
                         }
                         OffHandFlash(cgameGlob, drawColor, flashColor);
@@ -265,7 +291,7 @@ void __cdecl CG_DrawOffHandHighlight(
 void __cdecl OffHandFlash(const cg_s *cgameGlob, const float *base_color, float *out_color)
 {
     double v3; // xmm0_8
-    long double phi; // [esp+0h] [ebp-Ch]
+    float phi; // [esp+0h] [ebp-Ch]
     float flashTime; // [esp+8h] [ebp-4h]
 
     if ( !base_color
@@ -315,10 +341,11 @@ void __cdecl OffHandFlash(const cg_s *cgameGlob, const float *base_color, float 
         {
             __debugbreak();
         }
-        *(float *)&phi = (float)(6.2831855 * flashTime) / hud_flash_period_offhand->current.value;
-        v3 = *(float *)&phi;
-        __libm_sse2_cos(phi);
-        *(float *)&v3 = v3;
+        phi = (float)(6.2831855 * flashTime) / hud_flash_period_offhand->current.value;
+        //v3 = *(float *)&phi;
+        //__libm_sse2_cos(phi);
+        //*(float *)&v3 = v3;
+        phi = cos(phi);
         out_color[3] = (float)((float)(*(float *)&v3 * 0.5) + 0.5) * base_color[3];
     }
 }
@@ -388,7 +415,7 @@ void __cdecl CG_DrawOffHandAmmo(
                 else
                 {
                     drawColor[0] = 0.89f;
-                    drawColor[1] = 0.1f8000001;
+                    drawColor[1] = 0.18000001;
                     drawColor[2] = 0.01f;
                 }
                 UI_DrawText(
@@ -600,28 +627,28 @@ void __cdecl CG_SetEquippedOffHand(int localClientNum, int offHandIndex)
     CG_MenuShowNotify(localClientNum, 5);
 }
 
-double __cdecl _Pow_int<float>(float _X, int _Y)
-{
-    float _Z; // [esp+4h] [ebp-8h]
-    unsigned int _N; // [esp+8h] [ebp-4h]
-
-    if ( _Y < 0 )
-        _N = -_Y;
-    else
-        _N = _Y;
-    _Z = 1.0f;
-    while ( 1 )
-    {
-        if ( (_N & 1) != 0 )
-            _Z = _Z * _X;
-        _N >>= 1;
-        if ( !_N )
-            break;
-        _X = _X * _X;
-    }
-    if ( _Y >= 0 )
-        return _Z;
-    else
-        return (float)(1.0 / _Z);
-}
+//double __cdecl _Pow_int<float>(float _X, int _Y)
+//{
+//    float _Z; // [esp+4h] [ebp-8h]
+//    unsigned int _N; // [esp+8h] [ebp-4h]
+//
+//    if ( _Y < 0 )
+//        _N = -_Y;
+//    else
+//        _N = _Y;
+//    _Z = 1.0f;
+//    while ( 1 )
+//    {
+//        if ( (_N & 1) != 0 )
+//            _Z = _Z * _X;
+//        _N >>= 1;
+//        if ( !_N )
+//            break;
+//        _X = _X * _X;
+//    }
+//    if ( _Y >= 0 )
+//        return _Z;
+//    else
+//        return (float)(1.0 / _Z);
+//}
 

@@ -59,7 +59,7 @@ struct WeaponOptions // sizeof=0x8500
     const GfxImage *lightClanTagFont;
     const GfxImage *darkClanTagFont;
 
-    const GfxImage *GetImageFromTable(const StringTable *table, int row, int column);
+    static const GfxImage *GetImageFromTable(const StringTable *table, int row, int column);
     void InitWeaponOptionTextures(
         const char *tableName,
         const char *label,

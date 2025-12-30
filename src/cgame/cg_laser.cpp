@@ -78,7 +78,7 @@ void __cdecl CG_Laser_Add_Core(
 
     col_context_t context; // [esp+3Ch] [ebp-138h] BYREF
 
-    //col_context_t::col_context_t(&context);
+    ////col_context_t::col_context_t(&context);
     CG_TraceCapsule(
         &traceResults,
         laserBegin,

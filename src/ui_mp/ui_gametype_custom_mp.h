@@ -1,9 +1,58 @@
 #pragma once
 
+#include <universal/dvar.h>
+#include <universal/memfile.h>
+
+struct UIGametypeFileHeader // sizeof=0xC8
+{                                       // XREF: ?UI_Gametype_ReadFromMemFile@@YA_NAAUMemoryFile@@@Z/r
+                                        // ?UI_Gametype_UploadToFileShare_f@@YAXXZ/r
+    int version;
+    char name[32];                      // XREF: UI_Gametype_UploadToFileShare_f(void)+39/o
+    char description[128];
+    char baseGameType[32];              // XREF: UI_Gametype_ReadFromMemFile(MemoryFile &)+2F/o
+                                        // UI_Gametype_ReadFromMemFile(MemoryFile &):loc_73E854/o
+    int lastModifiedDateTime;
+};
+
+struct CustomGameModeData // sizeof=0x4C
+{                                       // XREF: .data:CustomGameModeData g_customGameModeData/r
+    float perk_extraBreath;             // XREF: UI_Gametype_Custom_WritePerkDvarClientData(msg_t *)+D/r
+                                        // UI_Gametype_Custom_ReadPerkDvarClientData(msg_t *)+F/w ...
+    float perk_bulletPenetrationMultiplier;
+                                        // XREF: UI_Gametype_Custom_WritePerkDvarClientData(msg_t *)+22/r
+                                        // UI_Gametype_Custom_ReadPerkDvarClientData(msg_t *)+21/w ...
+    float perk_weapSpreadMultiplier;    // XREF: UI_Gametype_Custom_WritePerkDvarClientData(msg_t *)+37/r
+                                        // UI_Gametype_Custom_ReadPerkDvarClientData(msg_t *)+33/w ...
+    float perk_weapReloadMultiplier;    // XREF: UI_Gametype_Custom_WritePerkDvarClientData(msg_t *)+4C/r
+                                        // UI_Gametype_Custom_ReadPerkDvarClientData(msg_t *)+45/w ...
+    float perk_weapMeleeMultiplier;     // XREF: UI_Gametype_Custom_WritePerkDvarClientData(msg_t *)+61/r
+                                        // UI_Gametype_Custom_ReadPerkDvarClientData(msg_t *)+57/w ...
+    float perk_weapSwitchMultiplier;    // XREF: UI_Gametype_Custom_WritePerkDvarClientData(msg_t *)+76/r
+                                        // UI_Gametype_Custom_ReadPerkDvarClientData(msg_t *)+69/w ...
+    float perk_weapAdsMultiplier;       // XREF: UI_Gametype_Custom_WritePerkDvarClientData(msg_t *)+8B/r
+                                        // UI_Gametype_Custom_ReadPerkDvarClientData(msg_t *)+7B/w ...
+    float perk_sprintMultiplier;        // XREF: UI_Gametype_Custom_WritePerkDvarClientData(msg_t *)+A0/r
+                                        // UI_Gametype_Custom_ReadPerkDvarClientData(msg_t *)+8D/w ...
+    float perk_sprintRecoveryMultiplier;
+                                        // XREF: UI_Gametype_Custom_WritePerkDvarClientData(msg_t *)+B5/r
+                                        // UI_Gametype_Custom_ReadPerkDvarClientData(msg_t *)+9F/w ...
+    float player_lastStandBleedoutTime; // XREF: UI_Gametype_Custom_WritePerkDvarClientData(msg_t *)+CA/r
+                                        // UI_Gametype_Custom_ReadPerkDvarClientData(msg_t *)+B1/w ...
+    float perk_speedMultiplier;         // XREF: UI_Gametype_CustomGameModeDataToDvars(void)+102/r
+    float perk_flakJacket;              // XREF: UI_Gametype_CustomGameModeDataToDvars(void)+11A/r
+    float perk_fireproof;               // XREF: UI_Gametype_CustomGameModeDataToDvars(void)+131/r
+    float perk_armorPiercing;           // XREF: UI_Gametype_CustomGameModeDataToDvars(void)+149/r
+    float player_lastStandBleedoutTimeNoRevive;
+                                        // XREF: UI_Gametype_CustomGameModeDataToDvars(void)+161/r
+    float revive_time_taken;            // XREF: UI_Gametype_CustomGameModeDataToDvars(void)+178/r
+    float perk_disarmExplosiveTime;     // XREF: UI_Gametype_CustomGameModeDataToDvars(void)+190/r
+    float perk_damageKickReduction;     // XREF: UI_Gametype_CustomGameModeDataToDvars(void)+1A8/r
+    int perk_killstreakReduction;       // XREF: UI_Gametype_CustomGameModeDataToDvars(void)+1BF/r
+};
+
 void __cdecl EnableMinimumCustomClasses();
 void __cdecl UI_Gametype_ShowErrorPopup(char *title, char *message);
 void __cdecl UI_Gametype_WriteDvarChunk(MemoryFile *memFile, char *dvarName);
-void __cdecl MemFile_WriteFloat(MemoryFile *memFile, float valuef);
 char __cdecl UI_Gametype_ReadDvarChunk(MemoryFile *memFile);
 void __cdecl MemFile_ReadVec3(MemoryFile *memFile, float *value);
 const dvar_s *__cdecl RegisterDvarIfUndefined(const char *name, int defaultValue);
@@ -61,16 +110,7 @@ void __cdecl UI_Gametype_EquipCustomClassLoadoutItem(
                 const char *customClassName,
                 unsigned __int8 itemIndex,
                 const char *loadoutName);
-int __thiscall _CustomClassData::GetClassModifierValue(_CustomClassData *this, const char *modifierName);
-unsigned __int8 __thiscall _CustomClassData::GetLoadoutItem(_CustomClassData *this, const char *itemName);
-void __thiscall _CustomClassData::SetLoadoutItem(
-                _CustomClassData *this,
-                const char *itemName,
-                unsigned __int8 itemIndex);
-void __thiscall _CustomClassData::PopulateCustomDvarsFromClassData(_CustomClassData *this);
-void __thiscall _CustomClassData::SaveClassDataFromDvars(_CustomClassData *this);
-void __thiscall _CustomClassData::WriteClassToClientData(_CustomClassData *this, msg_t *msg);
-void __thiscall _CustomClassData::ReadClassFromClientData(_CustomClassData *this, msg_t *msg);
+
 void __cdecl UI_Gametype_Custom_WriteClassClientData(msg_t *msg);
 void __cdecl UI_Gametype_Custom_ReadClassClientData(msg_t *msg);
 void __cdecl UI_Gametype_Custom_WriteKillstreakClientData(msg_t *msg);

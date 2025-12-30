@@ -216,18 +216,7 @@ struct LerpEntityState // sizeof=0x74
 
 struct renderOptions_s // sizeof=0x4
 {                                                                             // XREF: PlayerHeldWeapon/r
-        //$9E8B35E2EA66D9A293E1BFD9EEB1088A ___u0;
-                                                                                // XREF: BG_PlayerToEntitySetMisc+176/w
-                                                                                // BG_PlayerWeaponOptions(playerState_s const *,uint):loc_426373/w ...
-    renderOptions_s()
-    {
-
-    }
-    renderOptions_s(unsigned int init)
-    {
-        this->i = init;
-    }
-
+    //$9E8B35E2EA66D9A293E1BFD9EEB1088A ___u0;
     union //$9E8B35E2EA66D9A293E1BFD9EEB1088A // sizeof=0x4
     {                                                                             // XREF: BG_PlayerToEntitySetMisc+176/w
                                                                                     // BG_PlayerWeaponOptions(playerState_s const *,uint):loc_426373/w ...
@@ -245,6 +234,15 @@ struct renderOptions_s // sizeof=0x4
                     unsigned __int32 facepaintPattern : 6;
             };
     };
+
+    renderOptions_s()
+    {
+
+    }
+    renderOptions_s(unsigned int init)
+    {
+        this->i = init;
+    }
 
     void CopyWeaponOptions(const renderOptions_s *o)
     {

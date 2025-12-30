@@ -36,7 +36,7 @@ int __cdecl PointCouldSeeSpawn(const float *vEyePos, const float *vSpawnPos, int
     int hitNum; // [esp+3Ch] [ebp-10h] BYREF
     float vDelta[3]; // [esp+40h] [ebp-Ch]
 
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     vDelta[0] = *vEyePos - *vSpawnPos;
     vDelta[1] = vEyePos[1] - vSpawnPos[1];
     vDelta[2] = vEyePos[2] - vSpawnPos[2];

@@ -1854,7 +1854,7 @@ bool __cdecl CG_IsWeaponVisible(int localClientNum, centity_s *cent, XModel *wea
         __debugbreak();
     }
     CG_CalcWeaponVisTrace(weapModel, origin, forward, stock, end, &weapLen);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     CG_TraceCapsule(&trace, stock, vec3_origin, vec3_origin, end, cent->nextState.number, 4097, &context);
     if ( !cg_drawWVisDebug
         && !Assert_MyHandler(
@@ -1879,7 +1879,7 @@ bool __cdecl CG_IsWeaponVisible(int localClientNum, centity_s *cent, XModel *wea
     eye[0] = cgameGlob->refdef.vieworg[0];
     eye[1] = cgameGlob->refdef.vieworg[1];
     eye[2] = cgameGlob->refdef.vieworg[2];
-    col_context_t::col_context_t(&v6);
+    //col_context_t::col_context_t(&v6);
     CG_TraceCapsule(&trace, eye, vec3_origin, vec3_origin, stock, cent->nextState.number, 4097, &v6);
     if ( cg_drawWVisDebug->current.enabled )
     {

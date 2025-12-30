@@ -301,7 +301,7 @@ void __cdecl Actor_GetBodyPlantAngles(
             vEnd[1] = vOrigin[1];
             vEnd[2] = vOrigin[2];
             vEnd[2] = vEnd[2] - 1.0;
-            col_context_t::col_context_t(&context, iClipMask);
+            //col_context_t::col_context_t(&context, iClipMask);
             context.passEntityNum0 = iEntNum;
             hitnum = -1;
             if ( SV_SightTraceCapsule(&hitnum, vStart, actorMins, actorMaxs, vEnd, &context) )
@@ -346,7 +346,7 @@ double __cdecl Actor_SetBodyPlantAngle(
     vMaxs[1] = 4.0f;
     vMaxs[2] = 8.0f;
 
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( g_entities[iEntNum].actor && Flame_GetLocalClientSourceRange() )
         fEndDown = 45.0f;
     vStart[0] = *vOrigin;

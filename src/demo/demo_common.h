@@ -2,6 +2,7 @@
 #include <qcommon/msg_mp.h>
 #include <client_mp/client_mp.h>
 #include <bgame/bg_local.h>
+#include <ddl/ddl_api.h>
 
 template <typename T>
 struct bdReference//<bdByteBuffer> // sizeof=0x4
@@ -20,6 +21,8 @@ struct bdReferencable // sizeof=0x8
         volatile int m_refCount;
 };
 
+
+
 struct __declspec(align(2)) bdByteBuffer : bdReferencable // sizeof=0x1C
 {                                                                             // XREF: bdTaskByteBuffer/r
         unsigned int m_size;
@@ -30,6 +33,16 @@ struct __declspec(align(2)) bdByteBuffer : bdReferencable // sizeof=0x1C
         bool m_typeCheckedCopy;
         bool m_allocatedData;
         // padding byte
+
+        virtual ~bdByteBuffer()
+        {
+            if (this->m_data && this->m_allocatedData)
+                bdMemory::deallocate(this->m_data);
+            this->m_data = 0;
+            this->m_readPtr = 0;
+            this->m_writePtr = 0;
+            //bdReferencable::~bdReferencable();
+        }
 };
 
 struct bdDownloadInterceptor // sizeof=0x4
@@ -42,12 +55,13 @@ struct bdDownloadInterceptor // sizeof=0x4
 
 struct bdTaskResult // sizeof=0x4
 {                                                                             // XREF: .data:s_quickMatchServers/r
-                                                                                // .data:MatchMakingInfo * g_sessionResults/r ...
-        //bdTaskResult_vtbl *__vftable;             // XREF: LB_IncrementEscrow(void)+76/w
-                                                                                // LB_IncrementEscrow(void)+AD/w ...
-        virtual ~bdTaskResult();
-        virtual bool deserialize(bdReference<bdByteBuffer>);
-        virtual unsigned int sizeOf();
+    bdTaskResult()
+    {
+
+    }
+    virtual ~bdTaskResult();
+    virtual bool deserialize(bdReference<bdByteBuffer>);
+    virtual unsigned int sizeOf();
 };
 
 struct bdSessionID : bdTaskResult // sizeof=0xC
@@ -66,6 +80,32 @@ struct bdTag : bdTaskResult // sizeof=0x18
         // padding byte
         unsigned __int64 m_priTag;
         unsigned __int64 m_secTag;
+
+        bdTag() : bdTaskResult()
+        {
+            //bdTaskResult::bdTaskResult(this);
+            //this->__vftable = (bdTaskResult_vtbl *)&bdTag::`vftable';
+            //* ((_DWORD *)this + 2) = 0;
+            //*((_DWORD *)this + 3) = 0;
+            //*((_DWORD *)this + 4) = 0;
+            //*((_DWORD *)this + 5) = 0;
+            m_priTag = 0;
+            m_secTag = 0;
+        }
+
+        virtual ~bdTag();
+
+        void set(unsigned __int64 a2, unsigned __int64 a3)
+        {
+            this->m_priTag = a2;
+            this->m_secTag = a3;
+        }
+
+        void serialize(struct bdByteBuffer *a2)
+        {
+            bdByteBuffer::writeUInt64(a2, this->m_priTag);
+            bdByteBuffer::writeUInt64(a2, this->m_secTag);
+        }
 };
 
 struct bdFileMetaData : bdTaskResult // sizeof=0x838
@@ -99,6 +139,41 @@ struct bdFileMetaData : bdTaskResult // sizeof=0x838
         unsigned int m_metaDataSize;
         unsigned int m_summaryFileSize;
         bdTag m_tags[40];                                     // XREF: LiveStorage_FileShare_TransferFromPooled(int,unsigned __int64,uint)+1DE/o
+
+        void resetArrays()
+        {
+            unsigned int i; // [esp+4h] [ebp-4h]
+
+            memset((unsigned __int8 *)this->m_fileName, 0, sizeof(this->m_fileName));
+            memset((unsigned __int8 *)this->m_url, 0, sizeof(this->m_url));
+            memset((unsigned __int8 *)this->m_ownerName, 0, sizeof(this->m_ownerName));
+            memset(this->m_metaData, 0, sizeof(this->m_metaData));
+
+            for (i = 0; i < this->m_numTags; ++i)
+                bdTag::set(&this->m_tags[i], 0, 0);
+        }
+
+        bdFileMetaData() : bdTaskResult()
+        {
+            //bdTaskResult::bdTaskResult(this);
+            //this->__vftable = (bdFileMetaData_vtbl *)&bdFileMetaData::`vftable';
+                LODWORD(this->m_fileID) = 0;
+            HIDWORD(this->m_fileID) = 0;
+            this->m_createTime = 0;
+            this->m_modifedTime = 0;
+            this->m_fileSize = 0;
+            LODWORD(this->m_ownerID) = 0;
+            HIDWORD(this->m_ownerID) = 0;
+            this->m_fileSlot = 0;
+            this->m_numTags = 0;
+            this->m_metaDataSize = 0;
+            this->m_summaryFileSize = 0;
+            //`eh vector constructor iterator'(this->m_tags, 0x18u, 40, (void (__thiscall *)(void *))bdTag::bdTag, bdTag::~bdTag);
+            //    bdFileMetaData::resetArrays(this);
+            resetArrays();
+            //return this;
+        }
+        virtual ~bdFileMetaData();
 };
 
 struct demoConnectedPlayersInfo // sizeof=0x18
@@ -941,3 +1016,5 @@ extern const dvar_t *demo_packetsPerSecondMax;
 extern const dvar_t *demo_bytesPerSecondMax;
 
 extern demoMain demo;
+extern ddlState_t g_fileShareRootState;
+extern ddlDef_t *g_fileshareDDL;

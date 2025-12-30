@@ -128,7 +128,7 @@ void __cdecl G_RunCorpseMove(gentity_s *ent)
 
     memset(&tr, 0, 16);
     isRagdoll = Com_IsRagdollTrajectory(&ent->s.lerp.pos);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( ent->s.eType != 2
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\game\\g_player_corpse.cpp",
@@ -226,7 +226,7 @@ void __cdecl G_RunCorpseMove(gentity_s *ent)
                     ent->s.lerp.pos.trDelta[1] = 0.0f;
                     ent->s.lerp.pos.trDelta[2] = 0.0f;
                     origin[2] = origin[2] - 1.0;
-                    col_context_t::col_context_t(&v10, mask);
+                    //col_context_t::col_context_t(&v10, mask);
                     if ( EntHandle::isDefined(&ent->r.ownerNum) )
                         v2 = EntHandle::entnum(&ent->r.ownerNum);
                     else
@@ -269,7 +269,7 @@ void __cdecl G_RunCorpseMove(gentity_s *ent)
                     start[1] = ent->r.currentOrigin[1];
                     start[2] = ent->r.currentOrigin[2];
                     start[2] = start[2] + 32.0;
-                    col_context_t::col_context_t(&v7);
+                    //col_context_t::col_context_t(&v7);
                     if ( EntHandle::isDefined(&ent->r.ownerNum) )
                     {
                         v1 = EntHandle::entnum(&ent->r.ownerNum);

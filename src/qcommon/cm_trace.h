@@ -2,7 +2,19 @@
 #include <DynEntity/DynEntity_gamestate.h>
 #include <physics/phys_colgeom.h>
 
-
+struct heli_height_lock_patches_t // sizeof=0x18
+{                                       // XREF: .data:heli_height_lock_patches_t * heli_height_lock_patches/r
+    int brushmodel;                     // XREF: CMD_Heli_IsInsideHeliHeightLock+BB/r
+                                        // GScr_IsMissileInsideHeightLock+7E/r ...
+    float origin[3];                    // XREF: CMD_Heli_IsInsideHeliHeightLock+D0/o
+                                        // CMD_Heli_IsInsideHeliHeightLock+114/o ...
+    unsigned __int16 targetname;        // XREF: G_FreeVehiclePaths(void)+97/o
+                                        // G_SpawnHeliHeightLock(SpawnVar *)+17E/w ...
+    // padding byte
+    // padding byte
+    int enabled;                        // XREF: CM_GetHeliHeight(float const * const,float,float *)+CD/r
+                                        // G_SpawnHeliHeightLock(SpawnVar *)+1A2/w
+};
 
 struct IgnoreEntParams // sizeof=0xC
 {                                       // XREF: Flame_Server_Trace/r
@@ -51,6 +63,24 @@ struct TraceExtents // sizeof=0x30
     hybrid_vector end;                  // XREF: PM_playerTrace(pmove_t *,trace_t *,float const * const,float const * const,float const * const,float const * const,int,int)+1DD/w
                                         // PM_playerTrace(pmove_t *,trace_t *,float const * const,float const * const,float const * const,float const * const,int,int)+1EA/w ...
     hybrid_vector invDelta;
+
+    TraceExtents()
+    {
+        this->start.vec.u[0] = 0.0f;
+        this->start.vec.u[1] = 0.0f;
+        this->start.vec.u[2] = 0.0f;
+        this->start.vec.u[3] = 0.0f;
+
+        this->end.vec.u[0] = 0.0f;
+        this->end.vec.u[1] = 0.0f;
+        this->end.vec.u[2] = 0.0f;
+        this->end.vec.u[3] = 0.0f;
+
+        this->invDelta.vec.u[0] = 0.0f;
+        this->invDelta.vec.u[1] = 0.0f;
+        this->invDelta.vec.u[2] = 0.0f;
+        this->invDelta.vec.u[3] = 0.0f;
+    }
 };
 
 struct pointtrace_t // sizeof=0x40
@@ -259,7 +289,7 @@ struct clipMap_t // sizeof=0x14C
                                         // DynEnt_LoadEntities(void)+94/w ...
     int num_constraints;                // XREF: DynEnt_FixupLightConstraints(int,int,int)+1B/r
                                         // CreateRopes(int)+52/r ...
-    PhysConstraint *constraints;        // XREF: DynEnt_DestroyPhysics(PhysWorld,DynEntityDef const *,DynEntityClient *)+69/r
+    struct PhysConstraint *constraints;        // XREF: DynEnt_DestroyPhysics(PhysWorld,DynEntityDef const *,DynEntityClient *)+69/r
                                         // DynEnt_FixupLightConstraints(int,int,int)+30/r ...
     int max_ropes;                      // XREF: DynEnt_LoadEntities(void):loc_5B99EE/w
                                         // DynEnt_LoadEntities(void):loc_5B9B80/r ...
@@ -308,6 +338,49 @@ struct traceWork_t // sizeof=0xE0
                                         // CM_Trace(trace_t *,float const * const,float const * const,float const * const,float const * const,uint,int,col_context_t &)+3DA/w ...
     TraceThreadInfo threadInfo;         // XREF: CG_SightTracePointInternal(int *,float const * const,float const * const,int,trace_t *)+4DF/o
                                         // CM_Trace(trace_t *,float const * const,float const * const,float const * const,float const * const,uint,int,col_context_t &)+5C0/o ...
+
+    traceWork_t()
+    {
+        this->delta.vec.u[0] = 0.0f;
+        this->delta.vec.u[1] = 0.0f;
+        this->delta.vec.u[2] = 0.0f;
+        this->delta.vec.u[3] = 0.0f;
+        this->midpoint.vec.u[0] = 0.0f;
+        this->midpoint.vec.u[1] = 0.0f;
+        this->midpoint.vec.u[2] = 0.0f;
+        this->midpoint.vec.u[3] = 0.0f;
+        this->halfDelta.vec.u[0] = 0.0f;
+        this->halfDelta.vec.u[1] = 0.0f;
+        this->halfDelta.vec.u[2] = 0.0f;
+        this->halfDelta.vec.u[3] = 0.0f;
+        this->halfDeltaAbs.vec.u[0] = 0.0f;
+        this->halfDeltaAbs.vec.u[1] = 0.0f;
+        this->halfDeltaAbs.vec.u[2] = 0.0f;
+        this->halfDeltaAbs.vec.u[3] = 0.0f;
+        this->size.vec.u[0] = 0.0f;
+        this->size.vec.u[1] = 0.0f;
+
+        this->size.vec.u[2] = 0.0f;
+        this->size.vec.u[3] = 0.0f;
+
+        bounds[0].vec.u[0] = 0.0f;
+        bounds[0].vec.u[1] = 0.0f;
+        bounds[0].vec.u[2] = 0.0f;
+        bounds[0].vec.u[3] = 0.0f;
+
+
+        bounds[1].vec.u[0] = 0.0f;
+        bounds[1].vec.u[1] = 0.0f;
+        bounds[1].vec.u[2] = 0.0f;
+        bounds[1].vec.u[3] = 0.0f;
+
+        this->radiusOffset.vec.u[0] = 0.0f;
+        this->radiusOffset.vec.u[1] = 0.0f;
+        this->radiusOffset.vec.u[2] = 0.0f;
+        this->radiusOffset.vec.u[3] = 0.0f;
+
+        //TraceExtents::TraceExtents(&this->extents);
+    }
 };
 
 void __cdecl RotatePoint(const float *v, const float *q, float *out);

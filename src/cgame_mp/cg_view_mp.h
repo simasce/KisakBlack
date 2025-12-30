@@ -60,7 +60,6 @@ void __cdecl CG_GetPlayerKillCamEntityLookAt(int localClientNum, float *lookAtPo
 void __cdecl CG_UpdateTurretKillCam(float distance, GfxDepthOfField *dof);
 void __cdecl CG_GetTurretEntityOrgAngles(int localClientNum, float *origin, float *angles);
 void __cdecl CG_UpdateVehicleKillCam(int localClientNum);
-void __cdecl Vec3Copy(const float *from, float *to);
 void __cdecl CG_GetKillCamEntityOrgAngles(int localClientNum, float *origin, float *angles);
 const vehicle_info_t *__cdecl CG_GetKillCamVehicleInfo(int localClientNum);
 void __cdecl CG_UpdateVehicleKillCamDof(const vehicle_info_t *info, float distance, GfxDepthOfField *dof);

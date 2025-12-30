@@ -286,7 +286,7 @@ void __cdecl VEH_CheckForPredictedCrash(gentity_s *ent)
         targetPos[0] = (float)(value * phys->vel[0]) + phys->origin[0];
         targetPos[1] = (float)(value * phys->vel[1]) + phys->origin[1];
         targetPos[2] = (float)(value * phys->vel[2]) + phys->origin[2];
-        col_context_t::col_context_t(&context);
+        //col_context_t::col_context_t(&context);
         G_TraceCapsule(&trace, phys->origin, phys->mins, phys->maxs, targetPos, ent->s.number, ent->clipmask, &context);
         if ( trace.fraction < 1.0 )
         {
@@ -316,7 +316,7 @@ void __cdecl VEH_CheckForCrash(gentity_s *ent, float *newPosition)
     phys = &veh->phys;
     if ( veh->phys.vel[0] != 0.0 || phys->vel[1] != 0.0 || phys->vel[2] != 0.0 )
     {
-        col_context_t::col_context_t(&context);
+        //col_context_t::col_context_t(&context);
         G_TraceCapsule(&trace, phys->origin, phys->mins, phys->maxs, newPosition, ent->s.number, ent->clipmask, &context);
         if ( trace.fraction < 1.0 )
         {

@@ -172,7 +172,7 @@ double __cdecl Outdoor_TraceHeightInWorld(float worldX, float worldY)
     float traceEnd[3]; // [esp+78h] [ebp-Ch] BYREF
 
     memset(&results, 0, 16);
-    col_context_t::col_context_t(&context, 8241);
+    //col_context_t::col_context_t(&context, 8241);
     traceStartHeight = outdoorGlob.bbox[1][2] + 1.0;
     traceEndHeight = outdoorGlob.bbox[0][2] - 1.0;
     traceStart[0] = worldX;

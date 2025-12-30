@@ -10,6 +10,7 @@
 #include <client_mp/cl_main_pc_mp.h>
 #include <qcommon/cmd.h>
 #include <win32/win_gamerprofile.h>
+#include <win32/win_shared.h>
 
 clientUIActive_t clientUIActives[1];
 

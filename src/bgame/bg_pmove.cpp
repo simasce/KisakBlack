@@ -36,7 +36,7 @@ void __cdecl PM_trace(
         ++g_num_server_trace_calls;
     else
         ++g_num_client_trace_calls;
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     colgeom_visitor_inlined_t<200>::update(
         &pm->proximity_data,
         start,
@@ -81,7 +81,7 @@ void __cdecl PM_playerTrace(
         gjk_player_trace((int)&savedregs, gjkcc_in, results, start, mins, maxs, end, passEntityNum, contentMask);
         goto LABEL_9;
     }
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     colgeom_visitor_inlined_t<200>::update(
         &pm->proximity_data,
         start,
@@ -638,7 +638,7 @@ void __cdecl PM_UpdateLean(
     leaning = 0;
     leanofs = 0.0f;
     memset(&trace, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( ps->weaponstate != 35
         && (bitarray<51>::testBit(&cmd->button_bits, 6u) || bitarray<51>::testBit(&cmd->button_bits, 7u))
         && (ps->pm_flags & 0x800) == 0
@@ -3677,7 +3677,7 @@ void __cdecl PM_CheckDuck(pmove_t *pm, pml_t *pml)
     playerState_s *ps; // [esp+22Ch] [ebp-4h]
 
     memset(&trace, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( !pm && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_pmove.cpp", 3168, 0, "%s", "pm") )
         __debugbreak();
     ps = pm->ps;
@@ -3991,7 +3991,7 @@ LABEL_25:
         {
             if ( !bWasProne )
             {
-                col_context_t::col_context_t(&v3);
+                //col_context_t::col_context_t(&v3);
                 if ( pm->cmd.forwardmove || pm->cmd.rightmove )
                 {
                     ps->pm_flags &= ~0x200u;

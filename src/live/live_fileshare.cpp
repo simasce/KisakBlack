@@ -1,4 +1,91 @@
 #include "live_fileshare.h"
+#include <ui/ui_shared.h>
+#include "live_win.h"
+#include "live_stats.h"
+#include "live_fileshare_search.h"
+
+const char *s_fsSearchRowTextDvarNames[7] =
+{
+  NULL,
+  "fsSearchRowText1",
+  "fsSearchRowText2",
+  "fsSearchRowText3",
+  "fsSearchRowText4",
+  "fsSearchRowText5",
+  "fsSearchRowText6"
+};
+
+const char *s_fsSearchRowValueDvarNames[7] =
+{
+  NULL,
+  "fsSearchRowValue1",
+  "fsSearchRowValue2",
+  "fsSearchRowValue3",
+  "fsSearchRowValue4",
+  "fsSearchRowValue5",
+  "fsSearchRowValue6"
+};
+
+int dword_A4C8928;
+
+char s_filterList[512];
+
+bdFileMetaData s_theaterFileMetaData;
+unsigned int s_fileShareFileRating;
+ratingHistory_t s_fileShareRatingHistory;
+
+fileShareLastPlayedGame_t s_lastPlayedGame;
+char s_liveBlurb[256];
+
+const dvar_s *fshLiveBlurb;
+
+fileSharePooledDetails_t s_pooledFileDetails;
+ddlDef_t *g_fileSharePublicDDL;
+ddlState_t g_fileSharePublicRootState;
+
+const dvar_t *fsSearchFileType;
+const dvar_t *fsSearchSelectedRow;
+const dvar_t *fsShowStreamingGraph;
+const dvar_t *fsPrivateSlotCol;
+const dvar_t *fsOtherUserPrivateSlotCol;
+const dvar_t *fsMaxPrivateSlotRowsOther;
+const dvar_t *fsOtherUserSlotSelected;
+
+const dvar_t *fsSlotEmptyHiddenColor;
+const dvar_t *fsSlotEmptyShowColorBg;
+const dvar_t *fsSlotEmptyMainColor;
+const dvar_t *fsSlotEmptyNotSubscribedColor;
+const dvar_t *fsSlotNumMainColor;
+const dvar_t *fsSlotNumNoSubsribeColor;
+const dvar_t *fsSlotEmptyShowColor;
+const dvar_t *fsSlotMainColor;
+const dvar_t *fsSlotHighlightedColor;
+const dvar_t *fsSlotHighlightedColorNoSel;
+
+const dvar_t *fsDebugRatingValue;
+const dvar_t *fsStarHighlightColor;
+const dvar_t *fsStarPreviewColor;
+const dvar_t *fsStarAvgColor;
+const dvar_t *fshOldItemColor;
+
+const dvar_t *fsSelectedFileID;
+const dvar_t *fsSelectedFileName;
+const dvar_t *fsIsSelectedFileNameModified;
+const dvar_t *fsSelectedFileDescription;
+const dvar_t *fsIsSelectedFileDescriptionModified;
+const dvar_t *fsSelectedFileTagIndex;
+
+const dvar_t *fshSelectLastSlotRow;
+const dvar_t *fshSelectFirstSlotRow;
+const dvar_t *fshLiveBlurb;
+const dvar_t *fshDebugFileList;
+
+const dvar_t *fsRecents;
+const dvar_t *fsRecentsCount;
+
+const dvar_t *s_fsSearchRowTextDvars[7];
+const dvar_t *s_fsSearchRowValueDvars[7];
+
 
 fileShareLastPlayedGame_t *__cdecl Live_FileShare_GetLastPlayedGame()
 {
@@ -888,10 +975,10 @@ char *__cdecl Live_FileShare_SearchResultsItemText(
     *useOwnerDraw = 0;
     if ( !Live_FileShareSearch_LoadDescriptor(controllerIndex, startIndex, selectedIndex, itemIndex) )
         goto LABEL_10;
-    bdFileMetaData::bdFileMetaData(&descriptor);
+    //bdFileMetaData::bdFileMetaData(&descriptor);
     if ( !Live_FileShareSearch_GetDescriptor(controllerIndex, itemIndex, &descriptor) )
     {
-        bdFileMetaData::~bdFileMetaData(&descriptor);
+        //bdFileMetaData::~bdFileMetaData(&descriptor);
 LABEL_10:
         *useOwnerDraw = 1;
         return (char *)"";
@@ -3021,100 +3108,100 @@ void __cdecl Live_FileShare_Init()
                                                             "Other playre's slot selected while transferring to My File Share");
     fsSlotEmptyHiddenColor = _Dvar_RegisterVec4(
                                                          "fsSlotEmptyHiddenColor",
-                                                         COERCE_UNSIGNED_INT(0.0),
-                                                         COERCE_UNSIGNED_INT(0.0),
-                                                         COERCE_UNSIGNED_INT(0.0),
-                                                         COERCE_UNSIGNED_INT(0.0),
+                                                         (0.0),
+                                                         (0.0),
+                                                         (0.0),
+                                                         (0.0),
                                                          0.0,
                                                          1.0,
                                                          0,
                                                          "Color of the material depicting a private slot when not selected.");
     fsSlotEmptyShowColorBg = _Dvar_RegisterVec4(
                                                          "fsSlotEmptyShowColorBg",
-                                                         COERCE_UNSIGNED_INT(0.40000001),
-                                                         COERCE_UNSIGNED_INT(0.40000001),
-                                                         COERCE_UNSIGNED_INT(0.40000001),
-                                                         COERCE_UNSIGNED_INT(0.5),
+                                                         (0.40000001),
+                                                         (0.40000001),
+                                                         (0.40000001),
+                                                         (0.5),
                                                          0.0,
                                                          1.0,
                                                          0,
                                                          "Color of the material depicting a private empty slot background when not selected.");
     fsSlotEmptyMainColor = _Dvar_RegisterVec4(
                                                      "fsSlotEmptyMainColor",
-                                                     COERCE_UNSIGNED_INT(0.25),
-                                                     COERCE_UNSIGNED_INT(0.25),
-                                                     COERCE_UNSIGNED_INT(0.25),
-                                                     COERCE_UNSIGNED_INT(0.94999999),
+                                                     (0.25),
+                                                     (0.25),
+                                                     (0.25),
+                                                     (0.94999999),
                                                      0.0,
                                                      1.0,
                                                      0,
                                                      "Color of the empty slot. Must be completely opaque to reduce the background to an outline.");
     fsSlotEmptyNotSubscribedColor = _Dvar_RegisterVec4(
                                                                         "fsSlotEmptyNotSubscribedColor",
-                                                                        COERCE_UNSIGNED_INT(0.36000001),
-                                                                        COERCE_UNSIGNED_INT(0.36000001),
-                                                                        COERCE_UNSIGNED_INT(0.36000001),
-                                                                        COERCE_UNSIGNED_INT(0.94999999),
+                                                                         (0.36000001),
+                                                                         (0.36000001),
+                                                                         (0.36000001),
+                                                                         (0.94999999),
                                                                         0.0,
                                                                         1.0,
                                                                         0,
                                                                         "Color of emtpy slot that is also classified.");
     fsSlotNumMainColor = _Dvar_RegisterVec4(
                                                  "fsSlotNumMainColor",
-                                                 COERCE_UNSIGNED_INT(0.80000001),
-                                                 COERCE_UNSIGNED_INT(0.80000001),
-                                                 COERCE_UNSIGNED_INT(0.80000001),
-                                                 COERCE_UNSIGNED_INT(0.89999998),
+                                                  (0.80000001),
+                                                  (0.80000001),
+                                                  (0.80000001),
+                                                  (0.89999998),
                                                  0.0,
                                                  1.0,
                                                  0,
                                                  "Color of the slot number");
     fsSlotNumNoSubsribeColor = _Dvar_RegisterVec4(
                                                              "fsSlotNumNoSubsribeColor",
-                                                             COERCE_UNSIGNED_INT(0.0),
-                                                             COERCE_UNSIGNED_INT(0.0),
-                                                             COERCE_UNSIGNED_INT(0.0),
-                                                             COERCE_UNSIGNED_INT(0.30000001),
+                                                              (0.0),
+                                                              (0.0),
+                                                              (0.0),
+                                                              (0.30000001),
                                                              0.0,
                                                              1.0,
                                                              0,
                                                              "Color of the empty slot when not a subscriber");
     fsSlotEmptyShowColor = _Dvar_RegisterVec4(
                                                      "fsSlotEmptyShowColor",
-                                                     COERCE_UNSIGNED_INT(0.0),
-                                                     COERCE_UNSIGNED_INT(0.0),
-                                                     COERCE_UNSIGNED_INT(0.0),
-                                                     COERCE_UNSIGNED_INT(0.80000001),
+                                                      (0.0),
+                                                      (0.0),
+                                                      (0.0),
+                                                      (0.80000001),
                                                      0.0,
                                                      1.0,
                                                      0,
                                                      "Color of the material depicting a private slot when not selected.");
     fsSlotMainColor = _Dvar_RegisterVec4(
                                             "fsSlotMainColor",
-                                            COERCE_UNSIGNED_INT(1.0),
-                                            COERCE_UNSIGNED_INT(1.0),
-                                            COERCE_UNSIGNED_INT(1.0),
-                                            COERCE_UNSIGNED_INT(1.0),
+                                             (1.0),
+                                             (1.0),
+                                             (1.0),
+                                             (1.0),
                                             0.0,
                                             1.0,
                                             0,
                                             "Color of the material depicting a private slot when not selected.");
     fsSlotHighlightedColor = _Dvar_RegisterVec4(
                                                          "fsSlotHighlightedColor",
-                                                         COERCE_UNSIGNED_INT(0.5),
-                                                         COERCE_UNSIGNED_INT(1.0),
-                                                         COERCE_UNSIGNED_INT(0.5),
-                                                         COERCE_UNSIGNED_INT(0.80000001),
+                                                          (0.5),
+                                                          (1.0),
+                                                          (0.5),
+                                                          (0.80000001),
                                                          0.0,
                                                          1.0,
                                                          0,
                                                          "Color of the material depicting a private slot when selected.");
     fsSlotHighlightedColorNoSel = _Dvar_RegisterVec4(
                                                                     "fsSlotHighlightedColorNoSel",
-                                                                    COERCE_UNSIGNED_INT(1.0),
-                                                                    COERCE_UNSIGNED_INT(1.0),
-                                                                    COERCE_UNSIGNED_INT(1.0),
-                                                                    COERCE_UNSIGNED_INT(0.89999998),
+                                                                     (1.0),
+                                                                     (1.0),
+                                                                     (1.0),
+                                                                     (0.89999998),
                                                                     0.0,
                                                                     1.0,
                                                                     0,
@@ -3128,40 +3215,40 @@ void __cdecl Live_FileShare_Init()
                                                  "Rating value for debugging the star ownerdraw.");
     fsStarHighlightColor = _Dvar_RegisterVec4(
                                                      "fsStarHighlightColor",
-                                                     COERCE_UNSIGNED_INT(0.69999999),
-                                                     COERCE_UNSIGNED_INT(0.69999999),
-                                                     COERCE_UNSIGNED_INT(0.1),
-                                                     COERCE_UNSIGNED_INT(0.80000001),
+                                                      (0.69999999),
+                                                      (0.69999999),
+                                                      (0.1),
+                                                      (0.80000001),
                                                      0.0,
                                                      1.0,
                                                      0,
                                                      "Highlight color for star ratings.");
     fsStarPreviewColor = _Dvar_RegisterVec4(
                                                  "fsStarPreviewColor",
-                                                 COERCE_UNSIGNED_INT(1.0),
-                                                 COERCE_UNSIGNED_INT(1.0),
-                                                 COERCE_UNSIGNED_INT(1.0),
-                                                 COERCE_UNSIGNED_INT(0.5),
+                                                  (1.0),
+                                                  (1.0),
+                                                  (1.0),
+                                                  (0.5),
                                                  0.0,
                                                  1.0,
                                                  0,
                                                  "Preview color for star ratings.");
     fsStarAvgColor = _Dvar_RegisterVec4(
                                          "fsStarAvgColor",
-                                         COERCE_UNSIGNED_INT(0.69999999),
-                                         COERCE_UNSIGNED_INT(0.2),
-                                         COERCE_UNSIGNED_INT(0.2),
-                                         COERCE_UNSIGNED_INT(0.80000001),
+                                          (0.69999999),
+                                          (0.2),
+                                          (0.2),
+                                          (0.80000001),
                                          0.0,
                                          1.0,
                                          0,
                                          "Highlight color for star ratings average while rating.");
     fshOldItemColor = _Dvar_RegisterVec4(
                                             "fshOldItemColor",
-                                            COERCE_UNSIGNED_INT(1.0),
-                                            COERCE_UNSIGNED_INT(1.0),
-                                            COERCE_UNSIGNED_INT(1.0),
-                                            COERCE_UNSIGNED_INT(0.2),
+                                             (1.0),
+                                             (1.0),
+                                             (1.0),
+                                             (0.2),
                                             0.0,
                                             1.0,
                                             0,

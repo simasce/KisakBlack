@@ -334,7 +334,7 @@ void __cdecl G_MissileTrace(
     if ( weapDef->plantable )
     {
         plantableSize = missilePlantableSize->current.value;
-        col_context_t::col_context_t(&context);
+        //col_context_t::col_context_t(&context);
         mins[0] = -plantableSize;
         mins[1] = -plantableSize;
         mins[2] = 0.0f;
@@ -544,7 +544,7 @@ void    G_ExplodeMissile(cStaticModel_s *a1@<ebp>, gentity_s *ent)
                         context.collide_entity_func = (int (__cdecl *)(int, col_context_t *))LODWORD(ent->r.currentOrigin[2]);
                         *(float *)&context.collide_entity_func = *(float *)&context.collide_entity_func - 16.0;
                     }
-                    col_context_t::col_context_t(&explosionPos);
+                    //col_context_t::col_context_t(&explosionPos);
                     G_TraceCapsule(
                         (trace_t *)&origin[2],
                         ent->r.currentOrigin,

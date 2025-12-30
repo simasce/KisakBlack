@@ -804,7 +804,7 @@ int __cdecl VEH_CorrectAllSolid(gentity_s *ent, trace_t *trace)
 
     veh = ent->scr_vehicle;
     phys = &veh->phys;
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     for ( i = 0; i < 0x1A; ++i )
     {
         point[0] = phys->origin[0] + (float)s_correctSolidDeltas[i][0];
@@ -885,7 +885,7 @@ bool __cdecl VEH_SlideMove(gentity_s *ent, int gravity)
         numPlanes = 0;
     }
     Vec3NormalizeTo(phys->vel, planes[numPlanes++]);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     for ( bumpCount = 0; bumpCount < 4; ++bumpCount )
     {
         end[0] = (float)(timeLeft * phys->vel[0]) + phys->origin[0];
@@ -1044,7 +1044,7 @@ void __cdecl VEH_StepSlideMove(gentity_s *ent, int gravity)
     veh = ent->scr_vehicle;
     phys = &veh->phys;
     memset(&trace, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     startOrigin[0] = phys->origin[0];
     startOrigin[1] = phys->origin[1];
     startOrigin[2] = phys->origin[2];
@@ -2099,7 +2099,7 @@ char __cdecl VEH_ExitPosOkay(gentity_s *vehEnt, gentity_s *player, int exitIndex
     float exitPoint[3]; // [esp+E4h] [ebp-Ch] BYREF
 
     memset(&traceResults, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( vehEnt->scr_vehicle->boneIndex.entryPoints[exitIndex] < 0 )
         return 0;
     G_DObjGetWorldBoneIndexMatrix(vehEnt, vehEnt->scr_vehicle->boneIndex.entryPoints[exitIndex], exitMat);
@@ -4028,7 +4028,7 @@ void __cdecl VEH_GroundPlant(gentity_s *ent, vehicle_physic_t *phys, int gravity
     float dot; // [esp+33Ch] [ebp-4h]
 
     memset(&trace, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( !ent && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game\\g_scr_vehicle.cpp", 1984, 0, "%s", "ent") )
         __debugbreak();
     if ( !ent->scr_vehicle
@@ -4894,7 +4894,7 @@ void __cdecl VEH_MoveTrace(gentity_s *ent)
             dimIndex = size[0] < size[1];
             if ( size[dimIndex] > size[2] )
                 maxs[2] = (float)(size[dimIndex] - size[2]) + maxs[2];
-            col_context_t::col_context_t(&context);
+            //col_context_t::col_context_t(&context);
             G_TraceCapsule(&trace, phys->prevOrigin, ent->r.mins, maxs, phys->origin, ent->s.number, 8321, &context);
             if ( trace.fraction < 1.0 && Trace_GetEntityHitId(&trace) == 1022 )
             {
@@ -5079,7 +5079,7 @@ void __cdecl VEH_UpdateAim(gentity_s *ent)
                 Scr_Notify(ent, scr_const.turret_on_target, 0);
                 if ( tgtEnt )
                 {
-                    col_context_t::col_context_t(&context, 2049);
+                    //col_context_t::col_context_t(&context, 2049);
                     context.passEntityNum0 = ent->s.number;
                     context.passEntityNum1 = tgtEnt->s.number;
                     SV_SightTracePoint(&veh->turretHitNum, barrelPos, tgtPos, &context);
@@ -5880,7 +5880,7 @@ void __cdecl VEH_UpdateDriverWeapons(gentity_s *ent)
                 if ( info->type != 3 )
                     G_DObjGetWorldBoneIndexPos(ent, veh->boneIndex.barrel, barrelPos);
                 hitnum = -1;
-                col_context_t::col_context_t(&context, ent->clipmask);
+                //col_context_t::col_context_t(&context, ent->clipmask);
                 context.passEntityNum0 = ent->s.number;
                 if ( info->type != 3 && !SV_SightTracePoint(&hitnum, barrelPos, flashPos, &context) )
                     veh->turret.flags |= 1u;
@@ -6080,7 +6080,7 @@ void __cdecl VEH_GroundTrace(gentity_s *ent)
     veh = ent->scr_vehicle;
     phys = &veh->phys;
     memset(&trace, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     start[0] = phys->origin[0];
     start[1] = phys->origin[1];
     start[2] = phys->origin[2] + 0.25;

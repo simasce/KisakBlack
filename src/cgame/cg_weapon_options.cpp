@@ -1,9 +1,15 @@
 #include "cg_weapon_options.h"
+#include <gfx_d3d/r_shader_constant_set.h>
+#include <gfx_d3d/r_scene.h>
+#include <gfx_d3d/r_model_lod.h>
+#include <live/live_pcache.h>
 
 const dvar_t *weaponCamoLodDist;
 const dvar_t *weaponEmblemLodDist;
 const dvar_t *weaponClanTagLodDist;
 const dvar_t *facepaintLodDist;
+
+WeaponOptions weaponOptions;
 
 const GfxImage *__cdecl WeaponOptions::GetImageFromTable(const StringTable *table, int row, int column)
 {
@@ -291,29 +297,29 @@ void __thiscall WeaponOptions::WeaponOverride::Init(const WeaponVariantDef *weap
     const char *v3; // eax
     const char *v4; // eax
     const char *v5; // eax
-    int v6; // eax
+    const char *v6; // eax
     const char *v7; // eax
-    int v8; // eax
+    const char *v8; // eax
     const char *v9; // eax
-    int v10; // eax
+    const char *v10; // eax
     const char *v11; // eax
-    int v12; // eax
+    const char *v12; // eax
     const char *v13; // eax
-    int v14; // eax
+    const char *v14; // eax
     const char *v15; // eax
     const char *v16; // eax
     const char *v17; // eax
     const char *v18; // eax
     const char *v19; // eax
-    int v20; // eax
+    const char *v20; // eax
     const char *v21; // eax
-    int v22; // eax
+    const char *v22; // eax
     const char *v23; // eax
-    int v24; // eax
+    const char *v24; // eax
     const char *v25; // eax
-    int v26; // eax
+    const char *v26; // eax
     const char *v27; // eax
-    int v28; // eax
+    const char *v28; // eax
     const char *v29; // eax
     const StringTable *tablePtr; // [esp+4h] [ebp-8h] BYREF
     int row; // [esp+8h] [ebp-4h]
@@ -334,54 +340,57 @@ void __thiscall WeaponOptions::WeaponOverride::Init(const WeaponVariantDef *weap
     {
         this->camoBaseTexture1 = WeaponOptions::GetImageFromTable(tablePtr, row, 3);
         this->camoBaseTexture2 = WeaponOptions::GetImageFromTable(tablePtr, row, 4);
-        this->camoOverrideIndex1 = WeaponOptions::FindCamoOverrideIndex(&weaponOptions, this->camoBaseTexture1, 0);
-        this->camoOverrideIndex2 = WeaponOptions::FindCamoOverrideIndex(&weaponOptions, this->camoBaseTexture2, 1u);
+        //this->camoOverrideIndex1 = WeaponOptions::FindCamoOverrideIndex(&weaponOptions, this->camoBaseTexture1, 0);
+        this->camoOverrideIndex1 = weaponOptions.FindCamoOverrideIndex(this->camoBaseTexture1, 0);
+        //this->camoOverrideIndex2 = WeaponOptions::FindCamoOverrideIndex(&weaponOptions, this->camoBaseTexture2, 1u);
+        this->camoOverrideIndex2 = weaponOptions.FindCamoOverrideIndex(this->camoBaseTexture2, 1u);
         this->numToGold = 0;
         ColumnValueForRow = StringTable_GetColumnValueForRow(tablePtr, row, 5);
-        WeaponOptions::WeaponOverride::AddToGold(this, ColumnValueForRow, 1);
+        //WeaponOptions::WeaponOverride::AddToGold(this, ColumnValueForRow, 1);
+        this->AddToGold(ColumnValueForRow, true);
         v3 = StringTable_GetColumnValueForRow(tablePtr, row, 6);
-        WeaponOptions::WeaponOverride::AddToGold(this, v3, 1);
+        this->AddToGold(v3, 1);
         v4 = StringTable_GetColumnValueForRow(tablePtr, row, 7);
-        WeaponOptions::WeaponOverride::AddToGold(this, v4, 1);
+        this->AddToGold(v4, 1);
         v5 = StringTable_GetColumnValueForRow(tablePtr, row, 8);
-        WeaponOptions::WeaponOverride::AddToGold(this, v5, 1);
-        strstr((unsigned __int8 *)weapVarDef->szInternalName, "_acog");
+        this->AddToGold(v5, 1);
+        v6 = strstr(weapVarDef->szInternalName, "_acog");
         if ( v6 )
         {
             v7 = StringTable_GetColumnValueForRow(tablePtr, row, 13);
-            WeaponOptions::WeaponOverride::AddToGold(this, v7, 1);
+            this->AddToGold(v7, 1);
         }
         else
         {
-            strstr((unsigned __int8 *)weapVarDef->szInternalName, "_elbit");
+            v8 = strstr(weapVarDef->szInternalName, "_elbit");
             if ( v8 )
             {
                 v9 = StringTable_GetColumnValueForRow(tablePtr, row, 14);
-                WeaponOptions::WeaponOverride::AddToGold(this, v9, 1);
+                this->AddToGold(v9, 1);
             }
             else
             {
-                strstr((unsigned __int8 *)weapVarDef->szInternalName, "_ir");
+                v10 = strstr(weapVarDef->szInternalName, "_ir");
                 if ( v10 )
                 {
                     v11 = StringTable_GetColumnValueForRow(tablePtr, row, 15);
-                    WeaponOptions::WeaponOverride::AddToGold(this, v11, 1);
+                    this->AddToGold(v11, 1);
                 }
                 else
                 {
-                    strstr((unsigned __int8 *)weapVarDef->szInternalName, "_reflex");
+                    v12 = strstr(weapVarDef->szInternalName, "_reflex");
                     if ( v12 )
                     {
                         v13 = StringTable_GetColumnValueForRow(tablePtr, row, 16);
-                        WeaponOptions::WeaponOverride::AddToGold(this, v13, 1);
+                        this->AddToGold(v13, 1);
                     }
                     else
                     {
-                        strstr((unsigned __int8 *)weapVarDef->szInternalName, "_vzoom");
+                        v14 = strstr(weapVarDef->szInternalName, "_vzoom");
                         if ( v14 )
                         {
                             v15 = StringTable_GetColumnValueForRow(tablePtr, row, 17);
-                            WeaponOptions::WeaponOverride::AddToGold(this, v15, 1);
+                            this->AddToGold(v15, 1);
                         }
                     }
                 }
@@ -389,50 +398,50 @@ void __thiscall WeaponOptions::WeaponOverride::Init(const WeaponVariantDef *weap
         }
         this->numToBlack = 0;
         v16 = StringTable_GetColumnValueForRow(tablePtr, row, 9);
-        WeaponOptions::WeaponOverride::AddToGold(this, v16, 0);
+        this->AddToGold(v16, 0);
         v17 = StringTable_GetColumnValueForRow(tablePtr, row, 10);
-        WeaponOptions::WeaponOverride::AddToGold(this, v17, 0);
+        this->AddToGold(v17, 0);
         v18 = StringTable_GetColumnValueForRow(tablePtr, row, 11);
-        WeaponOptions::WeaponOverride::AddToGold(this, v18, 0);
+        this->AddToGold(v18, 0);
         v19 = StringTable_GetColumnValueForRow(tablePtr, row, 12);
-        WeaponOptions::WeaponOverride::AddToGold(this, v19, 0);
-        strstr((unsigned __int8 *)weapVarDef->szInternalName, "_acog");
+        this->AddToGold(v19, 0);
+        v20 = strstr(weapVarDef->szInternalName, "_acog");
         if ( v20 )
         {
             v21 = StringTable_GetColumnValueForRow(tablePtr, row, 18);
-            WeaponOptions::WeaponOverride::AddToGold(this, v21, 0);
+            this->AddToGold(v21, 0);
         }
         else
         {
-            strstr((unsigned __int8 *)weapVarDef->szInternalName, "_elbit");
+            v22 = strstr(weapVarDef->szInternalName, "_elbit");
             if ( v22 )
             {
                 v23 = StringTable_GetColumnValueForRow(tablePtr, row, 19);
-                WeaponOptions::WeaponOverride::AddToGold(this, v23, 0);
+                this->AddToGold(v23, 0);
             }
             else
             {
-                strstr((unsigned __int8 *)weapVarDef->szInternalName, "_ir");
+                v24 = strstr(weapVarDef->szInternalName, "_ir");
                 if ( v24 )
                 {
                     v25 = StringTable_GetColumnValueForRow(tablePtr, row, 20);
-                    WeaponOptions::WeaponOverride::AddToGold(this, v25, 0);
+                    this->AddToGold(v25, 0);
                 }
                 else
                 {
-                    strstr((unsigned __int8 *)weapVarDef->szInternalName, "_reflex");
+                    v26 = strstr(weapVarDef->szInternalName, "_reflex");
                     if ( v26 )
                     {
                         v27 = StringTable_GetColumnValueForRow(tablePtr, row, 21);
-                        WeaponOptions::WeaponOverride::AddToGold(this, v27, 0);
+                        this->AddToGold(v27, 0);
                     }
                     else
                     {
-                        strstr((unsigned __int8 *)weapVarDef->szInternalName, "_vzoom");
+                        v28 = strstr(weapVarDef->szInternalName, "_vzoom");
                         if ( v28 )
                         {
                             v29 = StringTable_GetColumnValueForRow(tablePtr, row, 22);
-                            WeaponOptions::WeaponOverride::AddToGold(this, v29, 0);
+                            this->AddToGold(v29, 0);
                         }
                     }
                 }
@@ -441,9 +450,7 @@ void __thiscall WeaponOptions::WeaponOverride::Init(const WeaponVariantDef *weap
     }
 }
 
-bool __thiscall WeaponOptions::WeaponOverride::ToGold::Init(
-                WeaponOptions::WeaponOverride::ToGold *this,
-                const char *matName)
+bool __thiscall WeaponOptions::WeaponOverride::ToGold::Init(const char *matName)
 {
     const char *v2; // eax
     XAssetHeader v4; // [esp+0h] [ebp-10h]
@@ -452,7 +459,7 @@ bool __thiscall WeaponOptions::WeaponOverride::ToGold::Init(
     if ( matName && *matName )
     {
         v2 = va("mc/%s", matName);
-        v4.xmodelPieces = DB_FindXAssetHeader(ASSET_TYPE_MATERIAL, v2, 1, -1).xmodelPieces;
+        v4.xmodelPieces = DB_FindXAssetHeader(ASSET_TYPE_MATERIAL, (char*)v2, 1, -1).xmodelPieces;
     }
     else
     {
@@ -484,7 +491,6 @@ bool __thiscall WeaponOptions::WeaponOverride::ToGold::Init(
 }
 
 int __thiscall WeaponOptions::WeaponOverride::ToGold::Set(
-                WeaponOptions::WeaponOverride::ToGold *this,
                 int textureOverrideIndex,
                 unsigned __int16 modelMask,
                 const WeaponOptions::WeaponOverride::ToGold *gold)
@@ -514,9 +520,7 @@ int __thiscall WeaponOptions::WeaponOverride::ToGold::Set(
     return R_AllocTextureOverride(this->material, modelMask, this->camoTexture, (GfxImage *)gold->camoTexture, v6);
 }
 
-const WeaponOptions::WeaponOverride *__thiscall WeaponOptions::GetWeaponOverrides(
-                WeaponOptions *this,
-                const WeaponVariantDef *weapVarDef)
+const WeaponOptions::WeaponOverride *__thiscall WeaponOptions::GetWeaponOverrides(const WeaponVariantDef *weapVarDef)
 {
     int j; // [esp+4h] [ebp-10h]
     int minFrame; // [esp+8h] [ebp-Ch]
@@ -551,7 +555,8 @@ const WeaponOptions::WeaponOverride *__thiscall WeaponOptions::GetWeaponOverride
         {
             ret = &this->weaponOverrides[this->numWeaponOverrides++];
         }
-        WeaponOptions::WeaponOverride::Init(ret, weapVarDef);
+        //WeaponOptions::WeaponOverride::Init(ret, weapVarDef);
+        ret->Init(weapVarDef);
     }
     return ret;
 }
@@ -571,7 +576,6 @@ int __cdecl GetShaderConstant(ShaderConstantSet *constantSet, const char *name)
 }
 
 int __thiscall WeaponOptions::SetupWeaponOptionsRender(
-                WeaponOptions *this,
                 int localClientNum,
                 const float *origin,
                 const WeaponVariantDef *weapVarDef,
@@ -626,7 +630,7 @@ int __thiscall WeaponOptions::SetupWeaponOptionsRender(
     const cg_s *cgameGlob; // [esp+9Ch] [ebp-14h]
     float dist; // [esp+A0h] [ebp-10h]
     unsigned int camo; // [esp+A4h] [ebp-Ch]
-    const WeaponOptions::WeaponOverride *weaponOverride; // [esp+A8h] [ebp-8h]
+    WeaponOptions::WeaponOverride *weaponOverride; // [esp+A8h] [ebp-8h]
     bool goldCamo; // [esp+AFh] [ebp-1h]
 
     if ( weaponOptions.i )
@@ -645,7 +649,7 @@ int __thiscall WeaponOptions::SetupWeaponOptionsRender(
         dist = AdjustedLodDist;
         camo = weaponOptions.i & 0x3F;
         goldCamo = 0;
-        weaponOverride = WeaponOptions::GetWeaponOverrides(this, weapVarDef);
+        weaponOverride = (WeaponOptions::WeaponOverride * )this->GetWeaponOverrides(weapVarDef);
         if ( (weaponOptions.i & 0x3F) != 0 && weaponCamoLodDist->current.value > dist )
         {
             if ( camo == this->goldCamoIndex )
@@ -654,17 +658,10 @@ int __thiscall WeaponOptions::SetupWeaponOptionsRender(
                 {
                     goldCamo = 1;
                     for ( i = 0; i < weaponOverride->numToGold; ++i )
-                        textureOverrideIndex = WeaponOptions::WeaponOverride::ToGold::Set(
-                                                                         &weaponOverride->toGold[i],
-                                                                         textureOverrideIndex,
-                                                                         modelMask,
-                                                                         &this->gold);
+                        textureOverrideIndex = weaponOverride->toGold[i].Set( textureOverrideIndex, modelMask, &this->gold);
+
                     for ( j = 0; j < weaponOverride->numToBlack; ++j )
-                        textureOverrideIndex = WeaponOptions::WeaponOverride::ToGold::Set(
-                                                                         &weaponOverride->toBlack[j],
-                                                                         textureOverrideIndex,
-                                                                         modelMask,
-                                                                         &this->black);
+                        textureOverrideIndex = weaponOverride->toBlack[j].Set(textureOverrideIndex, modelMask, &this->black);
                 }
             }
             else if ( weaponOverride )
@@ -723,11 +720,11 @@ int __thiscall WeaponOptions::SetupWeaponOptionsRender(
             }
             if ( constantSet )
             {
-                if ( (*((_BYTE *)&weaponOptions.s + 2) & 7) != 0 )
+                if ((weaponOptions.i & 0x70000) != 0)
                 {
                     shaderBase[0] = 1.0f;
                     memset(&shaderBase[1], 0, 12);
-                    v10 = *((_BYTE *)&weaponOptions.s + 2) & 7;
+                    v10 = HIWORD(weaponOptions) & 7;
                     color[0] = this->reticleColors[v10][0] - 1.0;
                     color[1] = this->reticleColors[v10][1] - 0.0;
                     color[2] = this->reticleColors[v10][2] - 0.0;
@@ -754,7 +751,7 @@ int __thiscall WeaponOptions::SetupWeaponOptionsRender(
         if ( constantSet && weaponClanTagLodDist->current.value > dist )
         {
             if ( !this->clanFont )
-                this->clanFont = DB_FindXAssetHeader(ASSET_TYPE_FONT, "fonts/clanFont", 0, -1).font;
+                this->clanFont = DB_FindXAssetHeader(ASSET_TYPE_FONT, (char*)"fonts/clanFont", 0, -1).font;
             if ( ((weaponOptions.i >> 21) & 0x1F) != 0 && ((weaponOptions.i >> 20) & 1) != 0 )
             {
                 if ( !name )
@@ -837,23 +834,45 @@ int __thiscall WeaponOptions::SetupWeaponOptionsRender(
     return textureOverrideIndex;
 }
 
-bool __thiscall WeaponOptions::IsValidRenderOption(WeaponOptions *this, renderOptions_s renderOptions)
+//bool __thiscall WeaponOptions::IsValidRenderOption(renderOptions_s renderOptions)
+//{
+//    if ( !this->camoTextureOverrides[0][renderOptions.i & 0x3F] && (renderOptions.i & 0x3F) != this->goldCamoIndex )
+//        return 0;
+//    if ( !this->lensTextureOverrides[0][(renderOptions.i >> 6) & 0xF] )
+//        return 0;
+//    if ( !this->reticleTextureOverrides[0][LOWORD(renderOptions.i) >> 10] )
+//        return 0;
+//    if ( this->reticleColors[*((_BYTE *)&renderOptions.s + 2) & 7][0] >= 0.0 )
+//        return this->facepaintMaterials[renderOptions.i >> 26] != 0;
+//    return 0;
+//}
+
+bool __thiscall WeaponOptions::IsValidRenderOption(renderOptions_s renderOptions)
 {
-    if ( !this->camoTextureOverrides[0][renderOptions.i & 0x3F] && (renderOptions.i & 0x3F) != this->goldCamoIndex )
-        return 0;
-    if ( !this->lensTextureOverrides[0][(renderOptions.i >> 6) & 0xF] )
-        return 0;
-    if ( !this->reticleTextureOverrides[0][LOWORD(renderOptions.i) >> 10] )
-        return 0;
-    if ( this->reticleColors[*((_BYTE *)&renderOptions.s + 2) & 7][0] >= 0.0 )
-        return this->facepaintMaterials[renderOptions.i >> 26] != 0;
-    return 0;
+    if (!this->camoTextureOverrides[0][renderOptions.camo] && renderOptions.camo != this->goldCamoIndex)
+    {
+        return false;
+    }
+
+    if (!this->lensTextureOverrides[0][renderOptions.lens])
+    {
+        return false;
+    }
+
+    if (!this->reticleTextureOverrides[0][renderOptions.reticle])
+    {
+        return false;
+    }
+
+    if (this->reticleColors[renderOptions.reticleColor][0] >= 0.0f)
+    {
+        return this->facepaintMaterials[renderOptions.facepaintPattern] != nullptr;
+    }
+
+    return false;
 }
 
-char __thiscall WeaponOptions::GetWeaponOptionReticleColor(
-                WeaponOptions *this,
-                unsigned int reticleColorIndex,
-                float *outColor)
+char __thiscall WeaponOptions::GetWeaponOptionReticleColor(unsigned int reticleColorIndex, float *outColor)
 {
     if ( reticleColorIndex >= 0x10
         && !Assert_MyHandler(
@@ -887,7 +906,6 @@ char __thiscall WeaponOptions::GetWeaponOptionReticleColor(
 }
 
 char __thiscall WeaponOptions::GetWeaponOptionLensColor(
-                WeaponOptions *this,
                 unsigned int reticleColorIndex,
                 float *outColor)
 {
@@ -924,7 +942,8 @@ char __thiscall WeaponOptions::GetWeaponOptionLensColor(
 
 void __cdecl GC_InitWeaponOptions()
 {
-    WeaponOptions::InitWeaponOptions(&weaponOptions);
+    //WeaponOptions::InitWeaponOptions(&weaponOptions);
+    weaponOptions.InitWeaponOptions();
 }
 
 int __cdecl CG_SetupWeaponOptionsRender(
@@ -935,8 +954,7 @@ int __cdecl CG_SetupWeaponOptionsRender(
                 ShaderConstantSet *constantSet,
                 const char *name)
 {
-    return WeaponOptions::SetupWeaponOptionsRender(
-                     &weaponOptions,
+    return weaponOptions.SetupWeaponOptionsRender(
                      localClientNum,
                      origin,
                      weaponVarDef,
@@ -957,8 +975,7 @@ int __cdecl CG_SetupWeaponOptionsRender(
                 const char *name,
                 int textureOverrideIndex)
 {
-    return WeaponOptions::SetupWeaponOptionsRender(
-                     &weaponOptions,
+    return weaponOptions.SetupWeaponOptionsRender(
                      localClientNum,
                      origin,
                      wvd,
@@ -971,16 +988,19 @@ int __cdecl CG_SetupWeaponOptionsRender(
 
 bool __cdecl CG_IsValidRenderOption(renderOptions_s renderOptions)
 {
-    return WeaponOptions::IsValidRenderOption(&weaponOptions, renderOptions);
+    //return WeaponOptions::IsValidRenderOption(&weaponOptions, renderOptions);
+    return weaponOptions.IsValidRenderOption(renderOptions);
 }
 
 char __cdecl CG_GetWeaponOptionReticleColor(unsigned int reticleColorIndex, float *outColor)
 {
-    return WeaponOptions::GetWeaponOptionReticleColor(&weaponOptions, reticleColorIndex, outColor);
+    //return WeaponOptions::GetWeaponOptionReticleColor(&weaponOptions, reticleColorIndex, outColor);
+    return weaponOptions.GetWeaponOptionReticleColor(reticleColorIndex, outColor);
 }
 
 char __cdecl CG_GetWeaponOptionLensColor(unsigned int reticleColorIndex, float *outColor)
 {
-    return WeaponOptions::GetWeaponOptionLensColor(&weaponOptions, reticleColorIndex, outColor);
+    //return WeaponOptions::GetWeaponOptionLensColor(&weaponOptions, reticleColorIndex, outColor);
+    return weaponOptions.GetWeaponOptionLensColor(reticleColorIndex, outColor);
 }
 

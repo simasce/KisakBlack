@@ -291,7 +291,7 @@ int __cdecl WeaponPickup_AddWeapon(
     int savedregs; // [esp+B0h] [ebp+0h] BYREF
 
     memset(&trace, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( !ent && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game\\g_items.cpp", 192, 0, "%s", "ent") )
         __debugbreak();
     if ( !other && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game\\g_items.cpp", 193, 0, "%s", "other") )
@@ -1080,7 +1080,7 @@ gentity_s *__cdecl ThrowDownWeapon(
                 vCenter[0] = vCenter[0] + ent->r.currentOrigin[0];
                 vCenter[1] = vCenter[1] + ent->r.currentOrigin[1];
                 vCenter[2] = vCenter[2] + ent->r.currentOrigin[2];
-                col_context_t::col_context_t(&context);
+                //col_context_t::col_context_t(&context);
                 v9 = G_ItemClipMask(dropEnt);
                 G_TraceCapsule(&trace, vCenter, dropEnt->r.mins, dropEnt->r.maxs, tagMat[3], ent->s.number, v9, &context);
                 Vec3Lerp(vCenter, tagMat[3], trace.fraction, dropEnt->s.lerp.pos.trBase);
@@ -1284,7 +1284,7 @@ void __cdecl FinishSpawningItem(gentity_s *ent)
     int savedregs; // [esp+104h] [ebp+0h] BYREF
 
     memset(&tr, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     ent->handler = 21;
     if ( (ent->spawnflags & 1) != 0 )
     {
@@ -1792,7 +1792,7 @@ void __cdecl G_RunItem(gentity_s *ent)
         }
         if ( Vec3DistanceSq(ent->r.currentOrigin, origin) < 0.1 )
             origin[2] = origin[2] - 1.0;
-        col_context_t::col_context_t(&context);
+        //col_context_t::col_context_t(&context);
         if ( EntHandle::isDefined(&ent->r.ownerNum) )
         {
             passEntityNum = EntHandle::entnum(&ent->r.ownerNum);

@@ -3548,6 +3548,13 @@ void __cdecl Vec3Sub(const float *a, const float *b, float *diff)
     diff[2] = a[2] - b[2];
 }
 
+void __cdecl Vec3Copy(const float *from, float *to)
+{
+    to[0] = from[0];
+    to[1] = from[1];
+    to[2] = from[2];
+}
+
 void __cdecl Vec2NormalizeFast(float *v)
 {
     int number; // [esp+18h] [ebp-8h]

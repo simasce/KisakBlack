@@ -1580,7 +1580,7 @@ void __cdecl Rope_CollideWorld(int rope_index)
     mask = (int)&cls.recentServers[7546].city[57];
     memset(&trace, 0, 16);
     memset(&trace1, 0, 16);
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     if ( rope->m_in_use )
     {
         colgeom_visitor_inlined_t<500>::reset(&visitor);

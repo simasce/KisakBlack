@@ -1521,7 +1521,7 @@ bool __cdecl IKImport_TraceBox(
     IKCollisionCache *collCache; // [esp+7Ch] [ebp-4h]
 
     memset(&tr, 0, 16);
-    //col_context_t::col_context_t(&context);
+    ////col_context_t::col_context_t(&context);
     //PIXBeginNamedEvent(-1, "IK Trace");
     collCache = &ikState->collisionCache;
     context.prims = ikState->collisionCache.proximity_data.prims;

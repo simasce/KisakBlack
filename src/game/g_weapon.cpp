@@ -1242,7 +1242,7 @@ void __cdecl DeployWeapon(gentity_s *ent)
     memset(&trace, 0, 16);
     traceWidth = 4.0f;
     bipodNudgeDist = bipodNudgeDistDefault;
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     drawTime = 1000;
     drawLines = cg_debugMounting->current.integer > 0;
     up[0] = 0.0f;

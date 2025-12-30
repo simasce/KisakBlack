@@ -5,8 +5,282 @@
 #include "cl_console.h"
 #include <win32/win_main.h>
 #include <client_mp/cl_scrn_mp.h>
+#include <universal/com_files.h>
+#include "splitscreen.h"
+#include <universal/com_memory.h>
+#include <win32/win_gamepad.h>
+#include "cl_main.h"
+#include <devgui/devgui.h>
+#include <cgame_mp/cg_newDraw_mp.h>
+#include <server_mp/sv_init_mp.h>
+#include "client.h"
+#include <cgame_mp/cg_main_mp.h>
+#include <ui_mp/ui_main_mp.h>
+#include <cgame_mp/cg_consolecmds_mp.h>
+#include <cgame_mp/cg_scoreboard_mp.h>
+#include <demo/demo_playback.h>
+#include <ui/ui_shared.h>
+#include <qcommon/com_clients.h>
+#include <client_mp/cl_ui_mp.h>
+#include <client_mp/cl_cgame_mp.h>
+
+struct keyname_t // sizeof=0x8
+{
+    const char *name;
+    int keynum;
+};
+
+keyname_t keynames[116] =
+{
+  { "TAB", 9 },
+  { "ENTER", 13 },
+  { "ESCAPE", 27 },
+  { "SPACE", 32 },
+  { "BACKSPACE", 127 },
+  { "UPARROW", 154 },
+  { "DOWNARROW", 155 },
+  { "LEFTARROW", 156 },
+  { "RIGHTARROW", 157 },
+  { "ALT", 158 },
+  { "CTRL", 159 },
+  { "SHIFT", 160 },
+  { "CAPSLOCK", 151 },
+  { "F1", 167 },
+  { "F2", 168 },
+  { "F3", 169 },
+  { "F4", 170 },
+  { "F5", 171 },
+  { "F6", 172 },
+  { "F7", 173 },
+  { "F8", 174 },
+  { "F9", 175 },
+  { "F10", 176 },
+  { "F11", 177 },
+  { "F12", 178 },
+  { "INS", 161 },
+  { "DEL", 162 },
+  { "PGDN", 163 },
+  { "PGUP", 164 },
+  { "HOME", 165 },
+  { "END", 166 },
+  { "MOUSE1", 200 },
+  { "MOUSE2", 201 },
+  { "MOUSE3", 202 },
+  { "MOUSE4", 203 },
+  { "MOUSE5", 204 },
+  { "MWHEELUP", 206 },
+  { "MWHEELDOWN", 205 },
+  { "BUTTON_A", 1 },
+  { "BUTTON_B", 2 },
+  { "BUTTON_X", 3 },
+  { "BUTTON_Y", 4 },
+  { "BUTTON_LSHLDR", 5 },
+  { "BUTTON_RSHLDR", 6 },
+  { "BUTTON_START", 14 },
+  { "BUTTON_BACK", 15 },
+  { "BUTTON_LSTICK", 16 },
+  { "BUTTON_RSTICK", 17 },
+  { "BUTTON_RTRIG", 19 },
+  { "BUTTON_LTRIG", 18 },
+  { "DPAD_UP", 20 },
+  { "DPAD_DOWN", 21 },
+  { "DPAD_LEFT", 22 },
+  { "DPAD_RIGHT", 23 },
+  { "APAD_UP", 28 },
+  { "APAD_DOWN", 29 },
+  { "APAD_LEFT", 30 },
+  { "APAD_RIGHT", 31 },
+  { "AUX1", 207 },
+  { "AUX2", 208 },
+  { "AUX3", 209 },
+  { "AUX4", 210 },
+  { "AUX5", 211 },
+  { "AUX6", 212 },
+  { "AUX7", 213 },
+  { "AUX8", 214 },
+  { "AUX9", 215 },
+  { "AUX10", 216 },
+  { "AUX11", 217 },
+  { "AUX12", 218 },
+  { "AUX13", 219 },
+  { "AUX14", 220 },
+  { "AUX15", 221 },
+  { "AUX16", 222 },
+  { "KP_HOME", 182 },
+  { "KP_UPARROW", 183 },
+  { "KP_PGUP", 184 },
+  { "KP_LEFTARROW", 185 },
+  { "KP_5", 186 },
+  { "KP_RIGHTARROW", 187 },
+  { "KP_END", 188 },
+  { "KP_DOWNARROW", 189 },
+  { "KP_PGDN", 190 },
+  { "KP_ENTER", 191 },
+  { "KP_INS", 192 },
+  { "KP_DEL", 193 },
+  { "KP_SLASH", 194 },
+  { "KP_MINUS", 195 },
+  { "KP_PLUS", 196 },
+  { "KP_NUMLOCK", 197 },
+  { "KP_STAR", 198 },
+  { "KP_EQUALS", 199 },
+  { "PAUSE", 153 },
+  { "SEMICOLON", 59 },
+  { "COMMAND", 150 },
+  { "181", 128 },
+  { "191", 129 },
+  { "223", 130 },
+  { "224", 131 },
+  { "225", 132 },
+  { "228", 133 },
+  { "229", 134 },
+  { "230", 135 },
+  { "231", 136 },
+  { "232", 137 },
+  { "233", 138 },
+  { "236", 139 },
+  { "241", 140 },
+  { "242", 141 },
+  { "243", 142 },
+  { "246", 143 },
+  { "248", 144 },
+  { "249", 145 },
+  { "250", 146 },
+  { "252", 147 },
+  { NULL, 0 }
+};
+
+keyname_t keynames_localized[116] =
+{
+  { "KEY_TAB", 9 },
+  { "KEY_ENTER", 13 },
+  { "KEY_ESCAPE", 27 },
+  { "KEY_SPACE", 32 },
+  { "KEY_BACKSPACE", 127 },
+  { "KEY_UPARROW", 154 },
+  { "KEY_DOWNARROW", 155 },
+  { "KEY_LEFTARROW", 156 },
+  { "KEY_RIGHTARROW", 157 },
+  { "KEY_ALT", 158 },
+  { "KEY_CTRL", 159 },
+  { "KEY_SHIFT", 160 },
+  { "KEY_CAPSLOCK", 151 },
+  { "KEY_F1", 167 },
+  { "KEY_F2", 168 },
+  { "KEY_F3", 169 },
+  { "KEY_F4", 170 },
+  { "KEY_F5", 171 },
+  { "KEY_F6", 172 },
+  { "KEY_F7", 173 },
+  { "KEY_F8", 174 },
+  { "KEY_F9", 175 },
+  { "KEY_F10", 176 },
+  { "KEY_F11", 177 },
+  { "KEY_F12", 178 },
+  { "KEY_INS", 161 },
+  { "KEY_DEL", 162 },
+  { "KEY_PGDN", 163 },
+  { "KEY_PGUP", 164 },
+  { "KEY_HOME", 165 },
+  { "KEY_END", 166 },
+  { "KEY_MOUSE1", 200 },
+  { "KEY_MOUSE2", 201 },
+  { "KEY_MOUSE3", 202 },
+  { "KEY_MOUSE4", 203 },
+  { "KEY_MOUSE5", 204 },
+  { "KEY_MWHEELUP", 206 },
+  { "KEY_MWHEELDOWN", 205 },
+  { "KEY_BUTTON_A", 1 },
+  { "KEY_BUTTON_B", 2 },
+  { "KEY_BUTTON_X", 3 },
+  { "KEY_BUTTON_Y", 4 },
+  { "KEY_BUTTON_LSHLDR", 5 },
+  { "KEY_BUTTON_RSHLDR", 6 },
+  { "KEY_BUTTON_START", 14 },
+  { "KEY_BUTTON_BACK", 15 },
+  { "KEY_BUTTON_LSTICK", 16 },
+  { "KEY_BUTTON_RSTICK", 17 },
+  { "KEY_BUTTON_RTRIG", 19 },
+  { "KEY_BUTTON_LTRIG", 18 },
+  { "KEY_DPAD_UP", 20 },
+  { "KEY_DPAD_DOWN", 21 },
+  { "KEY_DPAD_LEFT", 22 },
+  { "KEY_DPAD_RIGHT", 23 },
+  { "KEY_APAD_UP", 28 },
+  { "KEY_APAD_DOWN", 29 },
+  { "KEY_APAD_LEFT", 30 },
+  { "KEY_APAD_RIGHT", 31 },
+  { "KEY_AUX1", 207 },
+  { "KEY_AUX2", 208 },
+  { "KEY_AUX3", 209 },
+  { "KEY_AUX4", 210 },
+  { "KEY_AUX5", 211 },
+  { "KEY_AUX6", 212 },
+  { "KEY_AUX7", 213 },
+  { "KEY_AUX8", 214 },
+  { "KEY_AUX9", 215 },
+  { "KEY_AUX10", 216 },
+  { "KEY_AUX11", 217 },
+  { "KEY_AUX12", 218 },
+  { "KEY_AUX13", 219 },
+  { "KEY_AUX14", 220 },
+  { "KEY_AUX15", 221 },
+  { "KEY_AUX16", 222 },
+  { "KEY_KP_HOME", 182 },
+  { "KEY_KP_UPARROW", 183 },
+  { "KEY_KP_PGUP", 184 },
+  { "KEY_KP_LEFTARROW", 185 },
+  { "KEY_KP_5", 186 },
+  { "KEY_KP_RIGHTARROW", 187 },
+  { "KEY_KP_END", 188 },
+  { "KEY_KP_DOWNARROW", 189 },
+  { "KEY_KP_PGDN", 190 },
+  { "KEY_KP_ENTER", 191 },
+  { "KEY_KP_INS", 192 },
+  { "KEY_KP_DEL", 193 },
+  { "KEY_KP_SLASH", 194 },
+  { "KEY_KP_MINUS", 195 },
+  { "KEY_KP_PLUS", 196 },
+  { "KEY_KP_NUMLOCK", 197 },
+  { "KEY_KP_STAR", 198 },
+  { "KEY_KP_EQUALS", 199 },
+  { "KEY_PAUSE", 153 },
+  { "KEY_SEMICOLON", 59 },
+  { "KEY_COMMAND", 150 },
+  { " ", 128 },
+  { " ", 129 },
+  { " ", 130 },
+  { " ", 131 },
+  { " ", 132 },
+  { " ", 133 },
+  { " ", 134 },
+  { " ", 135 },
+  { " ", 136 },
+  { " ", 137 },
+  { " ", 138 },
+  { " ", 139 },
+  { " ", 140 },
+  { " ", 141 },
+  { " ", 142 },
+  { " ", 143 },
+  { " ", 144 },
+  { " ", 145 },
+  { " ", 146 },
+  { " ", 147 },
+  { NULL, 0 }
+};
+
+
+
+
 
 PlayerKeyState playerKeys[1];
+
+const char *s_completionString;
+int s_matchCount;
+int s_prefixMatchCount;
+char s_shortestMatch[1024];
+bool s_hasExactMatch;
 
 bool s_shouldCompleteCmd;
 int nextHistoryLine;
@@ -670,9 +944,9 @@ void __cdecl PrintMatches(const char *s)
 
 void __cdecl ConcatRemaining(char *src, char *start)
 {
-    int v2; // eax
+    char *v2; // eax
 
-    strstr((unsigned __int8 *)src, (unsigned __int8 *)start);
+    v2 = strstr(src, start);
     if ( v2 )
         I_strncat(g_consoleField.buffer, 256, (const char *)(strlen(start) + v2));
     else
@@ -944,6 +1218,7 @@ bool __cdecl Key_IsValidGamePadChar(char key)
     return key >= 1 && key <= 6 || key >= 14 && key <= 25 || key >= 28 && key <= 31;
 }
 
+char tinystr[5];
 const char *__cdecl Key_KeynumToString(int keynum, int translate)
 {
     char v3; // [esp+0h] [ebp-14h]
@@ -952,55 +1227,55 @@ const char *__cdecl Key_KeynumToString(int keynum, int translate)
     keyname_t *kn; // [esp+Ch] [ebp-8h]
     int i; // [esp+10h] [ebp-4h]
 
-    if ( keynum == -1 )
+    if (keynum == -1)
         return "<KEY NOT FOUND>";
-    if ( (unsigned int)keynum >= 0x100 )
+    if ((unsigned int)keynum >= 0x100)
         return "<OUT OF RANGE>";
-    if ( translate && (SEH_GetCurrentLanguage() == 1 || SEH_GetCurrentLanguage() == 2) && keynum >= 48 && keynum <= 57 )
-        return (&off_E05678)[keynum];
-    if ( keynum > 32 && keynum < 127 && keynum != 34 )
+    if (translate && (SEH_GetCurrentLanguage() == 1 || SEH_GetCurrentLanguage() == 2) && keynum >= 48 && keynum <= 57)
+        return (const char *)*((_DWORD *)&keynames_localized[92].name + keynum);
+    if (keynum > 32 && keynum < 127 && keynum != 34)
     {
         tinystr[0] = toupper(keynum);
-        byte_FADE41 = 0;
-        if ( keynum != 59 || translate )
+        tinystr[1] = 0;
+        if (keynum != 59 || translate)
             return tinystr;
     }
-    if ( translate )
+    if (translate)
     {
-        if ( !Key_IsValidGamePadChar(keynum) )
+        if (!Key_IsValidGamePadChar(keynum))
         {
             kn = keynames_localized;
             goto LABEL_22;
         }
         tinystr[0] = keynum;
-        byte_FADE41 = 0;
+        tinystr[1] = 0;
         return tinystr;
     }
     else
     {
         kn = keynames;
-LABEL_22:
-        while ( kn->name )
+    LABEL_22:
+        while (kn->name)
         {
-            if ( keynum == kn->keynum )
+            if (keynum == kn->keynum)
                 return kn->name;
             ++kn;
         }
         i = keynum >> 4;
         j = keynum & 0xF;
         tinystr[0] = 48;
-        byte_FADE41 = 120;
-        if ( keynum >> 4 <= 9 )
+        tinystr[1] = 120;
+        if (keynum >> 4 <= 9)
             v4 = i + 48;
         else
             v4 = i + 87;
-        byte_FADE42 = v4;
-        if ( (keynum & 0xFu) <= 9 )
+        tinystr[2] = v4;
+        if ((keynum & 0xFu) <= 9)
             v3 = j + 48;
         else
             v3 = j + 87;
-        byte_FADE43 = v3;
-        byte_FADE44 = 0;
+        tinystr[3] = v3;
+        tinystr[4] = 0;
         return tinystr;
     }
 }
@@ -1023,14 +1298,14 @@ void __cdecl Key_SetBinding(int localClientNum, int keynum, const char *binding,
         if ( bindNum )
             ReplaceString(
                 &playerKeys[localClientNum].keys[keynum].binding2,
-                binding,
+                (char*)binding,
                 "Key_SetBinding",
                 11,
                 SCRIPTINSTANCE_SERVER);
         else
             ReplaceString(
                 &playerKeys[localClientNum].keys[keynum].binding,
-                binding,
+                (char*)binding,
                 "Key_SetBinding",
                 11,
                 SCRIPTINSTANCE_SERVER);
@@ -1218,7 +1493,7 @@ void __cdecl Key_Bind_f()
     const char *v2; // eax
     const char *v3; // eax
     unsigned __int8 *v4; // eax
-    int v5; // eax
+    char *v5; // eax
     const char *v6; // eax
     bool v7; // [esp+0h] [ebp-45Ch]
     int keynum; // [esp+3Ch] [ebp-420h]
@@ -1264,7 +1539,7 @@ void __cdecl Key_Bind_f()
                     if ( argc > 3 )
                     {
                         v4 = (unsigned __int8 *)Cmd_Argv(i);
-                        strchr(v4, 0x20u);
+                        v5 = strchr((char*)v4, 0x20u);
                         if ( v5 )
                             v7 = 1;
                     }
@@ -1294,7 +1569,7 @@ void __cdecl Key_Bind2_f()
     const char *v2; // eax
     const char *v3; // eax
     unsigned __int8 *v4; // eax
-    int v5; // eax
+    char *v5; // eax
     const char *v6; // eax
     bool v7; // [esp+0h] [ebp-45Ch]
     int keynum; // [esp+3Ch] [ebp-420h]
@@ -1340,7 +1615,7 @@ void __cdecl Key_Bind2_f()
                     if ( argc > 3 )
                     {
                         v4 = (unsigned __int8 *)Cmd_Argv(i);
-                        strchr(v4, 0x20u);
+                        v5 = strchr((char*)v4, 0x20u);
                         if ( v5 )
                             v7 = 1;
                     }
@@ -1363,6 +1638,7 @@ void __cdecl Key_Bind2_f()
     }
 }
 
+char myTempBuff[4096];
 void __cdecl Key_WriteBindingsToTempBuf(int localClientNum)
 {
     const char *v1; // eax
@@ -1456,7 +1732,7 @@ void __cdecl Key_WriteBindings(int localClientNum, int f)
     char buffer[8196]; // [esp+0h] [ebp-2008h] BYREF
 
     Key_WriteBindingsToBuffer(localClientNum, buffer, 0x2000);
-    FS_Printf(f, "%s", buffer);
+    FS_Printf(f, (char*)"%s", buffer);
 }
 
 int __cdecl Key_WriteBindingsToBuffer(int localClientNum, char *buffer, int bufferSize)
@@ -1540,6 +1816,14 @@ void __cdecl Key_Bindlist_f()
         }
     }
 }
+
+cmd_function_s Key_Bind_f_VAR;
+cmd_function_s Key_Bind2_f_VAR;
+cmd_function_s Key_Unbind_f_VAR;
+cmd_function_s Key_Unbind2_f_VAR;
+cmd_function_s Key_Unbindall_f_VAR;
+cmd_function_s Key_Unbindall2_f_VAR;
+cmd_function_s Key_Bindlist_f_VAR;
 
 void __cdecl CL_InitKeyCommands()
 {
@@ -1904,9 +2188,9 @@ void __cdecl Message_Key(int localClientNum, int key)
         if ( chatField->buffer[0] && clcState == CA_ACTIVE )
         {
             if ( playerKeys[localClientNum].chat_team )
-                Com_sprintf(buffer, 0x400u, aSayTeam_0, chatField->buffer);
+                Com_sprintf(buffer, 0x400u, "say_team \"%s\"", chatField->buffer);
             else
-                Com_sprintf(buffer, 0x400u, aSay_0, chatField->buffer);
+                Com_sprintf(buffer, 0x400u, "say \"%s\"", chatField->buffer);
             CL_AddReliableCommand(localClientNum, buffer);
         }
         LocalClientUIGlobals->keyCatchers &= ~0x20u;

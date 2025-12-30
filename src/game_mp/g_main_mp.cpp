@@ -2316,7 +2316,7 @@ void __cdecl ShowEntityInfo()
     int i; // [esp+94h] [ebp-10h]
     float vStart[3]; // [esp+98h] [ebp-Ch] BYREF
 
-    col_context_t::col_context_t(&context);
+    //col_context_t::col_context_t(&context);
     CL_GetDebugViewPos(vStart);
     if ( g_radiant_selected_ent )
         misc_EntInfo(g_radiant_selected_ent, vStart);

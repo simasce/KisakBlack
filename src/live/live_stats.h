@@ -1,4 +1,37 @@
 #pragma once
+#include <ddl/ddl_api.h>
+#include <universal/com_stringtable.h>
+#include <ui/ui_shared.h>
+#include <bgame/bg_weapons_attachment.h>
+#include <universal/dvar.h>
+
+enum sortedChallengeParams_t : __int32
+{                                       // XREF: ?LiveStats_GetChallengeInfoParam@@YA_NW4sortedChallengeParams_t@@IPAPBDPAHH@Z/r
+    CHALLENGE_PARAM_TYPE         = 0x0,
+    CHALLENGE_PARAM_TIER         = 0x1,
+    CHALLENGE_PARAM_NAME         = 0x2,
+    CHALLENGE_PARAM_ITEM_INDEX   = 0x3,
+    CHALLENGE_PARAM_IS_ITEM_CLASSIFIED = 0x4,
+    CHALLENGE_PARAM_NUM_TO_TARGET_VALUE = 0x5,
+    CHALLENGE_PARAM_TARGETVALUE  = 0x6,
+    CHALLENGE_PARAM_CURRENTVALUE = 0x7,
+    CHALLENGE_PARAM_PREVTARGET   = 0x8,
+    CHALLENGE_PARAM_XP_REWARD    = 0x9,
+    CHALLENGE_PARAM_CP_REWARD    = 0xA,
+    CHALLENGE_PARAM_INVALID      = 0xFFFFFFFF,
+};
+
+enum challengeSortOrder_e : __int32
+{                                       // XREF: ?LiveStats_BuildChallengeListCmd@@YAXXZ/r
+                                        // LiveStats_BuildChallengeList/r ...
+    SORTORDER_FIRST               = 0x0,
+    SORTORDER_NEAREST             = 0x0,
+    SORTORDER_REWARD              = 0x1,
+    SORTORDER_PERCENTAGECOMPLETED = 0x2,
+    SORTORDER_DEFAULT             = 0x3,
+    SORTORDER_COUNT               = 0x4,
+    SORTORDER_INVALID             = 0xFFFFFFFF,
+};
 
 enum pointsSpent_t : __int32
 {                                       // XREF: ?LiveStats_SpendCurrency@@YA_NHHW4pointsSpent_t@@H@Z/r
@@ -76,6 +109,15 @@ enum statsMilestoneTypes_t : __int32
     MILESTONE_GRENADES    = 0x7,
     MILESTONE_COUNT       = 0x8,
     MILESTONE_INVALID     = 0xFFFFFFFF,
+};
+
+struct personalBest_t // sizeof=0x14
+{                                       // XREF: .data:s_personalBests/r
+    const char *name;
+    const char *prefix;
+    int value;
+    int delta;
+    int rating;
 };
 
 struct statsMilestone_t // sizeof=0xC
@@ -436,3 +478,10 @@ void __cdecl LiveStats_StatWriteDDLCmd();
 void __cdecl LiveStats_ActivateContractCmd();
 void __cdecl LiveStats_SetCurrentContractCmd();
 void __cdecl LiveStats_WriteChecksumToBuffer(unsigned __int8 *buffer, int len);
+
+extern const dvar_t *ui_challengeSort;
+extern const dvar_t *debugStats;
+extern const dvar_t *ui_numPersonalBests;
+extern const dvar_t *ui_challengeSort;
+extern const dvar_t *recordPointsSpent;
+extern const dvar_t *ui_challengeGameMode;

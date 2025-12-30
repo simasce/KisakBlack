@@ -1,4 +1,9 @@
 #pragma once
+#include <ui/ui_main.h>
+#include <bgame/bg_weapons.h>
+#include <universal/dvar.h>
+
+struct cg_s;
 
 void __cdecl CG_OffhandRegisterDvars();
 void __cdecl CG_DrawOffHandIcon(
@@ -37,4 +42,8 @@ void __cdecl CG_SwitchOffHandCmd(int localClientNum);
 void __cdecl CG_PrepOffHand(int localClientNum, const entityState_s *ent, unsigned int weaponIndex, bool isPlayerView);
 void __cdecl CG_UseOffHand(int localClientNum, const centity_s *cent, unsigned int weaponIndex, bool isPlayerView);
 void __cdecl CG_SetEquippedOffHand(int localClientNum, int offHandIndex);
-double __cdecl _Pow_int<float>(float _X, int _Y);
+//double __cdecl _Pow_int<float>(float _X, int _Y);
+
+
+extern const dvar_t *hud_flash_time_offhand;
+extern const dvar_t *hud_flash_period_offhand;

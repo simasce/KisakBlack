@@ -14,6 +14,7 @@
 #include <universal/com_math.h>
 
 #include <cstdint>
+#include <cmath>
 
 //======================= WIN32 DEFINES =================================
 #ifdef WIN32
@@ -484,4 +485,12 @@ static inline unsigned int abs8(int8_t v)
     int x = v;
     int mask = x >> 31;
     return (unsigned int)((x + mask) ^ mask);
+}
+
+
+// KISAKTODO: remove
+template <typename T>
+__forceinline T _Pow_int(T base, int exp)
+{
+    return (T)powf(base, exp);
 }

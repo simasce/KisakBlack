@@ -49,6 +49,10 @@ void __cdecl MemFile_WriteDataInternal(MemoryFile *memFile, unsigned int byteCou
 char *__cdecl MemFile_ReadCString(MemoryFile *memFile);
 void __cdecl MemFile_ReadData(MemoryFile *memFile, int byteCount, unsigned __int8 *p);
 
+void __cdecl MemFile_WriteInt(MemoryFile *memFile, int value);
+void __cdecl MemFile_WriteFloat(MemoryFile *memFile, float valuef);
+
+
 inline void __cdecl MemFile_WriteData(MemoryFile *memFile, unsigned int byteCount, unsigned __int8 *p)
 {
     if ((int)(byteCount + memFile->cacheBufferUsed) < 32760)

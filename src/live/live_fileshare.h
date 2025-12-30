@@ -1,5 +1,106 @@
 #pragma once
 
+#include "live_storage.h"
+#include <universal/com_stringtable.h>
+
+enum fileShareKeyIndex : __int32
+{                                       // XREF: ?Live_FileShare_GetItemInfo@@YA_NHW4fileShareKeyIndex@@HW4fileShareInfoLocation@@PAPBDPAM@Z/r
+                                        // ?Live_FileShare_GetMySlotInfo@@YA_NHHPBDPAPBDPAM@Z/r ...
+    FILESHARE_KEY_SLOT               = 0x0,
+    FILESHARE_KEY_INGAMESLOT         = 0x1,
+    FILESHARE_KEY_SLOTOCCUPIED       = 0x2,
+    FILESHARE_KEY_DATETIME           = 0x3,
+    FILESHARE_KEY_LENGTH             = 0x4,
+    FILESHARE_KEY_SIZE               = 0x5,
+    FILESHARE_KEY_AUTHOR             = 0x6,
+    FILESHARE_KEY_MAP                = 0x7,
+    FILESHARE_KEY_MAPNAME            = 0x8,
+    FILESHARE_KEY_GAMETYPE           = 0x9,
+    FILESHARE_KEY_GAMETYPENAME       = 0xA,
+    FILESHARE_KEY_FILEID             = 0xB,
+    FILESHARE_KEY_FILESIZE           = 0xC,
+    FILESHARE_KEY_FILETYPE           = 0xD,
+    FILESHARE_KEY_FILENAME           = 0xE,
+    FILESHARE_KEY_HASSUMMARY         = 0xF,
+    FILESHARE_KEY_GAMETYPEANDMAPNAME = 0x10,
+    FILESHARE_KEY_RATING             = 0x11,
+    FILESHARE_KEY_TYPEICONNAME       = 0x12,
+    FILESHARE_KEY_SELECTEDIMAGENAME  = 0x13,
+    FILESHARE_KEY_NAME               = 0x14,
+    FILESHARE_KEY_ISMODIFIEDNAME     = 0x15,
+    FILESHARE_KEY_DESCRIPTION        = 0x16,
+    FILESHARE_KEY_ISMODIFIEDDESCRIPTION = 0x17,
+    FILESHARE_KEY_USERTAG            = 0x18,
+    FILESHARE_KEY_USERTAGINDEX       = 0x19,
+    FILESHARE_KEY_GAMETYPEIMAGE      = 0x1A,
+    FILESHARE_KEY_TOTALVOTES         = 0x1B,
+    FILESHARE_KEY_ISSUMMARYCACHED    = 0x1C,
+    FILESHARE_KEY_COUNT              = 0x1D,
+};
+
+enum fileShareInfoLocation : __int32
+{                                       // XREF: Live_FileShare_GetDate/r
+                                        // Live_FileShare_GetLength/r ...
+    FILESHARE_INFOLOCATION_INVALID = 0x0,
+    FILESHARE_INFOLOCATION_SEARCHRESULTS = 0x1,
+    FILESHARE_INFOLOCATION_MYFILESHARE = 0x2,
+    FILESHARE_INFOLOCATION_MYFILESHARE_INGAME = 0x3,
+    FILESHARE_INFOLOCATION_OTHERFILESHARE = 0x4,
+};
+
+enum fileSharePooledFileContext_t : __int32
+{                                       // XREF: fileSharePooledDetails_t/r
+                                        // ?Live_FileShare_SetPooledFileDetailsContext@@YAXW4fileSharePooledFileContext_t@@@Z/r ...
+    FILESHARE_POOLEDFILEDETAILS_INVALID = 0x0,
+    FILESHARE_POOLEDFILEDETAILS_SELF = 0x1,
+    FILESHARE_POOLEDFILEDETAILS_FRIEND = 0x2,
+};
+
+struct __declspec(align(8)) ratingHistory_t // sizeof=0xC88
+{                                       // XREF: .data:s_fileShareRatingHistory/r
+    _BYTE files[3200];                  // XREF: Live_FileShare_SaveRating(int,unsigned __int64,uchar)+43/w
+                                        // Live_FileShare_IsRated(int,unsigned __int64,uchar *)+64/r
+    int next;
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
+struct fileShareLastPlayedGame_t // sizeof=0x848
+{                                       // XREF: .data:s_lastPlayedGame/r
+    bdFileID dwFileID;                  // XREF: Live_FileShare_GetLastPlayedGameDetails(int)+34/w
+                                        // Live_FileShare_GetLastPlayedGameDetails(int)+39/w ...
+    bdFileMetaData descriptor;          // XREF: Live_FileShare_PopulateLastPlayedGameDvars(void)+1B/r
+};
+
+struct fileSharePooledDetails_t // sizeof=0x34
+{                                       // XREF: .data:s_pooledFileDetails/r
+    int kills;                          // XREF: Live_FileShare_GetPooledMapKills+E/r
+    int deaths;                         // XREF: Live_FileShare_GetPooledMapDeaths+E/r
+    int alliesScore;                    // XREF: Live_FileShare_GetPooledMapAlliesScore+E/r
+                                        // Live_FileShare_GetPooledMapVictory+E/r ...
+    int axisScore;                      // XREF: Live_FileShare_GetPooledMapAxisScore+E/r
+                                        // Live_FileShare_GetPooledMapVictory+14/r ...
+    int mapID;                          // XREF: Live_FileShare_GetPooledMapTeam+15/r
+                                        // Live_FileShare_GetPooledTeamColorIcon+8/r ...
+    int team;                           // XREF: Live_FileShare_GetPooledMapTeam+E/r
+                                        // Live_FileShare_GetPooledMapVictory:loc_961313/r ...
+    int score;                          // XREF: Live_FileShare_GetPooledScore+E/r
+    int xpEarned;
+    int wagerPayout;                    // XREF: Live_FileShare_GetPooledWagerPayout+E/r
+    int position;                       // XREF: Live_FileShare_GetPooledPosition+E/r
+    int isWager;                        // XREF: Live_FileShare_GetPooledIsWager+E/r
+    bool isValid;                       // XREF: Live_FileShare_ExpirePooledFileDetails(void)+3/w
+                                        // Live_FileShare_GetPooledFileInfo(char const *)+18/r ...
+    // padding byte
+    // padding byte
+    // padding byte
+    fileSharePooledFileContext_t context;
+                                        // XREF: Live_FileShare_SetPooledFileDetailsContext(fileSharePooledFileContext_t)+3/r
+                                        // Live_FileShare_SetPooledFileDetailsContext(fileSharePooledFileContext_t)+21/w
+};
+
 fileShareLastPlayedGame_t *__cdecl Live_FileShare_GetLastPlayedGame();
 void __cdecl Live_FileShare_SetLiveBlurb(const char *blurb);
 char __cdecl Live_FileShare_GetTag(

@@ -542,7 +542,7 @@ void __cdecl CG_ScanForCrosshairEntityInternal(int localClientNum)
                 Vec3Lerp(start, end, 0.050000001, start);
             }
         }
-        //col_context_t::col_context_t(&context);
+        ////col_context_t::col_context_t(&context);
         context.ignoreEntParams = &ignoreEntParams;
         CG_LocationalTrace(
             &trace,

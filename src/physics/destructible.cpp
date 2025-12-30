@@ -1853,7 +1853,7 @@ unsigned __int16 __cdecl CG_DestructibleSpawnDynEnt(
             end[0] = (float)(10.0 * dir[0]) + *origin;
             end[1] = (float)(10.0 * dir[1]) + origin[1];
             end[2] = (float)(10.0 * dir[2]) + origin[2];
-            col_context_t::col_context_t(&context);
+            //col_context_t::col_context_t(&context);
             CG_TraceCapsule(
                 &result,
                 start,
