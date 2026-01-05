@@ -12,6 +12,30 @@
 #include "r_jpeg.h"
 #include "r_state.h"
 #include "r_singlethreaded_device_pc.h"
+#include "rb_backend.h"
+#include <CubeMapGenLib/CCubeMapProcessor.h>
+
+const float cubemapShotAxis[7][3][3] =
+{
+  { { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 } },
+  { { 0.0, 0.0, 1.0 }, { 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 } },
+  { { 0.0, 0.0, -1.0 }, { -1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 } },
+  { { 0.0, 1.0, 0.0 }, { -1.0, 0.0, 0.0 }, { 0.0, 0.0, 1.0 } },
+  { { 0.0, -1.0, 0.0 }, { 1.0, 0.0, 0.0 }, { 0.0, 0.0, 1.0 } },
+  { { 1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 } },
+  { { -1.0, 0.0, 0.0 }, { 0.0, -1.0, 0.0 }, { 0.0, 0.0, 1.0 } }
+};
+
+unsigned int exponenttable[64];
+unsigned int mantissatable[2048];
+unsigned int offsettable[64];
+
+struct //$069481853E63AB7B456FCC17924CBF75 // sizeof=0x48
+{                                       // XREF: .data:cubeShotGlob/r
+    unsigned __int8 *pixels[6];         // XREF: R_CubemapShotWriteTargaFile+BD/r
+    float *pixelsHDR[6];                // XREF: R_CopyCubemapShot+75/w
+    float *pixelsHDRcorrected[6];       // XREF: R_CopyCubemapShot+C5/w
+} cubeShotGlob;
 
 unsigned __int8 *__cdecl R_TakeResampledScreenshot(int width, int height, int bytesPerPixel, int headerSize)
 {
@@ -719,14 +743,15 @@ int R_CubemapShotSetInitialState()
       "ffff) : (-0x7fffffff)) * (((( 1/(((-0x7fffffff))/(0x7fffffff)) == 1) || 0 || ( 1/(((-0x7fffffff))/(0x7fffffff)) =="
       " 1))&~1) == 0)))/(0x7fffffff)) == 1) && 1)&~1) == 0)))/(0x7fffffff)) == 1))&~1) == 0)))/(0x7fffffff)) == 1) ? 0.0f : 1.0f), 0 )\n");
   v2 = R_AcquireDXDeviceOwnership(0);
-  hr = ((int (__stdcall *)(IDirect3DDevice9 *, unsigned int, unsigned int, int, int, unsigned int, unsigned int))dx.device->Clear)(
-         dx.device,
-         0,
-         0,
-         7,
-         -65281,
-         1.0,
-         0);
+  //hr = ((int (__stdcall *)(IDirect3DDevice9 *, unsigned int, unsigned int, int, int, unsigned int, unsigned int))dx.device->Clear)(
+  //       dx.device,
+  //       0,
+  //       0,
+  //       7,
+  //       -65281,
+  //       1.0,
+  //       0);
+  hr = dx.device->Clear(0, 0, 7, -65281, 1.0, 0);
   if ( v2 )
     R_ReleaseDXDeviceOwnership();
   if ( hr < 0 )
@@ -855,29 +880,30 @@ char __cdecl R_GetBackBufferDataHDR(int x, int y, int width, int height, int byt
 
     initHalfToFloat();
     Sleep(0x3E8u);
-    surf = stru_B50E858.surface.color;
-    surface1 = renderTarget.surface.color;
-    dx.device->GetRenderTargetData(dx.device, stru_B50E858.surface.color, renderTarget.surface.color);
+    surf = gfxRenderTargets[2].surface.color;
+    surface1 = gfxRenderTargets[16].surface.color;
+    dx.device->GetRenderTargetData(gfxRenderTargets[2].surface.color, gfxRenderTargets[16].surface.color);
     sourceRect.left = x;
     sourceRect.right = width + x;
     sourceRect.top = y + 2;
     sourceRect.bottom = height + y + 2;
-    hr = ((int (__thiscall *)(IDirect3DSurface9 *, IDirect3DSurface9 *, _D3DLOCKED_RECT *, tagRECT *, int))surface1->LockRect)(
-                 surface1,
-                 surface1,
-                 &lockedRect,
-                 &sourceRect,
-                 16);
-    if ( hr >= 0 )
+    //hr = ((int(__thiscall *)(IDirect3DSurface9 *, IDirect3DSurface9 *, _D3DLOCKED_RECT *, tagRECT *, int))surface1->LockRect)(
+    //    surface1,
+    //    surface1,
+    //    &lockedRect,
+    //    &sourceRect,
+    //    16);
+    hr = surface1->LockRect(&lockedRect, &sourceRect, 16);
+    if (hr >= 0)
     {
         srcPixel = (const unsigned __int8 *)lockedRect.pBits;
         dstPixel = buffer;
         bitss = (unsigned __int16 *)lockedRect.pBits;
-        for ( row = 0; row < height; ++row )
+        for (row = 0; row < height; ++row)
         {
             bitss = (unsigned __int16 *)srcPixel;
             i = 0;
-            for ( col = 0; col < width; ++col )
+            for (col = 0; col < width; ++col)
             {
                 r = bitss[i];
                 g = bitss[i + 1];
@@ -894,7 +920,7 @@ char __cdecl R_GetBackBufferDataHDR(int x, int y, int width, int height, int byt
             }
             srcPixel += lockedRect.Pitch;
         }
-        surface1->UnlockRect(surface1);
+        surface1->UnlockRect();
         return 1;
     }
     else
@@ -944,12 +970,12 @@ unsigned int __cdecl convertmantissa(unsigned int i)
 
     m = i << 13;
     e = 0;
-    while ( ((unsigned int)&loc_800000 & m) == 0 )
+    while ((m & 0x800000) == 0)
     {
-        e -= (unsigned int)&loc_800000;
+        e -= 0x800000;
         m *= 2;
     }
-    return (e + 947912704) | m & 0xFF7FFFFF;
+    return (e + 0x38800000) | m & 0xFF7FFFFF;
 }
 
 void R_CubemapShotRestoreState()
@@ -1248,22 +1274,35 @@ void __cdecl R_CreateReflectionRawDataFromCubemapShot(DiskGfxReflectionProbe *pr
     v18 = v4;
     for ( i = 0; i < 6; ++i )
         R_CubemapFaceNormalize(cubeShotGlob.pixelsHDR[i], size, &outColor);
-    CCubeMapProcessor::CCubeMapProcessor(&v19);
-    CCubeMapProcessor::Init(&v19, size, downSampleRes, 16, 4);
-    for ( j = 0; j < 6; ++j )
-        CCubeMapProcessor::SetInputFaceData(
-            &v19,
-            j,
-            30,
-            4,
-            16 * size,
-            (unsigned __int16 *)cubeShotGlob.pixelsHDR[j],
-            63.900002,
-            1.0,
-            1.0);
+    //CCubeMapProcessor::CCubeMapProcessor(&v19);
+    //CCubeMapProcessor::Init(&v19, size, downSampleRes, 16, 4);
+    v19.Init(size, downSampleRes, 16, 4);
+    for (j = 0; j < 6; ++j)
+    {
+        //CCubeMapProcessor::SetInputFaceData(
+        //    &v19,
+        //    j,
+        //    30,
+        //    4,
+        //    16 * size,
+        //    (unsigned __int16 *)cubeShotGlob.pixelsHDR[j],
+        //    63.900002,
+        //    1.0,
+        //    1.0);
+        v19.SetInputFaceData(j, 30, 4, 16 * size, (unsigned short *)cubeShotGlob.pixelsHDR[j], 63.9f, 1.0f, 1.0f);
+    }
+        
     v20 = 3;
-    CCubeMapProcessor::InitiateFiltering(
-        &v19,
+    //CCubeMapProcessor::InitiateFiltering(
+    //    &v19,
+    //    90.112 / (float)downSampleRes,
+    //    (float)(90.112 / (float)downSampleRes) * 2.0,
+    //    2.0,
+    //    3u,
+    //    2,
+    //    3,
+    //    1);
+        v19.InitiateFiltering(
         90.112 / (float)downSampleRes,
         (float)(90.112 / (float)downSampleRes) * 2.0,
         2.0,
@@ -1271,8 +1310,10 @@ void __cdecl R_CreateReflectionRawDataFromCubemapShot(DiskGfxReflectionProbe *pr
         2,
         3,
         1);
-    while ( CCubeMapProcessor::GetStatus(&v19) == 1 )
-        Sleep(0xC8u);
+
+    while ( v19.GetStatus() == 1)
+        Sleep(200);
+
     for ( k = 0; k < 6; ++k )
     {
         for ( m = 0; m < 1; ++m )
@@ -1281,7 +1322,7 @@ void __cdecl R_CreateReflectionRawDataFromCubemapShot(DiskGfxReflectionProbe *pr
                 m_Width = 4;
             else
                 m_Width = v19.m_OutputSurface[m][k].m_Width;
-            CCubeMapProcessor::GetOutputFaceData(&v19, k, m, 100, 4, m_Width, (unsigned int *)pixels, 0.125, 2.0);
+            v19.GetOutputFaceData(k, m, 100, 4, m_Width, (unsigned int *)pixels, 0.125, 2.0);
             pixels += m_Width * m_Width / 2;
         }
     }
@@ -1293,7 +1334,7 @@ void __cdecl R_CreateReflectionRawDataFromCubemapShot(DiskGfxReflectionProbe *pr
                 v2 = 4;
             else
                 v2 = v19.m_OutputSurface[ii][n].m_Width;
-            CCubeMapProcessor::GetOutputFaceData(&v19, n, ii, 100, 4, v2, (unsigned int *)pixels, 0.125, 2.0);
+            v19.GetOutputFaceData(n, ii, 100, 4, v2, (unsigned int *)pixels, 0.125, 2.0);
             pixels += v2 * v2 / 2;
         }
     }
@@ -1302,7 +1343,7 @@ void __cdecl R_CreateReflectionRawDataFromCubemapShot(DiskGfxReflectionProbe *pr
         Z_VirtualFree(cubeShotGlob.pixelsHDR[jj], 23);
         Z_VirtualFree(cubeShotGlob.pixelsHDRcorrected[jj], 23);
     }
-    CCubeMapProcessor::~CCubeMapProcessor(&v19);
+    //CCubeMapProcessor::~CCubeMapProcessor(&v19);
 }
 
 void __cdecl R_CubemapFaceNormalize(float *inbuffer, int size, float *average)
@@ -1522,133 +1563,248 @@ void __cdecl R_GetDirForCubemapPixel(int faceIndex, float x, float y, float *dir
     Vec3Normalize(dir);
 }
 
-void __cdecl R_CubemapLightingForDir(
-                float (**linearColors)[3],
-                int width,
-                int height,
-                const float *dir,
-                const float *baseColor,
-                unsigned __int8 *pixel)
-{
-    long double v6; // [esp+Ch] [ebp-88h]
-    long double v7; // [esp+Ch] [ebp-88h]
-    long double v8; // [esp+Ch] [ebp-88h]
-    float v9; // [esp+Ch] [ebp-88h]
-    float v10; // [esp+10h] [ebp-84h]
-    long double v11; // [esp+14h] [ebp-80h]
-    long double v12; // [esp+14h] [ebp-80h]
-    long double v13; // [esp+14h] [ebp-80h]
-    float v14; // [esp+14h] [ebp-80h]
-    float *v15; // [esp+64h] [ebp-30h]
-    int faceIndex; // [esp+68h] [ebp-2Ch]
-    int sampleCount; // [esp+6Ch] [ebp-28h]
-    int x; // [esp+70h] [ebp-24h]
-    int y; // [esp+74h] [ebp-20h]
-    float color; // [esp+78h] [ebp-1Ch]
-    float colora; // [esp+78h] [ebp-1Ch]
-    float color_4; // [esp+7Ch] [ebp-18h]
-    float color_4a; // [esp+7Ch] [ebp-18h]
-    float color_8; // [esp+80h] [ebp-14h]
-    float color_8a; // [esp+80h] [ebp-14h]
-    float sourceDir[3]; // [esp+84h] [ebp-10h] BYREF
-    float facing; // [esp+90h] [ebp-4h]
+//void __cdecl R_CubemapLightingForDir(
+//                float (**linearColors)[3],
+//                int width,
+//                int height,
+//                const float *dir,
+//                const float *baseColor,
+//                unsigned __int8 *pixel)
+//{
+//    long double v6; // [esp+Ch] [ebp-88h]
+//    long double v7; // [esp+Ch] [ebp-88h]
+//    long double v8; // [esp+Ch] [ebp-88h]
+//    float v9; // [esp+Ch] [ebp-88h]
+//    float v10; // [esp+10h] [ebp-84h]
+//    long double v11; // [esp+14h] [ebp-80h]
+//    long double v12; // [esp+14h] [ebp-80h]
+//    long double v13; // [esp+14h] [ebp-80h]
+//    float v14; // [esp+14h] [ebp-80h]
+//    float *v15; // [esp+64h] [ebp-30h]
+//    int faceIndex; // [esp+68h] [ebp-2Ch]
+//    int sampleCount; // [esp+6Ch] [ebp-28h]
+//    int x; // [esp+70h] [ebp-24h]
+//    int y; // [esp+74h] [ebp-20h]
+//    float color; // [esp+78h] [ebp-1Ch]
+//    float colora; // [esp+78h] [ebp-1Ch]
+//    float color_4; // [esp+7Ch] [ebp-18h]
+//    float color_4a; // [esp+7Ch] [ebp-18h]
+//    float color_8; // [esp+80h] [ebp-14h]
+//    float color_8a; // [esp+80h] [ebp-14h]
+//    float sourceDir[3]; // [esp+84h] [ebp-10h] BYREF
+//    float facing; // [esp+90h] [ebp-4h]
+//
+//    color = 0.0f;
+//    color_4 = 0.0f;
+//    color_8 = 0.0f;
+//    sampleCount = 0;
+//    for ( faceIndex = 0; faceIndex < 6; ++faceIndex )
+//    {
+//        for ( y = 0; y < height; ++y )
+//        {
+//            for ( x = 0; x < width; ++x )
+//            {
+//                R_GetDirForCubemapPixel(
+//                    faceIndex,
+//                    (float)((float)((float)((float)x + 0.5) * 2.0) / (float)width) - 1.0,
+//                    (float)((float)((float)((float)y + 0.5) * 2.0) / (float)height) - 1.0,
+//                    sourceDir);
+//                facing = (float)((float)(*dir * sourceDir[0]) + (float)(dir[1] * sourceDir[1])) + (float)(dir[2] * sourceDir[2]);
+//                if ( facing > 0.0 )
+//                {
+//                    v15 = &linearColors[faceIndex][x][3 * width * y];
+//                    color = (float)(facing * *v15) + color;
+//                    color_4 = (float)(facing * v15[1]) + color_4;
+//                    color_8 = (float)(facing * v15[2]) + color_8;
+//                    ++sampleCount;
+//                }
+//            }
+//        }
+//    }
+//    __libm_sse2_pow(v6, v11);
+//    __libm_sse2_pow(v7, v12);
+//    __libm_sse2_pow(v8, v13);
+//    colora = (float)((float)(1.0 / (float)sampleCount) * color) * *baseColor;
+//    color_4a = (float)((float)(1.0 / (float)sampleCount) * color_4) * baseColor[1];
+//    color_8a = (float)((float)(1.0 / (float)sampleCount) * color_8) * baseColor[2];
+//    if ( (float)(colora - 1.0) < 0.0 )
+//        v14 = colora;
+//    else
+//        v14 = 1.0f;
+//    pixel[2] = (int)((float)(255.0 * v14) + 9.313225746154785e-10);
+//    if ( (float)(color_4a - 1.0) < 0.0 )
+//        v10 = color_4a;
+//    else
+//        v10 = 1.0f;
+//    pixel[1] = (int)((float)(255.0 * v10) + 9.313225746154785e-10);
+//    if ( (float)(color_8a - 1.0) < 0.0 )
+//        v9 = color_8a;
+//    else
+//        v9 = 1.0f;
+//    *pixel = (int)((float)(255.0 * v9) + 9.313225746154785e-10);
+//    pixel[3] = -1;
+//}
 
-    color = 0.0f;
-    color_4 = 0.0f;
-    color_8 = 0.0f;
-    sampleCount = 0;
-    for ( faceIndex = 0; faceIndex < 6; ++faceIndex )
+// aislop
+void __cdecl R_CubemapLightingForDir(
+    float (**linearColors)[3],
+    int width,
+    int height,
+    const float *dir,
+    const float *baseColor,
+    unsigned __int8 *pixel)
+{
+    int faceIndex, x, y;
+    int sampleCount = 0;
+
+    float color = 0.0f;
+    float color_4 = 0.0f;
+    float color_8 = 0.0f;
+
+    float sourceDir[3];
+    float facing;
+
+    for (faceIndex = 0; faceIndex < 6; ++faceIndex)
     {
-        for ( y = 0; y < height; ++y )
+        for (y = 0; y < height; ++y)
         {
-            for ( x = 0; x < width; ++x )
+            for (x = 0; x < width; ++x)
             {
                 R_GetDirForCubemapPixel(
                     faceIndex,
-                    (float)((float)((float)((float)x + 0.5) * 2.0) / (float)width) - 1.0,
-                    (float)((float)((float)((float)y + 0.5) * 2.0) / (float)height) - 1.0,
+                    ((x + 0.5f) * 2.0f / width) - 1.0f,
+                    ((y + 0.5f) * 2.0f / height) - 1.0f,
                     sourceDir);
-                facing = (float)((float)(*dir * sourceDir[0]) + (float)(dir[1] * sourceDir[1])) + (float)(dir[2] * sourceDir[2]);
-                if ( facing > 0.0 )
+
+                facing =
+                    dir[0] * sourceDir[0] +
+                    dir[1] * sourceDir[1] +
+                    dir[2] * sourceDir[2];
+
+                if (facing > 0.0f)
                 {
-                    v15 = &linearColors[faceIndex][x][3 * width * y];
-                    color = (float)(facing * *v15) + color;
-                    color_4 = (float)(facing * v15[1]) + color_4;
-                    color_8 = (float)(facing * v15[2]) + color_8;
+                    float *c = &linearColors[faceIndex][x][3 * width * y];
+
+                    color += facing * c[0];
+                    color_4 += facing * c[1];
+                    color_8 += facing * c[2];
+
                     ++sampleCount;
                 }
             }
         }
     }
-    __libm_sse2_pow(v6, v11);
-    __libm_sse2_pow(v7, v12);
-    __libm_sse2_pow(v8, v13);
-    colora = (float)((float)(1.0 / (float)sampleCount) * color) * *baseColor;
-    color_4a = (float)((float)(1.0 / (float)sampleCount) * color_4) * baseColor[1];
-    color_8a = (float)((float)(1.0 / (float)sampleCount) * color_8) * baseColor[2];
-    if ( (float)(colora - 1.0) < 0.0 )
-        v14 = colora;
+
+    if (sampleCount > 0)
+    {
+        float invSamples = 1.0f / (float)sampleCount;
+
+        float r = color * invSamples * baseColor[0];
+        float g = color_4 * invSamples * baseColor[1];
+        float b = color_8 * invSamples * baseColor[2];
+
+        r = powf(r, 1.0f / 2.2f);
+        g = powf(g, 1.0f / 2.2f);
+        b = powf(b, 1.0f / 2.2f);
+
+        if (r > 1.0f) r = 1.0f;
+        if (g > 1.0f) g = 1.0f;
+        if (b > 1.0f) b = 1.0f;
+
+        pixel[2] = (unsigned __int8)(255.0f * r + 0.5f);
+        pixel[1] = (unsigned __int8)(255.0f * g + 0.5f);
+        pixel[0] = (unsigned __int8)(255.0f * b + 0.5f);
+        pixel[3] = 255;
+    }
     else
-        v14 = 1.0f;
-    pixel[2] = (int)((float)(255.0 * v14) + 9.313225746154785e-10);
-    if ( (float)(color_4a - 1.0) < 0.0 )
-        v10 = color_4a;
-    else
-        v10 = 1.0f;
-    pixel[1] = (int)((float)(255.0 * v10) + 9.313225746154785e-10);
-    if ( (float)(color_8a - 1.0) < 0.0 )
-        v9 = color_8a;
-    else
-        v9 = 1.0f;
-    *pixel = (int)((float)(255.0 * v9) + 9.313225746154785e-10);
-    pixel[3] = -1;
+    {
+        pixel[0] = pixel[1] = pixel[2] = 0;
+        pixel[3] = 255;
+    }
 }
 
-void __cdecl R_CubemapShotExtractLinearLight(
-                unsigned __int8 **pixels,
-                int width,
-                int height,
-                float (**linearColors)[3])
-{
-    double v4; // xmm0_8
-    double v5; // xmm0_8
-    double v6; // xmm0_8
-    long double v7; // [esp+0h] [ebp-28h]
-    long double v8; // [esp+0h] [ebp-28h]
-    long double v9; // [esp+0h] [ebp-28h]
-    long double v10; // [esp+8h] [ebp-20h]
-    long double v11; // [esp+8h] [ebp-20h]
-    long double v12; // [esp+8h] [ebp-20h]
-    int faceIndex; // [esp+18h] [ebp-10h]
-    int x; // [esp+1Ch] [ebp-Ch]
-    int y; // [esp+20h] [ebp-8h]
-    int pixelIndex; // [esp+24h] [ebp-4h]
 
-    for ( faceIndex = 0; faceIndex < 6; ++faceIndex )
+//void __cdecl R_CubemapShotExtractLinearLight(
+//                unsigned __int8 **pixels,
+//                int width,
+//                int height,
+//                float (**linearColors)[3])
+//{
+//    double v4; // xmm0_8
+//    double v5; // xmm0_8
+//    double v6; // xmm0_8
+//    long double v7; // [esp+0h] [ebp-28h]
+//    long double v8; // [esp+0h] [ebp-28h]
+//    long double v9; // [esp+0h] [ebp-28h]
+//    long double v10; // [esp+8h] [ebp-20h]
+//    long double v11; // [esp+8h] [ebp-20h]
+//    long double v12; // [esp+8h] [ebp-20h]
+//    int faceIndex; // [esp+18h] [ebp-10h]
+//    int x; // [esp+1Ch] [ebp-Ch]
+//    int y; // [esp+20h] [ebp-8h]
+//    int pixelIndex; // [esp+24h] [ebp-4h]
+//
+//    for ( faceIndex = 0; faceIndex < 6; ++faceIndex )
+//    {
+//        pixelIndex = 0;
+//        for ( y = 0; y < height; ++y )
+//        {
+//            for ( x = 0; x < width; ++x )
+//            {
+//                v4 = (float)((float)pixels[faceIndex][4 * pixelIndex + 2] * 0.0039215689);
+//                __libm_sse2_pow(v7, v10);
+//                *(float *)&v4 = v4;
+//                linearColors[faceIndex][pixelIndex][0] = *(float *)&v4;
+//                *((float *)&v11 + 1) = (float)pixels[faceIndex][4 * pixelIndex + 1] * 0.0039215689;
+//                v5 = *((float *)&v11 + 1);
+//                __libm_sse2_pow(v8, v11);
+//                *(float *)&v5 = v5;
+//                LODWORD(v12) = LODWORD(v5);
+//                linearColors[faceIndex][pixelIndex][1] = *(float *)&v5;
+//                *((float *)&v9 + 1) = (float)pixels[faceIndex][4 * pixelIndex] * 0.0039215689;
+//                v6 = *((float *)&v9 + 1);
+//                __libm_sse2_pow(v9, v12);
+//                *(float *)&v6 = v6;
+//                LODWORD(v7) = LODWORD(v6);
+//                linearColors[faceIndex][pixelIndex++][2] = *(float *)&v6;
+//            }
+//        }
+//    }
+//}
+
+
+void __cdecl R_CubemapShotExtractLinearLight(
+    unsigned __int8 **pixels,
+    int width,
+    int height,
+    float (**linearColors)[3])
+{
+    int faceIndex;
+    int x, y;
+    int pixelIndex;
+
+    for (faceIndex = 0; faceIndex < 6; ++faceIndex)
     {
         pixelIndex = 0;
-        for ( y = 0; y < height; ++y )
+
+        for (y = 0; y < height; ++y)
         {
-            for ( x = 0; x < width; ++x )
+            for (x = 0; x < width; ++x)
             {
-                v4 = (float)((float)pixels[faceIndex][4 * pixelIndex + 2] * 0.0039215689);
-                __libm_sse2_pow(v7, v10);
-                *(float *)&v4 = v4;
-                linearColors[faceIndex][pixelIndex][0] = *(float *)&v4;
-                *((float *)&v11 + 1) = (float)pixels[faceIndex][4 * pixelIndex + 1] * 0.0039215689;
-                v5 = *((float *)&v11 + 1);
-                __libm_sse2_pow(v8, v11);
-                *(float *)&v5 = v5;
-                LODWORD(v12) = LODWORD(v5);
-                linearColors[faceIndex][pixelIndex][1] = *(float *)&v5;
-                *((float *)&v9 + 1) = (float)pixels[faceIndex][4 * pixelIndex] * 0.0039215689;
-                v6 = *((float *)&v9 + 1);
-                __libm_sse2_pow(v9, v12);
-                *(float *)&v6 = v6;
-                LODWORD(v7) = LODWORD(v6);
-                linearColors[faceIndex][pixelIndex++][2] = *(float *)&v6;
+                float r = pixels[faceIndex][4 * pixelIndex + 2] * (1.0f / 255.0f);
+                float g = pixels[faceIndex][4 * pixelIndex + 1] * (1.0f / 255.0f);
+                float b = pixels[faceIndex][4 * pixelIndex + 0] * (1.0f / 255.0f);
+
+                r = powf(r, 2.2f);
+                g = powf(g, 2.2f);
+                b = powf(b, 2.2f);
+
+                linearColors[faceIndex][pixelIndex][0] = r;
+                linearColors[faceIndex][pixelIndex][1] = g;
+                linearColors[faceIndex][pixelIndex][2] = b;
+
+                ++pixelIndex;
             }
         }
     }
 }
-
