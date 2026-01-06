@@ -1,4 +1,11 @@
 #include "r_workercmds_common.h"
+#include <EffectsCore/fx_update.h>
+#include <qcommon/threads.h>
+#include <EffectsCore/fx_draw.h>
+#include <universal/com_workercmds.h>
+#include "r_workercmds.h"
+#include <cgame_mp/cg_draw_mp.h>
+#include <EffectsCore/fx_marks.h>
 
 void __cdecl R_ProcessCmd_UpdateFxSpotLight(FxCmd *cmd)
 {
@@ -42,8 +49,8 @@ void __cdecl R_ProcessCmd_UpdateFxRemaining(FxCmd *cmd)
     //PIXBeginNamedEvent(-1, "R_ProcessCmd_UpdateFxRemaining");
     if ( !Sys_QueryD3DDeviceOKEvent() )
     {
-        if ( g_DXDeviceThread != GetCurrentThreadId() )
-            return;
+        //if ( g_DXDeviceThread != GetCurrentThreadId() )
+        //    return;
         goto LABEL_11;
     }
     CG_AddSceneTracerBeams(cmd->localClientNum);

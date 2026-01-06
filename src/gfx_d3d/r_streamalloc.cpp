@@ -1,52 +1,57 @@
 #include "r_streamalloc.h"
+#include "r_image.h"
+#include "r_stream.h"
+
+StreamAllocGlob s_allocGlob;
+int list_count;
 
 void __cdecl R_StreamAlloc_InitTempImages()
 {
     int index; // [esp+4h] [ebp-4h]
 
-    if ( !byte_B002DE0 )
+    if (!s_allocGlob.tempImagesInit)
     {
-        for ( index = 0; index < 32; ++index )
+        for (index = 0; index < 32; ++index)
         {
-            dword_B002CE0[2 * index] = (int)DB_AllocTempImage();
-            memset((unsigned __int8 *)dword_B002CE0[2 * index], 0, 0x34u);
-            byte_B002CE4[8 * index] = 0;
+            s_allocGlob.tempImages[2 * index] = DB_AllocTempImage();
+            memset((unsigned __int8 *)s_allocGlob.tempImages[2 * index], 0, sizeof(GfxImage));
+            LOBYTE(s_allocGlob.tempImages[2 * index + 1]) = 0;
         }
-        byte_B002DE0 = 1;
+        s_allocGlob.tempImagesInit = 1;
     }
 }
 
 GfxImage *__cdecl R_StreamAlloc_SetupTempImage(
-                _D3DFORMAT format,
-                bool linear,
-                unsigned __int16 width,
-                unsigned __int16 height)
+    _D3DFORMAT format,
+    bool linear,
+    unsigned __int16 width,
+    unsigned __int16 height)
 {
     GfxImage *image; // [esp+0h] [ebp-8h]
     int index; // [esp+4h] [ebp-4h]
 
-    if ( !byte_B002DE0
+    if (!s_allocGlob.tempImagesInit
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_streamalloc.cpp",
-                    1755,
-                    0,
-                    "%s",
-                    "s_allocGlob.tempImagesInit") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_streamalloc.cpp",
+            1755,
+            0,
+            "%s",
+            "s_allocGlob.tempImagesInit"))
     {
         __debugbreak();
     }
     R_StreamAlloc_Lock();
     image = 0;
-    for ( index = 0; index < 32; ++index )
+    for (index = 0; index < 32; ++index)
     {
-        if ( !byte_B002CE4[8 * index] )
+        if (!LOBYTE(s_allocGlob.tempImages[2 * index + 1]))
         {
-            byte_B002CE4[8 * index] = 1;
-            image = (GfxImage *)dword_B002CE0[2 * index];
+            LOBYTE(s_allocGlob.tempImages[2 * index + 1]) = 1;
+            image = s_allocGlob.tempImages[2 * index];
             break;
         }
     }
-    if ( image )
+    if (image)
     {
         Image_Create2DTexture_PC(image, width, height, 0, 0, format);
         R_StreamAlloc_Unlock();
@@ -64,22 +69,22 @@ void __cdecl R_StreamAlloc_ReleaseTempImage(GfxImage *image)
     int index; // [esp+0h] [ebp-4h]
 
     R_StreamAlloc_Lock();
-    for ( index = 0; index < 32; ++index )
+    for (index = 0; index < 32; ++index)
     {
-        if ( image == (GfxImage *)dword_B002CE0[2 * index] )
+        if (image == s_allocGlob.tempImages[2 * index])
         {
             Image_Release(image);
-            byte_B002CE4[8 * index] = 0;
+            LOBYTE(s_allocGlob.tempImages[2 * index + 1]) = 0;
             R_StreamAlloc_Unlock();
             return;
         }
     }
-    if ( !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_streamalloc.cpp",
-                    1799,
-                    0,
-                    "%s",
-                    "0 && \"tried to release a non-temp image\"") )
+    if (!Assert_MyHandler(
+        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_streamalloc.cpp",
+        1799,
+        0,
+        "%s",
+        "0 && \"tried to release a non-temp image\""))
         __debugbreak();
     R_StreamAlloc_Unlock();
 }

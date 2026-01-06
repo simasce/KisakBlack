@@ -1,4 +1,5 @@
 #include "r_stream_util.h"
+#include <universal/com_math.h>
 
 double __cdecl R_CalculateTriangleArea2D(const float (*texCoord)[2])
 {

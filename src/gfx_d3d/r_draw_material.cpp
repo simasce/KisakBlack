@@ -3,6 +3,12 @@
 #include "r_char_tech_util.h"
 #include "r_draw_shadowablelight.h"
 #include "rb_pixelcost.h"
+#include "r_shader_constant_set.h"
+#include "r_dvars.h"
+#include "rb_logfile.h"
+#include "r_foliage.h"
+#include "r_warn.h"
+#include "rb_draw3d.h"
 
 unsigned __int8 gNvFloatZTech_Intz[70] =
 {
@@ -501,7 +507,7 @@ void __cdecl R_SetGameTime(GfxCmdBufSourceState *source, float gameTime)
     v2 = *(_QWORD *)&gameTimeVec[1];
     v3 = gameTimeVec[3];
     source->input.consts[32][0] = gameTimeVec[0];
-    *(_QWORD *)&source->gap0[516] = v2;
+    *(_QWORD *)&source->input.consts[32][1] = v2;
     source->input.consts[32][3] = v3;
     R_DirtyCodeConstant(source, 0x20u);
 }

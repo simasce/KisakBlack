@@ -1,4 +1,22 @@
 #include "r_state.h"
+#include "r_dvars.h"
+#include "r_singlethreaded_device_pc.h"
+#include "rb_logfile.h"
+#include "r_state_utils.h"
+#include <ik/ik_math.h>
+#include <qcommon/cm_mesh.h>
+
+thread_local bool s_pixRenderTargetImage;
+
+const _D3DTEXTUREFILTERTYPE s_mipFilterTable[4][3] =
+{
+  { D3DTEXF_NONE, D3DTEXF_POINT, D3DTEXF_LINEAR },
+  { D3DTEXF_NONE, D3DTEXF_LINEAR, D3DTEXF_LINEAR },
+  { D3DTEXF_NONE, D3DTEXF_POINT, D3DTEXF_POINT },
+  { D3DTEXF_NONE, D3DTEXF_NONE, D3DTEXF_NONE }
+};
+
+unsigned int s_decodeSamplerFilterState[24];
 
 void __cdecl R_PixStartNamedRenderTarget(unsigned __int8 renderTargetId)
 {
@@ -6,7 +24,7 @@ void __cdecl R_PixStartNamedRenderTarget(unsigned __int8 renderTargetId)
     const char *v2; // eax
 
     R_PixEndNamedRenderTarget();
-    if ( gfxRenderTargets[renderTargetId].image )
+    if (gfxRenderTargets[renderTargetId].image)
     {
         v1 = va("Trgt: %s", gfxRenderTargets[renderTargetId].image->name);
     }
@@ -15,17 +33,13 @@ void __cdecl R_PixStartNamedRenderTarget(unsigned __int8 renderTargetId)
         v2 = R_RenderTargetName(renderTargetId);
         v1 = va("Trgt: %s", v2);
     }
-    PIXSetMarker(-1, v1);
-    *(_BYTE *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8344) = 1;
+    //PIXSetMarker(-1, v1);
+    s_pixRenderTargetImage = 1;
 }
 
-unsigned int R_PixEndNamedRenderTarget()
+void R_PixEndNamedRenderTarget()
 {
-    unsigned int result; // eax
-
-    result = _tls_index;
-    *(_BYTE *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8344) = 0;
-    return result;
+    s_pixRenderTargetImage = 0;
 }
 
 void __cdecl R_SetTexFilter()
@@ -164,7 +178,7 @@ void __cdecl R_SetTexFilter()
     for ( entryIndex = 0; entryIndex < 0x18; ++entryIndex )
     {
         texFilter = entryIndex & 7;
-        decoded = s_mipFilterTable[mipFilterMode][(int)(entryIndex & 0x18) >> 3] << 16;
+        decoded = (_D3DTEXTUREFILTERTYPE)(s_mipFilterTable[mipFilterMode][(int)(entryIndex & 0x18) >> 3] << 16);
         switch ( texFilter )
         {
             case 2:
@@ -204,11 +218,12 @@ void __cdecl R_SetInitialContextState(IDirect3DDevice9 *device)
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("device->SetRenderState( D3DRS_SEPARATEALPHABLENDENABLE, 1 )\n");
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = ((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *, int, int))device->SetRenderState)(
-                 device,
-                 device,
-                 206,
-                 1);
+    //hr = ((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *, int, int))device->SetRenderState)(
+    //             device,
+    //             device,
+    //             206,
+    //             1);
+    hr = device->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, 1);
     if ( semaphore )
         R_ReleaseDXDeviceOwnership();
     if ( hr < 0 )
@@ -226,7 +241,7 @@ void __cdecl R_SetInitialContextState(IDirect3DDevice9 *device)
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("device->SetRenderState( D3DRS_TWOSIDEDSTENCILMODE, 1 )\n");
     v6 = R_AcquireDXDeviceOwnership(0);
-    v7 = device->SetRenderState(device, D3DRS_TWOSIDEDSTENCILMODE, 1u);
+    v7 = device->SetRenderState(D3DRS_TWOSIDEDSTENCILMODE, 1u);
     if ( v6 )
         R_ReleaseDXDeviceOwnership();
     if ( v7 < 0 )
@@ -243,7 +258,7 @@ void __cdecl R_SetInitialContextState(IDirect3DDevice9 *device)
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("device->SetRenderState( D3DRS_ZENABLE, D3DZB_FALSE )\n");
     v4 = R_AcquireDXDeviceOwnership(0);
-    v5 = device->SetRenderState(device, D3DRS_ZENABLE, 0);
+    v5 = device->SetRenderState(D3DRS_ZENABLE, 0);
     if ( v4 )
         R_ReleaseDXDeviceOwnership();
     if ( v5 < 0 )
@@ -274,7 +289,8 @@ void __cdecl R_DepthHackNearClipChanged(GfxCmdBufSourceState *source)
     ++HIWORD(source->depthHackFlags);
     ++HIWORD(source->skinnedPlacement.base.quat[0]);
     ++LOWORD(source->skinnedPlacement.base.quat[1]);
-    LODWORD(source->input.consts[75][3]) ^= _mask__NegFloat_;
+    //LODWORD(source->input.consts[75][3]) ^= _mask__NegFloat_;
+    source->input.consts[75][3] = -source->input.consts[75][3];
     ++source->constVersions[99];
 }
 
@@ -485,19 +501,19 @@ void __cdecl R_DeriveCodeMatrix(GfxCmdBufSourceState *source, GfxCodeMatrices *a
             R_DeriveProjectionMatrix(source);
             break;
         case 0xCu:
-            R_DeriveWorldViewMatrix((int)&savedregs, source);
+            R_DeriveWorldViewMatrix(source);
             break;
         case 0x10u:
             R_DeriveViewProjectionMatrix(source);
             break;
         case 0x14u:
-            R_DeriveWorldViewProjectionMatrix((int)&savedregs, source);
+            R_DeriveWorldViewProjectionMatrix(source);
             break;
         case 0x18u:
             R_DeriveShadowLookupMatrix(source);
             break;
         case 0x1Cu:
-            R_GenerateWorldOutdoorLookupMatrix((GfxCodeMatrices *)&savedregs, source, activeMatrices->matrix[baseIndex].m);
+            R_GenerateWorldOutdoorLookupMatrix(source, activeMatrices->matrix[baseIndex].m);
             break;
         default:
             v3 = va("unhandled case %i", baseIndex);
@@ -592,62 +608,46 @@ void __cdecl R_DeriveViewProjectionMatrix(GfxCmdBufSourceState *source)
 }
 
 // local variable allocation has failed, the output may be wrong!
-void    R_DeriveWorldViewProjectionMatrix(int a1@<ebp>, GfxCmdBufSourceState *source)
+void    R_DeriveWorldViewProjectionMatrix(GfxCmdBufSourceState *source)
 {
-    float *v2; // [esp-8h] [ebp-60h]
-    _BYTE v3[76]; // [esp-4h] [ebp-5Ch] OVERLAPPED BYREF
-    float *v4; // [esp+48h] [ebp-10h]
-    int v5; // [esp+4Ch] [ebp-Ch]
+    float *mat20; // [esp-8h] [ebp-60h]
+    GfxMatrix mat;
+    GfxViewParms *p_viewParms; // [esp+48h] [ebp-10h]
+    int v6; // [esp+4Ch] [ebp-Ch]
     GfxCodeMatrices *activeMatrices; // [esp+50h] [ebp-8h]
     GfxCodeMatrices *retaddr; // [esp+58h] [ebp+0h]
 
-    v5 = a1;
-    activeMatrices = retaddr;
-    v4 = source->viewParms.viewMatrix.m[3];
-    *(unsigned int *)&v3[72] = source;
-    if ( source->constVersions[221] != HIWORD(source->viewParms3D)
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state.cpp",
-                    1128,
-                    0,
-                    "%s",
-                    "R_IsMatrixConstantUpToDate( source, CONST_SRC_CODE_WORLD_MATRIX )") )
+    //activeMatrices = retaddr;
+    p_viewParms = &source->viewParms;
+
+    //iassert(R_IsMatrixConstantUpToDate(source, CONST_SRC_CODE_WORLD_MATRIX));
+
+    memcpy(&mat, (float *)source, sizeof(GfxMatrix));
+    mat20 = (float *)&source->matrices.matrix[20];
+
+    if (source->depthHackFlags == 2)
     {
-        __debugbreak();
-    }
-    memcpy(v3, *(const void **)&v3[72], 0x40u);
-    v2 = (float *)(*(unsigned int *)&v3[72] + 1280);
-    if ( LODWORD(source->sceneDef.floatTime) == 2 )
-    {
-        if ( source->matrixVersions[11] != HIWORD(source->skinnedPlacement.base.quat[0]) )
+        if (source->constVersions[213] != source->matrixVersions[7])
             R_DeriveViewProjectionMatrix(source);
-        MatrixMultiply44((const float (*)[4])v3, (const float (*)[4])(*(unsigned int *)&v3[72] + 1024), (float (*)[4])v2);
+        MatrixMultiply44(mat.m, source->matrices.matrix[16].m, *(mat4x4 *)mat20);
     }
     else
     {
-        *(float *)&v3[48] = *(float *)&v3[48] + source->skinnedPlacement.base.origin[0];
-        *(float *)&v3[52] = *(float *)&v3[52] + source->skinnedPlacement.base.origin[1];
-        *(float *)&v3[56] = *(float *)&v3[56] + source->skinnedPlacement.base.origin[2];
-        MatrixMultiply44((const float (*)[4])v3, (const float (*)[4])((const float *)v4 + 8), (float (*)[4])v2);
+        Vec3Add(mat.m[3], source->eyeOffset, mat.m[3]);
+        MatrixMultiply44(mat.m, p_viewParms->viewProjectionMatrix.m, *(mat4x4 *)mat20);
     }
-    HIWORD(source->eyeOffset[0]) = LOWORD(source->skinnedPlacement.base.quat[1]);
+    source->constVersions[217] = source->matrixVersions[8];
 }
 
 void __cdecl R_DeriveShadowLookupMatrix(GfxCmdBufSourceState *source)
 {
-    memcpy(&source->matrices.matrix[24], source->shadowLookupMatrix.m[3], sizeof(source->matrices.matrix[24]));
-    MatrixTransformVector44(
-        source->skinnedPlacement.base.origin,
-        source->matrices.matrix[24].m,
-        source->matrices.matrix[24].m[3]);
-    HIWORD(source->eyeOffset[2]) = HIWORD(source->skinnedPlacement.base.quat[1]);
+    memcpy(&source->matrices.matrix[24], &source->shadowLookupMatrix, sizeof(source->matrices.matrix[24]));
+    MatrixTransformVector44(source->eyeOffset, source->matrices.matrix[24].m, source->matrices.matrix[24].m[3]);
+    source->constVersions[221] = source->matrixVersions[9];
 }
 
 // local variable allocation has failed, the output may be wrong!
-void    R_GenerateWorldOutdoorLookupMatrix(
-                GfxCodeMatrices *a1@<ebp>,
-                GfxCmdBufSourceState *source,
-                float (*outMatrix)[4])
+void    R_GenerateWorldOutdoorLookupMatrix(GfxCmdBufSourceState *source, float (*outMatrix)[4])
 {
     _BYTE v3[76]; // [esp-Ch] [ebp-8Ch] OVERLAPPED BYREF
     float zInTimesInvViewTimesOutdoorLookup[4]; // [esp+40h] [ebp-40h] BYREF

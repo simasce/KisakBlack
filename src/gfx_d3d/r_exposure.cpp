@@ -1,4 +1,5 @@
 #include "r_exposure.h"
+#include "r_globalgfxdata.h"
 
 void __cdecl R_DefaultExposureValue(int index)
 {

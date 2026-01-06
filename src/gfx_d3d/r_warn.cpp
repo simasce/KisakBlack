@@ -4,6 +4,7 @@
 #include <universal/dvar.h>
 #include <qcommon/common.h>
 #include <win32/win_shared.h>
+#include "r_init.h"
 
 const dvar_s *r_warningRepeatDelay;
 unsigned int s_warnCount[49];

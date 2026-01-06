@@ -1,4 +1,27 @@
 #include "r_texturemem.h"
+#include <universal/assertive.h>
+#include "r_init.h"
+
+DDraw ddraw;
+
+DDraw *DDraw::Instance()
+{
+    return &ddraw;
+}
+
+DDraw::DDraw()
+{
+    this->pDirectDrawCreateEx = 0;
+    this->pDirectDrawEnumerateEx = 0;
+    this->hDDraw = 0;
+    this->hDDraw = LoadLibraryA("ddraw.dll");
+    if (this->hDDraw)
+    {
+        this->pDirectDrawCreateEx = (HRESULT(__stdcall *)(_GUID *, void **, const _GUID *, IUnknown *))GetProcAddress(this->hDDraw, "DirectDrawCreateEx");
+        this->pDirectDrawEnumerateEx = (HRESULT(__stdcall *)(int(__stdcall *)(_GUID *, char *, char *, void *, HMONITOR__ *), void *, unsigned int))GetProcAddress(this->hDDraw, "DirectDrawEnumerateExA");
+        this->Initialized = 1;
+    }
+}
 
 unsigned int __cdecl R_AvailableTextureMemory()
 {
@@ -11,9 +34,10 @@ unsigned int __cdecl R_AvailableTextureMemory()
         __debugbreak();
     }
     vidMemInMegs = R_VideoMemory();
-    texMemInMegs = (unsigned int)((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *))dx.device->GetAvailableTextureMem)(
-                                                                 dx.device,
-                                                                 dx.device) >> 20;
+    //texMemInMegs = (unsigned int)((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *))dx.device->GetAvailableTextureMem)(
+    //                                                             dx.device,
+    //                                                             dx.device) >> 20;
+    texMemInMegs = dx.device->GetAvailableTextureMem() >> 20;
     if ( vidMemInMegs )
     {
         Com_Printf(
@@ -98,31 +122,31 @@ unsigned int __cdecl R_VideoMemory()
     return size;
 }
 
-const DDraw *__cdecl DDraw::Instance()
-{
-    if ( (`DDraw::Instance'::`2'::`local static guard' & 1) == 0 )
-    {
-        `DDraw::Instance'::`2'::`local static guard' |= 1u;
-        DDraw::DDraw(&`DDraw::Instance'::`2'::ddraw);
-        atexit(`DDraw::Instance'::`2'::`dynamic atexit destructor for 'ddraw'');
-    }
-    return &`DDraw::Instance'::`2'::ddraw;
-}
-
-DDraw *__thiscall DDraw::DDraw(DDraw *this)
-{
-    this->pDirectDrawCreateEx = 0;
-    this->pDirectDrawEnumerateEx = 0;
-    this->hDDraw = 0;
-    this->hDDraw = LoadLibraryA("ddraw.dll");
-    if ( this->hDDraw )
-    {
-        this->pDirectDrawCreateEx = (HRESULT (__stdcall *)(_GUID *, void **, const _GUID *, IUnknown *))GetProcAddress(this->hDDraw, "DirectDrawCreateEx");
-        this->pDirectDrawEnumerateEx = (HRESULT (__stdcall *)(int (__stdcall *)(_GUID *, char *, char *, void *, HMONITOR__ *), void *, unsigned int))GetProcAddress(this->hDDraw, "DirectDrawEnumerateExA");
-        this->Initialized = 1;
-    }
-    return this;
-}
+//const DDraw *__cdecl DDraw::Instance()
+//{
+//    if ( (`DDraw::Instance'::`2'::`local static guard' & 1) == 0 )
+//    {
+//        `DDraw::Instance'::`2'::`local static guard' |= 1u;
+//        DDraw::DDraw(&`DDraw::Instance'::`2'::ddraw);
+//        atexit(`DDraw::Instance'::`2'::`dynamic atexit destructor for 'ddraw'');
+//    }
+//    return &`DDraw::Instance'::`2'::ddraw;
+//}
+//
+//DDraw *__thiscall DDraw::DDraw(DDraw *this)
+//{
+//    this->pDirectDrawCreateEx = 0;
+//    this->pDirectDrawEnumerateEx = 0;
+//    this->hDDraw = 0;
+//    this->hDDraw = LoadLibraryA("ddraw.dll");
+//    if ( this->hDDraw )
+//    {
+//        this->pDirectDrawCreateEx = (HRESULT (__stdcall *)(_GUID *, void **, const _GUID *, IUnknown *))GetProcAddress(this->hDDraw, "DirectDrawCreateEx");
+//        this->pDirectDrawEnumerateEx = (HRESULT (__stdcall *)(int (__stdcall *)(_GUID *, char *, char *, void *, HMONITOR__ *), void *, unsigned int))GetProcAddress(this->hDDraw, "DirectDrawEnumerateExA");
+//        this->Initialized = 1;
+//    }
+//    return this;
+//}
 
 unsigned int __cdecl R_VideoMemoryForDevice(_GUID *lpGUID)
 {
@@ -131,8 +155,8 @@ unsigned int __cdecl R_VideoMemoryForDevice(_GUID *lpGUID)
     _DDSCAPS2 caps; // [esp+8h] [ebp-20h] BYREF
     HRESULT hr; // [esp+18h] [ebp-10h]
     IDirectDraw7 *dd; // [esp+1Ch] [ebp-Ch] BYREF
-    unsigned int total; // [esp+20h] [ebp-8h] BYREF
-    unsigned int free; // [esp+24h] [ebp-4h] BYREF
+    DWORD total; // [esp+20h] [ebp-8h] BYREF
+    DWORD free; // [esp+24h] [ebp-4h] BYREF
 
     v3 = DDraw::Instance();
     if ( v3->pDirectDrawCreateEx )
@@ -144,8 +168,9 @@ unsigned int __cdecl R_VideoMemoryForDevice(_GUID *lpGUID)
         return 0;
     memset(&caps.dwCaps2, 0, 12);
     caps.dwCaps = 0x10000000;
-    hr = dd->GetAvailableVidMem(dd, &caps, &total, &free);
-    ((void (__thiscall *)(IDirectDraw7 *, IDirectDraw7 *))dd->Release)(dd, dd);
+    hr = dd->GetAvailableVidMem(&caps, &total, &free);
+    //((void (__thiscall *)(IDirectDraw7 *, IDirectDraw7 *))dd->Release)(dd, dd);
+    dd->Release();
     if ( hr >= 0 )
         return total;
     else
@@ -177,9 +202,9 @@ unsigned int __cdecl R_DrasticVideoMemoryForDevice(_GUID *lpGUID)
     _DDSCAPS2 caps; // [esp+8h] [ebp-24h] BYREF
     HRESULT hr; // [esp+18h] [ebp-14h]
     IDirectDraw7 *dd; // [esp+1Ch] [ebp-10h] BYREF
-    unsigned int total; // [esp+20h] [ebp-Ch] BYREF
+    DWORD total; // [esp+20h] [ebp-Ch] BYREF
     HWND__ *hwndDummy; // [esp+24h] [ebp-8h]
-    unsigned int free; // [esp+28h] [ebp-4h] BYREF
+    DWORD free; // [esp+28h] [ebp-4h] BYREF
 
     v4 = DDraw::Instance();
     if ( v4->pDirectDrawCreateEx )
@@ -193,18 +218,20 @@ unsigned int __cdecl R_DrasticVideoMemoryForDevice(_GUID *lpGUID)
     hwndDummy = CreateWindowExA(0, "static", "dummy", 0, 0, 0, 1, 1, 0, 0, ModuleHandleA, 0);
     if ( hwndDummy )
     {
-        hr = ((int (__thiscall *)(IDirectDraw7 *, IDirectDraw7 *, HWND__ *, int))dd->SetCooperativeLevel)(
-                     dd,
-                     dd,
-                     hwndDummy,
-                     17);
+        //hr = ((int (__thiscall *)(IDirectDraw7 *, IDirectDraw7 *, HWND__ *, int))dd->SetCooperativeLevel)(
+        //             dd,
+        //             dd,
+        //             hwndDummy,
+        //             17);
+        hr = dd->SetCooperativeLevel(hwndDummy, 17);
         if ( hr >= 0 )
         {
             memset(&caps.dwCaps2, 0, 12);
             caps.dwCaps = 0x4000;
-            hr = dd->GetAvailableVidMem(dd, &caps, &total, &free);
+            hr = dd->GetAvailableVidMem(&caps, &total, &free);
             DestroyWindow(hwndDummy);
-            ((void (__thiscall *)(IDirectDraw7 *, IDirectDraw7 *))dd->Release)(dd, dd);
+            //((void (__thiscall *)(IDirectDraw7 *, IDirectDraw7 *))dd->Release)(dd, dd);
+            dd->Release();
             if ( hr >= 0 )
                 return total;
             else
@@ -213,13 +240,13 @@ unsigned int __cdecl R_DrasticVideoMemoryForDevice(_GUID *lpGUID)
         else
         {
             DestroyWindow(hwndDummy);
-            dd->Release(dd);
+            dd->Release();
             return 0;
         }
     }
     else
     {
-        dd->Release(dd);
+        dd->Release();
         return 0;
     }
 }

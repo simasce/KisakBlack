@@ -1,4 +1,18 @@
 #include "r_water.h"
+#include "r_material.h"
+#include <universal/q_shared.h>
+#include "r_image_load_common.h"
+#include "r_image.h"
+#include "r_dvars.h"
+#include <universal/com_workercmds.h>
+
+WaterGlob waterGlob;
+volatile unsigned int g_waterLock;
+WaterGlobStatic waterGlobStatic;
+
+volatile unsigned int r_waterLimit = 1;
+jqModule r_waterModule;
+jqWorkerCmd r_waterWorkerCmd = { &r_waterModule, 4u, 0, 0, &r_waterLimit, NULL, 0u };
 
 void __cdecl R_UploadWaterTextureInternal(water_t **data)
 {
@@ -331,21 +345,40 @@ void __cdecl R_UploadWaterTexture(water_t *water, float floatTime)
     }
 }
 
-void __cdecl R_InitWater()
-{
-    double v0; // xmm0_8
-    long double tableIndex; // [esp+0h] [ebp-4h]
+//void __cdecl R_InitWater()
+//{
+//    double v0; // xmm0_8
+//    long double tableIndex; // [esp+0h] [ebp-4h]
+//
+//    LODWORD(tableIndex) = 0;
+//    while ( SLODWORD(tableIndex) < 1024 )
+//    {
+//        v0 = (float)((float)((float)SLODWORD(tableIndex) * 0.3515625) * 0.017453292);
+//        __libm_sse2_sin(tableIndex);
+//        *(float *)&v0 = v0;
+//        waterGlobStatic.sinTable[LODWORD(tableIndex)++] = *(float *)&v0;
+//    }
+//    FFT_Init(waterGlobStatic.fftBitswap, waterGlobStatic.fftTrigTable);
+//}
 
-    LODWORD(tableIndex) = 0;
-    while ( SLODWORD(tableIndex) < 1024 )
+// aislop (sin)
+void R_InitWater(void)
+{
+    for (int i = 0; i < 1024; ++i)
     {
-        v0 = (float)((float)((float)SLODWORD(tableIndex) * 0.3515625) * 0.017453292);
-        __libm_sse2_sin(tableIndex);
-        *(float *)&v0 = v0;
-        waterGlobStatic.sinTable[LODWORD(tableIndex)++] = *(float *)&v0;
+        /* degrees -> radians */
+        const float angle =
+            (float)i * 0.3515625f * 0.017453292f;
+
+        waterGlobStatic.sinTable[i] = sinf(angle);
     }
-    FFT_Init(waterGlobStatic.fftBitswap, waterGlobStatic.fftTrigTable);
+
+    FFT_Init(
+        waterGlobStatic.fftBitswap,
+        waterGlobStatic.fftTrigTable
+    );
 }
+
 
 void __cdecl Load_PicmipWater(water_t **waterRef)
 {

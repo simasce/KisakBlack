@@ -1,4 +1,10 @@
 #include "r_wind.h"
+#include <universal/assertive.h>
+#include <cstring>
+#include "r_foliage.h"
+
+WindState frontendWind;
+WindState backendWind;
 
 void __cdecl R_InitWind()
 {

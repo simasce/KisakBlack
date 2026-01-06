@@ -1,25 +1,315 @@
 #include "r_state_utils.h"
+#include "rb_state.h"
+#include <universal/assertive.h>
+#include "r_state.h"
+#include "r_singlethreaded_device_pc.h"
+#include "r_dvars.h"
+#include "rb_logfile.h"
+#include "r_init.h"
+#include "r_draw_material.h"
+#include "r_foliage.h"
+
+unsigned int s_decodeSamplerFilterState[24];
+
+const MaterialUpdateFrequency s_codeConstUpdateFreq[] =
+{
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY
+};
+
+
 
 void __cdecl R_InitCmdBufSourceState(GfxCmdBufSourceState *source, const GfxCmdBufInput *input, int cameraView)
 {
     float *v3; // eax
     unsigned int constant; // [esp+Ch] [ebp-4h]
 
-    if ( !source
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp", 33, 0, "%s", "source") )
+    if (!source
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp", 33, 0, "%s", "source"))
     {
         __debugbreak();
     }
-    if ( !input
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp", 34, 0, "%s", "input") )
+    if (!input
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp", 34, 0, "%s", "input"))
     {
         __debugbreak();
     }
-    memset((unsigned __int8 *)source, 0, 0x1A90u);
-    memcpy(&source->2048, input, 0xE90u);
-    for ( constant = 0; constant < 0xC5; ++constant )
+    memset((unsigned __int8 *)source, 0, sizeof(GfxCmdBufSourceState));
+    memcpy(&source->input, input, sizeof(source->input));
+    for (constant = 0; constant < 0xC5; ++constant)
     {
-        if ( input == &gfxCmdBufInput || s_codeConstUpdateFreq[constant] != 2 || constant < 0x2F )
+        if (input == &gfxCmdBufInput || s_codeConstUpdateFreq[constant] != MTL_UPDATE_RARELY || constant < 0x2F)
         {
             source->input.consts[constant][0] = FLT_MAX;
             v3 = source->input.consts[constant];
@@ -29,22 +319,22 @@ void __cdecl R_InitCmdBufSourceState(GfxCmdBufSourceState *source, const GfxCmdB
         }
         else
         {
-            source->constVersions[constant + 24] = 1;
+            source->constVersions[constant] = 1;
         }
     }
-    if ( source->cameraView
+    if (source->shadowableLightForShadowLookupMatrix
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
-                    68,
-                    1,
-                    "%s",
-                    "source->shadowableLightForShadowLookupMatrix == PRIMARY_LIGHT_NONE") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
+            68,
+            1,
+            "%s",
+            "source->shadowableLightForShadowLookupMatrix == PRIMARY_LIGHT_NONE"))
     {
         __debugbreak();
     }
-    *(float *)&source->sceneViewport.x = 1.0f;
-    *(float *)&source->scissorViewport.x = 1.0f;
-    source->scissorViewport.y = cameraView;
+    source->skinnedPlacement.base.quat[3] = 1.0f;
+    source->skinnedPlacement.scale = 1.0f;
+    source->cameraView = cameraView;
 }
 
 void __cdecl R_InitCmdBufState(GfxCmdBufState *state)
@@ -110,12 +400,13 @@ void __cdecl R_HW_ForceSamplerState(IDirect3DDevice9 *device, unsigned int sampl
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("device->SetSamplerState( samplerIndex, D3DSAMP_MINFILTER, minFilter )\n");
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = ((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *, unsigned int, int, int))device->SetSamplerState)(
-                 device,
-                 device,
-                 samplerIndex,
-                 6,
-                 (unsigned __int16)(samplerState & 0xF00) >> 8);
+    hr = device->SetSamplerState(samplerIndex, (D3DSAMPLERSTATETYPE)6, (unsigned __int16)(samplerState & 0xF00) >> 8);
+    //hr = ((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *, unsigned int, int, int))device->SetSamplerState)(
+    //             device,
+    //             device,
+    //             samplerIndex,
+    //             6,
+    //             (unsigned __int16)(samplerState & 0xF00) >> 8);
     if ( semaphore )
         R_ReleaseDXDeviceOwnership();
     if ( hr < 0 )
@@ -134,7 +425,6 @@ void __cdecl R_HW_ForceSamplerState(IDirect3DDevice9 *device, unsigned int sampl
         RB_LogPrint("device->SetSamplerState( samplerIndex, D3DSAMP_MAGFILTER, magFilter )\n");
     v20 = R_AcquireDXDeviceOwnership(0);
     v21 = device->SetSamplerState(
-                    device,
                     samplerIndex,
                     D3DSAMP_MAGFILTER,
                     (unsigned __int16)(samplerState & 0xF000) >> 12);
@@ -157,7 +447,7 @@ void __cdecl R_HW_ForceSamplerState(IDirect3DDevice9 *device, unsigned int sampl
         if ( r_logFile && r_logFile->current.integer )
             RB_LogPrint("device->SetSamplerState( samplerIndex, D3DSAMP_MAXANISOTROPY, anisotropy )\n");
         v18 = R_AcquireDXDeviceOwnership(0);
-        v19 = device->SetSamplerState(device, samplerIndex, D3DSAMP_MAXANISOTROPY, (unsigned __int8)samplerState);
+        v19 = device->SetSamplerState(samplerIndex, D3DSAMP_MAXANISOTROPY, (unsigned __int8)samplerState);
         if ( v18 )
             R_ReleaseDXDeviceOwnership();
         if ( v19 < 0 )
@@ -176,12 +466,13 @@ void __cdecl R_HW_ForceSamplerState(IDirect3DDevice9 *device, unsigned int sampl
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("device->SetSamplerState( samplerIndex, D3DSAMP_MIPFILTER, mipFilter )\n");
     v16 = R_AcquireDXDeviceOwnership(0);
-    v17 = ((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *, unsigned int, int, unsigned int))device->SetSamplerState)(
-                    device,
-                    device,
-                    samplerIndex,
-                    7,
-                    (samplerState & 0xF0000) >> 16);
+    //v17 = ((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *, unsigned int, int, unsigned int))device->SetSamplerState)(
+    //                device,
+    //                device,
+    //                samplerIndex,
+    //                7,
+    //                (samplerState & 0xF0000) >> 16);
+    v17 = device->SetSamplerState(samplerIndex, (D3DSAMPLERSTATETYPE)7, (samplerState & 0xF0000) >> 16);
     if ( v16 )
         R_ReleaseDXDeviceOwnership();
     if ( v17 < 0 )
@@ -199,7 +490,7 @@ void __cdecl R_HW_ForceSamplerState(IDirect3DDevice9 *device, unsigned int sampl
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("device->SetSamplerState( samplerIndex, D3DSAMP_ADDRESSU, address )\n");
     v14 = R_AcquireDXDeviceOwnership(0);
-    v15 = device->SetSamplerState(device, samplerIndex, D3DSAMP_ADDRESSU, (samplerState & 0x300000) >> 20);
+    v15 = device->SetSamplerState(samplerIndex, D3DSAMP_ADDRESSU, (samplerState & 0x300000) >> 20);
     if ( v14 )
         R_ReleaseDXDeviceOwnership();
     if ( v15 < 0 )
@@ -218,10 +509,9 @@ void __cdecl R_HW_ForceSamplerState(IDirect3DDevice9 *device, unsigned int sampl
         RB_LogPrint("device->SetSamplerState( samplerIndex, D3DSAMP_ADDRESSV, address )\n");
     v12 = R_AcquireDXDeviceOwnership(0);
     v13 = device->SetSamplerState(
-                    device,
                     samplerIndex,
                     D3DSAMP_ADDRESSV,
-                    ((unsigned int)&loc_C00000 & samplerState) >> 22);
+                    (0xC00000 & samplerState) >> 22);
     if ( v12 )
         R_ReleaseDXDeviceOwnership();
     if ( v13 < 0 )
@@ -239,12 +529,13 @@ void __cdecl R_HW_ForceSamplerState(IDirect3DDevice9 *device, unsigned int sampl
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("device->SetSamplerState( samplerIndex, D3DSAMP_ADDRESSW, address )\n");
     v10 = R_AcquireDXDeviceOwnership(0);
-    v11 = ((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *, unsigned int, int, unsigned int))device->SetSamplerState)(
-                    device,
-                    device,
-                    samplerIndex,
-                    3,
-                    (samplerState & 0x3000000) >> 24);
+    //v11 = ((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *, unsigned int, int, unsigned int))device->SetSamplerState)(
+    //                device,
+    //                device,
+    //                samplerIndex,
+    //                3,
+    //                (samplerState & 0x3000000) >> 24);
+    v11 = device->SetSamplerState(samplerIndex, (D3DSAMPLERSTATETYPE)3, (samplerState & 0x3000000) >> 24);
     if ( v10 )
         R_ReleaseDXDeviceOwnership();
     if ( v11 < 0 )
@@ -274,7 +565,7 @@ void __cdecl R_SetDefaultAlphaTestFunction(GfxCmdBufState *state)
     if ( r_logFile && r_logFile->current.integer )
         RB_LogPrint("device->SetRenderState( D3DRS_ALPHAREF, 0 )\n");
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = device->SetRenderState(device, D3DRS_ALPHAREF, 0);
+    hr = device->SetRenderState(D3DRS_ALPHAREF, 0);
     if ( semaphore )
         R_ReleaseDXDeviceOwnership();
     if ( hr < 0 )
@@ -295,22 +586,22 @@ unsigned int __cdecl R_DecodeSamplerState(unsigned __int8 samplerState)
     unsigned int tableIndex; // [esp+0h] [ebp-8h]
 
     tableIndex = samplerState & 0x1F;
-    if ( tableIndex >= 0x18
+    if (tableIndex >= 0x18
         && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state.h",
-                    2421,
-                    0,
-                    "tableIndex doesn't index ARRAY_COUNT(s_decodeSamplerFilterState)\n\t%i not in [0, %i)",
-                    tableIndex,
-                    24) )
+            "c:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state.h",
+            2421,
+            0,
+            "tableIndex doesn't index ARRAY_COUNT(s_decodeSamplerFilterState)\n\t%i not in [0, %i)",
+            tableIndex,
+            24))
     {
         __debugbreak();
     }
-    return (unsigned int)&cls.rankedServers[14655].mapName[3]
-             | s_decodeSamplerFilterState[tableIndex]
-             | ((samplerState & 0x20) << 16)
-             | ((samplerState & 0x40) << 17)
-             | ((samplerState & 0x80) << 18);
+    return s_decodeSamplerFilterState[tableIndex]
+        | 0x1500000
+        | ((samplerState & 0x20) << 16)
+        | ((samplerState & 0x40) << 17)
+        | ((samplerState & 0x80) << 18);
 }
 
 void __cdecl R_SetDefaultStateBits(unsigned int *stateBits)
@@ -363,7 +654,6 @@ void __cdecl R_WorldMatrixChanged(GfxCmdBufSourceState *source)
 void __cdecl R_Set2D(GfxCmdBufSourceState *source)
 {
     GfxViewport viewport; // [esp+10h] [ebp-10h] BYREF
-    int savedregs; // [esp+20h] [ebp+0h] BYREF
 
     if ( source->scissorViewport.width != 2 )
     {
@@ -375,63 +665,102 @@ void __cdecl R_Set2D(GfxCmdBufSourceState *source)
         source->skinnedPlacement.base.origin[2] = 0.0f;
         source->skinnedPlacement.scale = 1.0f;
         R_GetViewport(source, &viewport);
-        R_CmdBufSet2D((GfxViewParms *)&savedregs, source, &viewport);
+        R_CmdBufSet2D(source, &viewport);
         //if ( g_DXDeviceThread == GetCurrentThreadId() )
             //D3DPERF_EndEvent();
     }
 }
 
 // local variable allocation has failed, the output may be wrong!
-void    R_CmdBufSet2D(GfxViewParms *a1@<ebp>, GfxCmdBufSourceState *source, GfxViewport *viewport)
+void    R_CmdBufSet2D(GfxCmdBufSourceState *source, GfxViewport *viewport)
 {
-    _BYTE v3[140]; // [esp-8h] [ebp-9Ch] OVERLAPPED BYREF
-    float v4; // [esp+84h] [ebp-10h]
+    //_BYTE v3[140]; // [esp-8h] [ebp-9Ch] OVERLAPPED BYREF
+    //float v4; // [esp+84h] [ebp-10h]
+    //GfxViewParms *viewParms; // [esp+88h] [ebp-Ch]
+    //float invHeight; // [esp+8Ch] [ebp-8h]
+    //float retaddr; // [esp+94h] [ebp+0h]
+    //
+    //viewParms = a1;
+    //invHeight = retaddr;
+    //if ( viewport->width <= 0
+    //    && !Assert_MyHandler(
+    //                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
+    //                271,
+    //                0,
+    //                "%s\n\t(viewport->width) = %i",
+    //                "(viewport->width > 0)",
+    //                viewport->width) )
+    //{
+    //    __debugbreak();
+    //}
+    //if ( viewport->height <= 0
+    //    && !Assert_MyHandler(
+    //                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
+    //                272,
+    //                0,
+    //                "%s\n\t(viewport->height) = %i",
+    //                "(viewport->height > 0)",
+    //                viewport->height) )
+    //{
+    //    __debugbreak();
+    //}
+    //v4 = 1.0 / (float)viewport->width;
+    //*(float *)&v3[136] = 1.0 / (float)viewport->height;
+    //*(unsigned int *)&v3[132] = source->viewParms.viewMatrix.m[3];
+    //memset(&v3[64], 0, 0x40u);
+    //*(float *)&v3[64] = 2.0 * v4;
+    //*(float *)&v3[84] = -2.0 * *(float *)&v3[136];
+    //*(float *)&v3[112] = -1.0 - v4;
+    //*(float *)&v3[116] = *(float *)&v3[136] + 1.0;
+    //*(float *)&v3[120] = 1.0f;
+    //*(float *)&v3[124] = 1.0f;
+    //R_MatrixIdentity44((float (*)[4])v3);
+    //R_MatrixIdentity44(*(float (**)[4])&v3[132]);
+    //memcpy((void *)(*(unsigned int *)&v3[132] + 64), &v3[64], 0x40u);
+    //memcpy((void *)(*(unsigned int *)&v3[132] + 128), &v3[64], 0x40u);
+    //memset((unsigned __int8 *)(*(unsigned int *)&v3[132] + 192), 0, 0x40u);
+    //++LOWORD(source->depthHackFlags);
+    //++HIWORD(source->depthHackFlags);
+    //++HIWORD(source->skinnedPlacement.base.quat[0]);
+    //memcpy(R_GetActiveWorldMatrix(source), v3, 0x40u);
+
+    // kcod4
+    GfxViewParms *v2; // ebp
+    float v3[16]; // [esp-8h] [ebp-9Ch] BYREF
+    GfxMatrix identity_52; // [esp+38h] [ebp-5Ch] BYREF
+    GfxViewParms *transform_56; // [esp+7Ch] [ebp-18h]
+    float transform_60; // [esp+80h] [ebp-14h]
+    float v7; // [esp+84h] [ebp-10h]
     GfxViewParms *viewParms; // [esp+88h] [ebp-Ch]
     float invHeight; // [esp+8Ch] [ebp-8h]
     float retaddr; // [esp+94h] [ebp+0h]
 
-    viewParms = a1;
-    invHeight = retaddr;
-    if ( viewport->width <= 0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
-                    271,
-                    0,
-                    "%s\n\t(viewport->width) = %i",
-                    "(viewport->width > 0)",
-                    viewport->width) )
-    {
-        __debugbreak();
-    }
-    if ( viewport->height <= 0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
-                    272,
-                    0,
-                    "%s\n\t(viewport->height) = %i",
-                    "(viewport->height > 0)",
-                    viewport->height) )
-    {
-        __debugbreak();
-    }
-    v4 = 1.0 / (float)viewport->width;
-    *(float *)&v3[136] = 1.0 / (float)viewport->height;
-    *(unsigned int *)&v3[132] = source->viewParms.viewMatrix.m[3];
-    memset(&v3[64], 0, 0x40u);
-    *(float *)&v3[64] = 2.0 * v4;
-    *(float *)&v3[84] = -2.0 * *(float *)&v3[136];
-    *(float *)&v3[112] = -1.0 - v4;
-    *(float *)&v3[116] = *(float *)&v3[136] + 1.0;
-    *(float *)&v3[120] = 1.0f;
-    *(float *)&v3[124] = 1.0f;
+    //viewParms = v2;
+    //invHeight = retaddr;
+    iassert(viewport->width > 0);
+    iassert(viewport->height > 0);
+    
+    v7 = 1.0 / (double)viewport->width;
+    transform_60 = 1.0 / (double)viewport->height;
+    transform_56 = &source->viewParms;
+    memset((unsigned __int8 *)&identity_52, 0, sizeof(identity_52));
+    identity_52.m[0][0] = v7 * 2.0;
+    identity_52.m[1][1] = transform_60 * -2.0;
+    identity_52.m[3][0] = -1.0 - v7;
+    identity_52.m[3][1] = transform_60 + 1.0;
+    identity_52.m[3][2] = 1.0;
+    identity_52.m[3][3] = 1.0;
     R_MatrixIdentity44((float (*)[4])v3);
-    R_MatrixIdentity44(*(float (**)[4])&v3[132]);
-    memcpy((void *)(*(unsigned int *)&v3[132] + 64), &v3[64], 0x40u);
-    memcpy((void *)(*(unsigned int *)&v3[132] + 128), &v3[64], 0x40u);
-    memset((unsigned __int8 *)(*(unsigned int *)&v3[132] + 192), 0, 0x40u);
-    ++LOWORD(source->depthHackFlags);
-    ++HIWORD(source->depthHackFlags);
-    ++HIWORD(source->skinnedPlacement.base.quat[0]);
+    R_MatrixIdentity44(transform_56->viewMatrix.m);
+    memcpy(&transform_56->projectionMatrix, &identity_52, sizeof(transform_56->projectionMatrix));
+    memcpy(&transform_56->viewProjectionMatrix, &identity_52, sizeof(transform_56->viewProjectionMatrix));
+    memset(
+        (unsigned __int8 *)&transform_56->inverseViewProjectionMatrix,
+        0,
+        sizeof(transform_56->inverseViewProjectionMatrix));
+    ++source->matrixVersions[1];
+    ++source->matrixVersions[2];
+    ++source->matrixVersions[4];
     memcpy(R_GetActiveWorldMatrix(source), v3, 0x40u);
 }
 
@@ -513,6 +842,7 @@ void __cdecl R_BeginView(GfxCmdBufSourceState *source, const GfxSceneDef *sceneD
     R_DeriveNearPlaneConstantsForView(source);
 }
 
+// KISAKTODO: cleanup
 void __cdecl R_DeriveNearPlaneConstantsForView(GfxCmdBufSourceState *source)
 {
     __int64 v1; // [esp+Ch] [ebp-4Ch]
@@ -521,56 +851,62 @@ void __cdecl R_DeriveNearPlaneConstantsForView(GfxCmdBufSourceState *source)
     float scale; // [esp+54h] [ebp-4h]
     float scalea; // [esp+54h] [ebp-4h]
 
-    if ( (float)(0.0000099999997 * source->viewParms.axis[2][1]) <= fabs(source->viewParms.inverseViewProjectionMatrix.m[3][3])
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
-                    406,
-                    0,
-                    "%s\n\t(mtx->m[0][3]) = %g",
-                    "(I_fabs( mtx->m[0][3] ) < 1.0e-5f * mtx->m[3][3])",
-                    source->viewParms.inverseViewProjectionMatrix.m[3][3]) )
-    {
-        __debugbreak();
-    }
-    if ( (float)(0.0000099999997 * source->viewParms.axis[2][1]) <= fabs(source->viewParms.origin[3])
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
-                    407,
-                    0,
-                    "%s\n\t(mtx->m[1][3]) = %g",
-                    "(I_fabs( mtx->m[1][3] ) < 1.0e-5f * mtx->m[3][3])",
-                    source->viewParms.origin[3]) )
-    {
-        __debugbreak();
-    }
-    if ( source->viewParms.axis[2][1] == 0.0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
-                    408,
-                    0,
-                    "%s",
-                    "mtx->m[3][3] != 0") )
-    {
-        __debugbreak();
-    }
-    scale = 1.0 / source->viewParms.axis[2][1];
-    *(float *)&v3 = (float)(scale * source->viewParms.axis[1][2]) - source->viewParms.depthHackNearClip;
-    *((float *)&v3 + 1) = (float)(scale * source->viewParms.axis[2][0]) - source->viewParms.zNear;
-    source->input.consts[16][0] = (float)(scale * source->viewParms.axis[1][1]) - source->viewParms.axis[2][2];
-    *(_QWORD *)&source->gap0[260] = v3;
+    //if ((float)(0.0000099999997 * source->viewParms.inverseViewProjectionMatrix.m[3][3]) <= COERCE_FLOAT(
+    //    LODWORD(source->viewParms.inverseViewProjectionMatrix.m[0][3])
+    //    & _mask__AbsFloat_)
+    //    && !Assert_MyHandler(
+    //        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
+    //        406,
+    //        0,
+    //        "%s\n\t(mtx->m[0][3]) = %g",
+    //        "(I_fabs( mtx->m[0][3] ) < 1.0e-5f * mtx->m[3][3])",
+    //        source->viewParms.inverseViewProjectionMatrix.m[0][3]))
+    //{
+    //    __debugbreak();
+    //}
+    //if ((float)(0.0000099999997 * source->viewParms.inverseViewProjectionMatrix.m[3][3]) <= COERCE_FLOAT(
+    //    LODWORD(source->viewParms.inverseViewProjectionMatrix.m[1][3])
+    //    & _mask__AbsFloat_)
+    //    && !Assert_MyHandler(
+    //        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
+    //        407,
+    //        0,
+    //        "%s\n\t(mtx->m[1][3]) = %g",
+    //        "(I_fabs( mtx->m[1][3] ) < 1.0e-5f * mtx->m[3][3])",
+    //        source->viewParms.inverseViewProjectionMatrix.m[1][3]))
+    //{
+    //    __debugbreak();
+    //}
+    //if (source->viewParms.inverseViewProjectionMatrix.m[3][3] == 0.0
+    //    && !Assert_MyHandler(
+    //        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state_utils.cpp",
+    //        408,
+    //        0,
+    //        "%s",
+    //        "mtx->m[3][3] != 0"))
+    //{
+    //    __debugbreak();
+    //}
+    scale = 1.0 / source->viewParms.inverseViewProjectionMatrix.m[3][3];
+    *(float *)&v3 = (float)(scale * source->viewParms.inverseViewProjectionMatrix.m[3][1]) - source->viewParms.origin[1];
+    *((float *)&v3 + 1) = (float)(scale * source->viewParms.inverseViewProjectionMatrix.m[3][2])
+        - source->viewParms.origin[2];
+    source->input.consts[16][0] = (float)(scale * source->viewParms.inverseViewProjectionMatrix.m[3][0])
+        - source->viewParms.origin[0];
+    *(_QWORD *)&source->input.consts[16][1] = v3;
     source->input.consts[16][3] = 0.0f;
     R_DirtyCodeConstant(source, 0x10u);
     scalea = scale + scale;
-    *(float *)&v2 = scalea * source->viewParms.inverseViewProjectionMatrix.m[3][1];
-    *((float *)&v2 + 1) = scalea * source->viewParms.inverseViewProjectionMatrix.m[3][2];
-    source->input.consts[17][0] = scalea * source->viewParms.inverseViewProjectionMatrix.m[3][0];
-    *(_QWORD *)&source->gap0[276] = v2;
+    *(float *)&v2 = scalea * source->viewParms.inverseViewProjectionMatrix.m[0][1];
+    *((float *)&v2 + 1) = scalea * source->viewParms.inverseViewProjectionMatrix.m[0][2];
+    source->input.consts[17][0] = scalea * source->viewParms.inverseViewProjectionMatrix.m[0][0];
+    *(_QWORD *)&source->input.consts[17][1] = v2;
     source->input.consts[17][3] = 0.0f;
     R_DirtyCodeConstant(source, 0x11u);
-    *(float *)&v1 = COERCE_FLOAT(LODWORD(scalea) ^ _mask__NegFloat_) * source->viewParms.origin[1];
-    *((float *)&v1 + 1) = COERCE_FLOAT(LODWORD(scalea) ^ _mask__NegFloat_) * source->viewParms.origin[2];
-    source->input.consts[18][0] = COERCE_FLOAT(LODWORD(scalea) ^ _mask__NegFloat_) * source->viewParms.origin[0];
-    *(_QWORD *)&source->gap0[292] = v1;
+    v1 = (-(scalea)) * source->viewParms.inverseViewProjectionMatrix.m[1][1];
+    *((float *)&v1 + 1) = (-(scalea)) * source->viewParms.inverseViewProjectionMatrix.m[1][2];
+    source->input.consts[18][0] = (-(scalea)) * source->viewParms.inverseViewProjectionMatrix.m[1][0];
+    *(_QWORD *)&source->input.consts[18][1] = v1;
     source->input.consts[18][3] = 0.0f;
     R_DirtyCodeConstant(source, 0x12u);
 }

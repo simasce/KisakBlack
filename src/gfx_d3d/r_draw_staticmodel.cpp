@@ -1,4 +1,14 @@
 #include "r_draw_staticmodel.h"
+#include "r_shade.h"
+#include "r_foliage.h"
+#include "r_state.h"
+#include "rb_shade.h"
+#include "r_state_utils.h"
+#include <ik/ik_math.h>
+#include "r_model_lighting.h"
+#include "r_xsurface.h"
+#include "r_staticmodelcache.h"
+#include <xanim/xmodel_utils.h>
 
 void __cdecl R_DrawStaticModelSurfLit(
                 const unsigned int *primDrawSurfPos,

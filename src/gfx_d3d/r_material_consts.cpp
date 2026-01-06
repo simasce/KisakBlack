@@ -1,4 +1,5 @@
 #include "r_material_consts.h"
+#include <universal/q_shared.h>
 
 void __cdecl R_GetPixelLiteralConsts(
                 const Material *mtl,

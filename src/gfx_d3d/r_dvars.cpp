@@ -6,6 +6,7 @@
 #include "r_reflection_probe.h"
 #include "r_warn.h"
 #include <universal/q_shared.h>
+#include "r_init.h"
 
 const dvar_s *r_ignore;
 const dvar_s *r_clipCodec;

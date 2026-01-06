@@ -1,4 +1,12 @@
 #include "r_utils.h"
+#include <universal/com_memory.h>
+#include "r_dpvs.h"
+#include <EffectsCore/fx_convert.h>
+#include <cgame/cg_world.h>
+#include "r_debug.h"
+#include "r_dvars.h"
+#include "rb_backend.h"
+#include <win32/win_shared.h>
 
 unsigned int __cdecl R_HashAssetName(const char *name)
 {
@@ -62,13 +70,8 @@ char __cdecl R_CullPointAndRadius(const float *pt, float radius, const DpvsPlane
 
     for ( planeIndex = 0; planeIndex < clipPlaneCount; ++planeIndex )
     {
-        if ( COERCE_FLOAT(LODWORD(radius) ^ _mask__NegFloat_) > (float)((float)((float)((float)(*pt
-                                                                                                                                                                                    * clipPlanes[planeIndex].coeffs[0])
-                                                                                                                                                                    + (float)(pt[1]
-                                                                                                                                                                                    * clipPlanes[planeIndex].coeffs[1]))
-                                                                                                                                                    + (float)(pt[2]
-                                                                                                                                                                    * clipPlanes[planeIndex].coeffs[2]))
-                                                                                                                                    + clipPlanes[planeIndex].coeffs[3]) )
+        //if ( COERCE_FLOAT(LODWORD(radius) ^ _mask__NegFloat_) > (float)((float)((float)((float)(*pt * clipPlanes[planeIndex].coeffs[0]) + (float)(pt[1] * clipPlanes[planeIndex].coeffs[1])) + (float)(pt[2] * clipPlanes[planeIndex].coeffs[2])) + clipPlanes[planeIndex].coeffs[3]) )
+        if ( (-(radius)) > (float)((float)((float)((float)(*pt * clipPlanes[planeIndex].coeffs[0]) + (float)(pt[1] * clipPlanes[planeIndex].coeffs[1])) + (float)(pt[2] * clipPlanes[planeIndex].coeffs[2])) + clipPlanes[planeIndex].coeffs[3]) )
             return 1;
     }
     return 0;
@@ -116,93 +119,171 @@ int __cdecl R_PickEntityBone(int traceMask, const float *org, const float *dir, 
     return 1;
 }
 
-double __cdecl FresnelTerm(float n0, float n1, float cosIncidentAngle)
-{
-    float v3; // xmm0_4
-    long double v5; // [esp+8h] [ebp-6Ch]
-    long double v6; // [esp+8h] [ebp-6Ch]
-    long double v7; // [esp+8h] [ebp-6Ch]
-    long double v8; // [esp+8h] [ebp-6Ch]
-    long double v9; // [esp+8h] [ebp-6Ch]
-    long double v10; // [esp+8h] [ebp-6Ch]
-    long double v11; // [esp+8h] [ebp-6Ch]
-    double tanRatio_4; // [esp+20h] [ebp-54h]
-    double sinRatio_4; // [esp+38h] [ebp-3Ch]
-    double sinSum_4; // [esp+48h] [ebp-2Ch]
-    double sinTransmissionAngle_4; // [esp+58h] [ebp-1Ch]
+//double __cdecl FresnelTerm(float n0, float n1, float cosIncidentAngle)
+//{
+//    float v3; // xmm0_4
+//    long double v5; // [esp+8h] [ebp-6Ch]
+//    long double v6; // [esp+8h] [ebp-6Ch]
+//    long double v7; // [esp+8h] [ebp-6Ch]
+//    long double v8; // [esp+8h] [ebp-6Ch]
+//    long double v9; // [esp+8h] [ebp-6Ch]
+//    long double v10; // [esp+8h] [ebp-6Ch]
+//    long double v11; // [esp+8h] [ebp-6Ch]
+//    double tanRatio_4; // [esp+20h] [ebp-54h]
+//    double sinRatio_4; // [esp+38h] [ebp-3Ch]
+//    double sinSum_4; // [esp+48h] [ebp-2Ch]
+//    double sinTransmissionAngle_4; // [esp+58h] [ebp-1Ch]
+//
+//    if ( cosIncidentAngle < -1.0
+//        && !Assert_MyHandler(
+//                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
+//                    347,
+//                    1,
+//                    "%s\n\t(cosIncidentAngle) = %g",
+//                    "(cosIncidentAngle >= -1)",
+//                    cosIncidentAngle) )
+//    {
+//        __debugbreak();
+//    }
+//    if ( cosIncidentAngle > 1.0
+//        && !Assert_MyHandler(
+//                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
+//                    348,
+//                    1,
+//                    "%s\n\t(cosIncidentAngle) = %g",
+//                    "(cosIncidentAngle <= 1)",
+//                    cosIncidentAngle) )
+//    {
+//        __debugbreak();
+//    }
+//    __libm_sse2_acos(v5);
+//    sinTransmissionAngle_4 = fabs(cosIncidentAngle);
+//    __libm_sse2_sin(v6);
+//    sinSum_4 = (float)(n0 / n1) * sinTransmissionAngle_4;
+//    if ( sinSum_4 <= 1.0 )
+//    {
+//        if ( sinSum_4 < -1.0 )
+//            sinSum_4 = -1.0;
+//    }
+//    else
+//    {
+//        sinSum_4 = 1.0;
+//    }
+//    __libm_sse2_asin(v7);
+//    __libm_sse2_sin(v8);
+//    sinRatio_4 = sinTransmissionAngle_4 + sinSum_4;
+//    if ( sinTransmissionAngle_4 + sinSum_4 == 0.0
+//        && !Assert_MyHandler(
+//                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
+//                    361,
+//                    1,
+//                    "%s\n\t(sinSum) = %g",
+//                    "(sinSum != 0)",
+//                    sinRatio_4) )
+//    {
+//        __debugbreak();
+//    }
+//    __libm_sse2_sin(v9);
+//    __libm_sse2_tan(v10);
+//    tanRatio_4 = sinTransmissionAngle_4 + sinSum_4;
+//    if ( sinTransmissionAngle_4 + sinSum_4 == 0.0
+//        && !Assert_MyHandler(
+//                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
+//                    367,
+//                    1,
+//                    "%s\n\t(tanSum) = %g",
+//                    "(tanSum != 0)",
+//                    tanRatio_4) )
+//    {
+//        __debugbreak();
+//    }
+//    __libm_sse2_tan(v11);
+//    v3 = ((sinTransmissionAngle_4 - sinSum_4) / sinRatio_4 * ((sinTransmissionAngle_4 - sinSum_4) / sinRatio_4)
+//            + (sinTransmissionAngle_4 - sinSum_4) / tanRatio_4 * ((sinTransmissionAngle_4 - sinSum_4) / tanRatio_4))
+//         * 0.5;
+//    if ( v3 < 0.0 )
+//        return 0.0;
+//    if ( v3 <= 1.0 )
+//        return v3;
+//    return 1.0;
+//}
 
-    if ( cosIncidentAngle < -1.0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
-                    347,
-                    1,
-                    "%s\n\t(cosIncidentAngle) = %g",
-                    "(cosIncidentAngle >= -1)",
-                    cosIncidentAngle) )
+// aislop (sse maths)
+double FresnelTerm(float n0, float n1, float cosIncidentAngle)
+{
+    /* domain validation */
+    if (cosIncidentAngle < -1.0f || cosIncidentAngle > 1.0f)
     {
-        __debugbreak();
+        if (!Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
+            347,
+            1,
+            "%s\n\t(cosIncidentAngle) = %g",
+            "(cosIncidentAngle >= -1 && cosIncidentAngle <= 1)",
+            cosIncidentAngle))
+        {
+            __debugbreak();
+        }
     }
-    if ( cosIncidentAngle > 1.0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
-                    348,
-                    1,
-                    "%s\n\t(cosIncidentAngle) = %g",
-                    "(cosIncidentAngle <= 1)",
-                    cosIncidentAngle) )
+
+    /* incident angle */
+    const float theta_i = acosf(cosIncidentAngle);
+
+    /* Snell’s law */
+    float sin_theta_t = (n0 / n1) * sinf(theta_i);
+
+    /* clamp for asin */
+    if (sin_theta_t > 1.0f) sin_theta_t = 1.0f;
+    if (sin_theta_t < -1.0f) sin_theta_t = -1.0f;
+
+    const float theta_t = asinf(sin_theta_t);
+
+    const float sin_sum = sinf(theta_i + theta_t);
+    const float sin_diff = sinf(theta_i - theta_t);
+
+    if (sin_sum == 0.0f)
     {
-        __debugbreak();
+        if (!Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
+            361,
+            1,
+            "%s\n\t(sinSum) = %g",
+            "(sinSum != 0)",
+            sin_sum))
+        {
+            __debugbreak();
+        }
     }
-    __libm_sse2_acos(v5);
-    sinTransmissionAngle_4 = fabs(cosIncidentAngle);
-    __libm_sse2_sin(v6);
-    sinSum_4 = (float)(n0 / n1) * sinTransmissionAngle_4;
-    if ( sinSum_4 <= 1.0 )
+
+    const float tan_sum = tanf(theta_i + theta_t);
+    const float tan_diff = tanf(theta_i - theta_t);
+
+    if (tan_sum == 0.0f)
     {
-        if ( sinSum_4 < -1.0 )
-            sinSum_4 = DOUBLE_N1_0;
+        if (!Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
+            367,
+            1,
+            "%s\n\t(tanSum) = %g",
+            "(tanSum != 0)",
+            tan_sum))
+        {
+            __debugbreak();
+        }
     }
-    else
-    {
-        sinSum_4 = 1.0;
-    }
-    __libm_sse2_asin(v7);
-    __libm_sse2_sin(v8);
-    sinRatio_4 = sinTransmissionAngle_4 + sinSum_4;
-    if ( sinTransmissionAngle_4 + sinSum_4 == 0.0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
-                    361,
-                    1,
-                    "%s\n\t(sinSum) = %g",
-                    "(sinSum != 0)",
-                    sinRatio_4) )
-    {
-        __debugbreak();
-    }
-    __libm_sse2_sin(v9);
-    __libm_sse2_tan(v10);
-    tanRatio_4 = sinTransmissionAngle_4 + sinSum_4;
-    if ( sinTransmissionAngle_4 + sinSum_4 == 0.0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_utils.cpp",
-                    367,
-                    1,
-                    "%s\n\t(tanSum) = %g",
-                    "(tanSum != 0)",
-                    tanRatio_4) )
-    {
-        __debugbreak();
-    }
-    __libm_sse2_tan(v11);
-    v3 = ((sinTransmissionAngle_4 - sinSum_4) / sinRatio_4 * ((sinTransmissionAngle_4 - sinSum_4) / sinRatio_4)
-            + (sinTransmissionAngle_4 - sinSum_4) / tanRatio_4 * ((sinTransmissionAngle_4 - sinSum_4) / tanRatio_4))
-         * 0.5;
-    if ( v3 < 0.0 )
+
+    const float Rs = sin_diff / sin_sum;
+    const float Rp = tan_diff / tan_sum;
+
+    float F = 0.5f * (Rs * Rs + Rp * Rp);
+
+    /* clamp result */
+    if (F < 0.0f)
         return 0.0;
-    if ( v3 <= 1.0 )
-        return v3;
-    return 1.0;
+    if (F > 1.0f)
+        return 1.0;
+
+    return F;
 }
 
 char __cdecl R_GetClearColor(float *unpackedRgba)

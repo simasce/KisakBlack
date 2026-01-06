@@ -1,5 +1,113 @@
 #pragma once
 
+#include <tl/jobqueue/jobqueue_all.h>
+#include <gfx_d3d/r_material.h>
+#include <gfx_d3d/r_marks.h>
+
+struct __declspec(align(4)) FxMark // sizeof=0x5C
+{                                       // XREF: FxMarksSystem/r
+    unsigned __int16 prevMark;
+    unsigned __int16 nextMark;
+    int frameCountDrawn;
+    int frameCountAlloced;
+    int ageMsec;
+    float origin[3];
+    float radius;
+    float texCoordAxis[3];
+    float hitNormal[3];
+    unsigned __int8 nativeColor[4];
+    Material *material;
+    int tris;
+    int points;
+    FxMarkAlphaFade alphaFade;
+    GfxMarkContext context;
+    unsigned __int16 pointCount;
+    unsigned __int8 triCount;
+    unsigned __int8 markFlags;
+    // padding byte
+    // padding byte
+};
+
+struct FxTriGroup // sizeof=0x18
+{                                       // XREF: FxTriGroupPool/r
+    unsigned __int16 indices[2][3];
+    GfxMarkContext context;
+    unsigned __int8 triCount;
+    unsigned __int8 unused[1];
+    int next;
+};
+
+union FxTriGroupPool // sizeof=0x18
+{                                       // XREF: FxMarksSystem/r
+    FxTriGroupPool *nextFreeTriGroup;
+    FxTriGroup triGroup;
+};
+
+struct FxMarkPoint // sizeof=0x20
+{                                       // XREF: .data:g_fxMarkPoints/r
+                                        // FxPointGroup/r
+    float xyz[3];
+    float lmapCoord[2];
+    float normal[3];
+};
+
+struct FxPointGroup // sizeof=0x44
+{                                       // XREF: FxPointGroupPool/r
+    FxMarkPoint points[2];
+    int next;
+};
+
+union FxPointGroupPool // sizeof=0x44
+{                                       // XREF: FxMarksSystem/r
+    FxPointGroupPool *nextFreePointGroup;
+    FxPointGroup pointGroup;
+};
+
+struct FxMarksSystem // sizeof=0x26028
+{
+    int frameCount;
+    unsigned __int16 firstFreeMarkHandle;
+    unsigned __int16 firstActiveWorldMarkHandle;
+    unsigned __int16 entFirstMarkHandles[1536];
+    FxTriGroupPool *firstFreeTriGroup;
+    FxPointGroupPool *firstFreePointGroup;
+    FxMark marks[256];
+    FxTriGroupPool triGroups[1024];
+    FxPointGroupPool pointGroups[1536];
+    bool noMarks;
+    bool hasCarryIndex;
+    unsigned __int16 carryIndex;
+    unsigned int allocedMarkCount;
+    unsigned int freedMarkCount;
+    unsigned int numVisibleWorldSeethru;
+    unsigned int numVisibleEntBrushSeethru;
+    int frameTime;
+};
+
+struct FxMarkDObjUpdateContext // sizeof=0x108
+{                                       // XREF: ?CG_Corpse@@YAXHPAUcentity_s@@@Z/r
+                                        // ?CG_UpdatePlayerDObj@@YAXHPAUcentity_s@@@Z/r ...
+    XModel *models[32];
+    const char *modelParentBones[32];
+    int modelCount;
+    bool isBrush;
+    // padding byte
+    unsigned __int16 brushIndex;
+};
+
+struct FxActiveMarkSurf // sizeof=0x24
+{                                       // XREF: FX_GenerateMarkVertsForList_EntXModel/r
+                                        // FX_GenerateMarkVertsForList_EntDObj/r ...
+    Material *material;
+    GfxMarkContext context;
+    // padding byte
+    // padding byte
+    int indexCount;
+    unsigned __int16 *indices;
+    float markHitNormal[3];
+    unsigned int visLightsMask;
+};
+
 bool __cdecl FX_MarkIsAlphaFadedOut(const FxMark *mark);
 unsigned __int8 __cdecl FX_MarkGetFadedAlpha(const FxMark *mark);
 void __cdecl FX_InitMarksSystem(FxMarksSystem *marksSystem);
@@ -196,7 +304,6 @@ void __cdecl FX_GenerateMarkVertsForMark_FinishAnimated(
                 const GfxLight *visibleLights,
                 int visibleLightCount);
 void    FX_GenerateMarkVertsForMark_MatrixFromPlacement(
-                float a1@<ebp>,
                 const GfxPlacement *placement,
                 const float *viewOffset,
                 float (*outTransform)[3]);
@@ -226,7 +333,6 @@ char __cdecl FX_GenerateMarkVertsForList_EntDObj(
                 int visibleLightCount);
 // local variable allocation has failed, the output may be wrong!
 void    FX_GenerateMarkVertsForMark_MatrixFromAnim(
-                int a1@<ebp>,
                 const FxMark *mark,
                 const DObj *dobj,
                 const DObjAnimMat *boneMtxList,
@@ -282,3 +388,5 @@ char __cdecl FX_GenerateMarkVertsForList_WorldBrush(
                 int visibleLightCount);
 void __cdecl FX_MarkUpdateClientTime(unsigned int localClientNum, int frameTime);
 int __cdecl FX_GetFrameTotalSeeThruDecalCount(unsigned int localClientNum);
+
+extern jqWorkerCmd fx_add_markWorkerCmd;

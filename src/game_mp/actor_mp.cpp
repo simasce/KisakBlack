@@ -1,4 +1,5 @@
 #include "actor_mp.h"
+#include "g_main_mp.h"
 
 void __fastcall VisCache_Update(vis_cache_t *pCache, bool bVisible)
 {

@@ -1,5 +1,10 @@
 #include "r_ui3d.h"
 
+GfxUI3DStack g_ui3dStack;
+Ui3dTextureWindow g_ui3d_windows[6];
+Ui3dStatus g_ui3dStatus;
+
+
 GfxUI3DStack *__cdecl R_GetUI3DStack()
 {
     return &g_ui3dStack;

@@ -105,3 +105,5 @@ void __cdecl R_DownsampleMipMapBilinear(
                 int srcHeight,
                 int texelPitch,
                 unsigned __int8 *dst);
+
+extern int Image_TrackBytes;

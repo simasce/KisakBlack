@@ -2,7 +2,6 @@
 
 // local variable allocation has failed, the output may be wrong!
 void    R_SetLightProperties(
-                float a1@<ebp>,
                 GfxCmdBufSourceState *source,
                 const GfxLight *light,
                 const GfxLightDef *def,

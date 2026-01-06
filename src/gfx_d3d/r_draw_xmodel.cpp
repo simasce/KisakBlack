@@ -1,4 +1,10 @@
 #include "r_draw_xmodel.h"
+#include "r_state_utils.h"
+#include "r_model_lighting.h"
+#include "r_state.h"
+#include "r_draw_model_util.h"
+#include "r_shade.h"
+#include "r_dvars.h"
 
 char __cdecl R_DrawXModelSurfCheckBreak(
                 unsigned int gfxEntIndex,

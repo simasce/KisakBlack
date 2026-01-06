@@ -2,7 +2,6 @@
 
 // local variable allocation has failed, the output may be wrong!
 void    R_SetDrawLitConstants(
-                int a1@<ebp>,
                 GfxCmdBufSourceState *source,
                 const GfxViewInfo *viewInfo,
                 const GfxViewParms *viewParms)

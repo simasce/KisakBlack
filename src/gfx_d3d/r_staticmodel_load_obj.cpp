@@ -1,4 +1,8 @@
 #include "r_staticmodel_load_obj.h"
+#include <universal/com_memory.h>
+#include <xanim/xmodel.h>
+#include <xanim/xmodel_load_obj.h>
+#include <xanim/xmodel_utils.h>
 
 int __cdecl R_CellForPoint(const float *origin)
 {
@@ -462,7 +466,7 @@ void __cdecl R_FilterStaticModelIntoCells_r(
         if ( planeIndex < 0 )
             break;
         plane = &world->dpvsPlanes.planes[planeIndex];
-        boxSide = BoxOnPlaneSide(mins2, maxs2, plane, v10, v11, localmaxs[0], localmaxs[1]);
+        boxSide = BoxOnPlaneSide(mins2, maxs2, plane);
         if ( boxSide == 3 )
         {
             type = plane->type;
@@ -482,7 +486,7 @@ void __cdecl R_FilterStaticModelIntoCells_r(
                 localmaxs[1] = maxs2[1];
                 localmaxs[2] = maxs2[2];
                 localmaxs[plane->type] = dist;
-                if ( BoxOnPlaneSide(localmins, maxs2, plane, v10, v11, localmaxs[0], localmaxs[1]) != 1
+                if ( BoxOnPlaneSide(localmins, maxs2, plane) != 1
                     && !Assert_MyHandler(
                                 "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_staticmodel_load_obj.cpp",
                                 517,
@@ -693,6 +697,96 @@ void __cdecl R_SetStaticModelReflectionProbe(
     {
         __debugbreak();
     }
+}
+
+unsigned int __cdecl R_FindNearestReflectionProbe_0(const GfxWorld *world, const float *origin)
+{
+    float bestProbeDist; // [esp+Ch] [ebp-Ch]
+    unsigned __int8 bestProbe; // [esp+12h] [ebp-6h]
+    unsigned __int8 probeIndex; // [esp+13h] [ebp-5h]
+    float testProbeDist; // [esp+14h] [ebp-4h]
+
+    if (world->draw.reflectionProbeCount >= 0xFF
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_staticmodel_load_obj.cpp",
+            594,
+            0,
+            "%s",
+            "world->draw.reflectionProbeCount < 0xff"))
+    {
+        __debugbreak();
+    }
+    bestProbe = 0;
+    //bestProbeDist = FLOAT_3_4028235e38;
+    bestProbeDist = FLT_MAX;
+    for (probeIndex = 1; probeIndex < world->draw.reflectionProbeCount; ++probeIndex)
+    {
+        testProbeDist = Vec3DistanceSq(world->draw.reflectionProbes[probeIndex].origin, origin);
+        if (bestProbeDist > testProbeDist)
+        {
+            bestProbeDist = testProbeDist;
+            bestProbe = probeIndex;
+        }
+    }
+    return bestProbe;
+}
+
+unsigned int __cdecl R_FindNearestReflectionProbeInCell_0(
+        const GfxWorld *world,
+        const GfxCell *cell,
+        const float *origin)
+{
+  float bestProbeDist; // [esp+Ch] [ebp-10h]
+  unsigned __int8 bestProbe; // [esp+12h] [ebp-Ah]
+  unsigned __int8 probeIndex; // [esp+13h] [ebp-9h]
+  float testProbeDist; // [esp+14h] [ebp-8h]
+  unsigned int cellProbeIndex; // [esp+18h] [ebp-4h]
+
+  if ( world->draw.reflectionProbeCount >= 0xFF
+    && !Assert_MyHandler(
+          "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_staticmodel_load_obj.cpp",
+          563,
+          0,
+          "%s",
+          "world->draw.reflectionProbeCount < 0xff") )
+  {
+    __debugbreak();
+  }
+  bestProbe = 0;
+  //bestProbeDist = FLOAT_3_4028235e38;
+  bestProbeDist = FLT_MAX;
+  if ( !cell->reflectionProbeCount
+    && !Assert_MyHandler(
+          "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_staticmodel_load_obj.cpp",
+          569,
+          0,
+          "%s",
+          "cell->reflectionProbeCount > 0") )
+  {
+    __debugbreak();
+  }
+  for ( cellProbeIndex = 0; cellProbeIndex < cell->reflectionProbeCount; ++cellProbeIndex )
+  {
+    probeIndex = cell->reflectionProbes[cellProbeIndex];
+    if ( probeIndex >= world->draw.reflectionProbeCount
+      && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_staticmodel_load_obj.cpp",
+            573,
+            0,
+            "probeIndex doesn't index world->draw.reflectionProbeCount\n\t%i not in [0, %i)",
+            probeIndex,
+            world->draw.reflectionProbeCount) )
+    {
+      __debugbreak();
+    }
+    testProbeDist = Vec3DistanceSq(world->draw.reflectionProbes[probeIndex].origin, origin);
+    if ( bestProbeDist > testProbeDist )
+    {
+      bestProbeDist = testProbeDist;
+      bestProbe = probeIndex;
+    }
+  }
+  return bestProbe;
 }
 
 unsigned int __cdecl R_CalcReflectionProbeIndex(const GfxWorld *world, const float *origin)

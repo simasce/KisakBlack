@@ -1,4 +1,24 @@
 #pragma once
+#include <universal/fft.h>
+
+struct water_t;
+
+struct WaterGlob // sizeof=0x9000
+{                                       // XREF: .data:waterGlob/r
+    complex_s H[4096];
+    unsigned __int8 pixels[4096];       // XREF: R_UploadWaterTextureInternal(void *)+48/o
+                                        // R_UploadWaterTextureInternal(void *)+59/o ...
+};
+
+struct WaterGlobStatic // sizeof=0x1C00
+{                                       // XREF: .data:waterGlobStatic/r
+    float sinTable[1024];               // XREF: WaterFrequenciesAtTime+187/r
+                                        // WaterFrequenciesAtTime+198/r ...
+    complex_s fftTrigTable[256];        // XREF: WaterAmplitudesFromFrequencies:loc_AC4971/o
+                                        // WaterAmplitudesFromFrequencies:loc_AC4A32/o ...
+    int fftBitswap[256];                // XREF: WaterAmplitudesFromFrequencies+146/o
+                                        // WaterAmplitudesFromFrequencies+207/o ...
+};
 
 void __cdecl R_UploadWaterTextureInternal(water_t **data);
 void __cdecl WaterFrequenciesAtTime(complex_s *H, const water_t *water, float t);

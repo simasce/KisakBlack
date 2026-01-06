@@ -3,6 +3,8 @@
 #include <tl/jobqueue/jobqueue_all.h>
 #include <universal/q_shared.h>
 
+struct GfxWorld;
+
 enum stream_status : __int32
 {                                       // XREF: pendingRequest/r
                                         // pendingRequest/r
@@ -258,3 +260,5 @@ int __cdecl r_stream_sortCallback(jqBatch *batch);
 int __cdecl r_stream_combineCallback(jqBatch *batch);
 int __cdecl r_stream_updateCallback(jqBatch *batch);
 void __cdecl R_StreamUpdateStatic(const float *viewPos, float maxDistSq, float *distanceScale);
+
+extern StreamFrontendGlob streamFrontendGlob;

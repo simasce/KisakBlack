@@ -16,6 +16,41 @@ struct ScopedUI3DStack // sizeof=0x4
                                         // DrawSingleHudElem2d+E8/r ...
 };
 
+struct Ui3dTextureWindow // sizeof=0x9C
+{                                       // XREF: .data:Ui3dTextureWindow * g_ui3d_windows/r
+    GfxViewport vp;
+    ScreenPlacement scrPlace;           // XREF: R_UI3D_ScrPlaceFromTextureWindow(int)+36/o
+    float normX;
+    float normY;
+    float normW;
+    float normH;
+    int numRenderCmds;                  // XREF: R_UI3D_PerframeInit(void)+32/w
+};
+
+struct Ui3dStatus // sizeof=0x14
+{                                       // XREF: .data:Ui3dStatus g_ui3dStatus/r
+    bool initialized;                   // XREF: R_UI3D_CheckRenderTarget(void)+3C/r
+                                        // R_UI3D_OnetimeInit(ushort,ushort,bool,int,bool)+4/r ...
+    bool rendering;                     // XREF: R_UI3D_Shutdown(void):loc_A8B2A5/r
+                                        // RB_UI3D_RenderToTexture(void const *,GfxUI3DBackend const *,GfxCmdBufInput const *):loc_A8BBA7/w ...
+    unsigned __int16 width;             // XREF: R_UI3D_CheckRenderTarget(void)+18/w
+                                        // R_UI3D_CheckRenderTarget(void)+61/r ...
+    unsigned __int16 height;            // XREF: R_UI3D_CheckRenderTarget(void)+26/w
+                                        // R_UI3D_CheckRenderTarget(void)+59/r ...
+    bool useDisplaySize;                // XREF: R_UI3D_CheckRenderTarget(void)+6/r
+                                        // R_UI3D_OnetimeInit(ushort,ushort,bool,int,bool)+4D/w
+    // padding byte
+    int pmemLocation;                   // XREF: R_UI3D_CheckRenderTarget(void)+53/r
+                                        // R_UI3D_OnetimeInit(ushort,ushort,bool,int,bool)+56/w
+    bool hasPingPongBuffer;             // XREF: R_UI3D_CheckRenderTarget(void)+4B/r
+                                        // R_UI3D_OnetimeInit(ushort,ushort,bool,int,bool)+86/w ...
+    // padding byte
+    // padding byte
+    // padding byte
+    float blurRadius;                   // XREF: R_UI3D_SetBlurRadius(float)+8/w
+                                        // R_UI3D_OnetimeInit(ushort,ushort,bool,int,bool)+94/w ...
+};
+
 GfxUI3DStack *__cdecl R_GetUI3DStack();
 void __cdecl R_UI3DStack_Push(GfxUI3DStack *stack, int val);
 void __cdecl R_UI3DStack_Pop(GfxUI3DStack *stack);

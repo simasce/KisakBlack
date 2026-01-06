@@ -1,4 +1,5 @@
 #include "r_draw_model_util.h"
+#include "rb_shade.h"
 
 void __cdecl R_SetStreamsForXModelSurface(
                 const XSurface *localSurf,

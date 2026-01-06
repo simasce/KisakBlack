@@ -1,4 +1,10 @@
 #include "r_water_load_obj.h"
+#include "r_material.h"
+#include <qcommon/common.h>
+#include "r_image_load_obj.h"
+
+int sceneWaterMapSetupsCount;
+water_t sceneWaterMapSetups[16];
 
 water_t *__cdecl R_LoadWaterSetup(const water_t *water)
 {
@@ -149,11 +155,8 @@ bool __cdecl R_WatersEquivalent(const water_t *w0, const water_t *w1)
                  (float)((float)(w0->winddir[0] * w0->winddir[0]) + (float)(w0->winddir[1] * w0->winddir[1]))
              * (float)((float)(w1->winddir[0] * w1->winddir[0]) + (float)(w1->winddir[1] * w1->winddir[1])))
          + 1.0e-10;
-    return COERCE_FLOAT(
-                     COERCE_UNSIGNED_INT(
-                         (float)((float)((float)(w0->winddir[0] * w1->winddir[0]) + (float)(w0->winddir[1] * w1->winddir[1])) / v3)
-                     - 1.0)
-                 & _mask__AbsFloat_) <= 0.001;
+    //return COERCE_FLOAT(COERCE_UNSIGNED_INT((float)((float)((float)(w0->winddir[0] * w1->winddir[0]) + (float)(w0->winddir[1] * w1->winddir[1])) / v3) - 1.0) & _mask__AbsFloat_) <= 0.001;
+    return ((fabs((float)((float)((float)(w0->winddir[0] * w1->winddir[0]) + (float)(w0->winddir[1] * w1->winddir[1])) / v3) - 1.0)) <= 0.001);
 }
 
 void __cdecl R_CreateWaterSetup(const water_t *source, int waterMapSetupIndex, water_t *destination)
@@ -196,59 +199,138 @@ void __cdecl R_CreateWaterSetup(const water_t *source, int waterMapSetupIndex, w
     destination->image = image;
 }
 
-void __cdecl R_PickWaterFrequencies(water_t *water)
-{
-    long double v1; // [esp+0h] [ebp-50h]
-    int m; // [esp+10h] [ebp-40h]
-    float m_scale; // [esp+14h] [ebp-3Ch]
-    float kz; // [esp+1Ch] [ebp-34h]
-    float windfactor; // [esp+20h] [ebp-30h]
-    float L_sqrd; // [esp+24h] [ebp-2Ch]
-    float windvelsqrd; // [esp+2Ch] [ebp-24h]
-    float n_scale; // [esp+30h] [ebp-20h]
-    int n; // [esp+34h] [ebp-1Ch]
-    float scale; // [esp+38h] [ebp-18h]
-    int i; // [esp+3Ch] [ebp-14h]
-    float kx; // [esp+40h] [ebp-10h]
-    complex_s E; // [esp+44h] [ebp-Ch] BYREF
-    float w_sqrd; // [esp+4Ch] [ebp-4h]
+//void __cdecl R_PickWaterFrequencies(water_t *water)
+//{
+//    long double v1; // [esp+0h] [ebp-50h]
+//    int m; // [esp+10h] [ebp-40h]
+//    float m_scale; // [esp+14h] [ebp-3Ch]
+//    float kz; // [esp+1Ch] [ebp-34h]
+//    float windfactor; // [esp+20h] [ebp-30h]
+//    float L_sqrd; // [esp+24h] [ebp-2Ch]
+//    float windvelsqrd; // [esp+2Ch] [ebp-24h]
+//    float n_scale; // [esp+30h] [ebp-20h]
+//    int n; // [esp+34h] [ebp-1Ch]
+//    float scale; // [esp+38h] [ebp-18h]
+//    int i; // [esp+3Ch] [ebp-14h]
+//    float kx; // [esp+40h] [ebp-10h]
+//    complex_s E; // [esp+44h] [ebp-Ch] BYREF
+//    float w_sqrd; // [esp+4Ch] [ebp-4h]
+//
+//    if ( !water
+//        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_water_load_obj.cpp", 56, 0, "%s", "water") )
+//    {
+//        __debugbreak();
+//    }
+//    windvelsqrd = water->windvel * water->windvel;
+//    L_sqrd = (float)(windvelsqrd * windvelsqrd) / water->gravity;
+//    n_scale = 6.2831855 / (float)((float)water->N * water->Lx);
+//    m_scale = 6.2831855 / (float)((float)water->M * water->Lz);
+//    i = 0;
+//    for ( n = -water->N / 2; n < water->N / 2; ++n )
+//    {
+//        kx = (float)n * n_scale;
+//        for ( m = -water->M / 2; m < water->M / 2; ++m )
+//        {
+//            kz = (float)m * m_scale;
+//            GaussianRandom(&E.real, &E.imag);
+//            w_sqrd = water->gravity * sqrtf((float)(kx * kx) + (float)(kz * kz));
+//            windfactor = (float)(water->winddir[0] * kx) + (float)(water->winddir[1] * kz);
+//            if ( windfactor > 0.0 )
+//            {
+//                __libm_sse2_exp(v1);
+//                HIDWORD(v1) = sqrtf(
+//                                                (float)((float)((float)(water->amplitude
+//                                                                                            * (float)(-1.0
+//                                                                                                            / (float)((float)((float)(kx * kx) + (float)(kz * kz)) * L_sqrd)))
+//                                                                            / (float)((float)((float)((float)(kx * kx) + (float)(kz * kz))
+//                                                                                                            * (float)((float)(kx * kx) + (float)(kz * kz)))
+//                                                                                            * (float)((float)(kx * kx) + (float)(kz * kz))))
+//                                                            * (float)(windfactor * windfactor))
+//                                            * 0.5);
+//                scale = *((float *)&v1 + 1) * water->amplitude;
+//                water->H0[i].real = E.real * scale;
+//                water->H0[i].imag = E.imag * scale;
+//                LODWORD(v1) = sqrtf(w_sqrd);
+//                water->wTerm[i] = *(float *)&v1;
+//            }
+//            else
+//            {
+//                water->H0[i].real = 0.0f;
+//                water->H0[i].imag = 0.0f;
+//                water->wTerm[i] = 0.0f;
+//            }
+//            ++i;
+//        }
+//    }
+//}
 
-    if ( !water
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_water_load_obj.cpp", 56, 0, "%s", "water") )
+// aislop (exp)
+void R_PickWaterFrequencies(water_t *water)
+{
+    if (!water)
     {
-        __debugbreak();
-    }
-    windvelsqrd = water->windvel * water->windvel;
-    L_sqrd = (float)(windvelsqrd * windvelsqrd) / water->gravity;
-    n_scale = 6.2831855 / (float)((float)water->N * water->Lx);
-    m_scale = 6.2831855 / (float)((float)water->M * water->Lz);
-    i = 0;
-    for ( n = -water->N / 2; n < water->N / 2; ++n )
-    {
-        kx = (float)n * n_scale;
-        for ( m = -water->M / 2; m < water->M / 2; ++m )
+        if (!Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_water_load_obj.cpp",
+            56, 0, "%s", "water"))
         {
-            kz = (float)m * m_scale;
+            __debugbreak();
+        }
+        return;
+    }
+
+    const float windVelSq = water->windvel * water->windvel;
+    const float L_sqrd = (windVelSq * windVelSq) / water->gravity;
+
+    const float n_scale = 6.2831855f / (water->N * water->Lx);
+    const float m_scale = 6.2831855f / (water->M * water->Lz);
+
+    int i = 0;
+
+    for (int n = -water->N / 2; n < water->N / 2; ++n)
+    {
+        const float kx = n * n_scale;
+
+        for (int m = -water->M / 2; m < water->M / 2; ++m)
+        {
+            const float kz = m * m_scale;
+
+            complex_s E;
             GaussianRandom(&E.real, &E.imag);
-            w_sqrd = water->gravity * sqrtf((float)(kx * kx) + (float)(kz * kz));
-            windfactor = (float)(water->winddir[0] * kx) + (float)(water->winddir[1] * kz);
-            if ( windfactor > 0.0 )
+
+            const float k2 = kx * kx + kz * kz;
+
+            if (k2 > 0.0f)
             {
-                __libm_sse2_exp(v1);
-                HIDWORD(v1) = sqrtf(
-                                                (float)((float)((float)(water->amplitude
-                                                                                            * (float)(-1.0
-                                                                                                            / (float)((float)((float)(kx * kx) + (float)(kz * kz)) * L_sqrd)))
-                                                                            / (float)((float)((float)((float)(kx * kx) + (float)(kz * kz))
-                                                                                                            * (float)((float)(kx * kx) + (float)(kz * kz)))
-                                                                                            * (float)((float)(kx * kx) + (float)(kz * kz))))
-                                                            * (float)(windfactor * windfactor))
-                                            * 0.5);
-                scale = *((float *)&v1 + 1) * water->amplitude;
-                water->H0[i].real = E.real * scale;
-                water->H0[i].imag = E.imag * scale;
-                LODWORD(v1) = sqrtf(w_sqrd);
-                water->wTerm[i] = *(float *)&v1;
+                const float k = sqrtf(k2);
+
+                const float windFactor =
+                    water->winddir[0] * kx +
+                    water->winddir[1] * kz;
+
+                if (windFactor > 0.0f)
+                {
+                    /* Phillips spectrum */
+                    const float expTerm =
+                        expf(-1.0f / (k2 * L_sqrd));
+
+                    const float spectrum =
+                        water->amplitude *
+                        expTerm *
+                        (windFactor * windFactor) /
+                        (k2 * k2 * k2);
+
+                    const float scale = sqrtf(spectrum * 0.5f);
+
+                    water->H0[i].real = E.real * scale;
+                    water->H0[i].imag = E.imag * scale;
+                    water->wTerm[i] = sqrtf(water->gravity * k);
+                }
+                else
+                {
+                    water->H0[i].real = 0.0f;
+                    water->H0[i].imag = 0.0f;
+                    water->wTerm[i] = 0.0f;
+                }
             }
             else
             {
@@ -256,10 +338,12 @@ void __cdecl R_PickWaterFrequencies(water_t *water)
                 water->H0[i].imag = 0.0f;
                 water->wTerm[i] = 0.0f;
             }
+
             ++i;
         }
     }
 }
+
 
 void __cdecl R_InitLoadWater()
 {

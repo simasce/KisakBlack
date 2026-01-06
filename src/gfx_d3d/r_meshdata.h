@@ -2,6 +2,8 @@
 #include "r_rendercmds.h"
 #include "rb_state.h"
 
+struct GfxQuadMeshData;
+
 struct GfxMeshData // sizeof=0x24
 {                                       // XREF: .data:GfxMeshData * g_codeMesh/r
                                         // GfxQuadMeshData/r ...
@@ -12,6 +14,13 @@ struct GfxMeshData // sizeof=0x24
     GfxVertexBufferState vb;            // XREF: R_InitRenderBuffers(void)+5D/w
     // R_InitGlassRenderBuffers(int,int,int)+64/w ...
     unsigned int vertSize;
+};
+
+struct GfxMeshGlobals // sizeof=0x1A8
+{                                       // XREF: .data:GfxMeshGlobals gfxMeshGlob/r
+    GfxQuadMeshData fullSceneViewMesh[4];
+    GfxMeshData spotShadowClearMeshData[4];
+    GfxMeshData sunShadowClearMeshData[2];
 };
 
 void __cdecl R_BeginMeshVerts(GfxMeshData *mesh);
@@ -43,3 +52,5 @@ void __cdecl R_SetQuadMesh(
                 float t1,
                 unsigned int color);
 void __cdecl R_DrawQuadMesh(GfxCmdBufContext context, const Material *material, GfxMeshData *quadMesh);
+
+extern GfxMeshGlobals gfxMeshGlob;

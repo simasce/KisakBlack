@@ -1,4 +1,12 @@
 #include "r_meshdata.h"
+#include "rb_backend.h"
+#include "rb_tess.h"
+#include "r_state_utils.h"
+#include "r_state.h"
+#include "r_shade.h"
+#include "rb_stats.h"
+
+GfxMeshGlobals gfxMeshGlob;
 
 void __cdecl R_BeginMeshVerts(GfxMeshData *mesh)
 {
@@ -147,7 +155,8 @@ void __cdecl R_SetQuadMeshData(
                 unsigned int color)
 {
     GfxVertex *verts; // [esp+14h] [ebp-Ch]
-    r_double_index_t *indices; // [esp+18h] [ebp-8h]
+    //r_double_index_t *indices; // [esp+18h] [ebp-8h]
+    int *indices; // [esp+18h] [ebp-8h]
 
     if ( !mesh && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_meshdata.cpp", 147, 0, "%s", "mesh") )
         __debugbreak();
@@ -185,10 +194,10 @@ void __cdecl R_SetQuadMeshData(
         __debugbreak();
     }
     R_BeginMeshVerts(mesh);
-    indices = (r_double_index_t *)mesh->indices;
-    *indices = (r_double_index_t)3;
-    indices[1] = (r_double_index_t)131074;
-    indices[2] = (r_double_index_t)0x10000;
+    indices = (int *)mesh->indices;
+    *indices = 3;
+    indices[1] = 131074;
+    indices[2] = 0x10000;
     verts = (GfxVertex *)mesh->vb.verts;
     R_SetVertex2d(verts, x, y, s0, t0, color);
     R_SetVertex2d(verts + 1, x + w, y, s1, t0, color);

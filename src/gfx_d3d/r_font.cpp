@@ -7,6 +7,7 @@
 #include <database/db_registry.h>
 #include <stringed/stringed_hooks.h>
 #include <ctype.h>
+#include "r_init.h"
 
 const char MYRANDOMNUMCHARS[10] =
 { '0', '2', '3', '4', '5', '6', '7', '8', '9', '\0' };
@@ -173,7 +174,7 @@ Font_s *__cdecl R_RegisterFont_LoadObj(const char *fontName, int imageTrack)
 
 Font_s *__cdecl R_RegisterFont_FastFile(const char *fontName)
 {
-    return DB_FindXAssetHeader(ASSET_TYPE_FONT, fontName, 1, -1).font;
+    return DB_FindXAssetHeader(ASSET_TYPE_FONT, (char*)fontName, 1, -1).font;
 }
 
 void __cdecl R_InitFonts()

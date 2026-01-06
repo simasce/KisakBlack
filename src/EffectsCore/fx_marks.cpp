@@ -1,5 +1,24 @@
 #include "fx_marks.h"
+#include <cstddef>
+#include <universal/assertive.h>
+#include <universal/q_shared.h>
+#include <universal/com_workercmds.h>
+#include "fx_draw.h"
+#include "fx_random.h"
+#include "fx_dvars.h"
+#include <client/cl_debugdata.h>
+#include <gfx_d3d/r_material_load_obj.h>
+#include "fx_system.h"
+#include <cgame/cg_compass.h>
 
+volatile unsigned int fx_add_markLimit = 1;
+jqModule fx_add_markModule;
+jqWorkerCmd fx_add_markWorkerCmd = { &fx_add_markModule, 44u, 0, 0, &fx_add_markLimit, NULL, 0u };
+
+FxMarksSystem *fx_marksSystemPool;
+int fx_maxLocalClients;
+
+// *WARNING* One or more selections were skipped as they could not be interpreted as c data
 bool __cdecl FX_MarkIsAlphaFadedOut(const FxMark *mark)
 {
     return mark->alphaFade.ageLimitMsec > 0 && mark->ageMsec > mark->alphaFade.ageLimitMsec;
@@ -355,11 +374,11 @@ void __cdecl FX_CreateImpactMark(
 }
 
 void __cdecl FX_CreateImpactMarkInternal(
-                int localClientNum,
-                const FxElemDef *elemDef,
-                const FxSpatialFrame *spatialFrame,
-                int randomSeed,
-                unsigned int markEntnum)
+    int localClientNum,
+    const FxElemDef *elemDef,
+    const FxSpatialFrame *spatialFrame,
+    int randomSeed,
+    unsigned int markEntnum)
 {
     FxElemVisualState visState; // [esp+28h] [ebp-44h] BYREF
     FxMarkAlphaFade markAlpha; // [esp+44h] [ebp-28h] BYREF
@@ -367,16 +386,14 @@ void __cdecl FX_CreateImpactMarkInternal(
     FxElemMarkVisuals *markVisuals; // [esp+68h] [ebp-4h]
 
     FX_SetupVisualState(elemDef, 0, randomSeed, 0.0, &preVisState);
-    visState.size[0] = (float)((float)((float)(*(float *)&dword_CAEB48[randomSeed]
-                                                                                     * preVisState.refState->amplitude.size[0])
-                                                                     + preVisState.refState->base.size[0])
-                                                     * preVisState.sampleLerpInv)
-                                     + (float)((float)((float)(*(float *)&dword_CAEB48[randomSeed]
-                                                                                     * preVisState.refState[1].amplitude.size[0])
-                                                                     + preVisState.refState[1].base.size[0])
-                                                     * preVisState.sampleLerp);
+    visState.size[0] = (float)((float)((float)(fx_randomTable[randomSeed + 26] * preVisState.refState->amplitude.size[0])
+        + preVisState.refState->base.size[0])
+        * preVisState.sampleLerpInv)
+        + (float)((float)((float)(fx_randomTable[randomSeed + 26] * preVisState.refState[1].amplitude.size[0])
+            + preVisState.refState[1].base.size[0])
+            * preVisState.sampleLerp);
     FX_EvaluateVisualState(localClientNum, &preVisState, 1.0, &visState);
-    if ( elemDef->lifeSpanMsec.base <= 1 || elemDef->alphaFadeTimeMsec >= elemDef->lifeSpanMsec.base )
+    if (elemDef->lifeSpanMsec.base <= 1 || elemDef->alphaFadeTimeMsec >= elemDef->lifeSpanMsec.base)
     {
         markAlpha.ageLimitMsec = 0;
         markAlpha.fadeStartAgeMsec = 0;
@@ -384,7 +401,7 @@ void __cdecl FX_CreateImpactMarkInternal(
     else
     {
         markAlpha.ageLimitMsec = elemDef->lifeSpanMsec.base
-                                                     + (((elemDef->lifeSpanMsec.amplitude + 1) * LOWORD(fx_randomTable[randomSeed + 17])) >> 16);
+            + (((elemDef->lifeSpanMsec.amplitude + 1) * LOWORD(fx_randomTable[randomSeed + 17])) >> 16);
         markAlpha.fadeStartAgeMsec = markAlpha.ageLimitMsec - elemDef->alphaFadeTimeMsec;
     }
     markVisuals = &elemDef->visuals.markArray[(elemDef->visualCount * LOWORD(fx_randomTable[randomSeed + 21])) >> 16];

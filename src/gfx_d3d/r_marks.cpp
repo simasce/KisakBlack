@@ -1,5 +1,7 @@
 #include "r_marks.h"
 #include "r_dpvs.h"
+#include <xanim/dobj_utils.h>
+#include <cgame_mp/cg_pose_mp.h>
 
 
 void    R_BoxSurfaces(
@@ -12,45 +14,18 @@ void    R_BoxSurfaces(
                 unsigned int *surfCounts,
                 unsigned int listCount)
 {
-    unsigned int j; // [esp-Ch] [ebp-A4h]
-    unsigned int i; // [esp-8h] [ebp-A0h]
-    unsigned int v11[2]; // [esp-4h] [ebp-9Ch] BYREF
-    int v12; // [esp+8Ch] [ebp-Ch]
-    void *v13; // [esp+90h] [ebp-8h]
-    void *retaddr; // [esp+98h] [ebp+0h]
+    // kcod4
+    unsigned __int8 cellBits[128]; // [esp-4h] [ebp-9Ch] BYREF
 
-    v12 = a1;
-    v13 = retaddr;
-    if ( !rgp.world
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_marks.cpp", 955, 0, "%s", "rgp.world") )
-    {
-        __debugbreak();
-    }
-    if ( rgp.world->dpvsPlanes.cellCount > 1024
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_marks.cpp",
-                    956,
-                    0,
-                    "%s\n\t(rgp.world->dpvsPlanes.cellCount) = %i",
-                    "(rgp.world->dpvsPlanes.cellCount <= (1024))",
-                    rgp.world->dpvsPlanes.cellCount) )
-    {
-        __debugbreak();
-    }
-    if ( rgp.world->cellBitsCount > 128
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_marks.cpp",
-                    957,
-                    0,
-                    "%s\n\t(rgp.world->cellBitsCount) = %i",
-                    "(rgp.world->cellBitsCount <= ((1024) >> 3))",
-                    rgp.world->cellBitsCount) )
-    {
-        __debugbreak();
-    }
-    Com_Memset(v11, 0, rgp.world->cellBitsCount);
-    for ( i = 0; i < listCount; ++i )
+    iassert(rgp.world);
+    iassert(rgp.world->dpvsPlanes.cellCount <= (1024));
+    iassert(rgp.world->cellBitsCount <= ((1024) >> 3));
+
+    Com_Memset(cellBits, 0, rgp.world->cellBitsCount);
+
+    for (unsigned int i = 0; i < listCount; ++i)
         surfCounts[i] = 0;
+
     R_BoxSurfaces_r(
         (mnode_t *)rgp.world->dpvsPlanes.nodes,
         mins,
@@ -61,20 +36,11 @@ void    R_BoxSurfaces(
         surfListSize,
         surfCounts,
         listCount,
-        (unsigned __int8 *)v11);
-    for ( j = 0; j < listCount; ++j )
+        (unsigned __int8 *)cellBits);
+
+    for (unsigned int i = 0; i < listCount; ++i)
     {
-        if ( surfCounts[j] > surfListSize
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_marks.cpp",
-                        974,
-                        0,
-                        "surfCounts[i] <= surfListSize\n\t%i, %i",
-                        surfCounts[j],
-                        surfListSize) )
-        {
-            __debugbreak();
-        }
+        iassert(surfCounts[i] <= surfListSize);
     }
 }
 
@@ -103,11 +69,7 @@ void __cdecl R_BoxSurfaces_r(
         side = (const cplane_s *)BoxOnPlaneSide(
                                                              mins,
                                                              maxs,
-                                                             &rgp.world->dpvsPlanes.planes[cellIndex - cellCount],
-                                                             side,
-                                                             *(float *)&cellIndex,
-                                                             *(float *)&cellCount,
-                                                             COERCE_FLOAT(cellIndex - cellCount));
+                                                             &rgp.world->dpvsPlanes.planes[cellIndex - cellCount]);
         if ( side == (const cplane_s *)1 )
         {
             ++node;
@@ -481,8 +443,7 @@ void __cdecl R_AABBTreeSurfacesTwoLists_r(
     }
 }
 
-int    R_BoxStaticModels@<eax>(
-                int a1@<ebp>,
+int    R_BoxStaticModels(
                 const float *mins,
                 const float *maxs,
                 int (__cdecl *allowSModel)(int),
@@ -572,11 +533,7 @@ void __cdecl R_BoxStaticModels_r(
         side = (const cplane_s *)BoxOnPlaneSide(
                                                              mins,
                                                              maxs,
-                                                             &rgp.world->dpvsPlanes.planes[cellIndex - cellCount],
-                                                             side,
-                                                             *(float *)&cellIndex,
-                                                             *(float *)&cellCount,
-                                                             COERCE_FLOAT(cellIndex - cellCount));
+                                                             &rgp.world->dpvsPlanes.planes[cellIndex - cellCount]);
         if ( side == (const cplane_s *)1 )
         {
             ++node;
@@ -755,7 +712,6 @@ void __cdecl R_MarkFragments_Begin(
             __debugbreak();
         }
         markInfo->smodelCollidedCount = R_BoxStaticModels(
-                                                                            (int)&savedregs,
                                                                             markInfo->mins,
                                                                             markInfo->maxs,
                                                                             (int (__cdecl *)(int))CL_LocalClient_GetActiveCount,

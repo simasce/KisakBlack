@@ -1,4 +1,9 @@
 #include "r_sprite.h"
+#include <xanim/xanim.h>
+#include "fxprimitives.h"
+#include "r_drawsurf.h"
+#include <EffectsCore/fx_sprite.h>
+#include <universal/com_math_anglevectors.h>
 
 void __cdecl R_BuildQuadStampCodeMeshVerts(
                 Material *material,

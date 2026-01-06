@@ -1,5 +1,7 @@
 #pragma once
 
+#include <d3d9.h>
+
 void __cdecl R_VertexStream2_Init(unsigned int stream2ByteSize);
 bool __cdecl AllocateVertexStream2Buffer(unsigned int stream2ByteSize);
 void __cdecl R_VertexStream2_Shutdown();

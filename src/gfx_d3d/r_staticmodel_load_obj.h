@@ -1,4 +1,5 @@
 #pragma once
+#include "r_dpvs.h"
 
 int __cdecl R_CellForPoint(const float *origin);
 unsigned int __cdecl R_CalcReflectionProbeIndex(const float *origin);

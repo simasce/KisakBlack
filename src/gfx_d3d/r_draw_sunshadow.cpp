@@ -1,7 +1,12 @@
 #include "r_draw_sunshadow.h"
+#include "r_state_utils.h"
+#include "r_wind.h"
+#include "r_state.h"
+#include "r_foliage.h"
+#include "r_dvars.h"
+#include "rb_draw3d.h"
 
 void    R_DrawSunShadowMap(
-                int a1@<ebp>,
                 const GfxViewInfo *viewInfo,
                 unsigned int partitionIndex,
                 GfxCmdBuf *cmdBuf)

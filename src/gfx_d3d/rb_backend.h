@@ -248,6 +248,26 @@ union static_model_leaf_t // sizeof=0x8
     static_model_node_list_t freenode;
 };
 
+struct static_model_tree_list_t // sizeof=0x8
+{                                       // XREF: static_model_tree_t/r
+    static_model_tree_list_t *prev;     // XREF: SMC_ForceFreeBlock+9/r
+    static_model_tree_list_t *next;     // XREF: SMC_ClearCache+90/w
+};
+
+struct static_model_node_t // sizeof=0x4
+{                                       // XREF: static_model_tree_t/r
+    __int16 usedVerts;
+    bool inuse;
+    unsigned __int8 reserved;
+};
+
+struct static_model_tree_t // sizeof=0x108
+{                                       // XREF: static_model_cache_t/r
+    static_model_tree_list_t usedlist;
+    unsigned int frameCount;
+    static_model_node_t nodes[63];
+};
+
 struct ScopedShaderConstantSetUndo // sizeof=0x7C
 {                                       // XREF: R_RenderDrawSurfListMaterial/r
     GfxCmdBufSourceState *m_sourceState;

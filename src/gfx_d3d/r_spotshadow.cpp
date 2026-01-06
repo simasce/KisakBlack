@@ -1,4 +1,9 @@
 #include "r_spotshadow.h"
+#include "r_model_pose.h"
+#include <cgame/cg_pose_utils.h>
+#include "r_dobj_skin.h"
+#include "r_dvars.h"
+#include "rb_backend.h"
 
 void __cdecl R_AddSpotShadowEntCmd(const GfxSpotShadowEntCmd *data)
 {
@@ -14,7 +19,7 @@ void __cdecl R_AddSpotShadowEntCmd(const GfxSpotShadowEntCmd *data)
 
     cmd = data;
     sceneEnt = data->sceneEnt;
-    boneMatrix = R_UpdateSceneEntBounds((GfxSceneEntity *)&savedregs, sceneEnt, &localSceneEnt, &obj, 1);
+    boneMatrix = R_UpdateSceneEntBounds(sceneEnt, &localSceneEnt, &obj, 1);
     if ( boneMatrix )
     {
         if ( !localSceneEnt
@@ -52,48 +57,47 @@ void __cdecl R_AddSpotShadowEntCmd(const GfxSpotShadowEntCmd *data)
 }
 
 char __cdecl R_AddSpotShadowsForLight(
-                GfxViewInfo *viewInfo,
-                GfxLight *light,
-                unsigned int shadowableLightIndex,
-                unsigned int totalSpotLightCount,
-                float spotShadowFade)
+    GfxViewInfo *viewInfo,
+    GfxLight *light,
+    unsigned int shadowableLightIndex,
+    unsigned int totalSpotLightCount,
+    float spotShadowFade)
 {
     float nearPlaneBias; // [esp+4h] [ebp-38h]
-    bool v7; // [esp+8h] [ebp-34h]
+    BOOL v7; // [esp+8h] [ebp-34h]
     float v8; // [esp+18h] [ebp-24h]
     float v9; // [esp+1Ch] [ebp-20h]
     float v10; // [esp+20h] [ebp-1Ch]
     unsigned int tileCount; // [esp+30h] [ebp-Ch]
     GfxSpotShadow *spotShadow; // [esp+34h] [ebp-8h]
     unsigned int spotShadowIndex; // [esp+38h] [ebp-4h]
-    int savedregs; // [esp+3Ch] [ebp+0h] BYREF
 
-    if ( !light
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_spotshadow.cpp", 275, 0, "%s", "light") )
+    if (!light
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_spotshadow.cpp", 275, 0, "%s", "light"))
     {
         __debugbreak();
     }
-    if ( light->type != 2
+    if (light->type != 2
         && light->type != 3
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_spotshadow.cpp",
-                    276,
-                    0,
-                    "%s\n\t(light->type) = %i",
-                    "(light->type == GFX_LIGHT_TYPE_SPOT || light->type == GFX_LIGHT_TYPE_OMNI)",
-                    light->type) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_spotshadow.cpp",
+            276,
+            0,
+            "%s\n\t(light->type) = %i",
+            "(light->type == GFX_LIGHT_TYPE_SPOT || light->type == GFX_LIGHT_TYPE_OMNI)",
+            light->type))
     {
         __debugbreak();
     }
     spotShadowIndex = frontEndDataOut->spotShadowCount;
-    if ( spotShadowIndex >= 4
+    if (spotShadowIndex >= 4
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_spotshadow.cpp",
-                    279,
-                    0,
-                    "spotShadowIndex doesn't index R_SPOTSHADOW_TILE_COUNT\n\t%i not in [0, %i)",
-                    spotShadowIndex,
-                    4) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_spotshadow.cpp",
+            279,
+            0,
+            "spotShadowIndex doesn't index R_SPOTSHADOW_TILE_COUNT\n\t%i not in [0, %i)",
+            spotShadowIndex,
+            4))
     {
         __debugbreak();
     }
@@ -106,13 +110,13 @@ char __cdecl R_AddSpotShadowsForLight(
     spotShadow->flags &= ~1u;
     v7 = sm_qualitySpotShadow->current.enabled
         && !Com_BitCheckAssert(frontEndDataOut->shadowableLightHasShadowMap, rgp.world->sunPrimaryLightIndex, 32);
-    if ( v7 && spotShadowIndex < 2 )
+    if (v7 && spotShadowIndex < 2)
     {
         spotShadow->viewport.x = 0;
         spotShadow->viewport.y = spotShadowIndex * (unsigned int)dx.singleSampleDepthStencilSurface;
         spotShadow->viewport.width = (int)dx.singleSampleDepthStencilSurface;
         spotShadow->viewport.height = (int)dx.singleSampleDepthStencilSurface;
-        spotShadow->image = stru_B50E948.image;
+        spotShadow->image = gfxRenderTargets[14].image;
         spotShadow->renderTargetId = 14;
         v8 = 0.5 / (float)(2 * (int)dx.singleSampleDepthStencilSurface);
         v9 = 0.5 / (float)(int)dx.singleSampleDepthStencilSurface;
@@ -131,30 +135,29 @@ char __cdecl R_AddSpotShadowsForLight(
         spotShadow->viewport.y = spotShadowIndex << 9;
         spotShadow->viewport.width = 512;
         spotShadow->viewport.height = 512;
-        spotShadow->image = stru_B50E95C.image;
+        spotShadow->image = gfxRenderTargets[15].image;
         spotShadow->renderTargetId = 15;
         spotShadow->pixelAdjust[0] = FLOAT_0_00048828125;
         spotShadow->pixelAdjust[1] = FLOAT_0_00024414062;
         spotShadow->pixelAdjust[2] = FLOAT_0_0009765625;
-        spotShadow->pixelAdjust[3] = -0.0f0012207031;
-        if ( v7 )
+        spotShadow->pixelAdjust[3] = FLOAT_N0_00012207031;
+        if (v7)
             spotShadow->clearScreen = spotShadowIndex == 2;
         else
             spotShadow->clearScreen = spotShadowIndex == 0;
         spotShadow->clearMesh = &gfxMeshGlob.spotShadowClearMeshData[spotShadowIndex];
         tileCount = 4;
     }
-    if ( R_IsPrimaryLight(shadowableLightIndex) )
+    if (R_IsPrimaryLight(shadowableLightIndex))
         nearPlaneBias = 0.0f;
     else
         nearPlaneBias = scene.dynamicSpotLightNearPlaneOffset;
-    R_SetViewParmsForLight((int)&savedregs, light, &spotShadow->shadowViewParms, nearPlaneBias);
+    R_SetViewParmsForLight(light, &spotShadow->shadowViewParms, nearPlaneBias);
     R_GetSpotShadowLookupMatrix(&spotShadow->shadowViewParms, 0, 0, spotShadowIndex, tileCount, &spotShadow->lookupMatrix);
-    if ( R_IsPrimaryLight(shadowableLightIndex) )
+    if (R_IsPrimaryLight(shadowableLightIndex))
         R_AddSpotShadowModelEntities(viewInfo->localClientNum, shadowableLightIndex, light);
     return 1;
 }
-
 // local variable allocation has failed, the output may be wrong!
 void    R_SetViewParmsForLight(
                 int a1@<ebp>,

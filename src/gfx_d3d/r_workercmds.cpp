@@ -101,6 +101,21 @@ jqWorkerCmd r_skin_cached_staticmodelWorkerCmd =
   0u
 };
 
+volatile unsigned int fx_update_remaining_ppuLimit = 1;
+jqModule fx_update_remaining_ppuModule;
+jqWorkerCmd fx_update_remaining_ppuWorkerCmd =
+{
+  &fx_update_remaining_ppuModule,
+  52u,
+  0,
+  0,
+  &fx_update_remaining_ppuLimit,
+  NULL,
+  0u
+};
+
+
+
 
 int __cdecl r_dpvs_entityCallback(jqBatch *batch)
 {

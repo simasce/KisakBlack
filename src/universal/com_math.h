@@ -38,6 +38,18 @@ union float4 {
         PackedUnitVec unitVec[4];
 };
 
+struct vector3 // sizeof=0x30
+{                                       // XREF: vector4/r
+    float4 x;                           // XREF: CreateClipMatrix+63/r
+    float4 y;                           // XREF: CreateClipMatrix+78/r
+    float4 z;                           // XREF: CreateClipMatrix+86/r
+};
+
+struct vector4 : vector3 // sizeof=0x40
+{                                       // XREF: float4x4/r
+    float4 w;                           // XREF: CreateClipMatrix+94/r
+};
+
 struct hybrid_vector // sizeof=0x10
 {                                                                             // XREF: colgeom_visitor_t/r
         float4 vec;                                                 // XREF: AimTarget_IsTargetVisible+1B/w
@@ -342,6 +354,15 @@ constexpr float ikIdentityMatrix44[4][4] =
 };
 
 constexpr float identityMatrix44[4][4] =
+{
+  { 1.0, 0.0, 0.0, 0.0 },
+  { 0.0, 1.0, 0.0, 0.0 },
+  { 0.0, 0.0, 1.0, 0.0 },
+  { 0.0, 0.0, 0.0, 1.0 }
+};
+
+// another one
+constexpr float g_identityMatrix44[4][4] =
 {
   { 1.0, 0.0, 0.0, 0.0 },
   { 0.0, 1.0, 0.0, 0.0 },

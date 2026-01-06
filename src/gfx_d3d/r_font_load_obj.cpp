@@ -1,4 +1,8 @@
 #include "r_font_load_obj.h"
+#include "r_material.h"
+#include <universal/com_files.h>
+#include <universal/com_memory.h>
+#include <qcommon/common.h>
 
 Font_s *__cdecl R_LoadFont(const char *fontName, int imageTrack)
 {

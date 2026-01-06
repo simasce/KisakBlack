@@ -1,4 +1,27 @@
 #include "r_sunshadow.h"
+#include "r_dvars.h"
+#include "r_dpvs_static.h"
+#include <universal/com_convexhull.h>
+#include "r_pretess.h"
+
+const float g_shadowFrustumBound[5][2] =
+{ { -1.0, -1.0 }, { -1.0, 1.0 }, { 1.0, 1.0 }, { 1.0, -1.0 }, { -1.0, -1.0 } };
+
+const float g_clipSpacePoints[4][3] =
+{
+  { -1.0, -1.0, 0.0 },
+  { 1.0, -1.0, 0.0 },
+  { 1.0, 1.0, 0.0 },
+  { -1.0, 1.0, 0.0 }
+};
+
+struct ShadowGlobals // sizeof=0x4
+{                                       // XREF: .data:shadowGlob/r
+    const MaterialTechnique *defaultShadowCasterTechnique;
+                                        // XREF: R_SunShadowMaps(GfxSunShadow *)+5A/w
+};
+
+ShadowGlobals shadowGlob;
 
 void __cdecl R_SunShadowMapBoundingPoly(
                 const GfxSunShadowBoundingPoly *boundingPoly,
@@ -43,12 +66,12 @@ void __cdecl R_SetupSunShadowMaps(const GfxViewParms *viewParms, GfxSunShadow *s
 
     sampleSizeNear = sm_sunSampleSizeNear->current.value;
     sunShadowPartitionRes = (unsigned int)dx.singleSampleDepthStencilSurface;
-    R_GetSunAxes(sunAxis);
+    R_GetSunAxes((float(*)[3][3])sunAxis);
     R_SetupSunShadowMapProjection(
         viewParms,
-        sunAxis,
+        (const float (*)[3][3])sunAxis,
         sunShadow,
-        snappedViewOrgInClipSpace,
+        (float (*)[2][2])snappedViewOrgInClipSpace,
         partitionFraction,
         sunShadowPartitionRes);
     sunOrigin[0] = -sunShadow->sunProj.viewMatrix[3][0];
@@ -61,10 +84,12 @@ void __cdecl R_SetupSunShadowMaps(const GfxViewParms *viewParms, GfxSunShadow *s
         partition = &sunShadow->partition[partitionIndex];
         shadowViewParms = &partition->shadowViewParms;
         memset((unsigned __int8 *)partition, 0xB0u, 0x140u);
-        origin = shadowViewParms->origin;
+        //origin = shadowViewParms->origin;
         shadowViewParms->origin[0] = -sunAxis[0][0];
-        *((unsigned int *)origin + 1) = LODWORD(sunAxis[0][1]) ^ _mask__NegFloat_;
-        *((unsigned int *)origin + 2) = LODWORD(sunAxis[0][2]) ^ _mask__NegFloat_;
+        shadowViewParms->origin[1] = -sunAxis[0][1];
+        shadowViewParms->origin[2] = -sunAxis[0][2];
+        //*((unsigned int *)origin + 1) = LODWORD(sunAxis[0][1]) ^ _mask__NegFloat_;
+        //*((unsigned int *)origin + 2) = LODWORD(sunAxis[0][2]) ^ _mask__NegFloat_;
         shadowViewParms->origin[3] = 0.0f;
         AxisCopy(sunAxis, shadowViewParms->axis);
         memcpy(shadowViewParms, sunProj, 0x40u);
@@ -79,7 +104,7 @@ void __cdecl R_SetupSunShadowMaps(const GfxViewParms *viewParms, GfxSunShadow *s
                                      &partition->boundingPoly,
                                      partitionIndex,
                                      sampleSizeNear,
-                                     boundingPolyClipSpacePlanes,
+                                     (float(*)[9][4])boundingPolyClipSpacePlanes,
                                      sunShadowPartitionRes);
         R_SetupShadowSurfacesDpvs(shadowViewParms, boundingPolyClipSpacePlanes, planeCount, partitionIndex);
         sampleSizeNear = sampleSizeNear * rg.sunShadowPartitionRatio;
@@ -111,7 +136,8 @@ void __cdecl R_GetSceneExtentsAlongDir(const float *origin, const float *forward
     nearPlane.coeffs[0] = *forward;
     nearPlane.coeffs[1] = forward[1];
     nearPlane.coeffs[2] = forward[2];
-    LODWORD(nearPlane.coeffs[3]) = *((unsigned int *)origin + 2) ^ _mask__NegFloat_;
+    nearPlane.coeffs[3] = -origin[2];
+    //LODWORD(nearPlane.coeffs[3]) = *((unsigned int *)origin + 2) ^ _mask__NegFloat_;
     R_SetDpvsPlaneSides(&nearPlane);
     distMin = R_DpvsPlaneMinSignedDistToBox(&nearPlane, bounds[0]);
     distMax = R_DpvsPlaneMaxSignedDistToBox(&nearPlane, bounds[0]);
@@ -197,9 +223,9 @@ void __cdecl R_CalcBoxVsCylinderRayMinBox(
     }
     else
     {
-        *outBox = *outBox + COERCE_FLOAT(LODWORD(radius) ^ _mask__NegFloat_);
-        outBox[1] = outBox[1] + COERCE_FLOAT(LODWORD(radius) ^ _mask__NegFloat_);
-        outBox[2] = outBox[2] + COERCE_FLOAT(LODWORD(radius) ^ _mask__NegFloat_);
+        outBox[0] = outBox[0] + (-(radius));
+        outBox[1] = outBox[1] + (-(radius));
+        outBox[2] = outBox[2] + (-(radius));
         outBox[3] = outBox[3] + radius;
         outBox[4] = outBox[4] + radius;
         outBox[5] = outBox[5] + radius;
@@ -227,10 +253,10 @@ void __cdecl R_GetSunAxes(float (*sunAxis)[3][3])
     {
         __debugbreak();
     }
-    dir = frontEndDataOut->sunLight.dir;
-    LODWORD((*sunAxis)[0][0]) = LODWORD(frontEndDataOut->sunLight.dir[0]) ^ _mask__NegFloat_;
-    LODWORD((*sunAxis)[0][1]) = *((unsigned int *)dir + 1) ^ _mask__NegFloat_;
-    LODWORD((*sunAxis)[0][2]) = *((unsigned int *)dir + 2) ^ _mask__NegFloat_;
+    //dir = frontEndDataOut->sunLight.dir;
+    ((*sunAxis)[0][0]) = -(frontEndDataOut->sunLight.dir[0]);
+    ((*sunAxis)[0][1]) = -(frontEndDataOut->sunLight.dir[1]);
+    ((*sunAxis)[0][2]) = -(frontEndDataOut->sunLight.dir[2]);
     if ( (float)((float)((*sunAxis)[0][0] * (*sunAxis)[0][0]) + (float)((*sunAxis)[0][1] * (*sunAxis)[0][1])) >= 0.1 )
     {
         (*sunAxis)[2][0] = 0.0f;
@@ -260,7 +286,7 @@ unsigned int __cdecl R_SunShadowMapClipSpaceClipPlanes(
     int pointIndex; // [esp+50h] [ebp-54h]
     float frustumBoundPolyInClipSpace[10][2]; // [esp+54h] [ebp-50h] BYREF
 
-    R_SunShadowMapBoundingPoly(boundingPoly, sampleSize, frustumBoundPolyInClipSpace, pointIsNear, partitionRes);
+    R_SunShadowMapBoundingPoly(boundingPoly, sampleSize, (float(*)[9][2])frustumBoundPolyInClipSpace, pointIsNear, partitionRes);
     *(_QWORD *)&frustumBoundPolyInClipSpace[boundingPoly->pointCount][0] = *(_QWORD *)&frustumBoundPolyInClipSpace[0][0];
     pointIsNear[boundingPoly->pointCount] = pointIsNear[0];
     planeCount = 0;
@@ -273,12 +299,7 @@ unsigned int __cdecl R_SunShadowMapClipSpaceClipPlanes(
             (*boundingPolyClipSpacePlanes)[planeCount][1] = frustumBoundPolyInClipSpace[pointIndex][0]
                                                                                                         - frustumBoundPolyInClipSpace[pointIndex + 1][0];
             (*boundingPolyClipSpacePlanes)[planeCount][2] = 0.0f;
-            LODWORD((*boundingPolyClipSpacePlanes)[planeCount][3]) = COERCE_UNSIGNED_INT(
-                                                                                                                                 (float)(frustumBoundPolyInClipSpace[pointIndex][0]
-                                                                                                                                             * (*boundingPolyClipSpacePlanes)[planeCount][0])
-                                                                                                                             + (float)(frustumBoundPolyInClipSpace[pointIndex][1]
-                                                                                                                                             * (*boundingPolyClipSpacePlanes)[planeCount][1]))
-                                                                                                                         ^ _mask__NegFloat_;
+            ((*boundingPolyClipSpacePlanes)[planeCount][3]) = -((float)(frustumBoundPolyInClipSpace[pointIndex][0] * (*boundingPolyClipSpacePlanes)[planeCount][0]) + (float)(frustumBoundPolyInClipSpace[pointIndex][1] * (*boundingPolyClipSpacePlanes)[planeCount][1]));
             ++planeCount;
         }
     }
@@ -304,14 +325,7 @@ unsigned int __cdecl R_SunShadowMapClipSpaceClipPlanes(
                                                                                                                         - (float)g_shadowFrustumBound[pointIndex + 1][0])
                                                                                                         * rg.sunShadowmapScale;
             (*boundingPolyClipSpacePlanes)[planeCount][2] = 0.0f;
-            (*boundingPolyClipSpacePlanes)[planeCount][3] = COERCE_FLOAT(
-                                                                                                                COERCE_UNSIGNED_INT(
-                                                                                                                    (float)((float)g_shadowFrustumBound[pointIndex][0]
-                                                                                                                                * (*boundingPolyClipSpacePlanes)[planeCount][0])
-                                                                                                                + (float)((float)g_shadowFrustumBound[pointIndex][1]
-                                                                                                                                * (*boundingPolyClipSpacePlanes)[planeCount][1]))
-                                                                                                            ^ _mask__NegFloat_)
-                                                                                                        * rg.sunShadowmapScale;
+            (*boundingPolyClipSpacePlanes)[planeCount][3] = (-((float)((float)g_shadowFrustumBound[pointIndex][0] * (*boundingPolyClipSpacePlanes)[planeCount][0]) + (float)((float)g_shadowFrustumBound[pointIndex][1] * (*boundingPolyClipSpacePlanes)[planeCount][1]))) * rg.sunShadowmapScale;
             ++planeCount;
         }
     }
@@ -345,8 +359,7 @@ void __cdecl R_SunShadowMapProjectionMatrix(
     shadowViewParms->projectionMatrix.m[1][1] = shadowViewParms->projectionMatrix.m[0][0];
     shadowViewParms->projectionMatrix.m[3][1] = snappedViewOrgInClipSpace[1];
     shadowViewParms->projectionMatrix.m[2][2] = 1.0 / (float)((float)(farClip - nearClip) + 2.0);
-    shadowViewParms->projectionMatrix.m[3][2] = COERCE_FLOAT(COERCE_UNSIGNED_INT(nearClip - 1.0) ^ _mask__NegFloat_)
-                                                                                        * shadowViewParms->projectionMatrix.m[2][2];
+    shadowViewParms->projectionMatrix.m[3][2] = (-(nearClip - 1.0)) * shadowViewParms->projectionMatrix.m[2][2];
     shadowViewParms->projectionMatrix.m[3][3] = 1.0f;
     shadowViewParms->depthHackNearClip = shadowViewParms->projectionMatrix.m[3][2];
     R_SetupViewProjectionMatrices(shadowViewParms, 0);
@@ -413,11 +426,7 @@ void __cdecl R_SetupSunShadowMapProjection(
     float viewOrgInPixels[2][2]; // [esp+2F8h] [ebp-18h] BYREF
     float snappedViewOrgInSunProj[2]; // [esp+308h] [ebp-8h] BYREF
 
-    LODWORD(viewOrgInSunProj[0]) = COERCE_UNSIGNED_INT(
-                                                                     (float)((float)(viewParms->origin[0] * (float)(*sunAxis)[1][0])
-                                                                                 + (float)(viewParms->origin[1] * (float)(*sunAxis)[1][1]))
-                                                                 + (float)(viewParms->origin[2] * (float)(*sunAxis)[1][2]))
-                                                             ^ _mask__NegFloat_;
+    (viewOrgInSunProj[0]) = -((float)((float)(viewParms->origin[0] * (float)(*sunAxis)[1][0]) + (float)(viewParms->origin[1] * (float)(*sunAxis)[1][1])) + (float)(viewParms->origin[2] * (float)(*sunAxis)[1][2]));
     viewOrgInSunProj[1] = (float)((float)(viewParms->origin[0] * (float)(*sunAxis)[2][0])
                                                             + (float)(viewParms->origin[1] * (float)(*sunAxis)[2][1]))
                                             + (float)(viewParms->origin[2] * (float)(*sunAxis)[2][2]);
@@ -435,13 +444,7 @@ void __cdecl R_SetupSunShadowMapProjection(
         frustumPoint[0] = frustumPoints[pointIndex][0];
         frustumPoint[1] = frustumPoints[pointIndex][1];
         frustumPoint[2] = frustumPoints[pointIndex][2];
-        LODWORD(frustumPointsInSunProj[0][pointIndex][0]) = COERCE_UNSIGNED_INT(
-                                                                                                                    (float)((float)(frustumPoints[pointIndex][0]
-                                                                                                                                                * (float)(*sunAxis)[1][0])
-                                                                                                                                + (float)(frustumPoints[pointIndex][1]
-                                                                                                                                                * (float)(*sunAxis)[1][1]))
-                                                                                                                + (float)(frustumPoints[pointIndex][2] * (float)(*sunAxis)[1][2]))
-                                                                                                            ^ _mask__NegFloat_;
+        (frustumPointsInSunProj[0][pointIndex][0]) = -((float)((float)(frustumPoints[pointIndex][0] * (float)(*sunAxis)[1][0]) + (float)(frustumPoints[pointIndex][1] * (float)(*sunAxis)[1][1])) + (float)(frustumPoints[pointIndex][2] * (float)(*sunAxis)[1][2]));
         frustumPointsInSunProj[0][pointIndex][1] = (float)((float)(frustumPoints[pointIndex][0] * (float)(*sunAxis)[2][0])
                                                                                                          + (float)(frustumPoints[pointIndex][1] * (float)(*sunAxis)[2][1]))
                                                                                          + (float)(frustumPoints[pointIndex][2] * (float)(*sunAxis)[2][2]);
@@ -501,11 +504,7 @@ void __cdecl R_SetupSunShadowMapProjection(
     v16 = shadowOrg[0] == 0.0 && shadowOrg[1] == 0.0 && shadowOrg[2] == 0.0;
     useShadowOffset = !v16;
 
-    LODWORD(shadowOrgInSunProj[0]) = COERCE_UNSIGNED_INT(
-                                                                         (float)((float)(shadowOrg[0] * (float)(*sunAxis)[1][0])
-                                                                                     + (float)(shadowOrg[1] * (float)(*sunAxis)[1][1]))
-                                                                     + (float)(shadowOrg[2] * (float)(*sunAxis)[1][2]))
-                                                                 ^ _mask__NegFloat_;
+    (shadowOrgInSunProj[0]) = -((float)((float)(shadowOrg[0] * (float)(*sunAxis)[1][0]) + (float)(shadowOrg[1] * (float)(*sunAxis)[1][1])) + (float)(shadowOrg[2] * (float)(*sunAxis)[1][2]));
     shadowOrgInSunProj[1] = (float)((float)(shadowOrg[0] * (float)(*sunAxis)[2][0])
                                                                 + (float)(shadowOrg[1] * (float)(*sunAxis)[2][1]))
                                                 + (float)(shadowOrg[2] * (float)(*sunAxis)[2][2]);
@@ -727,7 +726,7 @@ void __cdecl R_SetupSunShadowBoundingPoly(
     float frustumBoundingPolyInSunProj[9][2]; // [esp+58h] [ebp-48h] BYREF
 
     memcpy((unsigned __int8 *)tempFrustumPointsInSunProj, (unsigned __int8 *)frustumPointsInSunProj, 8 * pointCount);
-    boundingPoly->pointCount = Com_ConvexHull(tempFrustumPointsInSunProj, pointCount, frustumBoundingPolyInSunProj);
+    boundingPoly->pointCount = Com_ConvexHull((float(*)[64][2])tempFrustumPointsInSunProj, pointCount, frustumBoundingPolyInSunProj);
     if ( (boundingPoly->pointCount < 3 || boundingPoly->pointCount > 9)
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_sunshadow.cpp",
@@ -770,14 +769,14 @@ void __cdecl R_SetupSunShadowMapViewMatrix(
                 const float (*sunAxis)[3],
                 GfxSunShadowProjection *sunProj)
 {
-    LODWORD(sunProj->viewMatrix[0][0]) = LODWORD((*sunAxis)[3]) ^ _mask__NegFloat_;
-    LODWORD(sunProj->viewMatrix[1][0]) = LODWORD((*sunAxis)[4]) ^ _mask__NegFloat_;
-    LODWORD(sunProj->viewMatrix[2][0]) = LODWORD((*sunAxis)[5]) ^ _mask__NegFloat_;
-    LODWORD(sunProj->viewMatrix[3][0]) = *(unsigned int *)snappedViewOrgInSunProj ^ _mask__NegFloat_;
+    (sunProj->viewMatrix[0][0]) = (-(*sunAxis)[3]);
+    (sunProj->viewMatrix[1][0]) = (-(*sunAxis)[4]);
+    (sunProj->viewMatrix[2][0]) = (-(*sunAxis)[5]);
+    (sunProj->viewMatrix[3][0]) = -*snappedViewOrgInSunProj;
     sunProj->viewMatrix[0][1] = (*sunAxis)[6];
     sunProj->viewMatrix[1][1] = (*sunAxis)[7];
     sunProj->viewMatrix[2][1] = (*sunAxis)[8];
-    LODWORD(sunProj->viewMatrix[3][1]) = *((unsigned int *)snappedViewOrgInSunProj + 1) ^ _mask__NegFloat_;
+    (sunProj->viewMatrix[3][1]) = -snappedViewOrgInSunProj[1];
     sunProj->viewMatrix[0][2] = (*sunAxis)[0];
     sunProj->viewMatrix[1][2] = (*sunAxis)[1];
     sunProj->viewMatrix[2][2] = (*sunAxis)[2];
@@ -807,11 +806,7 @@ void __cdecl R_SetupSunShadowMapPartitionFraction(
     *partitionFraction = v4 * viewParms->axis[0][0];
     partitionFraction[1] = v4 * viewParms->axis[0][1];
     partitionFraction[2] = v4 * viewParms->axis[0][2];
-    *((unsigned int *)partitionFraction + 3) = COERCE_UNSIGNED_INT(
-                                                                                 (float)((float)(viewParms->origin[0] * *partitionFraction)
-                                                                                             + (float)(viewParms->origin[1] * partitionFraction[1]))
-                                                                             + (float)(viewParms->origin[2] * partitionFraction[2]))
-                                                                         ^ _mask__NegFloat_;
+    partitionFraction[3] = (-(float)((float)(viewParms->origin[0] * *partitionFraction) + (float)(viewParms->origin[1] * partitionFraction[1])) + (float)(viewParms->origin[2] * partitionFraction[2]));
 }
 
 void __cdecl R_GetSunShadowMapPartitionViewOrgInTextureSpace(

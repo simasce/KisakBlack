@@ -1,5 +1,11 @@
 #include "r_staticmodelcache_load_obj.h"
 
+#include <algorithm>
+#include <xanim/xmodel_utils.h>
+#include <universal/com_memory.h>
+#include "r_xsurface.h"
+#include <intrin.h> // _BitScanReverse
+
 void __cdecl R_AssignSModelCacheResources(GfxWorld *world)
 {
     unsigned __int8 v1; // [esp+17Bh] [ebp-2029h]
@@ -23,11 +29,12 @@ void __cdecl R_AssignSModelCacheResources(GfxWorld *world)
     }
     memset(smcUseCount, 0, sizeof(smcUseCount));
     v7 = R_OptimalSModelResourceStats(world, stats, 0x200u);
-    std::_Sort<DBReorderAssetEntry *,int,bool (__cdecl *)(DBReorderAssetEntry const &,DBReorderAssetEntry const &)>(
-        stats,
-        &stats[v7],
-        (int)(16 * v7) >> 4,
-        (bool (__cdecl *)(GfxSModelSurfStats *, GfxSModelSurfStats *))R_CompareSModelStats_Score);
+    //std::_Sort<DBReorderAssetEntry *,int,bool (__cdecl *)(DBReorderAssetEntry const &,DBReorderAssetEntry const &)>(
+    //    stats,
+    //    &stats[v7],
+    //    (int)(16 * v7) >> 4,
+    //    (bool (__cdecl *)(GfxSModelSurfStats *, GfxSModelSurfStats *))R_CompareSModelStats_Score);
+    std::sort(&stats[0], &stats[v7], R_CompareSModelStats_Score);
     for ( i = 0; i < v7; ++i )
     {
         model = stats[i].model;
@@ -89,16 +96,15 @@ unsigned int __cdecl R_OptimalSModelResourceStats(GfxWorld *world, GfxSModelSurf
     }
     if ( !world->dpvs.smodelCount )
         return 0;
-    drawInstArray = (const GfxStaticModelDrawInst **)Hunk_AllocateTempMemory(
-                                                                                                         4 * world->dpvs.smodelCount,
-                                                                                                         "R_AssignSModelCacheResources");
+    drawInstArray = (const GfxStaticModelDrawInst **)Hunk_AllocateTempMemory(4 * world->dpvs.smodelCount, "R_AssignSModelCacheResources");
     for ( smodelIter = 0; smodelIter != world->dpvs.smodelCount; ++smodelIter )
         drawInstArray[smodelIter] = &world->dpvs.smodelDrawInsts[smodelIter];
-    std::_Sort<Material * *,int,bool (__cdecl *)(Material const *,Material const *)>(
-        drawInstArray,
-        &drawInstArray[world->dpvs.smodelCount],
-        (signed int)(4 * world->dpvs.smodelCount) >> 2,
-        (bool (__cdecl *)(const GfxStaticModelDrawInst *, const GfxStaticModelDrawInst *))R_CompareSModels_Model);
+    //std::_Sort<Material * *,int,bool (__cdecl *)(Material const *,Material const *)>(
+    //    drawInstArray,
+    //    &drawInstArray[world->dpvs.smodelCount],
+    //    (signed int)(4 * world->dpvs.smodelCount) >> 2,
+    //    (bool (__cdecl *)(const GfxStaticModelDrawInst *, const GfxStaticModelDrawInst *))R_CompareSModels_Model);
+    std::sort(&drawInstArray[0], &drawInstArray[world->dpvs.smodelCount], R_CompareSModels_Model);
     statCount = 0;
     for ( smodelItera = 0; smodelItera != world->dpvs.smodelCount; smodelItera = smodelIterNext )
     {
@@ -170,37 +176,37 @@ unsigned int __cdecl R_AddSModelListStats(
     return statsCount;
 }
 
-int __cdecl R_GetSModelCacheAllocBits(const XModel *model, unsigned int lod)
+// (aislop for countleadingzeroes)
+int R_GetSModelCacheAllocBits(const XModel *model, unsigned int lod)
 {
-    int v3; // eax
-    int v6; // [esp+4h] [ebp-30h]
-    unsigned int surfCount; // [esp+18h] [ebp-1Ch]
-    unsigned int triCount; // [esp+1Ch] [ebp-18h]
-    unsigned int surfIter; // [esp+24h] [ebp-10h]
-    unsigned int vertCount; // [esp+28h] [ebp-Ch]
-    XSurface *surfs; // [esp+2Ch] [ebp-8h] BYREF
-    unsigned int minPoolSize; // [esp+30h] [ebp-4h]
+    unsigned int surfCount = XModelGetSurfCount(model, lod);
 
-    surfCount = XModelGetSurfCount(model, lod);
+    XSurface *surfs;
     XModelGetSurfaces(model, &surfs, lod);
-    triCount = 0;
-    vertCount = 0;
-    for ( surfIter = 0; surfIter < surfCount; ++surfIter )
+
+    unsigned int triCount = 0;
+    unsigned int vertCount = 0;
+
+    for (unsigned int i = 0; i < surfCount; ++i)
     {
-        vertCount += XSurfaceGetNumVerts(&surfs[surfIter]);
-        triCount += XSurfaceGetNumTris(&surfs[surfIter]);
+        vertCount += XSurfaceGetNumVerts(&surfs[i]);
+        triCount += XSurfaceGetNumTris(&surfs[i]);
     }
-    if ( (int)(4 * vertCount) < (int)(3 * triCount) )
-        v6 = 3 * triCount;
-    else
-        v6 = 4 * vertCount;
-    minPoolSize = (v6 + 3) / 4;
-    if ( !_BitScanReverse((unsigned int *)&v3, minPoolSize - 1) )
-        v3 = `CountLeadingZeros'::`2'::notFound;
-    if ( 32 - (v3 ^ 0x1F) > 4 )
-        return 32 - (v3 ^ 0x1F);
-    else
-        return 4;
+
+    unsigned int v6 = (4 * vertCount < 3 * triCount) ? 3 * triCount : 4 * vertCount;
+
+    unsigned int minPoolSize = (v6 + 3) / 4; // number of 32-bit words
+
+    // compute ceil(log2(minPoolSize))
+    unsigned long index;
+    if (minPoolSize == 0)
+        return 4; // safety
+    if (_BitScanReverse(&index, minPoolSize - 1))
+    {
+        unsigned int bits = 32 - (index ^ 0x1F); // original xor trick
+        return (bits > 4) ? bits : 4;
+    }
+    return 4;
 }
 
 unsigned int __cdecl R_MaxModelsInDistRange(

@@ -1,4 +1,15 @@
 #include "r_staticmodelcache.h"
+#include <xanim/xmodel_utils.h>
+#include "r_model_lighting.h"
+#include "r_dobj_skin.h"
+#include "r_dvars.h"
+#include <qcommon/threads.h>
+#include <universal/com_workercmds.h>
+#include "r_workercmds.h"
+#include "rb_logfile.h"
+#include "r_xsurface.h"
+
+static_model_cache_t s_cache;
 
 void __cdecl R_SkinCachedStaticModelCmd(SkinCachedStaticModelCmd *skinCmd)
 {
@@ -588,7 +599,7 @@ char __cdecl SMC_ForceFreeBlock(unsigned int smcIndex)
     treenode->usedlist.prev->next = treenode->usedlist.next;
     leafs->cachedSurf.baseVertIndex = (unsigned int)s_cache.freelist[smcIndex];
     leafs->freenode.next = s_cache.freelist[smcIndex][0].next;
-    *(unsigned int *)(leafs->cachedSurf.baseVertIndex + 4) = leafs;
+    *(unsigned int *)(leafs->cachedSurf.baseVertIndex + 4) = (unsigned int)leafs;
     leafs->freenode.next->prev = (static_model_node_list_t *)leafs;
     return 1;
 }
@@ -625,7 +636,7 @@ void __cdecl SMC_FreeCachedSurface_r(
     {
         freenode = &leafs[((nodeIndex + 1) << levelsToLeaf) - 32];
         freenode->freenode.next->prev = (static_model_node_list_t *)freenode->cachedSurf.baseVertIndex;
-        *(unsigned int *)(freenode->cachedSurf.baseVertIndex + 4) = freenode->freenode.next;
+        *(unsigned int *)(freenode->cachedSurf.baseVertIndex + 4) = (unsigned int)freenode->freenode.next;
     }
 }
 
@@ -726,7 +737,7 @@ void *R_AllocStaticModelCache()
     {
         __debugbreak();
     }
-    return R_AllocDynamicVertexBuffer(&gfxBuf.smodelCacheVb, (int)&loc_800000);
+    return R_AllocDynamicVertexBuffer(&gfxBuf.smodelCacheVb, 0x800000);
 }
 
 unsigned int SMC_ClearCache()
@@ -761,7 +772,7 @@ unsigned int SMC_ClearCache()
             v1 = s_cache.leafs[treeItera + (smcIter << 7)];
             v1->cachedSurf.baseVertIndex = (unsigned int)s_cache.freelist[smcIter];
             v1->freenode.next = s_cache.freelist[smcIter][0].next;
-            *(unsigned int *)(v1->cachedSurf.baseVertIndex + 4) = v1;
+            *(unsigned int *)(v1->cachedSurf.baseVertIndex + 4) = (unsigned int)v1;
             result = (unsigned int)v1;
             v1->freenode.next->prev = (static_model_node_list_t *)v1;
         }
@@ -798,7 +809,7 @@ void __cdecl R_FlushStaticModelCache()
                 next->prev->next = next->next;
                 leafs->cachedSurf.baseVertIndex = (unsigned int)s_cache.freelist[smcIter];
                 leafs->freenode.next = s_cache.freelist[smcIter][0].next;
-                *(unsigned int *)(leafs->cachedSurf.baseVertIndex + 4) = leafs;
+                *(unsigned int *)(leafs->cachedSurf.baseVertIndex + 4) = (unsigned int)leafs;
                 leafs->freenode.next->prev = (static_model_node_list_t *)leafs;
             }
         }

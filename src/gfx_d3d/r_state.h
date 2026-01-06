@@ -1,7 +1,8 @@
 #pragma once
+#include "rb_tess.h"
 
 void __cdecl R_PixStartNamedRenderTarget(unsigned __int8 renderTargetId);
-unsigned int R_PixEndNamedRenderTarget();
+void R_PixEndNamedRenderTarget();
 void __cdecl R_SetTexFilter();
 void __cdecl R_SetInitialContextState(IDirect3DDevice9 *device);
 void __cdecl R_ChangeDepthHackNearClip(GfxCmdBufSourceState *source, float depthHackFlags);
@@ -16,15 +17,14 @@ GfxCmdBufSourceState *__cdecl R_GetCodeMatrix(
 void __cdecl R_DeriveCodeMatrix(GfxCmdBufSourceState *source, GfxCodeMatrices *activeMatrices, unsigned int baseIndex);
 void __cdecl R_DeriveViewMatrix(GfxCmdBufSourceState *source);
 // local variable allocation has failed, the output may be wrong!
-void    R_DeriveWorldViewMatrix(int a1@<ebp>, GfxCmdBufSourceState *source);
+void    R_DeriveWorldViewMatrix(GfxCmdBufSourceState *source);
 void __cdecl R_DeriveProjectionMatrix(GfxCmdBufSourceState *source);
 void __cdecl R_DeriveViewProjectionMatrix(GfxCmdBufSourceState *source);
 // local variable allocation has failed, the output may be wrong!
-void    R_DeriveWorldViewProjectionMatrix(int a1@<ebp>, GfxCmdBufSourceState *source);
+void    R_DeriveWorldViewProjectionMatrix(GfxCmdBufSourceState *source);
 void __cdecl R_DeriveShadowLookupMatrix(GfxCmdBufSourceState *source);
 // local variable allocation has failed, the output may be wrong!
 void    R_GenerateWorldOutdoorLookupMatrix(
-                GfxCodeMatrices *a1@<ebp>,
                 GfxCmdBufSourceState *source,
                 float (*outMatrix)[4]);
 const GfxImage *__cdecl R_GetTextureFromCode(

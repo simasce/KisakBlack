@@ -1,5 +1,25 @@
 #pragma once
 
+#include <d3d9.h>
+
+enum MaterialUpdateFrequency : __int32
+{                                       // XREF: Material_CompareShaderArgumentsForRuntime/r
+                                        // Material_GetArgUpdateFrequency/r ...
+    MTL_UPDATE_PER_PRIM   = 0x0,
+    MTL_UPDATE_PER_OBJECT = 0x1,
+    MTL_UPDATE_RARELY     = 0x2,
+    MTL_UPDATE_CUSTOM     = 0x3,
+};
+
+
+struct GfxCmdBufSourceState;
+struct GfxCmdBufInput;
+struct GfxCmdBufState;
+struct GfxViewParms;
+struct GfxSceneDef;
+struct GfxMatrix;
+struct GfxViewport;
+
 void __cdecl R_InitCmdBufSourceState(GfxCmdBufSourceState *source, const GfxCmdBufInput *input, int cameraView);
 void __cdecl R_InitCmdBufState(GfxCmdBufState *state);
 void __cdecl R_HW_ForceSamplerState(IDirect3DDevice9 *device, unsigned int samplerIndex, unsigned int samplerState);
@@ -11,7 +31,7 @@ GfxCmdBufSourceState *__cdecl R_GetActiveWorldMatrix(GfxCmdBufSourceState *sourc
 void __cdecl R_WorldMatrixChanged(GfxCmdBufSourceState *source);
 void __cdecl R_Set2D(GfxCmdBufSourceState *source);
 // local variable allocation has failed, the output may be wrong!
-void    R_CmdBufSet2D(GfxViewParms *a1@<ebp>, GfxCmdBufSourceState *source, GfxViewport *viewport);
+void    R_CmdBufSet2D(GfxCmdBufSourceState *source, GfxViewport *viewport);
 void __cdecl R_MatrixIdentity44(float (*out)[4]);
 void __cdecl R_CmdBufSet3D(GfxCmdBufSourceState *source);
 void __cdecl R_Set3D(GfxCmdBufSourceState *source);

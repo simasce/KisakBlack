@@ -5,6 +5,7 @@
 #include <DynEntity/DynEntity_gamestate.h>
 
 struct GfxCmdBufInput;
+struct GfxViewParms;
 
 struct GfxSceneDef // sizeof=0x14
 {                                       // XREF: GfxViewInfo/r

@@ -137,6 +137,8 @@ struct __declspec(align(4)) MarkInfo // sizeof=0x4AC
     // padding byte
 };
 
+struct GfxSurface;
+
 void    R_BoxSurfaces(
                 const float *mins,
                 const float *maxs,

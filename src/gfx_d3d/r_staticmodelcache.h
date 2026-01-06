@@ -1,4 +1,23 @@
 #pragma once
+#include <xanim/xmodel.h>
+#include "rb_backend.h"
+
+struct SkinCachedStaticModelCmd // sizeof=0x4
+{                                       // XREF: ?R_CacheStaticModelSurface@@YAGIIPBUXModelLodInfo@@@Z/r
+    unsigned __int16 cacheIndex;        // XREF: R_CacheStaticModelSurface(uint,uint,XModelLodInfo const *)+302/w
+    unsigned __int16 firstPatchVert;    // XREF: R_CacheStaticModelSurface(uint,uint,XModelLodInfo const *)+31A/w
+};
+
+struct static_model_cache_t // sizeof=0x410E0
+{                                       // XREF: .data:s_cache/r
+    static_model_tree_t trees[512];
+    static_model_leaf_t leafs[512][32]; // XREF: R_CacheStaticModelSurface(uint,uint,XModelLodInfo const *)+133/o
+                                        // R_CacheStaticModelSurface(uint,uint,XModelLodInfo const *)+36D/o ...
+    static_model_node_list_t freelist[4][6]; // XREF: SMC_Allocate+50/o
+                                        // SMC_GetFreeBlockOfSize+42/o ...
+    static_model_tree_list_t usedlist[4]; // XREF: SMC_ForceFreeBlock+9/r
+                                        // SMC_ClearCache+7C/w ...
+};
 
 void __cdecl R_SkinCachedStaticModelCmd(SkinCachedStaticModelCmd *skinCmd);
 static_model_leaf_t *__cdecl SMC_GetLeaf(unsigned int cacheIndex);

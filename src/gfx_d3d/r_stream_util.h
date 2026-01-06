@@ -1,4 +1,5 @@
 #pragma once
+#include "r_material.h"
 
 double __cdecl R_CalculateTriangleArea2D(const float (*texCoord)[2]);
 double __cdecl R_CalculateTriangleArea3D(const float (*texCoord)[3]);
