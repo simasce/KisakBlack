@@ -7,6 +7,22 @@
 #include "live_stats.h"
 #include <server_mp/sv_main_pc_mp.h>
 #include <game_mp/g_main_mp.h>
+#include <stringed/stringed_hooks.h>
+#include <qcommon/com_gamemodes.h>
+#include "live_storage.h"
+#include <client_mp/cl_main_pc_mp.h>
+#include "live_storage_pub.h"
+#include "live_presence_win.h"
+#include <ui/ui_playlists.h>
+#include <client_mp/sv_client_mp.h>
+
+const dvar_t *stats_backup;
+const dvar_t *presell;
+const dvar_t *sv_playlistFetchInterval;
+
+LbPlayerStat g_playerStats[32];
+dwFileOperationInfo fileops[32];
+char g_statsDir[256];
 
 int __cdecl SystemTimeToInt()
 {
@@ -51,16 +67,16 @@ void __cdecl LiveStorage_ResetStats(unsigned __int8 *buffer)
 
 void __cdecl ResetCreateAClassNames(int controllerIndex)
 {
-    SetDvarFromLocString(controllerIndex, "customclass1", "CLASS_SLOT1_CAPS");
-    SetDvarFromLocString(controllerIndex, "customclass2", "CLASS_SLOT2_CAPS");
-    SetDvarFromLocString(controllerIndex, "customclass3", "CLASS_SLOT3_CAPS");
-    SetDvarFromLocString(controllerIndex, "customclass4", "CLASS_SLOT4_CAPS");
-    SetDvarFromLocString(controllerIndex, "customclass5", "CLASS_SLOT5_CAPS");
-    SetDvarFromLocString(controllerIndex, "prestigeclass1", "CLASS_PRESTIGE1");
-    SetDvarFromLocString(controllerIndex, "prestigeclass2", "CLASS_PRESTIGE2");
-    SetDvarFromLocString(controllerIndex, "prestigeclass3", "CLASS_PRESTIGE3");
-    SetDvarFromLocString(controllerIndex, "prestigeclass4", "CLASS_PRESTIGE4");
-    SetDvarFromLocString(controllerIndex, "prestigeclass5", "CLASS_PRESTIGE5");
+    SetDvarFromLocString(controllerIndex, "customclass1",   (char*)"CLASS_SLOT1_CAPS");
+    SetDvarFromLocString(controllerIndex, "customclass2",   (char*)"CLASS_SLOT2_CAPS");
+    SetDvarFromLocString(controllerIndex, "customclass3",   (char*)"CLASS_SLOT3_CAPS");
+    SetDvarFromLocString(controllerIndex, "customclass4",   (char*)"CLASS_SLOT4_CAPS");
+    SetDvarFromLocString(controllerIndex, "customclass5",   (char*)"CLASS_SLOT5_CAPS");
+    SetDvarFromLocString(controllerIndex, "prestigeclass1", (char*)"CLASS_PRESTIGE1");
+    SetDvarFromLocString(controllerIndex, "prestigeclass2", (char*)"CLASS_PRESTIGE2");
+    SetDvarFromLocString(controllerIndex, "prestigeclass3", (char*)"CLASS_PRESTIGE3");
+    SetDvarFromLocString(controllerIndex, "prestigeclass4", (char*)"CLASS_PRESTIGE4");
+    SetDvarFromLocString(controllerIndex, "prestigeclass5", (char*)"CLASS_PRESTIGE5");
 }
 
 void __cdecl SetDvarFromLocString(int controllerIndex, const char *dvarName, char *preLocalizedText)
@@ -130,8 +146,11 @@ void __cdecl LiveStorage_ReadStatsIfDirChanged()
 {
     if ( !G_ExitAfterToolComplete() )
     {
-        if ( I_stricmp(g_statsDir, fs_gameDirVar->current.string) )
-            //BLOPS_NULLSUB();
+        // commented out for no effect
+        //if (I_stricmp(g_statsDir, fs_gameDirVar->current.string))
+        //{
+        //    //BLOPS_NULLSUB();
+        //}
     }
 }
 
@@ -219,6 +238,10 @@ void __cdecl CL_GetXP_f()
     Com_Printf(14, "clientside xp is %i\n", xp);
 }
 
+cmd_function_s CL_GetXP_f_VAR;
+cmd_function_s SV_DumpFileOps_VAR;
+cmd_function_s SV_UseFileOp_VAR;
+cmd_function_s SV_FreeFileOp_VAR;
 void __cdecl LiveStorage_Init_Platform()
 {
     stats_backup = _Dvar_RegisterBool("stats_backup", 1, 1u, "Backup stats file every time the stats file is saved");
@@ -358,12 +381,12 @@ void __cdecl SV_DWInitStats()
     int j; // [esp+0h] [ebp-8h]
     int i; // [esp+4h] [ebp-4h]
 
-    for ( i = 0; i < com_maxclients->current.integer; ++i )
+    for (i = 0; i < com_maxclients->current.integer; ++i)
     {
-        v0 = 22 * i;
-        dword_A614E08[v0] = 0;
-        dword_A614E0C[v0] = 0;
-        for ( j = 0; j < 19; ++j )
+        v0 = i;
+        LODWORD(g_playerStats[v0].userID) = 0;
+        HIDWORD(g_playerStats[v0].userID) = 0;
+        for (j = 0; j < 19; ++j)
             g_playerStats[i].values[j] = 0;
     }
 }

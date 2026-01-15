@@ -3126,6 +3126,21 @@
     <ClCompile Include="src\qcommon\md4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DemonWare\bdCore\bdContainers\bdByteBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DemonWare\bdPlatform\bdPlatformLog\bdPlatformLog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DemonWare\bdCore\bdUtilities\bdBytePacker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DemonWare\bdCore\bdContainers\bdBitBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DemonWare\bdCore\bdCrypto\bdCypher3Des.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\libs\libtomcrypt-1.17\src\headers\tomcrypt.h">
@@ -5430,6 +5445,57 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DemonWare\bdCore\bdSingleton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdByteBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdReference\bdReferencable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdPlatform\bdPlatformLog\bdPlatformLog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdUtilities\bdBytePacker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdBitBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdFastArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdUtilities\bdBitOperations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdSocket\bdAddr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdLobbyService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdTiming\bdStopwatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdLinkedList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdSocket\bdStreamSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdCrypto\bdCypher3Des.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DemonWare\bdCore\bdCrypto\bdCypher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

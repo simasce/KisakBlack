@@ -1,4 +1,5 @@
 #include "MatchRecorder.h"
+#include <win32/win_tasks.h>
 
 void __cdecl MatchRecorder_ClearDWOverlappedTasks()
 {

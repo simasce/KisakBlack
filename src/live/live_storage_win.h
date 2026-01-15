@@ -1,5 +1,7 @@
 #pragma once
 
+struct dwFileOperationInfo;
+
 int __cdecl SystemTimeToInt();
 void __cdecl LiveStorage_ResetStats(unsigned __int8 *buffer);
 void __cdecl ResetCreateAClassNames(int controllerIndex);

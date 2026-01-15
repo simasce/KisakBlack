@@ -129,8 +129,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DemonWare\bdCore\bdContainers\bdBitBuffer.cpp" />
+    <ClCompile Include="DemonWare\bdCore\bdContainers\bdByteBuffer.cpp" />
+    <ClCompile Include="DemonWare\bdCore\bdCrypto\bdCypher3Des.cpp" />
     <ClCompile Include="DemonWare\bdCore\bdMemory\bdMemory.cpp" />
     <ClCompile Include="DemonWare\bdCore\bdThread\bdMutex.cpp" />
+    <ClCompile Include="DemonWare\bdCore\bdUtilities\bdBytePacker.cpp" />
+    <ClCompile Include="DemonWare\bdPlatform\bdPlatformLog\bdPlatformLog.cpp" />
     <ClCompile Include="DemonWare\bdPlatform\bdPlatformThread\bdPlatformMutex.cpp" />
     <ClCompile Include="src\aim_assist\aim_assist.cpp" />
     <ClCompile Include="src\aim_assist\aim_target.cpp" />
@@ -1168,9 +1173,26 @@
     <ClCompile Include="tl\tl_system.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DemonWare\bdConnection.h" />
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdArray.h" />
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdBitBuffer.h" />
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdByteBuffer.h" />
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdFastArray.h" />
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdLinkedList.h" />
+    <ClInclude Include="DemonWare\bdCore\bdContainers\bdQueue.h" />
+    <ClInclude Include="DemonWare\bdCore\bdCrypto\bdCypher.h" />
+    <ClInclude Include="DemonWare\bdCore\bdCrypto\bdCypher3Des.h" />
     <ClInclude Include="DemonWare\bdCore\bdMemory\bdMemory.h" />
+    <ClInclude Include="DemonWare\bdCore\bdReference\bdReferencable.h" />
     <ClInclude Include="DemonWare\bdCore\bdSingleton.h" />
+    <ClInclude Include="DemonWare\bdCore\bdSocket\bdAddr.h" />
+    <ClInclude Include="DemonWare\bdCore\bdSocket\bdStreamSocket.h" />
     <ClInclude Include="DemonWare\bdCore\bdThread\bdMutex.h" />
+    <ClInclude Include="DemonWare\bdCore\bdTiming\bdStopwatch.h" />
+    <ClInclude Include="DemonWare\bdCore\bdUtilities\bdBitOperations.h" />
+    <ClInclude Include="DemonWare\bdCore\bdUtilities\bdBytePacker.h" />
+    <ClInclude Include="DemonWare\bdLobbyService.h" />
+    <ClInclude Include="DemonWare\bdPlatform\bdPlatformLog\bdPlatformLog.h" />
     <ClInclude Include="DemonWare\bdPlatform\bdPlatformThread\bdPlatformMutex.h" />
     <ClInclude Include="src\aim_assist\aim_assist.h" />
     <ClInclude Include="src\aim_assist\aim_target.h" />

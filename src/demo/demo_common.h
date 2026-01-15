@@ -5,47 +5,6 @@
 #include <ddl/ddl_api.h>
 #include <DemonWare/bdCore/bdMemory/bdMemory.h>
 
-template <typename T>
-struct bdReference//<bdByteBuffer> // sizeof=0x4
-{                                                                             // XREF: bdRemoteTask/r
-        // bdPendingBufferTransfer/r ...
-        //bdByteBuffer *m_ptr;                                // XREF: MatchMakingInfo::deserialize(bdReference<bdByteBuffer>)+13/r
-        T *m_ptr;
-        // MatchMakingInfo::deserialize(bdReference<bdByteBuffer>)+5D/r ...
-};
-
-struct bdReferencable // sizeof=0x8
-{                                                                             // XREF: bdByteBuffer/r
-                                                                                // bdRemoteTask/r ...
-        //bdReferencable_vtbl *__vftable;
-        virtual ~bdReferencable();
-        volatile int m_refCount;
-};
-
-
-
-struct __declspec(align(2)) bdByteBuffer : bdReferencable // sizeof=0x1C
-{                                                                             // XREF: bdTaskByteBuffer/r
-        unsigned int m_size;
-        unsigned __int8 *m_data;
-        unsigned __int8 *m_readPtr;
-        unsigned __int8 *m_writePtr;
-        bool m_typeChecked;
-        bool m_typeCheckedCopy;
-        bool m_allocatedData;
-        // padding byte
-
-        virtual ~bdByteBuffer()
-        {
-            if (this->m_data && this->m_allocatedData)
-                bdMemory::deallocate(this->m_data);
-            this->m_data = 0;
-            this->m_readPtr = 0;
-            this->m_writePtr = 0;
-            //bdReferencable::~bdReferencable();
-        }
-};
-
 struct bdDownloadInterceptor // sizeof=0x4
 {                                                                             // XREF: fileShareDownloadInterceptor/r
         //bdDownloadInterceptor_vtbl *__vftable;

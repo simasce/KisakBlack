@@ -1,5 +1,11 @@
 #pragma once
 #include <demo/demo_common.h>
+#include <DemonWare/bdCore/bdContainers/bdByteBuffer.h>
+#include <DemonWare/bdPlatform/bdPlatformLog/bdPlatformLog.h>
+#include <DemonWare/bdCore/bdContainers/bdArray.h>
+#include <DW/dwStorage.h>
+#include <DemonWare/bdCore/bdSocket/bdAddr.h>
+#include <DemonWare/bdCore/bdTiming/bdStopwatch.h>
 
 enum statsLocation : __int32
 {                                       // XREF: ?LiveStorage_GetStatsBuffer@@YAPAEHW4statsLocation@@_N@Z/r
@@ -382,12 +388,6 @@ enum bdLobbyErrorCode : __int32
                                         // XREF: .rdata:lobbyErrorCodeLookup/s
 };
 
-struct bdStopwatch // sizeof=0x8
-{                                       // XREF: bdRemoteTask/r
-                                        // bdNATTravClientData/r ...
-    unsigned __int64 m_start;
-};
-
 struct bdTaskResultProcessor // sizeof=0x4
 {                                       // XREF: bdPagingToken/r
     //bdTaskResultProcessor_vtbl *__vftable;
@@ -475,6 +475,30 @@ struct persistentStats // sizeof=0x996C
     bool statsFetched;
 };
 
+enum bdWriteType //bdStats::bdWriteType : __int32
+{                                       // XREF: bdStatsInfo/r
+    STAT_WRITE_REPLACE = 0x0,
+    STAT_WRITE_ADD     = 0x1,
+    STAT_WRITE_MAX     = 0x2,
+    STAT_WRITE_MIN     = 0x3,
+    STAT_WRITE_REPLACE_WHEN_RATING_INCREASE = 0x4,
+    STAT_WRITE_ADD_WHEN_RATING_INCREASE = 0x5,
+    STAT_WRITE_MAX_WHEN_RATING_INCREASE = 0x6,
+    STAT_WRITE_MIN_WHEN_RATING_INCREASE = 0x7,
+};
+
+struct __declspec(align(4)) bdCommonAddr : bdReferencable // sizeof=0x28
+{
+    bdArray<bdAddr> m_localAddrs;
+    bdAddr m_publicAddr;
+    bdNATType m_natType;
+    unsigned int m_hash;
+    bool m_isLoopback;
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
 struct bdStatsInfo : bdTaskResult // sizeof=0x70
 {                                       // XREF: bdVoteRankStatsInfo/r
                                         // LeaderBoardRow<10>/r ...
@@ -482,7 +506,8 @@ struct bdStatsInfo : bdTaskResult // sizeof=0x70
                                         // LB_IncrementEscrow(void)+14A/w ...
     unsigned __int64 m_entityID;        // XREF: LB_IncrementEscrow(void)+E2/w
                                         // LB_IncrementEscrow(void)+EE/w ...
-    bdStats::bdWriteType m_writeType;   // XREF: LB_IncrementEscrow(void)+FE/w
+    //bdStats::bdWriteType m_writeType;   // XREF: LB_IncrementEscrow(void)+FE/w
+    bdWriteType m_writeType;   // XREF: LB_IncrementEscrow(void)+FE/w
                                         // LB_IncrementEscrow(void)+154/w ...
     // padding byte
     // padding byte
@@ -496,6 +521,39 @@ struct bdStatsInfo : bdTaskResult // sizeof=0x70
     // padding byte
     // padding byte
     unsigned int m_secondsSinceUpdate;
+
+    inline bdStatsInfo() : bdTaskResult()
+    {
+        this->m_leaderboardID = 0;
+        this->m_entityID = 0;
+        this->m_writeType = STAT_WRITE_ADD;
+        this->m_rating = 0;
+        this->m_rank = 0;
+        this->m_secondsSinceUpdate = 0;
+        memset((unsigned __int8 *)this->m_entityName, 0, sizeof(this->m_entityName));
+    }
+
+    inline bool deserialize(bdByteBuffer *buffer)
+    {
+        bool error = buffer->readUInt64(&m_entityID);
+        error = error && buffer->readInt64(&m_rating);
+        error = error && buffer->readUInt64(&m_rank);
+        error = error && buffer->readString(m_entityName, 64);
+
+        if (!error)
+        {
+            bdLogMessage(
+                BD_LOG_ERROR,
+                "err/",
+                "statsInfo",
+                "C:\\projects_pc\\cod\\codsrc\\DemonWare\\bdLobby\\bdStats\\bdStatsInfo.cpp",
+                "bdStatsInfo::deserialize",
+                0x32u,
+                "Deserialization failed");
+        }
+
+        return error;
+    }
 };
 
 struct __declspec(align(8)) bdVoteRankStatsInfo : bdStatsInfo // sizeof=0xC8
