@@ -1,4 +1,98 @@
 #pragma once
+#include <game/teams.h>
+#include <client_mp/client_mp.h>
+
+enum listColumnTypes_t : __int32
+{                                       // XREF: listColumnInfo_t/r
+                                        // CG_AddSBColumnToMatchScoreBoard/r
+    LCT_RANK_ICON    = 0x0,             // XREF: .rdata:columnInfoParty/s
+    LCT_STATUS_ICON  = 0x1,             // XREF: .rdata:columnInfoParty/s
+    LCT_NAME         = 0x2,             // XREF: .rdata:columnInfoParty/s
+    LCT_TALKING_ICON = 0x3,             // XREF: .rdata:columnInfoParty/s
+    LCT_SCORE        = 0x4,
+    LCT_SB_COLUMN    = 0x5,
+    LCT_PING         = 0x6,
+    LCT_NUM          = 0x7,
+};
+
+enum scoreboardColumnType_t : __int32
+{                                                                             // XREF: UnarchivedMatchState/r
+    SB_TYPE_INVALID = 0x0,                 // XREF: .rdata:columnInfoParty/s
+    SB_TYPE_NONE = 0x1,
+    SB_TYPE_KILLS = 0x2,
+    SB_TYPE_DEATHS = 0x3,
+    SB_TYPE_ASSISTS = 0x4,
+    SB_TYPE_DEFENDS = 0x5,
+    SB_TYPE_PLANTS = 0x6,
+    SB_TYPE_DEFUSES = 0x7,
+    SB_TYPE_RETURNS = 0x8,
+    SB_TYPE_CAPTURES = 0x9,
+    SB_TYPE_DESTRUCTIONS = 0xA,
+    SB_TYPE_KDRATIO = 0xB,
+    SB_TYPE_SURVIVED = 0xC,
+    SB_TYPE_STABS = 0xD,
+    SB_TYPE_TOMAHAWKS = 0xE,
+    SB_TYPE_HUMILIATED = 0xF,
+    SB_TYPE_X2SCORE = 0x10,
+    SB_TYPE_HEADSHOTS = 0x11,
+    NUM_SB_TYPES = 0x12,
+};
+
+struct listColumnInfo_t // sizeof=0x14
+{                                       // XREF: .rdata:columnInfoParty/r
+    listColumnTypes_t type;
+    float fWidth;
+    const char *pszName;
+    int iAlignment;
+    scoreboardColumnType_t sbColumnType;
+};
+
+struct matchClientScoreData_t // sizeof=0x70
+{                                       // XREF: matchScoreBoardData_t/r
+    int rank;                           // XREF: CG_UpdateMatchScoreboard(int)+172/w
+                                        // CG_GetMatchScoreboardInfo(int,int,int,team_t)+9D/r ...
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    unsigned __int64 xuid;              // XREF: CG_UpdateMatchScoreboard(int)+13B/w
+                                        // CG_UpdateMatchScoreboard(int)+149/w ...
+    int clientNum;                      // XREF: CG_UpdateMatchScoreboard(int)+112/w
+                                        // CG_GetInGamePlayerListIcon(int,int,int,team_t,Material * *)+B1/r ...
+    struct Material *hRankIcon;                // XREF: CG_UpdateMatchScoreboard(int)+19B/w
+                                        // CG_GetMatchScoreboardRankIcon(int,int,team_t,Material * *)+49/r
+    char name[32];                      // XREF: CG_UpdateMatchScoreboard(int)+220/o
+                                        // CG_GetMatchScoreboardInfo(int,int,int,team_t)+DC/o ...
+    char clanAbbrev[8];                 // XREF: CG_UpdateMatchScoreboard(int)+255/o
+                                        // CG_GetMatchScoreboardInfo(int,int,int,team_t)+C1/r ...
+    score_s score;                      // XREF: CG_UpdateMatchScoreboard(int)+1C4/o
+                                        // CG_GetMatchScoreboardInfo(int,int,int,team_t)+139/r ...
+    team_t team;                        // XREF: CG_UpdateMatchScoreboard(int)+1F4/w
+                                        // CG_UpdateMatchScoreboard(int)+274/r ...
+};
+
+struct __declspec(align(8)) matchScoreBoardData_t // sizeof=0xF10
+{                                       // XREF: .data:matchScoreBoardData_t * matchScoreBoardData/r
+    matchClientScoreData_t matchClientScoreData[32];
+                                        // XREF: CG_UpdateMatchScoreboard(int)+112/w
+                                        // CG_UpdateMatchScoreboard(int)+13B/w ...
+    scoreboardColumnType_t scoreboardColumnTypes[4];
+                                        // XREF: CG_GetNameForScoreboardColumn(int,int)+54/r
+                                        // CG_UpdateMatchScoreboard(int)+A2/w ...
+    listColumnInfo_t inGameScoreboardColumnInfo[12];
+                                        // XREF: CG_AddSBColumnToMatchScoreBoard+21/w
+                                        // CG_AddSBColumnToMatchScoreBoard+48/w ...
+    int numClients;                     // XREF: CG_UpdateMatchScoreboard(int)+54/w
+                                        // CG_UpdateMatchScoreboard(int)+2A8/r ...
+    int numAllies;                      // XREF: CG_UpdateMatchScoreboard(int)+41/w
+                                        // CG_UpdateMatchScoreboard(int)+287/r ...
+    int numInGameScoreboardColumns;     // XREF: CG_UpdateMatchScoreboard(int)+67/w
+                                        // CG_AddSBColumnToMatchScoreBoard+15/r ...
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+};
 
 const char *__cdecl CG_GetNameForScoreboardColumn(int localClientNum, unsigned int columnNumber);
 void __cdecl CG_UpdateMatchScoreboard(int localClientNum);
@@ -10,13 +104,13 @@ void __cdecl CG_AddSBColumnToMatchScoreBoard(
                 int alignment,
                 scoreboardColumnType_t sbColumnType);
 int __cdecl CG_GetMatchScoreboardClientCount(int localClientNum, team_t team);
-int __cdecl CG_GetMatchscoreboardTeam(int localClientNum, int index);
+team_t __cdecl CG_GetMatchscoreboardTeam(int localClientNum, int index);
 int __cdecl CG_GetMatchScoreboardIndexForTeam(int localClientNum, int index, team_t team);
 void __cdecl CG_GetInGamePlayerListIcon(int localClientNum, int column, int index, team_t team, Material **handle);
 char *__cdecl CG_GetMatchScoreboardInfo(int localClientNum, int column, int index, team_t team);
 char *__cdecl CG_GetColumnValueString(int localClientNum, const score_s *score, scoreboardColumnType_t columnType);
 int __cdecl CG_GetColumnValue(int localClientNum, const score_s *score, scoreboardColumnType_t columnType);
-const char *__cdecl CG_GetMatchInGamePlayerListInfo(
+char *__cdecl CG_GetMatchInGamePlayerListInfo(
                 int localClientNum,
                 int column,
                 int index,
@@ -110,3 +204,26 @@ bool __cdecl MuteError_HandleInput(int localClientNum);
 int __cdecl CG_GetPlaceWithTiesForScore(int localClientNum, int score);
 int __cdecl CG_GetKills(int localClientNum, const score_s *score);
 int __cdecl CG_GetDeaths(int localClientNum, const score_s *score);
+
+extern const dvar_t *cg_ScoresPing_MaxBars;
+extern const dvar_t *cg_ScoresPing_Interval;
+extern const dvar_t *cg_ScoresPing_HighColor;
+extern const dvar_t *cg_ScoresPing_MedColor;
+extern const dvar_t *cg_ScoresPing_LowColor;
+extern const dvar_t *cg_ScoresPing_BgColor;
+extern const dvar_t *cg_scoreboardScrollStep;
+extern const dvar_t *cg_scoreboardBannerHeight;
+extern const dvar_t *cg_scoreboardItemHeight;
+extern const dvar_t *cg_scoreboardPingWidth;
+extern const dvar_t *cg_scoreboardPingHeight;
+extern const dvar_t *cg_scoreboardWidth;
+extern const dvar_t *cg_scoreboardSplitscreenWidth;
+extern const dvar_t *cg_scoreboardQuarterscreenWidth;
+extern const dvar_t *cg_scoreboardHeight;
+extern const dvar_t *cg_scoreboardMyColor;
+extern const dvar_t *cg_scoreboardRankFontScale;
+extern const dvar_t *cg_scoreboardTextOffset;
+extern const dvar_t *cg_scoreboardFont;
+extern const dvar_t *cg_scoreboardHeaderFontScale;
+extern const dvar_t *cg_scoreboardPingText;
+extern const dvar_t *cg_scoreboardPingGraph;

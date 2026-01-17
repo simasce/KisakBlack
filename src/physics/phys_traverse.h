@@ -1,6 +1,7 @@
 #pragma once
 
 #include "phys_colgeom.h"
+#include <qcommon/cm_trace.h>
 
 struct colgeom_visitor_t : visitor_base_t // sizeof=0x70
 {                                                                             // XREF: colgeom_visitor_inlined_t<200>/r
@@ -47,9 +48,9 @@ struct colgeom_visitor_t : visitor_base_t // sizeof=0x70
     TraceThreadInfo *m_threadInfo;
 
     void intersect_box(float *mn, float *mx, int mask);
-    void intersect_box_brushes(cLeaf_s *leaf);
-    void intersect_box_partitions(cLeaf_s *leaf);
-    void intersect_box_brushnode(cLeafBrushNode_s *node);
+    void intersect_box_brushes(struct cLeaf_s *leaf);
+    void intersect_box_partitions(struct cLeaf_s *leaf);
+    void intersect_box_brushnode(struct cLeafBrushNode_s *node);
     void intersect_box_partitions_r(struct CollisionAabbTree *aabbTree);
 };
 

@@ -1,4 +1,11 @@
 #include "cg_animscripted_mp.h"
+#include "cg_local_mp.h"
+#include "cg_ents_mp.h"
+#include <qcommon/dobj_management.h>
+#include <universal/com_math_anglevectors.h>
+#include <clientscript/cscr_memorytree.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <clientscript/cscr_stringlist.h>
 
 void __cdecl CG_GetTagMatrix(int localClientNum, int linkEntNum, unsigned __int16 tagName, float (*resultTagMat)[3])
 {
@@ -270,7 +277,7 @@ void __cdecl CG_UpdateFakeEntityLink(int localClientNum, centity_s *cent, int pa
     {
         if ( linkInfo )
         {
-            MT_Free(linkInfo, 72, SCRIPTINSTANCE_SERVER);
+            MT_Free((unsigned char*)linkInfo, 72, SCRIPTINSTANCE_SERVER);
             cent->linkInfo = 0;
         }
     }
@@ -305,7 +312,7 @@ void __cdecl CG_UpdateFakeEntityLink(int localClientNum, centity_s *cent)
         && linkInfo->linkEnt != 1023
         && ((*((unsigned int *)CG_GetEntity(localClientNum, cent->linkInfo->linkEnt) + 201) >> 1) & 1) == 0 )
     {
-        MT_Free(linkInfo, 72, SCRIPTINSTANCE_SERVER);
+        MT_Free((unsigned char*)linkInfo, 72, SCRIPTINSTANCE_SERVER);
         cent->linkInfo = 0;
     }
 }

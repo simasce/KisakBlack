@@ -1804,7 +1804,7 @@ int __cdecl Actor_UpdateActorInfo(gentity_s *ent)
     {
         __debugbreak();
     }
-    ent->s.lerp.u.actor.index.actorNum = actorNum;
+    ent->s.lerp.u.actor.actorNum = actorNum;
     if ( ent->sentient->eTeam != TEAM_SPECTATOR )
         ent->s.lerp.u.actor.team = ent->sentient->eTeam;
     return 0;

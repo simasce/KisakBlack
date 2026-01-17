@@ -1,5 +1,7 @@
 #pragma once
 
+struct cg_s;
+
 void __cdecl CG_ParseServerInfo(int localClientNum);
 void __cdecl CG_ParseCodInfo(int localClientNum);
 void __cdecl CG_ParseCullDist();

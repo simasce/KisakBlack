@@ -3,6 +3,80 @@
 #include <cstring>
 
 #include <Windows.h> // interlockedxchg
+#include <cmath>
+
+struct phys_vec2 // sizeof=0x8
+{                                                                             // XREF: contact_manifold_mesh_point/r
+                                                                                // phys_contact_manifold_process::bridge/r ...
+    float x;                                                        // XREF: phys_contact_manifold::generate_convex_poly_internal(void)+59/w
+    // phys_contact_manifold::generate_convex_poly_internal(void)+70/w ...
+    float y;                                                        // XREF: phys_contact_manifold::generate_convex_poly_internal(void)+68/w
+    // phys_contact_manifold::generate_convex_poly_internal(void)+7C/w ...
+};
+
+struct phys_vec3 // sizeof=0x10
+{                                                                             // XREF: .data:PHYS_X_VEC/r
+    float x;                                                        // XREF: gjkcc_info::update_cg(float const * const,float const * const,bool)+1F2/r
+    float y;                                                        // XREF: gjkcc_info::update_cg(float const * const,float const * const,bool)+209/r
+    float z;                                                        // XREF: gjkcc_info::update_cg(float const * const,float const * const,bool)+221/r
+    float w;                                                        // XREF: standard_query::query(broad_phase_environment_query_input const &,broad_phase_environement_query_results *)+440/r
+
+    inline phys_vec3 &operator*=(float d)
+    {
+        this->x = this->x * d;
+        this->y = this->y * d;
+        this->z = d * this->z;
+
+        return *this;
+    }
+
+    inline phys_vec3 &operator+=(const phys_vec3 *v)
+    {
+        this->x = this->x + v->x;
+        this->y = this->y + v->y;
+        this->z = this->z + v->z;
+        return *this;
+    }
+
+    inline phys_vec3 &operator-=(const phys_vec3 *v)
+    {
+        this->x = this->x - v->x;
+        this->y = this->y - v->y;
+        this->z = this->z - v->z;
+        return *this;
+    }
+
+    inline phys_vec3 &operator/=(const float d)
+    {
+        float d_inv; // [esp+8h] [ebp+8h]
+
+        d_inv = 1.0 / d;
+        this->x = this->x * d_inv;
+        this->y = this->y * d_inv;
+        this->z = d_inv * this->z;
+        return *this;
+    }
+
+    inline phys_vec3 &operator=(const phys_vec3 *v)
+    {
+        this->x = v->x;
+        this->y = v->y;
+        this->z = v->z;
+        return *this;
+    }
+
+    inline float *operator[](unsigned int i)
+    {
+        iassert(i >= 0 && i < 3);
+        return (float *)this + i;
+    }
+
+    //inline const float * operator[](unsigned int i)
+    //{
+    //    iassert(i >= 0 && i < 3);
+    //    return (const float *)this + i;
+    //}
+};
 
 struct bpei_database_id // sizeof=0x8
 {                                       // XREF: broad_phase_environment_info/r
@@ -157,79 +231,6 @@ struct minspec_read_write_mutex // sizeof=0x4
     }
 };
 
-struct phys_vec2 // sizeof=0x8
-{                                                                             // XREF: contact_manifold_mesh_point/r
-                                                                                // phys_contact_manifold_process::bridge/r ...
-        float x;                                                        // XREF: phys_contact_manifold::generate_convex_poly_internal(void)+59/w
-                                                                                // phys_contact_manifold::generate_convex_poly_internal(void)+70/w ...
-        float y;                                                        // XREF: phys_contact_manifold::generate_convex_poly_internal(void)+68/w
-                                                                                // phys_contact_manifold::generate_convex_poly_internal(void)+7C/w ...
-};
-
-struct phys_vec3 // sizeof=0x10
-{                                                                             // XREF: .data:PHYS_X_VEC/r
-        float x;                                                        // XREF: gjkcc_info::update_cg(float const * const,float const * const,bool)+1F2/r
-        float y;                                                        // XREF: gjkcc_info::update_cg(float const * const,float const * const,bool)+209/r
-        float z;                                                        // XREF: gjkcc_info::update_cg(float const * const,float const * const,bool)+221/r
-        float w;                                                        // XREF: standard_query::query(broad_phase_environment_query_input const &,broad_phase_environement_query_results *)+440/r
-
-        inline phys_vec3& operator*=(float d)
-        {
-            this->x = this->x * d;
-            this->y = this->y * d;
-            this->z = d * this->z;
-
-            return *this;
-        }
-
-        inline phys_vec3& operator+=(const phys_vec3 *v)
-        {
-            this->x = this->x + v->x;
-            this->y = this->y + v->y;
-            this->z = this->z + v->z;
-            return *this;
-        }
-
-        inline phys_vec3& operator-=(const phys_vec3 *v)
-        {
-            this->x = this->x - v->x;
-            this->y = this->y - v->y;
-            this->z = this->z - v->z;
-            return *this;
-        }
-
-        inline phys_vec3& operator/=(const float d)
-        {
-            float d_inv; // [esp+8h] [ebp+8h]
-
-            d_inv = 1.0 / d;
-            this->x = this->x * d_inv;
-            this->y = this->y * d_inv;
-            this->z = d_inv * this->z;
-            return *this;
-        }
-
-        inline phys_vec3 & operator=(const phys_vec3 *v)
-        {
-            this->x = v->x;
-            this->y = v->y;
-            this->z = v->z;
-            return *this;
-        }
-
-        inline float * operator[](unsigned int i)
-        {
-            iassert(i >= 0 && i < 3);
-            return (float *)this + i;
-        }
-
-        //inline const float * operator[](unsigned int i)
-        //{
-        //    iassert(i >= 0 && i < 3);
-        //    return (const float *)this + i;
-        //}
-};
-
 struct phys_mat44 // sizeof=0x40
 {                                                                             // XREF: .data:PHYS_IDENTITY_MATRIX/r
     phys_mat44(
@@ -339,11 +340,12 @@ struct phys_link_list1 //<PhysObjUserData> // sizeof=0xC
 
         for (i = this->m_first; i; i = i->m_next_link)
         {
-            if (i == p)
-            {
-                if (_tlAssert("c:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_local.h", 135, "i != p", ""))
-                    __debugbreak();
-            }
+            iassert(i != p);
+            //if (i == p)
+            //{
+            //    if (_tlAssert("c:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_local.h", 135, "i != p", ""))
+            //        __debugbreak();
+            //}
         }
         ++this->m_alloc_count;
         if (this->m_last)
@@ -373,28 +375,30 @@ struct phys_link_list1 //<PhysObjUserData> // sizeof=0xC
                 if (i == this->m_last)
                 {
                     this->m_last = last_i;
-                    if (last_i)
-                    {
-                        if (last_i->m_next_link)
-                        {
-                            if (_tlAssert(
-                                "c:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_local.h",
-                                160,
-                                "!last_i || last_i->get_next_link() == NULL",
-                                ""))
-                            {
-                                __debugbreak();
-                            }
-                        }
-                    }
+                    iassert(!last_i || last_i->get_next_link() == NULL);
+                    //if (last_i)
+                    //{
+                    //    if (last_i->m_next_link)
+                    //    {
+                    //        if (_tlAssert(
+                    //            "c:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_local.h",
+                    //            160,
+                    //            "!last_i || last_i->get_next_link() == NULL",
+                    //            ""))
+                    //        {
+                    //            __debugbreak();
+                    //        }
+                    //    }
+                    //}
                 }
                 return;
             }
             last_i = i;
             i = i->m_next_link;
         }
-        if (_tlAssert("c:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_local.h", 165, "0", ""))
-            __debugbreak();
+        iassert(0);
+        //if (_tlAssert("c:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_local.h", 165, "0", ""))
+        //    __debugbreak();
     }
 };
 
@@ -893,6 +897,19 @@ public:
     }
 };
 
+inline phys_vec3 *__cdecl phys_AbsValue(phys_vec3 *result, const phys_vec3 *a)
+{
+    float v3; // [esp+8h] [ebp-10h]
+    float v4; // [esp+10h] [ebp-8h]
+
+    v4 = fabsf(a->z);
+    v3 = fabsf(a->y);
+    result->x = fabsf(a->x);
+    result->y = v3;
+    result->z = v4;
+    return result;
+}
+
 template <typename T>
 struct phys_inplace_avl_tree_node//<auto_rigid_body> // sizeof=0xC
 {                                       // XREF: auto_rigid_body/r
@@ -901,11 +918,6 @@ struct phys_inplace_avl_tree_node//<auto_rigid_body> // sizeof=0xC
     T *m_left;
     T *m_right;
     int m_balance;
-};
-
-const struct cached_simplex_info // sizeof=0x30
-{                                       // XREF: phys_gjk_cache_info/r
-    phys_vec3 m_indices[3];
 };
 
 template<typename T1, typename T2, typename T3>
@@ -1049,7 +1061,7 @@ inline const phys_vec3 *phys_full_multiply(
     const phys_mat44 *mat,
     const phys_vec3 *v)
 {
-    phys_vec3 *result;
+    //phys_vec3 *result;
     float v5; // [esp-30h] [ebp-3Ch]
     float v6; // [esp-2Ch] [ebp-38h]
     const phys_vec3 *v7; // [esp-24h] [ebp-30h]
@@ -1071,6 +1083,12 @@ inline const phys_vec3 *phys_full_multiply(
     return result;
 }
 
+inline double __cdecl phys_dot(const phys_vec3 *a, const phys_vec3 *b)
+{
+    return a->x * b->x + a->y * b->y + a->z * b->z;
+}
+
+inline void __cdecl phys_transpose(phys_mat44 *dest, const phys_mat44 *source);
 inline void phys_calc_world_aabb(
     const phys_vec3 *local_center,
     const phys_vec3 *local_half_aabb_dims,
@@ -1126,24 +1144,6 @@ inline void phys_calc_world_aabb(
     aabb_max->z = v8;
 }
 
-inline double __cdecl phys_dot(const phys_vec3 *a, const phys_vec3 *b)
-{
-    return a->x * b->x + a->y * b->y + a->z * b->z;
-}
-
-inline phys_vec3 *__cdecl phys_AbsValue(phys_vec3 *result, const phys_vec3 *a)
-{
-    float v3; // [esp+8h] [ebp-10h]
-    float v4; // [esp+10h] [ebp-8h]
-
-    v4 = fabs(a->z);
-    v3 = fabs(a->y);
-    result->x = fabs(a->x);
-    result->y = v3;
-    result->z = v4;
-    return result;
-}
-
 inline void __cdecl phys_transpose(phys_mat44 *dest, const phys_mat44 *source)
 {
     float *v2; // [esp+8h] [ebp-24h]
@@ -1191,6 +1191,25 @@ inline void __cdecl phys_transpose(phys_mat44 *dest, const phys_mat44 *source)
     }
 }
 
+inline const phys_vec3 *__cdecl phys_inv_multiply(const phys_vec3 *result, const phys_mat44 *mat, const phys_vec3 *v)
+{
+    float v4; // [esp+4h] [ebp-10h]
+    float v5; // [esp+Ch] [ebp-8h]
+
+    v5 = (float)((float)(v->x * mat->z.x) + (float)(v->y * mat->z.y)) + (float)(v->z * mat->z.z);
+    v4 = (float)((float)(v->x * mat->y.x) + (float)(v->y * mat->y.y)) + (float)(v->z * mat->y.z);
+    result->x = (float)((float)(v->x * mat->x.x) + (float)(v->y * mat->x.y)) + (float)(v->z * mat->x.z);
+    result->y = v4;
+    result->z = v5;
+    return result;
+}
+
+void phys_multiply_mat(phys_mat44 *dest, const phys_mat44 *left, const phys_mat44 *right);
+phys_vec3 *phys_cross(phys_vec3 *result, const phys_vec3 *a, const phys_vec3 *b);
+void phys_full_multiply_mat(phys_mat44 *dest, const phys_mat44 *left, const phys_mat44 *right);
+void Phys_Mat4ToNitrousMat(float (*inMat)[3], phys_mat44 *outMat);
+void Phys_NitrousMat44ToVec33(const phys_mat44 *inMat, float (*outAxis)[3]);
+
 // dumb
 inline void __cdecl Phys_Vec3ToNitrousVec(const float * const inVector, phys_vec3 *outVector)
 {
@@ -1198,6 +1217,14 @@ inline void __cdecl Phys_Vec3ToNitrousVec(const float * const inVector, phys_vec
     outVector->y = inVector[1];
     outVector->z = inVector[2];
 }
+
+inline void __cdecl Phys_AxisToNitrousMat(float (*axis)[3], phys_mat44 *outMat)
+{
+    Phys_Vec3ToNitrousVec((float *)axis, &outMat->x);
+    Phys_Vec3ToNitrousVec(&(*axis)[3], &outMat->y);
+    Phys_Vec3ToNitrousVec(&(*axis)[6], &outMat->z);
+}
+
 
 // oh fuck yes, in the compiler this is slurped into every file and duplicated 68 times
 static const phys_vec3 PHYS_X_VEC = { 1.0f, 0.0f, 0.0f, 0.0f };

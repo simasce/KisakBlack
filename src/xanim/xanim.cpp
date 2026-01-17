@@ -352,7 +352,7 @@ void __cdecl XAnimSetValueSection(
     anims->entries[animIndex].paramCount = iValueCount;
 }
 
-XAnim_s *__cdecl XAnimCreateAnims(const char *debugName, int size, void *(__cdecl *Alloc)(int))
+XAnim_s *__cdecl XAnimCreateAnims(const char *debugName, int size, void *(__cdecl *Alloc)(unsigned int))
 {
     return XAnimCreateAnimsWithValues(debugName, size, 0, Alloc);
 }

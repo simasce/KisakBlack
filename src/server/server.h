@@ -2,6 +2,23 @@
 #include <qcommon/msg_mp.h>
 #include <bgame/bg_local.h>
 #include <qcommon/net_chan_mp.h>
+#include <server_mp/sv_snapshot_mp.h>
+#include <server_mp/sv_voice_mp.h>
+
+struct gentity_s;
+
+struct PredictedVehicleInfo // sizeof=0x34
+{                                                                             // XREF: clientActive_t/r
+                                                                                // clientHeader_t/r
+    bool inVehicle;
+    // padding byte
+    // padding byte
+    // padding byte
+    float origin[3];
+    float angles[3];
+    float tVel[3];
+    float aVel[3];
+};
 
 struct clientHeader_t // sizeof=0x714
 {                                       // XREF: client_t/r

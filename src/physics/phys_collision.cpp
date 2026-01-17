@@ -1428,3 +1428,80 @@ void __cdecl set_debug_callback()
 {
     phys_set_debug_callback(debug_callback);
 }
+
+void broad_phase_info::set(
+    rigid_body *rb,
+    const phys_mat44 *rb_to_world_xform,
+    const phys_mat44 *cg_to_world_xform,
+    const phys_mat44 *cg_to_rb_xform,
+    const phys_gjk_geom *gjk_geom,
+    unsigned int gjk_geom_id,
+    bool calc_cg_to_world_xform,
+    int surface_type,
+    void *user_data,
+    unsigned int env_collision_flags);
+{
+    this->m_flags = 0;
+    this->m_list_bpb_next = 0;
+    this->m_sap_node = 0;
+    this->m_flags |= 1u;
+    this->m_rb = rb;
+    this->m_rb_to_world_xform = rb_to_world_xform;
+    this->m_cg_to_world_xform = cg_to_world_xform;
+    this->m_cg_to_rb_xform = cg_to_rb_xform;
+    this->m_gjk_geom = gjk_geom;
+    this->m_gjk_geom_id = gjk_geom_id;
+    if (calc_cg_to_world_xform)
+        this->m_flags |= 0x200u;
+    else
+        this->m_flags &= ~0x200u;
+    this->m_surface_type = surface_type;
+    this->m_user_data = user_data;
+    this->m_env_collision_flags = env_collision_flags;
+    this->m_my_collision_type_flags = 0;
+}
+
+void broad_phase_info::collision_prolog()
+{
+    float y; // [esp+18h] [ebp-2Ch]
+    float z; // [esp+1Ch] [ebp-28h]
+    rigid_body *m_rb; // [esp+30h] [ebp-14h]
+
+    if ((this->m_flags & 0x200) != 0)
+        phys_full_multiply_mat((phys_mat44 *)this->m_cg_to_world_xform, this->m_rb_to_world_xform, this->m_cg_to_rb_xform);
+
+    ((phys_gjk_geom *)this->m_gjk_geom)->calc_aabb(this->m_cg_to_world_xform, &this->m_rb->m_last_position, &this->m_trace_aabb_max_whace);
+
+    phys_aabb_add_hace(&this->m_trace_aabb_min_whace, &this->m_trace_aabb_max_whace);
+    m_rb = this->m_rb;
+    y = m_rb->m_moved_vec.y;
+    z = m_rb->m_moved_vec.z;
+    this->m_trace_translation.x = m_rb->m_moved_vec.x;
+    this->m_trace_translation.y = y;
+    this->m_trace_translation.z = z;
+
+    if ((this->m_rb->m_flags & 0x30) == 0)
+        calc_largest_vel_sq(this);
+}
+
+
+void broad_phase_info::set_bpi_env(phys_auto_activate_callback *auto_activate_callback)
+{
+    if ((this->m_flags & 1) == 0
+        && _tlAssert(
+            "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\collision\\phys_broad_phase_base.h",
+            163,
+            "is_bpi()",
+            "call broad_phase_info::set first."))
+    {
+        __debugbreak();
+    }
+    iassert(m_sap_node == NULL);
+    this->m_flags = 0;
+    this->m_sap_node = auto_activate_callback;
+    this->m_flags |= 4u;
+    if (auto_activate_callback)
+        this->m_flags |= 0x80u;
+    else
+        this->m_flags &= ~0x80u;
+}

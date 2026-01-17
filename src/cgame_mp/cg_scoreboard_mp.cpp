@@ -1,4 +1,72 @@
 #include "cg_scoreboard_mp.h"
+#include <universal/assertive.h>
+#include "cg_local_mp.h"
+#include <client_mp/cl_ui_pc_mp.h>
+#include <live/live_friends_pc.h>
+#include <client_mp/cl_main_pc_mp.h>
+#include <client/cl_rank.h>
+#include <cgame/cg_draw_names.h>
+#include <game/g_client_fields.h>
+#include <client/cl_voice.h>
+#include <stringed/stringed_hooks.h>
+#include <live/live_win.h>
+#include "cg_main_mp.h"
+#include <cgame/cg_drawtools.h>
+#include <demo/demo_playback.h>
+#include <cgame/cg_compass.h>
+#include <ui/ui_main_pc.h>
+#include <ui/ui_atoms.h>
+#include <bgame/bg_misc.h>
+#include <ui_mp/ui_main_mp.h>
+#include <client/client.h>
+
+const char *sbColumnNames[18] =
+{
+  "",
+  "",
+  "MPUI_KILLS",
+  "MPUI_DEATHS",
+  "MPUI_ASSISTS",
+  "MPUI_DEFENDS",
+  "MPUI_PLANTS",
+  "MPUI_DEFUSES",
+  "MPUI_RETURNS",
+  "MPUI_CAPTURES",
+  "MPUI_DESTRUCTIONS",
+  "MPUI_RATIO",
+  "MPUI_SURVIVED",
+  "MPUI_STABS",
+  "MPUI_TOMAHAWKS",
+  "MPUI_HUMILIATED",
+  "MPUI_X2SCORE",
+  "MPUI_HEADSHOTS"
+};
+
+const dvar_t *cg_ScoresPing_MaxBars;
+const dvar_t *cg_ScoresPing_Interval;
+const dvar_t *cg_ScoresPing_HighColor;
+const dvar_t *cg_ScoresPing_MedColor;
+const dvar_t *cg_ScoresPing_LowColor;
+const dvar_t *cg_ScoresPing_BgColor;
+const dvar_t *cg_scoreboardScrollStep;
+const dvar_t *cg_scoreboardBannerHeight;
+const dvar_t *cg_scoreboardItemHeight;
+const dvar_t *cg_scoreboardPingWidth;
+const dvar_t *cg_scoreboardPingHeight;
+const dvar_t *cg_scoreboardWidth;
+const dvar_t *cg_scoreboardSplitscreenWidth;
+const dvar_t *cg_scoreboardQuarterscreenWidth;
+const dvar_t *cg_scoreboardHeight;
+const dvar_t *cg_scoreboardMyColor;
+const dvar_t *cg_scoreboardRankFontScale;
+const dvar_t *cg_scoreboardTextOffset;
+const dvar_t *cg_scoreboardFont;
+const dvar_t *cg_scoreboardHeaderFontScale;
+const dvar_t *cg_scoreboardPingText;
+const dvar_t *cg_scoreboardPingGraph;
+
+
+matchScoreBoardData_t matchScoreBoardData[1];
 
 const char *__cdecl CG_GetNameForScoreboardColumn(int localClientNum, unsigned int columnNumber)
 {
@@ -13,7 +81,7 @@ const char *__cdecl CG_GetNameForScoreboardColumn(int localClientNum, unsigned i
         __debugbreak();
     }
     if ( columnNumber < 4 )
-        return sbColumnNames[dword_F55AE8[964 * localClientNum + columnNumber]];
+        return sbColumnNames[matchScoreBoardData[localClientNum].scoreboardColumnTypes[columnNumber]];
     else
         return "";
 }
@@ -36,125 +104,114 @@ void __cdecl CG_UpdateMatchScoreboard(int localClientNum)
 
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
     numDynamicSBColumns = 0;
-    dword_F55BEC[964 * localClientNum] = 0;
-    dword_F55BE8[964 * localClientNum] = 0;
-    dword_F55BF0[964 * localClientNum] = 0;
-    for ( column = 0; column < 4; ++column )
-        dword_F55AE8[964 * localClientNum + column] = cgameGlob->scoreboardColumnTypes[column];
-    for ( i = 0; i < 32; ++i )
+    matchScoreBoardData[localClientNum].numAllies = 0;
+    matchScoreBoardData[localClientNum].numClients = 0;
+    matchScoreBoardData[localClientNum].numInGameScoreboardColumns = 0;
+    for (column = 0; column < 4; ++column)
+        matchScoreBoardData[localClientNum].scoreboardColumnTypes[column] = cgameGlob->scoreboardColumnTypes[column];
+    for (i = 0; i < 32; ++i)
     {
         clientNum = cgameGlob->scoreOrder[i];
-        if ( clientNum >= 0x20 )
+        if (clientNum >= 0x20)
             break;
-        if ( cgameGlob->bgs.clientinfo[clientNum].infoValid )
+        if (cgameGlob->bgs.clientinfo[clientNum].infoValid)
         {
-            dword_F54CF8[964 * localClientNum + 28 * i] = clientNum;
-            v1 = 964 * localClientNum;
-            v2 = 28 * i;
-            dword_F54CF0[v1 + v2] = cgameGlob->bgs.clientinfo[clientNum].xuid;
-            dword_F54CF4[v1 + v2] = HIDWORD(cgameGlob->bgs.clientinfo[clientNum].xuid);
+            matchScoreBoardData[localClientNum].matchClientScoreData[i].clientNum = clientNum;
+            v1 = localClientNum;
+            v2 = i;
+            LODWORD(matchScoreBoardData[v1].matchClientScoreData[v2].xuid) = cgameGlob->bgs.clientinfo[clientNum].xuid;
+            HIDWORD(matchScoreBoardData[v1].matchClientScoreData[v2].xuid) = HIDWORD(cgameGlob->bgs.clientinfo[clientNum].xuid);
             matchScoreBoardData[localClientNum].matchClientScoreData[i].rank = cgameGlob->bgs.clientinfo[clientNum].rank;
-            dword_F54CFC[964 * localClientNum + 28 * i] = (int)cgameGlob->bgs.clientinfo[clientNum].hRankIcon;
-            memcpy((char *)&unk_F54D28 + 3856 * localClientNum + 112 * i, &cgameGlob->bgs.clientinfo[clientNum].score, 0x2Cu);
-            dword_F54D54[964 * localClientNum + 28 * i] = cgameGlob->bgs.clientinfo[clientNum].team;
-            I_strncpyz((char *)&unk_F54D00 + 3856 * localClientNum + 112 * i, cgameGlob->bgs.clientinfo[clientNum].name, 32);
-            I_strncpyz(&byte_F54D20[3856 * localClientNum + 112 * i], cgameGlob->bgs.clientinfo[clientNum].clanAbbrev, 8);
-            if ( dword_F54D54[964 * localClientNum + 28 * i] == 2 )
-                ++dword_F55BEC[964 * localClientNum];
-            ++dword_F55BE8[964 * localClientNum];
+            matchScoreBoardData[localClientNum].matchClientScoreData[i].hRankIcon = cgameGlob->bgs.clientinfo[clientNum].hRankIcon;
+            memcpy(
+                &matchScoreBoardData[localClientNum].matchClientScoreData[i].score,
+                &cgameGlob->bgs.clientinfo[clientNum].score,
+                sizeof(matchScoreBoardData[localClientNum].matchClientScoreData[i].score));
+            matchScoreBoardData[localClientNum].matchClientScoreData[i].team = cgameGlob->bgs.clientinfo[clientNum].team;
+            I_strncpyz(
+                matchScoreBoardData[localClientNum].matchClientScoreData[i].name,
+                cgameGlob->bgs.clientinfo[clientNum].name,
+                32);
+            I_strncpyz(
+                matchScoreBoardData[localClientNum].matchClientScoreData[i].clanAbbrev,
+                cgameGlob->bgs.clientinfo[clientNum].clanAbbrev,
+                8);
+            if (matchScoreBoardData[localClientNum].matchClientScoreData[i].team == TEAM_ALLIES)
+                ++matchScoreBoardData[localClientNum].numAllies;
+            ++matchScoreBoardData[localClientNum].numClients;
         }
     }
-    if ( Flame_GetLocalClientSourceRange() )
+    if (Flame_GetLocalClientSourceRange())
     {
-        CG_AddSBColumnToMatchScoreBoard(
-            localClientNum,
-            LCT_RANK_ICON,
-            COERCE_INT(0.07),
-            "",
-            1,
-            SB_TYPE_INVALID);
-        CG_AddSBColumnToMatchScoreBoard(
-            localClientNum,
-            LCT_STATUS_ICON,
-            COERCE_INT(0.050000001),
-            "",
-            1,
-            SB_TYPE_INVALID);
-        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_NAME, COERCE_INT(0.2), "", 0, SB_TYPE_INVALID);
-        CG_AddSBColumnToMatchScoreBoard(
-            localClientNum,
-            LCT_TALKING_ICON,
-            COERCE_INT(0.050000001),
-            "",
-            0,
-            SB_TYPE_INVALID);
+        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_RANK_ICON, 0.07, "", 1, SB_TYPE_INVALID);
+        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_STATUS_ICON, 0.050000001, "", 1, SB_TYPE_INVALID);
+        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_NAME, 0.2, "", 0, SB_TYPE_INVALID);
+        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_TALKING_ICON, 0.050000001, "", 0, SB_TYPE_INVALID);
         currentScoreboardWidthUsed = (float)((float)((float)(0.0 + 0.07) + 0.050000001) + 0.2) + 0.050000001;
     }
     else
     {
-        CG_AddSBColumnToMatchScoreBoard(
-            localClientNum,
-            LCT_NAME,
-            COERCE_INT(0.44999999),
-            "",
-            0,
-            SB_TYPE_INVALID);
+        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_NAME, 0.44999999, "", 0, SB_TYPE_INVALID);
         currentScoreboardWidthUsed = 0.0 + 0.44999999;
     }
-    CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_SCORE, COERCE_INT(0.1), "CGAME_SB_SCORE", 2, SB_TYPE_INVALID);
+    CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_SCORE, 0.1, "CGAME_SB_SCORE", 2, SB_TYPE_INVALID);
     currentScoreboardWidthUseda = currentScoreboardWidthUsed + 0.1;
-    if ( cg_scoreboardPingText->current.enabled )
+    if (cg_scoreboardPingText->current.enabled)
         currentScoreboardWidthUseda = currentScoreboardWidthUseda + 0.1;
-    for ( j = 0; j < 4; ++j )
+    for (j = 0; j < 4; ++j)
     {
-        dword_F55AE8[964 * localClientNum + j] = cgameGlob->scoreboardColumnTypes[j];
-        if ( dword_F55AE8[964 * localClientNum + j] > 1 && dword_F55AE8[964 * localClientNum + j] < 18 )
+        matchScoreBoardData[localClientNum].scoreboardColumnTypes[j] = cgameGlob->scoreboardColumnTypes[j];
+        if (matchScoreBoardData[localClientNum].scoreboardColumnTypes[j] > SB_TYPE_NONE
+            && matchScoreBoardData[localClientNum].scoreboardColumnTypes[j] < NUM_SB_TYPES)
+        {
             ++numDynamicSBColumns;
+        }
     }
-    if ( currentScoreboardWidthUseda >= 1.0
+    if (currentScoreboardWidthUseda >= 1.0
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scoreboard_mp.cpp",
-                    544,
-                    0,
-                    "%s",
-                    "currentScoreboardWidthUsed < 1.0f") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scoreboard_mp.cpp",
+            544,
+            0,
+            "%s",
+            "currentScoreboardWidthUsed < 1.0f"))
     {
         __debugbreak();
     }
-    if ( currentScoreboardWidthUseda > 1.0 )
+    if (currentScoreboardWidthUseda > 1.0)
         currentScoreboardWidthUseda = 1.0f;
-    for ( columnNumber = 0; columnNumber < 4; ++columnNumber )
+    for (columnNumber = 0; columnNumber < 4; ++columnNumber)
     {
-        if ( dword_F55AE8[964 * localClientNum + columnNumber] > 1 && dword_F55AE8[964 * localClientNum + columnNumber] < 18 )
+        if (matchScoreBoardData[localClientNum].scoreboardColumnTypes[columnNumber] > SB_TYPE_NONE
+            && matchScoreBoardData[localClientNum].scoreboardColumnTypes[columnNumber] < NUM_SB_TYPES)
         {
-            v4 = dword_F55AE8[964 * localClientNum + columnNumber];
+            v4 = matchScoreBoardData[localClientNum].scoreboardColumnTypes[columnNumber];
             NameForScoreboardColumn = CG_GetNameForScoreboardColumn(localClientNum, columnNumber);
             CG_AddSBColumnToMatchScoreBoard(
                 localClientNum,
                 LCT_SB_COLUMN,
-                COERCE_INT((float)(1.0 - currentScoreboardWidthUseda) / (float)numDynamicSBColumns),
+                (float)(1.0 - currentScoreboardWidthUseda) / (float)numDynamicSBColumns,
                 NameForScoreboardColumn,
                 2,
                 v4);
         }
     }
-    if ( cg_scoreboardPingText->current.enabled )
-        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_PING, COERCE_INT(0.1), "CGAME_SB_PING", 2, SB_TYPE_INVALID);
+    if (cg_scoreboardPingText->current.enabled)
+        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_PING, 0.1, "CGAME_SB_PING", 2, SB_TYPE_INVALID);
 }
 
 void __cdecl CG_AddSBColumnToMatchScoreBoard(
-                int localClientNum,
-                listColumnTypes_t columnType,
-                int columnWidth,
-                const char *columnName,
-                int alignment,
-                scoreboardColumnType_t sbColumnType)
+    int localClientNum,
+    listColumnTypes_t columnType,
+    int columnWidth,
+    const char *columnName,
+    int alignment,
+    scoreboardColumnType_t sbColumnType)
 {
-    dword_F55AF8[964 * localClientNum + 5 * dword_F55BF0[964 * localClientNum]] = columnType;
-    dword_F55AFC[964 * localClientNum + 5 * dword_F55BF0[964 * localClientNum]] = columnWidth;
-    dword_F55B00[964 * localClientNum + 5 * dword_F55BF0[964 * localClientNum]] = (int)columnName;
-    dword_F55B04[964 * localClientNum + 5 * dword_F55BF0[964 * localClientNum]] = alignment;
-    dword_F55B08[964 * localClientNum + 5 * dword_F55BF0[964 * localClientNum]++] = sbColumnType;
+    matchScoreBoardData[localClientNum].inGameScoreboardColumnInfo[matchScoreBoardData[localClientNum].numInGameScoreboardColumns].type = columnType;
+    matchScoreBoardData[localClientNum].inGameScoreboardColumnInfo[matchScoreBoardData[localClientNum].numInGameScoreboardColumns].fWidth = columnWidth;
+    matchScoreBoardData[localClientNum].inGameScoreboardColumnInfo[matchScoreBoardData[localClientNum].numInGameScoreboardColumns].pszName = columnName;
+    matchScoreBoardData[localClientNum].inGameScoreboardColumnInfo[matchScoreBoardData[localClientNum].numInGameScoreboardColumns].iAlignment = alignment;
+    matchScoreBoardData[localClientNum].inGameScoreboardColumnInfo[matchScoreBoardData[localClientNum].numInGameScoreboardColumns++].sbColumnType = sbColumnType;
 }
 
 int __cdecl CG_GetMatchScoreboardClientCount(int localClientNum, team_t team)
@@ -163,32 +220,32 @@ int __cdecl CG_GetMatchScoreboardClientCount(int localClientNum, team_t team)
     int clientCount; // [esp+4h] [ebp-4h]
 
     clientCount = 0;
-    if ( team == TEAM_NUM_TEAMS )
-        return dword_F55BE8[964 * localClientNum];
-    for ( i = 0; i < dword_F55BE8[964 * localClientNum]; ++i )
+    if (team == TEAM_NUM_TEAMS)
+        return matchScoreBoardData[localClientNum].numClients;
+    for (i = 0; i < matchScoreBoardData[localClientNum].numClients; ++i)
     {
-        if ( dword_F54D54[964 * localClientNum + 28 * i] == team )
+        if (matchScoreBoardData[localClientNum].matchClientScoreData[i].team == team)
             ++clientCount;
     }
     return clientCount;
 }
 
-int __cdecl CG_GetMatchscoreboardTeam(int localClientNum, int index)
+team_t __cdecl CG_GetMatchscoreboardTeam(int localClientNum, int index)
 {
     int currClient; // [esp+0h] [ebp-4h]
 
     currClient = CG_GetMatchScoreboardIndexForTeam(localClientNum, index, TEAM_NUM_TEAMS);
-    if ( (currClient < 0 || currClient >= dword_F55BE8[964 * localClientNum])
+    if ((currClient < 0 || currClient >= matchScoreBoardData[localClientNum].numClients)
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scoreboard_mp.cpp",
-                    606,
-                    0,
-                    "%s",
-                    "currClient >= 0 && currClient < matchScoreBoardData[localClientNum].numClients") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scoreboard_mp.cpp",
+            606,
+            0,
+            "%s",
+            "currClient >= 0 && currClient < matchScoreBoardData[localClientNum].numClients"))
     {
         __debugbreak();
     }
-    return dword_F54D54[964 * localClientNum + 28 * currClient];
+    return matchScoreBoardData[localClientNum].matchClientScoreData[currClient].team;
 }
 
 int __cdecl CG_GetMatchScoreboardIndexForTeam(int localClientNum, int index, team_t team)
@@ -196,22 +253,23 @@ int __cdecl CG_GetMatchScoreboardIndexForTeam(int localClientNum, int index, tea
     int currClient; // [esp+0h] [ebp-4h]
     int indexa; // [esp+10h] [ebp+Ch]
 
-    if ( team == TEAM_NUM_TEAMS )
+    if (team == TEAM_NUM_TEAMS)
     {
-        if ( index >= dword_F55BEC[964 * localClientNum] )
-            index -= dword_F55BEC[964 * localClientNum];
+        if (index >= matchScoreBoardData[localClientNum].numAllies)
+            index -= matchScoreBoardData[localClientNum].numAllies;
         else
             team = TEAM_ALLIES;
     }
     indexa = index + 1;
-    for ( currClient = 0; currClient < dword_F55BE8[964 * localClientNum]; ++currClient )
+    for (currClient = 0; currClient < matchScoreBoardData[localClientNum].numClients; ++currClient)
     {
-        if ( dword_F54D54[964 * localClientNum + 28 * currClient] == team
-            || team == TEAM_NUM_TEAMS && dword_F54D54[964 * localClientNum + 28 * currClient] != 2 )
+        if (matchScoreBoardData[localClientNum].matchClientScoreData[currClient].team == team
+            || team == TEAM_NUM_TEAMS
+            && matchScoreBoardData[localClientNum].matchClientScoreData[currClient].team != TEAM_ALLIES)
         {
             --indexa;
         }
-        if ( !indexa )
+        if (!indexa)
             break;
     }
     return currClient;
@@ -223,17 +281,20 @@ void __cdecl CG_GetInGamePlayerListIcon(int localClientNum, int column, int inde
     FriendInfo finfo; // [esp+0h] [ebp-C0h] BYREF
     int currClient; // [esp+BCh] [ebp-4h]
 
-    if ( index >= 0 && index < dword_F55BE8[964 * localClientNum] )
+    if (index >= 0 && index < matchScoreBoardData[localClientNum].numClients)
     {
         currClient = CG_GetMatchScoreboardIndexForTeam(localClientNum, index, team);
-        if ( column == 8 )
+        if (column == 8)
         {
-            HIDWORD(v5) = dword_F54CF4[964 * localClientNum + 28 * currClient];
-            LODWORD(v5) = dword_F54CF0[964 * localClientNum + 28 * currClient];
-            if ( Friends_GetByID(0, v5, &finfo) )
+            HIDWORD(v5) = HIDWORD(matchScoreBoardData[localClientNum].matchClientScoreData[currClient].xuid);
+            LODWORD(v5) = matchScoreBoardData[localClientNum].matchClientScoreData[currClient].xuid;
+            if (Friends_GetByID(0, v5, &finfo))
                 *handle = Material_RegisterHandle("pc_friend", 7);
         }
-        else if ( column == 9 && CL_IsPlayerMuted(localClientNum, dword_F54CF8[964 * localClientNum + 28 * currClient]) )
+        else if (column == 9
+            && CL_IsPlayerMuted(
+                localClientNum,
+                matchScoreBoardData[localClientNum].matchClientScoreData[currClient].clientNum))
         {
             *handle = Material_RegisterHandle("voice_off", 7);
         }
@@ -246,60 +307,60 @@ char *__cdecl CG_GetMatchScoreboardInfo(int localClientNum, int column, int inde
     __int64 v5; // [esp-8h] [ebp-10h]
     int currClient; // [esp+4h] [ebp-4h]
 
-    if ( index < 0 || index >= dword_F55BE8[964 * localClientNum] )
+    if (index < 0 || index >= matchScoreBoardData[localClientNum].numClients)
         return (char *)"";
     currClient = CG_GetMatchScoreboardIndexForTeam(localClientNum, index, team);
-    switch ( column )
+    switch (column)
     {
-        case 0:
-            HIDWORD(v5) = dword_F54CF4[964 * localClientNum + 28 * currClient];
-            LODWORD(v5) = dword_F54CF0[964 * localClientNum + 28 * currClient];
-            result = va("%llu", v5);
-            break;
-        case 2:
-            result = (char *)CL_GetRankData(
-                                                 matchScoreBoardData[localClientNum].matchClientScoreData[currClient].rank,
-                                                 MP_RANKTABLE_DISPLAYLEVEL);
-            break;
-        case 4:
-            if ( byte_F54D20[3856 * localClientNum + 112 * currClient] )
-                result = va(
-                                     "[%s]%s",
-                                     &byte_F54D20[3856 * localClientNum + 112 * currClient],
-                                     (const char *)&unk_F54D00 + 3856 * localClientNum + 112 * currClient);
-            else
-                result = (char *)&unk_F54D00 + 3856 * localClientNum + 112 * currClient;
-            break;
-        case 5:
-            result = va("%d", dword_F54D34[964 * localClientNum + 28 * currClient]);
-            break;
-        case 6:
-            result = CG_GetColumnValueString(
-                                 localClientNum,
-                                 (const score_s *)((char *)&unk_F54D28 + 3856 * localClientNum + 112 * currClient),
-                                 (scoreboardColumnType_t)dword_F55AE8[964 * localClientNum]);
-            break;
-        case 7:
-            result = CG_GetColumnValueString(
-                                 localClientNum,
-                                 (const score_s *)((char *)&unk_F54D28 + 3856 * localClientNum + 112 * currClient),
-                                 (scoreboardColumnType_t)dword_F55AEC[964 * localClientNum]);
-            break;
-        case 8:
-            result = CG_GetColumnValueString(
-                                 localClientNum,
-                                 (const score_s *)((char *)&unk_F54D28 + 3856 * localClientNum + 112 * currClient),
-                                 (scoreboardColumnType_t)dword_F55AF0[964 * localClientNum]);
-            break;
-        case 9:
-            result = CG_GetColumnValueString(
-                                 localClientNum,
-                                 (const score_s *)((char *)&unk_F54D28 + 3856 * localClientNum + 112 * currClient),
-                                 (scoreboardColumnType_t)dword_F55AF4[964 * localClientNum]);
-            break;
-        default:
-            result = (char *)"";
-            break;
+    case 0:
+        HIDWORD(v5) = HIDWORD(matchScoreBoardData[localClientNum].matchClientScoreData[currClient].xuid);
+        LODWORD(v5) = matchScoreBoardData[localClientNum].matchClientScoreData[currClient].xuid;
+        result = va("%llu", v5);
+        break;
+    case 2:
+        result = (char *)CL_GetRankData(
+            matchScoreBoardData[localClientNum].matchClientScoreData[currClient].rank,
+            MP_RANKTABLE_DISPLAYLEVEL);
+        break;
+    case 4:
+        if (matchScoreBoardData[localClientNum].matchClientScoreData[currClient].clanAbbrev[0])
+            result = va(
+                "[%s]%s",
+                matchScoreBoardData[localClientNum].matchClientScoreData[currClient].clanAbbrev,
+                matchScoreBoardData[localClientNum].matchClientScoreData[currClient].name);
+        else
+            result = matchScoreBoardData[localClientNum].matchClientScoreData[currClient].name;
+        break;
+    case 5:
+        result = va("%d", matchScoreBoardData[localClientNum].matchClientScoreData[currClient].score.score);
+        break;
+    case 6:
+        result = (char *)CG_GetColumnValueString(
+            localClientNum,
+            &matchScoreBoardData[localClientNum].matchClientScoreData[currClient].score,
+            matchScoreBoardData[localClientNum].scoreboardColumnTypes[0]);
+        break;
+    case 7:
+        result = (char *)CG_GetColumnValueString(
+            localClientNum,
+            &matchScoreBoardData[localClientNum].matchClientScoreData[currClient].score,
+            matchScoreBoardData[localClientNum].scoreboardColumnTypes[1]);
+        break;
+    case 8:
+        result = (char *)CG_GetColumnValueString(
+            localClientNum,
+            &matchScoreBoardData[localClientNum].matchClientScoreData[currClient].score,
+            matchScoreBoardData[localClientNum].scoreboardColumnTypes[2]);
+        break;
+    case 9:
+        result = (char *)CG_GetColumnValueString(
+            localClientNum,
+            &matchScoreBoardData[localClientNum].matchClientScoreData[currClient].score,
+            matchScoreBoardData[localClientNum].scoreboardColumnTypes[3]);
+        break;
+    default:
+        result = (char *)"";
+        break;
     }
     return result;
 }
@@ -330,14 +391,14 @@ int __cdecl CG_GetColumnValue(int localClientNum, const score_s *score, scoreboa
     const char *ColumnNameByType; // eax
     int i; // [esp+0h] [ebp-4h]
 
-    if ( !score
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scoreboard_mp.cpp", 416, 0, "%s", "score") )
+    if (!score
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scoreboard_mp.cpp", 416, 0, "%s", "score"))
     {
         __debugbreak();
     }
-    for ( i = 0; ; ++i )
+    for (i = 0; ; ++i)
     {
-        if ( i >= 4 )
+        if (i >= 4)
         {
             ColumnNameByType = CScr_GetColumnNameByType(columnType);
             Com_PrintWarning(
@@ -346,64 +407,64 @@ int __cdecl CG_GetColumnValue(int localClientNum, const score_s *score, scoreboa
                 ColumnNameByType);
             return -1;
         }
-        if ( dword_F55AE8[964 * localClientNum + i] == columnType )
+        if (matchScoreBoardData[localClientNum].scoreboardColumnTypes[i] == columnType)
             break;
     }
-    if ( columnType == SB_TYPE_X2SCORE )
+    if (columnType == SB_TYPE_X2SCORE)
         return 10 * score->scoreboardColumns[i];
     else
         return score->scoreboardColumns[i];
 }
 
-const char *__cdecl CG_GetMatchInGamePlayerListInfo(
-                int localClientNum,
-                int column,
-                int index,
-                team_t team,
-                Material **handle)
+char *__cdecl CG_GetMatchInGamePlayerListInfo(
+    int localClientNum,
+    int column,
+    int index,
+    team_t team,
+    Material **handle)
 {
-    const char *result; // eax
+    char *result; // eax
     int currClient; // [esp+4h] [ebp-4h]
     int indexa; // [esp+18h] [ebp+10h]
 
-    if ( index < 0 || index >= dword_F55BE8[964 * localClientNum] )
-        return "";
+    if (index < 0 || index >= matchScoreBoardData[localClientNum].numClients)
+        return (char *)"";
     indexa = index + 1;
-    for ( currClient = 0; currClient < dword_F55BE8[964 * localClientNum]; ++currClient )
+    for (currClient = 0; currClient < matchScoreBoardData[localClientNum].numClients; ++currClient)
     {
-        if ( dword_F54D54[964 * localClientNum + 28 * currClient] == team )
+        if (matchScoreBoardData[localClientNum].matchClientScoreData[currClient].team == team)
             --indexa;
-        if ( !indexa )
+        if (!indexa)
             break;
     }
-    switch ( column )
+    switch (column)
     {
-        case 0:
-            result = CG_IsInGamePlayerListPlayerTalking(
-                                 localClientNum,
-                                 dword_F54CF8[964 * localClientNum + 28 * currClient],
-                                 handle);
-            break;
-        case 4:
-            result = CL_GetRankData(
-                                 matchScoreBoardData[localClientNum].matchClientScoreData[currClient].rank,
-                                 MP_RANKTABLE_DISPLAYLEVEL);
-            break;
-        case 6:
-            if ( byte_F54D20[3856 * localClientNum + 112 * currClient] )
-                result = va(
-                                     "[%s]%s",
-                                     &byte_F54D20[3856 * localClientNum + 112 * currClient],
-                                     (const char *)&unk_F54D00 + 3856 * localClientNum + 112 * currClient);
-            else
-                result = (char *)&unk_F54D00 + 3856 * localClientNum + 112 * currClient;
-            break;
-        case 7:
-            result = va("%d", dword_F54D34[964 * localClientNum + 28 * currClient]);
-            break;
-        default:
-            result = "";
-            break;
+    case 0:
+        result = (char *)CG_IsInGamePlayerListPlayerTalking(
+            localClientNum,
+            matchScoreBoardData[localClientNum].matchClientScoreData[currClient].clientNum,
+            handle);
+        break;
+    case 4:
+        result = (char *)CL_GetRankData(
+            matchScoreBoardData[localClientNum].matchClientScoreData[currClient].rank,
+            MP_RANKTABLE_DISPLAYLEVEL);
+        break;
+    case 6:
+        if (matchScoreBoardData[localClientNum].matchClientScoreData[currClient].clanAbbrev[0])
+            result = va(
+                "[%s]%s",
+                matchScoreBoardData[localClientNum].matchClientScoreData[currClient].clanAbbrev,
+                matchScoreBoardData[localClientNum].matchClientScoreData[currClient].name);
+        else
+            result = matchScoreBoardData[localClientNum].matchClientScoreData[currClient].name;
+        break;
+    case 7:
+        result = va("%d", matchScoreBoardData[localClientNum].matchClientScoreData[currClient].score.score);
+        break;
+    default:
+        result = (char *)"";
+        break;
     }
     return result;
 }
@@ -426,81 +487,81 @@ const char *__cdecl CG_IsInGamePlayerListPlayerTalking(int localClientNum, unsig
 }
 
 char *__cdecl CG_GetMatchInGamePlayersInfo(
-                int localClientNum,
-                int column,
-                unsigned int index,
-                int feederType,
-                Material **handle)
+    int localClientNum,
+    int column,
+    unsigned int index,
+    int feederType,
+    Material **handle)
 {
     char *result; // eax
     int a_count; // [esp+18h] [ebp-14h]
     cg_s *cgameGlob; // [esp+24h] [ebp-8h]
-    signed int clientIndex; // [esp+28h] [ebp-4h]
+    int clientIndex; // [esp+28h] [ebp-4h]
     int indexa; // [esp+3Ch] [ebp+10h]
 
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
-    if ( !cgameGlob || index >= 0x20 )
+    if (!cgameGlob || index >= 0x20)
         return (char *)"";
     indexa = index + 1;
-    switch ( feederType )
+    switch (feederType)
     {
-        case 'i':
-        case 'j':
-            for ( clientIndex = 0; clientIndex < 32; ++clientIndex )
+    case 'i':
+    case 'j':
+        for (clientIndex = 0; clientIndex < 32; ++clientIndex)
+        {
+            if (cgameGlob->bgs.clientinfo[clientIndex].infoValid)
             {
-                if ( cgameGlob->bgs.clientinfo[clientIndex].infoValid )
-                {
-                    if ( cgameGlob->bgs.clientinfo[clientIndex].team == (feederType == 105) + 1 && !--indexa )
-                        break;
-                }
-            }
-            break;
-        case 'k':
-        case 'l':
-            a_count = (int)((float)((float)dword_F55BE8[964 * localClientNum] * 0.5) + 0.4999999990686774);
-            for ( clientIndex = 0; clientIndex < 32; ++clientIndex )
-            {
-                if ( cgameGlob->bgs.clientinfo[clientIndex].infoValid
-                    && cgameGlob->bgs.clientinfo[clientIndex].team == TEAM_FREE
-                    && (feederType == 107 && clientIndex < a_count || feederType == 108 && clientIndex >= a_count)
-                    && !--indexa )
-                {
+                if (cgameGlob->bgs.clientinfo[clientIndex].team == (feederType == 105) + 1 && !--indexa)
                     break;
-                }
             }
-            break;
-        default:
-            break;
+        }
+        break;
+    case 'k':
+    case 'l':
+        a_count = (int)((float)((float)matchScoreBoardData[localClientNum].numClients * 0.5) + 0.4999999990686774);
+        for (clientIndex = 0; clientIndex < 32; ++clientIndex)
+        {
+            if (cgameGlob->bgs.clientinfo[clientIndex].infoValid
+                && cgameGlob->bgs.clientinfo[clientIndex].team == TEAM_FREE
+                && (feederType == 107 && clientIndex < a_count || feederType == 108 && clientIndex >= a_count)
+                && !--indexa)
+            {
+                break;
+            }
+        }
+        break;
+    default:
+        break;
     }
-    if ( clientIndex >= 32 )
+    if (clientIndex >= 32)
         return (char *)"";
-    switch ( column )
+    switch (column)
     {
-        case 3:
-            result = (char *)CL_GetRankData(cgameGlob->bgs.clientinfo[clientIndex].rank, MP_RANKTABLE_DISPLAYLEVEL);
-            break;
-        case 4:
-            *handle = cgameGlob->bgs.clientinfo[clientIndex].hRankIcon;
-            result = (char *)"";
-            break;
-        case 5:
-            if ( cgameGlob->bgs.clientinfo[clientIndex].clanAbbrev[0] )
-                result = va(
-                                     "[%s]%s",
-                                     cgameGlob->bgs.clientinfo[clientIndex].clanAbbrev,
-                                     cgameGlob->bgs.clientinfo[clientIndex].name);
-            else
-                result = cgameGlob->bgs.clientinfo[clientIndex].name;
-            break;
-        case 6:
-            result = (char *)CG_IsInGamePlayerListPlayerTalking(localClientNum, clientIndex, handle);
-            break;
-        case 7:
-            result = (char *)"";
-            break;
-        default:
-            result = (char *)"";
-            break;
+    case 3:
+        result = (char *)CL_GetRankData(cgameGlob->bgs.clientinfo[clientIndex].rank, MP_RANKTABLE_DISPLAYLEVEL);
+        break;
+    case 4:
+        *handle = cgameGlob->bgs.clientinfo[clientIndex].hRankIcon;
+        result = (char *)"";
+        break;
+    case 5:
+        if (cgameGlob->bgs.clientinfo[clientIndex].clanAbbrev[0])
+            result = va(
+                "[%s]%s",
+                cgameGlob->bgs.clientinfo[clientIndex].clanAbbrev,
+                cgameGlob->bgs.clientinfo[clientIndex].name);
+        else
+            result = cgameGlob->bgs.clientinfo[clientIndex].name;
+        break;
+    case 6:
+        result = (char *)CG_IsInGamePlayerListPlayerTalking(localClientNum, clientIndex, handle);
+        break;
+    case 7:
+        result = (char *)"";
+        break;
+    default:
+        result = (char *)"";
+        break;
     }
     return result;
 }
@@ -511,26 +572,26 @@ const char *__cdecl CG_GetMatchInGamePlayerXuid(int localClientNum, int index, t
     int currClient; // [esp+0h] [ebp-4h]
     int indexa; // [esp+10h] [ebp+Ch]
 
-    if ( index < 0 || index >= dword_F55BE8[964 * localClientNum] )
+    if (index < 0 || index >= matchScoreBoardData[localClientNum].numClients)
         return "";
     indexa = index + 1;
-    for ( currClient = 0; currClient < dword_F55BE8[964 * localClientNum]; ++currClient )
+    for (currClient = 0; currClient < matchScoreBoardData[localClientNum].numClients; ++currClient)
     {
-        if ( dword_F54D54[964 * localClientNum + 28 * currClient] == team )
+        if (matchScoreBoardData[localClientNum].matchClientScoreData[currClient].team == team)
             --indexa;
-        if ( !indexa )
+        if (!indexa)
             break;
     }
-    HIDWORD(v4) = dword_F54CF4[964 * localClientNum + 28 * currClient];
-    LODWORD(v4) = dword_F54CF0[964 * localClientNum + 28 * currClient];
+    HIDWORD(v4) = HIDWORD(matchScoreBoardData[localClientNum].matchClientScoreData[currClient].xuid);
+    LODWORD(v4) = matchScoreBoardData[localClientNum].matchClientScoreData[currClient].xuid;
     return va("%llu", v4);
 }
 
 char __cdecl CG_GetMatchInGamePlayersXUID(
-                int localClientNum,
-                unsigned int index,
-                int feederType,
-                unsigned __int64 *retXUID)
+    int localClientNum,
+    unsigned int index,
+    int feederType,
+    unsigned __int64 *retXUID)
 {
     int a_count; // [esp+18h] [ebp-14h]
     cg_s *cgameGlob; // [esp+24h] [ebp-8h]
@@ -538,40 +599,40 @@ char __cdecl CG_GetMatchInGamePlayersXUID(
     int indexa; // [esp+38h] [ebp+Ch]
 
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
-    if ( !cgameGlob || index >= 0x20 )
+    if (!cgameGlob || index >= 0x20)
         return 0;
     indexa = index + 1;
-    switch ( feederType )
+    switch (feederType)
     {
-        case 'i':
-        case 'j':
-            for ( clientIndex = 0; clientIndex < 32; ++clientIndex )
+    case 'i':
+    case 'j':
+        for (clientIndex = 0; clientIndex < 32; ++clientIndex)
+        {
+            if (cgameGlob->bgs.clientinfo[clientIndex].infoValid)
             {
-                if ( cgameGlob->bgs.clientinfo[clientIndex].infoValid )
-                {
-                    if ( cgameGlob->bgs.clientinfo[clientIndex].team == (feederType == 105) + 1 && !--indexa )
-                        break;
-                }
-            }
-            break;
-        case 'k':
-        case 'l':
-            a_count = (int)((float)((float)dword_F55BE8[964 * localClientNum] * 0.5) + 0.4999999990686774);
-            for ( clientIndex = 0; clientIndex < 32; ++clientIndex )
-            {
-                if ( cgameGlob->bgs.clientinfo[clientIndex].infoValid
-                    && cgameGlob->bgs.clientinfo[clientIndex].team == TEAM_FREE
-                    && (feederType == 107 && clientIndex < a_count || feederType == 108 && clientIndex >= a_count)
-                    && !--indexa )
-                {
+                if (cgameGlob->bgs.clientinfo[clientIndex].team == (feederType == 105) + 1 && !--indexa)
                     break;
-                }
             }
-            break;
-        default:
-            break;
+        }
+        break;
+    case 'k':
+    case 'l':
+        a_count = (int)((float)((float)matchScoreBoardData[localClientNum].numClients * 0.5) + 0.4999999990686774);
+        for (clientIndex = 0; clientIndex < 32; ++clientIndex)
+        {
+            if (cgameGlob->bgs.clientinfo[clientIndex].infoValid
+                && cgameGlob->bgs.clientinfo[clientIndex].team == TEAM_FREE
+                && (feederType == 107 && clientIndex < a_count || feederType == 108 && clientIndex >= a_count)
+                && !--indexa)
+            {
+                break;
+            }
+        }
+        break;
+    default:
+        break;
     }
-    if ( clientIndex >= 32 )
+    if (clientIndex >= 32)
         return 0;
     *retXUID = cgameGlob->bgs.clientinfo[clientIndex].xuid;
     return 1;
@@ -579,23 +640,23 @@ char __cdecl CG_GetMatchInGamePlayersXUID(
 
 void __cdecl CG_GetMatchScoreboardRankIcon(int localClientNum, int index, team_t team, Material **handle)
 {
-    if ( index >= 0 && index < dword_F55BE8[964 * localClientNum] )
-        *handle = (Material *)dword_F54CFC[964 * localClientNum
-                                                                         + 28 * CG_GetMatchScoreboardIndexForTeam(localClientNum, index, team)];
+    if (index >= 0 && index < matchScoreBoardData[localClientNum].numClients)
+        *handle = matchScoreBoardData[localClientNum].matchClientScoreData[CG_GetMatchScoreboardIndexForTeam(
+            localClientNum,
+            index,
+            team)].hRankIcon;
 }
 
 int __cdecl CG_GetIndexIntoMatchScoreboard(int localClientNum, int controllerIndex)
 {
-    int v2; // edx
     int i; // [esp+18h] [ebp-4h]
 
-    for ( i = 0; i < dword_F55BE8[964 * localClientNum]; ++i )
+    for (i = 0; i < matchScoreBoardData[localClientNum].numClients; ++i)
     {
-        if ( dword_F54CF0[964 * localClientNum + 28 * i] == Live_GetXuid(controllerIndex)
-            && dword_F54CF4[964 * localClientNum + 28 * i] == v2 )
-        {
+        if (__PAIR64__(
+            HIDWORD(matchScoreBoardData[localClientNum].matchClientScoreData[i].xuid),
+            matchScoreBoardData[localClientNum].matchClientScoreData[i].xuid) == Live_GetXuid(controllerIndex))
             return i;
-        }
     }
     Com_PrintWarning(16, "Couldn't find local player in match scoreboard!\n");
     return -1;
@@ -606,13 +667,13 @@ int __cdecl CG_GetWagerPlaceForMatchScoreboard(int localClientNum, int matchScor
     int i; // [esp+0h] [ebp-Ch]
     int wagerPlace; // [esp+4h] [ebp-8h]
 
-    if ( matchScoreboardIndex >= 0 && matchScoreboardIndex < dword_F55BE8[964 * localClientNum] )
+    if (matchScoreboardIndex >= 0 && matchScoreboardIndex < matchScoreBoardData[localClientNum].numClients)
     {
         wagerPlace = matchScoreboardIndex + 1;
-        for ( i = matchScoreboardIndex - 1;
-                    i >= 0
-             && dword_F54D34[964 * localClientNum + 28 * i] == dword_F54D34[964 * localClientNum + 28 * matchScoreboardIndex];
-                    --i )
+        for (i = matchScoreboardIndex - 1;
+            i >= 0
+            && matchScoreBoardData[localClientNum].matchClientScoreData[i].score.score == matchScoreBoardData[localClientNum].matchClientScoreData[matchScoreboardIndex].score.score;
+            --i)
         {
             --wagerPlace;
         }
@@ -699,7 +760,7 @@ char __cdecl CG_DrawScoreboard_GetTeamColorIndex(int team, int localClientNum)
 int __cdecl CG_DrawScoreboard(int localClientNum)
 {
     int menuCount; // [esp+4h] [ebp-24h]
-    char *menuNames[4]; // [esp+8h] [ebp-20h]
+    const char *menuNames[4]; // [esp+8h] [ebp-20h]
     bool clearErrors; // [esp+1Bh] [ebp-Dh]
     const float *fadeColor; // [esp+1Ch] [ebp-Ch]
     float fade; // [esp+20h] [ebp-8h]
@@ -980,11 +1041,11 @@ double __cdecl CG_DrawScoreboard_ListColumnHeaders(
     return y + h + 4.0;
 }
 
-void __cdecl CG_GetScoreboardInfo(int localClientNum, const listColumnInfo_t **colInfo, int *numFields)
+void __cdecl CG_GetScoreboardInfo(int localClientNum, listColumnInfo_t **colInfo, int *numFields)
 {
     Demo_IsPlaying();
-    *colInfo = (const listColumnInfo_t *)&dword_F55AF8[964 * localClientNum];
-    *numFields = dword_F55BF0[964 * localClientNum];
+    *colInfo = matchScoreBoardData[localClientNum].inGameScoreboardColumnInfo;
+    *numFields = matchScoreBoardData[localClientNum].numInGameScoreboardColumns;
 }
 
 int __cdecl CG_ScoreboardTotalLines(int localClientNum)
@@ -1346,7 +1407,7 @@ double __cdecl CG_DrawClientScore(
                     v7 = R_TextHeight(listFont);
                     DrawListString(
                         localClientNum,
-                        string,
+                        (char*)string,
                         x,
                         (float)((float)v7 * 0.055) + y,
                         13.0,
@@ -1374,11 +1435,11 @@ double __cdecl CG_DrawClientScore(
                 }
                 break;
             case LCT_NAME:
-                if ( Flame_GetLocalClientSourceRange((jpeg_compress_struct *)localClientNum) )
+                if ( Flame_GetLocalClientSourceRange() )
                     string = BG_DisplayName(ci, 3);
                 else
                     string = BG_DisplayName(ci, 1);
-                DrawListString(localClientNum, string, x, y, w, info[i].iAlignment, listFont, 0.22, 3, textColor);
+                DrawListString(localClientNum, (char*)string, x, y, w, info[i].iAlignment, listFont, 0.22, 3, textColor);
                 break;
             case LCT_TALKING_ICON:
                 if ( CL_IsPlayerMuted(localClientNum, clientNum) )
@@ -1408,19 +1469,19 @@ double __cdecl CG_DrawClientScore(
                 if ( ci->team != TEAM_SPECTATOR )
                 {
                     string = va("%i", score->score);
-                    DrawListString(localClientNum, string, x, y, w, info[i].iAlignment, listFont, 0.22, 3, textColor);
+                    DrawListString(localClientNum, (char*)string, x, y, w, info[i].iAlignment, listFont, 0.22, 3, textColor);
                 }
                 break;
             case LCT_SB_COLUMN:
                 if ( ci->team != TEAM_SPECTATOR )
                 {
                     string = CG_GetColumnValueString(localClientNum, score, info[i].sbColumnType);
-                    DrawListString(localClientNum, string, x, y, w, info[i].iAlignment, listFont, 0.22, 3, textColor);
+                    DrawListString(localClientNum, (char *)string, x, y, w, info[i].iAlignment, listFont, 0.22, 3, textColor);
                 }
                 break;
             case LCT_PING:
                 string = va("%i", score->ping);
-                DrawListString(localClientNum, string, x, y, w, info[i].iAlignment, listFont, 0.22, 3, textColor);
+                DrawListString(localClientNum, (char *)string, x, y, w, info[i].iAlignment, listFont, 0.22, 3, textColor);
                 break;
             default:
                 break;
@@ -1472,17 +1533,7 @@ void __cdecl DrawListString(
     {
         while ( (float)UI_TextWidth(string, 0x7FFFFFFF, font, scale) > width )
             scale = scale - 0.02;
-        if ( scale <= 0.0
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scoreboard_mp.cpp",
-                        1428,
-                        0,
-                        "%s\n\t(scale) = %i",
-                        "(scale > 0)",
-                        (unsigned int)COERCE_UNSIGNED_INT64(scale)) )
-        {
-            __debugbreak();
-        }
+        iassert(scale > 0);
         if ( scale < 0.16 )
             style = 0;
         v10 = UI_TextWidth(string, 0x7FFFFFFF, font, scale);
@@ -1600,8 +1651,8 @@ void __cdecl CG_DrawScrollbar(int localClientNum, float top)
     handleColor[2] = 1.0f;
     handleColor[3] = 1.0f;
     arrowColor[0] = 0.97f;
-    arrowColor[1] = 0.5f7999998;
-    arrowColor[2] = 0.1f1;
+    arrowColor[1] = 0.57999998;
+    arrowColor[2] = 0.11;
     arrowColor[3] = 1.0f;
     value = cg_scoreboardHeight->current.value;
     scrollbarHeight = CG_BackdropTop() + value - 3.0 - 2.0 - 14.0 - 1.0 - top - 0.0 - 15.0;
@@ -1762,6 +1813,7 @@ void __cdecl CG_ScrollScoreboardDown(cg_s *cgameGlob)
     }
 }
 
+cmd_function_s CG_SetFocusScoreboardCmd_VAR;
 void __cdecl CG_InitScoreboard()
 {
     Cmd_AddCommandInternal("setFocusScoreboard", CG_SetFocusScoreboardCmd, &CG_SetFocusScoreboardCmd_VAR);
@@ -1769,7 +1821,7 @@ void __cdecl CG_InitScoreboard()
 
 void __cdecl CG_SetFocusScoreboardCmd()
 {
-    UI_SetActiveMenu(0, 7);
+    UI_SetActiveMenu(0, UIMENU_SCOREBOARD);
 }
 
 void __cdecl CG_RegisterScoreboardDvars()

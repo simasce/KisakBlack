@@ -362,7 +362,7 @@ void __cdecl VEH_InitEntity(gentity_s *ent, scr_vehicle_s *veh, int infoIdx)
         AssignToSmallerType<unsigned short>(&ent->s.weapon, WeaponIndexForName);
     }
     ent->s.weaponModel = 0;
-    ent->s.lerp.u.actor.index.actorNum = 0;
+    ent->s.lerp.u.actor.actorNum = 0;
     ent->s.lerp.u.vehicle.drawOnCompass = 0;
     v8 = floor(0.0 * 182.04445 + 0.5);
     ent->s.lerp.u.vehicle.throttle = (int)v8;
@@ -4697,7 +4697,7 @@ void __cdecl VEH_UpdateNitrousPosition(gentity_s *pSelf)
     {
         v3 = floor(nitrousVeh->m_throttle * 32768.0 + 0.5);
         pSelf->s.lerp.u.vehicle.throttle = (int)v3;
-        pSelf->s.lerp.u.actor.index.actorNum = LODWORD(nitrousVeh->m_steer_factor);
+        pSelf->s.lerp.u.actor.actorNum = LODWORD(nitrousVeh->m_steer_factor);
         if ( (veh->flags & 0x100) != 0 && (nitrousVeh->m_flags & 0x80) == 0 )
         {
             origin = veh->pathPos.origin;
@@ -4707,7 +4707,7 @@ void __cdecl VEH_UpdateNitrousPosition(gentity_s *pSelf)
     }
     else if ( info->type && info->type != 1 )
     {
-        pSelf->s.lerp.u.actor.index.actorNum = 0;
+        pSelf->s.lerp.u.actor.actorNum = 0;
     }
     else
     {
@@ -5720,7 +5720,7 @@ void __cdecl VEH_UpdateSteering(gentity_s *ent)
     }
     else
     {
-        ent->s.lerp.u.actor.index.actorNum = 0;
+        ent->s.lerp.u.actor.actorNum = 0;
     }
 }
 

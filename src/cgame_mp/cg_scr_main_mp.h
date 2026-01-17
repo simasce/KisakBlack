@@ -1,4 +1,17 @@
 #pragma once
+#include <clientscript/cscr_variable.h>
+#include <game/teams.h>
+#include "cg_ents_mp.h"
+
+struct cscr_mp_data_t // sizeof=0x10
+{                                       // XREF: .data:cscr_mp_data_t cg_scr_mp_data/r
+    int dogstep;                        // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+225/w
+    int airsupport;                     // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+27C/w
+    int demo_jump;                      // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+299/w
+    int demo_playerSwitch;              // XREF: CScr_SetUniqueClientScripts(ScriptFunctions *)+2B6/w
+};
+
+struct cached_tag_mat_t;
 
 void __cdecl CScrCmd_Earthquake(scr_entref_t entref);
 unsigned int __cdecl CScr_SpawnFXInternal(int localClientNum, int fxId, float (*axis)[3], float *pos, int time);
@@ -52,17 +65,19 @@ void __cdecl CScr_ClearNearestEnemyScrambler(scr_entref_t entref);
 void __cdecl CScr_AddFriendlyScrambler(scr_entref_t entref);
 void __cdecl CScr_RemoveFriendlyScrambler(scr_entref_t entref);
 void __cdecl CScr_RemoveAllFriendlyScramblers(scr_entref_t entref);
-void __cdecl CScr_HasTacticalMaskOverlay();
+void __cdecl CScr_HasTacticalMaskOverlay(scr_entref_t entref);
 void __cdecl CScr_GetStance(scr_entref_t entref);
 void __cdecl CScr_SetFlagAsAway(scr_entref_t entref);
 void __cdecl CScr_GetParentEntity(scr_entref_t entref);
-void (__cdecl *__cdecl CScr_GetMethodProjectSpecific(const char **pName, int *type))(scr_entref_t);
+void(__cdecl *__cdecl CScr_GetMethodProjectSpecific(const char **pName, int *type))(scr_entref_t);
 void __cdecl CScr_SetUniqueClientScripts(ScriptFunctions *functions);
 void __cdecl CG_SendSwimNotify(int localClientNum, unsigned int clientNum, int start);
 void __cdecl CScr_GetEntityByIndex(centity_s *cent, const cent_field_s *pField);
 int __cdecl GetField(const int *i, int size);
 void __cdecl CScr_GetTeamName(centity_s *cent, const cent_field_s *pField);
-int __cdecl GetTeam(centity_s *cent);
+team_t __cdecl GetTeam(centity_s *cent);
 unsigned __int16 __cdecl CScr_GetFootTag(eFoot foot);
 void __cdecl CScr_PlayDogstepSound(int localClientNum, centity_s *cent, eFoot foot);
 int __cdecl GetField(char *i, int size);
+
+extern cscr_mp_data_t cg_scr_mp_data;

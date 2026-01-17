@@ -18,7 +18,6 @@ void __cdecl I_dcbt(int offset, const char *base);
 void __cdecl SND_DspScale(unsigned int count, float a, const float *b, float *c);
 void __cdecl SND_DspSum(unsigned int count, const float *a, float *c);
 void __cdecl SND_DspOnePoleFilterMono(unsigned int count, float *frames, float b0, float a1, float *y1);
-double __cdecl fabs(float f);
 void __cdecl SND_OcclusionLpfCoef(float occlusionLevel, float occlusionRatio, float sampleRate, float *b0, float *a1);
 double __cdecl I_fclamp(float val, float min, float max);
 void __cdecl SND_DspBiquadInPlace(

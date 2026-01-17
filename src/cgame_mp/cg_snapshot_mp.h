@@ -1,5 +1,12 @@
 #pragma once
 
+struct centity_s;
+struct snapshot_s;
+struct clientInfo_t;
+struct actorInfo_t;
+struct MatchState;
+struct clientState_s;
+
 void __cdecl CG_ShutdownEntity(int localClientNum, centity_s *cent, bool shutdown_script_for_local_client);
 void __cdecl CG_ShutdownEntities(int localClientNum);
 void __cdecl CG_SetInitialSnapshot(int localClientNum, snapshot_s *snap);

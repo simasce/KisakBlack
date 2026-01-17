@@ -1,5 +1,10 @@
 #pragma once
 
+struct centity_s;
+struct actorInfo_t;
+struct cg_s;
+struct cgs_t;
+
 void __cdecl CG_ActorProcessSnapshot(int localClientNum, centity_s *cent);
 void __cdecl CG_UpdateActorDObj(int localClientNum, centity_s *cent, actorInfo_t *ai);
 cgs_t *__cdecl CG_GetLocalClientStaticGlobals(int localClientNum);

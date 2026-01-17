@@ -7,7 +7,7 @@ void __cdecl CG_Destructible_DoControllers(const cpose_t *pose, const DObj *obj,
 void __cdecl CG_Actor_DoControllers(const cpose_t *pose, const DObj *obj, int *partBits);
 void __cdecl CG_DoControllers(const cpose_t *pose, const DObj *obj, int *partBits);
 void __cdecl CG_Player_DoControllers(const cpose_t *pose, const DObj *obj, int *partBits);
-void    CG_Vehicle_DoControllers(void *a1@<ebp>, const cpose_t *pose, const DObj *obj, int *partBits);
+void    CG_Vehicle_DoControllers(const cpose_t *pose, const DObj *obj, int *partBits);
 void __cdecl CG_mg42_DoControllers(const cpose_t *pose, const DObj *obj, int *partBits);
 void __cdecl CG_DoBaseOriginController(const cpose_t *pose, const DObj *obj, int *setPartBits);
 void __cdecl MatrixTransformVectorQuatTrans(const float *in, const DObjAnimMat *mat, float *out);

@@ -1,4 +1,11 @@
 #include "cg_consolecmds_mp.h"
+#include "cg_local_mp.h"
+#include "cg_scoreboard_mp.h"
+#include <ui_mp/ui_main_mp.h>
+#include <bgame/bg_misc.h>
+#include "cg_main_mp.h"
+#include <gfx_d3d/r_dvars.h>
+#include <client/cl_main.h>
 
 void __cdecl CG_ScoresUp(int localClientNum)
 {
@@ -12,6 +19,56 @@ void __cdecl CG_ScoresUp(int localClientNum)
         cgameGlob->scoreFadeTime = cgameGlob->time;
     }
 }
+
+cmd_function_s CG_Viewpos_f_VAR;
+cmd_function_s CG_ScoresDown_f_VAR;
+cmd_function_s CG_ScoresUp_f_VAR;
+cmd_function_s CG_NextWeapon_f_VAR;
+cmd_function_s CG_PrevWeapon_f_VAR;
+cmd_function_s CG_ActionSlotDown_f_VAR;
+cmd_function_s CG_ActionSlotUp_f_VAR;
+cmd_function_s CG_ShellShock_f_VAR;
+cmd_function_s CG_ShellShock_Load_f_VAR;
+cmd_function_s CG_ShellShock_Save_f_VAR;
+cmd_function_s CG_MovieCamera_f_VAR;
+cmd_function_s CG_FollowCamera_f_VAR;
+cmd_function_s CG_QuickMessage_f_VAR;
+cmd_function_s CG_VoiceChat_f_VAR;
+cmd_function_s CG_TeamVoiceChat_f_VAR;
+cmd_function_s CG_UpdateVehicleBindings_f_VAR;
+cmd_function_s CG_FxSetTestPosition_VAR;
+cmd_function_s CG_FxTest_VAR;
+cmd_function_s CG_RestartSmokeGrenades_f_VAR;
+cmd_function_s UpdateFilmTweaks_f_VAR;
+cmd_function_s UpdateCharPrimaryTweaks_f_VAR;
+cmd_function_s UpdateBloomTweaks_f_VAR;
+cmd_function_s CG_ToggleBandwidthProfiling_f_VAR;
+cmd_function_s mr_VAR;
+cmd_function_s kill_VAR;
+cmd_function_s give_VAR;
+cmd_function_s take_VAR;
+cmd_function_s god_VAR;
+cmd_function_s demigod_VAR;
+cmd_function_s notarget_VAR;
+cmd_function_s noclip_VAR;
+cmd_function_s ufo_VAR;
+cmd_function_s levelshot_VAR;
+cmd_function_s setviewpos_VAR;
+cmd_function_s jumptonode_VAR;
+cmd_function_s stats_VAR;
+cmd_function_s say_VAR;
+cmd_function_s say_team_VAR;
+cmd_function_s team_VAR;
+cmd_function_s follow_VAR;
+cmd_function_s callvote_VAR;
+cmd_function_s vote_VAR;
+cmd_function_s follownext_VAR;
+cmd_function_s followprev_VAR;
+cmd_function_s printentities_VAR;
+cmd_function_s muteplayer_VAR;
+cmd_function_s unmuteplayer_VAR;
+cmd_function_s VisionSetNaked_VAR;
+cmd_function_s VisionSetNight_VAR;
 
 void __cdecl CG_InitConsoleCommands()
 {
@@ -88,7 +145,7 @@ void __cdecl CG_ScoresUp_f()
     {
         CG_ScoresUp(0);
         if ( UI_GetActiveMenu(0) == UIMENU_SCOREBOARD )
-            UI_SetActiveMenu(0, 0);
+            UI_SetActiveMenu(0, UIMENU_NONE);
     }
 }
 
@@ -98,7 +155,7 @@ void __cdecl CG_ScoresDown_f()
     {
         CG_ScoresDown(0);
         if ( UI_GetActiveMenu(0) != UIMENU_SCOREBOARD )
-            UI_SetActiveMenu(0, 7);
+            UI_SetActiveMenu(0, UIMENU_SCOREBOARD);
     }
 }
 

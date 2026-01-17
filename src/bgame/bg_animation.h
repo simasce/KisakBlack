@@ -297,6 +297,8 @@ struct loadAnim_t;
 struct clientInfo_t;
 struct entityState_s;
 struct lerpFrame_t;
+struct pmove_t;
+struct DObj;
 
 int __cdecl BG_StringHashValue(const char *fname);
 void BG_AnimParseError(const char *msg, ...);
@@ -375,7 +377,7 @@ void __cdecl BG_SetNewAnimation(
                 lerpFrame_t *lf,
                 int newAnimation,
                 const entityState_s *es);
-void __cdecl BG_PlayerAnimation_VerifyAnim(XAnimTree_s *pAnimTree, lerpFrame_t *lf);
+void __cdecl BG_PlayerAnimation_VerifyAnim(struct XAnimTree_s *pAnimTree, struct lerpFrame_t *lf);
 void __cdecl BG_PlayerAngles(const entityState_s *es, clientInfo_t *ci);
 void __cdecl BG_SwingAngles(
                 float destination,

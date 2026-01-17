@@ -2178,11 +2178,11 @@ void __cdecl SV_BuildClientSnapshot(client_t *client)
                             v6->time2 += v23;
                         if ( v6->eType == 4 )
                         {
-                            v6->lerp.u.actor.index.actorNum += v23;
+                            v6->lerp.u.actor.actorNum += v23;
                         }
                         else if ( !v6->eType || v6->eType == 82 )
                         {
-                            v6->lerp.u.actor.index.actorNum += v23;
+                            v6->lerp.u.actor.actorNum += v23;
                         }
                         if ( ++svs.nextSnapshotEntities >= 2147483646 )
                             Com_Error(ERR_FATAL, &byte_CEF698);

@@ -22,6 +22,34 @@
 #include <client_mp/cl_cgame_mp.h>
 #include <qcommon/dobj_management.h>
 #include <client/splitscreen.h>
+#include <EffectsCore/fx_system.h>
+#include <cgame/cg_event.h>
+#include <cgame/cg_sound.h>
+#include <EffectsCore/fx_unique_handle.h>
+#include <xanim/dobj_utils.h>
+#include <EffectsCore/fx_marks.h>
+#include <cgame_mp/cg_animtree_mp.h>
+#include <clientscript/cscr_vm.h>
+#include <cgame/cg_main.h>
+#include <universal/com_memory.h>
+#include "destructibledef_load_obj.h"
+#include "physics_system.h"
+#include <cgame/cg_drawtools.h>
+#include <clientscript/cscr_stringlist.h>
+#include <cgame/cg_scr_main.h>
+
+float bullet_force = 1.4f;
+float grenade_force = 10.0f;
+float burn_force = 1.5f;
+
+Destructible *g_DebugRenderDestructible;
+int g_DebugLastPieceIndex[32];
+int g_DebugLastPieceDamage[32];
+
+DestructiblePose s_cgDestructiblePoses[2];
+
+destructible_event_t g_destructible_events[64];
+int g_destructible_events_count;
 
 unsigned __int8 g_cgPieceArrayBuffer[73728];
 int s_num_destructible_gamestates[1];
@@ -661,7 +689,10 @@ char __cdecl Destructible_GetPieceIndexFromBoneName(
 
 int __cdecl CG_Destructible_GetModelIndexFromLabel()
 {
-    return -1;
+    //    centity_s *self,
+    //DObj *obj,
+    // unsigned int label
+    return -1; // function is simplified by IDA because result is the same even if check passes
 }
 
 int __cdecl GetHealthFromState(
@@ -765,7 +796,7 @@ void __cdecl DestructibleExplosiveDamageEvent(
                 gentity_s *self,
                 const float *point,
                 float radius,
-                entityState_s::unnamed_type_un1 mod)
+                unsigned __int8 id)
 {
     gentity_s *tent; // [esp+1Ch] [ebp-4h]
 
@@ -797,7 +828,7 @@ void __cdecl DestructibleExplosiveDamageEvent(
         tent->s.lerp.apos.trDelta[0] = 0.0f;
         tent->s.lerp.apos.trDelta[1] = 0.0f;
         tent->s.lerp.apos.trDelta[2] = 0.0f;
-        tent->s.un1 = mod;
+        tent->s.un1.destructibleid = id;
         DestructibleEventSetPieceState(self, (LerpEntityStateDestructibleHit *)&tent->s.lerp.u);
     }
 }
@@ -806,7 +837,7 @@ void __cdecl DestructibleBulletDamageEvent(
                 gentity_s *self,
                 const float *point,
                 const float *dir,
-                entityState_s::unnamed_type_un1 mod)
+                unsigned __int8 id)
 {
     gentity_s *tent; // [esp+1Ch] [ebp-4h]
 
@@ -838,7 +869,7 @@ void __cdecl DestructibleBulletDamageEvent(
         tent->s.lerp.apos.trDelta[0] = 0.0f;
         tent->s.lerp.apos.trDelta[1] = 0.0f;
         tent->s.lerp.apos.trDelta[2] = 0.0f;
-        tent->s.un1 = mod;
+        tent->s.un1.destructibleid = id;
         DestructibleEventSetPieceState(self, (LerpEntityStateDestructibleHit *)&tent->s.lerp.u);
     }
 }
@@ -1354,7 +1385,7 @@ double __cdecl DestructibleRadiusDamage(
     maxTreadShielding = v15;
     if ( needsDObjUpdate )
     {
-        DestructibleExplosiveDamageEvent(self, point, radius, (entityState_s::<unnamed_type_un1>)mod);
+        DestructibleExplosiveDamageEvent(self, point, radius, mod);
         G_DObjUpdate(self);
     }
     v14 = smallestArmorDistance < 1.0 || coreDistance > 1.0;
@@ -1458,7 +1489,7 @@ int __cdecl DestructibleDamage(
             }
             if ( needsDObjUpdate )
             {
-                DestructibleBulletDamageEvent(self, point, hitd, (entityState_s::<unnamed_type_un1>)17);
+                DestructibleBulletDamageEvent(self, point, hitd, 17);
                 G_DObjUpdate(self);
             }
             return damage;
@@ -1485,7 +1516,7 @@ int __cdecl DestructibleDamage(
                 entityDamage = (int)(float)((float)damagea * ddef->pieces[v10].entityDamageTransfer);
             if ( DamagePiece(self, v10, damagea, point, hitd, mod, 1, -1, attacker, 0) )
             {
-                DestructibleBulletDamageEvent(self, point, hitd, (entityState_s::<unnamed_type_un1>)mod);
+                DestructibleBulletDamageEvent(self, point, hitd, mod);
                 G_DObjUpdate(self);
             }
         }
@@ -1939,8 +1970,13 @@ void __cdecl CG_DestructibleBreakPiece(
     entityNum = self->nextState.number;
     ddef = self->destructible->ddef;
     boneName = CG_GetTagTransform(self, self->destructible->ddef, pieceIndex, tagOrigin, tagMat);
-    if ( boneName && self->nitrousVeh )
-        NitrousVehicle::damage(self->nitrousVeh, boneName, nextStage);
+
+    if (boneName && self->nitrousVeh)
+    {
+        //NitrousVehicle::damage(self->nitrousVeh, boneName, nextStage);
+        self->nitrousVeh->damage(boneName, nextStage);
+    }
+
     if ( pieceIndex >= self->destructible->ddef->numPieces
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\physics\\destructible.cpp",
@@ -2048,10 +2084,19 @@ void __cdecl CG_DestructibleBreakPiece(
                                                                                                                                  mod);
         }
     }
-    if ( piece->stages[stage].breakNotify && self->nitrousVeh )
-        NitrousVehicle::destructible_damage(self->nitrousVeh, piece->stages[stage].breakNotify, nextStage);
-    if ( self->destructible->pieceArray[pieceIndex].fx )
+
+    if (piece->stages[stage].breakNotify && self->nitrousVeh)
+    {
+        //NitrousVehicle::destructible_damage(self->nitrousVeh, piece->stages[stage].breakNotify, nextStage);
+        self->nitrousVeh->destructible_damage(piece->stages[stage].breakNotify, nextStage);
+    }
+
+    if (self->destructible->pieceArray[pieceIndex].fx)
+    {
+        //FX_ThroughWithEffect(localClientNum, self->destructible->pieceArray[pieceIndex].fx, 0);
         FX_ThroughWithEffect(localClientNum, self->destructible->pieceArray[pieceIndex].fx, 0);
+    }
+
     if ( piece->stages[stage].breakEffect )
     {
         if ( boneName )
@@ -2775,8 +2820,8 @@ void __cdecl CG_DestructibleHitEvent(int localClientNum, int event, const entity
     float *v6; // [esp+Ch] [ebp-B0h]
     float *v7; // [esp+10h] [ebp-ACh]
     float *origin; // [esp+14h] [ebp-A8h]
-    float *trDelta; // [esp+18h] [ebp-A4h]
-    float *trBase; // [esp+1Ch] [ebp-A0h]
+    //float *trDelta; // [esp+18h] [ebp-A4h]
+    //float *trBase; // [esp+1Ch] [ebp-A0h]
     float bone_axis[4][3]; // [esp+28h] [ebp-94h] BYREF
     DObj *obj; // [esp+58h] [ebp-64h]
     unsigned int boneName; // [esp+5Ch] [ebp-60h]
@@ -2820,11 +2865,11 @@ void __cdecl CG_DestructibleHitEvent(int localClientNum, int event, const entity
                 CG_SafeDObjFree(self->pose.localClientNum, self->nextState.number);
                 CG_PreProcess_GetDObj(self->pose.localClientNum, self->nextState.number, self->nextState.eType, ddef->model, 0);
             }
-            trBase = es->lerp.pos.trBase;
+            //trBase = (float*)es->lerp.pos.trBase;
             point[0] = es->lerp.pos.trBase[0];
             point[1] = es->lerp.pos.trBase[1];
             point[2] = es->lerp.pos.trBase[2];
-            trDelta = es->lerp.pos.trDelta;
+            //trDelta = (float *)es->lerp.pos.trDelta;
             dir[0] = es->lerp.pos.trDelta[0];
             dir[1] = es->lerp.pos.trDelta[1];
             dir[2] = es->lerp.pos.trDelta[2];
@@ -3239,7 +3284,7 @@ DestructibleDef *__cdecl DestructibleDefPrecache_FastFile(const char *name)
 {
     if ( !*name )
         return 0;
-    return DB_FindXAssetHeader(ASSET_TYPE_DESTRUCTIBLEDEF, name, 1, -1).destructibleDef;
+    return DB_FindXAssetHeader(ASSET_TYPE_DESTRUCTIBLEDEF, (char*)name, 1, -1).destructibleDef;
 }
 
 int __cdecl Destructible_GetPieceCount(Destructible *obj)
@@ -3354,7 +3399,7 @@ void __cdecl Demo_Destructible_ReadGameState(msg_t *msg, int localClientNum)
     int i; // [esp+20h] [ebp-4h]
     int ia; // [esp+20h] [ebp-4h]
 
-?Demo_Destructible_ReadGameState@@YAXAAUmsg_t@@H@Z:
+kisak123: // this was a psycho name
     for ( entityNum = MSG_ReadShort(msg); entityNum != 1023; entityNum = MSG_ReadShort(msg) )
     {
         d = &cg_destructibles[localClientNum][MSG_ReadShort(msg)];
@@ -3363,7 +3408,7 @@ void __cdecl Demo_Destructible_ReadGameState(msg_t *msg, int localClientNum)
         {
             for ( i = 0; i < numPieces; ++i )
                 MSG_ReadShort(msg);
-            goto ?Demo_Destructible_ReadGameState@@YAXAAUmsg_t@@H@Z;
+            goto kisak123;
         }
         for ( ia = 0; ia < numPieces; ++ia )
         {
@@ -3820,13 +3865,13 @@ void __cdecl Scr_DestructibleCallback(gentity_s *self, unsigned __int16 event, i
 {
     unsigned __int16 callback; // [esp+8h] [ebp-4h]
 
-    if ( dword_3EDB4D8 )
+    if (g_scr_data.destructible_callback)
     {
         Scr_AddInt(damage, SCRIPTINSTANCE_SERVER);
         Scr_AddFloat(time, SCRIPTINSTANCE_SERVER);
         Scr_AddInt(piece, SCRIPTINSTANCE_SERVER);
         Scr_AddConstString(event, SCRIPTINSTANCE_SERVER);
-        callback = Scr_ExecEntThread(self, dword_3EDB4D8, 4u);
+        callback = Scr_ExecEntThread(self, g_scr_data.destructible_callback, 4u);
         Scr_FreeThread(callback, SCRIPTINSTANCE_SERVER);
     }
 }
@@ -3835,7 +3880,7 @@ void __cdecl Scr_DestructibleCallback(gentity_s *self, unsigned __int16 event, c
 {
     unsigned __int16 callback; // [esp+0h] [ebp-4h]
 
-    if ( dword_3EDB4D8 )
+    if (g_scr_data.destructible_callback)
     {
         if ( attacker )
             Scr_AddEntity(attacker, SCRIPTINSTANCE_SERVER);
@@ -3843,7 +3888,7 @@ void __cdecl Scr_DestructibleCallback(gentity_s *self, unsigned __int16 event, c
             Scr_AddUndefined(SCRIPTINSTANCE_SERVER);
         Scr_AddString(notify, SCRIPTINSTANCE_SERVER);
         Scr_AddConstString(event, SCRIPTINSTANCE_SERVER);
-        callback = Scr_ExecEntThread(self, dword_3EDB4D8, 3u);
+        callback = Scr_ExecEntThread(self, g_scr_data.destructible_callback, 3u);
         Scr_FreeThread(callback, SCRIPTINSTANCE_SERVER);
     }
 }
@@ -3863,7 +3908,7 @@ void __cdecl CScr_DestructibleCallback(centity_s *self, unsigned __int16 event, 
     }
 }
 
-Destructible_BonePose *__thiscall Destructible_BonePose::Destructible_BonePose(Destructible_BonePose *this)
+Destructible_BonePose::Destructible_BonePose()
 {
     this->boneid = 0;
     this->pieceIndex = 0;
@@ -3876,6 +3921,5 @@ Destructible_BonePose *__thiscall Destructible_BonePose::Destructible_BonePose(D
     this->angles_vel[0] = 0.0f;
     this->angles_vel[1] = 0.0f;
     this->angles_vel[2] = 0.0f;
-    return this;
 }
 

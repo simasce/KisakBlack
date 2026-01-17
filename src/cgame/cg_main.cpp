@@ -9,6 +9,7 @@
 #include <bgame/bg_misctables.h>
 
 ViewModelInfo *cg_viewModelArray;
+weaponInfo_s *cg_weaponsArray[1];
 
 bool cgHasClientSystemBeenInitialzed;
 
@@ -60,7 +61,7 @@ int __cdecl CG_rand()
     return rand();
 }
 
-double __cdecl CG_random()
+float __cdecl CG_random()
 {
     return random();
 }

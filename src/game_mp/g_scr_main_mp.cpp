@@ -1845,7 +1845,7 @@ void GScr_SpawnTimedFX()
     ent->s.lerp.pos.trBase[2] = (float)(int)ent->s.lerp.pos.trBase[2];
     G_SetOrigin(ent, ent->s.lerp.pos.trBase);
     ent->s.lerp.eFlags |= 0x4000u;
-    ent->s.lerp.u.actor.index.actorNum = level.time;
+    ent->s.lerp.u.actor.actorNum = level.time;
     ent->s.time2 = level.time + 1000 * time;
     ent->s.lerp.eFlags |= 0x10u;
     ent->handler = 11;
@@ -7427,7 +7427,7 @@ void __cdecl GScr_SpawnNapalmGroundFlame(scr_entref_t entref)
     G_SetOrigin(ent, ent->s.lerp.pos.trBase);
     G_SetAngle(ent, ent->s.lerp.apos.trBase);
     ent->s.lerp.eFlags |= 0x4000u;
-    ent->s.lerp.u.actor.index.actorNum = level.time;
+    ent->s.lerp.u.actor.actorNum = level.time;
     ent->s.time2 = level.time + 1000 * time;
     ent->s.lerp.eFlags |= 0x10u;
     ent->s.lerp.eFlags2 |= 1u;

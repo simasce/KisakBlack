@@ -1,4 +1,131 @@
 #pragma once
+#include <game/teams.h>
+
+enum CompassType : __int32;
+
+struct CompassScrambler // sizeof=0x10
+{                                       // XREF: cg_s/r
+    float pos[2];
+    int startTime;
+    int handle;
+};
+
+struct CompassActor // sizeof=0x4C
+{                                       // XREF: .data:s_compassActors/r
+    int lastUpdate;
+    float lastPos[2];
+    float lastEnemyPos[2];
+    float satelliteEnemyPos[2];
+    float lastYaw;
+    int pingTime;
+    int beginFadeTime;
+    int beginRadarFadeTime;
+    int beginSatelliteFadeTime;
+    int beginStaticImageFadeTime;
+    int beginVoiceFadeTime;
+    bool enemy;
+    bool inVehicle;
+    // padding byte
+    // padding byte
+    unsigned int perks[2];
+    int needsRevive;
+    float currentFadeTimeAmount;
+};
+
+struct __declspec(align(4)) CompassTurrets // sizeof=0x24
+{                                       // XREF: .data:s_compassTurrets/r
+    int entityNum;                      // XREF: GetCompassTurrets+5B/r
+                                        // GetCompassTurrets+15E/w
+    int lastUpdate;                     // XREF: GetCompassTurrets+AB/r
+                                        // GetCompassTurrets+FC/r ...
+    int beginFadeTime;
+    float lastPos[2];
+    float lastYaw;
+    team_t team;
+    int ownerIndex;
+    bool enemy;
+    bool firing;
+    // padding byte
+    // padding byte
+};
+
+struct CompassVehicle // sizeof=0x1C
+{                                       // XREF: .data:s_compassVehicles/r
+    int entityNum;                      // XREF: GetVehicle+2E/r
+                                        // GetVehicle+12B/w
+    int lastUpdate;                     // XREF: GetVehicle+7E/r
+                                        // GetVehicle+CF/r ...
+    float lastPos[2];
+    float lastYaw;
+    team_t team;
+    int ownerIndex;
+};
+
+struct CompassHelicopter // sizeof=0x1C
+{                                       // XREF: .data:s_compassHelicopter/r
+    int entityNum;                      // XREF: GetHelicopter+2E/r
+                                        // GetHelicopter+12B/w
+    int lastUpdate;                     // XREF: GetHelicopter+7E/r
+                                        // GetHelicopter+CF/r ...
+    float lastPos[2];
+    float lastYaw;
+    team_t team;
+    int ownerIndex;
+};
+
+struct CompassGuidedMissile // sizeof=0x1C
+{                                       // XREF: .data:s_compassGuidedMissiles/r
+    int entityNum;                      // XREF: GetGuidedMissile+2E/r
+                                        // GetGuidedMissile+12B/w
+    int lastUpdate;                     // XREF: GetGuidedMissile+7E/r
+                                        // GetGuidedMissile+CF/r ...
+    float lastPos[2];
+    float lastYaw;
+    team_t team;
+    int ownerIndex;
+};
+
+struct __declspec(align(4)) CompassDogs // sizeof=0x20
+{                                       // XREF: .data:s_compassDogs/r
+    int entityNum;                      // XREF: GetDogs+58/r
+                                        // GetDogs+146/w
+    int lastUpdate;                     // XREF: GetDogs+A2/r
+                                        // GetDogs+ED/r ...
+    float lastPos[2];
+    float lastYaw;
+    team_t team;
+    int ownerIndex;
+    bool enemy;
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
+struct __declspec(align(4)) CompassFakeFire // sizeof=0x18
+{                                       // XREF: .data:s_compassFakeFire/r
+    float pos[2];
+    float yaw;
+    int entityNum;
+    int beginFadeTime;
+    bool enemy;
+    bool satellite;
+    // padding byte
+    // padding byte
+};
+
+struct CompassArtillery // sizeof=0x14
+{                                       // XREF: .data:s_compassArtillery/r
+    float pos[2];                       // XREF: CG_AddArtilleryPing(int,float * const)+170/r
+    float realPos[2];                   // XREF: CG_AddArtilleryPing(int,float * const)+129/o
+    int fireTime;                       // XREF: CG_AddArtilleryPing(int,float * const)+88/r
+};
+
+struct cg_s;
+struct centity_s;
+struct rectDef_s;
+struct Material;
+struct clientInfo_t;
+
 
 void __cdecl CG_ClearCompassPingData();
 void __cdecl RadarPingEnemyPlayer(CompassActor *actor, int time, unsigned int PerkToIgnore);

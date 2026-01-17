@@ -1,5 +1,7 @@
 #pragma once
 
+struct XModel;
+
 void __cdecl CGScr_LoadAnimTrees();
 unsigned __int8 *__cdecl Hunk_AllocXAnimCreate(unsigned int size);
 void __cdecl CG_FreeClientDObjInfo(int localClientNum);

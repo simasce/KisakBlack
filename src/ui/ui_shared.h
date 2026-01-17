@@ -1,5 +1,4 @@
 #pragma once
-#include "ui_main.h"
 #include <database/db_registry.h>
 #include <gfx_d3d/r_font.h>
 
@@ -65,6 +64,249 @@ inline itemGroup_t operator++(itemGroup_t &t, int)
     t = static_cast<itemGroup_t>((static_cast<int>(t) + 1));
     return old;
 }
+
+
+enum UILocalVarType : __int32
+{                                                                             // XREF: UILocalVar/r
+    UILOCALVAR_INT = 0x0,
+    UILOCALVAR_FLOAT = 0x1,
+    UILOCALVAR_STRING = 0x2,
+};
+
+struct UILocalVar // sizeof=0xC
+{                                                                             // XREF: UILocalVarContext/r
+    UILocalVarType type;
+    const char *name;
+    //UILocalVar::<unnamed_type_u> u;
+    union //UILocalVar::<unnamed_type_u> // sizeof=0x4
+    {                                                                             // XREF: UILocalVar/r
+        int integer;
+        float value;
+        const char *string;
+    } u;
+};
+
+struct UILocalVarContext // sizeof=0xC00
+{                                                                             // XREF: UiContext/r
+    UILocalVar table[256];
+};
+
+struct BlurStackEntry // sizeof=0x40
+{                                                                             // XREF: UiContext/r
+    char menuName[64];
+};
+
+struct serverFilter_s // sizeof=0x8
+{                                       // XREF: .rdata:serverFilter_s const * const serverFilters/r
+                                        // serverFilter_t/r
+    const char *description;            // XREF: UI_GetServerFilter(int)+33/r
+    const char *basedir;                // XREF: UI_GetServerFilter(int)+3A/r
+};
+
+struct rectDef_s // sizeof=0x18
+{                                                                             // XREF: .data:rect/r
+    float x;                                                        // XREF: CG_CompassDrawRound(int,rectDef_s const *,Material *,float * const)+A6/w
+    float y;                                                        // XREF: CG_CompassDrawRound(int,rectDef_s const *,Material *,float * const)+AC/w
+    float w;                                                        // XREF: CG_CompassDrawRound(int,rectDef_s const *,Material *,float * const)+B2/w
+    float h;                                                        // XREF: CG_CompassDrawRound(int,rectDef_s const *,Material *,float * const)+B8/w
+    int horzAlign;                                            // XREF: CG_CompassDrawRound(int,rectDef_s const *,Material *,float * const)+BE/w
+    int vertAlign;                                            // XREF: CG_CompassDrawRound(int,rectDef_s const *,Material *,float * const)+C4/w
+};
+
+struct columnInfo_s // sizeof=0x20
+{                                                                             // XREF: listBoxDef_s/r
+    int elementStyle;
+    int maxChars;
+    rectDef_s rect;
+};
+
+struct windowDef_t // sizeof=0xA4
+{                                                                             // XREF: menuDef_t/r
+    const char *name;
+    rectDef_s rect;
+    rectDef_s rectClient;
+    const char *group;
+    unsigned __int8 style;
+    unsigned __int8 border;
+    unsigned __int8 modal;
+    unsigned __int8 frameSides;
+    float frameTexSize;
+    float frameSize;
+    int ownerDraw;
+    int ownerDrawFlags;
+    float borderSize;
+    int staticFlags;
+    int dynamicFlags[1];
+    int nextTime;
+    float foreColor[4];
+    float backColor[4];
+    float borderColor[4];
+    float outlineColor[4];
+    float rotation;
+    Material *background;
+};
+
+struct rectData_s // sizeof=0x40
+{                                                                             // XREF: rectData_t/r
+    ExpressionStatement rectXExp;
+    ExpressionStatement rectYExp;
+    ExpressionStatement rectWExp;
+    ExpressionStatement rectHExp;
+};
+
+struct animParamsDef_t // sizeof=0x6C
+{                                                                             // XREF: UIAnimInfo/r
+                                                                                // UIAnimInfo/r ...
+    const char *name;
+    rectDef_s rectClient;
+    float borderSize;
+    float foreColor[4];
+    float backColor[4];
+    float borderColor[4];
+    float outlineColor[4];
+    float textScale;
+    float rotation;
+    GenericEventHandler *onEvent;
+};
+
+struct UIAnimInfo // sizeof=0xEC
+{
+    int animStateCount;
+    animParamsDef_t **animStates;
+    animParamsDef_t currentAnimState;
+    animParamsDef_t nextAnimState;
+    int animating;
+    int animStartTime;
+    int animDuration;
+};
+
+struct __declspec(align(8)) itemDef_s // sizeof=0x110
+{                                                                             // XREF: itemDef_t/r
+                                                                                // Menu_RunLeaveFocusScript/r ...
+    windowDef_t window;
+    int type;
+    int dataType;
+    int imageTrack;
+    const char *dvar;
+    const char *dvarTest;
+    const char *enableDvar;
+    int dvarFlags;
+    itemDefData_t typeData;
+    menuDef_t *parent;
+    rectData_s *rectExpData;
+    ExpressionStatement visibleExp;
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    unsigned __int64 showBits;
+    unsigned __int64 hideBits;
+    ExpressionStatement forecolorAExp;
+    int ui3dWindowId;
+    GenericEventHandler *onEvent;
+    UIAnimInfo *animInfo;                             // XREF: Menu_RunLeaveFocusScript+10/w
+    // Menu_RunFocusScript+10/w ...
+// padding byte
+// padding byte
+// padding byte
+// padding byte
+};
+
+struct ScriptCondition // sizeof=0x10
+{                                                                             // XREF: ScriptConditionNext/r
+    bool fireOnTrue;
+    // padding byte
+    // padding byte
+    // padding byte
+    int constructID;
+    int blockID;
+    ScriptCondition *next;
+};
+
+struct __declspec(align(8)) menuDef_t // sizeof=0x190
+{                                                                             // XREF: XAssetPoolEntry<menuDef_t>/r
+    windowDef_t window;
+    const char *font;
+    int fullScreen;
+    int ui3dWindowId;
+    int itemCount;
+    int fontIndex;
+    int cursorItem[1];
+    int fadeCycle;
+    int priority;
+    float fadeClamp;
+    float fadeAmount;
+    float fadeInAmount;
+    float blurRadius;
+    int openSlideSpeed;
+    int closeSlideSpeed;
+    int openSlideDirection;
+    int closeSlideDirection;
+    rectDef_s initialRectInfo;
+    int openFadingTime;
+    int closeFadingTime;
+    int fadeTimeCounter;
+    int slideTimeCounter;
+    GenericEventHandler *onEvent;
+    ItemKeyHandler *onKey;
+    ExpressionStatement visibleExp;
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    unsigned __int64 showBits;
+    unsigned __int64 hideBits;
+    const char *allowedBinding;
+    const char *soundName;
+    int imageTrack;
+    int control;
+    float focusColor[4];
+    float disableColor[4];
+    ExpressionStatement rectXExp;
+    ExpressionStatement rectYExp;
+    itemDef_s **items;
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
+struct menuClientNum_t // sizeof=0x8
+{                                                                             // XREF: UiContext/r
+    menuDef_t *menu;
+    int localClientNum;
+};
+
+enum uiMenuCommand_t : __int32
+{                                                                             // XREF: uiInfo_s/r
+    UIMENU_NONE = 0x0,
+    UIMENU_MAIN = 0x1,
+    UIMENU_INGAME = 0x2,
+    UIMENU_PREGAME = 0x3,
+    UIMENU_POSTGAME = 0x4,
+    UIMENU_WM_QUICKMESSAGE = 0x5,
+    UIMENU_SCRIPT_POPUP = 0x6,
+    UIMENU_SCOREBOARD = 0x7,
+    UIMENU_GAMERCARD = 0x8,
+    UIMENU_MUTEERROR = 0x9,
+    UIMENU_ENDOFGAME = 0xA,
+};
+
+struct MenuList // sizeof=0xC
+{                                                                             // XREF: $CD64A558AFC89A5F4974E935559855BB/r
+                                                                                // XAssetPoolEntry<MenuList>/r
+    const char *name;
+    int menuCount;                                            // XREF: Menu_New+7F/r
+    // Menu_New:loc_77E40A/r ...
+    menuDef_t **menus;                                    // XREF: UI_LoadMenu_LoadObj+17/w
+    // Menu_New+9F/r ...
+};
+
+struct ConversionArguments // sizeof=0x28
+{                                                                             // XREF: ?LiveNews_PopulateFriendNews@@YAXH_KPAD@Z/r
+    int argCount;                                             // XREF: CG_DrawWarText:loc_4D6B37/w
+    const char *args[9];                                // XREF: CG_DrawWarText+325/w
+};
 
 struct Material;
 struct Font_s;
@@ -202,11 +444,19 @@ struct serverStatusInfo_s // sizeof=0x14A4
     int numLines;                       // XREF: UI_BuildFindPlayerList(void)+F6/r
 };
 
+struct pendingServer_t // sizeof=0x8C
+{                                       // XREF: pendingServerStatus_t/r
+    char adrstr[64];
+    char name[64];
+    int startTime;
+    int serverNum;
+    int valid;
+};
+
 struct pendingServerStatus_t // sizeof=0x8C4
 {                                       // XREF: sharedUiInfo_t/r
     int num;
     pendingServer_t server[16];         // XREF: UI_FeederCount(int,int,float,listBoxDef_s *):$LN18_16/r
-                                        // UI_FeederItemText_ServerStatusScoreboard+C/r ...
 };
 
 struct sharedUiInfo_t // sizeof=0x261D0
@@ -361,6 +611,35 @@ struct UiContext // sizeof=0x1828
     UILocalVarContext localVars;
 };
 
+struct uiInfo_s // sizeof=0x2764
+{                                                                             // XREF: uiInfo_t/r
+    UiContext uiDC;
+    int playerRefresh;
+    int playerIndex;
+    int timeIndex;
+    int previousTimes[4];
+    uiMenuCommand_t currentMenuType;
+    bool allowScriptMenuResponse;
+    char GLOBAL_EMPTY_STRING[256];
+    char toastPopupDesc[256];
+    char toastPopupIconName[256];
+    // padding byte
+    // padding byte
+    // padding byte
+    int toastPopupDuration;
+    int toastPopupTimeCounter;
+    bool toastPopupOpened;
+    // padding byte
+    // padding byte
+    // padding byte
+    int contractIndex;
+    char findPlayerName[1024];
+    char foundPlayerServerAddresses[16][64];
+    char foundPlayerServerNames[16][64];
+    int numFoundPlayerServers;
+    int nextFindPlayerRefresh;
+};
+
 struct __declspec(align(4)) nestingStackElem_t // sizeof=0xC
 {                                       // XREF: nestingStack_t/r
     int constructID;
@@ -375,6 +654,176 @@ struct nestingStack_t // sizeof=0x304
 {                                       // XREF: ?Item_RunSingleEventScript@@YAXHPAUUiContext@@PAUitemDef_s@@PAUGenericEventScript@@@Z/r
     int top;                            // XREF: Item_RunSingleEventScript(int,UiContext *,itemDef_s *,GenericEventScript *)+9/w
     nestingStackElem_t members[64];
+};
+
+struct GenericEventScript // sizeof=0x2C
+{                                                                             // XREF: GenericEventScriptNext/r
+    ScriptCondition *prerequisites;
+    ExpressionStatement condition;
+    int type;
+    bool fireOnTrue;
+    // padding byte
+    // padding byte
+    // padding byte
+    const char *action;
+    int blockID;
+    int constructID;
+    GenericEventScript *next;
+};
+
+
+struct MenuCell // sizeof=0xC
+{                                                                             // XREF: ItemParse_menuItemsDef/r
+    int type;                                                     // XREF: ItemParse_menuItemsDef+375/r
+    int maxChars;                                             // XREF: ItemParse_menuItemsDef+340/r
+    // ItemParse_menuItemsDef+38A/r
+    char *stringValue;
+};
+
+struct MenuRow // sizeof=0x18
+{
+    MenuCell *cells;
+    char *eventName;
+    char *onFocusEventName;
+    bool disableArg;
+    // padding byte
+    // padding byte
+    // padding byte
+    int status;
+    int name;
+};
+
+struct listBoxDef_s // sizeof=0x29C
+{                                                                             // XREF: listBoxDef_t/r
+    int mousePos;
+    int cursorPos[1];
+    int startPos[1];
+    int endPos[1];
+    int drawPadding;
+    float elementWidth;
+    float elementHeight;
+    int numColumns;
+    float special;
+    columnInfo_s columnInfo[16];
+    int notselectable;
+    int noScrollBars;
+    int usePaging;
+    float selectBorder[4];
+    float disableColor[4];
+    float focusColor[4];
+    float elementHighlightColor[4];
+    float elementBackgroundColor[4];
+    Material *selectIcon;
+    Material *backgroundItemListbox;
+    Material *highlightTexture;
+    int noBlinkingHighlight;
+    MenuRow *rows;
+    int maxRows;
+    int rowCount;
+};
+
+struct multiDef_s // sizeof=0x18C
+{                                                                             // XREF: multiDef_t/r
+    const char *dvarList[32];
+    const char *dvarStr[32];
+    float dvarValue[32];
+    int count;
+    int actionOnEnterPressOnly;
+    int strDef;
+};
+
+struct editFieldDef_s // sizeof=0x24
+{                                                                             // XREF: editFieldDef_t/r
+    int cursorPos[1];
+    float minVal;
+    float maxVal;
+    float defVal;
+    float range;
+    int maxChars;
+    int maxCharsGotoNext;
+    int maxPaintChars;
+    int paintOffset;
+};
+
+struct enumDvarDef_s // sizeof=0x4
+{                                                                             // XREF: enumDvarDef_t/r
+    const char *enumDvarName;
+};
+
+union focusDefData_t // sizeof=0x4
+{                                                                             // XREF: focusItemDef_s/r
+    listBoxDef_s *listBox;
+    multiDef_s *multi;
+    editFieldDef_s *editField;
+    enumDvarDef_s *enumDvar;
+    void *data;
+};
+
+struct focusItemDef_s // sizeof=0x18
+{                                                                             // XREF: focusItemDef_t/r
+    const char *mouseEnterText;
+    const char *mouseExitText;
+    const char *mouseEnter;
+    const char *mouseExit;
+    struct ItemKeyHandler *onKey;
+    focusDefData_t focusTypeData;
+};
+
+union textDefData_t // sizeof=0x4
+{                                                                             // XREF: textDef_s/r
+    focusItemDef_s *focusItemDef;
+    gameMsgDef_s *gameMsgDef;
+    void *data;
+};
+
+
+struct textDef_s // sizeof=0x44
+{                                                                             // XREF: textDef_t/r
+    rectDef_s textRect[1];
+    int alignment;
+    int fontEnum;
+    int itemFlags;
+    int textAlignMode;
+    float textalignx;
+    float textaligny;
+    float textscale;
+    int textStyle;
+    const char *text;
+    textExp_s *textExpData;
+    textDefData_t textTypeData;
+};
+
+struct imageDef_s // sizeof=0x10
+{                                                                             // XREF: imageDef_t/r
+    ExpressionStatement materialExp;
+};
+
+struct ownerDrawDef_s // sizeof=0x10
+{                                                                             // XREF: ownerDrawDef_t/r
+    ExpressionStatement dataExp;
+};
+
+union itemDefData_t // sizeof=0x4
+{                                                                             // XREF: itemDef_s/r
+    textDef_s *textDef;
+    imageDef_s *imageDef;
+    focusItemDef_s *blankButtonDef;
+    ownerDrawDef_s *ownerDrawDef;
+    void *data;
+};
+
+struct GenericEventHandler // sizeof=0xC
+{                                                                             // XREF: GenericEventHandlerNext/r
+    const char *name;
+    GenericEventScript *eventScript;
+    GenericEventHandler *next;
+};
+
+struct ItemKeyHandler // sizeof=0xC
+{                                                                             // XREF: ItemKeyHandlerNext/r
+    int key;
+    GenericEventScript *keyScript;
+    ItemKeyHandler *next;
 };
 
 void __cdecl Menu_Setup(UiContext *dc);

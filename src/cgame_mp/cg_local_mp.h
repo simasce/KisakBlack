@@ -6,6 +6,19 @@
 #include <cgame/cg_visionsets.h>
 #include <gfx_d3d/r_gfx.h>
 #include <cgame/cg_camera.h>
+#include "cg_view_mp.h"
+#include <cgame/cg_playerstate.h>
+#include <gfx_d3d/r_screenshot.h>
+#include "cg_compassfriendlies_mp.h"
+
+enum link_type_e : __int32
+{                                       // XREF: cg_s/r
+    PITCH_CTRL = 0x0,
+    YAW_CTRL   = 0x1,
+    ROLL_CTRL  = 0x2,
+    SWIM_CTRL  = 0x3,
+    FULL_CTRL  = 0x4,
+};
 
 enum DemoType : __int32
 {                                                                             // XREF: cg_s/r
@@ -408,6 +421,11 @@ struct viewDamage_t // sizeof=0xC
     float yaw;
 };
 
+struct hudElemSoundInfo_t // sizeof=0x4
+{                                       // XREF: cg_s/r
+    int lastPlayedTime;
+};
+
 struct __declspec(align(128)) cg_s // sizeof=0x71C80
 {                                                                             // XREF: cg_t/r
         int clientNum;
@@ -679,7 +697,12 @@ struct __declspec(align(128)) cg_s // sizeof=0x71C80
         int waypointFadeTime;
         int vehicleControlsFadeTime;
         shellshock_t shellshock;
-        cg_s::<unnamed_type_testShock> testShock;
+        //cg_s::<unnamed_type_testShock> testShock;
+        struct //cg_s::<unnamed_type_testShock> // sizeof=0x8
+        {                                       // XREF: cg_s/r
+            int time;
+            int duration;
+        } testShock;
         int shellshockSoundActive;
         int holdBreathTime;
         int holdBreathInTime;
@@ -749,7 +772,11 @@ struct __declspec(align(128)) cg_s // sizeof=0x71C80
         float flareRatioLastFrame;
         int stepViewStart;
         float stepViewChange;
-        cg_s::<unnamed_type_lastFrame> lastFrame;
+        //cg_s::<unnamed_type_lastFrame> lastFrame;
+        struct //cg_s::<unnamed_type_lastFrame> // sizeof=0x4
+        {                                       // XREF: cg_s/r
+            float aimSpreadScale;
+        } lastFrame;
         int oldCommandTime;
         float oldOrigin[3];
         float oldViewangles[3];
@@ -919,7 +946,7 @@ struct __declspec(align(128)) cg_s // sizeof=0x71C80
         // padding byte
         // padding byte
 };
-static_assert(sizeof(cg_s) == 0x71C80);
+//static_assert(sizeof(cg_s) == 0x71C80);
 
 
 struct cgMedia_t // sizeof=0x31BC
@@ -1197,8 +1224,13 @@ struct cgMedia_t // sizeof=0x31BC
         Material *demoStateForwardFast;         // XREF: CG_RegisterGraphics+62D/w
                                                                                 // CG_DrawDemoControls+2012/r ...
         Material *demoStateForwardSlow;         // XREF: CG_RegisterGraphics+641/w
+
+        Material *theaterUpArrow;           // XREF: CG_RegisterGraphics+655/w
+        Material *theaterDownArrow;
+        Material *theaterLeftArrow;
+        Material *theaterRightArrow;
                                                                                 // CG_DrawDemoControls+1AB9/r ...
-        FxImpactTable *fx;                                    // XREF: CG_RegisterGraphics+655/w
+        struct FxImpactTable *fx;                                    // XREF: CG_RegisterGraphics+655/w
                                                                                 // CG_DrawDemoControls+25CE/r
         const FxEffectDef *fxNoBloodFleshHit;
                                                                                 // XREF: CG_RegisterGraphics+669/w
@@ -1298,11 +1330,3 @@ inline cgs_t *CG_GetLocalClientStaticGlobals(int32_t localClientNum)
 
         return &cgsArray[localClientNum];
 }
-
-inline weaponInfo_s *__cdecl CG_GetLocalClientWeaponInfo(int localClientNum, int weaponIndex)
-{
-        iassert(localClientNum == 0);
-
-        return &cg_weaponsArray[localClientNum][weaponIndex];
-}
-

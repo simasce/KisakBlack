@@ -12,6 +12,7 @@
 #include <gfx_d3d/fxprimitives.h>
 #include <cgame/cg_shellshock.h>
 #include <ui/ui_shared.h>
+#include <server/server.h>
 
 struct ClientArchiveData // sizeof=0x30
 {                                                                             // XREF: demoInitialStateBuffer_t/r
@@ -81,19 +82,6 @@ enum StanceState : __int32
         CL_STANCE_CROUCH                = 0x1,
         CL_STANCE_PRONE                 = 0x2,
         CL_STANCE_DIVE_TO_PRONE = 0x3,
-};
-
-struct PredictedVehicleInfo // sizeof=0x34
-{                                                                             // XREF: clientActive_t/r
-                                                                                // clientHeader_t/r
-        bool inVehicle;
-        // padding byte
-        // padding byte
-        // padding byte
-        float origin[3];
-        float angles[3];
-        float tVel[3];
-        float aVel[3];
 };
 
 struct outPacket_t // sizeof=0xC
@@ -859,7 +847,7 @@ struct __declspec(align(8)) clientConnection_t // sizeof=0xAFF48
         // padding byte
 };
 
-struct cgs_t // sizeof=0x3188
+struct cgs_t // sizeof=0x31A4
 {
     int viewX;
     int viewY;
@@ -890,17 +878,10 @@ struct cgs_t // sizeof=0x3188
     float compassWidth;
     float compassHeight;
     float compassY;
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
-    _BYTE corpseinfo[5888];
+    char _pad[4];
+    clientInfo_t corpseinfo[4];
     actorInfo_t actorCorpseInfo[8];
     bool entUpdateToggleContextKey;
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
     // padding byte
     // padding byte
     // padding byte

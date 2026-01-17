@@ -12,6 +12,26 @@ struct GfxDepthOfField;
 struct cg_s;
 struct trigger_info_t;
 
+struct BattleChatterParams // sizeof=0x20
+{                                       // XREF: .data:BattleChatterParams * cg_BattleChatters/r
+    unsigned __int8 WhichSoundIsPlaying;
+                                        // XREF: CG_PlayBattleChatter(int,int,float const * const,int,int)+57/r
+                                        // CG_PlayBattleChatter(int,int,float const * const,int,int)+86/w ...
+    // padding byte
+    // padding byte
+    // padding byte
+    unsigned int SecondAlias;           // XREF: CG_PlayBattleChatter(int,int,float const * const,int,int)+A5/w
+                                        // CG_CheckBattleChatter(void)+67/r
+    int EntityNum;                      // XREF: CG_PlayBattleChatter(int,int,float const * const,int,int)+7A/w
+                                        // CG_CheckBattleChatter(void)+8B/r
+    int LocalClientNum;                 // XREF: CG_PlayBattleChatter(int,int,float const * const,int,int)+96/w
+                                        // CG_CheckBattleChatter(void)+98/r
+    int CurrentPlayingSound;            // XREF: CG_PlayBattleChatter(int,int,float const * const,int,int)+6B/w
+                                        // CG_CheckBattleChatter(void)+4B/r ...
+    float SndOrigin[3];                 // XREF: CG_PlayBattleChatter(int,int,float const * const,int,int)+B1/o
+                                        // CG_CheckBattleChatter(void)+7E/o
+};
+
 unsigned __int8 *__cdecl Hunk_AllocXAnimCreate(unsigned int size);
 int __cdecl CG_GetClientNumForLocalClient(int localClientNum);
 bool __cdecl CG_IsRagdollTrajectory(const trajectory_t *trajectory);
@@ -105,7 +125,7 @@ int __cdecl CG_NotifyTriggers();
 void __cdecl CG_Trigger(centity_s *self, centity_s *other);
 void __cdecl CG_multi_trigger(centity_s *ent);
 void __cdecl CG_Touch_Multi(centity_s *self, centity_s *other);
-unsigned __int8 *__cdecl Hunk_AllocXAnimClient(unsigned int size);
+void *__cdecl Hunk_AllocXAnimClient(unsigned int size);
 
 extern struct cgMedia_t cgMedia;
 
@@ -381,3 +401,8 @@ extern const dvar_s *cg_cameraVehicleExitTweenTime;
 extern const dvar_s *cg_vehicle_piece_damagesfx_threshold;
 extern const dvar_s *cg_debugLocHit;
 extern const dvar_s *cg_debugLocHitTime;
+
+extern cg_s *cgArray;
+extern cgs_t *cgsArray;
+
+extern float (*cg_entityOriginArray[1])[3];

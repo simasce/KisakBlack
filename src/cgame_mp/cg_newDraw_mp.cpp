@@ -7,6 +7,25 @@
 #include <bgame/bg_mantle.h>
 #include <client_mp/cl_cgame_mp.h>
 #include "cg_main_mp.h"
+#include <cgame/cg_compass.h>
+#include <cgame/offhandweapons.h>
+#include <ui/ui_atoms.h>
+#include <bgame/bg_misc.h>
+#include <bgame/bg_pmove.h>
+#include <demo/demo_playback.h>
+#include "cg_vehicles_mp.h"
+#include <qcommon/dobj_management.h>
+#include "cg_ents_mp.h"
+#include <clientscript/scr_const.h>
+#include <universal/com_shared.h>
+#include <demo/demo_ui.h>
+#include "cg_scoreboard_mp.h"
+#include <win32/win_shared.h>
+#include <cgame/cg_hudelem.h>
+#include "cg_draw_mp.h"
+#include <client/cl_keys.h>
+#include <qcommon/com_clients.h>
+#include <stringed/stringed_hooks.h>
 
 const char *cg_drawTalkNames[5] =
 { "NONE", "ALL", "FRIENDLY", "ENEMY", NULL };
@@ -583,7 +602,7 @@ LABEL_111:
                                 color);
                             break;
                         case 183:
-                            CG_CompassDrawPlayer(localClientNum, (jpeg_decompress_struct *)1, &parentRect, &rect, material, color);
+                            CG_CompassDrawPlayer(localClientNum, COMPASS_TYPE_FULL, &parentRect, &rect, material, color);
                             break;
                         case 185:
                             CG_CompassDrawFriendlies(localClientNum, COMPASS_TYPE_FULL, &parentRect, &rect, color);
@@ -676,7 +695,7 @@ $LN38_2:
                     CG_DrawPlayerFuelAmmoValue(localClientNum, &rect, color);
                 return;
             case 12:
-                CG_DrawGuidedMissileFuel(localClientNum, &rect, material, color);
+                CG_DrawGuidedMissileFuel(localClientNum, &rect, material);
                 return;
             case 79:
                 goto $LN46_1;
@@ -775,7 +794,7 @@ $LN46_1:
                 CG_CompassDrawIncomingArtilleryIcon(localClientNum, COMPASS_TYPE_PARTIAL, &parentRect, &rect, color);
                 break;
             case 150:
-                CG_CompassDrawPlayer(localClientNum, 0, &parentRect, &rect, material, color);
+                CG_CompassDrawPlayer(localClientNum, COMPASS_TYPE_PARTIAL, &parentRect, &rect, material, color);
                 break;
             case 151:
                 CG_CompassDrawPlayerBack(localClientNum, COMPASS_TYPE_PARTIAL, &parentRect, &rect, material, color);
@@ -853,7 +872,7 @@ void __cdecl CG_DrawPlayerAmmoBackdrop(
             if ( CG_CheckPlayerForLowAmmo(cgameGlob) )
             {
                 drawColor[0] = 0.89f;
-                drawColor[1] = 0.1f8000001;
+                drawColor[1] = 0.18000001;
                 drawColor[2] = 0.01f;
             }
             else
@@ -930,7 +949,7 @@ void __cdecl CG_DrawPlayerHeatValue(
                 overheating = BG_PlayerWeaponOverheating(ps, weaponIndex);
             }
             iconColor[0] = 0.89f;
-            iconColor[1] = 0.1f8000001;
+            iconColor[1] = 0.18000001;
             iconColor[2] = 0.01f;
             iconColor[3] = 1.0f;
             flashColor[0] = 1.0f;
@@ -1019,7 +1038,7 @@ void __cdecl CG_DrawPlayerFuelAmmoValue(int localClientNum, const rectDef_s *rec
     {
         fuelValue = (float)BG_PlayerFuelTankTime(ps, weaponIndex) / (float)weapDef->iTankLifeTime;
         iconColor[0] = 0.89f;
-        iconColor[1] = 0.1f8000001;
+        iconColor[1] = 0.18000001;
         iconColor[2] = 0.01f;
         iconColor[3] = 1.0f;
         if ( !cg_fuelHudVersion->current.integer )
@@ -1279,7 +1298,7 @@ void __cdecl CG_DrawPlayerSprintMeter(int localClientNum, const rectDef_s *rect,
 
 void __cdecl CG_CalcPlayerSprintColor(const cg_s *cgameGlob, const playerState_s *ps, float *color)
 {
-    DvarValue *p_current; // [esp+8h] [ebp-14h]
+    const DvarValue *p_current; // [esp+8h] [ebp-14h]
     int sprintLeft; // [esp+14h] [ebp-8h]
     int maxSprint; // [esp+18h] [ebp-4h]
 
@@ -1489,7 +1508,7 @@ void __cdecl CG_DrawPlayerBarHealthBack(int localClientNum, const rectDef_s *rec
                         cgameGlob->lastHealthPulseTime = cgameGlob->time;
                     }
                     *color = 0.89f;
-                    color[1] = 0.1f8000001;
+                    color[1] = 0.18000001;
                     color[2] = 0.01f;
                     color[3] = (float)(flashTime + cgameGlob->lastHealthPulseTime - cgameGlob->time) / (float)flashTime;
                     if ( color[3] > fadeAlpha )
@@ -1768,7 +1787,7 @@ void __cdecl CG_DrawPlayerDirectionalHitIndicator(
                         0.5,
                         1.0,
                         1.0,
-                        COERCE_FLOAT(LODWORD(yaw) ^ _mask__NegFloat_),
+                        (-(yaw)),
                         color,
                         material);
                 }
@@ -1812,7 +1831,7 @@ void __cdecl draw_tank_body_component(
         cent = CG_GetEntity(localClientNum, cgameGlob->predictedPlayerState.viewlocked_entNum);
         if ( cent->nextState.eType == 14 )
         {
-            vehType = cent->nextState.un2.vehicleState.vehicleInfoIndex;
+            vehType = cent->nextState.vehicleState.vehicleInfoIndex;
             info = CG_GetVehicleInfo(vehType);
             if ( info )
             {
@@ -1947,7 +1966,7 @@ void __cdecl draw_tank_turret_component(
         cent = CG_GetEntity(localClientNum, cgameGlob->predictedPlayerState.viewlocked_entNum);
         if ( cent->nextState.eType == 14 )
         {
-            vehType = cent->nextState.un2.vehicleState.vehicleInfoIndex;
+            vehType = cent->nextState.vehicleState.vehicleInfoIndex;
             info = CG_GetVehicleInfo(vehType);
             if ( info )
             {
@@ -1966,7 +1985,7 @@ void __cdecl draw_tank_turret_component(
                             h = rect->h;
                             ScrPlace_ApplyRect(&scrPlaceView[localClientNum], &x, &y, &w, &h, rect->horzAlign, rect->vertAlign);
                             xy[0][0] = w * 0.5;
-                            LODWORD(xy[0][1]) = (h * 0.75) ^ _mask__NegFloat_;
+                            (xy[0][1]) = -(h * 0.75);
                             *(_QWORD *)&xy[1][0] = __PAIR64__(LODWORD(xy[0][1]), w * 0.5) ^ (unsigned int)_mask__NegFloat_;
                             xy[2][0] = xy[1][0];
                             xy[2][1] = h * 0.25;
@@ -2571,9 +2590,9 @@ void __cdecl CG_DrawDemoControls(int localClientNum, const rectDef_s *rect, Mate
     innerGreyBoxHeight = rect->h - (float)(3.0 * 10.0);
     innerGreyBoxXSpacing = 5.0f;
     innerGreyBoxYSpacing = 6.0f;
-    innerGreyBoxColor[0] = 0.1f4;
-    innerGreyBoxColor[1] = 0.1f4;
-    innerGreyBoxColor[2] = 0.1f4;
+    innerGreyBoxColor[0] = 0.14;
+    innerGreyBoxColor[1] = 0.14;
+    innerGreyBoxColor[2] = 0.14;
     innerGreyBoxColor[3] = 1.0f;
     timelineX = innerGreyBoxX + 5.0;
     timelineY = innerGreyBoxY + 6.0;
@@ -3797,7 +3816,7 @@ char __cdecl ShouldDrawPlayerTargetHighlights(int localClientNum, const cg_s *cg
         else
         {
             vehicle = CG_GetEntity(localClientNum, cgameGlob->predictedPlayerState.viewlocked_entNum);
-            if ( !*(_WORD *)&CG_GetVehicleInfo(vehicle->nextState.un2.vehicleState.vehicleInfoIndex)->gunnerWeapon[3][2 * seatIndex + 62] )
+            if ( !*(_WORD *)&CG_GetVehicleInfo(vehicle->nextState.vehicleState.vehicleInfoIndex)->gunnerWeapon[3][2 * seatIndex + 62] )
                 return 0;
         }
     }
@@ -4075,13 +4094,13 @@ LABEL_59:
                 CG_DrawPlayerAmmoValue(localClientNum, &rect, font, scale, color, material, textStyle);
                 break;
             case 20:
-                CG_DrawPlayerStance((int)&savedregs, localClientNum, &rect, color, font, scale, textStyle);
+                CG_DrawPlayerStance(localClientNum, &rect, color, font, scale, textStyle);
                 break;
             case 71:
                 CG_DrawHoldBreathHint(localClientNum, &rect, font, scale, textStyle);
                 break;
             case 72:
-                CG_DrawCursorhint((cg_s *)&savedregs, localClientNum, &rect, font, scale, color, textStyle);
+                CG_DrawCursorhint(localClientNum, &rect, font, scale, color, textStyle);
                 break;
             case 80:
                 CG_DrawMantleHint(localClientNum, &rect, font, scale, color, textStyle);
@@ -4149,7 +4168,6 @@ LABEL_59:
                 break;
             case 144:
                 CG_CompassDrawTickertape(
-                    COERCE_FLOAT(&savedregs),
                     localClientNum,
                     COMPASS_TYPE_PARTIAL,
                     &parentRect,
@@ -4163,7 +4181,6 @@ LABEL_59:
                 break;
             case 145:
                 CG_CompassDrawTickertape(
-                    COERCE_FLOAT(&savedregs),
                     localClientNum,
                     COMPASS_TYPE_PARTIAL,
                     &parentRect,
@@ -4326,7 +4343,7 @@ void __cdecl CG_DrawPlayerAmmoValue(
                     if ( cgameGlob->lastClipFlashTime > cgameGlob->time || cgameGlob->lastClipFlashTime + 800 < cgameGlob->time )
                         cgameGlob->lastClipFlashTime = cgameGlob->time;
                     flashColor[0] = 0.89f;
-                    flashColor[1] = 0.1f8000001;
+                    flashColor[1] = 0.18000001;
                     flashColor[2] = 0.01f;
                     flashColor[3] = (float)(cgameGlob->lastClipFlashTime + 800 - cgameGlob->time) / 800.0;
                     if ( flashColor[3] > color[3] )
@@ -4335,7 +4352,7 @@ void __cdecl CG_DrawPlayerAmmoValue(
                 if ( lowAmmo )
                 {
                     ammoColor[0] = 0.89f;
-                    ammoColor[1] = 0.1f8000001;
+                    ammoColor[1] = 0.18000001;
                     ammoColor[2] = 0.01f;
                 }
                 else
@@ -4390,7 +4407,7 @@ void __cdecl CG_DrawPlayerAmmoValue(
                     x = (float)((float)((float)(rect->w - (float)UI_TextWidth("|", 0, font, scale)) * 0.5) + rect->x) - 5.0;
                     UI_DrawText(
                         scrPlace,
-                        "|",
+                        (char*)"|",
                         0x7FFFFFFF,
                         font,
                         x,
@@ -5429,7 +5446,7 @@ void __cdecl CG_DrawRCBombHints(
                                      (int)((float)(hud_fade_vehiclecontrols->current.value * 1000.0) + 9.313225746154785e-10))
                              * 1.0;
             vehicle = CG_GetEntity(localClientNum, ps->viewlocked_entNum);
-            info = CG_GetVehicleInfo(vehicle->nextState.un2.vehicleState.vehicleInfoIndex);
+            info = CG_GetVehicleInfo(vehicle->nextState.vehicleState.vehicleInfoIndex);
             if ( info->remoteControl )
             {
                 if ( info->isNitrous && info->type != 6 && vehicle->nitrousVeh )
@@ -5741,7 +5758,7 @@ void __cdecl CG_DrawTurretPlaceHint(
     ps = &LocalClientGlobals->predictedPlayerState;
     if ( (LocalClientGlobals->predictedPlayerState.weapFlags & 0x400000) != 0 )
     {
-        if ( ((unsigned int)&loc_800000 & ps->weapFlags) != 0 )
+        if ( ((unsigned int)0x800000 & ps->weapFlags) != 0 )
         {
             string = UI_SafeTranslateString("MP_INVALID_TURRET_LOCATION");
             v7 = UI_TextWidth(string, 0, font, fontscale);
@@ -5770,6 +5787,7 @@ void __cdecl CG_DrawTurretPlaceHint(
     }
 }
 
+float adjustB;
 void __cdecl CG_DrawMantleHint(
                 int localClientNum,
                 const rectDef_s *rect,
@@ -5956,7 +5974,7 @@ LABEL_29:
             x = rect->x - (float)(int)((float)((float)UI_TextWidth(string, 0, font, fontscale) * 0.5) + 9.313225746154785e-10);
             UI_DrawText(
                 &scrPlaceView[localClientNum],
-                string,
+                (char*)string,
                 0x7FFFFFFF,
                 font,
                 x,

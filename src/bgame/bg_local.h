@@ -43,15 +43,14 @@ struct CEntTurretAngles // sizeof=0x8
         float yaw;
 };
 
-union $4EE5A6C5EBB6111004F076A4831D37E2 // sizeof=0x8
-{                                                                             // XREF: CEntTurretInfo/r
-        CEntTurretAngles angles;
-        const float *viewAngles;
-};
-
 struct __declspec(align(4)) CEntTurretInfo // sizeof=0x20
 {                                                                             // XREF: $251974A72D8ACF7EC8C19B3B5F3F224B/r
-        $4EE5A6C5EBB6111004F076A4831D37E2 ___u0;
+        //$4EE5A6C5EBB6111004F076A4831D37E2 ___u0;
+        union //$4EE5A6C5EBB6111004F076A4831D37E2 // sizeof=0x8
+        {                                                                             // XREF: CEntTurretInfo/r
+            CEntTurretAngles angles;
+            const float *viewAngles;
+        };
         float barrelPitch;
         float pivotOffset;
         bool playerUsing;
@@ -916,16 +915,16 @@ struct bgs_t // sizeof=0xBF00
     int frametime;                      // XREF: G_RunFrame(int)+71/w
     int anim_user;                      // XREF: G_InitGame(int,int,int,int,int)+16D/w
     int proneTime[32];
-    struct XModel *(__cdecl *GetXModel)(const char *);
+    struct XModel *(__cdecl *GetXModel)(char *);
                                         // XREF: G_InitGame(int,int,int,int,int)+131/w
     void (__cdecl *CreateDObj)(struct DObjModel_s *, unsigned __int16, XAnimTree_s *, int, int, clientInfo_t *);
                                         // XREF: G_InitGame(int,int,int,int,int)+13B/w
     unsigned __int16 (__cdecl *AttachWeapon)(struct DObjModel_s *, unsigned __int16, clientInfo_t *);
                                         // XREF: G_InitGame(int,int,int,int,int)+145/w
-    struct DObj *(__cdecl *GetDObj)(int, int); // XREF: G_InitGame(int,int,int,int,int)+14F/w
-    void (__cdecl *SafeDObjFree)(int, int);
+    struct DObj *(__cdecl *GetDObj)(unsigned int, int); // XREF: G_InitGame(int,int,int,int,int)+14F/w
+    void (__cdecl *SafeDObjFree)(unsigned int, int);
                                         // XREF: G_InitGame(int,int,int,int,int)+159/w
-    void *(__cdecl *AllocXAnim)(int);   // XREF: G_InitGame(int,int,int,int,int)+163/w
+    void *(__cdecl *AllocXAnim)(unsigned int);   // XREF: G_InitGame(int,int,int,int,int)+163/w
     int (__cdecl *Rand)();              // XREF: G_InitGame(int,int,int,int,int)+177/w
     float (__cdecl *Random)();          // XREF: G_InitGame(int,int,int,int,int)+181/w
     void (__cdecl *AnimCmdRefCount)(__int16, __int16, int);

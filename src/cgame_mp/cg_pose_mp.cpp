@@ -1,4 +1,8 @@
 #include "cg_pose_mp.h"
+#include <xanim/dobj_utils.h>
+#include <ragdoll/ragdoll_controller.h>
+#include "cg_local_mp.h"
+#include <physics/xdoll.h>
 
 void __cdecl BG_Player_DoControllers(const CEntPlayerInfo *player, const DObj *obj, int *partBits)
 {
@@ -107,7 +111,7 @@ void __cdecl CG_DoControllers(const cpose_t *pose, const DObj *obj, int *partBit
         case 0xCu:
         case 0xEu:
         case 0x10u:
-            CG_Vehicle_DoControllers(&savedregs, pose, obj, partBits);
+            CG_Vehicle_DoControllers(pose, obj, partBits);
             break;
         case 0x11u:
         case 0x13u:
@@ -155,7 +159,7 @@ void __cdecl CG_Player_DoControllers(const cpose_t *pose, const DObj *obj, int *
     }
 }
 
-void    CG_Vehicle_DoControllers(void *a1@<ebp>, const cpose_t *pose, const DObj *obj, int *partBits)
+void    CG_Vehicle_DoControllers(const cpose_t *pose, const DObj *obj, int *partBits)
 {
     unsigned __int16 EntNum; // ax
     int v5; // xmm0_4

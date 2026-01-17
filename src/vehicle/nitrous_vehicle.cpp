@@ -2142,7 +2142,7 @@ void __cdecl NitrousVehicle::frame_epilog_all_systems(float delta_t)
         //D3DPERF_EndEvent();
 }
 
-NitrousVehicle **__cdecl NitrousVehicle::add_vehicle(NitrousVehicle *id)
+NitrousVehicle *__cdecl NitrousVehicle::add_vehicle(int id)
 {
     phys_free_list<NitrousVehicle> *i; // [esp+24h] [ebp-8h]
     NitrousVehicle *vehicle; // [esp+28h] [ebp-4h]

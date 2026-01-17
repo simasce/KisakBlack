@@ -7,6 +7,9 @@
 #include <bgame/bg_weapons_attachment.h>
 #include <cstring>
 #include <bgame/bg_unlockable_items.h>
+#include <qcommon/common.h>
+#include <stringed/stringed_hooks.h>
+#include <cgame_mp/cg_draw_mp.h>
 
 int __cdecl CL_GetMilestoneRowNum(
                 XAssetHeader *stringTable,
@@ -1292,7 +1295,7 @@ char __cdecl PrepareKillstreakDescription(
         if ( !I_stricmp(name, "kills") )
         {
             v6 = va("%s_KILLS_CHALLENGE_DESC", itemName);
-            if ( SEH_StringEd_GetString(v6) )
+            if ( SEH_StringEd_GetString((char*)v6) )
             {
                 convArgs.args[convArgs.argCount++] = va("%d", targetValue);
                 v7 = va("%s_KILLS_CHALLENGE_DESC", itemName);
@@ -1322,7 +1325,7 @@ char __cdecl PrepareKillstreakDescription(
         if ( !I_stricmp(name, "destroyed") )
         {
             v14 = va("%s_DESTROYED_CHALLENGE_DESC", itemName);
-            if ( SEH_StringEd_GetString(v14) )
+            if ( SEH_StringEd_GetString((char*)v14) )
             {
                 v15 = va("%d", targetValue);
                 convArgs.args[convArgs.argCount++] = v15;
@@ -1725,7 +1728,7 @@ void __cdecl CL_GetMilestoneMaterial(char *materialName, int stringLength, const
     }
 }
 
-int __cdecl getMilestoneType(const char *statsType)
+statsMilestoneTypes_t __cdecl getMilestoneType(const char *statsType)
 {
     if ( !statsType
         && !Assert_MyHandler(
@@ -1738,20 +1741,20 @@ int __cdecl getMilestoneType(const char *statsType)
         __debugbreak();
     }
     if ( !statsType )
-        return -1;
+        return MILESTONE_INVALID;
     if ( !strcmp(statsType, "global") )
-        return 0;
+        return MILESTONE_GLOBAL;
     if ( !strcmp(statsType, "killstreak") )
-        return 6;
+        return MILESTONE_KILLSTREAKS;
     if ( !strcmp(statsType, "group") )
-        return 4;
+        return MILESTONE_GROUP;
     if ( !strcmp(statsType, "attachment") )
-        return 5;
+        return MILESTONE_ATTACHMENTS;
     if ( !strcmp(statsType, "gamemode") )
-        return 3;
+        return MILESTONE_GAMEMODE;
     if ( !strcmp(statsType, "weapon_grenade") )
-        return 7;
-    return 1;
+        return MILESTONE_GRENADES;
+    return MILESTONE_WEAPON;
 }
 
 void __cdecl CL_MilestoneTier_DecToRoman(int milestoneTierId, char *milestoneTierRoman, int stringLength)

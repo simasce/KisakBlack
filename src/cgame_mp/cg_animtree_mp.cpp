@@ -1,4 +1,12 @@
 #include "cg_animtree_mp.h"
+#include <clientscript/cscr_main.h>
+#include <clientscript/cscr_memorytree.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <clientscript/cscr_animtree.h>
+#include <universal/com_memory.h>
+#include <qcommon/common.h>
+#include "cg_local_mp.h"
+#include <qcommon/dobj_management.h>
 
 void __cdecl CGScr_LoadAnimTrees()
 {

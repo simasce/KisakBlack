@@ -387,3 +387,4 @@ constexpr float quatZRot[4] = { 0.0, 0.0, 1.0, 0.0 };
 
 constexpr float c_fadeRate = 1.0;
 
+const float SQRT2_0 = sqrtf(2.0);

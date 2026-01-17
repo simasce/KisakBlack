@@ -158,7 +158,7 @@ struct colgeom_visitor_inlined_t : colgeom_visitor_t // sizeof=0x6B8
 
 struct query_brush_model_gjk_geom_visitor : colgeom_visitor_t // sizeof=0x74
 {                                                                             // XREF: ?query_brush_model_gjk_geom@@YAXGHPAVgjk_collision_visitor@@@Z/r
-        gjk_collision_visitor *m_allocator; // XREF: query_brush_model_gjk_geom(ushort,int,gjk_collision_visitor *)+A9/w
+        struct gjk_collision_visitor *m_allocator; // XREF: query_brush_model_gjk_geom(ushort,int,gjk_collision_visitor *)+A9/w
 
         void visit(const cbrush_t *brush);
         void update(

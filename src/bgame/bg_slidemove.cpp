@@ -598,19 +598,6 @@ phys_vec3 * phys_full_inv_multiply@<eax>(
     return result;
 }
 
-const phys_vec3 *__cdecl phys_inv_multiply(const phys_vec3 *result, const phys_mat44 *mat, const phys_vec3 *v)
-{
-    float v4; // [esp+4h] [ebp-10h]
-    float v5; // [esp+Ch] [ebp-8h]
-
-    v5 = (float)((float)(v->x * mat->z.x) + (float)(v->y * mat->z.y)) + (float)(v->z * mat->z.z);
-    v4 = (float)((float)(v->x * mat->y.x) + (float)(v->y * mat->y.y)) + (float)(v->z * mat->y.z);
-    result->x = (float)((float)(v->x * mat->x.x) + (float)(v->y * mat->x.y)) + (float)(v->z * mat->x.z);
-    result->y = v4;
-    result->z = v5;
-    return result;
-}
-
 bool __thiscall gjk_polygon_cylinder_t::is_foot(gjk_polygon_cylinder_t *this, const phys_vec3 *hit_point)
 {
     long double thisa; // [esp+0h] [ebp-1Ch]
@@ -1324,7 +1311,7 @@ LABEL_12:
                 if ( gto->m_gi->m_ent_info->m_ent_type == ET_CENT )
                 {
                     cent = gjk_entity_info_t::get_cent(gto->m_gi->m_ent_info);
-                    info = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+                    info = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
                 }
                 else
                 {

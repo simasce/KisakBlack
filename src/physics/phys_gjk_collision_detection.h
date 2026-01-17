@@ -4,6 +4,8 @@
 #include "rigid_body.h"
 #include "phys_main.h"
 
+struct centity_s;
+
 struct __declspec(align(16)) gjk_trace_output_t // sizeof=0x50
 {
     phys_vec3 m_hit_normal;
@@ -51,6 +53,8 @@ struct bpei_database_t // sizeof=0x10
     broad_phase_environment_info *m_bpei_list;
     minspec_read_write_mutex m_mutex;
 
+    ~bpei_database_t();
+
     void update_database();
     broad_phase_environment_info *get_bpei(bpei_database_id database_id);
 };
@@ -92,6 +96,8 @@ struct phys_heap_gjk_cache_system_avl_tree // sizeof=0x10
     phys_gjk_cache_info_internal *m_list_head;
 
 
+    ~phys_heap_gjk_cache_system_avl_tree();
+
     phys_gjk_cache_info_internal *get_gjk_cache_info(
         phys_heap_gjk_cache_system_avl_tree *gjk_cache,
         gjk_base_t *cg1,
@@ -99,6 +105,12 @@ struct phys_heap_gjk_cache_system_avl_tree // sizeof=0x10
     phys_gjk_cache_info_internal *get_gjk_cache_info(
         unsigned int id1,
         unsigned int id2,
+        bool __formal);
+
+    phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal *get_gjk_cache_info_mutex(
+        unsigned int id1,
+        unsigned int id2,
+        struct tlAtomicReadWriteMutex *query_mutex,
         bool __formal);
 };
 
@@ -314,7 +326,7 @@ struct phys_auto_activate_callback // sizeof=0x4
     //phys_auto_activate_callback_vtbl *__vftable;00000000 struct /*VFT*/ phys_auto_activate_callback_vtbl // sizeof=0x8
 
     virtual bool has_auto_activated() = 0;
-    virtual void auto_activate(broad_phase_info *) = 0;
+    virtual void auto_activate(struct broad_phase_info *) = 0;
 };
 
 struct destructible_ent_aa : phys_auto_activate_callback // sizeof=0xC
@@ -327,7 +339,7 @@ struct destructible_ent_aa : phys_auto_activate_callback // sizeof=0xC
 
 
     bool has_auto_activated();
-    void auto_activate(broad_phase_info *bpi_impactor);
+    void auto_activate(struct broad_phase_info *bpi_impactor);
 };
 
 struct gjk_physics_collision_visitor : gjk_collision_visitor // sizeof=0x80
@@ -353,14 +365,14 @@ struct gjk_physics_collision_visitor : gjk_collision_visitor // sizeof=0x80
     const centity_s *cent;
     const DynEntityDef *dynEntDef;
     const Glass *glass;
-    rigid_body *rb;
+    struct rigid_body *rb;
     const phys_mat44 *rb_to_world_xform;
     const phys_mat44 *cg_to_world_xform;
     const phys_mat44 *cg_to_rb_xform;
     unsigned int env_collision_flags;
-    const broad_phase_environment_query_input *bpeqi;
-    broad_phase_environement_query_results *bpeqr;
-    phys_auto_activate_callback *auto_activate_callback;
+    const struct broad_phase_environment_query_input *bpeqi;
+    struct broad_phase_environement_query_results *bpeqr;
+    struct phys_auto_activate_callback *auto_activate_callback;
     // padding byte
     // padding byte
     // padding byte

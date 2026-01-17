@@ -1,4 +1,102 @@
 #include "cg_scr_main_mp.h"
+#include <clientscript/cscr_variable.h>
+#include <clientscript/cscr_vm.h>
+#include <cgame/cg_camerashake.h>
+#include <EffectsCore/fx_system.h>
+#include <cgame/cg_scr_main.h>
+#include <qcommon/dobj_management.h>
+#include <clientscript/cscr_stringlist.h>
+#include <cgame/cg_event.h>
+#include <demo/demo_playback.h>
+#include "cg_main_mp.h"
+#include "cg_ents_mp.h"
+#include <bgame/bg_perks.h>
+#include "cg_vehicles_mp.h"
+#include <bgame/bg_dog.h>
+#include <bgame/bg_mantle.h>
+#include <bgame/bg_weapons_ammo.h>
+#include <client/splitscreen.h>
+#include <cgame/cg_compass.h>
+#include <xanim/dobj_utils.h>
+#include <xanim/xmodel.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <clientscript/scr_const.h>
+#include "cg_animscripted_mp.h"
+#include <universal/surfaceflags.h>
+
+unsigned __int16 *footTags[4] =
+{
+    &scr_const.j_palm_ri,
+    &scr_const.j_palm_le,
+    &scr_const.j_ball_ri,
+    &scr_const.j_palm_ri
+};
+
+BuiltinFunctionDef client_project_functions[26] =
+{
+  { "getgridfrompos", &CScr_GetGridFromPos, 0 },
+  { "compassscale", &CScr_CompassScale, 0 },
+  { "resetcompassscale", &CScr_ResetCompassScale, 0 },
+  { "isdemoplaying", &CScr_IsDemoPlaying, 0 },
+  { "isspectating", &CScr_IsSpectating, 0 },
+  { "getlocalplayerteam", &CScr_GetLocalPlayerTeam, 0 },
+  { "playfxontag", &CScr_PlayFXOnTag, 0 },
+  { "playviewmodelfx", &CScr_PlayViewmodelFX, 0 },
+  { "spawnfx", &CScr_SpawnFX, 0 },
+  { "deletefx", &CScr_DeleteFX, 0 },
+  { "getanimlength", &CScr_GetAnimLength, 0 },
+  { "animateui", &CScr_AnimateUI, 0 },
+  { "showui", &CScr_ShowUI, 0 },
+  { "getcurrentweapon", &CScr_GetCurrentWeapon, 0 },
+  { "getcurrentweaponincludingmelee", &CScr_GetCurrentWeaponIncludingMelee, 0 },
+  { "hasweapon", &CScr_HasWeapon, 0 },
+  { "gettotalammo", &CScr_GetTotalAmmo, 0 },
+  { "setlocalradarenabled", &CScr_SetLocalRadarEnabled, 0 },
+  { "setlocalradarposition", &CScr_SetLocalRadarPosition, 0 },
+  { "setextracamentity", &CScr_SetExtraCamEntity, 0 },
+  { "setextracamactive", &CScr_SetExtraCamActive, 0 },
+  { "getextracamstatic", &CScr_GetExtraCamStatic, 0 },
+  { "setextracamstatic", &CScr_SetExtraCamStatic, 0 },
+  { "setextracamorigin", &CScr_SetExtraCamOrigin, 0 },
+  { "setextracamangles", &CScr_SetExtraCamAngles, 0 },
+  { "iscameraspiketoggled", &CScr_IsCameraSpikeToggled, 0 }
+};
+
+const BuiltinMethodDef client_project_methods[29] =
+{
+  { "gettagorigin", &CScr_GetTagOrigin, 0 },
+  { "gettagangles", &CScr_GetTagAngles, 0 },
+  { "getinkillcam", &CScr_GetInKillcam, 0 },
+  { "getowner", &CScrCmd_GetOwner, 0 },
+  { "getanimstate", &CScr_GetAnimState, 0 },
+  { "getanimstatecategory", &CScr_GetAnimStateCategory, 0 },
+  { "getvehiclehealth", &CScr_GetVehicleHealth, 0 },
+  { "getlefttreadhealth", &CScr_GetLeftTreadHealth, 0 },
+  { "getrighttreadhealth", &CScr_GetRightTreadHealth, 0 },
+  { "gethelidamagestate", &CScr_GetHeliDamageState, 0 },
+  { "isburning", &CScrCmd_IsBurning, 0 },
+  { "hasperk", &CPlayerCmd_HasPerk, 0 },
+  { "getstance", &CScr_GetStance, 0 },
+  { "shellshock", &CScrCmd_ShellShock, 0 },
+  { "earthquake", &CScrCmd_Earthquake, 0 },
+  { "setenemyglobalscrambler", &CScr_SetEnemyGlobalScrambler, 0 },
+  { "setenemyscrambleramount", &CScr_SetEnemyScramblerAmount, 0 },
+  { "getenemyscrambleramount", &CScr_GetEnemyScramblerAmount, 0 },
+  { "isscrambled", &CScr_IsScrambled, 0 },
+  { "setfriendlyscrambleramount", &CScr_SetFriendlyScramblerAmount, 0 },
+  { "getfriendlyscrambleramount", &CScr_GetFriendlyScramblerAmount, 0 },
+  { "addfriendlyscrambler", &CScr_AddFriendlyScrambler, 0 },
+  { "clearnearestenemyscrambler", &CScr_ClearNearestEnemyScrambler, 0 },
+  { "setnearestenemyscrambler", &CScr_SetNearestEnemyScrambler, 0 },
+  { "removefriendlyscrambler", &CScr_RemoveFriendlyScrambler, 0 },
+  { "removeallfriendlyscramblers", &CScr_RemoveAllFriendlyScramblers, 0 },
+  { "hastacticalmaskoverlay", CScr_HasTacticalMaskOverlay, 0 },
+  { "setflagasaway", &CScr_SetFlagAsAway, 0 },
+  { "getparententity", &CScr_GetParentEntity, 0 }
+};
+
+cached_tag_mat_t cg_cachedTagMat;
+cscr_mp_data_t cg_scr_mp_data;
 
 void __cdecl CScrCmd_Earthquake(scr_entref_t entref)
 {
@@ -34,7 +132,7 @@ void CScr_DeleteFX()
     int localClientNum; // [esp+8h] [ebp-Ch]
     int intFxPtr; // [esp+Ch] [ebp-8h]
 
-    localClientNum = CScr_GetLocalClientNum(0).intValue;
+    localClientNum = CScr_GetLocalClientNum(0);
     intFxPtr = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
     if ( (unsigned int)localClientNum >= 2
         && !Assert_MyHandler(
@@ -70,7 +168,7 @@ void CScr_SpawnFX()
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
     if ( numParams < 4 || numParams > 6 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "Incorrect number of parameters", 0);
-    localClientNum = CScr_GetLocalClientNum(0).intValue;
+    localClientNum = CScr_GetLocalClientNum(0);
     if ( (unsigned int)localClientNum >= 2
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scr_main_mp.cpp",
@@ -167,9 +265,9 @@ void CScr_PlayFXOnTag()
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
     if ( numParams != 4 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "Incorrect number of parameters for playfxontag", 0);
-    localClientNum = CScr_GetLocalClientNum(0).intValue;
+    localClientNum = CScr_GetLocalClientNum(0);
     fxId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
-    v3 = *Scr_GetEntityRef(&v2, 2u, SCRIPTINSTANCE_CLIENT);
+    v3 = Scr_GetEntityRef(2, SCRIPTINSTANCE_CLIENT);
     v4 = v3;
     v5 = v3;
     entref = v3;
@@ -221,7 +319,7 @@ void CScr_PlayViewmodelFX()
     nparams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
     if ( nparams != 3 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "PlayViewmodelFX() called with wrong params.\n", 0);
-    localClientNum = CScr_GetLocalClientNum(0).intValue;
+    localClientNum = CScr_GetLocalClientNum(0);
     if ( (unsigned int)localClientNum >= 2
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scr_main_mp.cpp",
@@ -284,7 +382,7 @@ void __cdecl CScr_IsSpectating()
     cg_s *cgameGlob; // [esp+8h] [ebp-Ch]
     VariableUnion localClientNum; // [esp+Ch] [ebp-8h]
 
-    localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+    localClientNum.intValue = CScr_GetLocalClientNum(0);
     cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
     if ( !cgameGlob
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scr_main_mp.cpp", 343, 0, "%s", "cgameGlob") )
@@ -539,7 +637,7 @@ void __cdecl CScr_GetInKillcam(scr_entref_t entref)
         if ( entref.entnum >= 0x400u )
             CG_GetFakeEntity(entref.client, entref.entnum);
     }
-    localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+    localClientNum.intValue = CScr_GetLocalClientNum(0);
     cGameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
     Scr_AddInt(cGameGlob->inKillCam, SCRIPTINSTANCE_CLIENT);
 }
@@ -575,7 +673,7 @@ void __cdecl CScr_GetAnimState(scr_entref_t entref)
     }
     if ( pSelf->nextState.eType != 17 && pSelf->nextState.eType != 19 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "GetAnimState() can only be called on actors", 0);
-    value = BG_Actor_GetAnimStateName(pSelf->nextState.un2.animState.state);
+    value = BG_Actor_GetAnimStateName(pSelf->nextState.animState.state);
     Scr_AddString(value, SCRIPTINSTANCE_CLIENT);
 }
 
@@ -610,7 +708,7 @@ void __cdecl CScr_GetAnimStateCategory(scr_entref_t entref)
     }
     if ( pSelf->nextState.eType != 17 && pSelf->nextState.eType != 19 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "GetAnimStateCategory() can only be called on actors", 0);
-    value = BG_Actor_GetAnimStateCategoryName(pSelf->nextState.un2.animState.state);
+    value = BG_Actor_GetAnimStateCategoryName(pSelf->nextState.animState.state);
     Scr_AddString(value, SCRIPTINSTANCE_CLIENT);
 }
 
@@ -625,7 +723,7 @@ void CScr_GetTotalAmmo()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 2 )
     {
-        localClientNum = CScr_GetLocalClientNum(0).intValue;
+        localClientNum = CScr_GetLocalClientNum(0);
         if ( !CG_GetLocalClientGlobals(localClientNum)
             && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scr_main_mp.cpp", 625, 0, "%s", "cgameGlob") )
         {
@@ -665,7 +763,7 @@ void CScr_GetCurrentWeapon()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 1 )
     {
-        localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+        localClientNum.intValue = CScr_GetLocalClientNum(0);
         cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
         if ( !cgameGlob
             && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scr_main_mp.cpp", 661, 0, "%s", "cgameGlob") )
@@ -708,7 +806,7 @@ void CScr_GetCurrentWeaponIncludingMelee()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 1 )
     {
-        localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+        localClientNum.intValue = CScr_GetLocalClientNum(0);
         cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
         if ( !cgameGlob
             && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scr_main_mp.cpp", 698, 0, "%s", "cgameGlob") )
@@ -761,7 +859,7 @@ void CScr_HasWeapon()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 2 )
     {
-        localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+        localClientNum.intValue = CScr_GetLocalClientNum(0);
         cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
         weaponName = Scr_GetString(1u, SCRIPTINSTANCE_CLIENT);
         if ( !weaponName
@@ -801,7 +899,7 @@ void CScr_SetLocalRadarEnabled()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 2 )
     {
-        localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+        localClientNum.intValue = CScr_GetLocalClientNum(0);
         cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
         if ( Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue )
             cgameGlob->hasLocalRadar = 1;
@@ -826,7 +924,7 @@ void CScr_SetLocalRadarPosition()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 2 )
     {
-        localClientNum = CScr_GetLocalClientNum(0).intValue;
+        localClientNum = CScr_GetLocalClientNum(0);
         cgameGlob = CG_GetLocalClientGlobals(localClientNum);
         Scr_GetVector(1u, origin, SCRIPTINSTANCE_CLIENT);
         *(_QWORD *)cgameGlob->localRadarPos = *(_QWORD *)origin;
@@ -850,11 +948,12 @@ void CScr_SetExtraCamEntity()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 2 )
     {
-        localClientNum = CScr_GetLocalClientNum(0).intValue;
+        localClientNum = CScr_GetLocalClientNum(0);
         cgameGlob = CG_GetLocalClientGlobals(localClientNum);
         if ( Scr_GetType(1u, SCRIPTINSTANCE_CLIENT) )
         {
-            v1 = *(unsigned int *)&Scr_GetEntityRef(&v0, 1u, SCRIPTINSTANCE_CLIENT)->entnum;
+            //v1 = *(unsigned int *)&Scr_GetEntityRef(&v0, 1u, SCRIPTINSTANCE_CLIENT)->entnum;
+            v1 = Scr_GetEntityRef(1u, SCRIPTINSTANCE_CLIENT).entnum;
             cgameGlob->extraCamEntity = (unsigned __int16)v1;
         }
         else
@@ -880,7 +979,7 @@ void CScr_SetExtraCamActive()
     {
         if ( CL_LocalClient_GetActiveCount() <= 1 )
         {
-            localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+            localClientNum.intValue = CScr_GetLocalClientNum(0);
             cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
             if ( Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue )
                 cgameGlob->extraCamActive = 1;
@@ -903,7 +1002,7 @@ void CScr_GetExtraCamStatic()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 1 )
     {
-        localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+        localClientNum.intValue = CScr_GetLocalClientNum(0);
         if ( CG_GetLocalClientGlobals(localClientNum.intValue)->extraCamStatic )
             Scr_AddInt(1, SCRIPTINSTANCE_CLIENT);
         else
@@ -927,7 +1026,7 @@ void CScr_SetExtraCamStatic()
     {
         if ( CL_LocalClient_GetActiveCount() <= 1 )
         {
-            localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+            localClientNum.intValue = CScr_GetLocalClientNum(0);
             cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
             if ( Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue )
                 cgameGlob->extraCamStatic = 1;
@@ -954,7 +1053,7 @@ void CScr_SetExtraCamOrigin()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 2 )
     {
-        localClientNum = CScr_GetLocalClientNum(0).intValue;
+        localClientNum = CScr_GetLocalClientNum(0);
         cgameGlob = CG_GetLocalClientGlobals(localClientNum);
         Scr_GetVector(1u, origin, SCRIPTINSTANCE_CLIENT);
         extraCamOrigin = cgameGlob->extraCamOrigin;
@@ -980,7 +1079,7 @@ void CScr_SetExtraCamAngles()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 2 )
     {
-        localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+        localClientNum.intValue = CScr_GetLocalClientNum(0);
         cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
         Scr_GetVector(1u, angles, SCRIPTINSTANCE_CLIENT);
         cgameGlob->extraCamAngles[0] = angles[0];
@@ -1003,7 +1102,7 @@ void CScr_IsCameraSpikeToggled()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 1 )
     {
-        localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+        localClientNum.intValue = CScr_GetLocalClientNum(0);
         if ( (CG_GetLocalClientGlobals(localClientNum.intValue)->predictedPlayerState.weapFlags & 0x200000) != 0 )
             Scr_AddInt(1, SCRIPTINSTANCE_CLIENT);
         else
@@ -1029,7 +1128,7 @@ void CScr_GetGridFromPos()
     if ( argc != 2 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "CGScr_GetGridByPos( <clientNum> <pos> ) takes 2 parameters", 0);
     Scr_GetVector(1u, pos, SCRIPTINSTANCE_CLIENT);
-    v0.intValue = CScr_GetLocalClientNum(0).intValue;
+    v0.intValue = CScr_GetLocalClientNum(0);
     CG_GetGridFromPos(v0.intValue, pos, gridName);
     Scr_AddString(gridName, SCRIPTINSTANCE_CLIENT);
 }
@@ -1063,7 +1162,7 @@ void __cdecl CScr_GetLocalPlayerTeam()
     cg_s *cGameGlob; // [esp+8h] [ebp-Ch]
     int localClientNum; // [esp+10h] [ebp-4h]
 
-    localClientNum = CScr_GetLocalClientNum(0).intValue;
+    localClientNum = CScr_GetLocalClientNum(0);
     if ( CL_LocalClient_IsActive(localClientNum) )
     {
         cGameGlob = CG_GetLocalClientGlobals(localClientNum);
@@ -1096,17 +1195,17 @@ void __cdecl CScr_AddTeamName(team_t team)
     }
 }
 
-void (__cdecl *__cdecl CScr_GetFunctionProjectSpecific(const char **pName, int *type))()
+void(__cdecl *__cdecl CScr_GetFunctionProjectSpecific(const char **pName, int *type))()
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for ( i = 0; i < 0x1A; ++i )
+    for (i = 0; i < 26; ++i)
     {
-        if ( !strcmp(*pName, client_project_functions[i].actionString) )
+        if (!strcmp(*pName, client_project_functions[i].actionString))
         {
             *pName = client_project_functions[i].actionString;
-            *type = dword_E04088[3 * i];
-            return (void (__cdecl *)())*(&off_E04084 + 3 * i);
+            *type = client_project_functions[i].type;
+            return client_project_functions[i].actionFunc;
         }
     }
     return 0;
@@ -1142,7 +1241,7 @@ void __cdecl CScrCmd_GetOwner(scr_entref_t entref)
         if ( entref.entnum >= 0x400u )
             CG_GetFakeEntity(entref.client, entref.entnum);
     }
-    intValue = CScr_GetLocalClientNum(0).intValue;
+    intValue = CScr_GetLocalClientNum(0);
     Entity = CG_GetEntity(intValue, (int)pSelf->nextState.faction.iHeadIconTeam >> 2);
     CScr_AddEntity(Entity, intValue);
 }
@@ -1288,7 +1387,7 @@ void __cdecl CScrCmd_ShellShock(scr_entref_t entref)
             SCRIPTINSTANCE_CLIENT,
             "USAGE: <player> shellshock( <local client number>, <shellshockname>, <duration>)\n",
             0);
-    localClientNum = CScr_GetLocalClientNum(0).intValue;
+    localClientNum = CScr_GetLocalClientNum(0);
     shock = Scr_GetString(1u, SCRIPTINSTANCE_CLIENT);
     Float = Scr_GetFloat(2u, SCRIPTINSTANCE_CLIENT);
     duration = (int)((float)(1000.0 * Float) + 9.313225746154785e-10);
@@ -1380,7 +1479,8 @@ void __cdecl CScr_SetNearestEnemyScrambler(scr_entref_t entref)
     centity_s *cent; // [esp+28h] [ebp-Ch]
     scr_entref_t scramblerEntity; // [esp+2Ch] [ebp-8h]
 
-    v2 = *Scr_GetEntityRef(&v1, 0, SCRIPTINSTANCE_CLIENT);
+    //v2 = *Scr_GetEntityRef(&v1, 0, SCRIPTINSTANCE_CLIENT);
+    v2 = Scr_GetEntityRef(0, SCRIPTINSTANCE_CLIENT);
     v3 = v2;
     v4 = v2;
     scramblerEntity = v2;
@@ -1418,7 +1518,7 @@ void __cdecl CScr_RemoveAllFriendlyScramblers(scr_entref_t entref)
     CG_RemoveAllFriendlyScramblers(entref.client);
 }
 
-void __cdecl CScr_HasTacticalMaskOverlay()
+void __cdecl CScr_HasTacticalMaskOverlay(scr_entref_t entref)
 {
     if ( CG_IsShowingZombieMap() )
         Scr_AddInt(1, SCRIPTINSTANCE_CLIENT);
@@ -1513,10 +1613,10 @@ void __cdecl CScr_SetFlagAsAway(scr_entref_t entref)
     {
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) >= 2 )
         {
-            localClientNum.intValue = CScr_GetLocalClientNum(0).intValue;
+            localClientNum.intValue = CScr_GetLocalClientNum(0);
             away = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
             cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
-            team = pSelf->nextState.faction.iHeadIconTeam & 3;
+            team = (team_t)(pSelf->nextState.faction.iHeadIconTeam & 3);
             if ( team == TEAM_ALLIES )
             {
                 cgameGlob->alliesFlagAway = away != 0;
@@ -1712,7 +1812,7 @@ void __cdecl CScr_GetTeamName(centity_s *cent, const cent_field_s *pField)
     CScr_AddTeamName(team);
 }
 
-int __cdecl GetTeam(centity_s *cent)
+team_t __cdecl GetTeam(centity_s *cent)
 {
     cg_s *cgameGlob; // [esp+0h] [ebp-8h]
     unsigned int localClientNum; // [esp+4h] [ebp-4h]
@@ -1723,7 +1823,7 @@ int __cdecl GetTeam(centity_s *cent)
         __debugbreak();
     }
     if ( cent->nextState.eType != 1 )
-        return cent->nextState.faction.iHeadIconTeam & 3;
+        return (team_t)(cent->nextState.faction.iHeadIconTeam & 3);
     localClientNum = RETURN_ZERO32();
     if ( localClientNum >= 2
         && !Assert_MyHandler(
@@ -1741,7 +1841,7 @@ int __cdecl GetTeam(centity_s *cent)
     if ( cgameGlob->bgs.clientinfo[cent->nextState.clientNum].infoValid )
         return cgameGlob->bgs.clientinfo[cent->nextState.clientNum].team;
     else
-        return 0;
+        return TEAM_BAD;
 }
 
 unsigned __int16 __cdecl CScr_GetFootTag(eFoot foot)
@@ -1759,6 +1859,9 @@ unsigned __int16 __cdecl CScr_GetFootTag(eFoot foot)
     }
     return *footTags[foot];
 }
+
+float footprintGroundTraceUp = 15.0f;
+float footprintGroundTraceDown = 15.0f;
 
 void __cdecl CScr_PlayDogstepSound(int localClientNum, centity_s *cent, eFoot foot)
 {

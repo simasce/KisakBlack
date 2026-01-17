@@ -166,7 +166,7 @@ void __cdecl CG_CompassDrawPlayerSelectedLocations(
                 float *color);
 void __cdecl CG_CompassDrawPlayer(
                 int localClientNum,
-                void *compassType,
+                CompassType compassType,
                 const rectDef_s *parentRect,
                 rectDef_s *rect,
                 Material *material,

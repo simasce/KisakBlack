@@ -1,4 +1,29 @@
 #include "cg_players_mp.h"
+#include "cg_local_mp.h"
+#include <client_mp/cl_cgame_mp.h>
+#include "cg_main_mp.h"
+#include <qcommon/dobj_management.h>
+#include "cg_ents_mp.h"
+#include <bgame/bg_vehicle_anim.h>
+#include <gfx_d3d/r_shader_constant_set.h>
+#include <clientscript/cscr_vm.h>
+#include <cgame/cg_scr_main.h>
+#include <EffectsCore/fx_system.h>
+#include <clientscript/scr_const.h>
+#include <client/splitscreen.h>
+#include <xanim/dobj_utils.h>
+#include <cgame/cg_weapon_options.h>
+#include <clientscript/cscr_stringlist.h>
+#include <gfx_d3d/r_scene.h>
+#include <xanim/xmodel_utils.h>
+#include <universal/com_math_anglevectors.h>
+#include <sound/snd_public_async.h>
+#include <EffectsCore/fx_marks.h>
+#include "cg_actors_mp.h"
+#include <client/client.h>
+#include <bgame/bg_mantle.h>
+#include <xanim/xmodel.h>
+#include <cgame/cg_drawtools.h>
 
 void __cdecl CG_AddAllPlayerSpriteDrawSurfs(int localClientNum)
 {
@@ -89,7 +114,6 @@ void __cdecl CG_AddPlayerSpriteDrawSurfs(int localClientNum, const centity_s *ce
                 if ( hMaterial )
                 {
                     CG_AddPlayerSpriteDrawSurf(
-                        (int)&savedregs,
                         localClientNum,
                         cent,
                         hMaterial,
@@ -104,7 +128,6 @@ void __cdecl CG_AddPlayerSpriteDrawSurfs(int localClientNum, const centity_s *ce
                 && cgameGlob->killCamLookAtEntity == cgameGlob->clientNum )
             {
                 CG_AddPlayerSpriteDrawSurf(
-                    (int)&savedregs,
                     localClientNum,
                     cent,
                     cgMedia.youInKillCamMaterial,
@@ -115,7 +138,6 @@ void __cdecl CG_AddPlayerSpriteDrawSurfs(int localClientNum, const centity_s *ce
             else if ( (cent->nextState.lerp.eFlags & 0x80) != 0 )
             {
                 CG_AddPlayerSpriteDrawSurf(
-                    (int)&savedregs,
                     localClientNum,
                     cent,
                     cgMedia.connectionMaterial,
@@ -127,7 +149,6 @@ void __cdecl CG_AddPlayerSpriteDrawSurfs(int localClientNum, const centity_s *ce
                          && (cent->nextState.lerp.eFlags & 0x200000) != 0 )
             {
                 CG_AddPlayerSpriteDrawSurf(
-                    (int)&savedregs,
                     localClientNum,
                     cent,
                     cgMedia.afkLightbulb,
@@ -139,8 +160,8 @@ void __cdecl CG_AddPlayerSpriteDrawSurfs(int localClientNum, const centity_s *ce
     }
 }
 
+// KISAKTODO: stacker
 void    CG_AddPlayerSpriteDrawSurf(
-                int a1@<ebp>,
                 int localClientNum,
                 const centity_s *cent,
                 Material *material,
@@ -236,6 +257,8 @@ void    CG_AddPlayerSpriteDrawSurf(
         FX_SpriteAdd((FxSprite *)v8);
     }
 }
+
+int vehAnimLerpTime = 600;
 
 char __cdecl CG_Player_ApplyVehicleAnimOffsets(
                 int localClientNum,
@@ -819,8 +842,8 @@ void __cdecl CG_PlayerTurretPositionAndBlend(int localClientNum, centity_s *cent
     const XModel *Model; // eax
     const char *Name; // eax
     const XModel *v5; // eax
-    unsigned __int8 *v6; // eax
-    int v7; // eax
+    const char *v6; // eax
+    const char *v7; // eax
     const char *AnimDebugName; // eax
     const char *v9; // eax
     double v10; // st7
@@ -1040,8 +1063,8 @@ void __cdecl CG_PlayerTurretPositionAndBlend(int localClientNum, centity_s *cent
                                                 else
                                                 {
                                                     v5 = DObjGetModel(turretObj, 0);
-                                                    v6 = (unsigned __int8 *)XModelGetName(v5);
-                                                    strstr(v6, "t34");
+                                                    v6 = XModelGetName(v5);
+                                                    v7 = strstr(v6, "t34");
                                                     if ( v7 )
                                                     {
                                                         tagOrigin[0] = (float)(handOfs * tagAxis[0][0]) + tagOrigin[0];
@@ -1236,13 +1259,9 @@ void __cdecl CG_PlayerUpdateUserRigidBody(int localClientNum, centity_s *cent)
     if ( use_rigid_body )
     {
         if ( !cent->pose.physUserBody )
-            cent->pose.physUserBody = (int)Phys_CreateUserBody(
-                                                                             COERCE_FLOAT(&savedregs),
-                                                                             cent->pose.origin,
-                                                                             cent->nextState.number,
-                                                                             PHYS_GEOM_CYLINDER);
+            cent->pose.physUserBody = (int)Phys_CreateUserBody(cent->pose.origin, cent->nextState.number, PHYS_GEOM_CYLINDER);
         if ( cent->pose.physUserBody )
-            Phys_SetUserBody((int)&savedregs, cent->pose.physUserBody, cent->pose.origin);
+            Phys_SetUserBody(cent->pose.physUserBody, cent->pose.origin);
         if ( (p_nextState->lerp.eFlags & 8) != 0 )
             use_prone_feet = 1;
     }
@@ -1278,13 +1297,9 @@ void __cdecl CG_PlayerUpdateUserRigidBody(int localClientNum, centity_s *cent)
         proneFeetPos[1] = (float)(proneFeetDist * dir[1]) + cent->pose.origin[1];
         proneFeetPos[2] = (float)(proneFeetDist * dir[2]) + cent->pose.origin[2];
         if ( !cent->pose.physUserBodyProneFeet )
-            cent->pose.physUserBodyProneFeet = (int)Phys_CreateUserBody(
-                                                                                                COERCE_FLOAT(&savedregs),
-                                                                                                proneFeetPos,
-                                                                                                cent->nextState.number + 0x10000,
-                                                                                                PHYS_GEOM_CYLINDER_LARGE);
+            cent->pose.physUserBodyProneFeet = (int)Phys_CreateUserBody(proneFeetPos, cent->nextState.number + 0x10000, PHYS_GEOM_CYLINDER_LARGE);
         if ( cent->pose.physUserBodyProneFeet )
-            Phys_SetUserBody((int)&savedregs, cent->pose.physUserBodyProneFeet, proneFeetPos);
+            Phys_SetUserBody(cent->pose.physUserBodyProneFeet, proneFeetPos);
     }
     else if ( cent->pose.physUserBodyProneFeet )
     {
@@ -1763,10 +1778,10 @@ void __cdecl CG_UpdateWeaponVisibilityInternal(int localClientNum, centity_s *ce
     {
         weapDef = BG_GetWeaponDef(ci->iDObjWeapon);
         weapModel = weapDef->worldModel[ci->weaponModel];
-        addKnife = BG_IsKnifeMeleeAnim(ci, cent->nextState.un2.anim.torsoAnim);
-        addGrenade = BG_IsGrenadeAnim(ci, cent->nextState.un2.anim.torsoAnim);
+        addKnife = BG_IsKnifeMeleeAnim(ci, cent->nextState.anim.torsoAnim);
+        addGrenade = BG_IsGrenadeAnim(ci, cent->nextState.anim.torsoAnim);
         if ( !addGrenade )
-            addGrenade = BG_IsGrenadeAnim(ci, cent->nextState.un2.animState.state);
+            addGrenade = BG_IsGrenadeAnim(ci, cent->nextState.animState.state);
         if ( !addKnife || ci->usingKnife )
         {
             if ( addKnife || !ci->usingKnife )

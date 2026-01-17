@@ -1,4 +1,92 @@
 #include "cg_draw_mp.h"
+#include <cgame/cg_hudelem.h>
+#include "cg_local_mp.h"
+#include <client/cl_rank.h>
+#include "cg_ui_animate_mp.h"
+#include <cgame/cg_drawtools.h>
+#include "cg_main_mp.h"
+#include <cgame/cg_draw_names.h>
+#include <stringed/stringed_hooks.h>
+#include <demo/demo_playback.h>
+#include "cg_newDraw_mp.h"
+#include <ui_mp/ui_main_mp.h>
+#include "cg_scoreboard_mp.h"
+#include <cgame/cg_draw_reticles.h>
+#include <cgame/cg_draw_indicators.h>
+#include "cg_draw_net_mp.h"
+#include <cgame/cg_draw_debug.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <ui/ui_atoms.h>
+#include "cg_servercmds_mp.h"
+#include <client/splitscreen.h>
+#include <bgame/bg_misc.h>
+#include <bgame/bg_pmove.h>
+#include <client/cl_console.h>
+#include <client/cl_keys.h>
+#include <xanim/xmodel.h>
+#include <cgame/cg_localents.h>
+#include <gfx_d3d/r_rope_render.h>
+#include "cg_players_mp.h"
+#include <bgame/bg_fire.h>
+#include <flame/flame_class_stream.h>
+
+const char *WeaponStateNames[50] =
+{
+  "WEAPON_READY",
+  "WEAPON_RAISING",
+  "WEAPON_RAISING_ALTSWITCH",
+  "WEAPON_DROPPING",
+  "WEAPON_DROPPING_QUICK",
+  "WEAPON_DROPPING_ALTSWITCH",
+  "WEAPON_FIRING",
+  "WEAPON_RECHAMBERING",
+  "WEAPON_RELOADING_RIGHT",
+  "WEAPON_RELOADING_LEFT",
+  "WEAPON_RELOADING",
+  "WEAPON_RELOADING_INTERUPT",
+  "WEAPON_RELOAD_START",
+  "WEAPON_RELOAD_START_INTERUPT",
+  "WEAPON_RELOAD_END",
+  "WEAPON_RELOAD_QUICK",
+  "WEAPON_RELOAD_QUICK_EMPTY",
+  "WEAPON_MELEE_INIT",
+  "WEAPON_MELEE_FIRE",
+  "WEAPON_MELEE_END",
+  "WEAPON_OFFHAND_INIT",
+  "WEAPON_OFFHAND_PREPARE",
+  "WEAPON_OFFHAND_HOLD",
+  "WEAPON_OFFHAND_START",
+  "WEAPON_OFFHAND",
+  "WEAPON_OFFHAND_END",
+  "WEAPON_DETONATING",
+  "WEAPON_SPRINT_RAISE",
+  "WEAPON_SPRINT_LOOP",
+  "WEAPON_SPRINT_DROP",
+  "WEAPON_CONT_FIRE_IN",
+  "WEAPON_CONT_FIRE_LOOP",
+  "WEAPON_CONT_FIRE_OUT",
+  "WEAPON_NIGHTVISION_WEAR",
+  "WEAPON_NIGHTVISION_REMOVE",
+  "WEAPON_DEPLOYING",
+  "WEAPON_DEPLOYED",
+  "WEAPON_BREAKING_DOWN",
+  "WEAPON_SWIM_IN",
+  "WEAPON_SWIM_OUT",
+  "WEAPON_DTP_IN",
+  "WEAPON_DTP_LOOP",
+  "WEAPON_DTP_OUT",
+  "WEAPON_SLIDE_IN",
+  "WEAPON_FIRING_LEFT",
+  "WEAPON_FIRING_BOTH",
+  "WEAPON_JAMMED",
+  "WEAPON_LOWREADY_RAISE",
+  "WEAPON_LOWREADY_LOOP",
+  "WEAPON_LOWREADY_DROP"
+};
+
+CenterPrint s_centerPrint[1];
+ScreenBurn s_screenBurn[1];
+ScreenBurn s_screenElectrified[1];
 
 void __cdecl CG_PriorityCenterPrint(int localClientNum, const char *str, int priority)
 {
@@ -117,7 +205,7 @@ void __cdecl CG_DisplayPlayerCard(
         }
         localizedKillString = SEH_LocalizeTextMessage(killString, "popUpDesc", LOCMSG_SAFE);
         UI_SetLocalVarStringByName("killStringPopUp", (char *)localizedKillString, localClientNum);
-        UI_SetLocalVarStringByName("namePopUp", displayCI->name, localClientNum);
+        UI_SetLocalVarStringByName("namePopUp", (char*)displayCI->name, localClientNum);
         if ( displayCI->clanAbbrev[0] )
             Com_sprintf(clanTag, 0x2Au, "[%s]", displayCI->clanAbbrev);
         UI_SetLocalVarStringByName("clanTagPopUp", clanTag, localClientNum);
@@ -457,7 +545,7 @@ void __cdecl CG_DrawChatMessages(int localClientNum)
                 color[0] = 1.0f;
                 color[1] = 1.0f;
                 color[2] = 1.0f;
-                UI_DrawText(scrPlace, msg, 0x7FFFFFFF, font, (float)hudChatX, ya, 1, 1, fontScale, color, 3);
+                UI_DrawText(scrPlace, (char*)msg, 0x7FFFFFFF, font, (float)hudChatX, ya, 1, 1, fontScale, color, 3);
             }
         }
     }
@@ -548,18 +636,18 @@ int __cdecl CG_CheckPlayerStanceChange(
                 bitarray<51> *newButton_bits,
                 bitarray<51> *changedButton_bits)
 {
-    if ( bitarray<51>::testBit(changedButton_bits, 9u)
-        || bitarray<51>::testBit(changedButton_bits, 8u)
-        || bitarray<51>::testBit(changedButton_bits, 0xCu) )
+    if ( changedButton_bits->testBit(9u)
+        || changedButton_bits->testBit(8u)
+        || changedButton_bits->testBit(12) )
     {
         CG_MenuShowNotify(localClientNum, 4);
         return 1;
     }
     else
     {
-        if ( bitarray<51>::testBit(newButton_bits, 9u)
-            || bitarray<51>::testBit(newButton_bits, 8u)
-            || bitarray<51>::testBit(newButton_bits, 0xCu) )
+        if ( newButton_bits->testBit(9u)
+            || newButton_bits->testBit(8u)
+            || newButton_bits->testBit(0xCu) )
         {
             CG_MenuShowNotify(localClientNum, 4);
         }
@@ -584,7 +672,7 @@ bool __cdecl CG_CheckPlayerTryReload(int localClientNum, bitarray<51> *button_bi
     const cg_s *cgameGlob; // [esp+0h] [ebp-4h]
 
     result = 0;
-    if ( bitarray<51>::testBit(button_bits, 4u) || bitarray<51>::testBit(button_bits, 5u) )
+    if ( button_bits->testBit(4) || button_bits->testBit(5) )
     {
         cgameGlob = CG_GetLocalClientGlobals(localClientNum);
         if ( (cgameGlob->predictedPlayerState.pm_flags & 4) == 0 && (cgameGlob->predictedPlayerState.eFlags & 0x300) == 0 )
@@ -595,13 +683,13 @@ bool __cdecl CG_CheckPlayerTryReload(int localClientNum, bitarray<51> *button_bi
 
 bool __cdecl CG_CheckPlayerFireNonTurret(int localClientNum, bitarray<51> *button_bits)
 {
-    return bitarray<51>::testBit(button_bits, 0)
+    return button_bits->testBit(0)
             && (CG_GetLocalClientGlobals(localClientNum)->predictedPlayerState.eFlags & 0x300) == 0;
 }
 
 int __cdecl CG_CheckPlayerOffHandUsage(int localClientNum, bitarray<51> *button_bits)
 {
-    if ( !bitarray<51>::testBit(button_bits, 0xEu) && !bitarray<51>::testBit(button_bits, 0xFu) )
+    if ( !button_bits->testBit(0xEu) && !button_bits->testBit(0xFu) )
         return 0;
     CG_MenuShowNotify(localClientNum, 5);
     return 1;
@@ -612,9 +700,9 @@ int __cdecl CG_CheckPlayerMiscInput(bitarray<51> *button_bits)
     int k; // [esp+4h] [ebp-14h]
     int j; // [esp+8h] [ebp-10h]
     int i; // [esp+Ch] [ebp-Ch]
-    bitarray<51> mask_bits; // [esp+10h] [ebp-8h] BYREF
+    bitarray<51> mask_bits(12, 8, 9, -1); // [esp+10h] [ebp-8h] BYREF
 
-    bitarray<51>::bitarray<51>(&mask_bits, 0xCu, 8, 9, -1);
+    //bitarray<51>::bitarray<51>(&mask_bits, 0xCu, 8, 9, -1);
     for ( i = 0; i < 2; ++i )
         mask_bits.array[i] = ~mask_bits.array[i];
     for ( j = 0; j < 2; ++j )
@@ -900,13 +988,13 @@ void __cdecl CG_DrawVote(int localClientNum)
         sec = (cgs->voteTime - cgameGlob->time) / 1000;
         if ( sec < 0 )
             sec = 0;
-        scale = cgs->voteString;
+        scale = (char*)cgs->voteString;
         v8 = sec;
         if ( (cgameGlob->nextSnap->ps.eFlags & 0x100000) != 0 )
         {
             v1 = UI_SafeTranslateString("CGAME_VOTE");
             s = va("%s(%i):%s", v1, v8, scale);
-            UI_DrawText(scrPlace, s, 0x7FFFFFFF, font, x, y, 1, 1, fontScale, colorYellow, 3);
+            UI_DrawText(scrPlace, (char *)s, 0x7FFFFFFF, font, x, y, 1, 1, fontScale, colorYellow, 3);
             y = y + fontHeight;
             scalea = cgs->voteNo;
             v9 = UI_SafeTranslateString("CGAME_NO");
@@ -918,7 +1006,7 @@ void __cdecl CG_DrawVote(int localClientNum)
         {
             v3 = UI_SafeTranslateString("CGAME_VOTE");
             s = va("%s(%i):%s", v3, v8, scale);
-            UI_DrawText(scrPlace, s, 0x7FFFFFFF, font, x, y, 1, 1, fontScale, colorYellow, 3);
+            UI_DrawText(scrPlace, (char *)s, 0x7FFFFFFF, font, x, y, 1, 1, fontScale, colorYellow, 3);
             y = y + fontHeight;
             scaleb = cgs->voteNo;
             v7 = UI_SafeTranslateString("CGAME_NO");
@@ -926,7 +1014,7 @@ void __cdecl CG_DrawVote(int localClientNum)
             v4 = UI_SafeTranslateString("CGAME_YES");
             s = va("%s(%s):%i, %s(%s):%i", v4, szVoteYes, v5, v7, szVoteNo, scaleb);
         }
-        UI_DrawText(scrPlace, s, 0x7FFFFFFF, font, x, y, 1, 1, fontScale, colorYellow, 3);
+        UI_DrawText(scrPlace, (char *)s, 0x7FFFFFFF, font, x, y, 1, 1, fontScale, colorYellow, 3);
     }
 }
 
@@ -978,7 +1066,7 @@ char __cdecl CG_DrawGenericOverlay(int SortIndex, int localClientNum)
     cg_s *cgameGlob; // [esp+14Ch] [ebp-4h]
 
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
-    if ( CG_IsTvguided(localClientNum, 1) && cgameGlob->genericMaterialMap[2] && !SortIndex )
+    if (CG_IsTvguided(localClientNum, 1) && cgameGlob->genericMaterialMap[2] && !SortIndex)
     {
         CL_DrawStretchPic(
             &scrPlaceView[localClientNum],
@@ -995,21 +1083,21 @@ char __cdecl CG_DrawGenericOverlay(int SortIndex, int localClientNum)
             0,
             cgameGlob->genericMaterialMap[2]);
     }
-    else if ( CG_IsInfrared(localClientNum) && cgameGlob->genericMaterialMap[1] && !SortIndex )
+    else if (CG_IsInfrared(localClientNum) && cgameGlob->genericMaterialMap[1] && !SortIndex)
     {
         x = cgameGlob->genericOverlayParamADS[0];
         y = cgameGlob->genericOverlayParamADS[1];
         w = cgameGlob->genericOverlayParamADS[2];
         h = cgameGlob->genericOverlayParamADS[3];
         ScrPlace_ApplyRect(&scrPlaceView[localClientNum], &x, &y, &w, &h, 2, 2);
-        LODWORD(ca[0]) = dword_2D9E6C0[30 * localClientNum];
-        LODWORD(ca[1]) = dword_2D9E6C4[30 * localClientNum];
+        ca[0] = scrPlaceView[localClientNum].realViewportSize[0];
+        ca[1] = scrPlaceView[localClientNum].realViewportSize[1];
         ca[2] = 0.0f;
         ca[3] = 0.0f;
-        cb[0] = x / *(float *)&dword_2D9E6C0[30 * localClientNum];
-        cb[1] = y / *(float *)&dword_2D9E6C4[30 * localClientNum];
-        cb[2] = (float)(x + w) / *(float *)&dword_2D9E6C0[30 * localClientNum];
-        cb[3] = (float)(y + h) / *(float *)&dword_2D9E6C4[30 * localClientNum];
+        cb[0] = x / scrPlaceView[localClientNum].realViewportSize[0];
+        cb[1] = y / scrPlaceView[localClientNum].realViewportSize[1];
+        cb[2] = (float)(x + w) / scrPlaceView[localClientNum].realViewportSize[0];
+        cb[3] = (float)(y + h) / scrPlaceView[localClientNum].realViewportSize[1];
         CodeConst_GenericParamA = GetCodeConst_GenericParamA();
         CL_SetCustomConstant(CodeConst_GenericParamA, ca);
         CodeConst_GenericParamB = GetCodeConst_GenericParamB();
@@ -1017,7 +1105,7 @@ char __cdecl CG_DrawGenericOverlay(int SortIndex, int localClientNum)
         weapIndex = BG_GetViewmodelWeaponIndex(&cgameGlob->predictedPlayerState);
         weapVariantDef = BG_GetWeaponVariantDef(weapIndex);
         CG_GetWeapReticleZoom(cgameGlob, &zoomFrac);
-        if ( weapVariantDef->fOverlayAlphaScale >= 1.0 )
+        if (weapVariantDef->fOverlayAlphaScale >= 1.0)
             fOverlayAlphaScale = weapVariantDef->fOverlayAlphaScale;
         else
             fOverlayAlphaScale = 1.0f;
@@ -1028,7 +1116,7 @@ char __cdecl CG_DrawGenericOverlay(int SortIndex, int localClientNum)
         color[3] = (float)(zoomFrac / fOverlayAlphaScale) * (float)(zoomFrac / fOverlayAlphaScale);
         CL_DrawStretchPicPhysical(x, y, w, h, 0.0, 0.0, 1.0, 1.0, color, cgameGlob->genericMaterialMap[1]);
     }
-    else if ( cgameGlob->genericOverlayEnableADS && cgameGlob->genericMaterialMap[0] && !SortIndex )
+    else if (cgameGlob->genericOverlayEnableADS && cgameGlob->genericMaterialMap[0] && !SortIndex)
     {
         v31 = cgameGlob->genericOverlayParamADS[0];
         v32 = cgameGlob->genericOverlayParamADS[1];
@@ -1040,14 +1128,14 @@ char __cdecl CG_DrawGenericOverlay(int SortIndex, int localClientNum)
         c2[1] = cgameGlob->genericOverlayParamADS[5];
         c2[2] = cgameGlob->genericOverlayParamADS[6];
         c2[3] = cgameGlob->genericOverlayParamADS[7];
-        LODWORD(vec[0]) = dword_2D9E6C0[30 * localClientNum];
-        LODWORD(vec[1]) = dword_2D9E6C4[30 * localClientNum];
+        vec[0] = scrPlaceView[localClientNum].realViewportSize[0];
+        vec[1] = scrPlaceView[localClientNum].realViewportSize[1];
         vec[2] = 0.0f;
         vec[3] = 0.0f;
-        v27[0] = v31 / *(float *)&dword_2D9E6C0[30 * localClientNum];
-        v27[1] = v32 / *(float *)&dword_2D9E6C4[30 * localClientNum];
-        v27[2] = (float)(v31 + v34) / *(float *)&dword_2D9E6C0[30 * localClientNum];
-        v27[3] = (float)(v32 + v33) / *(float *)&dword_2D9E6C4[30 * localClientNum];
+        v27[0] = v31 / scrPlaceView[localClientNum].realViewportSize[0];
+        v27[1] = v32 / scrPlaceView[localClientNum].realViewportSize[1];
+        v27[2] = (float)(v31 + v34) / scrPlaceView[localClientNum].realViewportSize[0];
+        v27[3] = (float)(v32 + v33) / scrPlaceView[localClientNum].realViewportSize[1];
         CodeConst_GenericParam0 = GetCodeConst_GenericParam0();
         CL_SetCustomConstant(CodeConst_GenericParam0, c1);
         CodeConst_GenericParam1 = GetCodeConst_GenericParam1();
@@ -1059,11 +1147,11 @@ char __cdecl CG_DrawGenericOverlay(int SortIndex, int localClientNum)
         CL_DrawStretchPicPhysical(v31, v32, v34, v33, 0.0, 0.0, 1.0, 1.0, 0, cgameGlob->genericMaterialMap[0]);
         cgameGlob->genericOverlayEnableADS = 0;
     }
-    for ( iOverlay = 0; iOverlay < 3; ++iOverlay )
+    for (iOverlay = 0; iOverlay < 3; ++iOverlay)
     {
-        if ( cgameGlob->genericOverlayEnabled[iOverlay]
+        if (cgameGlob->genericOverlayEnabled[iOverlay]
             && cgameGlob->genericOverlayMaterial[iOverlay]
-            && SortIndex == cgameGlob->genericOverlaySortIndex[iOverlay] )
+            && SortIndex == cgameGlob->genericOverlaySortIndex[iOverlay])
         {
             v21 = 0.0f;
             v22 = 0.0f;
@@ -1086,14 +1174,14 @@ char __cdecl CG_DrawGenericOverlay(int SortIndex, int localClientNum)
             c3[1] = cgameGlob->genericOverlayParam[iOverlay][13];
             c3[2] = cgameGlob->genericOverlayParam[iOverlay][14];
             c3[3] = cgameGlob->genericOverlayParam[iOverlay][15];
-            LODWORD(v17[0]) = dword_2D9E6C0[30 * localClientNum];
-            LODWORD(v17[1]) = dword_2D9E6C4[30 * localClientNum];
+            v17[0] = scrPlaceView[localClientNum].realViewportSize[0];
+            v17[1] = scrPlaceView[localClientNum].realViewportSize[1];
             v17[2] = 0.0f;
             v17[3] = 0.0f;
-            v16[0] = v21 / *(float *)&dword_2D9E6C0[30 * localClientNum];
-            v16[1] = v22 / *(float *)&dword_2D9E6C4[30 * localClientNum];
-            v16[2] = (float)(v21 + v25) / *(float *)&dword_2D9E6C0[30 * localClientNum];
-            v16[3] = (float)(v22 + v23) / *(float *)&dword_2D9E6C4[30 * localClientNum];
+            v16[0] = v21 / scrPlaceView[localClientNum].realViewportSize[0];
+            v16[1] = v22 / scrPlaceView[localClientNum].realViewportSize[1];
+            v16[2] = (float)(v21 + v25) / scrPlaceView[localClientNum].realViewportSize[0];
+            v16[3] = (float)(v22 + v23) / scrPlaceView[localClientNum].realViewportSize[1];
             v8 = GetCodeConst_GenericParam0();
             CL_SetCustomConstant(v8, c0);
             v9 = GetCodeConst_GenericParam1();
@@ -1194,7 +1282,7 @@ void __cdecl CG_DrawSpectatorMessage(int localClientNum)
         ps = &cgameGlob->nextSnap->ps;
         if ( (ps->otherFlags & 0x18) != 0 )
         {
-            fontScale = 0.2f0833333;
+            fontScale = 0.20833333f;
             font = UI_GetFontHandle(&scrPlaceView[localClientNum], 0, 0.20833333);
             lineNum = 0;
             lineHeight = (float)UI_TextHeight(font, 0.20833333);

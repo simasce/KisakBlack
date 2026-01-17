@@ -73,7 +73,7 @@ struct BodyState // sizeof=0x88
 
 struct PhysObjUserData // sizeof=0x130
 {                                       // XREF: phys_free_list<PhysObjUserData>::T_internal/r
-    rigid_body *body;
+    struct rigid_body *body;
     struct NitrousVehicle *vehicle;
     gjk_geom_list_t m_gjk_geom_list;
     PhysObjUserData *m_next_link;
@@ -220,7 +220,15 @@ struct cdl_proftimer // sizeof=0x60
     void reset();
 };
 
-void __cdecl destroy_gjk_geom(gjk_aabb_t *geom);
+struct broad_phase_base;
+struct rigid_body;
+struct cbrush_t;
+struct CollisionAabbTree;
+struct cLeafBrushNode_s;
+struct gjk_geom_list_t;
+struct chull_t;
+
+void __cdecl destroy_gjk_geom(struct gjk_aabb_t *geom);
 void __cdecl Phys_Init();
 void __cdecl surface_type_info_database_set(int surface_type_1, int surface_type_2, const phys_surface_type_info *pst);
 void __cdecl create_broad_phase_info(rigid_body *body);
@@ -334,7 +342,7 @@ bool __cdecl Phys_ObjIsAsleep(int id);
 bool __cdecl Phys_ObjIsAsleepSingle(int id);
 
 void __cdecl Phys_SetHingeParams(rigid_body_constraint_ragdoll *id, float motorSpeed, float damp);
-rigid_body_constraint_ragdoll * Phys_CreateHinge(
+struct rigid_body_constraint_ragdoll * Phys_CreateHinge(
                 int obj1,
                 int obj2,
                 const float *anchor,
@@ -343,8 +351,8 @@ rigid_body_constraint_ragdoll * Phys_CreateHinge(
                 float damp,
                 float lowStop,
                 float highStop);
-void __cdecl Phys_SetAngularMotorParams(rigid_body_constraint_ragdoll *id, const float *motorSpeeds, float *damp);
-rigid_body_constraint_ragdoll * Phys_CreateSwivel(
+void __cdecl Phys_SetAngularMotorParams(struct rigid_body_constraint_ragdoll *id, const float *motorSpeeds, float *damp);
+struct rigid_body_constraint_ragdoll * Phys_CreateSwivel(
                 int obj1,
                 int obj2,
                 const float *anchor,
@@ -358,8 +366,6 @@ rigid_body_constraint_ragdoll * Phys_CreateSwivel(
 void    phys_inv_multiply_mat(phys_mat44 *dest, const phys_mat44 *left, const phys_mat44 *right);
 void __cdecl Phys_CalcPreset(PhysPreset *physPreset, float *dims, int surfaceType);
 int __cdecl Phys_GetCurrentTime();
-broad_phase_info *__cdecl create_broad_phase_info();
-void __cdecl destroy_broad_phase_info(broad_phase_info *bpi);
 
 extern const dvar_t *phys_gravity;
 extern const dvar_t *phys_gravity_dir;

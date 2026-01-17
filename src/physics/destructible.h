@@ -3,6 +3,7 @@
 #include <qcommon/ent.h>
 
 struct XModel;
+struct centity_s;
 struct msg_t;
 
 struct DestructibleStage // sizeof=0x30
@@ -123,6 +124,46 @@ struct DestructiblePose // sizeof=0x584
     __int16 destructibleID;             // XREF: CG_GetFreeDestructiblePose(void)+25/r
 };
 
+struct destructible_event_t // sizeof=0x34
+{                                       // XREF: .data:destructible_event_t * g_destructible_events/r
+    int type;
+    //$A8A2FEC27949F333955875D6EDC89019 ___u1;
+    union //$A8A2FEC27949F333955875D6EDC89019 // sizeof=0x30
+    {                                       // XREF: destructible_event_t/r
+        //destructible_event_t::<unnamed_tag>::<unnamed_type_ed> ed;
+        struct //destructible_event_t::<unnamed_tag>::<unnamed_type_ed> // sizeof=0x30
+        {                                       // XREF: $A8A2FEC27949F333955875D6EDC89019/r
+            centity_s *self;
+            const centity_s *attacker;
+            float dir[3];
+            float point[3];
+            int damage;
+            int mod;
+            unsigned int modelIndex;
+            unsigned int partName;
+        } ed;
+
+        //destructible_event_t::<unnamed_tag>::<unnamed_type_erd> erd;
+        struct //destructible_event_t::<unnamed_tag>::<unnamed_type_erd> // sizeof=0x20
+        {                                       // XREF: $A8A2FEC27949F333955875D6EDC89019/r
+            centity_s *self;
+            float point[3];
+            float damgeInner;
+            float damgeOuter;
+            float radius;
+            int mod;
+        } erd;
+
+        //destructible_event_t::<unnamed_tag>::<unnamed_type_ehe> ehe;
+        struct //destructible_event_t::<unnamed_tag>::<unnamed_type_ehe> // sizeof=0xC
+        {                                       // XREF: $A8A2FEC27949F333955875D6EDC89019/r
+            int localClientNum;
+            int event;
+            const entityState_s *es;
+        } ehe;
+    };
+};
+
 struct gentity_s;
 struct DObjModel_s;
 struct centity_s;
@@ -168,12 +209,12 @@ void __cdecl DestructibleExplosiveDamageEvent(
                 gentity_s *self,
                 const float *point,
                 float radius,
-                entityState_s::unnamed_type_un1 mod);
+                unsigned __int8 id);
 void __cdecl DestructibleBulletDamageEvent(
                 gentity_s *self,
                 const float *point,
                 const float *dir,
-                entityState_s::unnamed_type_un1 mod);
+                unsigned __int8 id);
 bool __cdecl DamagePiece(
                 gentity_s *self,
                 unsigned __int8 index,
@@ -332,3 +373,6 @@ DestructibleDef *__cdecl Destructible_GetDDef(const Destructible *const obj);
 void __cdecl Scr_DestructibleCallback(gentity_s *self, unsigned __int16 event, int piece, float time, int damage);
 void __cdecl Scr_DestructibleCallback(gentity_s *self, unsigned __int16 event, char *notify, gentity_s *attacker);
 void __cdecl CScr_DestructibleCallback(centity_s *self, unsigned __int16 event, int piece, float time, int damage);
+
+
+extern Destructible *cg_destructibles[1];

@@ -294,62 +294,128 @@ void __cdecl setup_gjk_input_from_pcp(phys_gjk_input *pgi, phys_collision_pair *
     pgi->cg2_to_world_xform = m_cg_to_world_xform;
 }
 
-void __userpurge phys_wheel_collide_info::collision_process(
-                phys_wheel_collide_info *this@<ecx>,
-                int a2@<ebp>,
-                int a3@<edi>,
-                int a4@<esi>,
-                broad_phase_info *bpi)
-{
-    const phys_mat44 *m_cg_to_world_xform; // edi
-    const phys_gjk_geom *m_gjk_geom; // ecx
-    _BYTE v10[12]; // [esp+1Ch] [ebp-4Ch] BYREF
-    phys_vec3 ray_pos_loc; // [esp+28h] [ebp-40h] BYREF
-    phys_vec3 hitn; // [esp+38h] [ebp-30h] BYREF
-    phys_vec3 ray_dir_loc; // [esp+48h] [ebp-20h]
-    float v14; // [esp+58h] [ebp-10h] BYREF
-    unsigned int v15[2]; // [esp+5Ch] [ebp-Ch] BYREF
-    _UNKNOWN *retaddr; // [esp+68h] [ebp+0h]
+//void __userpurge phys_wheel_collide_info::collision_process(
+//                phys_wheel_collide_info *this@<ecx>,
+//                int a2@<ebp>,
+//                int a3@<edi>,
+//                int a4@<esi>,
+//                broad_phase_info *bpi)
+//{
+//    const phys_mat44 *m_cg_to_world_xform; // edi
+//    const phys_gjk_geom *m_gjk_geom; // ecx
+//    _BYTE v10[12]; // [esp+1Ch] [ebp-4Ch] BYREF
+//    phys_vec3 ray_pos_loc; // [esp+28h] [ebp-40h] BYREF
+//    phys_vec3 hitn; // [esp+38h] [ebp-30h] BYREF
+//    phys_vec3 ray_dir_loc; // [esp+48h] [ebp-20h]
+//    float v14; // [esp+58h] [ebp-10h] BYREF
+//    unsigned int v15[2]; // [esp+5Ch] [ebp-Ch] BYREF
+//    _UNKNOWN *retaddr; // [esp+68h] [ebp+0h]
+//
+//    v15[0] = a2;
+//    v15[1] = retaddr;
+//    m_cg_to_world_xform = bpi->m_cg_to_world_xform;
+//    phys_full_inv_multiply((int)v15, (phys_vec3 *)v10, m_cg_to_world_xform, &this->m_ray_pos);
+//    v14 = m_cg_to_world_xform->y.y * this->m_ray_dir.y
+//            + m_cg_to_world_xform->y.x * this->m_ray_dir.x
+//            + m_cg_to_world_xform->y.z * this->m_ray_dir.z;
+//    ray_dir_loc.w = m_cg_to_world_xform->z.y * this->m_ray_dir.y
+//                                + m_cg_to_world_xform->z.x * this->m_ray_dir.x
+//                                + m_cg_to_world_xform->z.z * this->m_ray_dir.z;
+//    m_gjk_geom = bpi->m_gjk_geom;
+//    hitn.y = m_cg_to_world_xform->x.y * this->m_ray_dir.y
+//                 + this->m_ray_dir.x * m_cg_to_world_xform->x.x
+//                 + m_cg_to_world_xform->x.z * this->m_ray_dir.z;
+//    hitn.z = v14;
+//    hitn.w = ray_dir_loc.w;
+//    if ( ((unsigned __int8 (__thiscall *)(const phys_gjk_geom *, _BYTE *, float *, float, float *, float *, int, int))m_gjk_geom->ray_cast)(
+//                 m_gjk_geom,
+//                 v10,
+//                 &hitn.y,
+//                 this->m_hit_t,
+//                 &v14,
+//                 &ray_pos_loc.y,
+//                 a3,
+//                 a4) )
+//    {
+//        if ( this->m_hit_t < (double)v14 )
+//        {
+//            if ( _tlAssert("source/phys_broad_phase.cpp", 41, "hit_t <= m_hit_t", "") )
+//                __debugbreak();
+//        }
+//        this->m_hit_t = v14;
+//        this->m_hitn.x = ray_pos_loc.y;
+//        this->m_hitn.y = ray_pos_loc.z;
+//        this->m_hitn.z = ray_pos_loc.w;
+//        this->m_hit_bpi = bpi;
+//    }
+//}
 
-    v15[0] = a2;
-    v15[1] = retaddr;
-    m_cg_to_world_xform = bpi->m_cg_to_world_xform;
-    phys_full_inv_multiply((int)v15, (phys_vec3 *)v10, m_cg_to_world_xform, &this->m_ray_pos);
-    v14 = m_cg_to_world_xform->y.y * this->m_ray_dir.y
-            + m_cg_to_world_xform->y.x * this->m_ray_dir.x
-            + m_cg_to_world_xform->y.z * this->m_ray_dir.z;
-    ray_dir_loc.w = m_cg_to_world_xform->z.y * this->m_ray_dir.y
-                                + m_cg_to_world_xform->z.x * this->m_ray_dir.x
-                                + m_cg_to_world_xform->z.z * this->m_ray_dir.z;
-    m_gjk_geom = bpi->m_gjk_geom;
-    hitn.y = m_cg_to_world_xform->x.y * this->m_ray_dir.y
-                 + this->m_ray_dir.x * m_cg_to_world_xform->x.x
-                 + m_cg_to_world_xform->x.z * this->m_ray_dir.z;
-    hitn.z = v14;
-    hitn.w = ray_dir_loc.w;
-    if ( ((unsigned __int8 (__thiscall *)(const phys_gjk_geom *, _BYTE *, float *, float, float *, float *, int, int))m_gjk_geom->ray_cast)(
-                 m_gjk_geom,
-                 v10,
-                 &hitn.y,
-                 this->m_hit_t,
-                 &v14,
-                 &ray_pos_loc.y,
-                 a3,
-                 a4) )
+void phys_wheel_collide_info::collision_process(
+    float maxT,
+    int mask,
+    int flags,
+    broad_phase_info *bpi)
+{
+    const phys_mat44 *cgToWorld = bpi->m_cg_to_world_xform;
+    const phys_gjk_geom *gjk = bpi->m_gjk_geom;
+
+    // Ray origin in local (collision-geometry) space
+    phys_vec3 rayPosLocal;
+    phys_full_inv_multiply(&rayPosLocal, cgToWorld, &m_ray_pos);
+
+    // Ray direction in local space (rotation only)
+    phys_vec3 rayDirLocal;
+    rayDirLocal.x =
+        cgToWorld->x.x * m_ray_dir.x +
+        cgToWorld->x.y * m_ray_dir.y +
+        cgToWorld->x.z * m_ray_dir.z;
+
+    rayDirLocal.y =
+        cgToWorld->y.x * m_ray_dir.x +
+        cgToWorld->y.y * m_ray_dir.y +
+        cgToWorld->y.z * m_ray_dir.z;
+
+    rayDirLocal.z =
+        cgToWorld->z.x * m_ray_dir.x +
+        cgToWorld->z.y * m_ray_dir.y +
+        cgToWorld->z.z * m_ray_dir.z;
+
+    // Output parameters from ray_cast
+    float hitT;
+    phys_vec3 hitNormalLocal;
+
+    // Ray cast
+    if (gjk->ray_cast(
+        gjk,
+        &rayPosLocal,
+        &rayDirLocal,
+        m_hit_t,
+        &hitT,
+        &hitNormalLocal,
+        mask,
+        flags))
     {
-        if ( this->m_hit_t < (double)v14 )
+        // Sanity check (matches original assert intent)
+        if (hitT > m_hit_t)
         {
-            if ( _tlAssert("source/phys_broad_phase.cpp", 41, "hit_t <= m_hit_t", "") )
+            if (_tlAssert(
+                "source/phys_broad_phase.cpp",
+                41,
+                "hit_t <= m_hit_t",
+                ""))
+            {
                 __debugbreak();
+            }
         }
-        this->m_hit_t = v14;
-        this->m_hitn.x = ray_pos_loc.y;
-        this->m_hitn.y = ray_pos_loc.z;
-        this->m_hitn.z = ray_pos_loc.w;
-        this->m_hit_bpi = bpi;
+
+        // Accept closer hit
+        m_hit_t = hitT;
+        m_hitn = hitNormalLocal;
+        m_hit_bpi = bpi;
     }
 }
 
+#if 0
 void __userpurge phys_wheel_collide_info::collision_epilog(
                 phys_wheel_collide_info *this@<ecx>,
                 int a2@<ebp>,
@@ -409,6 +475,75 @@ void __userpurge phys_wheel_collide_info::collision_epilog(
         }
     }
 }
+#endif
+
+void phys_wheel_collide_info::collision_epilog(rigid_body_constraint_wheel *rbc_wheel)
+{
+    //rigid_body_constraint_wheel::set_no_collision(rbc_wheel);
+    rbc_wheel->set_no_collision();
+
+    if (!m_hit_bpi)
+        return;
+
+    // ---------------------------------------------------------------------
+    // Normalize hit normal (local space)
+    // ---------------------------------------------------------------------
+    float lenSq =
+        m_hitn.x * m_hitn.x +
+        m_hitn.y * m_hitn.y +
+        m_hitn.z * m_hitn.z;
+
+    if (lenSq <= 1e-6f)
+        return;
+
+    float invLen = 1.0f / sqrtf(lenSq);
+
+    m_hitn.x *= invLen;
+    m_hitn.y *= invLen;
+    m_hitn.z *= invLen;
+
+    phys_vec3 hitNormalWorld;
+    phys_multiply(&hitNormalWorld,
+        m_hit_bpi->m_cg_to_world_xform,
+        &m_hitn);
+
+    m_hitn = hitNormalWorld;
+
+    // ---------------------------------------------------------------------
+    // Compute hit point in world space
+    // ---------------------------------------------------------------------
+    phys_vec3 hitPointWorld;
+    hitPointWorld.x = m_ray_pos.x + m_hit_t * m_ray_dir.x;
+    hitPointWorld.y = m_ray_pos.y + m_hit_t * m_ray_dir.y;
+    hitPointWorld.z = m_ray_pos.z + m_hit_t * m_ray_dir.z;
+
+    // ---------------------------------------------------------------------
+    // Transform hit point and normal into rigid-body local space
+    // ---------------------------------------------------------------------
+    phys_vec3 hitPointRBLocal;
+    phys_vec3 hitNormalRBLocal;
+
+    phys_full_inv_multiply(
+        &hitPointRBLocal,
+        m_hit_bpi->m_rb_to_world_xform,
+        &hitPointWorld);
+
+    phys_inv_multiply(
+        &hitNormalRBLocal,
+        m_hit_bpi->m_rb_to_world_xform,
+        &m_hitn);
+
+    // ---------------------------------------------------------------------
+    // Submit collision to wheel constraint
+    // ---------------------------------------------------------------------
+    //rigid_body_constraint_wheel::set_collision(
+    //    rbc_wheel,
+    //    m_hit_bpi->m_rb,
+    //    &hitPointRBLocal,
+    //    &hitNormalRBLocal);
+    rbc_wheel->set_collision(m_hit_bpi->m_rb, &hitPointRBLocal, &hitNormalRBLocal);
+}
+
 
 void __thiscall axis_aligned_sweep_and_prune::sap_node::init(
                 axis_aligned_sweep_and_prune::sap_node *this,
@@ -2320,55 +2455,6 @@ void __thiscall phys_free_list<broad_phase_collision_pair>::debug_remove(
     }
 }
 
-void __thiscall tlAtomicReadWriteMutex::~tlAtomicReadWriteMutex(tlAtomicReadWriteMutex *this)
-{
-    this->ThisPtr = 0;
-}
-
-void __thiscall rigid_body::adjust_col_moved_vec(rigid_body *this, float lambda)
-{
-    double v3; // st7
-    float v4; // [esp-30h] [ebp-3Ch]
-    float v5; // [esp-2Ch] [ebp-38h]
-    float v6; // [esp-28h] [ebp-34h]
-    float v7; // [esp-20h] [ebp-2Ch]
-    float v8; // [esp-1Ch] [ebp-28h]
-    float v9; // [esp-18h] [ebp-24h]
-    float v10; // [esp-4h] [ebp-10h]
-    float v11; // [esp-4h] [ebp-10h]
-    float v12; // [esp-4h] [ebp-10h]
-    float v13; // [esp-4h] [ebp-10h]
-    float v14; // [esp-4h] [ebp-10h]
-    float v15; // [esp-4h] [ebp-10h]
-    float v16; // [esp-4h] [ebp-10h]
-
-    v7 = this->m_moved_vec.x * lambda;
-    v8 = this->m_moved_vec.y * lambda;
-    v9 = this->m_moved_vec.z * lambda;
-    v4 = this->m_mat.w.x + v7;
-    v5 = this->m_mat.w.y + v8;
-    v6 = this->m_mat.w.z + v9;
-    this->m_mat.w.x = v4;
-    this->m_mat.w.y = v5;
-    this->m_mat.w.z = v6;
-    v10 = 1.0 - lambda;
-    this->m_moved_vec.x = v10 * this->m_moved_vec.x;
-    this->m_moved_vec.y = this->m_moved_vec.y * v10;
-    this->m_moved_vec.z = v10 * this->m_moved_vec.z;
-    v3 = 100000.0;
-    v11 = fabs(this->m_moved_vec.x);
-    if ( v11 > 100000.0
-        || (v12 = fabs(this->m_moved_vec.y), v12 > 100000.0)
-        || (v13 = fabs(this->m_moved_vec.z), v13 > 100000.0) )
-    {
-        phys_exec_debug_callback(this);
-        v3 = 100000.0;
-    }
-    v14 = fabs(this->m_mat.w.x);
-    if ( v14 > v3 || (v15 = fabs(this->m_mat.w.y), v15 > v3) || (v16 = fabs(this->m_mat.w.z), v3 < v16) )
-        phys_exec_debug_callback(this);
-}
-
 void    broad_phase_group::collision_prolog(broad_phase_group *this@<ecx>, int a2@<ebp>)
 {
     broad_phase_group *v2; // edi
@@ -3075,8 +3161,7 @@ void __thiscall phys_free_list<broad_phase_collision_pair>::remove(
     PMM_FREE((unsigned __int8 *)data, 0x18u, 4u);
 }
 
-char    phys_are_potentially_colliding_whace<broad_phase_info,broad_phase_info>@<al>(
-                float a1@<ebp>,
+bool phys_are_potentially_colliding_whace_broad_phase_info_broad_phase_info_(
                 broad_phase_info *p1,
                 broad_phase_info *p2,
                 float *hit_time)

@@ -2837,7 +2837,7 @@ void __cdecl G_SpawnTurret(gentity_s *self, const char *weaponinfoname, SpawnVar
     self->r.maxs[2] = FLOAT_56_0;
     G_SetOrigin(self, self->r.currentOrigin);
     G_SetAngle(self, self->r.currentAngles);
-    self->s.lerp.u.actor.index.actorNum = 0;
+    self->s.lerp.u.actor.actorNum = 0;
     self->s.lerp.u.loopFx.period = 0;
     self->s.lerp.u.actor.team = 0;
     self->handler = 17;

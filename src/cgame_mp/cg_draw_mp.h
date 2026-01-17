@@ -1,4 +1,25 @@
 #pragma once
+#include <qcommon/msg_mp.h>
+
+struct CenterPrint // sizeof=0x408
+{                                       // XREF: .data:s_centerPrint/r
+    int time;                           // XREF: CG_ClearCenterPrint(int)+C/w
+    char text[1024];
+    int priority;
+};
+
+struct ScreenBurn // sizeof=0xC
+{                                       // XREF: .data:s_screenBurn/r
+                                        // .data:s_screenElectrified/r
+    int startTime;
+    int endTime;
+    int localClientNum;
+};
+
+struct clientInfo_t;
+struct rectDef_s;
+struct Font_s;
+struct weaponInfo_s;
 
 void __cdecl CG_PriorityCenterPrint(int localClientNum, const char *str, int priority);
 void __cdecl CG_DisplayPlayerCard(

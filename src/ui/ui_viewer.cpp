@@ -729,8 +729,8 @@ void __thiscall UIViewer::Update(UIViewer *this, float deltaTime)
             v6 = (unsigned int *)((char *)UIViewer::GetPlayerEntity(this) + 804);
             *v6 |= 2u;
             UIViewer::GetPlayerEntity(this)->nextState.eType = 1;
-            UIViewer::GetPlayerEntity(this)->nextState.un2.animState.state = this->ps.legsAnim;
-            UIViewer::GetPlayerEntity(this)->nextState.un2.anim.torsoAnim = this->ps.torsoAnim;
+            UIViewer::GetPlayerEntity(this)->nextState.animState.state = this->ps.legsAnim;
+            UIViewer::GetPlayerEntity(this)->nextState.anim.torsoAnim = this->ps.torsoAnim;
             this->bgs.clientinfo[0].pXAnimTree = UIViewer::GetAnimTree(this);
             PlayerEntity = UIViewer::GetPlayerEntity(this);
             BG_PlayerAnimation(0, &PlayerEntity->nextState, this->bgs.clientinfo);

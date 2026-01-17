@@ -1084,7 +1084,7 @@ const vehicle_info_t *__cdecl CG_GetKillCamVehicleInfo(int localClientNum)
     {
         cent = CG_GetEntity(localClientNum, cgameGlob->killCamEntity);
         if ( ((*((unsigned int *)cent + 201) >> 1) & 1) != 0 )
-            vehicleInfoIndex = cent->nextState.un2.vehicleState.vehicleInfoIndex;
+            vehicleInfoIndex = cent->nextState.vehicleState.vehicleInfoIndex;
     }
     info = CG_GetVehicleInfo(vehicleInfoIndex);
     if ( !info && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_view_mp.cpp", 1592, 0, "%s", "info") )
@@ -3426,7 +3426,7 @@ void __cdecl CG_UpdateThirdPerson(int localClientNum, bool forExtraCam)
         cent = CG_GetEntity(localClientNum, cgameGlob->nextSnap->ps.viewlocked_entNum);
         if ( ((*((unsigned int *)cent + 201) >> 1) & 1) != 0 )
         {
-            if ( CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex)->remoteControl )
+            if ( CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex)->remoteControl )
                 cgameGlob->renderingThirdPerson = TP_FOR_MODEL;
         }
     }

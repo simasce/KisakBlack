@@ -1,4 +1,10 @@
 #include "cg_vehicles_mp.h"
+#include <client_mp/cl_main_mp.h>
+#include "cg_actors_mp.h"
+#include "cg_ents_mp.h"
+#include "cg_local_mp.h"
+#include <cgame/cg_main.h>
+#include <bgame/bg_vehicles_mp.h>
 
 DObj *__cdecl GetVehicleEntDObj(int localClientNum, centity_s *centVeh)
 {
@@ -59,9 +65,7 @@ clientInfo_t *__cdecl ClientInfoForEntity(int localClientNum, int entNum)
     {
         __debugbreak();
     }
-    return (clientInfo_t *)(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8)
-                                                + 1480 * cent->nextState.clientNum
-                                                + 192);
+    return &bgs->clientinfo[cent->nextState.clientNum];
 }
 
 bool __cdecl CG_VehEntityUsingRemoteControlVehicle(int localClientNum, int entNum)
@@ -79,7 +83,7 @@ bool __cdecl CG_VehEntityUsingRemoteControlVehicle(int localClientNum, int entNu
     veh = CG_GetEntity(localClientNum, ci->attachedVehEntNum);
     return veh
             && (veh->nextState.eType == 14 || veh->nextState.eType == 12 || veh->nextState.eType == 13)
-            && CG_IsVehicleRemoteControl(veh->nextState.un2.vehicleState.vehicleInfoIndex);
+            && CG_IsVehicleRemoteControl(veh->nextState.vehicleState.vehicleInfoIndex);
 }
 
 const vehicle_info_t *__cdecl CG_GetVehicleInfo(int index)
@@ -264,6 +268,11 @@ int __cdecl CG_VehGetSeatOccupancyFlags(const centity_s *cent)
 {
     return (cent->nextState.time2 & 0xC0000) >> 18;
 }
+
+const int yawturn_masks[2] = { 1048576, 4194304 };
+const int pitchturn_masks[2] = { 2097152, 8388608 };
+const int overheating_shifts[2] = { 24, 25 };
+const int overheating_masks[2] = { 16777216, 33554432 };
 
 bool __cdecl CG_VehGetSeatGunTurningYaw(const centity_s *cent, unsigned int seatIndex)
 {

@@ -1,4 +1,62 @@
 #include "cg_ents_mp.h"
+#include "cg_main_mp.h"
+#include <xanim/dobj_utils.h>
+#include <clientscript/scr_const.h>
+#include <sound/snd_bank.h>
+#include <cgame/cg_sound.h>
+#include <cgame/cg_event.h>
+#include <gfx_d3d/r_scene.h>
+#include <universal/com_math_anglevectors.h>
+#include <bgame/bg_local.h>
+#include <xanim/xmodel.h>
+#include <bgame/bg_slidemove.h>
+#include <qcommon/dobj_management.h>
+#include <demo/demo_playback.h>
+#include "cg_scr_main_mp.h"
+#include <game/g_debug.h>
+#include <xanim/xanim_clientnotify.h>
+#include <clientscript/cscr_vm.h>
+#include <cgame/cg_scr_main.h>
+#include "cg_animscripted_mp.h"
+#include "cg_vehicles_mp.h"
+#include <cgame/cg_colltree.h>
+#include <cgame/cg_world.h>
+#include <EffectsCore/fx_marks.h>
+#include <cgame/cg_drawtools.h>
+#include "cg_actors_mp.h"
+#include <EffectsCore/fx_unique_handle.h>
+#include <EffectsCore/fx_system.h>
+#include <qcommon/com_bsp.h>
+#include <client/splitscreen.h>
+#include <ragdoll/ragdoll.h>
+#include <server_mp/sv_init_mp.h>
+#include <cgame/cg_main.h>
+#include <clientscript/cscr_memorytree.h>
+#include <gfx_d3d/r_workercmds_common.h>
+#include <cgame/cg_vehicle.h>
+#include <bgame/bg_weapons_ammo.h>
+#include <cgame/cg_draw_indicators.h>
+#include <turret/turret_placement.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <cgame/cg_weapon_options.h>
+#include "cg_players_mp.h"
+#include "cg_pose_mp.h"
+#include <xanim/dobj_skel.h>
+#include <bgame/bg_dog_animations_mp.h>
+#include "cg_animtree_mp.h"
+#include <ragdoll/ragdoll_update.h>
+
+const unsigned short *controller_names[6] =
+{
+    &scr_const.back_low,
+    &scr_const.back_mid,
+    &scr_const.back_up,
+    &scr_const.neck,
+    &scr_const.head,
+    &scr_const.pelvis,
+};
+
+int g_processEvents;
 
 unsigned int __cdecl CG_GetShadowHintForRefEntity(__int16 eFlags)
 {
@@ -102,6 +160,9 @@ void __cdecl CG_mg42_OverheatUpdate(int localClientNum, const DObj *obj, centity
     }
 }
 
+float firingOffset = -1.0f;
+float firingRate = 0.15f;
+
 void __cdecl CG_mg42_PreControllers(DObj *obj, centity_s *cent)
 {
     bool v2; // [esp+4h] [ebp-64h]
@@ -168,8 +229,11 @@ void __cdecl CG_mg42_PreControllers(DObj *obj, centity_s *cent)
     cent->pose.player.waterHeight = cent->nextState.lerp.u.turret.pivotOffset;
 }
 
+float g_entMoveTolVec[3] = { 16.0, 16.0, 16.0 };
+
+#if 0
 // local variable allocation has failed, the output may be wrong!
-void    CG_UpdateBModelWorldBounds(int a1@<ebp>, int localClientNum, centity_s *cent, int forceFilter)
+void    CG_UpdateBModelWorldBounds(int localClientNum, centity_s *cent, int forceFilter)
 {
     int v4; // [esp-14h] [ebp-1F8h]
     __int64 v5; // [esp-8h] [ebp-1ECh] BYREF
@@ -436,6 +500,115 @@ LABEL_41:
         R_LinkBModelEntity(localClientNum, cent->nextState.number, *(GfxBrushModel **)&axis[56]);
     }
 }
+#endif
+
+// aislop - fixing the stack here is aids since it's reused
+void CG_UpdateBModelWorldBounds(
+    int localClientNum,
+    centity_s *cent,
+    int forceFilter
+)
+{
+    GfxBrushModel *model;
+    float axis[3][3];
+    float mins[3], maxs[3];
+    float rotatedMins[3], rotatedMaxs[3];
+    float modelMins[3], modelMaxs[3];
+    const float *origin;
+
+    model = R_GetBrushModel((unsigned short)cent->nextState.index.brushmodel);
+
+    // local-space bounds
+    modelMins[0] = model->bounds[0][0];
+    modelMins[1] = model->bounds[0][1];
+    modelMins[2] = model->bounds[0][2];
+
+    modelMaxs[0] = model->bounds[1][0];
+    modelMaxs[1] = model->bounds[1][1];
+    modelMaxs[2] = model->bounds[1][2];
+
+    // orientation
+    AnglesToAxis(cent->pose.angles, axis);
+    origin = cent->pose.origin;
+
+    // rotate AABB (branchless sign-selection)
+    for (int i = 0; i < 3; ++i)
+    {
+        rotatedMins[i] = origin[i];
+        rotatedMaxs[i] = origin[i];
+
+        for (int j = 0; j < 3; ++j)
+        {
+            float a = axis[j][i];
+            float minv = modelMins[j];
+            float maxv = modelMaxs[j];
+
+            if (a >= 0.0f)
+            {
+                rotatedMins[i] += a * minv;
+                rotatedMaxs[i] += a * maxv;
+            }
+            else
+            {
+                rotatedMins[i] += a * maxv;
+                rotatedMaxs[i] += a * minv;
+            }
+        }
+    }
+
+    mins[0] = rotatedMins[0];
+    mins[1] = rotatedMins[1];
+    mins[2] = rotatedMins[2];
+
+    maxs[0] = rotatedMaxs[0];
+    maxs[1] = rotatedMaxs[1];
+    maxs[2] = rotatedMaxs[2];
+
+    // early out unless forced or bounds changed
+    if (!forceFilter)
+    {
+        if (VecLessThan(model->writable.mins, mins) &&
+            VecLessThan(maxs, model->writable.maxs))
+        {
+            return;
+        }
+
+        // movement tolerance expansion
+        mins[0] -= g_entMoveTolVec[0];
+        mins[1] -= g_entMoveTolVec[1];
+        mins[2] -= g_entMoveTolVec[2];
+
+        maxs[0] += g_entMoveTolVec[0];
+        maxs[1] += g_entMoveTolVec[1];
+        maxs[2] += g_entMoveTolVec[2];
+    }
+
+    // hard-coded MIP1 expansion
+    model->writable.mip1radiusSq = 100.0f * 100.0f;
+
+    mins[0] -= 100.0f;
+    mins[1] -= 100.0f;
+    mins[2] -= 100.0f;
+
+    maxs[0] += 100.0f;
+    maxs[1] += 100.0f;
+    maxs[2] += 100.0f;
+
+    // commit
+    model->writable.mins[0] = mins[0];
+    model->writable.mins[1] = mins[1];
+    model->writable.mins[2] = mins[2];
+
+    model->writable.maxs[0] = maxs[0];
+    model->writable.maxs[1] = maxs[1];
+    model->writable.maxs[2] = maxs[2];
+
+    R_LinkBModelEntity(
+        localClientNum,
+        cent->nextState.number,
+        model
+    );
+}
 
 bool __cdecl VecLessThan(float *a, float *b)
 {
@@ -539,12 +712,12 @@ void    CG_AdjustPositionForMover(
     float current[3]; // [esp+194h] [ebp-20h]
     cg_s *frame_interp_from; // [esp+1A0h] [ebp-14h]
     const centity_s *frame_interp_to; // [esp+1A4h] [ebp-10h]
-    int snap_time; // [esp+1A8h] [ebp-Ch]
-    cg_s *cgameGlob; // [esp+1ACh] [ebp-8h]
-    cg_s *retaddr; // [esp+1B4h] [ebp+0h]
+    //int snap_time; // [esp+1A8h] [ebp-Ch]
+    //cg_s *cgameGlob; // [esp+1ACh] [ebp-8h]
+    //cg_s *retaddr; // [esp+1B4h] [ebp+0h]
 
-    snap_time = a1;
-    cgameGlob = retaddr;
+    //snap_time = a1;
+    //cgameGlob = retaddr;
     if ( outDeltaAngles )
     {
         *outDeltaAngles = 0.0f;
@@ -636,26 +809,6 @@ void __cdecl LerpAngleVector(float *from, const float *to, float frac, float *re
     result[2] = AngleNormalize180(to[2] - v4) * frac + v4;
 }
 
-phys_vec3 *__cdecl operator-(phys_vec3 *result, const phys_vec3 *a, const phys_vec3 *b)
-{
-    float v4; // [esp+4h] [ebp-8h]
-    float v5; // [esp+8h] [ebp-4h]
-
-    v4 = a->y - b->y;
-    v5 = a->z - b->z;
-    result->x = a->x - b->x;
-    result->y = v4;
-    result->z = v5;
-    return result;
-}
-
-void __cdecl Phys_AxisToNitrousMat(float (*axis)[3], phys_mat44 *outMat)
-{
-    Phys_Vec3ToNitrousVec((float *)axis, &outMat->x);
-    Phys_Vec3ToNitrousVec(&(*axis)[3], &outMat->y);
-    Phys_Vec3ToNitrousVec(&(*axis)[6], &outMat->z);
-}
-
 bool __cdecl ShouldAdjustPositionForMover(const centity_s *cent)
 {
     bool result; // al
@@ -714,6 +867,14 @@ void __cdecl CG_SetFrameInterpolation(int localClientNum)
         cgameGlob->frameInterpolation = 0.0f;
     }
 }
+
+float footColor[4][4] =
+{
+  { 1.0, 0.0, 0.0, 1.0 },
+  { 1.0, 1.0, 0.0, 1.0 },
+  { 1.0, 1.0, 1.0, 1.0 },
+  { 0.0, 1.0, 1.0, 1.0 }
+};
 
 void __cdecl CScr_GetFootColor(eFoot foot, float *color)
 {
@@ -783,12 +944,24 @@ void __cdecl CG_DebugDrawFootFalls(int localClientNum, const centity_s *cent, eF
     }
     else
     {
+        //axis[0][0] = 0.0f;
+        //*(_QWORD *)&axis[0][1] = __PAIR64__(LODWORD(1.0f), 0);
+        //*(_QWORD *)&axis[1][0] = __PAIR64__(LODWORD(-1.0f), 0);
+        //axis[1][2] = 0.0f;
+        //*(_QWORD *)&axis[2][0] = __PAIR64__(0, LODWORD(1.0f));
+        //axis[2][2] = 0.0f;
         axis[0][0] = 0.0f;
-        *(_QWORD *)&axis[0][1] = __PAIR64__(LODWORD(1.0f), 0);
-        *(_QWORD *)&axis[1][0] = __PAIR64__(LODWORD(-1.0f), 0);
+        axis[0][1] = 0.0f;
+        axis[0][2] = 1.0f;
+
+        axis[1][0] = 0.0f;
+        axis[1][1] = -1.0f;
         axis[1][2] = 0.0f;
-        *(_QWORD *)&axis[2][0] = __PAIR64__(0, LODWORD(1.0f));
+
+        axis[2][0] = 1.0f;
+        axis[2][1] = 0.0f;
         axis[2][2] = 0.0f;
+
         memcpy(footMatrix, axis, 0x24u);
         footMatrix[3][0] = cent->pose.origin[0];
         footMatrix[3][1] = cent->pose.origin[1];
@@ -800,12 +973,12 @@ void __cdecl CG_DebugDrawFootFalls(int localClientNum, const centity_s *cent, eF
 
 void __cdecl MatrixNegateXY(const float (*in)[3], float (*out)[3])
 {
-    LODWORD((*out)[0]) = LODWORD((*in)[0]) ^ _mask__NegFloat_;
-    LODWORD((*out)[1]) = LODWORD((*in)[1]) ^ _mask__NegFloat_;
-    LODWORD((*out)[2]) = LODWORD((*in)[2]) ^ _mask__NegFloat_;
-    LODWORD((*out)[3]) = LODWORD((*in)[3]) ^ _mask__NegFloat_;
-    LODWORD((*out)[4]) = LODWORD((*in)[4]) ^ _mask__NegFloat_;
-    LODWORD((*out)[5]) = LODWORD((*in)[5]) ^ _mask__NegFloat_;
+    ((*out)[0]) = -((*in)[0]);
+    ((*out)[1]) = -((*in)[1]);
+    ((*out)[2]) = -((*in)[2]);
+    ((*out)[3]) = -((*in)[3]);
+    ((*out)[4]) = -((*in)[4]);
+    ((*out)[5]) = -((*in)[5]);
     (*out)[6] = (*in)[6];
     (*out)[7] = (*in)[7];
     (*out)[8] = (*in)[8];
@@ -824,9 +997,9 @@ void __cdecl MatrixSwapXYNegateX(const float (*in)[3], float (*out)[3])
     x_8 = (*in)[2];
     y_4 = (*in)[4];
     y_8 = (*in)[5];
-    LODWORD((*out)[0]) = LODWORD((*in)[3]) ^ _mask__NegFloat_;
-    LODWORD((*out)[1]) = LODWORD(y_4) ^ _mask__NegFloat_;
-    LODWORD((*out)[2]) = LODWORD(y_8) ^ _mask__NegFloat_;
+    ((*out)[0]) = -((*in)[3]);
+    ((*out)[1]) = -(y_4);
+    ((*out)[2]) = -(y_8);
     (*out)[3] = x;
     (*out)[4] = x_4;
     (*out)[5] = x_8;
@@ -887,21 +1060,24 @@ void __cdecl CG_ProcessClientNote(
     char *value; // [esp+0h] [ebp-8h]
     unsigned __int16 t; // [esp+4h] [ebp-4h]
 
-    if ( XAnimClientNotify::IsClientAnimNotify(note) )
+    //if ( XAnimClientNotify::IsClientAnimNotify(note) )
+    if (note->IsClientAnimNotify())
     {
-        NotetrackCLName = XAnimClientNotify::GetNotetrackCLName(note);
+        //NotetrackCLName = XAnimClientNotify::GetNotetrackCLName(note);
+        NotetrackCLName = note->GetNotetrackCLName();
         Scr_AddConstString(NotetrackCLName, SCRIPTINSTANCE_CLIENT);
-        NotifyName = XAnimClientNotify::GetNotifyName(note);
+        //NotifyName = XAnimClientNotify::GetNotifyName(note);
+        note->GetNotifyName();
         CScr_NotifyNum(localClientNum, entityNum, 0, NotifyName, 1u);
     }
     else
     {
-        if ( (XAnimClientNotify::GetNotifyType(note) & 1) != 0 && entityNum < 0x20 )
+        if ( (note->GetNotifyType() & 1) != 0 && entityNum < 0x20)
         {
-            NotifyStringName = XAnimClientNotify::GetNotifyStringName(note);
+            NotifyStringName = note->GetNotifyStringName();
             if ( I_stricmp(NotifyStringName, "anim_gunhand = \"left\"") )
             {
-                v6 = XAnimClientNotify::GetNotifyStringName(note);
+                v6 = note->GetNotifyStringName();
                 if ( !I_stricmp(v6, "anim_gunhand = \"right\"") )
                 {
                     cgameGlob->bgs.clientinfo[entityNum].leftHandGun = 0;
@@ -914,10 +1090,10 @@ void __cdecl CG_ProcessClientNote(
                 cgameGlob->bgs.clientinfo[entityNum].dobjDirty = 1;
             }
         }
-        v7 = XAnimClientNotify::GetNotifyStringName(note);
+        v7 = note->GetNotifyStringName();
         if ( I_strnicmp(v7, "dogstep_", 8) )
         {
-            v8 = XAnimClientNotify::GetNotifyStringName(note);
+            v8 = note->GetNotifyStringName();
             if ( !I_strnicmp(v8, "sound_", 6) )
             {
                 if ( entityNum >= 0x400
@@ -931,7 +1107,7 @@ void __cdecl CG_ProcessClientNote(
                 {
                     __debugbreak();
                 }
-                value = (char *)XAnimClientNotify::GetNotifyStringName(note);
+                value = (char *)note->GetNotifyStringName();
                 Scr_AddString(value, SCRIPTINSTANCE_CLIENT);
                 CScr_AddEntity(cent, (unsigned __int16)localClientNum);
                 Scr_AddInt(localClientNum, SCRIPTINSTANCE_CLIENT);
@@ -954,11 +1130,11 @@ void __cdecl CG_ProcessClientNote(
             }
             if ( cent->nextState.eType == 17 )
             {
-                if ( XAnimClientNotify::GetNotifyStringName(note)[8] == 76
-                    || XAnimClientNotify::GetNotifyStringName(note)[8] == 108 )
+                if ( note->GetNotifyStringName()[8] == 76
+                    || note->GetNotifyStringName()[8] == 108 )
                 {
-                    if ( XAnimClientNotify::GetNotifyStringName(note)[9] == 70
-                        || XAnimClientNotify::GetNotifyStringName(note)[9] == 102 )
+                    if ( note->GetNotifyStringName()[9] == 70
+                        || note->GetNotifyStringName()[9] == 102 )
                     {
                         *((unsigned int *)cent + 201) |= 0x800u;
                     }
@@ -967,11 +1143,11 @@ void __cdecl CG_ProcessClientNote(
                         *((unsigned int *)cent + 201) |= 0x2000u;
                     }
                 }
-                else if ( XAnimClientNotify::GetNotifyStringName(note)[8] == 82
-                             || XAnimClientNotify::GetNotifyStringName(note)[8] == 114 )
+                else if ( note->GetNotifyStringName()[8] == 82
+                             || note->GetNotifyStringName()[8] == 114 )
                 {
-                    if ( XAnimClientNotify::GetNotifyStringName(note)[9] == 70
-                        || XAnimClientNotify::GetNotifyStringName(note)[9] == 102 )
+                    if ( note->GetNotifyStringName()[9] == 70
+                        || note->GetNotifyStringName()[9] == 102 )
                     {
                         *((unsigned int *)cent + 201) |= 0x1000u;
                     }
@@ -980,8 +1156,8 @@ void __cdecl CG_ProcessClientNote(
                         *((unsigned int *)cent + 201) |= 0x4000u;
                     }
                 }
-                else if ( XAnimClientNotify::GetNotifyStringName(note)[8] == 70
-                             || XAnimClientNotify::GetNotifyStringName(note)[8] == 102 )
+                else if ( note->GetNotifyStringName()[8] == 70
+                             || note->GetNotifyStringName()[8] == 102 )
                 {
                     *((unsigned int *)cent + 201) |= 0x800u;
                     *((unsigned int *)cent + 201) |= 0x1000u;
@@ -994,7 +1170,7 @@ void __cdecl CG_ProcessClientNote(
             }
         }
     }
-    v11 = XAnimClientNotify::GetNotifyStringName(note);
+    v11 = note->GetNotifyStringName();
     CG_PlayClientSoundNoteTracks(localClientNum, entityNum, cent->pose.origin, v11, 0);
 }
 
@@ -1034,7 +1210,7 @@ void __cdecl CG_ProcessFakeEntClientNoteTracks(int localClientNum, int entityNum
     {
         cgameGlob = CG_GetLocalClientGlobals(localClientNum);
         cent = CG_GetEntity(localClientNum, entityNum);
-        pNotifies = XAnimClientNotifyList::GetNotifyList(pList);
+        pNotifies = pList->GetNotifyList();
         iListSize = pList->m_numNotifies;
         for ( i = 0; i < iListSize; ++i )
             CG_ProcessClientNote((XAnimClientNotify *)pNotifies + i, entityNum, cgameGlob, cent, localClientNum);
@@ -1102,7 +1278,7 @@ void __cdecl CG_AddPacketEntity(int localClientNum, unsigned int entnum)
         }
         entMoved = v3;
         if ( v3 )
-            CG_UpdateBModelWorldBounds((int)&savedregs, localClientNum, cent, 0);
+            CG_UpdateBModelWorldBounds(localClientNum, cent, 0);
     }
     else
     {
@@ -1338,7 +1514,7 @@ int __cdecl CG_AddPacketEntities(int localClientNum)
     //PIXBeginNamedEvent(-1, "add packet ents");
     cgs = CG_GetLocalClientStaticGlobals(localClientNum);
     contextKey = cgs[1].processedSnapshotNum;
-    LOBYTE(cgs[1].processedSnapshotNum) = LOBYTE(cgs[1].processedSnapshotNum) == 0;
+    cgs[1].processedSnapshotNum = LOBYTE(cgs[1].processedSnapshotNum) == 0;
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
     cgameGlob->rumbleScale = 0.0f;
     numEntities = cgameGlob->nextSnap->numEntities;
@@ -1488,7 +1664,7 @@ void __cdecl CG_ProcessFakeEntity(int localClientNum, fake_centity_s *fakeEnt)
             case 6:
                 goto $LN21_3;
             case 8:
-                _mm_prefetch((const char *)&cent->pose.108, 1);
+                //_mm_prefetch((const char *)&cent->pose.108, 1);
                 CG_Fx(localClientNum, cent);
                 break;
             case 9:
@@ -1515,7 +1691,7 @@ $LN21_3:
                     v6[2] = v7[2];
                     if ( (char *)cent->nextState.solid == &cls.rankedServers[711].game[34] )
                     {
-                        CG_UpdateBModelWorldBounds((int)&savedregs, localClientNum, cent, 0);
+                        CG_UpdateBModelWorldBounds(localClientNum, cent, 0);
                     }
                     else
                     {
@@ -1832,9 +2008,9 @@ void __cdecl CG_PrimaryLight(int localClientNum, centity_s *cent)
     {
         BG_EvaluateTrajectory(&cent->nextState.lerp.apos, cgameGlob->time, lightAngles);
         AngleVectors(lightAngles, light->dir, 0, 0);
-        LODWORD(light->dir[0]) ^= _mask__NegFloat_;
-        LODWORD(light->dir[1]) ^= _mask__NegFloat_;
-        LODWORD(light->dir[2]) ^= _mask__NegFloat_;
+        (light->dir[0]) = -(light->dir[0]);
+        (light->dir[1]) = -(light->dir[1]);
+        (light->dir[2]) = -(light->dir[2]);
         SpotLightViewMatrix(light->dir, light->angles[2], light->viewMatrix.m);
         if ( refLight->rotationLimit > -1.0 )
             CG_ClampPrimaryLightDir(light, refLight);
@@ -1949,16 +2125,15 @@ void __cdecl CG_ClampPrimaryLightDir(GfxLight *light, const ComPrimaryLight *ref
                              + (float)(light->dir[2] * refLight->dir[2]);
     if ( cosTurnAngle < refLight->rotationLimit )
     {
-        perpendicular_4 = (float)(COERCE_FLOAT(LODWORD(cosTurnAngle) ^ _mask__NegFloat_) * refLight->dir[1]) + light->dir[1];
-        perpendicular_8 = (float)(COERCE_FLOAT(LODWORD(cosTurnAngle) ^ _mask__NegFloat_) * refLight->dir[2]) + light->dir[2];
+        perpendicular_4 = (float)(COERCE_FLOAT(-(cosTurnAngle)) * refLight->dir[1]) + light->dir[1];
+        perpendicular_8 = (float)(COERCE_FLOAT(-(cosTurnAngle)) * refLight->dir[2]) + light->dir[2];
         perpScale = sqrtf(
                                     (float)(1.0 - (float)(refLight->rotationLimit * refLight->rotationLimit))
                                 / (float)(1.0 - (float)(cosTurnAngle * cosTurnAngle)));
         rotationLimit = refLight->rotationLimit;
         light->dir[0] = (float)(rotationLimit * refLight->dir[0])
                                     + (float)(perpScale
-                                                    * (float)((float)(COERCE_FLOAT(LODWORD(cosTurnAngle) ^ _mask__NegFloat_) * refLight->dir[0])
-                                                                    + light->dir[0]));
+                                                    * (float)((float)(COERCE_FLOAT(-(cosTurnAngle)) * refLight->dir[0]) + light->dir[0]));
         light->dir[1] = (float)(rotationLimit * refLight->dir[1]) + (float)(perpScale * perpendicular_4);
         light->dir[2] = (float)(rotationLimit * refLight->dir[2]) + (float)(perpScale * perpendicular_8);
         if ( !Vec3IsNormalized(light->dir) )
@@ -1974,21 +2149,17 @@ void __cdecl CG_ClampPrimaryLightDir(GfxLight *light, const ComPrimaryLight *ref
                             v3) )
                 __debugbreak();
         }
-        if ( COERCE_FLOAT(
-                     COERCE_UNSIGNED_INT(
-                         (float)((float)((float)(light->dir[0] * refLight->dir[0]) + (float)(light->dir[1] * refLight->dir[1]))
-                                     + (float)(light->dir[2] * refLight->dir[2]))
-                     - refLight->rotationLimit)
-                 & _mask__AbsFloat_) > 0.001
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_ents_mp.cpp",
-                        1678,
-                        0,
-                        "%s",
-                        "I_fabs( Vec3Dot( light->dir, refLight->dir ) - refLight->rotationLimit ) <= 0.001f") )
-        {
-            __debugbreak();
-        }
+        iassert(I_fabs(Vec3Dot(light->dir, refLight->dir) - refLight->rotationLimit) <= 0.001f);
+        //if ( (fabs((float)((float)((float)(light->dir[0] * refLight->dir[0]) + (float)(light->dir[1] * refLight->dir[1])) + (float)(light->dir[2] * refLight->dir[2])) - refLight->rotationLimit)) > 0.001
+        //    && !Assert_MyHandler(
+        //                "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_ents_mp.cpp",
+        //                1678,
+        //                0,
+        //                "%s",
+        //                "I_fabs( Vec3Dot( light->dir, refLight->dir ) - refLight->rotationLimit ) <= 0.001f") )
+        //{
+        //    __debugbreak();
+        //}
     }
 }
 
@@ -2049,7 +2220,7 @@ void __cdecl UpdatePacketEnt(int localClientNum, int entnum, int timeNow, int *p
     eType = cent->nextState.eType;
     if ( eType < 0x15 )
     {
-        *((unsigned int *)cent + 201) |= (unsigned int)&loc_800000;
+        *((unsigned int *)cent + 201) |= (unsigned int)0x800000;
         if ( contextKey )
             v5 = (unsigned int)&cls.rankedServers[711].game[35] | *((unsigned int *)cent + 201);
         else
@@ -2552,8 +2723,8 @@ void __cdecl CG_CalcEntityLerpPositions(int localClientNum, centity_s *cent)
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
     if ( cent->nextState.eType != 14 || !sv_clientSideVehicles->current.enabled || cgameGlob->inKillCam )
         goto LABEL_27;
-    infoIdx = cent->nextState.un2.vehicleState.vehicleInfoIndex;
-    vehicleInfo = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+    infoIdx = cent->nextState.vehicleState.vehicleInfoIndex;
+    vehicleInfo = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
     if ( !vehicleInfo->name[0] )
         vehicleInfo = BG_GetVehicleInfo(infoIdx);
     if ( vehicleInfo->name[0] <= 0
@@ -2571,9 +2742,14 @@ void __cdecl CG_CalcEntityLerpPositions(int localClientNum, centity_s *cent)
         if ( Demo_IsPlaying() )
             CG_InterpolateEntityPosition(cgameGlob, cent, localClientNum);
         Sys_EnterCriticalSection(CRITSECT_PHYSICS);
+        //cent->nitrousVeh = NitrousVehicle::add_vehicle(cent->nextState.number);
         cent->nitrousVeh = NitrousVehicle::add_vehicle(cent->nextState.number);
-        if ( cent->nitrousVeh )
-            NitrousVehicle::init(cent->nitrousVeh, localClientNum, cent, &vehicleInfo->nitrousVehParams);
+
+        if (cent->nitrousVeh)
+        {
+            //NitrousVehicle::init(cent->nitrousVeh, localClientNum, cent, &vehicleInfo->nitrousVehParams);
+            cent->nitrousVeh->init(localClientNum, cent, &vehicleInfo->nitrousVehParams);
+        }
         Sys_LeaveCriticalSection(CRITSECT_PHYSICS);
     }
     if ( cent->nitrousVeh )
@@ -2890,7 +3066,8 @@ void __cdecl CG_InterpolateVehicle(cg_s *cgameGlob, centity_s *cent, int curTime
             f = cgameGlob->frameInterpolation;
             if ( ShouldInterpolateFromNitrousVehicleLocally(cgameGlob, cent) )
             {
-                NitrousVehicle::GetEntityPose(cent->nitrousVeh, cent->pose.origin, cent->pose.angles, curTime, 0);
+                //NitrousVehicle::GetEntityPose(cent->nitrousVeh, cent->pose.origin, cent->pose.angles, curTime, 0);
+                cent->nitrousVeh->GetEntityPose(cent->pose.origin, cent->pose.angles, curTime, false);
             }
             else
             {
@@ -2913,14 +3090,16 @@ void __cdecl CG_InterpolateVehicle(cg_s *cgameGlob, centity_s *cent, int curTime
                     timeDifference = (float)(Phys_GetCurrentTime() - cgameGlob->nextSnap->physicsTime) / 1000.0;
                     memcpy(&v4, &trAPos, sizeof(v4));
                     memcpy(&v3, &trPos, sizeof(v3));
-                    NitrousVehicle::update_from_network(
-                        cent->nitrousVeh,
-                        (phys_vec3 *)&savedregs,
-                        v3,
-                        v4,
-                        (LerpEntityStateVehicle *)&cent->nextState.lerp.u,
-                        timeDifference);
-                    NitrousVehicle::GetEntityPose(cent->nitrousVeh, cent->pose.origin, cent->pose.angles, curTime, 0);
+                    cent->nitrousVeh->update_from_network(v3, v4, &cent->nextState.lerp.u.vehicle, timeDifference);
+                    //NitrousVehicle::update_from_network(
+                    //    cent->nitrousVeh,
+                    //    (phys_vec3 *)&savedregs,
+                    //    v3,
+                    //    v4,
+                    //    (LerpEntityStateVehicle *)&cent->nextState.lerp.u,
+                    //    timeDifference);
+                    //NitrousVehicle::GetEntityPose(cent->nitrousVeh, cent->pose.origin, cent->pose.angles, curTime, 0);
+                    cent->nitrousVeh->GetEntityPose(cent->pose.origin, cent->pose.angles, curTime, false);
                 }
             }
         }
@@ -2991,7 +3170,8 @@ void __cdecl CG_InterpolateVehicleDriver(const cg_s *cgameGlob, centity_s *cent,
     }
     if ( cent->nitrousVeh->m_phys_user_data )
     {
-        NitrousVehicle::GetEntityPose(cent->nitrousVeh, cent->pose.origin, cent->pose.angles, curTime, 1);
+        //NitrousVehicle::GetEntityPose(cent->nitrousVeh, cent->pose.origin, cent->pose.angles, curTime, 1);
+        cent->nitrousVeh->GetEntityPose(cent->pose.origin, cent->pose.angles, curTime, true);
         timeDifference = (float)(Phys_GetCurrentTime() - cgameGlob->nextSnap->physicsTime) / 1000.0;
         if ( cent->nitrousVeh->m_lastNetworkTime != cgameGlob->nextSnap->serverTime )
         {
@@ -2999,13 +3179,14 @@ void __cdecl CG_InterpolateVehicleDriver(const cg_s *cgameGlob, centity_s *cent,
             {
                 memcpy(&v4, &cent->nextState.lerp.apos, sizeof(v4));
                 memcpy(&v3, &cent->nextState.lerp.pos, sizeof(v3));
-                NitrousVehicle::update_from_network(
-                    cent->nitrousVeh,
-                    (phys_vec3 *)&savedregs,
-                    v3,
-                    v4,
-                    (LerpEntityStateVehicle *)&cent->nextState.lerp.u,
-                    timeDifference);
+                //NitrousVehicle::update_from_network(
+                //    cent->nitrousVeh,
+                //    (phys_vec3 *)&savedregs,
+                //    v3,
+                //    v4,
+                //    (LerpEntityStateVehicle *)&cent->nextState.lerp.u,
+                //    timeDifference);
+                cent->nitrousVeh->update_from_network(v3, v4, &cent->nextState.lerp.u.vehicle, timeDifference);
             }
             cent->nitrousVeh->m_lastNetworkTime = cgameGlob->nextSnap->serverTime;
         }
@@ -3362,8 +3543,8 @@ unsigned int __cdecl CG_AddVehicleAttachedModel(
         cgs = CG_GetLocalClientStaticGlobals(localClientNum);
         for ( i = 0; i < 2; ++i )
         {
-            modelIndex = cent->nextState.un2.vehicleState.attachModelIndex[i];
-            if ( !cent->nextState.un2.vehicleState.attachModelIndex[i] )
+            modelIndex = cent->nextState.vehicleState.attachModelIndex[i];
+            if ( !cent->nextState.vehicleState.attachModelIndex[i] )
                 break;
             if ( numModels >= 0x20
                 && !Assert_MyHandler(
@@ -3386,13 +3567,13 @@ unsigned int __cdecl CG_AddVehicleAttachedModel(
             {
                 __debugbreak();
             }
-            if ( !cent->nextState.un2.vehicleState.attachModelIndex[i]
+            if ( !cent->nextState.vehicleState.attachModelIndex[i]
                 && !Assert_MyHandler(
                             "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_ents_mp.cpp",
                             3253,
                             0,
                             "%s",
-                            "cent->nextState.un2.vehicleState.attachModelIndex[i]") )
+                            "cent->nextState.vehicleState.attachModelIndex[i]") )
             {
                 __debugbreak();
             }
@@ -3626,8 +3807,8 @@ void __cdecl CG_ProcessEntity(int localClientNum, centity_s *cent)
 $LN7_8:
             //PIXBeginNamedEvent(-1, "CG_ScriptMover");
             CG_ScriptMover(localClientNum, cent);
-            if ( GetCurrentThreadId() != g_DXDeviceThread )
-                break;
+            //if ( GetCurrentThreadId() != g_DXDeviceThread )
+            //    break;
             goto LABEL_30;
         case ET_VEHICLE:
         case ET_VEHICLE_CORPSE:
@@ -3646,7 +3827,7 @@ LABEL_30:
             CG_ActorCorpse(localClientNum, cent);
             break;
         default:
-            Com_Error(ERR_DROP, &byte_C7DC80, cent->nextState.eType);
+            Com_Error(ERR_DROP, "Bad entity type: %i", cent->nextState.eType);
             break;
     }
     if ( CG_EntityNeedsScriptThread(localClientNum, cent) )
@@ -3675,9 +3856,9 @@ void __cdecl CG_Item(int localClientNum, centity_s *cent)
 
     ps = CG_GetPredictedPlayerState(localClientNum);
     if ( cent->nextState.un3.item >= 2048 )
-        Com_Error(ERR_DROP, &byte_C7DD18, cent->nextState.un3.item);
+        Com_Error(ERR_DROP, "Bad item index %i on entity", cent->nextState.un3.item);
     if ( (cent->nextState.lerp.eFlags & 0x20) == 0
-        && (((unsigned int)&loc_800000 & cent->nextState.lerp.eFlags2) == 0 || (ps->perks[1] & 0x200) != 0) )
+        && (((unsigned int)0x800000 & cent->nextState.lerp.eFlags2) == 0 || (ps->perks[1] & 0x200) != 0) )
     {
         weapIdx = cent->nextState.un3.item % 2048;
         if ( weapIdx < BG_GetNumWeapons() )
@@ -3698,7 +3879,7 @@ void __cdecl CG_Item(int localClientNum, centity_s *cent)
                 __debugbreak();
             }
             if ( !weapDef->worldModel[weapModel] )
-                Com_Error(ERR_DROP, &byte_C7DC98, cent->nextState.un3.item, weapIdx, weapModel, weapVariantDef->szDisplayName);
+                Com_Error(ERR_DROP, "No XModel loaded for item index %i, weap index %i, model %i (%s)", cent->nextState.un3.item, weapIdx, weapModel, weapVariantDef->szDisplayName);
             obj = CG_PreProcess_GetDObj(
                             localClientNum,
                             cent->nextState.number,
@@ -3802,7 +3983,7 @@ void __cdecl CG_mg42(int localClientNum, centity_s *cent)
         {
             client = &cgameGlob->bgs.clientinfo[cgameGlob->clientNum];
             clTeam = client->team;
-            team = cent->nextState.faction.iHeadIconTeam & 3;
+            team = (team_t)(cent->nextState.faction.iHeadIconTeam & 3);
             isOwner = cgameGlob->clientNum == (int)cent->nextState.faction.iHeadIconTeam >> 2;
             if ( !*((unsigned int *)weapDef->worldModel + 1)
                 || (ps->perks[1] & 0x800) == 0
@@ -3841,7 +4022,7 @@ void __cdecl CG_mg42(int localClientNum, centity_s *cent)
                         CmdIndex = CL_GetCurrentCmdNumber(localClientNum);
                         CL_GetUserCmd(localClientNum, CmdIndex, &PlayerCmd);
                         if ( !goodPlacement
-                            && bitarray<51>::testBit(&PlayerCmd.button_bits, 0)
+                            && PlayerCmd.button_bits.testBit(0)
                             && cgameGlob->invalidCmdHintType != INVALID_CMD_CANT_EQUIP_WHILE_PRONE )
                         {
                             cgameGlob->invalidCmdHintType = INVALID_CMD_CANT_EQUIP_WHILE_PRONE;
@@ -3893,7 +4074,7 @@ void __cdecl CG_Missile(int localClientNum, centity_s *cent)
     if ( (cent->nextState.lerp.eFlags & 0x20) == 0 )
     {
         time.actorNum = CG_GetLocalClientGlobals(localClientNum)->time;
-        if ( cent->nextState.lerp.u.actor.index.actorNum <= time.actorNum )
+        if ( cent->nextState.lerp.u.actor.actorNum <= time.actorNum )
         {
             weapon = cent->nextState.weapon;
             if ( weapon >= BG_GetNumWeapons() )
@@ -3909,7 +4090,7 @@ void __cdecl CG_Missile(int localClientNum, centity_s *cent)
                 {
                     if ( cent->miscTime || !CG_EntGetLinkToParent(localClientNum, cent) )
                     {
-                        if ( cent->miscTime < cent->nextState.lerp.u.actor.index.actorNum )
+                        if ( cent->miscTime < cent->nextState.lerp.u.actor.actorNum )
                             cent->miscTime = 0;
                     }
                     else
@@ -3997,7 +4178,7 @@ void __cdecl CG_Missile(int localClientNum, centity_s *cent)
                 lightingOrigin[2] = cent->pose.origin[2];
                 lightingOrigin[2] = lightingOrigin[2] + 4.0;
                 R_AddDObjToScene(obj, &cent->pose, s1->number, 0, lightingOrigin, 0.0, 0.0, 0.0, 0.0, -1, -1, 0, 0, 0.0, 1.0);
-                CG_AddHudGrenade(cgameGlob, cent);
+                CG_AddHudGrenade((cg_s*)cgameGlob, cent);
                 if ( weapDef->guidedMissileType == MISSILE_GUIDANCE_TVGUIDED )
                     CG_CompassUpdateGuidedMissileInfo(localClientNum, cent->nextState.number);
             }
@@ -4150,7 +4331,7 @@ void __cdecl CG_Vehicle(int localClientNum, centity_s *cent)
                                      - cent->vehicle->materialTime;
             materialTime2 = (float)((float)CG_GetLocalClientGlobals(localClientNum)->time * 0.001)
                                         - cent->vehicle->materialTime2;
-            altXModel = CG_Destructible_GetModelIndexFromLabel(cent, obj, scr_const.left_tread);
+            altXModel = CG_Destructible_GetModelIndexFromLabel();
             v6 = altXModel;
             v5 = materialTime2;
             v4 = materialTime;
@@ -4263,8 +4444,8 @@ void __cdecl CG_ProcessFxEntity(int localClientNum, centity_s *cent)
     {
         //PIXBeginNamedEvent(-1, "CG_LoopFx");
         CG_LoopFx(localClientNum, cent);
-        if ( g_DXDeviceThread != GetCurrentThreadId() )
-            return;
+        //if ( g_DXDeviceThread != GetCurrentThreadId() )
+        //    return;
         goto LABEL_11;
     }
     if ( cent->nextState.eType != 8
@@ -4331,7 +4512,7 @@ GfxSkinCacheEntry *__cdecl CG_GetSkinCacheEntry(const cpose_t *pose)
 void __cdecl CG_PredictiveSkinCEntity(GfxSceneEntity *sceneEnt)
 {
     cg_s *cgameGlob; // [esp+0h] [ebp-8h]
-    const cpose_t *pose; // [esp+4h] [ebp-4h]
+    cpose_t *pose; // [esp+4h] [ebp-4h]
 
     if ( !sceneEnt
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_ents_mp.cpp", 3817, 0, "%s", "sceneEnt") )
@@ -4387,6 +4568,7 @@ void __cdecl CG_SetAngle(centity_s *ent, const float *angle)
     ent->pose.angles[2] = angle[2];
 }
 
+bool test_1;
 int __cdecl CG_WhatModelShouldLocalPlayerSee(
                 int localClientNum,
                 const cg_s *cgameGlob,

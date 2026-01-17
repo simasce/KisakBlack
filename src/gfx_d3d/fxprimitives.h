@@ -438,6 +438,8 @@ struct FxElem // sizeof=0x2C
     unsigned __int16 windInterp;
     unsigned __int8 elemSpawnVisBits;
     unsigned __int8 pad;
+
+    static constexpr size_t HANDLE_SCALE = 4;
 };
 
 struct FxElemShared // sizeof=0x4
@@ -463,6 +465,8 @@ struct FxTrail // sizeof=0x8
     char defIndex;                      // XREF: FX_SpawnEffect_AllocTrails(FxSystem *,FxEffect *,FxEffect *)+CC/w
                                         // FX_SpawnEffect_AllocTrails(FxSystem *,FxEffect *,FxEffect *)+CF/r
     char sequence;                      // XREF: FX_SpawnEffect_AllocTrails(FxSystem *,FxEffect *,FxEffect *)+114/w
+
+    static constexpr size_t HANDLE_SCALE = 4;
 };
 
 struct FxTrailElem // sizeof=0x20
@@ -475,6 +479,8 @@ struct FxTrailElem // sizeof=0x20
     char basis[2][3];
     unsigned __int8 sequence;
     unsigned __int8 unused;
+
+    static constexpr size_t HANDLE_SCALE = 4;
 };
 
 struct FxVisBlocker // sizeof=0x10
@@ -647,5 +653,5 @@ template<typename ITEM_TYPE, typename ITEM_TYPE2, size_t LIMIT>
 FxPool<ITEM_TYPE, ITEM_TYPE2> *FX_PoolFromHandle_Generic(FxPool<ITEM_TYPE, ITEM_TYPE2> *poolArray, uint handle)
 {
     vassert(handle < (LIMIT * sizeof(ITEM_TYPE) / ITEM_TYPE::HANDLE_SCALE) && handle % (sizeof(ITEM_TYPE) / ITEM_TYPE::HANDLE_SCALE) == 0, "%p %u", poolArray, handle);
-    return (FxPool<ITEM_TYPE> *)((char *)poolArray + (handle * ITEM_TYPE::HANDLE_SCALE));
+    return (FxPool<ITEM_TYPE, ITEM_TYPE2> *)((char *)poolArray + (handle * ITEM_TYPE::HANDLE_SCALE));
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <universal/dvar.h>
+#include <universal/q_shared.h>
 
 unsigned int __cdecl BG_GetPerkIndexForName(const char *perkName);
 const char *__cdecl BG_GetPerkNameForIndex(unsigned int perkIndex);
@@ -37,3 +38,19 @@ extern const dvar_t *perk_fireproof;
 extern const dvar_t *perk_armorPiercing;
 extern const dvar_t *perk_dogsAttackGhost;
 extern const dvar_t *perk_blackbirdShowsGpsJammer;
+
+inline bool __cdecl BG_HasPerk(const unsigned int *perks, unsigned int perkIndex)
+{
+    if (perkIndex >= 0x34
+        && !Assert_MyHandler(
+            "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../bgame/bg_perks.h",
+            136,
+            0,
+            "perkIndex doesn't index PERK_COUNT\n\t%i not in [0, %i)",
+            perkIndex,
+            52))
+    {
+        __debugbreak();
+    }
+    return (*(_QWORD *)perks & (1LL << perkIndex)) != 0;
+}

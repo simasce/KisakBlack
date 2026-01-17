@@ -134,7 +134,7 @@ struct jqModule // sizeof=0x18
                                         // _dynamic_initializer_for__nuge_physicsModule__+6/w ...
     jqWorkerType Type;                  // XREF: _dynamic_initializer_for__fx_add_markModule__+10/w
                                         // _dynamic_initializer_for__nuge_physicsModule__+10/w ...
-    int (__cdecl *Code)(jqBatch *);     // XREF: _dynamic_initializer_for__fx_add_markModule__+1A/w
+    int (__cdecl *Code)(struct jqBatch *);     // XREF: _dynamic_initializer_for__fx_add_markModule__+1A/w
                                         // _dynamic_initializer_for__nuge_physicsModule__+1A/w ...
     // padding byte
     // padding byte
@@ -173,23 +173,6 @@ struct __declspec(align(4)) jqBatch // sizeof=0x7C
     // padding byte
 
     jqBatch();
-};
-
-struct jqModule // sizeof=0x18
-{                                       // XREF: .data:jqModule bp_env_jq_module1Module/r
-                                        // .data:jqModule bp_env_jq_module2Module/r ...
-    const char *Name;                   // XREF: _dynamic_initializer_for__fx_add_markModule__+6/w
-                                        // _dynamic_initializer_for__nuge_physicsModule__+6/w ...
-    jqWorkerType Type;                  // XREF: _dynamic_initializer_for__fx_add_markModule__+10/w
-                                        // _dynamic_initializer_for__nuge_physicsModule__+10/w ...
-    int (__cdecl *Code)(jqBatch *);     // XREF: _dynamic_initializer_for__fx_add_markModule__+1A/w
-                                        // _dynamic_initializer_for__nuge_physicsModule__+1A/w ...
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
-    jqBatchGroup Group;                 // XREF: R_FinishedFrontendWorkerCmds(void)+3/o
-                                        // R_FinishedFrontendWorkerCmds(void):loc_7B97EE/o ...
 };
 
 template <typename T, int SIZE>

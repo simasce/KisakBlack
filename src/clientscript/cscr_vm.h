@@ -347,7 +347,7 @@ unsigned __int16 __cdecl Scr_ExecEntThreadNum(
 void __cdecl Scr_AddExecThread(scriptInstance_t inst, int handle, unsigned int paramcount);
 void __cdecl Scr_FreeThread(unsigned __int16 handle, scriptInstance_t inst);
 void __cdecl Scr_ExecCode(scriptInstance_t inst, char *pos, unsigned int localId);
-bool __cdecl Scr_IsSystemInitied(scriptInstance_t inst);
+bool __cdecl Scr_IsSystemInitied(scriptInstance_t inst); // initied?
 void __cdecl Scr_InitSystem(scriptInstance_t inst, int sys);
 void __cdecl Scr_ShutdownSystem(scriptInstance_t inst, unsigned __int8 sys, int bComplete);
 void __cdecl VM_TerminateTime(scriptInstance_t inst, unsigned int timeId);

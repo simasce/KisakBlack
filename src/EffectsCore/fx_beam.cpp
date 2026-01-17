@@ -1,4 +1,5 @@
 #include "fx_beam.h"
+#include <xanim/xanim.h>
 
 // local variable allocation has failed, the output may be wrong!
 void __cdecl FX_Beam_GenerateVerts(FxGenerateVertsCmd *cmd)

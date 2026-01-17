@@ -450,14 +450,47 @@ struct pulse_sum_constraint_solver // sizeof=0x84
     void execute_constraint_solver(rigid_body *const head);
 
     void solve_iterative(int max_iters, float max_error_sq);
+
+    pulse_sum_normal *create_pulse_sum_wheel_fwd(pulse_sum_wheel *psw);
+    pulse_sum_wheel *create_pulse_sum_wheel();
+    pulse_sum_normal *create_pulse_sum_normal();
+    pulse_sum_contact *create_pulse_sum_contact(
+        rigid_body *b1,
+        rigid_body *b2,
+        contact_point_info *cpi,
+        float delta_t);
+    pulse_sum_angular *create_pulse_sum_angular(
+        rigid_body *const b1,
+        const phys_vec3 *b1_r,
+        rigid_body *const b2,
+        const phys_vec3 *b2_r,
+        const phys_vec3 *ud,
+        pulse_sum_cache *const ps_cache);
+    void create_point(
+        rigid_body *const b1,
+        const phys_vec3 *b1_r,
+        rigid_body *const b2,
+        const phys_vec3 *b2_r,
+        pulse_sum_cache *const ps_cache,
+        float delta_t,
+        bool is_spring,
+        float spring_k,
+        float damp_k);
+    void create_hinge(
+        rigid_body *const b1,
+        const phys_vec3 *b1_axis,
+        rigid_body *const b2,
+        const phys_vec3 *b2_axis,
+        const phys_vec3 *a1,
+        const phys_vec3 *a2,
+        pulse_sum_cache *const ps_cache,
+        float delta_t);
+
     void add_urb(
         phys_inplace_avl_tree<user_rigid_body *, pulse_sum_constraint_solver::temp_user_rigid_body, pulse_sum_constraint_solver::temp_user_rigid_body::avl_tree_accessor> *turb_search_tree,
         phys_simple_link_list<pulse_sum_constraint_solver::temp_user_rigid_body> *list_turb,
         phys_simple_link_list<pulse_sum_constraint_solver::user_rigid_body_restore_info> *list_urbri,
         rigid_body_constraint *rbc);
-
-    pulse_sum_normal *create_pulse_sum_wheel_fwd(pulse_sum_wheel *psw);
-    pulse_sum_wheel *create_pulse_sum_wheel();
 };
 
 

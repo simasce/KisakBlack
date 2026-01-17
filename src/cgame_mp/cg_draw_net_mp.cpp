@@ -1,4 +1,13 @@
 #include "cg_draw_net_mp.h"
+#include "cg_local_mp.h"
+#include "cg_main_mp.h"
+#include <ui/ui_atoms.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <cgame/cg_drawtools.h>
+#include "cg_consolecmds_mp.h"
+#include <client_mp/console_mp.h>
+
+lagometer_t lagometer;
 
 void __cdecl CG_AddLagometerFrameInfo(const cg_s *cgameGlob)
 {
@@ -137,7 +146,7 @@ void __cdecl CG_DrawLagometer(int localClientNum)
             }
         }
         if ( cg_nopredict->current.enabled || cg_synchronousClients->current.enabled )
-            CG_DrawBigDevString(scrPlace, (float)(-55.0 + 640.0) + 48.0, -140.0 + 480.0, "snc", 1.0, 10);
+            CG_DrawBigDevString(scrPlace, (float)(-55.0 + 640.0) + 48.0, -140.0 + 480.0, (char*)"snc", 1.0, 10);
     }
     CG_DrawDisconnect(localClientNum);
 }

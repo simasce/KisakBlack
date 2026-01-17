@@ -1,9 +1,17 @@
 #pragma once
+#include <game/teams.h>
+
+struct centity_s;
+struct Material;
+struct entityState_s;
+struct clientInfo_t;
+struct ShaderConstantSet;
+struct cg_s;
+struct XModel;
 
 void __cdecl CG_AddAllPlayerSpriteDrawSurfs(int localClientNum);
 void __cdecl CG_AddPlayerSpriteDrawSurfs(int localClientNum, const centity_s *cent);
 void    CG_AddPlayerSpriteDrawSurf(
-                int a1@<ebp>,
                 int localClientNum,
                 const centity_s *cent,
                 Material *material,

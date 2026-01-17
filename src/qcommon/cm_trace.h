@@ -31,7 +31,7 @@ struct col_context_t // sizeof=0x28
                                         // Turret_PlaceTurret_UpdateFooting/r ...
     int mask;                           // XREF: turret_SightTrace(float const * const,float const * const,int,int,gentity_s *):loc_6A21DC/r
                                         // turret_SightTrace(float const * const,float const * const,int,int,gentity_s *)+92/w ...
-    const col_prim_t *prims;            // XREF: PM_trace(pmove_t *,trace_t *,float const * const,float const * const,float const * const,float const * const,int,int)+AC/w
+    const struct col_prim_t *prims;            // XREF: PM_trace(pmove_t *,trace_t *,float const * const,float const * const,float const * const,float const * const,int,int)+AC/w
                                         // PM_playerTrace(pmove_t *,trace_t *,float const * const,float const * const,float const * const,float const * const,int,int)+BD/w ...
     int nprims;                         // XREF: PM_trace(pmove_t *,trace_t *,float const * const,float const * const,float const * const,float const * const,int,int)+B8/w
                                         // PM_playerTrace(pmove_t *,trace_t *,float const * const,float const * const,float const * const,float const * const,int,int)+C9/w ...
@@ -204,7 +204,7 @@ struct clipMap_t // sizeof=0x14C
     dmaterial_t *materials;             // XREF: CMod_LoadMaterials+5B/w
                                         // CMod_LoadMaterials+74/r ...
     unsigned int numBrushSides;         // XREF: CMod_LoadBrushes+BA/w
-    cbrushside_t *brushsides;           // XREF: CMod_LoadBrushes+B1/w
+    struct cbrushside_t *brushsides;           // XREF: CMod_LoadBrushes+B1/w
                                         // CMod_LoadBrushes+BF/r
     unsigned int numNodes;              // XREF: CG_SightTracePointInternal(int *,float const * const,float const * const,int,trace_t *):loc_53EAB4/r
                                         // CMod_LoadNodes+52/w ...
@@ -212,11 +212,11 @@ struct clipMap_t // sizeof=0x14C
                                         // CMod_LoadNodes+57/r ...
     unsigned int numLeafs;              // XREF: CM_LeafCluster(int)+6/r
                                         // CM_LeafCluster(int)+E/r ...
-    cLeaf_s *leafs;                     // XREF: CM_LeafCluster(int)+40/r
+    struct cLeaf_s *leafs;                     // XREF: CM_LeafCluster(int)+40/r
                                         // CMod_LoadLeafs+4A/w ...
     unsigned int leafbrushNodesCount;   // XREF: CMod_LoadBrushRelated+CA/w
                                         // CMod_LoadBrushRelated+D6/r
-    cLeafBrushNode_s *leafbrushNodes;   // XREF: G_DebugDrawBrushModel(gentity_s *,float const * const,int,int)+EF/r
+    struct cLeafBrushNode_s *leafbrushNodes;   // XREF: G_DebugDrawBrushModel(gentity_s *,float const * const,int,int)+EF/r
                                         // ScriptEntCmd_PhysicsLaunch(scr_entref_t)+197/r ...
     unsigned int numLeafBrushes;        // XREF: CMod_LoadLeafBrushes+3E/w
                                         // CM_InitBoxHull+175/r ...
@@ -241,14 +241,14 @@ struct clipMap_t // sizeof=0x14C
     unsigned __int8 *triEdgeIsWalkable; // XREF: CMod_LoadCollisionEdgeWalkable+2C/w
                                         // CMod_LoadCollisionEdgeWalkable+39/r ...
     int borderCount;                    // XREF: CMod_LoadCollisionBorders+3D/w
-    CollisionBorder *borders;           // XREF: CMod_LoadCollisionBorders+35/w
+    struct CollisionBorder *borders;           // XREF: CMod_LoadCollisionBorders+35/w
                                         // CMod_LoadCollisionBorders+42/r ...
     int partitionCount;                 // XREF: CM_InitThreadData+4E/r
                                         // CMod_LoadCollisionPartitions+3D/w ...
-    CollisionPartition *partitions;     // XREF: CMod_LoadCollisionPartitions+35/w
+    struct CollisionPartition *partitions;     // XREF: CMod_LoadCollisionPartitions+35/w
                                         // CMod_LoadCollisionPartitions+42/r ...
     int aabbTreeCount;                  // XREF: CMod_LoadCollisionAabbTrees+3D/w
-    CollisionAabbTree *aabbTrees;       // XREF: CMod_GetLeafTerrainContents+37/r
+    struct CollisionAabbTree *aabbTrees;       // XREF: CMod_GetLeafTerrainContents+37/r
                                         // CMod_LoadCollisionAabbTrees+35/w ...
     unsigned int numSubModels;          // XREF: DynEnt_GetSurfaceType(DynEntityDef const *)+40/r
                                         // DynEnt_Create+254/r ...
@@ -404,17 +404,17 @@ void __cdecl CM_Trace(
                 unsigned int model,
                 int brushmask,
                 col_context_t *context);
-void __cdecl CM_TestInLeaf(traceWork_t *tw, cLeaf_s *leaf, trace_t *trace);
-bool __cdecl CM_TestInLeafBrushNode(traceWork_t *tw, cLeaf_s *leaf, trace_t *trace);
-void __cdecl CM_TestInLeafBrushNode_r(const traceWork_t *tw, cLeafBrushNode_s *node, trace_t *trace);
+void __cdecl CM_TestInLeaf(traceWork_t *tw, struct cLeaf_s *leaf, trace_t *trace);
+bool __cdecl CM_TestInLeafBrushNode(traceWork_t *tw, struct cLeaf_s *leaf, trace_t *trace);
+void __cdecl CM_TestInLeafBrushNode_r(const traceWork_t *tw, struct cLeafBrushNode_s *node, trace_t *trace);
 void __cdecl CM_TestBoxInBrush(const traceWork_t *tw, const cbrush_t *brush, trace_t *trace);
 void __cdecl CM_TestCapsuleInCapsule(const traceWork_t *tw, trace_t *trace);
 void __cdecl CM_PositionTest(traceWork_t *tw, trace_t *trace, col_context_t *context);
-void __cdecl CM_TraceThroughLeaf(const traceWork_t *tw, cLeaf_s *leaf, trace_t *trace);
-bool __cdecl CM_TraceThroughLeafBrushNode(const traceWork_t *tw, cLeaf_s *leaf, trace_t *trace);
+void __cdecl CM_TraceThroughLeaf(const traceWork_t *tw, struct cLeaf_s *leaf, trace_t *trace);
+bool __cdecl CM_TraceThroughLeafBrushNode(const traceWork_t *tw, struct cLeaf_s *leaf, trace_t *trace);
 void __cdecl CM_TraceThroughLeafBrushNode_r(
                 const traceWork_t *tw,
-                cLeafBrushNode_s *node,
+    struct cLeafBrushNode_s *node,
                 const float *p1_,
                 const float *p2,
                 trace_t *trace);
@@ -490,7 +490,7 @@ int __cdecl CM_SightTraceThroughLeaf(const traceWork_t *tw, const cLeaf_s *leaf,
 int __cdecl CM_SightTraceThroughLeafBrushNode(const traceWork_t *tw, const cLeaf_s *leaf, trace_t *trace);
 int __cdecl CM_SightTraceThroughLeafBrushNode_r(
                 const traceWork_t *tw,
-                cLeafBrushNode_s *remoteNode,
+    struct cLeafBrushNode_s *remoteNode,
                 const float *p1_,
                 const float *p2,
                 trace_t *trace);

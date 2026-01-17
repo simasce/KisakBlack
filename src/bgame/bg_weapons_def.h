@@ -54,3 +54,5 @@ void __cdecl BG_WeaponVariantPrecache(
 
 
 extern gitem_s bg_itemlist[2048];
+
+extern unsigned int bg_lastParsedWeaponIndex;

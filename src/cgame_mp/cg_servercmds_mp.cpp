@@ -1,9 +1,69 @@
 #include "cg_servercmds_mp.h"
+#include "cg_actors_mp.h"
+#include <client_mp/cl_cgame_mp.h>
+#include <universal/q_shared.h>
+#include <client_mp/cl_main_mp.h>
+#include <universal/com_files.h>
+#include <server_mp/sv_main_pc_mp.h>
+#include <gfx_d3d/r_dpvs.h>
+#include <live/live_win.h>
+#include <universal/q_parse.h>
+#include <gfx_d3d/r_fog.h>
+#include <client_mp/cl_parse_mp.h>
+#include <cgame/cg_scr_main.h>
+#include <clientscript/cscr_vm.h>
+#include "cg_scr_main_mp.h"
+#include <bgame/bg_slidemove.h>
+#include "cg_main_mp.h"
+#include "cg_draw_mp.h"
+#include "cg_snapshot_mp.h"
+#include <cgame/cg_localents.h>
+#include <EffectsCore/fx_system.h>
+#include <DynEntity/DynEntity_client.h>
+#include <glass/glass_client.h>
+#include <gfx_d3d/r_bsp_load_obj.h>
+#include <client/splitscreen.h>
+#include <gfx_d3d/r_stream.h>
+#include <gfx_d3d/r_water_sim.h>
+#include <sound/snd_public_async.h>
+#include <cgame/cg_sound.h>
+#include <cgame/cg_main.h>
+#include <client_mp/cl_input_mp.h>
+#include "cg_consolecmds_mp.h"
+#include <gfx_d3d/r_cinematic.h>
+#include <cgame/cg_spawn.h>
+#include <cgame/cg_bolt.h>
+#include <qcommon/com_clients.h>
+#include <cgame/offhandweapons.h>
+#include <client_mp/cl_main_pc_mp.h>
+#include <live/live_leaderboard.h>
+#include <live/live_stats.h>
+#include <live/live_storage_win.h>
+#include <cgame/cg_hudelem.h>
+#include <stringed/stringed_hooks.h>
+#include <cgame/cg_drawtools.h>
+#include <bgame/bg_misc.h>
+#include <EffectsCore/fx_load_obj.h>
+#include <gfx_d3d/r_model.h>
+#include "cg_ui_animate_mp.h"
+
+struct //__declspec(align(4)) $59835072FC2CD3936CE4A4C9F556010B // sizeof=0x48
+{                                       // XREF: .data:cg_waitingScriptMenu/r
+    char name[64];                      // XREF: CG_CheckOpenWaitingScriptMenu(int)+A/r
+                                        // CG_CheckOpenWaitingScriptMenu(int)+4D/w ...
+    int index;                          // XREF: CG_OpenScriptMenu+13F/r
+                                        // CG_OpenScriptMenu+1DE/w
+    bool useMouse;                      // XREF: CG_CheckOpenWaitingScriptMenu(int)+1D/r
+                                        // CG_OpenScriptMenu+1ED/w
+    // padding byte
+    // padding byte
+    // padding byte
+} cg_waitingScriptMenu[1];
 
 void __cdecl CG_ParseServerInfo(int localClientNum)
 {
-    unsigned __int8 *v1; // eax
-    unsigned __int8 *v2; // eax
+    char *v1; // eax
+    char *v2; // eax
     char *v3; // eax
     char *v4; // eax
     int v5; // eax
@@ -20,10 +80,10 @@ void __cdecl CG_ParseServerInfo(int localClientNum)
 
     info = CL_GetConfigString(0);
     cgs = CG_GetLocalClientStaticGlobals(localClientNum);
-    v1 = (unsigned __int8 *)Info_ValueForKey(info, "sv_hostname");
-    strncpy((unsigned __int8 *)cgs->szHostName, v1, 0x100u);
-    v2 = (unsigned __int8 *)Info_ValueForKey(info, "g_gametype");
-    strncpy((unsigned __int8 *)cgs->gametype, v2, 0x20u);
+    v1 = (char *)Info_ValueForKey(info, "sv_hostname");
+    strncpy((char *)cgs->szHostName, v1, 0x100u);
+    v2 = (char *)Info_ValueForKey(info, "g_gametype");
+    strncpy((char *)cgs->gametype, v2, 0x20u);
     if ( !cgs->localServer )
         Dvar_SetStringByName("g_gametype", cgs->gametype);
     v3 = Info_ValueForKey(info, "com_maxclients");
@@ -299,7 +359,7 @@ void __cdecl CG_PrecacheScriptMenu(int localClientNum, int configStringIndex)
     if ( *configString )
     {
         if ( !Load_ScriptMenu(localClientNum, configString, 7) )
-            Com_Error(ERR_DROP, &byte_C8F508, configString);
+            Com_Error(ERR_DROP, "Could not load script menu file '%s'", configString);
     }
 }
 
@@ -333,7 +393,7 @@ void __cdecl CG_ParseClientSystemStateChange(int localClientNum, int sysIndex, c
     cg_s *cgs; // [esp+428h] [ebp-8h]
     const char *configString; // [esp+42Ch] [ebp-4h]
 
-    if ( cg_scr_data.clientsysstatechange && MEMORY[0xA05AC0C] )
+    if (cg_scr_data.clientsysstatechange && gScrVarPub[1].timeArrayId)
     {
         cgs = CG_GetLocalClientGlobals(localClientNum);
         state = Info_ValueForKey(pState, "s");
@@ -1069,7 +1129,7 @@ void __cdecl CG_ConfigStringModified(int localClientNum)
                                 }
                                 else
                                 {
-                                    *((unsigned int *)cgs + num - 1403) = FX_Register(str);
+                                    *((unsigned int *)cgs + num - 1403) = (unsigned int)FX_Register(str);
                                     if ( !*((unsigned int *)cgs + num - 1403)
                                         && !Assert_MyHandler(
                                                     "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_servercmds_mp.cpp",
@@ -1084,7 +1144,7 @@ void __cdecl CG_ConfigStringModified(int localClientNum)
                             }
                             else
                             {
-                                *((unsigned int *)cgs + num - 1403) = R_RegisterModel(str);
+                                *((unsigned int *)cgs + num - 1403) = (unsigned int)R_RegisterModel(str);
                             }
                             break;
                     }

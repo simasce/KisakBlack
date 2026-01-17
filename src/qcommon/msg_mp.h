@@ -61,7 +61,7 @@ struct msg_t // sizeof=0x30
 
 struct NetFieldList // sizeof=0xC
 {                                       // XREF: .rdata:s_entityNetFieldList/r
-    const NetField *array;
+    const struct NetField *array;
     unsigned int count;
     const char *fieldArrayName;
 };
@@ -332,7 +332,8 @@ extern const int numMatchStateFields;
 extern const NetField matchStateFields[15];
 
 
-static constexpr NetFieldList s_entityNetFieldList[22] =
+// should be const
+static NetFieldList s_entityNetFieldList[22] =
 {
   { entityStateFields, 69u, "entityStateFields" },
   { playerEntityStateFields, 74u, "playerEntityStateFields" },
@@ -358,7 +359,54 @@ static constexpr NetFieldList s_entityNetFieldList[22] =
   { eventEntityStateFields, 69u, "eventEntityStateFields" }
 };
 
-static constexpr NetFieldList s_otherNetFieldList[6] =
+static const NetField hudElemFields[43] =
+{
+  { "ui3dWindow", 109, 1, 8, 0u, "8", "0" },
+  { "color.rgba", 16, 4, -85, 0u, "MSG_FIELD_RGBA", "0" },
+  { "fadeStartTime", 24, 4, -97, 0u, "MSG_FIELD_TIME", "0" },
+  { "fromColor.rgba", 20, 4, -85, 0u, "MSG_FIELD_RGBA", "0" },
+  { "y", 4, 4, -91, 0u, "MSG_FIELD_ORIGINY", "0" },
+  { "type", 100, 1, 4, 0u, "4", "0" },
+  { "materialIndex", 104, 1, 8, 0u, "8", "0" },
+  { "height", 76, 2, 10, 0u, "10", "0" },
+  { "width", 74, 2, 10, 0u, "10", "0" },
+  { "x", 0, 4, -92, 0u, "MSG_FIELD_ORIGINX", "0" },
+  { "fadeTime", 70, 2, 16, 0u, "16", "0" },
+  { "z", 8, 4, -90, 0u, "MSG_FIELD_ORIGINZ", "0" },
+  { "value", 52, 4, 0, 0u, "0", "0" },
+  { "alignScreen", 103, 1, 8, 0u, "8", "0" },
+  { "sort", 56, 4, 0, 0u, "0", "0" },
+  { "alignOrg", 102, 1, 4, 0u, "4", "0" },
+  { "offscreenMaterialIdx", 105, 1, 8, 0u, "8", "0" },
+  { "fontScale", 12, 4, -86, 0u, "MSG_FIELD_FONTSCALE", "0" },
+  { "text", 86, 2, 10, 0u, "LOCALIZEDSTRINGINDEXBITS", "0" },
+  { "font", 101, 1, 4, 0u, "4", "0" },
+  { "scaleStartTime", 28, 4, -97, 0u, "MSG_FIELD_TIME", "0" },
+  { "scaleTime", 82, 2, 16, 0u, "16", "0" },
+  { "fromWidth", 78, 2, 10, 0u, "10", "0" },
+  { "fromHeight", 80, 2, 10, 0u, "10", "0" },
+  { "targetEntNum", 68, 2, 10, 0u, "GENTITYNUM_BITS", "0" },
+  { "glowColor.rgba", 60, 4, -85, 0u, "MSG_FIELD_RGBA", "0" },
+  { "fxBirthTime", 64, 4, -97, 0u, "MSG_FIELD_TIME", "0" },
+  { "soundID", 108, 1, 5, 0u, "HUDELEM_SOUND_ID_BITS", "0" },
+  { "fxLetterTime", 88, 2, 12, 0u, "12", "0" },
+  { "fxDecayStartTime", 90, 2, 16, 0u, "16", "0" },
+  { "fxDecayDuration", 92, 2, 16, 0u, "16", "0" },
+  { "fxRedactDecayStartTime", 94, 2, 16, 0u, "16", "0" },
+  { "fxRedactDecayDuration", 96, 2, 16, 0u, "16", "0" },
+  { "flags", 98, 2, 13, 0u, "HUDELEMFLAGBITS", "0" },
+  { "label", 72, 2, 10, 0u, "LOCALIZEDSTRINGINDEXBITS", "0" },
+  { "time", 44, 4, -97, 0u, "MSG_FIELD_TIME", "0" },
+  { "moveStartTime", 40, 4, -97, 0u, "MSG_FIELD_TIME", "0" },
+  { "moveTime", 84, 2, 16, 0u, "16", "0" },
+  { "fromX", 32, 4, -99, 0u, "MSG_FIELD_HUDELEMCOORD", "0" },
+  { "fromY", 36, 4, -99, 0u, "MSG_FIELD_HUDELEMCOORD", "0" },
+  { "fromAlignScreen", 107, 1, 8, 0u, "8", "0" },
+  { "fromAlignOrg", 106, 1, 4, 0u, "4", "0" },
+  { "duration", 48, 4, 32, 0u, "32", "0" }
+};
+
+static NetFieldList s_otherNetFieldList[6] =
 {
   { archivedEntityFields, 8u, "archivedEntityFields" },
   { clientStateFields, 50u, "clientStateFields" },

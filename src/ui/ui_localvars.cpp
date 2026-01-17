@@ -104,7 +104,7 @@ bool __cdecl UILocalVar_GetBool(const UILocalVar *var)
     return atoi(var->u.string) != 0;
 }
 
-UILocalVar::<unnamed_type_u> __cdecl UILocalVar_GetInt(const UILocalVar *var)
+int __cdecl UILocalVar_GetInt(const UILocalVar *var)
 {
     if ( !var && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_localvars.cpp", 129, 0, "%s", "var") )
         __debugbreak();
@@ -132,7 +132,7 @@ UILocalVar::<unnamed_type_u> __cdecl UILocalVar_GetInt(const UILocalVar *var)
     }
     else
     {
-        return var->u;
+        return var->u.integer;
     }
 }
 

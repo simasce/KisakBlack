@@ -571,7 +571,7 @@ void    G_ExplodeMissile(cStaticModel_s *a1@<ebp>, gentity_s *ent)
                         case 2:
                             v5 = DirToByte(v30);
                             G_AddEvent(v31, 0x3Cu, v5);
-                            v31->s.lerp.u.actor.index.actorNum = level.time;
+                            v31->s.lerp.u.actor.actorNum = level.time;
                             break;
                         case 7:
                             v6 = DirToByte(v30);
@@ -580,7 +580,7 @@ void    G_ExplodeMissile(cStaticModel_s *a1@<ebp>, gentity_s *ent)
                         default:
                             v7 = DirToByte(v30);
                             G_AddEvent(v31, 0x3Du, v7);
-                            v31->s.lerp.u.actor.index.actorNum = level.time;
+                            v31->s.lerp.u.actor.actorNum = level.time;
                             break;
                     }
                 }
@@ -602,7 +602,7 @@ void    G_ExplodeMissile(cStaticModel_s *a1@<ebp>, gentity_s *ent)
                     v31->s.lerp.pos.trBase[2] = (float)(int)v31->s.lerp.pos.trBase[2];
                     G_SetOrigin(v31, v31->s.lerp.pos.trBase);
                     v31->s.lerp.eFlags |= 0x4000u;
-                    v31->s.lerp.u.actor.index.actorNum = level.time;
+                    v31->s.lerp.u.actor.actorNum = level.time;
                     v31->s.lerp.u.loopFx.period = ent->missile.grenade.effectIndex;
                     v31->s.time2 = level.time + 61000;
                     v31->s.lerp.eFlags |= 0x10u;
@@ -1759,7 +1759,7 @@ LABEL_98:
                                 v77->s.lerp.pos.trBase[2] = (float)(int)v77->s.lerp.pos.trBase[2];
                                 G_SetOrigin(v77, v77->s.lerp.pos.trBase);
                                 v77->s.lerp.eFlags |= 0x4000u;
-                                v77->s.lerp.u.actor.index.actorNum = level.time;
+                                v77->s.lerp.u.actor.actorNum = level.time;
                                 v77->s.time2 = level.time + (int)(float)(missileMolotovBlobTime->current.value * 1000.0);
                                 v77->s.lerp.eFlags |= 0x10u;
                                 v77->handler = 11;
@@ -3491,7 +3491,7 @@ void __cdecl MissileTrajectory(gentity_s *ent, float *result)
     validOrigin = BG_ValidateOrigin(ent->r.currentOrigin, 16, 17, MapCenter);
     if ( validOrigin )
     {
-        if ( level.time <= ent->s.lerp.u.actor.index.actorNum
+        if ( level.time <= ent->s.lerp.u.actor.actorNum
             || ent->s.lerp.pos.trType == 3
             || ent->handler != 12
             || weapDef->weapType == WEAPTYPE_BOMB
@@ -4188,7 +4188,7 @@ void __cdecl JavelinSteering(gentity_s *ent, const WeaponDef *weapDef)
     }
     if ( ent->missile.missile.stage == MISSILESTAGE_SOFTLAUNCH )
     {
-        if ( level.time - ent->s.lerp.u.actor.index.actorNum < weapDef->projIgnitionDelay )
+        if ( level.time - ent->s.lerp.u.actor.actorNum < weapDef->projIgnitionDelay )
         {
             if ( missileDebugText->current.enabled )
                 Com_Printf(15, "Javelin: softlaunch\n");
@@ -4981,7 +4981,7 @@ void __cdecl G_InitGrenadeEntity(gentity_s *parent, gentity_s *grenade)
         __debugbreak();
     grenade->s.eType = 4;
     grenade->s.lerp.eFlags = (int)&cls.rankedServers[711].game[35];
-    grenade->s.lerp.u.actor.index.actorNum = level.time;
+    grenade->s.lerp.u.actor.actorNum = level.time;
     fusetime = weapDef->aiFuseTime;
     if ( parent && parent->client )
         fusetime = weapDef->fuseTime;
@@ -5155,7 +5155,7 @@ gentity_s *__cdecl G_FireGrenade(
     if ( parent->client )
     {
         speed = Abs(dir);
-        grenade->s.lerp.u.actor.index.actorNum += CalcMissileNoDrawTime(speed);
+        grenade->s.lerp.u.actor.actorNum += CalcMissileNoDrawTime(speed);
     }
     InitGrenadeTimer(parent, grenade, weapDef, time);
     if ( grenade->model
@@ -5312,11 +5312,11 @@ gentity_s *__cdecl G_FireRocket(
     bolt->s.eType = 4;
     AssignToSmallerType<unsigned short>(&bolt->s.weapon, weaponIndex);
     bolt->s.weaponModel = 0;
-    bolt->s.lerp.u.actor.index.actorNum = level.time;
+    bolt->s.lerp.u.actor.actorNum = level.time;
     if ( parent->client )
     {
         v7 = CalcMissileNoDrawTime((float)weapDef->iProjectileSpeed);
-        bolt->s.lerp.u.actor.index.actorNum += v7;
+        bolt->s.lerp.u.actor.actorNum += v7;
     }
     if ( parent->pTurretInfo && (parent->pTurretInfo->flags & 0x20000) != 0 )
     {
@@ -5645,11 +5645,11 @@ gentity_s *__cdecl G_DropBomb(
     Scr_SetString(&bolt->classname, scr_const.rocket, SCRIPTINSTANCE_SERVER);
     bolt->s.eType = 4;
     AssignToSmallerType<unsigned short>(&bolt->s.weapon, weaponIndex);
-    bolt->s.lerp.u.actor.index.actorNum = level.time;
+    bolt->s.lerp.u.actor.actorNum = level.time;
     if ( parent->client )
     {
         v7 = CalcMissileNoDrawTime((float)weapDef->iProjectileSpeed);
-        bolt->s.lerp.u.actor.index.actorNum += v7;
+        bolt->s.lerp.u.actor.actorNum += v7;
     }
     EntHandle::setEnt(&bolt->r.ownerNum, parent);
     EntHandle::setEnt(&bolt->parent, parent);

@@ -2,6 +2,11 @@
 #include "sv_msg_write_mp.h"
 #include <qcommon/msg_mp.h>
 
+struct msg_t;
+struct msg;
+struct NetFieldList;
+struct NetField;
+
 const NetFieldList *__cdecl MSG_GetStateFieldListForEntityType(int eType, bool isDemoSnapshot);
 void MSG_CheckForDuplicateOffsets();
 void __cdecl MSG_LoopThroughFields(const NetFieldList *fieldToCheck);
@@ -190,6 +195,3 @@ int __cdecl MSG_WriteDeltaHudElems_LastChangedField(
                 const hudelem_s *from,
                 const hudelem_s *to);
 void __cdecl MSG_WriteDeltaHudElems_ValidateHudElem(const hudelem_s *from, const hudelem_s *to);
-
-
-extern const NetField hudElemFields[43];

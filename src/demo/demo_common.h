@@ -4,6 +4,8 @@
 #include <bgame/bg_local.h>
 #include <ddl/ddl_api.h>
 #include <DemonWare/bdCore/bdMemory/bdMemory.h>
+#include <DemonWare/bdCore/bdReference/bdReferencable.h>
+#include <DemonWare/bdCore/bdContainers/bdByteBuffer.h>
 
 struct bdDownloadInterceptor // sizeof=0x4
 {                                                                             // XREF: fileShareDownloadInterceptor/r
@@ -63,8 +65,10 @@ struct bdTag : bdTaskResult // sizeof=0x18
 
         void serialize(struct bdByteBuffer *a2)
         {
-            bdByteBuffer::writeUInt64(a2, this->m_priTag);
-            bdByteBuffer::writeUInt64(a2, this->m_secTag);
+            //bdByteBuffer::writeUInt64(a2, this->m_priTag);
+            a2->writeUInt64(this->m_priTag);
+            //bdByteBuffer::writeUInt64(a2, this->m_secTag);
+            a2->writeUInt64(this->m_secTag);
         }
 };
 
@@ -110,7 +114,10 @@ struct bdFileMetaData : bdTaskResult // sizeof=0x838
             memset(this->m_metaData, 0, sizeof(this->m_metaData));
 
             for (i = 0; i < this->m_numTags; ++i)
-                bdTag::set(&this->m_tags[i], 0, 0);
+            {
+                //bdTag::set(&this->m_tags[i], 0, 0);
+                this->m_tags[i].set(0, 0);
+            }
         }
 
         bdFileMetaData() : bdTaskResult()
@@ -338,31 +345,6 @@ struct ArchivedMatchState // sizeof=0xC
         int bombTimer[2];                                     // XREF: GScr_SetBombTimer+65/w
                                                                                 // GScr_SetBombTimer+9A/w
 };
-
-enum scoreboardColumnType_t : __int32
-{                                                                             // XREF: UnarchivedMatchState/r
-                                                                                // cg_s/r ...
-        SB_TYPE_INVALID            = 0x0,                 // XREF: .rdata:columnInfoParty/s
-        SB_TYPE_NONE                 = 0x1,
-        SB_TYPE_KILLS                = 0x2,
-        SB_TYPE_DEATHS             = 0x3,
-        SB_TYPE_ASSISTS            = 0x4,
-        SB_TYPE_DEFENDS            = 0x5,
-        SB_TYPE_PLANTS             = 0x6,
-        SB_TYPE_DEFUSES            = 0x7,
-        SB_TYPE_RETURNS            = 0x8,
-        SB_TYPE_CAPTURES         = 0x9,
-        SB_TYPE_DESTRUCTIONS = 0xA,
-        SB_TYPE_KDRATIO            = 0xB,
-        SB_TYPE_SURVIVED         = 0xC,
-        SB_TYPE_STABS                = 0xD,
-        SB_TYPE_TOMAHAWKS        = 0xE,
-        SB_TYPE_HUMILIATED     = 0xF,
-        SB_TYPE_X2SCORE            = 0x10,
-        SB_TYPE_HEADSHOTS        = 0x11,
-        NUM_SB_TYPES                 = 0x12,
-};
-
 
 struct UnarchivedMatchState // sizeof=0x30
 {                                                                             // XREF: MatchState/r

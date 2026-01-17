@@ -265,12 +265,6 @@ struct XAnimSimpleRotPos // sizeof=0x18
         float pos[3];                                             // XREF: XAnimCalcDelta(DObj *,uint,float * const,float * const,bool)+19C/r
 };
 
-struct XAnimClientNotifyList // sizeof=0x604
-{                                                                             // XREF: ?CG_UpdateViewWeaponAnim@@YAXHH@Z/r
-        unsigned __int8 m_clientNotifyMemory[1536];
-        int m_numNotifies;
-};
-
 struct __declspec(align(4)) XAnimState // sizeof=0x20
 {                                                                             // XREF: XAnimInfo/r
                                                                                 // ?DObjInitServerTime@@YAXPAUDObj@@M@Z/r ...
@@ -487,7 +481,7 @@ void __cdecl XAnimSetValueSection(
                 unsigned int animIndex,
                 __int16 iFirstValueIndex,
                 unsigned __int16 iValueCount);
-XAnim_s *__cdecl XAnimCreateAnims(const char *debugName, int size, void *(__cdecl *Alloc)(int));
+XAnim_s *__cdecl XAnimCreateAnims(const char *debugName, int size, void *(__cdecl *Alloc)(unsigned int));
 XAnim_s *__cdecl XAnimCreateAnimsWithValues(
                 const char *debugName,
                 int size,
@@ -512,7 +506,7 @@ void __cdecl XAnimCalcRelDeltaParts(
 void __cdecl TransformToQuatRefFrame(const float *rot, float *trans);
 void __cdecl XAnimCalcAbsDeltaParts(const XAnimParts *parts, float weightScale, float time, XAnimSimpleRotPos *rotPos);
 void __cdecl XAnimAddClientNotify(unsigned int notetrackName, float frac, unsigned int notifyType);
-void __cdecl AddSignalToNoteList(XAnimClientNotifyList *pList, const struct ClientNotifyData *ourNote);
+void __cdecl AddSignalToNoteList(struct XAnimClientNotifyList *pList, const struct ClientNotifyData *ourNote);
 void __cdecl XAnimAddClientNotifyNamed(unsigned int notetrackName, float frac, unsigned int notifyName);
 void    XAnimResetAnimMap(const DObj *obj, unsigned int infoIndex);
 void __cdecl XAnimResetAnimMap_r(XModelNameMap *modelMap, unsigned int infoIndex);

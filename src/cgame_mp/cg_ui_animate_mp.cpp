@@ -1,4 +1,21 @@
 #include "cg_ui_animate_mp.h"
+#include <universal/q_shared.h>
+#include <ui/ui_shared.h>
+#include <ui/ui_main.h>
+#include <ui/ui_localvars.h>
+#include <client_mp/cl_main_mp.h>
+#include "cg_main_mp.h"
+#include <cgame/cg_sound.h>
+#include <demo/demo_playback.h>
+#include <client/cl_rank.h>
+#include <cgame/cg_draw_names.h>
+#include <live/live_stats.h>
+#include <client/cl_milestone.h>
+#include <stringed/stringed_hooks.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <client/cl_medal.h>
+#include <live/live.h>
+#include <live/live_contracts.h>
 
 void __cdecl UI_AnimateLocalItem(
                 int localClientNum,
@@ -1217,8 +1234,8 @@ void __cdecl CG_DisplayContract(int localClientNum)
                         localizedPopUpName,
                         localizedPopUpDesc,
                         localizedCP,
-                        "contract_completed",
-                        "hud_medal_burst_green");
+                        (char*)"contract_completed",
+                        (char*)"hud_medal_burst_green");
                 }
                 else
                 {
@@ -1228,8 +1245,8 @@ void __cdecl CG_DisplayContract(int localClientNum)
                         localizedPopUpName,
                         localizedPopUpDesc,
                         (char *)"",
-                        "contract_expired",
-                        "hud_medal_burst_red");
+                        (char*)"contract_expired",
+                        (char*)"hud_medal_burst_red");
                 }
                 CG_PlayPopUpSound(localClientNum, sound);
             }
@@ -1377,7 +1394,7 @@ void __cdecl CG_DisplayWagerPopup(int localClientNum)
             localizedPoints = UI_ReplaceConversionInt(v6, points);
         }
         CG_DisplayCenterPopup(localClientNum, "WagerPopUp", messageString, subMessageString, localizedPoints, 0, 0);
-        CG_PlayPopUpSound(localClientNum, "uin_challenge_repeatable");
+        CG_PlayPopUpSound(localClientNum, (char*)"uin_challenge_repeatable");
     }
 }
 

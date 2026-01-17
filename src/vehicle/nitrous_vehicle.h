@@ -289,6 +289,9 @@ struct NitrousVehicle // sizeof=0x440
 {                                       // XREF: phys_free_list<NitrousVehicle>::T_internal/r
     NitrousVehicle();
 
+    static NitrousVehicle *__cdecl add_vehicle(int id);
+    static void remove_vehicle(NitrousVehicle *const v);
+
     void init(struct gentity_s *owner, const struct VehicleParameter *parameter);
     void init(
         int localClientNum,
@@ -328,10 +331,8 @@ struct NitrousVehicle // sizeof=0x440
     void cleanup_path();
     void __cdecl frame_prolog_all_systems(float delta_t);
     void __cdecl frame_epilog_all_systems(float delta_t);
-    NitrousVehicle **__cdecl add_vehicle(NitrousVehicle *id);
     void __cdecl reinit_parms();
     void __cdecl reset_vehicle_physics();
-    void __cdecl remove_vehicle(NitrousVehicle *const v);
     void __cdecl debug_render_all();
     void debug_render();
     void remove_wheels();
@@ -482,14 +483,12 @@ struct PhysObjUserData *__cdecl Phys_ObjCreateNitrousVehicle(
 
 double __cdecl AbsSquared(const phys_vec3 *a);
 // local variable allocation has failed, the output may be wrong!
-void    phys_multiply_mat(phys_mat44 *dest, const phys_mat44 *left, const phys_mat44 *right);
 void    make_rotate(
                 phys_mat44 *mat,
                 const phys_vec3 *v,
                 float theta_factor,
                 float max_rotation_radians);
 void __cdecl make_rotate(phys_mat44 *m, const phys_vec3 *u, float ca, float sa);
-void __cdecl Phys_NitrousMat44ToVec33(const phys_mat44 *inMat, float (*outAxis)[3]);
 bool __cdecl CompareVec3ToPhysVec(const float *a, const phys_vec3 *b, float acceptableError);
 
 void __cdecl G_SetVehDriverInputs(int localClientNum, int vehEntNum, usercmd_s *cmd);
@@ -499,6 +498,3 @@ void __cdecl Vehicle_Launch(int localClientNum, centity_s *cent, float *hitp, co
 
 void    make_rotate(phys_mat44 *mat, const phys_vec3 *v1, const phys_vec3 *v2);
 
-phys_vec3 *__cdecl phys_cross(phys_vec3 *result, const phys_vec3 *a, const phys_vec3 *b);
-void    phys_full_multiply_mat(phys_mat44 *dest, const phys_mat44 *left, const phys_mat44 *right);
-void __cdecl Phys_Mat4ToNitrousMat(float (*inMat)[3], phys_mat44 *outMat);

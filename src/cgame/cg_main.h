@@ -5,7 +5,7 @@ struct trajectory_t;
 int __cdecl CG_irand(int min, int max);
 double __cdecl CG_flrand(float min, float max);
 int __cdecl CG_rand();
-double __cdecl CG_random();
+float __cdecl CG_random();
 bool __cdecl CG_HasClientSystemBeenInitialzed();
 void __cdecl CG_ClientDoneWithInitialization();
 void __cdecl CG_ResetClientInitializationState();

@@ -26,7 +26,7 @@ struct MantleState // sizeof=0x10
 };
 
 void __cdecl Mantle_RegisterDvars();
-void __cdecl Mantle_CreateAnims(void *(__cdecl *xanimAlloc)(int));
+void __cdecl Mantle_CreateAnims(void *(__cdecl *xanimAlloc)(unsigned int));
 int __cdecl Trans_GetUpIndex(unsigned int transIndex);
 int __cdecl Trans_GetOverIndex(unsigned int transIndex);
 double __cdecl Trans_GetHeight(unsigned int transIndex);

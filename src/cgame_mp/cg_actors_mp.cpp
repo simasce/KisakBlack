@@ -1,4 +1,19 @@
 #include "cg_actors_mp.h"
+#include "cg_local_mp.h"
+#include <client/splitscreen.h>
+#include <clientscript/cscr_vm.h>
+#include <clientscript/scr_const.h>
+#include <EffectsCore/fx_marks.h>
+#include <qcommon/dobj_management.h>
+#include "cg_ents_mp.h"
+#include "cg_animtree_mp.h"
+#include <xanim/dobj_utils.h>
+#include "cg_main_mp.h"
+#include <cgame/cg_scr_main.h>
+#include <bgame/bg_dog.h>
+#include <ragdoll/ragdoll.h>
+#include <cgame/cg_world.h>
+#include "cg_players_mp.h"
 
 void __cdecl CG_ActorProcessSnapshot(int localClientNum, centity_s *cent)
 {
@@ -6,7 +21,7 @@ void __cdecl CG_ActorProcessSnapshot(int localClientNum, centity_s *cent)
     cg_s *cgameGlob; // [esp+4h] [ebp-4h]
 
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
-    CG_UpdateActorDObj(localClientNum, cent, &cgameGlob->bgs.actorinfo[cent->nextState.lerp.u.actor.index.actorNum]);
+    CG_UpdateActorDObj(localClientNum, cent, &cgameGlob->bgs.actorinfo[cent->nextState.lerp.u.actor.actorNum]);
     if ( CL_LocalClient_IsFirstActive(localClientNum) )
     {
         if ( cent )
@@ -42,13 +57,13 @@ void __cdecl CG_UpdateActorDObj(int localClientNum, centity_s *cent, actorInfo_t
     {
         p_nextState = &cent->nextState;
         cgameGlob = CG_GetLocalClientGlobals(localClientNum);
-        if ( cent->nextState.lerp.u.actor.index.actorNum >= 0x10u
+        if ( cent->nextState.lerp.u.actor.actorNum >= 0x10u
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_actors_mp.cpp",
                         123,
                         0,
-                        "es->lerp.u.actor.index.actorNum doesn't index MAX_ACTORS\n\t%i not in [0, %i)",
-                        cent->nextState.lerp.u.actor.index.actorNum,
+                        "es->lerp.u.actor.actorNum doesn't index MAX_ACTORS\n\t%i not in [0, %i)",
+                        cent->nextState.lerp.u.actor.actorNum,
                         16) )
         {
             __debugbreak();
@@ -130,18 +145,18 @@ void __cdecl CG_ResetActorEntity(int localClientNum, cg_s *cgameGlob, centity_s 
     actorInfo_t *ai; // [esp+8h] [ebp-10h]
     XAnimTree_s *pAnimTree; // [esp+14h] [ebp-4h]
 
-    if ( cent->nextState.lerp.u.actor.index.actorNum >= 0x10u
+    if ( cent->nextState.lerp.u.actor.actorNum >= 0x10u
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_actors_mp.cpp",
                     201,
                     0,
-                    "es->lerp.u.actor.index.actorNum doesn't index MAX_ACTORS\n\t%i not in [0, %i)",
-                    cent->nextState.lerp.u.actor.index.actorNum,
+                    "es->lerp.u.actor.actorNum doesn't index MAX_ACTORS\n\t%i not in [0, %i)",
+                    cent->nextState.lerp.u.actor.actorNum,
                     16) )
     {
         __debugbreak();
     }
-    ai = &cgameGlob->bgs.actorinfo[cent->nextState.lerp.u.actor.index.actorNum];
+    ai = &cgameGlob->bgs.actorinfo[cent->nextState.lerp.u.actor.actorNum];
     CG_GetLocalClientStaticGlobals(localClientNum);
     pAnimTree = ai->pXAnimTree;
     ai->dobjDirty = 1;
@@ -189,7 +204,7 @@ void __cdecl CG_Actor(int localClientNum, centity_s *cent)
                 t = CScr_ExecEntThread(cent, cg_scr_data.entityspawned, 1u);
                 Scr_FreeThread(t, SCRIPTINSTANCE_CLIENT);
             }
-            actorInfo = &CG_GetLocalClientGlobals(localClientNum)->bgs.actorinfo[cent->nextState.lerp.u.actor.index.actorNum];
+            actorInfo = &CG_GetLocalClientGlobals(localClientNum)->bgs.actorinfo[cent->nextState.lerp.u.actor.actorNum];
             BG_Dog_UpdateAnimationState(localClientNum, &cent->nextState, actorInfo);
             CG_Actor_PreControllers(localClientNum, cent);
             lightingOrigin[0] = cent->pose.origin[0];

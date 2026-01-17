@@ -7,6 +7,8 @@
 #include "cg_drawtools.h"
 #include <gfx_d3d/r_rendercmds.h>
 #include <ui/ui_atoms.h>
+#include <game_mp/g_main_mp.h>
+#include <win32/win_shared.h>
 
 const dvar_t *compass;
 const dvar_t *compassSize;
@@ -1050,8 +1052,8 @@ void __cdecl CG_DrawPlayerPopUps(
                 {
                     rotatedX = (float)((float)((float)swingLength + 2500.0) - (float)ratio) / 2500.0;
                     if ( yScale->popupRotationAngle > (float)((float)(rotatedX * rotatedX) * 7.0) )
-                        yScale->popUpAngleDelta = COERCE_FLOAT(LODWORD(0.5f) ^ _mask__NegFloat_) * (float)(rotatedX * rotatedX);
-                    if ( (float)(COERCE_FLOAT(LODWORD(7.0f) ^ _mask__NegFloat_) * (float)(rotatedX * rotatedX)) > yScale->popupRotationAngle )
+                        yScale->popUpAngleDelta = (-(0.5f)) * (float)(rotatedX * rotatedX);
+                    if ( (float)((-(7.0f)) * (float)(rotatedX * rotatedX)) > yScale->popupRotationAngle )
                         yScale->popUpAngleDelta = (float)(rotatedX * rotatedX) * 0.5;
                     yScale->popupRotationAngle = yScale->popupRotationAngle + yScale->popUpAngleDelta;
                 }
@@ -2061,8 +2063,7 @@ void __cdecl CG_CompassDrawPlayerMap(
                 scaleFinalT = cgameGlob->compassMapWorldSize[0] / cgameGlob->compassMapWorldSize[1];
             }
             if ( compassRotation->current.enabled )
-                LODWORD(rotation) = COERCE_UNSIGNED_INT(cgameGlob->refdefViewAngles[1] - cgameGlob->compassNorthYaw)
-                                                    ^ _mask__NegFloat_;
+                rotation = -(cgameGlob->refdefViewAngles[1] - cgameGlob->compassNorthYaw);
             else
                 rotation = 0.0f;
             CG_CompassCalcDimensions(COMPASS_TYPE_PARTIAL, cgameGlob, parentRect, rect, &x, &y, &w, &h);
@@ -2103,6 +2104,8 @@ void __cdecl CG_CompassDrawPlayerMap(
         }
     }
 }
+
+float yawVector[3];
 
 void __cdecl CG_CompassDrawPlayerMapLocationSelector(
                 int localClientNum,
@@ -2252,6 +2255,7 @@ void __cdecl CG_CompassDrawPlayerMapLocationSelector(
     }
 }
 
+float yawVector_0[3];
 void __cdecl CG_CompassDrawPlayerSelectedLocations(
                 int localClientNum,
                 CompassType compassType,
@@ -2435,7 +2439,7 @@ void __cdecl CG_CompassDrawPlayerSelectedLocations(
 
 void __cdecl CG_CompassDrawPlayer(
                 int localClientNum,
-                jpeg_decompress_struct *compassType,
+                CompassType compassType,
                 const rectDef_s *parentRect,
                 rectDef_s *rect,
                 Material *material,
@@ -2476,7 +2480,7 @@ void __cdecl CG_CompassDrawPlayer(
         &scaledRect.h);
     centerX = (float)(scaledRect.w * 0.5) + scaledRect.x;
     centerY = (float)(scaledRect.h * 0.5) + scaledRect.y;
-    if ( compassType == (jpeg_decompress_struct *)1 )
+    if ( compassType == COMPASS_TYPE_FULL)
     {
         w = cg_hudMapPlayerWidth->current.value;
         h = cg_hudMapPlayerHeight->current.value;
@@ -2738,7 +2742,6 @@ void __cdecl CG_CompassUpYawVector(const cg_s *cgameGlob, float *result)
 }
 
 void    CG_CompassDrawTickertape(
-                float a1@<ebp>,
                 int localClientNum,
                 CompassType compassType,
                 const rectDef_s *parentRect,
@@ -2816,8 +2819,7 @@ void    CG_CompassDrawTickertape(
         tapeLeft = compassPartialType->current.value;
         if ( !LODWORD(tapeLeft) )
         {
-            LODWORD(tapeRight) = COERCE_UNSIGNED_INT(*(float *)(LODWORD(colorMod[2]) + 373716) - *(float *)(LODWORD(colorMod[2]) + 388504))
-                                                 ^ _mask__NegFloat_;
+            LODWORD(tapeRight) = COERCE_UNSIGNED_INT(*(float *)(LODWORD(colorMod[2]) + 373716) - *(float *)(LODWORD(colorMod[2]) + 388504)) ^ _mask__NegFloat_;
             h = tapeRight / 360.0;
             w = (float)(tapeRight / 360.0) - (float)(compassTickertapeStretch->current.value * 0.5);
             y = (float)(compassTickertapeStretch->current.value * 0.5) + (float)(tapeRight / 360.0);
@@ -2964,6 +2966,8 @@ void __cdecl CalcCompassPointerSize(CompassType compassType, float *w, float *h)
     }
 }
 
+const float colorObjectiveText[4] = { 0.89999998, 1.0, 0.1, 1.0 };
+
 void __cdecl DrawIconDistanceText(
                 int localClientNum,
                 float distance,
@@ -3076,9 +3080,10 @@ void __cdecl CG_SetGridTable()
     }
 }
 
+int count;
 void __cdecl CG_ScaleCompass()
 {
-    unsigned intvalue; // eax
+    unsigned int value; // eax
     int deltaDistance; // [esp+4h] [ebp-8h]
     int deltaTime; // [esp+8h] [ebp-4h]
 
@@ -3273,10 +3278,10 @@ void __cdecl CG_CompassDrawGridPoints(
         CG_CompassUpYawVector(cgameGlob, yawVector);
         gridWidth = cgameGlob->compassMapWorldSize[0] / (float)compassGridCols->current.integer;
         gridHeight = cgameGlob->compassMapWorldSize[1] / (float)compassGridRows->current.integer;
-        south[0] = COERCE_FLOAT(LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_) * gridHeight;
-        south[1] = COERCE_FLOAT(LODWORD(cgameGlob->compassNorth[1]) ^ _mask__NegFloat_) * gridHeight;
+        south[0] = (-(cgameGlob->compassNorth[0])) * gridHeight;
+        south[1] = (-(cgameGlob->compassNorth[1])) * gridHeight;
         east[0] = cgameGlob->compassNorth[1] * gridWidth;
-        east[1] = COERCE_FLOAT(LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_) * gridWidth;
+        east[1] = (-(cgameGlob->compassNorth[0])) * gridWidth;
         CG_SetGridOffsets(east, south, eastOffsetLetter, southOffsetLetter);
         gridStartLetter[0] = cgameGlob->compassMapUpperLeft[0] + southOffsetLetter[0];
         gridStartLetter[1] = cgameGlob->compassMapUpperLeft[1] + southOffsetLetter[1];

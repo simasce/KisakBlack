@@ -5380,7 +5380,7 @@ LABEL_52:
             if ( isPlayer )
             {
                 AngleVectors(ent->pose.angles, forward, 0, up);
-                info = CG_GetVehicleInfo(ent->nextState.un2.vehicleState.vehicleInfoIndex);
+                info = CG_GetVehicleInfo(ent->nextState.vehicleState.vehicleInfoIndex);
                 v13 = info->tracerOffset[0];
                 tracerStart[0] = (float)(v13 * forward[0]) + orient.origin[0];
                 tracerStart[1] = (float)(v13 * forward[1]) + orient.origin[1];
@@ -7575,7 +7575,7 @@ int __cdecl CG_GetPlayerVehicleWeapon(const playerState_s *ps, int localClientNu
     if ( (ps->eFlags & 0x4000) == 0 )
         return 0;
     cent = CG_GetEntity(localClientNum, ps->viewlocked_entNum);
-    info = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+    info = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
     seatIndex = ps->vehiclePos;
     if ( seatIndex >= 1 && seatIndex <= 4 )
         return *(unsigned __int16 *)&info->gunnerWeapon[3][2 * seatIndex + 62];
@@ -7629,7 +7629,7 @@ unsigned int __cdecl CG_GetClientWeapon(unsigned int clientNum, int localClientN
         {
             if ( ((*((unsigned int *)veh + 201) >> 1) & 1) != 0 )
             {
-                vehInfo = CG_GetVehicleInfo(veh->nextState.un2.vehicleState.vehicleInfoIndex);
+                vehInfo = CG_GetVehicleInfo(veh->nextState.vehicleState.vehicleInfoIndex);
                 if ( !vehInfo
                     && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_weapons.cpp", 8123, 0, "%s", "vehInfo") )
                 {
@@ -7699,7 +7699,7 @@ double __cdecl CG_GetPlayerVehicleHandbrakeTurnSpeedValue(int localClientNum)
         return 0.0;
     vehicle = CG_GetEntity(localClientNum, cgameGlob->predictedPlayerState.viewlocked_entNum);
     if ( vehicle->nitrousVeh )
-        return CG_GetVehicleInfo(vehicle->nextState.un2.vehicleState.vehicleInfoIndex)->thirdPersonCameraHandbrakeTurnRateInc
+        return CG_GetVehicleInfo(vehicle->nextState.vehicleState.vehicleInfoIndex)->thirdPersonCameraHandbrakeTurnRateInc
                  * vehicle->nitrousVeh->m_hand_brake;
     else
         return 0.0;

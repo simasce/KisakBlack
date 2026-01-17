@@ -18,18 +18,6 @@ void    CG_GetEntityBModelBounds(
                 float *maxs,
                 float *absMins,
                 float *absMaxs);
-void    phys_calc_world_aabb(
-                const phys_vec3 *local_center,
-                const phys_vec3 *local_half_aabb_dims,
-                const phys_mat44 *local_to_world_xform,
-                phys_vec3 *aabb_min,
-                phys_vec3 *aabb_max);
-double __cdecl phys_dot(const phys_vec3 *a, const phys_vec3 *b);
-phys_vec3 *__cdecl phys_AbsValue(phys_vec3 *result, const phys_vec3 *a);
-const phys_vec3 * phys_full_multiply(
-                const phys_mat44 *mat,
-                const phys_vec3 *v);
-void __cdecl phys_transpose(phys_mat44 *dest, const phys_mat44 *source);
 void __cdecl CG_GetEntityDobjBounds(
                 const centity_s *cent,
                 const DObj *dobj,

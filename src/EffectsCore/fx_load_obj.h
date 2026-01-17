@@ -314,6 +314,10 @@ bool __cdecl FX_LoadEditorEffect(const char *name, FxEditorEffectDef *edEffectDe
 const FxEffectDef *__cdecl FX_Load(const char *name);
 const FxEffectDef *__cdecl FX_LoadFailed(const char *name);
 const FxEffectDef *__cdecl FX_Register(char *name);
+inline const FxEffectDef *__cdecl FX_Register(const char *name)
+{
+    return FX_Register((char *)name);
+}
 const FxEffectDef *__cdecl FX_Register_FastFile(const char *name);
 const FxEffectDef *__cdecl FX_Register_LoadObj(char *name);
 int __cdecl FX_GetHashIndex(char *name, bool *exists);

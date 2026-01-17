@@ -1,4 +1,85 @@
 #include "cg_predict_mp.h"
+#include <qcommon/threads.h>
+#include <demo/demo_playback.h>
+#include <bgame/bg_misc.h>
+#include <universal/com_math_anglevectors.h>
+#include <cgame/cg_draw_reticles.h>
+#include <aim_assist/aim_assist.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <client_mp/cl_input_mp.h>
+#include "cg_main_mp.h"
+#include "cg_vehicles_mp.h"
+#include "cg_ents_mp.h"
+#include <bgame/bg_pmove.h>
+#include <bgame/bg_slidemove.h>
+#include <clientscript/cscr_stringlist.h>
+
+int driverClampCounts[2] =
+{ 9, 8 };
+
+int gunnerClampCounts[2] =
+{ 8, 9 };
+
+float gunnerTurretClampT34[8][2] =
+{
+  { 25.0, 0.0 },
+  { 50.0, 90.0 },
+  { 45.0, 130.0 },
+  { 26.0, 180.0 },
+  { 22.0, 215.0 },
+  { 24.0, 242.0 },
+  { 22.0, 295.0 },
+  { 25.0, 360.0 }
+};
+
+float gunnerTurretClampPanzer[9][2] =
+{
+  { 25.0, 0.0 },
+  { 24.0, 27.0 },
+  { 34.0, 65.0 },
+  { 41.0, 90.0 },
+  { 45.0, 150.0 },
+  { 40.0, 220.0 },
+  { 34.0, 270.0 },
+  { 23.0, 330.0 },
+  { 25.0, 360.0 }
+};
+
+float driverTurretClampT34[9][2] =
+{
+  { 27.0, 0.0 },
+  { 22.0, 45.0 },
+  { 30.0, 90.0 },
+  { 4.0, 155.0 },
+  { 5.0, 180.0 },
+  { 4.0, 205.0 },
+  { 30.0, 270.0 },
+  { 22.0, 315.0 },
+  { 27.0, 360.0 }
+};
+
+float driverTurretClampPanzer[8][2] =
+{
+  { 17.0, 0.0 },
+  { 13.0, 25.0 },
+  { 22.0, 90.0 },
+  { 8.0, 165.0 },
+  { 8.0, 205.0 },
+  { 22.0, 270.0 },
+  { 13.0, 335.0 },
+  { 17.0, 360.0 }
+};
+
+float (*driverClampArrays[2])[2] = { driverTurretClampT34, driverTurretClampPanzer };
+
+float (*gunnerClampArrays[2])[2] = { gunnerTurretClampT34, gunnerTurretClampPanzer };
+
+
+pmove_t cg_pmove[1];
+
+int cg_itemLocalClientNum;
+int cg_itemEntityCount;
+centity_s *cg_itemEntities[512];
 
 int __cdecl CG_ItemListLocalClientNum()
 {
@@ -120,10 +201,19 @@ LABEL_6:
         fmove = (float)cmd->forwardmove;
         smove = (float)cmd->rightmove;
         umove = 0.0f;
-        if ( bitarray<51>::testBit(&cmd->button_bits, 7u) )
+
+        //if (bitarray<51>::testBit(&cmd->button_bits, 7u))
+        if (cmd->button_bits.testBit(7))
+        {
             umove = umove + 127.0;
-        if ( bitarray<51>::testBit(&cmd->button_bits, 6u) )
+        }
+
+        //if (bitarray<51>::testBit(&cmd->button_bits, 6u))
+        if (cmd->button_bits.testBit(6))
+        {
             umove = umove - 127.0;
+        }
+
         max = fabs(fmove);
         if ( fabs(smove) > fabs(fmove) )
             max = fabs(smove);
@@ -161,7 +251,7 @@ LABEL_6:
             v5[1] = (float)(accelspeed * wishdir[1]) + v6[1];
             v5[2] = (float)(accelspeed * wishdir[2]) + v6[2];
         }
-        MovieCameraViewTrace(localClientNum, (int)&loc_800811);
+        MovieCameraViewTrace(localClientNum, 0x800811);
         MapCenter = (float *)CL_GetMapCenter();
         BG_ClipCameraToHeliPatch(
             cgameGlob->movieCameraOrigin,
@@ -326,7 +416,7 @@ void __cdecl CG_PredictPlayerState(int localClientNum)
             if ( vehicle->nitrousVeh->m_phys_user_data )
             {
                 Sys_EnterCriticalSection(CRITSECT_PHYSICS);
-                Phys_ObjGetPosition((int)&savedregs, (int)vehicle->nitrousVeh->m_phys_user_data, origin, absAxis);
+                Phys_ObjGetPosition((int)vehicle->nitrousVeh->m_phys_user_data, origin, absAxis);
                 Phys_ObjGetVelocities((int)vehicle->nitrousVeh->m_phys_user_data, tVelocity, aVelocity);
                 Phys_ObjGetCenterOfMass((int)vehicle->nitrousVeh->m_phys_user_data, origin);
                 Sys_LeaveCriticalSection(CRITSECT_PHYSICS);
@@ -339,6 +429,7 @@ void __cdecl CG_PredictPlayerState(int localClientNum)
     CL_SendCmd(localClientNum);
 }
 
+int opti = 1;
 void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
 {
     playerState_s *v1; // ecx
@@ -423,22 +514,22 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
     }
     else
     {
-        dword_F545B0[580 * localClientNum] = localClientNum;
+        cg_pmove[localClientNum].localClientNum = localClientNum;
         cg_pmove[localClientNum].ps = &cgameGlob->predictedPlayerState;
-        byte_F545AC[2320 * localClientNum] = 0;
-        if ( cg_pmove[localClientNum].ps->pm_type < 9 )
-            dword_F543CC[580 * localClientNum] = (int)&cls.recentServers[7647].hostName[20];
+        cg_pmove[localClientNum].handler = 0;
+        if (cg_pmove[localClientNum].ps->pm_type < 9)
+            cg_pmove[localClientNum].tracemask = 0x2818011;
         else
-            dword_F543CC[580 * localClientNum] = (int)&loc_810011;
-        if ( ps->pm_type == 4 )
+            cg_pmove[localClientNum].tracemask = 0x810011;
+        if (ps->pm_type == 4)
         {
-            dword_F543CC[580 * localClientNum] &= 0xFDFE7FFF;
-            dword_F543CC[580 * localClientNum] |= 0x800u;
+            cg_pmove[localClientNum].tracemask &= 0xFDFE7FFF;
+            cg_pmove[localClientNum].tracemask |= 0x800u;
         }
-        dword_F54598[580 * localClientNum] = 0;
-        dword_F54594[580 * localClientNum] = cgameGlob->stepViewStart;
+        cg_pmove[localClientNum].viewChange = 0.0f;
+        cg_pmove[localClientNum].viewChangeTime = cgameGlob->stepViewStart;
         cmdNum = current - 127;
-        if ( CL_GetUserCmd(localClientNum, current - 127, &oldestCmd) )
+        if (CL_GetUserCmd(localClientNum, current - 127, &oldestCmd))
         {
             CL_GetUserCmd(localClientNum, current, &latestCmd);
             if ( opti )
@@ -505,12 +596,12 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
             {
                 for ( cmdNum = current - 127; cmdNum <= current; ++cmdNum )
                 {
-                    CL_GetUserCmd(localClientNum, cmdNum, (usercmd_s *)&dword_F54364[580 * localClientNum]);
-                    if ( dword_F54364[580 * localClientNum] > cgameGlob->predictedPlayerState.commandTime
-                        && dword_F54364[580 * localClientNum] <= latestCmd.serverTime
-                        && CL_GetUserCmd(localClientNum, cmdNum - 1, (usercmd_s *)((char *)&unk_F54398 + 2320 * localClientNum)) )
+                    CL_GetUserCmd(localClientNum, cmdNum, &cg_pmove[localClientNum].cmd);
+                    if (cg_pmove[localClientNum].cmd.serverTime > cgameGlob->predictedPlayerState.commandTime
+                        && cg_pmove[localClientNum].cmd.serverTime <= latestCmd.serverTime
+                        && CL_GetUserCmd(localClientNum, cmdNum - 1, &cg_pmove[localClientNum].oldcmd))
                     {
-                        if ( cgameGlob->predictedPlayerState.commandTime == cgameGlob->oldCommandTime )
+                        if (cgameGlob->predictedPlayerState.commandTime == cgameGlob->oldCommandTime)
                         {
                             CG_AdjustPositionForMover(
                                 localClientNum,
@@ -520,11 +611,11 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
                                 cgameGlob->oldTime,
                                 adjusted,
                                 deltaAngles);
-                            if ( cg_showmiss->current.integer )
+                            if (cg_showmiss->current.integer)
                             {
-                                if ( cgameGlob->oldOrigin[0] != adjusted[0]
+                                if (cgameGlob->oldOrigin[0] != adjusted[0]
                                     || cgameGlob->oldOrigin[1] != adjusted[1]
-                                    || cgameGlob->oldOrigin[2] != adjusted[2] )
+                                    || cgameGlob->oldOrigin[2] != adjusted[2])
                                 {
                                     Com_PrintError(17, "prediction error\n");
                                 }
@@ -533,11 +624,11 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
                             delta[1] = cgameGlob->oldOrigin[1] - adjusted[1];
                             delta[2] = cgameGlob->oldOrigin[2] - adjusted[2];
                             len = Abs(delta);
-                            if ( len > 0.1 )
+                            if (len > 0.1)
                             {
-                                if ( cg_showmiss->current.integer )
+                                if (cg_showmiss->current.integer)
                                     Com_Printf(17, "Prediction miss: %f\n", len);
-                                if ( cg_errorDecay->current.value == 0.0 )
+                                if (cg_errorDecay->current.value == 0.0)
                                 {
                                     predictedError = cgameGlob->predictedError;
                                     cgameGlob->predictedError[0] = 0.0f;
@@ -548,9 +639,9 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
                                 {
                                     t = cgameGlob->time - cgameGlob->predictedErrorTime;
                                     f = (float)(cg_errorDecay->current.value - (float)t) / cg_errorDecay->current.value;
-                                    if ( f < 0.0 )
+                                    if (f < 0.0)
                                         f = 0.0f;
-                                    if ( f > 0.0 && cg_showmiss->current.integer )
+                                    if (f > 0.0 && cg_showmiss->current.integer)
                                         Com_Printf(17, "Double prediction decay: %f\n", f);
                                     v12 = cgameGlob->predictedError;
                                     v13 = cgameGlob->predictedError;
@@ -571,14 +662,14 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
                         oldDeltaAngles[1] = delta_angles[1];
                         oldDeltaAngles[2] = delta_angles[2];
                         Pmove(&cg_pmove[localClientNum]);
-                        if ( cg_pmove[localClientNum].ps->vehiclePos >= 1 && cg_pmove[localClientNum].ps->vehiclePos <= 4 )
+                        if (cg_pmove[localClientNum].ps->vehiclePos >= 1 && cg_pmove[localClientNum].ps->vehiclePos <= 4)
                         {
                             v1 = cg_pmove[localClientNum].ps;
                             delta_diff[0] = v1->delta_angles[0] - oldDeltaAngles[0];
                             delta_diff[1] = v1->delta_angles[1] - oldDeltaAngles[1];
                             delta_diff[2] = v1->delta_angles[2] - oldDeltaAngles[2];
                             CL_AdjustViewAngles(localClientNum, delta_diff);
-                            for ( j = cmdNum; j <= current; ++j )
+                            for (j = cmdNum; j <= current; ++j)
                                 CL_AdjustUserCmdAngles(localClientNum, j, delta_diff);
                             v7 = cg_pmove[localClientNum].ps->delta_angles;
                             *v7 = oldDeltaAngles[0];
@@ -591,8 +682,8 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
                 }
                 render_gjkcc_collision(&cg_pmove[localClientNum]);
             }
-            if ( cg_showmiss->current.integer > 1 )
-                Com_Printf(17, "[%i : %i] ", dword_F54364[580 * localClientNum], cgameGlob->time);
+            if (cg_showmiss->current.integer > 1)
+                Com_Printf(17, "[%i : %i] ", cg_pmove[localClientNum].cmd.serverTime, cgameGlob->time);
             if ( !bPredictionRun && cg_showmiss->current.integer )
                 Com_Printf(17, "no prediction run\n");
             if ( (cgameGlob->predictedPlayerState.pm_flags & 0x400) != 0 )
@@ -602,17 +693,17 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
                 cgameGlob->predictedPlayerState.cursorHintString = -1;
                 cgameGlob->predictedPlayerState.cursorHintEntIndex = 1023;
             }
-            if ( *(float *)&dword_F54598[580 * localClientNum] == 0.0
-                || dword_F54594[580 * localClientNum] == cgameGlob->stepViewStart
+            if (cg_pmove[localClientNum].viewChange == 0.0
+                || cg_pmove[localClientNum].viewChangeTime == cgameGlob->stepViewStart
                 || cgameGlob->playerTeleported
-                || ps->pm_type && ps->pm_type != 2 && ps->pm_type != 3 )
+                || ps->pm_type && ps->pm_type != 2 && ps->pm_type != 3)
             {
                 if ( (float)(cgameGlob->time - cgameGlob->stepViewStart) > (float)(cg_viewZSmoothingTime->current.value * 1000.0) )
                     cgameGlob->stepViewChange = 0.0f;
             }
             else
             {
-                diff = *(float *)&dword_F54598[580 * localClientNum];
+                diff = cg_pmove[localClientNum].viewChange;
                 if ( fabs(diff) < cg_viewZSmoothingMin->current.value )
                 {
                     if ( (float)(cgameGlob->time - cgameGlob->stepViewStart) > (float)(cg_viewZSmoothingTime->current.value
@@ -625,7 +716,7 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
                     if ( (float)(cg_viewZSmoothingTime->current.value * 1000.0) > (float)(cgameGlob->time
                                                                                                                                                             - cgameGlob->stepViewStart) )
                     {
-                        timeSinceStart = dword_F54594[580 * localClientNum] - cgameGlob->stepViewStart;
+                        timeSinceStart = cg_pmove[localClientNum].viewChangeTime - cgameGlob->stepViewStart;
                         smoothingDuration = (int)(float)(cg_viewZSmoothingTime->current.value * 1000.0);
                         if ( timeSinceStart >= 0 && timeSinceStart < smoothingDuration )
                             stepRemaining = (float)(1.0 - (float)((float)((float)timeSinceStart * 1.0) / (float)smoothingDuration))
@@ -633,11 +724,10 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
                     }
                     if ( (float)(stepRemaining + diff) <= 0.0 )
                     {
-                        if ( (float)(COERCE_FLOAT(cg_viewZSmoothingMax->current.integer ^ _mask__NegFloat_)
-                                             - (float)(stepRemaining + diff)) < 0.0 )
+                        if ( (float)(-(cg_viewZSmoothingMax->current.integer) - (float)(stepRemaining + diff)) < 0.0 )
                             v2 = stepRemaining + diff;
                         else
-                            LODWORD(v2) = cg_viewZSmoothingMax->current.integer ^ _mask__NegFloat_;
+                            v2 = -cg_viewZSmoothingMax->current.integer;
                         cgameGlob->stepViewChange = v2;
                     }
                     else
@@ -648,7 +738,7 @@ void __cdecl CG_PredictPlayerState_Internal(int localClientNum)
                             value = cg_viewZSmoothingMax->current.value;
                         cgameGlob->stepViewChange = value;
                     }
-                    cgameGlob->stepViewStart = dword_F54594[580 * localClientNum];
+                    cgameGlob->stepViewStart = cg_pmove[localClientNum].viewChangeTime;
                 }
             }
         }
@@ -857,7 +947,7 @@ char __cdecl CG_ShouldInterpolatePlayerStateViewClamp(int localClientNum, const 
         {
             if ( ((*((unsigned int *)cent + 201) >> 1) & 1) != 0 )
             {
-                vehInfo = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+                vehInfo = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
                 if ( !vehInfo
                     && !Assert_MyHandler(
                                 "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_predict_mp.cpp",
@@ -980,7 +1070,7 @@ void __cdecl CG_CopyFlagsFromSnapshotEntity(int localClientNum)
     cgameGlob->predictedPlayerEntity.flagState = Entity->flagState;
 }
 
-pmove_t *__thiscall pmove_t::pmove_t(pmove_t *this)
+pmove_t::pmove_t()
 {
     int j; // [esp+30h] [ebp-10h]
     int i; // [esp+3Ch] [ebp-4h]
@@ -989,113 +1079,14 @@ pmove_t *__thiscall pmove_t::pmove_t(pmove_t *this)
         this->cmd.button_bits.array[i] = 0;
     for ( j = 0; j < 2; ++j )
         this->oldcmd.button_bits.array[j] = 0;
-    colgeom_visitor_t::colgeom_visitor_t(&this->proximity_data);
-    this->proximity_data.__vftable = (colgeom_visitor_inlined_t<200>_vtbl *)&colgeom_visitor_inlined_t<200>::`vftable';
-    colgeom_visitor_inlined_t<500>::reset(&this->proximity_data);
-    return this;
+    //colgeom_visitor_t::colgeom_visitor_t(&this->proximity_data);
+    //this->proximity_data.__vftable = (colgeom_visitor_inlined_t<200>_vtbl *)&colgeom_visitor_inlined_t<200>::`vftable';
+    //colgeom_visitor_inlined_t<500>::reset(&this->proximity_data);
+    this->proximity_data.reset();
+    //return this;
 }
 
-void __thiscall colgeom_visitor_inlined_t<200>::visit(
-                colgeom_visitor_inlined_t<200> *this,
-                const CollisionAabbTree *tree)
-{
-    col_prim_t *prim; // [esp+4h] [ebp-4h]
-
-    if ( this->nprims < 200 )
-    {
-        prim = &this->prims[this->nprims++];
-        prim->type = 0;
-        prim->tree = tree;
-    }
-}
-
-void __thiscall colgeom_visitor_inlined_t<200>::visit(colgeom_visitor_inlined_t<200> *this, const cbrush_t *brush)
-{
-    col_prim_t *prim; // [esp+4h] [ebp-4h]
-
-    if ( this->nprims < 200 )
-    {
-        prim = &this->prims[this->nprims++];
-        prim->type = 1;
-        prim->tree = (const CollisionAabbTree *)brush;
-    }
-}
-
-void __thiscall colgeom_visitor_inlined_t<200>::update(
-                colgeom_visitor_inlined_t<200> *this,
-                const float *_mn,
-                const float *_mx,
-                int mask,
-                const float *expand_vec)
-{
-    bool v5; // [esp+0h] [ebp-58h]
-    float result[3]; // [esp+18h] [ebp-40h] BYREF
-    float b[3]; // [esp+24h] [ebp-34h] BYREF
-    float a[3]; // [esp+30h] [ebp-28h] BYREF
-    bool inside; // [esp+3Fh] [ebp-19h]
-    float mx[3]; // [esp+40h] [ebp-18h] BYREF
-    float mn[3]; // [esp+4Ch] [ebp-Ch] BYREF
-
-    a[0] = this->m_mn.vec.v[0] - *_mn;
-    a[1] = this->m_mn.vec.v[1] - _mn[1];
-    a[2] = this->m_mn.vec.v[2] - _mn[2];
-    b[0] = *_mx - this->m_mx.vec.v[0];
-    b[1] = _mx[1] - this->m_mx.vec.v[1];
-    b[2] = _mx[2] - this->m_mx.vec.v[2];
-    Vec3Max(a, b, result);
-    v5 = result[0] < 0.0 && result[1] < 0.0 && result[2] < 0.0;
-    inside = v5;
-    if ( this->m_mask != mask || !inside )
-    {
-        mn[0] = *_mn - *expand_vec;
-        mn[1] = _mn[1] - expand_vec[1];
-        mn[2] = _mn[2] - expand_vec[2];
-        mx[0] = *_mx + *expand_vec;
-        mx[1] = _mx[1] + expand_vec[1];
-        mx[2] = _mx[2] + expand_vec[2];
-        colgeom_visitor_inlined_t<500>::reset(this);
-        colgeom_visitor_t::intersect_box(this, mn, mx, mask);
-        if ( this->nprims == 200 )
-        {
-            StatMon_Warning(8, 3000, "code_warning_collision");
-            this->nprims = 0;
-            this->overflow = 1;
-        }
-    }
-}
-
-colgeom_visitor_t *__thiscall colgeom_visitor_t::colgeom_visitor_t(colgeom_visitor_t *this)
-{
-    this->__vftable = (colgeom_visitor_t_vtbl *)&visitor_base_t::`vftable';
-    this->__vftable = (colgeom_visitor_t_vtbl *)&colgeom_visitor_t::`vftable';
-    this->m_mn.vec.u[0] = 0;
-    this->m_mn.vec.u[1] = 0;
-    this->m_mn.vec.u[2] = 0;
-    this->m_mn.vec.u[3] = 0;
-    this->m_mx.vec.u[0] = 0;
-    this->m_mx.vec.u[1] = 0;
-    this->m_mx.vec.u[2] = 0;
-    this->m_mx.vec.u[3] = 0;
-    this->m_p0.vec.u[0] = 0;
-    this->m_p0.vec.u[1] = 0;
-    this->m_p0.vec.u[2] = 0;
-    this->m_p0.vec.u[3] = 0;
-    this->m_p1.vec.u[0] = 0;
-    this->m_p1.vec.u[1] = 0;
-    this->m_p1.vec.u[2] = 0;
-    this->m_p1.vec.u[3] = 0;
-    this->m_delta.vec.u[0] = 0;
-    this->m_delta.vec.u[1] = 0;
-    this->m_delta.vec.u[2] = 0;
-    this->m_delta.vec.u[3] = 0;
-    this->m_rvec.vec.u[0] = 0;
-    this->m_rvec.vec.u[1] = 0;
-    this->m_rvec.vec.u[2] = 0;
-    this->m_rvec.vec.u[3] = 0;
-    return this;
-}
-
-pmove_t *__thiscall pmove_t::pmove_t(pmove_t *this, const pmove_t *__that)
+pmove_t::pmove_t(const pmove_t *__that)
 {
     colgeom_visitor_inlined_t<200> *p_proximity_data; // [esp+10h] [ebp-4h]
 
@@ -1119,29 +1110,10 @@ pmove_t *__thiscall pmove_t::pmove_t(pmove_t *this, const pmove_t *__that)
     this->localClientNum = __that->localClientNum;
     this->m_gjkcc_input = __that->m_gjkcc_input;
     p_proximity_data = &this->proximity_data;
-    colgeom_visitor_t::colgeom_visitor_t(&this->proximity_data, &__that->proximity_data);
-    p_proximity_data->__vftable = (colgeom_visitor_inlined_t<200>_vtbl *)&colgeom_visitor_inlined_t<200>::`vftable';
+    //colgeom_visitor_t::colgeom_visitor_t(&this->proximity_data, &__that->proximity_data);
+    //p_proximity_data->__vftable = (colgeom_visitor_inlined_t<200>_vtbl *)&colgeom_visitor_inlined_t<200>::`vftable';
     p_proximity_data->nprims = __that->proximity_data.nprims;
     p_proximity_data->overflow = __that->proximity_data.overflow;
     memcpy(p_proximity_data->prims, __that->proximity_data.prims, sizeof(p_proximity_data->prims));
-    return this;
+    //return this;
 }
-
-colgeom_visitor_t *__thiscall colgeom_visitor_t::colgeom_visitor_t(
-                colgeom_visitor_t *this,
-                const colgeom_visitor_t *__that)
-{
-    this->__vftable = (colgeom_visitor_t_vtbl *)&visitor_base_t::`vftable';
-    this->__vftable = (colgeom_visitor_t_vtbl *)&colgeom_visitor_t::`vftable';
-    this->m_mn = __that->m_mn;
-    this->m_mx = __that->m_mx;
-    this->m_p0 = __that->m_p0;
-    this->m_p1 = __that->m_p1;
-    this->m_delta = __that->m_delta;
-    this->m_rvec = __that->m_rvec;
-    this->m_radius = __that->m_radius;
-    this->m_mask = __that->m_mask;
-    this->m_threadInfo = __that->m_threadInfo;
-    return this;
-}
-

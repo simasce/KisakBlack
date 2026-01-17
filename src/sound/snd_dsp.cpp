@@ -165,11 +165,6 @@ void __cdecl SND_DspOnePoleFilterMono(unsigned int count, float *frames, float b
     *y1 = *(v6 - 1);
 }
 
-double __cdecl fabs(float f)
-{
-    return (float)fabs(f);
-}
-
 void __cdecl SND_OcclusionLpfCoef(float occlusionLevel, float occlusionRatio, float sampleRate, float *b0, float *a1)
 {
     double v5; // st7

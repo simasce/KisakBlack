@@ -1780,7 +1780,7 @@ const NetField actorStateFields[69] =
     "0"
   },
   { "targetname", 206, 2, 16, 0u, "16", "0" },
-  { "lerp.u.actor.index.actorNum", 84, 4, 4, 0u, "ACTOR_BITS", "0" },
+  { "lerp.u.actor.actorNum", 84, 4, 4, 0u, "ACTOR_BITS", "0" },
   { "time2", 120, 4, -97, 0u, "MSG_FIELD_TIME", "0" },
   { "index", 194, 2, 10, 0u, "SUBMODEL_BITS", "0" },
   { "solid", 128, 4, 24, 0u, "24", "0" },

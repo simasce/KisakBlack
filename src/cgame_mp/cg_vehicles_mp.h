@@ -1,5 +1,10 @@
 #pragma once
 
+struct DObj;
+struct centity_s;
+struct clientInfo_t;
+struct vehicle_info_t;
+
 DObj *__cdecl GetVehicleEntDObj(int localClientNum, centity_s *centVeh);
 bool __cdecl CG_VehEntityUsingVehicle(int localClientNum, int entNum);
 clientInfo_t *__cdecl ClientInfoForEntity(int localClientNum, int entNum);

@@ -1,5 +1,8 @@
 #pragma once
 
+struct DObj;
+struct centity_s;
+
 void __cdecl CG_GetTagMatrix(int localClientNum, int linkEntNum, unsigned __int16 tagName, float (*resultTagMat)[3]);
 DObj *__cdecl GetLinkEntDObj(int localClientNum, centity_s *centLink);
 void __cdecl CG_CalcTagParentAxis(int localClientNum, centity_s *cent, float (*parentAxis)[3]);

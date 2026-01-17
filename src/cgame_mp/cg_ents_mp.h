@@ -1,5 +1,35 @@
 #pragma once
 
+enum eFoot : __int32
+{
+    FOOTSTEP_FRONTRIGHT = 0x0,
+    FOOTSTEP_FRONTLEFT  = 0x1,
+    FOOTSTEP_REARRIGHT  = 0x2,
+    FOOTSTEP_REARLEFT   = 0x3,
+    FOOTSTEP_COUNT      = 0x4,
+};
+
+struct DObj;
+struct centity_s;
+struct XAnimClientNotify;
+struct cg_s;
+struct GfxSceneEntity;
+struct cpose_t;
+struct ComPrimaryLight;
+struct DObjAnimMat;
+struct XAnim_s;
+struct trajectory_t;
+struct XModel;
+struct DObjModel_s;
+struct WeaponDef;
+
+struct DelayListInfo // sizeof=0xC
+{                                       // XREF: ?CG_AddPacketEntities@@YAHH@Z/r
+    centity_s *head;
+    centity_s *latest;
+    int size;
+};
+
 unsigned int __cdecl CG_GetShadowHintForRefEntity(__int16 eFlags);
 void __cdecl CG_Player_PreControllers(DObj *obj, centity_s *cent);
 void __cdecl CG_mg42_OverheatUpdate(int localClientNum, const DObj *obj, centity_s *cent);
@@ -19,8 +49,6 @@ void    CG_AdjustPositionForMover(
                 float *out,
                 float *outDeltaAngles);
 void __cdecl LerpAngleVector(float *from, const float *to, float frac, float *result);
-phys_vec3 *__cdecl operator-(phys_vec3 *result, const phys_vec3 *a, const phys_vec3 *b);
-void __cdecl Phys_AxisToNitrousMat(float (*axis)[3], phys_mat44 *outMat);
 bool __cdecl ShouldAdjustPositionForMover(const centity_s *cent);
 void __cdecl CG_SetFrameInterpolation(int localClientNum);
 void __cdecl CScr_GetFootColor(eFoot foot, float *color);
@@ -47,7 +75,7 @@ void __cdecl CG_ProcessFakeEntClientNoteTracks(int localClientNum, int entityNum
 void __cdecl CG_AddPacketEntity(int localClientNum, unsigned int entnum);
 void __cdecl CG_UpdateClientDobjPartBits(centity_s *cent, unsigned int entnum, int localClientNum);
 int __cdecl CG_AddPacketEntities(int localClientNum);
-void __cdecl CG_ProcessFakeEntity(int localClientNum, fake_centity_s *fakeEnt);
+void __cdecl CG_ProcessFakeEntity(int localClientNum, struct fake_centity_s *fakeEnt);
 void __cdecl CG_General(int localClientNum, centity_s *cent);
 void __cdecl CG_GetLightingOrigin(centity_s *cent, float *lightingOrigin);
 void __cdecl CG_FakeEntityEffects(int localClientNum, centity_s *cent);
@@ -88,7 +116,7 @@ bool __cdecl ShouldUpdateNitrousVehicleFromNetwork(const cg_s *cgameGlob);
 void __cdecl CG_CreateRagdollObject(int localClientNum, centity_s *cent);
 void __cdecl CG_CalcEntityLerpPositions(int localClientNum, centity_s *cent);
 void __cdecl CG_InterpolateEntityPosition(cg_s *cgameGlob, centity_s *cent, int localClientNum);
-fake_centity_s *__cdecl CG_GetFakeEntity(int localClientNum, int entityIndex);
+struct fake_centity_s *__cdecl CG_GetFakeEntity(int localClientNum, int entityIndex);
 void __cdecl CG_InterpolateVehicle(cg_s *cgameGlob, centity_s *cent, int curTime);
 void __cdecl CG_LerpTrajectory(
                 const cg_s *cgameGlob,
@@ -143,7 +171,7 @@ void __cdecl CG_GetPoseOrigin(const cpose_t *pose, float *origin);
 void __cdecl CG_GetPoseAxis(const cpose_t *pose, float (*axis)[3]);
 void __cdecl CG_GetPoseQuat(const cpose_t *pose, float *quat);
 float *__cdecl CG_GetEntityOrigin(int localClientNum, unsigned int entnum);
-GfxSkinCacheEntry *__cdecl CG_GetSkinCacheEntry(const cpose_t *pose);
+struct GfxSkinCacheEntry *__cdecl CG_GetSkinCacheEntry(const cpose_t *pose);
 void __cdecl CG_PredictiveSkinCEntity(GfxSceneEntity *sceneEnt);
 void __cdecl CG_SetOrigin(centity_s *ent, const float *origin);
 void __cdecl CG_SetAngle(centity_s *ent, const float *angle);
@@ -161,3 +189,5 @@ void __cdecl CG_ClientFlagClear(centity_s *cent, unsigned int flagNum);
 bool __cdecl CG_ClientFlagIsActive(const centity_s *cent, unsigned int flagNum);
 bool __cdecl CG_ClientFlagIsSet(const centity_s *cent, unsigned int flagNum);
 char *__cdecl CG_AllocAnimTree(int size);
+
+extern int g_processEvents;

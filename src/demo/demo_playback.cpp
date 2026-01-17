@@ -5200,13 +5200,13 @@ void __cdecl Demo_AdjustTimeForEntityState(int currentTime, int clipTime, entity
         else
             state->lerp.apos.trTime = deltab;
     }
-    if ( !state->eType && state->lerp.u.actor.index.actorNum )
+    if ( !state->eType && state->lerp.u.actor.actorNum )
     {
-        deltac = clipTime + state->lerp.u.actor.index.actorNum - currentTime;
+        deltac = clipTime + state->lerp.u.actor.actorNum - currentTime;
         if ( deltac <= 0 )
-            state->lerp.u.actor.index.actorNum = 0;
+            state->lerp.u.actor.actorNum = 0;
         else
-            state->lerp.u.actor.index.actorNum = deltac;
+            state->lerp.u.actor.actorNum = deltac;
     }
     if ( state->eType == 4 )
     {
@@ -5218,13 +5218,13 @@ void __cdecl Demo_AdjustTimeForEntityState(int currentTime, int clipTime, entity
             else
                 state->lerp.u.actor.team = deltad;
         }
-        if ( state->lerp.u.actor.index.actorNum )
+        if ( state->lerp.u.actor.actorNum )
         {
-            deltae = clipTime + state->lerp.u.actor.index.actorNum - currentTime;
+            deltae = clipTime + state->lerp.u.actor.actorNum - currentTime;
             if ( deltae <= 0 )
-                state->lerp.u.actor.index.actorNum = 0;
+                state->lerp.u.actor.actorNum = 0;
             else
-                state->lerp.u.actor.index.actorNum = deltae;
+                state->lerp.u.actor.actorNum = deltae;
         }
     }
 }

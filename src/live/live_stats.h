@@ -96,21 +96,6 @@ enum playerStatsKeyIndex_t : __int32
     MP_PLAYERSTATSKEY_COUNT          = 0x28,
 };
 
-enum statsMilestoneTypes_t : __int32
-{                                       // XREF: statsMilestone_t/r
-                                        // challengeInfo_t/r ...
-    MILESTONE_GLOBAL      = 0x0,
-    MILESTONE_WEAPON      = 0x1,
-    MILESTONE_MAP         = 0x2,
-    MILESTONE_GAMEMODE    = 0x3,
-    MILESTONE_GROUP       = 0x4,
-    MILESTONE_ATTACHMENTS = 0x5,
-    MILESTONE_KILLSTREAKS = 0x6,
-    MILESTONE_GRENADES    = 0x7,
-    MILESTONE_COUNT       = 0x8,
-    MILESTONE_INVALID     = 0xFFFFFFFF,
-};
-
 struct personalBest_t // sizeof=0x14
 {                                       // XREF: .data:s_personalBests/r
     const char *name;

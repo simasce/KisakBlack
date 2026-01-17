@@ -7,6 +7,7 @@
 #include <universal/com_math_anglevectors.h>
 #include "bg_pmove.h"
 #include <cgame/cg_drawtools.h>
+#include <cgame_mp/cg_predict_mp.h>
 
 
 const dvar_t *mantle_enable;
@@ -120,7 +121,7 @@ void __cdecl Mantle_RegisterDvars()
     prone_bipod_enable = _Dvar_RegisterBool("prone_bipod_enable", 1, 0x180u, "Enable bipods whilst prone");
 }
 
-void __cdecl Mantle_CreateAnims(void *(__cdecl *xanimAlloc)(int))
+void __cdecl Mantle_CreateAnims(void *(__cdecl *xanimAlloc)(unsigned int))
 {
     double Height; // st7
     double v2; // st7

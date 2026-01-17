@@ -23,7 +23,6 @@ static const float sc = 20.0f;
 
 int g_ropesRendered;
 
-pmove_t cg_pmove[1];
 cCurve g_ropeCurve;
 
 int g_max_ropes;

@@ -1,4 +1,43 @@
 #include "cg_snapshot_mp.h"
+#include "cg_main_mp.h"
+#include <cgame/cg_scr_main.h>
+#include <clientscript/scr_const.h>
+#include <client/splitscreen.h>
+#include "cg_ents_mp.h"
+#include <clientscript/cscr_vm.h>
+#include <cgame/cg_event.h>
+#include <ragdoll/ragdoll.h>
+#include <cgame/cg_colltree.h>
+#include <cgame/cg_world.h>
+#include "cg_animtree_mp.h"
+#include <clientscript/cscr_memorytree.h>
+#include <physics/phys_auto_rigid_body.h>
+#include <gfx_d3d/r_shader_constant_set.h>
+#include <gfx_d3d/r_dpvs.h>
+#include <universal/com_math_anglevectors.h>
+#include <sound/snd_public_async.h>
+#include <qcommon/dobj_management.h>
+#include <cgame/cg_spawn.h>
+#include <demo/demo_playback.h>
+#include "cg_servercmds_mp.h"
+#include <live/live_pcache.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <EffectsCore/fx_marks.h>
+#include <EffectsCore/fx_unique_handle.h>
+#include <EffectsCore/fx_system.h>
+#include "cg_players_mp.h"
+#include "cg_scr_main_mp.h"
+#include "cg_predict_mp.h"
+#include "cg_scoreboard_mp.h"
+#include "cg_animscripted_mp.h"
+#include "cg_actors_mp.h"
+#include <aim_assist/aim_assist.h>
+#include <cgame/cg_vehicle.h>
+#include <cgame/offhandweapons.h>
+#include <bgame/bg_dog_animations_mp.h>
+#include "cg_vehicles_mp.h"
+#include <client/cl_rank.h>
+#include "cg_draw_net_mp.h"
 
 void __cdecl CG_ShutdownEntity(int localClientNum, centity_s *cent, bool shutdown_script_for_local_client)
 {
@@ -173,17 +212,17 @@ void __cdecl CG_ShutdownEntity(int localClientNum, centity_s *cent, bool shutdow
     }
     if ( cent->cScriptMover )
     {
-        MT_Free(cent->cScriptMover, 96, SCRIPTINSTANCE_SERVER);
+        MT_Free((unsigned char *)cent->cScriptMover, 96, SCRIPTINSTANCE_SERVER);
         cent->cScriptMover = 0;
     }
     if ( cent->vehicle )
     {
         if ( cent->vehicle->vehicle_cache )
         {
-            MT_Free(cent->vehicle->vehicle_cache, 1928, SCRIPTINSTANCE_SERVER);
+            MT_Free((unsigned char *)cent->vehicle->vehicle_cache, 1928, SCRIPTINSTANCE_SERVER);
             cent->vehicle->vehicle_cache = 0;
         }
-        MT_Free(cent->vehicle, 84, SCRIPTINSTANCE_SERVER);
+        MT_Free((unsigned char *)cent->vehicle, 84, SCRIPTINSTANCE_SERVER);
         cent->vehicle = 0;
     }
     auto_rigid_body::remove_ent(cent);
@@ -870,14 +909,14 @@ void __cdecl CG_SetNextSnap(int localClientNum, snapshot_s *snap)
     }
 }
 
-void __cdecl CG_ResetEntity(int localClientNum, centity_s *cent, int newEntity)
+void CG_ResetEntity(int localClientNum, centity_s *cent, int newEntity)
 {
     centity_s *Entity; // eax
-    float *v4; // [esp+Ch] [ebp-40h]
+    float *v5; // [esp+Ch] [ebp-40h]
     actorInfo_t *ai; // [esp+20h] [ebp-2Ch]
     actorInfo_t *aiCorpseInfo; // [esp+24h] [ebp-28h]
     unsigned __int16 t; // [esp+28h] [ebp-24h]
-    const DObj *obj; // [esp+2Ch] [ebp-20h]
+    DObj *obj; // [esp+2Ch] [ebp-20h]
     DObj *obja; // [esp+2Ch] [ebp-20h]
     cg_s *cgameGlob; // [esp+30h] [ebp-1Ch]
     XAnimTree_s *pXAnimTree; // [esp+34h] [ebp-18h]
@@ -891,247 +930,245 @@ void __cdecl CG_ResetEntity(int localClientNum, centity_s *cent, int newEntity)
     int i; // [esp+44h] [ebp-8h]
     int ia; // [esp+44h] [ebp-8h]
     clientInfo_t *corpseInfo; // [esp+48h] [ebp-4h]
-    int savedregs; // [esp+4Ch] [ebp+0h] BYREF
 
-    if ( (cent->currentState.useCount != cent->nextState.lerp.useCount
-         || cent->nextState.eType != 14
-         && cent->nextState.eType != 1
-         && cent->nextState.eType != 2
-         && cent->nextState.eType != 17
-         && cent->nextState.eType != 19)
-        && (!cent->destructible || cent->nitrousVeh) )
+    if ((cent->currentState.useCount != cent->nextState.lerp.useCount
+        || cent->nextState.eType != 14
+        && cent->nextState.eType != 1
+        && cent->nextState.eType != 2
+        && cent->nextState.eType != 17
+        && cent->nextState.eType != 19)
+        && (!cent->destructible || cent->nitrousVeh))
     {
         CG_ShutdownEntity(localClientNum, cent, 0);
         CG_ClearUnion(localClientNum, cent);
     }
-    if ( newEntity && cent->nextState.number >= 44 )
+    if (newEntity && cent->nextState.number >= 44)
         CG_SafeDObjFree(localClientNum, cent->nextState.number);
     AimAssist_ClearEntityReference(localClientNum, cent->nextState.number);
     memcpy(&cent->currentState, &cent->nextState.lerp, sizeof(cent->currentState));
-    *((unsigned int *)cent + 201) &= ~0x10u;
-    *((unsigned int *)cent + 201) &= ~0x800000u;
+    *((_DWORD *)cent + 201) &= ~0x10u;
+    *((_DWORD *)cent + 201) &= ~0x800000u;
     cent->pose.cullIn = 0;
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
     BG_EvaluateTrajectory(&cent->nextState.lerp.pos, cgameGlob->time, cent->pose.origin);
     BG_EvaluateTrajectory(&cent->nextState.lerp.apos, cgameGlob->time, cent->pose.angles);
-    if ( cent->pose.localClientNum != localClientNum
+    if (cent->pose.localClientNum != localClientNum
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
-                    250,
-                    0,
-                    "%s",
-                    "cent->pose.localClientNum == localClientNum") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
+            250,
+            0,
+            "%s",
+            "cent->pose.localClientNum == localClientNum"))
     {
         __debugbreak();
     }
     cent->pose.eType = cent->nextState.eType;
-    if ( cent->pose.eType != cent->nextState.eType
+    if (cent->pose.eType != cent->nextState.eType
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
-                    253,
-                    0,
-                    "%s",
-                    "cent->pose.eType == cent->nextState.eType") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
+            253,
+            0,
+            "%s",
+            "cent->pose.eType == cent->nextState.eType"))
     {
         __debugbreak();
     }
     CG_UnlinkEntity(localClientNum, cent->nextState.number);
     R_InitShaderConstantSet(&cent->pose.constantSet);
-    switch ( cent->nextState.eType )
+    switch (cent->nextState.eType)
     {
-        case 0:
-        case 4:
-            if ( (cent->nextState.lerp.eFlags & 0x4000) != 0
-                && cgameGlob->time - cent->nextState.lerp.u.actor.index.actorNum > 200 )
-            {
-                cent->previousEventSequence = cent->nextState.eventSequence;
-            }
-            else
-            {
-                cent->previousEventSequence = 0;
-            }
-            goto LABEL_74;
-        case 1:
-            for ( ia = 0; ia < 6; ++ia )
-                cent->pose.player.tag[ia] = -2;
+    case 0:
+    case 4:
+        if ((cent->nextState.lerp.eFlags & 0x4000) != 0
+            && cgameGlob->time - cent->nextState.lerp.u.actor.actorNum > 200)
+        {
             cent->previousEventSequence = cent->nextState.eventSequence;
-            if ( cent->nextState.clientNum >= 0x20u
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
-                            295,
-                            0,
-                            "cent->nextState.clientNum doesn't index MAX_CLIENTS\n\t%i not in [0, %i)",
-                            cent->nextState.clientNum,
-                            32) )
+        }
+        else
+        {
+            cent->previousEventSequence = 0;
+        }
+        goto LABEL_74;
+    case 1:
+        for (ia = 0; ia < 6; ++ia)
+            cent->pose.player.tag[ia] = -2;
+        cent->previousEventSequence = cent->nextState.eventSequence;
+        if (cent->nextState.clientNum >= 0x20u
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
+                295,
+                0,
+                "cent->nextState.clientNum doesn't index MAX_CLIENTS\n\t%i not in [0, %i)",
+                cent->nextState.clientNum,
+                32))
+        {
+            __debugbreak();
+        }
+        cia = &cgameGlob->bgs.clientinfo[cent->nextState.clientNum];
+        cia->lerpMoveDir = (float)cent->nextState.lerp.u.loopFx.period;
+        cia->lerpLean = cent->nextState.lerp.u.turret.gunAngles[0];
+        cia->playerAngles[0] = cent->pose.angles[0];
+        cia->playerAngles[1] = cent->pose.angles[1];
+        cia->playerAngles[2] = cent->pose.angles[2];
+        cent->pose.angles[0] = 0.0f;
+        cent->pose.angles[2] = 0.0f;
+        CG_ResetPlayerEntity(localClientNum, cgameGlob, cent, newEntity);
+        obja = Com_GetClientDObj(cent->nextState.number, localClientNum);
+        if (obja)
+            CG_Player_PreControllers(obja, cent);
+        goto LABEL_74;
+    case 2:
+        corpseIndex = cent->nextState.number - 32;
+        if (cent->nextState.clientNum >= 0x20u
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
+                311,
+                0,
+                "cent->nextState.clientNum doesn't index MAX_CLIENTS\n\t%i not in [0, %i)",
+                cent->nextState.clientNum,
+                32))
+        {
+            __debugbreak();
+        }
+        ci = &cgameGlob->bgs.clientinfo[cent->nextState.clientNum];
+        cgs = CG_GetLocalClientStaticGlobals(localClientNum);
+        if (corpseIndex >= 4
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
+                314,
+                0,
+                "corpseIndex doesn't index MAX_CLIENT_CORPSES\n\t%i not in [0, %i)",
+                corpseIndex,
+                4))
+        {
+            __debugbreak();
+        }
+        corpseInfo = &cgs->corpseinfo[corpseIndex];
+        pXAnimTree = cgs->corpseinfo[corpseIndex].pXAnimTree;
+        cent->miscTime = cgameGlob->time;
+        if ((cent->nextState.lerp.eFlags & 0x10) != 0)
+        {
+            *((_DWORD *)cent + 201) |= 0x100u;
+            Entity = CG_GetEntity(localClientNum, cent->nextState.clientNum);
+            CScr_AddEntity(Entity, localClientNum);
+            Scr_AddInt(localClientNum, SCRIPTINSTANCE_CLIENT);
+            t = CScr_ExecEntThread(cent, cg_scr_data.corpse_callback, 2u);
+            Scr_FreeThread(t, SCRIPTINSTANCE_CLIENT);
+            CG_CopyCorpseInfo(corpseInfo, ci);
+            cgs->corpseinfo[corpseIndex].pXAnimTree = pXAnimTree;
+            XAnimCloneAnimTree(ci->pXAnimTree, pXAnimTree);
+            cent->previousEventSequence = 0;
+        }
+        else
+        {
+            if (!cgs->corpseinfo[corpseIndex].model[0] || cgs->corpseinfo[corpseIndex].clientNum != ci->clientNum)
             {
-                __debugbreak();
-            }
-            cia = &cgameGlob->bgs.clientinfo[cent->nextState.clientNum];
-            cia->lerpMoveDir = (float)cent->nextState.lerp.u.loopFx.period;
-            cia->lerpLean = cent->nextState.lerp.u.turret.gunAngles[0];
-            cia->playerAngles[0] = cent->pose.angles[0];
-            cia->playerAngles[1] = cent->pose.angles[1];
-            cia->playerAngles[2] = cent->pose.angles[2];
-            cent->pose.angles[0] = 0.0f;
-            cent->pose.angles[2] = 0.0f;
-            CG_ResetPlayerEntity(localClientNum, cgameGlob, cent, newEntity);
-            obja = Com_GetClientDObj(cent->nextState.number, localClientNum);
-            if ( obja )
-                CG_Player_PreControllers(obja, cent);
-            goto LABEL_74;
-        case 2:
-            corpseIndex = cent->nextState.number - 32;
-            if ( cent->nextState.clientNum >= 0x20u
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
-                            311,
-                            0,
-                            "cent->nextState.clientNum doesn't index MAX_CLIENTS\n\t%i not in [0, %i)",
-                            cent->nextState.clientNum,
-                            32) )
-            {
-                __debugbreak();
-            }
-            ci = &cgameGlob->bgs.clientinfo[cent->nextState.clientNum];
-            cgs = CG_GetLocalClientStaticGlobals(localClientNum);
-            if ( corpseIndex >= 4
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
-                            314,
-                            0,
-                            "corpseIndex doesn't index MAX_CLIENT_CORPSES\n\t%i not in [0, %i)",
-                            corpseIndex,
-                            4) )
-            {
-                __debugbreak();
-            }
-            corpseInfo = (clientInfo_t *)&cgs->corpseinfo[1480 * corpseIndex];
-            pXAnimTree = *(XAnimTree_s **)&cgs->corpseinfo[1480 * corpseIndex + 1332];
-            cent->miscTime = cgameGlob->time;
-            if ( (cent->nextState.lerp.eFlags & 0x10) != 0 )
-            {
-                *((unsigned int *)cent + 201) |= 0x100u;
-                Entity = CG_GetEntity(localClientNum, cent->nextState.clientNum);
-                CScr_AddEntity(Entity, localClientNum);
-                Scr_AddInt(localClientNum, SCRIPTINSTANCE_CLIENT);
-                t = CScr_ExecEntThread(cent, cg_scr_data.corpse_callback, 2u);
-                Scr_FreeThread(t, SCRIPTINSTANCE_CLIENT);
                 CG_CopyCorpseInfo(corpseInfo, ci);
-                *(unsigned int *)&cgs->corpseinfo[1480 * corpseIndex + 1332] = pXAnimTree;
-                XAnimCloneAnimTree(ci->pXAnimTree, pXAnimTree);
-                cent->previousEventSequence = 0;
+                cgs->corpseinfo[corpseIndex].pXAnimTree = pXAnimTree;
             }
-            else
-            {
-                if ( !cgs->corpseinfo[1480 * corpseIndex + 156]
-                    || *(unsigned int *)&cgs->corpseinfo[1480 * corpseIndex + 8] != ci->clientNum )
-                {
-                    CG_CopyCorpseInfo(corpseInfo, ci);
-                    *(unsigned int *)&cgs->corpseinfo[1480 * corpseIndex + 1332] = pXAnimTree;
-                }
-                cent->previousEventSequence = cent->nextState.eventSequence;
-            }
-            *(unsigned int *)&cgs->corpseinfo[1480 * corpseIndex + 1116] = 1;
-            goto LABEL_74;
-        case 6:
-        case 0xD:
             cent->previousEventSequence = cent->nextState.eventSequence;
-            if ( (char *)cent->nextState.solid != &cls.rankedServers[711].game[34] )
-                goto LABEL_74;
-            CG_UpdateBModelWorldBounds((int)&savedregs, localClientNum, cent, 1);
-            break;
-        case 8:
-        case 9:
-            if ( UniqueHandleToEffect(localClientNum, cent->pose.fx.effect)
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
-                            364,
-                            0,
-                            "%s",
-                            "!UniqueHandleToEffect(localClientNum,cent->pose.fx.effect)") )
-            {
-                __debugbreak();
-            }
+        }
+        cgs->corpseinfo[corpseIndex].dobjDirty = 1;
+        goto LABEL_74;
+    case 6:
+    case 0xD:
+        cent->previousEventSequence = cent->nextState.eventSequence;
+        if ((char *)cent->nextState.solid != &cls.rankedServers[711].game[34])
             goto LABEL_74;
-        case 0xB:
-            cent->previousEventSequence = cent->nextState.eventSequence;
-            cent->pose.turret.tag_aim = -2;
-            cent->pose.turret.tag_aim_pivot = -2;
-            cent->pose.turret.tag_aim_animated = -2;
-            cent->pose.turret.tag_flash = -2;
-            goto LABEL_74;
-        case 0xE:
-        case 0x10:
-            cent->previousEventSequence = cent->nextState.eventSequence;
-            cent->pose.vehicle.tag_body = -2;
-            cent->pose.vehicle.tag_turret = -2;
-            cent->pose.vehicle.tag_barrel = -2;
-            cent->pose.vehicle.tag_barrel_recoil = -2;
-            for ( i = 0; i < 6; ++i )
-                cent->pose.vehicle.wheelBoneIndex[i] = -2;
-            obj = Com_GetClientDObj(cent->nextState.number, localClientNum);
-            if ( obj )
-                CG_Vehicle_PreControllers((cStaticModel_s *)&savedregs, (int)&cent->nextState.time2, localClientNum, obj, cent);
-            goto LABEL_74;
-        case 0x11:
-            cent->previousEventSequence = cent->nextState.eventSequence;
-            CG_ResetActorEntity(localClientNum, cgameGlob, cent);
-            goto LABEL_74;
-        case 0x13:
-            cent->previousEventSequence = cent->nextState.eventSequence;
-            if ( (unsigned int)(cent->nextState.number - 36) >= 8
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
-                            387,
-                            0,
-                            "cent->nextState.number - ACTOR_CORPSES doesn't index MAX_ACTOR_CORPSES\n\t%i not in [0, %i)",
-                            cent->nextState.number - 36,
-                            8) )
-            {
-                __debugbreak();
-            }
-            corpseIndexa = cent->nextState.number - 36;
-            ai = &cgameGlob->bgs.actorinfo[cent->nextState.lerp.u.actor.index.actorNum];
-            cgsa = CG_GetLocalClientStaticGlobals(localClientNum);
-            if ( corpseIndexa >= 8
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
-                            391,
-                            0,
-                            "corpseIndex doesn't index MAX_ACTOR_CORPSES\n\t%i not in [0, %i)",
-                            corpseIndexa,
-                            8) )
-            {
-                __debugbreak();
-            }
-            aiCorpseInfo = (actorInfo_t *)&cgsa->actorCorpseInfo[corpseIndexa].animInfo.legs.pitchAngle;
-            pXAnimTreea = (XAnimTree_s *)cgsa->actorCorpseInfo[corpseIndexa + 1].animInfo.legs.yawing;
-            if ( (cent->nextState.lerp.eFlags & 0x10) != 0 )
+        CG_UpdateBModelWorldBounds(localClientNum, cent, 1);
+        break;
+    case 8:
+    case 9:
+        if (UniqueHandleToEffect(localClientNum, cent->pose.fx.effect)
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
+                364,
+                0,
+                "%s",
+                "!UniqueHandleToEffect(localClientNum,cent->pose.fx.effect)"))
+        {
+            __debugbreak();
+        }
+        goto LABEL_74;
+    case 0xB:
+        cent->previousEventSequence = cent->nextState.eventSequence;
+        cent->pose.turret.tag_aim = -2;
+        cent->pose.turret.tag_aim_pivot = -2;
+        cent->pose.turret.tag_aim_animated = -2;
+        cent->pose.turret.tag_flash = -2;
+        goto LABEL_74;
+    case 0xE:
+    case 0x10:
+        cent->previousEventSequence = cent->nextState.eventSequence;
+        cent->pose.vehicle.tag_body = -2;
+        cent->pose.vehicle.tag_turret = -2;
+        cent->pose.vehicle.tag_barrel = -2;
+        cent->pose.vehicle.tag_barrel_recoil = -2;
+        for (i = 0; i < 6; ++i)
+            cent->pose.vehicle.wheelBoneIndex[i] = -2;
+        obj = Com_GetClientDObj(cent->nextState.number, localClientNum);
+        if (obj)
+            CG_Vehicle_PreControllers(localClientNum, obj, cent);
+        goto LABEL_74;
+    case 0x11:
+        cent->previousEventSequence = cent->nextState.eventSequence;
+        CG_ResetActorEntity(localClientNum, cgameGlob, cent);
+        goto LABEL_74;
+    case 0x13:
+        cent->previousEventSequence = cent->nextState.eventSequence;
+        if ((unsigned int)(cent->nextState.number - 36) >= 8
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
+                387,
+                0,
+                "cent->nextState.number - ACTOR_CORPSES doesn't index MAX_ACTOR_CORPSES\n\t%i not in [0, %i)",
+                cent->nextState.number - 36,
+                8))
+        {
+            __debugbreak();
+        }
+        corpseIndexa = cent->nextState.number - 36;
+        ai = &cgameGlob->bgs.actorinfo[cent->nextState.lerp.u.actor.actorNum];
+        cgsa = CG_GetLocalClientStaticGlobals(localClientNum);
+        if (corpseIndexa >= 8
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_snapshot_mp.cpp",
+                391,
+                0,
+                "corpseIndex doesn't index MAX_ACTOR_CORPSES\n\t%i not in [0, %i)",
+                corpseIndexa,
+                8))
+        {
+            __debugbreak();
+        }
+        aiCorpseInfo = &cgsa->actorCorpseInfo[corpseIndexa];
+        pXAnimTreea = cgsa->actorCorpseInfo[corpseIndexa].pXAnimTree;
+        if ((cent->nextState.lerp.eFlags & 0x10) != 0)
+        {
+            CG_CopyActorCorpseInfo(aiCorpseInfo, ai);
+            cgsa->actorCorpseInfo[corpseIndexa].pXAnimTree = pXAnimTreea;
+            XAnimCloneAnimTree(ai->pXAnimTree, pXAnimTreea);
+            cent->previousEventSequence = 0;
+        }
+        else
+        {
+            if (cgsa->actorCorpseInfo[corpseIndexa].actorNum != ai->actorNum)
             {
                 CG_CopyActorCorpseInfo(aiCorpseInfo, ai);
-                cgsa->actorCorpseInfo[corpseIndexa + 1].animInfo.legs.yawing = (int)pXAnimTreea;
-                XAnimCloneAnimTree(ai->pXAnimTree, pXAnimTreea);
-                cent->previousEventSequence = 0;
+                cgsa->actorCorpseInfo[corpseIndexa].pXAnimTree = pXAnimTreea;
             }
-            else
-            {
-                if ( cgsa->actorCorpseInfo[corpseIndexa].animInfo.legs.animationNumber != ai->actorNum )
-                {
-                    CG_CopyActorCorpseInfo(aiCorpseInfo, ai);
-                    cgsa->actorCorpseInfo[corpseIndexa + 1].animInfo.legs.yawing = (int)pXAnimTreea;
-                }
-                cent->previousEventSequence = cent->nextState.eventSequence;
-            }
-            LODWORD(cgsa->actorCorpseInfo[corpseIndexa + 1].animInfo.legs.yawAngle) = 1;
-            goto LABEL_74;
-        default:
             cent->previousEventSequence = cent->nextState.eventSequence;
-LABEL_74:
-            v4 = cg_entityOriginArray[localClientNum][cent->nextState.number];
-            *v4 = 131072.0f;
-            v4[1] = 131072.0f;
-            v4[2] = 131072.0f;
-            break;
+        }
+        cgsa->actorCorpseInfo[corpseIndexa].dobjDirty = 1;
+        goto LABEL_74;
+    default:
+        cent->previousEventSequence = cent->nextState.eventSequence;
+    LABEL_74:
+        v5 = cg_entityOriginArray[localClientNum][cent->nextState.number];
+        *v5 = 131072.0f;
+        v5[1] = 131072.0f;
+        v5[2] = 131072.0f;
+        break;
     }
 }
 
@@ -1285,7 +1322,7 @@ void __cdecl CG_TransitionKillcam(int localClientNum)
                 switch ( Entity->pose.eType )
                 {
                     case 0xCu:
-                        VehicleInfo = CG_GetVehicleInfo(Entity->nextState.un2.vehicleState.vehicleInfoIndex);
+                        VehicleInfo = CG_GetVehicleInfo(Entity->nextState.vehicleState.vehicleInfoIndex);
                         cgameGlob->killCamEntityType = KC_HELICOPTER;
                         killcamDist = VehicleInfo->killcamDist;
                         killcamZTargetOffset = VehicleInfo->killcamZTargetOffset;
@@ -1578,7 +1615,7 @@ void __cdecl CG_ProcessSnapshots(int localClientNum)
     if ( n != cgameGlob->latestSnapshotNum )
     {
         if ( !Demo_IsPlaying() && n < cgameGlob->latestSnapshotNum )
-            Com_Error(ERR_DROP, &byte_C90394);
+            Com_Error(ERR_DROP, "CG_ProcessSnapshots: n < cgameGlob->latestSnapshotNum");
         cgameGlob->latestSnapshotNum = n;
     }
     while ( !cgameGlob->snap )
@@ -1615,7 +1652,7 @@ void __cdecl CG_ProcessSnapshots(int localClientNum)
         if ( Demo_IsPlaying() || ((cgameGlob->nextSnap->snapFlags ^ snapa->snapFlags) & 4) == 0 )
         {
             if ( !Demo_IsPlaying() && snapa->serverTime - cgameGlob->nextSnap->serverTime < 0 )
-                Com_Error(ERR_DROP, &byte_C90360);
+                Com_Error(ERR_DROP, "CG_ProcessSnapshots: Server time went backwards");
             CG_SetNextSnap(localClientNum, snapa);
             if ( cgameGlob->newPlayerViewmodel )
             {

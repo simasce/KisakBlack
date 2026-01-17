@@ -19,19 +19,19 @@ struct ViewModelInfo // sizeof=0x34
 };
 
 extern ViewModelInfo *cg_viewModelArray;
+extern weaponInfo_s *cg_weaponsArray[1];
 
 inline ViewModelInfo *__cdecl CG_GetLocalClientViewModelInfo(int localClientNum)
 {
-    if (localClientNum
-        && !Assert_MyHandler(
-            "c:\\projects_pc\\cod\\codsrc\\src\\cgame\\../cgame/cg_local.h",
-            236,
-            0,
-            "%s\n\t(localClientNum) = %i",
-            "(localClientNum == 0)",
-            localClientNum))
-    {
-        __debugbreak();
-    }
+    iassert(localClientNum == 0);
+
     return cg_viewModelArray;
+}
+
+
+inline weaponInfo_s *__cdecl CG_GetLocalClientWeaponInfo(int localClientNum, int weaponIndex)
+{
+    iassert(localClientNum == 0);
+
+    return &cg_weaponsArray[localClientNum][weaponIndex];
 }

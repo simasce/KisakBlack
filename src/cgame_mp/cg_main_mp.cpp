@@ -18,11 +18,107 @@
 #include <game_mp/g_main_mp.h>
 #include "cg_local_mp.h"
 #include <ragdoll/ragdoll.h>
+#include <ik/ik.h>
+#include <universal/com_math_anglevectors.h>
+#include <client/cl_console.h>
+#include <sound/snd_bank.h>
+#include <universal/surfaceflags.h>
+#include <cgame/cg_sound.h>
+#include <sound/snd_public_async.h>
+#include <EffectsCore/fx_system.h>
+#include <EffectsCore/fx_update.h>
+#include <client_mp/cl_cgame_mp.h>
+#include <stringed/stringed_hooks.h>
+#include <clientscript/scr_const.h>
+#include <clientscript/cscr_stringlist.h>
+#include <game/g_load_utils.h>
+#include <cgame/cg_scr_main.h>
+#include "cg_vehicles_mp.h"
+#include <qcommon/dobj_management.h>
+#include "cg_ents_mp.h"
+#include <clientscript/cscr_memorytree.h>
+#include <qcommon/threads.h>
+#include <bgame/bg_slidemove.h>
+#include <cgame/cg_draw_names.h>
+#include <cgame/cg_main.h>
+#include <client_mp/cl_input_mp.h>
+#include <EffectsCore/fx_load_obj.h>
+#include "cg_servercmds_mp.h"
+#include <gfx_d3d/r_rendercmds.h>
+#include <gfx_d3d/r_dvars.h>
+#include <client_mp/cl_scrn_mp.h>
+#include "cg_newDraw_mp.h"
+#include "cg_consolecmds_mp.h"
+#include <bgame/bg_mantle.h>
+#include <bgame/bg_dog_animations_mp.h>
+#include <bgame/bg_vehicle_anim.h>
+#include <clientscript/cscr_vm.h>
+#include <cgame/cg_info.h>
+#include <gfx_d3d/r_stream.h>
+#include <qcommon/com_profilemapload.h>
+#include <cgame/cg_bolt.h>
+#include <cgame/cg_localents.h>
+#include <cgame/cg_drawtools.h>
+#include <gfx_d3d/r_water_sim.h>
+#include <gfx_d3d/r_bsp_load_obj.h>
+#include <aim_assist/aim_target.h>
+#include <client/splitscreen.h>
+#include <bgame/bg_fire.h>
+#include <gfx_d3d/r_model.h>
+#include <cgame/cg_effects_load_obj.h>
+#include <ui/ui_shared_obj.h>
+#include "cg_draw_mp.h"
+#include <ragdoll/ragdoll_update.h>
+#include <cgame/cg_spawn.h>
+#include <gfx_d3d/r_shader_constant_set.h>
+#include "cg_animtree_mp.h"
+#include <gfx_d3d/r_cinematic.h>
+#include "cg_snapshot_mp.h"
+#include <glass/glass_client.h>
+#include <physics/rope.h>
+
+bool g_allowMature = true;
+
+const char *cg_thirdPersonModeNames[4] =
+{ "Free", "Fixed", "Locked", NULL };
+
+const char *cg_drawMaterialNames[6] =
+{
+  "Off",
+  "CONTENTS_SOLID",
+  "NONSOLID",
+  "MASK_PLAYERSOLID",
+  "MASK_CLIENTEFFECTS",
+  NULL
+};
+
+const char *snd_drawInfoStrings[5] =
+{ "None", "3D", "Stream", "2D", NULL };
+
+const char *snd_drawSortStrings[6] =
+{ "priority", "channel", "alias", "dry level", "entity", NULL };
+
+const char *cg_drawBudgetNames[6] =
+{ "Off", "Critical Only", "All >=64", "32 to 63", "<32", NULL };
+
+const char *cg_drawFpsNames[5] =
+{ "Off", "Simple", "SimpleRanges", "Verbose", NULL };
 
 const char *debugOverlayNames[4] =
 { "Off", "ViewmodelInfo", "FontTest", NULL };
 
+float (*cg_entityOriginArray[1])[3];
+unsigned __int8 *cg_ikBuf[1];
+
+BattleChatterParams cg_BattleChatters[8];
+
 cgMedia_t cgMedia;
+bgsAnim_s cg_bgsAnim;
+
+int cg_usedTriggerCount;
+int cg_usedTriggers[300];
+bool g_mapLoaded;
+bool g_ambientStarted;
 
 bool cg_fakeEntitiesInuseArray[512];
 int cg_fakeEntitiesInuseCount[1];
@@ -298,6 +394,8 @@ const dvar_s *cg_vehicle_piece_damagesfx_threshold;
 const dvar_s *cg_debugLocHit;
 const dvar_s *cg_debugLocHitTime;
 
+cg_s *cgArray;
+cgs_t *cgsArray;
 
 unsigned __int8 *__cdecl Hunk_AllocXAnimCreate(unsigned int size)
 {
@@ -342,7 +440,7 @@ void __cdecl CG_SetupSplitscreenDvars()
     Dvar_SetFloat((dvar_s *)cg_hudGrenadeIconOffset, 50.0);
     Dvar_SetFloat((dvar_s *)cg_hudGrenadePointerHeight, 12.0);
     Dvar_SetFloat((dvar_s *)cg_hudGrenadePointerWidth, 25.0);
-    Dvar_SetVec2((dvar_s *)cg_hudGrenadePointerPivot, COERCE_UNSIGNED_INT(12.0), COERCE_UNSIGNED_INT(27.0));
+    Dvar_SetVec2((dvar_s *)cg_hudGrenadePointerPivot, (12.0), (27.0));
     Dvar_SetFloat((dvar_s *)cg_fovScale, 1.0);
 }
 
@@ -441,18 +539,18 @@ void __cdecl CG_RegisterDvars()
                                                         "Style of zoom toggle - 0=oscillate, 1=rotate");
     cg_viewVehicleInfluenceGunner = _Dvar_RegisterVec3(
                                                                         "cg_viewVehicleInfluenceGunner",
-                                                                        COERCE_UNSIGNED_INT(1.0),
-                                                                        COERCE_UNSIGNED_INT(1.0),
-                                                                        COERCE_UNSIGNED_INT(1.0),
+                                                                        (1.0),
+                                                                        (1.0),
+                                                                        (1.0),
                                                                         0.0,
                                                                         1.0,
                                                                         0x1080u,
                                                                         "The influence on the view from being a vehicle gunner");
     cg_viewVehicleInfluenceGunnerFiring = _Dvar_RegisterVec3(
                                                                                     "cg_viewVehicleInfluenceGunnerFiring",
-                                                                                    COERCE_UNSIGNED_INT(0.0),
-                                                                                    COERCE_UNSIGNED_INT(0.0),
-                                                                                    COERCE_UNSIGNED_INT(0.0),
+                                                                                    (0.0),
+                                                                                    (0.0),
+                                                                                    (0.0),
                                                                                     0.0,
                                                                                     1.0,
                                                                                     0x1080u,
@@ -482,8 +580,8 @@ void __cdecl CG_RegisterDvars()
     cg_drawFPSLabels = _Dvar_RegisterBool("cg_drawFPSLabels", 1, 1u, "Draw FPS Info Labels");
     cg_debugInfoCornerOffset = _Dvar_RegisterVec2(
                                                              "cg_debugInfoCornerOffset",
-                                                             COERCE_UNSIGNED_INT(0.0),
-                                                             COERCE_UNSIGNED_INT(0.0),
+                                                             (0.0),
+                                                             (0.0),
                                                              -200.0,
                                                              640.0,
                                                              1u,
@@ -666,8 +764,8 @@ void __cdecl CG_RegisterDvars()
                                                                 "The width of the grenade indicator pointer");
     cg_hudGrenadePointerPivot = _Dvar_RegisterVec2(
                                                                 "cg_hudGrenadePointerPivot",
-                                                                COERCE_UNSIGNED_INT(12.0),
-                                                                COERCE_UNSIGNED_INT(27.0),
+                                                                (12.0),
+                                                                (27.0),
                                                                 0.0,
                                                                 512.0,
                                                                 1u,
@@ -697,32 +795,32 @@ void __cdecl CG_RegisterDvars()
                                                                      "indicator to remain at full transparency for longer");
     cg_hudChatPosition = _Dvar_RegisterVec2(
                                                  "cg_hudChatPosition",
-                                                 COERCE_UNSIGNED_INT(5.0),
-                                                 COERCE_UNSIGNED_INT(204.0),
+                                                 (5.0),
+                                                 (204.0),
                                                  0.0,
                                                  640.0,
                                                  1u,
                                                  "Position of the HUD chat box");
     cg_hudSayPosition = _Dvar_RegisterVec2(
                                                 "cg_hudSayPosition",
-                                                COERCE_UNSIGNED_INT(5.0),
-                                                COERCE_UNSIGNED_INT(180.0),
+                                                (5.0),
+                                                (180.0),
                                                 0.0,
                                                 640.0,
                                                 1u,
                                                 "Position of the HUD say box");
     cg_hudChatIntermissionPosition = _Dvar_RegisterVec2(
                                                                          "cg_hudChatIntermissionPosition",
-                                                                         COERCE_UNSIGNED_INT(5.0),
-                                                                         COERCE_UNSIGNED_INT(90.0),
+                                                                         (5.0),
+                                                                         (90.0),
                                                                          0.0,
                                                                          640.0,
                                                                          1u,
                                                                          "Position of the HUD chat box during intermission");
     cg_hudVotePosition = _Dvar_RegisterVec2(
                                                  "cg_hudVotePosition",
-                                                 COERCE_UNSIGNED_INT(5.0),
-                                                 COERCE_UNSIGNED_INT(220.0),
+                                                 (5.0),
+                                                 (220.0),
                                                  0.0,
                                                  640.0,
                                                  1u,
@@ -736,8 +834,8 @@ void __cdecl CG_RegisterDvars()
     drawEntityCount = _Dvar_RegisterBool("drawEntityCount", 0, 0, "Enable entity count drawing");
     drawEntityCountPos = _Dvar_RegisterVec2(
                                                  "drawEntityCountPos",
-                                                 COERCE_UNSIGNED_INT(-55.0),
-                                                 COERCE_UNSIGNED_INT(-180.0),
+                                                 (-55.0),
+                                                 (-180.0),
                                                  -3.4028235e38,
                                                  3.4028235e38,
                                                  0,
@@ -752,8 +850,8 @@ void __cdecl CG_RegisterDvars()
     drawServerBandwidth = _Dvar_RegisterBool("drawServerBandwidth", 0, 0, "Enable drawing server bandwidth");
     drawServerBandwidthPos = _Dvar_RegisterVec2(
                                                          "drawServerBandwidthPos",
-                                                         COERCE_UNSIGNED_INT(-55.0),
-                                                         COERCE_UNSIGNED_INT(-280.0),
+                                                         (-55.0),
+                                                         (-280.0),
                                                          -3.4028235e38,
                                                          3.4028235e38,
                                                          0,
@@ -768,8 +866,8 @@ void __cdecl CG_RegisterDvars()
     drawKillcamData = _Dvar_RegisterBool("drawKillcamData", 0, 0, "Enable drawing server killcam data");
     drawKillcamDataPos = _Dvar_RegisterVec2(
                                                  "drawKillcamDataPos",
-                                                 COERCE_UNSIGNED_INT(-55.0),
-                                                 COERCE_UNSIGNED_INT(-230.0),
+                                                 (-55.0),
+                                                 (-230.0),
                                                  -3.4028235e38,
                                                  3.4028235e38,
                                                  0,
@@ -809,20 +907,20 @@ void __cdecl CG_RegisterDvars()
                                                                      "Draw grenade indicator with distance fade(COD3 style)");
     cg_hudGrenadeIndicatorTargetColor = _Dvar_RegisterVec4(
                                                                                 "cg_hudGrenadeIndicatorTargetColor",
-                                                                                COERCE_UNSIGNED_INT(1.0),
-                                                                                COERCE_UNSIGNED_INT(1.0),
-                                                                                COERCE_UNSIGNED_INT(1.0),
-                                                                                COERCE_UNSIGNED_INT(1.0),
+                                                                                (1.0),
+                                                                                (1.0),
+                                                                                (1.0),
+                                                                                (1.0),
                                                                                 0.0,
                                                                                 1.0,
                                                                                 0,
                                                                                 "");
     cg_hudGrenadeIndicatorStartColor = _Dvar_RegisterVec4(
                                                                              "cg_hudGrenadeIndicatorStartColor",
-                                                                             COERCE_UNSIGNED_INT(1.0),
-                                                                             COERCE_UNSIGNED_INT(1.0),
-                                                                             COERCE_UNSIGNED_INT(1.0),
-                                                                             COERCE_UNSIGNED_INT(1.0),
+                                                                             (1.0),
+                                                                             (1.0),
+                                                                             (1.0),
+                                                                             (1.0),
                                                                              0.0,
                                                                              1.0,
                                                                              0,
@@ -2072,26 +2170,26 @@ void __cdecl CG_PlayBattleChatter(
                 unsigned int firstSoundAlias,
                 int secondSoundAlias)
 {
-    float *v5; // [esp+8h] [ebp-Ch]
+    float *SndOrigin; // [esp+8h] [ebp-Ch]
     int i; // [esp+Ch] [ebp-8h]
     int SndID; // [esp+10h] [ebp-4h]
 
     SndID = CG_PlaySoundWithHandle(localClientNum, entitynum, origin, 0, 0, 1.0, firstSoundAlias);
-    if ( secondSoundAlias )
+    if (secondSoundAlias)
     {
-        for ( i = 0; i < 8; ++i )
+        for (i = 0; i < 8; ++i)
         {
-            if ( !cg_BattleChatters[i].WhichSoundIsPlaying )
+            if (!cg_BattleChatters[i].WhichSoundIsPlaying)
             {
-                dword_F53278[8 * i] = SndID;
-                dword_F53270[8 * i] = entitynum;
+                cg_BattleChatters[i].CurrentPlayingSound = SndID;
+                cg_BattleChatters[i].EntityNum = entitynum;
                 cg_BattleChatters[i].WhichSoundIsPlaying = 1;
-                dword_F53274[8 * i] = localClientNum;
-                dword_F5326C[8 * i] = secondSoundAlias;
-                v5 = (float *)((char *)&flt_F5327C + 32 * i);
-                *v5 = *origin;
-                v5[1] = origin[1];
-                v5[2] = origin[2];
+                cg_BattleChatters[i].LocalClientNum = localClientNum;
+                cg_BattleChatters[i].SecondAlias = secondSoundAlias;
+                SndOrigin = cg_BattleChatters[i].SndOrigin;
+                *SndOrigin = *origin;
+                SndOrigin[1] = origin[1];
+                SndOrigin[2] = origin[2];
                 return;
             }
         }
@@ -2102,25 +2200,25 @@ void __cdecl CG_CheckBattleChatter()
 {
     int i; // [esp+8h] [ebp-4h]
 
-    for ( i = 0; i < 8; ++i )
+    for (i = 0; i < 8; ++i)
     {
-        if ( cg_BattleChatters[i].WhichSoundIsPlaying )
+        if (cg_BattleChatters[i].WhichSoundIsPlaying)
         {
-            if ( cg_BattleChatters[i].WhichSoundIsPlaying != 1 || SND_IsPlaying(dword_F53278[8 * i]) )
+            if (cg_BattleChatters[i].WhichSoundIsPlaying != 1 || SND_IsPlaying(cg_BattleChatters[i].CurrentPlayingSound))
             {
-                if ( !SND_IsPlaying(dword_F53278[8 * i]) )
+                if (!SND_IsPlaying(cg_BattleChatters[i].CurrentPlayingSound))
                     cg_BattleChatters[i].WhichSoundIsPlaying = 0;
             }
             else
             {
-                dword_F53278[8 * i] = CG_PlaySoundWithHandle(
-                                                                dword_F53274[8 * i],
-                                                                dword_F53270[8 * i],
-                                                                &flt_F5327C[8 * i],
-                                                                0,
-                                                                0,
-                                                                1.0,
-                                                                dword_F5326C[8 * i]);
+                cg_BattleChatters[i].CurrentPlayingSound = CG_PlaySoundWithHandle(
+                    cg_BattleChatters[i].LocalClientNum,
+                    cg_BattleChatters[i].EntityNum,
+                    cg_BattleChatters[i].SndOrigin,
+                    0,
+                    0,
+                    1.0,
+                    cg_BattleChatters[i].SecondAlias);
                 cg_BattleChatters[i].WhichSoundIsPlaying = 2;
             }
         }
@@ -2159,7 +2257,7 @@ void __cdecl CG_RestartSmokeGrenades(int localClientNum)
             weaponDef = BG_GetWeaponDef(nextSnap->entities[ia].weapon);
             if ( (nextSnap->entities[ia].lerp.eFlags & 0x4000) != 0
                 && nextSnap->entities[ia].time2 >= cgameGlob->time
-                && nextSnap->entities[ia].lerp.u.actor.index.actorNum <= cgameGlob->time
+                && nextSnap->entities[ia].lerp.u.actor.actorNum <= cgameGlob->time
                 && !nextSnap->entities[ia].eType )
             {
                 eventIndex = ((unsigned __int8)nextSnap->entities[ia].eventSequence - 1) & 3;
@@ -2182,7 +2280,7 @@ void __cdecl CG_RestartSmokeGrenades(int localClientNum)
                 Com_DPrintf(
                     14,
                     "Restarting smoke grenade at time %i at ( %f, %f, %f )\n",
-                    nextSnap->entities[ia].lerp.u.actor.index.actorNum,
+                    nextSnap->entities[ia].lerp.u.actor.actorNum,
                     nextSnap->entities[ia].lerp.pos.trBase[0],
                     nextSnap->entities[ia].lerp.pos.trBase[1],
                     nextSnap->entities[ia].lerp.pos.trBase[2]);
@@ -2192,7 +2290,7 @@ void __cdecl CG_RestartSmokeGrenades(int localClientNum)
                         FX_PlayOrientedEffect(
                             localClientNum,
                             cgs->grenadeFx[j],
-                            nextSnap->entities[ia].lerp.u.actor.index.actorNum,
+                            nextSnap->entities[ia].lerp.u.actor.actorNum,
                             nextSnap->entities[ia].lerp.pos.trBase,
                             axis);
                 }
@@ -2263,7 +2361,7 @@ char __cdecl CGScr_LoadScriptAndLabel(
         return 0;
     if ( functions->count < functions->maxSize )
     {
-        if ( Scr_LoadScript(inst, filename) )
+        if ( Scr_LoadScript(inst, (char*)filename) )
         {
             func = Scr_GetFunctionHandle(inst, filename, label);
             functions->address[functions->count++] = func;
@@ -2309,7 +2407,7 @@ void __cdecl CGScr_LoadScripts(const char *mapname, const char *gametype, Script
     G_ResetEntityParsePoint();
     Scr_PostCompileScripts(SCRIPTINSTANCE_SERVER);
     Scr_EndLoadScripts(SCRIPTINSTANCE_SERVER);
-    Scr_PrecacheAnimTrees(SCRIPTINSTANCE_SERVER, Hunk_AllocXAnimCreate, 0, 1);
+    Scr_PrecacheAnimTrees(SCRIPTINSTANCE_SERVER, (void *(__cdecl *)(int))Hunk_AllocXAnimCreate, 0, 1);
 }
 
 void __cdecl CGScr_LoadLevelScript(scriptInstance_t inst, const char *mapname, ScriptFunctions *functions)
@@ -2478,7 +2576,7 @@ unsigned __int16 __cdecl CG_GetVehicleTypeString(int clientNum, int entityNum)
         __debugbreak();
     if ( ((*((unsigned int *)cent + 201) >> 1) & 1) == 0 )
         return 0;
-    info = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+    info = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
     if ( !info )
         return 0;
     string = SL_FindString(info->animSet, SCRIPTINSTANCE_SERVER);
@@ -2652,12 +2750,12 @@ void __cdecl CG_FreeClientEntityCaches(int localClientNum)
         cent = CG_GetEntity(localClientNum, i);
         if ( cent->clientTagCache )
         {
-            MT_Free(cent->clientTagCache, 96, SCRIPTINSTANCE_SERVER);
+            MT_Free((unsigned char*)cent->clientTagCache, 96, SCRIPTINSTANCE_SERVER);
             cent->clientTagCache = 0;
         }
         if ( cent->aimTargetInfo )
         {
-            MT_Free(cent->aimTargetInfo, 8, SCRIPTINSTANCE_SERVER);
+            MT_Free((unsigned char *)cent->aimTargetInfo, 8, SCRIPTINSTANCE_SERVER);
             cent->aimTargetInfo = 0;
         }
     }
@@ -2790,13 +2888,13 @@ void __cdecl CG_Init(int localClientNum, int serverMessageNum, int serverCommand
     Material_RegisterHandle("killiconheadshot", 7);
     Material_RegisterHandle("killiconmelee", 7);
     if ( cg_fs_debug->current.integer == 2 )
-        Dvar_SetInt(cg_fs_debug, 0);
+        Dvar_SetInt((dvar_s*)cg_fs_debug, 0);
     CG_AntiBurnInHUD_RegisterDvars();
     CG_InitConsoleCommands();
     CG_InitViewDimensions(localClientNum);
     s = CL_GetConfigString(2);
     if ( strcmp(s, "cod") )
-        Com_Error(ERR_DROP, &byte_C852F8, "cod", s);
+        Com_Error(ERR_DROP, "Client/Server game mismatch: %s/%s", "cod", s);
     SCR_UpdateLoadScreen();
     if ( !com_sv_running
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_main_mp.cpp", 3023, 0, "%s", "com_sv_running") )
@@ -2808,18 +2906,11 @@ void __cdecl CG_Init(int localClientNum, int serverMessageNum, int serverCommand
     if ( !com_sv_running->current.enabled )
         Dog_CreateAnims(Hunk_AllocXAnimClient);
     VehAnim_Init();
-    if ( *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8)
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_main_mp.cpp",
-                    3034,
-                    0,
-                    "%s\n\t(bgs) = %p",
-                    "(bgs == 0)",
-                    *(const void **)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8)) )
-    {
-        __debugbreak();
-    }
-    *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) = &cgameGlob->bgs;
+
+    iassert(bgs == 0);
+    
+    bgs = &cgameGlob->bgs;
+
     if ( !bg_lastParsedWeaponIndex )
     {
         Com_SetWeaponInfoMemory(2);
@@ -2845,15 +2936,15 @@ void __cdecl CG_Init(int localClientNum, int serverMessageNum, int serverCommand
     if ( !g_mapLoaded && !useFastFile->current.enabled )
     {
         CG_LoadingString(localClientNum, "sound aliases");
-        BLOPS_NULLSUB((jpeg_decompress_struct *)cgs->mapname);
+        //BLOPS_NULLSUB((jpeg_decompress_struct *)cgs->mapname);
     }
-    CG_SetupWeaponDef(localClientNum);
+    CG_SetupWeaponDef();
     if ( !com_sv_running->current.enabled && !CG_HasClientSystemBeenInitialzed() )
     {
         bg_numVehicleInfos = 0;
-        CG_Veh_Init(localClientNum);
+        CG_Veh_Init();
     }
-    CG_Veh_RegisterMaterials(localClientNum);
+    CG_Veh_RegisterMaterials();
     if ( I_strnicmp(cgs->mapname, "maps/", 5)
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_main_mp.cpp",
@@ -2874,7 +2965,7 @@ void __cdecl CG_Init(int localClientNum, int serverMessageNum, int serverCommand
     CL_CM_LoadMap(cgs->mapname);
     Menu_Setup(&cgDC[localClientNum]);
     CG_LoadingString(localClientNum, "graphics");
-    CG_ParsePlayerInfos(localClientNum);
+    CG_ParsePlayerInfos();
     if ( !g_mapLoaded )
     {
         CG_LoadingString(localClientNum, cgs->mapname);
@@ -2900,7 +2991,7 @@ void __cdecl CG_Init(int localClientNum, int serverMessageNum, int serverCommand
     CG_SetupGameInformation(localClientNum);
     CG_LoadHudMenu(localClientNum);
     CG_SetGridTable();
-    BLOPS_NULLSUB((jpeg_decompress_struct *)localClientNum);
+    //BLOPS_NULLSUB((jpeg_decompress_struct *)localClientNum);
     CG_InitEntities(localClientNum);
     CG_InitLocalEntities(localClientNum);
     DynEntCl_InitEntities(localClientNum);
@@ -2951,18 +3042,10 @@ void __cdecl CG_Init(int localClientNum, int serverMessageNum, int serverCommand
         Scr_FreeThread(t, SCRIPTINSTANCE_CLIENT);
     }
     BG_InitFire();
-    if ( *(cg_s **)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) != (cg_s *)&cgameGlob->bgs
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_main_mp.cpp",
-                    3292,
-                    0,
-                    "%s\n\t(bgs) = %p",
-                    "(bgs == &cgameGlob->bgs)",
-                    *(const void **)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8)) )
-    {
-        __debugbreak();
-    }
-    *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) = 0;
+
+    iassert(bgs == &cgameGlob->bgs);
+    
+    bgs = NULL;
     R_EndRemoteScreenUpdate(0);
     CG_InitScoreboard();
 }
@@ -2998,13 +3081,13 @@ void __cdecl CG_RegisterGraphics(int localClientNum, const char *mapname)
     const FxEffectDef *v2; // eax
     const FxEffectDef *v3; // eax
     shellshock_parms_t *ShellshockParms; // eax
-    char *shellshock; // [esp+0h] [ebp-94h]
-    char *effectname; // [esp+4h] [ebp-90h]
-    char *modelName; // [esp+8h] [ebp-8Ch]
-    char *EffectNames[27]; // [esp+Ch] [ebp-88h]
+    const char *shellshock; // [esp+0h] [ebp-94h]
+    const char *effectname; // [esp+4h] [ebp-90h]
+    const char *modelName; // [esp+8h] [ebp-8Ch]
+    const char *EffectNames[27]; // [esp+Ch] [ebp-88h]
     cgs_t *cgs; // [esp+80h] [ebp-14h]
     int i; // [esp+84h] [ebp-10h]
-    char *fireEffectNames[3]; // [esp+88h] [ebp-Ch]
+    const char *fireEffectNames[3]; // [esp+88h] [ebp-Ch]
 
     SCR_UpdateLoadScreen();
     CG_LoadingString(localClientNum, " - textures");
@@ -3088,10 +3171,10 @@ void __cdecl CG_RegisterGraphics(int localClientNum, const char *mapname)
     cgMedia.demoStateJump = Material_RegisterHandle("demo_step", 7);
     cgMedia.demoStateForwardFast = Material_RegisterHandle("demo_forward_fast", 7);
     cgMedia.demoStateForwardSlow = Material_RegisterHandle("demo_forward_slow", 7);
-    cgMedia.fx = (FxImpactTable *)Material_RegisterHandle("theater_up_arrow", 7);
-    cgMedia.fxNoBloodFleshHit = (const FxEffectDef *)Material_RegisterHandle("theater_down_arrow", 7);
-    cgMedia.fxKnifeBlood = (const FxEffectDef *)Material_RegisterHandle("theater_left_arrow", 7);
-    cgMedia.fxKnifeNoBlood = (const FxEffectDef *)Material_RegisterHandle("theater_right_arrow", 7);
+    cgMedia.theaterUpArrow = Material_RegisterHandle("theater_up_arrow", 7);
+    cgMedia.theaterDownArrow = Material_RegisterHandle("theater_down_arrow", 7);
+    cgMedia.theaterLeftArrow = Material_RegisterHandle("theater_left_arrow", 7);
+    cgMedia.theaterRightArrow = Material_RegisterHandle("theater_right_arrow", 7);
     cgMedia.teamStatusBar = Material_RegisterHandle("hudcolorbar", 7);
     CG_LoadingString(localClientNum, " - models");
     cgMedia.afkLightbulb = Material_RegisterHandle("headicontalkballoon", 7);
@@ -3101,28 +3184,28 @@ void __cdecl CG_RegisterGraphics(int localClientNum, const char *mapname)
     CG_LoadingString(localClientNum, " - inline models");
     cgs = CG_GetLocalClientStaticGlobals(localClientNum);
     CG_LoadingString(localClientNum, " - server models");
-    for ( i = 1; i < 512; ++i )
+    for (i = 1; i < 512; ++i)
     {
         modelName = CL_GetConfigString(i + 1568);
-        if ( *modelName )
+        if (*modelName)
         {
             SCR_UpdateLoadScreen();
-            cgs->gameModels[i] = R_RegisterModel(modelName);
+            cgs->gameModels[i] = R_RegisterModel((char*)modelName);
         }
     }
-    for ( i = 1; i < 196; ++i )
+    for (i = 1; i < 196; ++i)
     {
         effectname = CL_GetConfigString(i + 2080);
-        if ( *effectname )
+        if (*effectname)
         {
             cgs->fxs[i] = FX_Register(effectname);
-            if ( !cgs->fxs[i]
+            if (!cgs->fxs[i]
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_main_mp.cpp",
-                            1658,
-                            0,
-                            "%s",
-                            "cgs->fxs[i]") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_main_mp.cpp",
+                    1658,
+                    0,
+                    "%s",
+                    "cgs->fxs[i]"))
             {
                 __debugbreak();
             }
@@ -3155,17 +3238,17 @@ void __cdecl CG_RegisterGraphics(int localClientNum, const char *mapname)
     EffectNames[24] = "weapon/grenade/fx_gas_poison_mp_50r";
     EffectNames[25] = "weapon/grenade/fx_gas_poison_mp_25r";
     EffectNames[26] = "weapon/grenade/fx_gas_poison_mp";
-    for ( i = 0; i < 27; ++i )
+    for (i = 0; i < 27; ++i)
     {
         v2 = FX_Register(EffectNames[i]);
         cgs->grenadeFx[i] = v2;
-        if ( !cgs->grenadeFx[i]
+        if (!cgs->grenadeFx[i]
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_main_mp.cpp",
-                        1710,
-                        0,
-                        "%s",
-                        "cgs->grenadeFx[i]") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_main_mp.cpp",
+                1710,
+                0,
+                "%s",
+                "cgs->grenadeFx[i]"))
         {
             __debugbreak();
         }
@@ -3173,65 +3256,65 @@ void __cdecl CG_RegisterGraphics(int localClientNum, const char *mapname)
     fireEffectNames[0] = "env/fire/fx_fire_player_torso_mp";
     fireEffectNames[1] = "env/fire/fx_fire_player_sm_mp";
     fireEffectNames[2] = "env/fire/fx_fire_player_md_mp";
-    for ( i = 0; i < 3; ++i )
+    for (i = 0; i < 3; ++i)
     {
         v3 = FX_Register(fireEffectNames[i]);
         cgs->playerFireFx[i] = v3;
-        if ( !cgs->playerFireFx[i]
+        if (!cgs->playerFireFx[i]
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_main_mp.cpp",
-                        1727,
-                        0,
-                        "%s",
-                        "cgs->playerFireFx[i]") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_main_mp.cpp",
+                1727,
+                0,
+                "%s",
+                "cgs->playerFireFx[i]"))
         {
             __debugbreak();
         }
     }
-    for ( i = 1; i < 16; ++i )
+    for (i = 1; i < 16; ++i)
     {
         shellshock = CL_GetConfigString(i + 2532);
-        if ( *shellshock )
+        if (*shellshock)
         {
-            if ( !BG_LoadShellShockDvars(shellshock) )
-                Com_Error(ERR_DROP, &byte_C85A6C, shellshock);
+            if (!BG_LoadShellShockDvars(shellshock))
+                Com_Error(ERR_DROP, "couldn't register shellshock '%s' -- see console", shellshock);
             ShellshockParms = BG_GetShellshockParms(i);
             BG_SetShellShockParmsFromDvars(ShellshockParms);
         }
     }
-    if ( !BG_LoadShellShockDvars("hold_breath_mp") )
+    if (!BG_LoadShellShockDvars("hold_breath_mp"))
         Com_Error(ERR_DROP, "Couldn't find shock file [hold_breath_mp.shock]\n");
     BG_SetShellShockParmsFromDvars(&cgs->holdBreathParams);
-    cgMedia.fxDogBlood = (const FxEffectDef *)CG_RegisterImpactEffects(mapname);
-    if ( !cgMedia.fxDogBlood )
-        Com_Error(ERR_DROP, &byte_C859E0);
-    cgMedia.fxDogNoBlood = FX_Register("impacts/fx_flesh_hit_noblood");
-    cgMedia.fxNonFatalHero = FX_Register("impacts/fx_flesh_hit_knife_mp");
-    cgMedia.fxBodyArmorSmall = FX_Register("impacts/fx_flesh_hit_knife_noblood");
-    cgMedia.fxBodyArmorLarge = FX_Register("impacts/fx_deathfx_dogbite");
-    cgMedia.fxDtpArmSlide1 = FX_Register("impacts/fx_flesh_hit_knife_noblood");
-    cgMedia.fxDtpArmSlide2 = FX_Register("impacts/fx_flesh_hit_body_nonfatal_hero");
-    cgMedia.fxPlayerSliding = FX_Register("impacts/fx_small_metalhit_bodyarmor");
-    cgMedia.fxPuff = FX_Register("impacts/fx_xlarge_metalhit_bodyarmor");
-    cgMedia.heliDustEffect = FX_Register("bio/player/fx_player_arm_dust_slide");
-    cgMedia.heliWaterEffect = FX_Register("bio/player/fx_player_arm_dust_slide_rk");
-    cgMedia.helicopterLightSmoke = FX_Register("system_elements/fx_snow_sm_em");
-    cgMedia.helicopterHeavySmoke = FX_Register("bio/player/fx_player_dust_inair");
-    cgMedia.helicopterOnFire = FX_Register("vehicle/treadfx/fx_heli_dust_default");
-    cgMedia.jetAfterburner = FX_Register("vehicle/treadfx/fx_heli_water_spray");
-    cgMedia.nightVisionOverlay = (Material *)FX_Register("trail/fx_trail_heli_white_smoke");
-    cgMedia.hudIconNVG = (Material *)FX_Register("trail/fx_trail_heli_black_smoke");
-    cgMedia.hudDpadArrow = (Material *)FX_Register("trail/fx_trail_fire_smoke");
-    cgMedia.hudDpadCircle = (Material *)FX_Register("vehicle/exhaust/fx_exhaust_jet_afterburner");
-    cgMedia.physicsWaterEffects[4] = FX_Register("impacts/fx_water_hit_sm");
-    cgMedia.physicsWaterEffects[5] = FX_Register("impacts/fx_water_hit_md");
-    cgMedia.physicsWaterEffects[6] = FX_Register("impacts/fx_water_hit_lg");
-    cgMedia.physicsWaterEffects[7] = FX_Register("impacts/fx_water_object_ripple");
-    cgMedia.infraredHeartbeat = FX_Register("bio/player/fx_water_hit_player_bubbles");
-    dword_F52D34 = (int)FX_Register("bio/player/fx_player_water_waist_ripple");
-    dword_F52D38 = (int)FX_Register("bio/player/fx_player_water_knee_ripple");
-    dword_F52D3C = (int)FX_Register("bio/player/fx_player_water_splash_impact");
-    def = FX_Register("weapon/ir_scope/fx_ir_scope_heartbeat");
+    cgMedia.fx = CG_RegisterImpactEffects(mapname);
+    if (!cgMedia.fx)
+        Com_Error(ERR_DROP, "Error reading CSV files in the fx directory to identify impact effects");
+    cgMedia.fxNoBloodFleshHit = FX_Register("impacts/fx_flesh_hit_noblood");
+    cgMedia.fxKnifeBlood = FX_Register("impacts/fx_flesh_hit_knife_mp");
+    cgMedia.fxKnifeNoBlood = FX_Register("impacts/fx_flesh_hit_knife_noblood");
+    cgMedia.fxDogBlood = FX_Register("impacts/fx_deathfx_dogbite");
+    cgMedia.fxDogNoBlood = FX_Register("impacts/fx_flesh_hit_knife_noblood");
+    cgMedia.fxNonFatalHero = FX_Register("impacts/fx_flesh_hit_body_nonfatal_hero");
+    cgMedia.fxBodyArmorSmall = FX_Register("impacts/fx_small_metalhit_bodyarmor");
+    cgMedia.fxBodyArmorLarge = FX_Register("impacts/fx_xlarge_metalhit_bodyarmor");
+    cgMedia.fxDtpArmSlide1 = FX_Register("bio/player/fx_player_arm_dust_slide");
+    cgMedia.fxDtpArmSlide2 = FX_Register("bio/player/fx_player_arm_dust_slide_rk");
+    cgMedia.fxPlayerSliding = FX_Register("system_elements/fx_snow_sm_em");
+    cgMedia.fxPuff = FX_Register("bio/player/fx_player_dust_inair");
+    cgMedia.heliDustEffect = FX_Register("vehicle/treadfx/fx_heli_dust_default");
+    cgMedia.heliWaterEffect = FX_Register("vehicle/treadfx/fx_heli_water_spray");
+    cgMedia.helicopterLightSmoke = FX_Register("trail/fx_trail_heli_white_smoke");
+    cgMedia.helicopterHeavySmoke = FX_Register("trail/fx_trail_heli_black_smoke");
+    cgMedia.helicopterOnFire = FX_Register("trail/fx_trail_fire_smoke");
+    cgMedia.jetAfterburner = FX_Register("vehicle/exhaust/fx_exhaust_jet_afterburner");
+    cgMedia.physicsWaterEffects[0] = FX_Register("impacts/fx_water_hit_sm");
+    cgMedia.physicsWaterEffects[1] = FX_Register("impacts/fx_water_hit_md");
+    cgMedia.physicsWaterEffects[2] = FX_Register("impacts/fx_water_hit_lg");
+    cgMedia.physicsWaterEffects[3] = FX_Register("impacts/fx_water_object_ripple");
+    cgMedia.physicsWaterEffects[4] = FX_Register("bio/player/fx_water_hit_player_bubbles");
+    cgMedia.physicsWaterEffects[5] = FX_Register("bio/player/fx_player_water_waist_ripple");
+    cgMedia.physicsWaterEffects[6] = FX_Register("bio/player/fx_player_water_knee_ripple");
+    cgMedia.physicsWaterEffects[7] = FX_Register("bio/player/fx_player_water_splash_impact");
+    cgMedia.infraredHeartbeat = FX_Register("weapon/ir_scope/fx_ir_scope_heartbeat");
     CG_LoadingString(localClientNum, " - game media done");
 }
 
@@ -3600,11 +3683,14 @@ void __cdecl CG_Shutdown(int localClientNum)
 
     g_ropesWithEntsAnchorsCount = 0;
     g_ropeCount = 0;
-    for ( i = 0; i < 1; ++i )
+
+    for (i = 0; i < 1; ++i)
     {
-        v1 = (colgeom_visitor_inlined_t<200> *)((char *)&unk_F545B8 + 2320 * i);
-        colgeom_visitor_inlined_t<500>::reset(v1);
+        //p_proximity_data = &cg_pmove[i].proximity_data;
+        //colgeom_visitor_inlined_t<500>::reset(p_proximity_data);
+        cg_pmove[i].proximity_data.reset();
     }
+
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
     destroy_client_gjkcc_info(localClientNum);
     R_TrackStatistics(0);
@@ -3875,7 +3961,7 @@ void __cdecl CG_Touch_Multi(centity_s *self, centity_s *other)
     }
 }
 
-unsigned __int8 *__cdecl Hunk_AllocXAnimClient(unsigned int size)
+void *__cdecl Hunk_AllocXAnimClient(unsigned int size)
 {
     return Hunk_Alloc(size, "Hunk_AllocXAnimClient", 13);
 }

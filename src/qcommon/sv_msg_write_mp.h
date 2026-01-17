@@ -1,6 +1,7 @@
 #pragma once
 #include "net_chan_mp.h"
 #include <client_mp/cl_main_mp.h>
+#include <server/server.h>
 
 enum PacketEntityType : __int32
 {                                       // XREF: SnapshotInfo_s/r

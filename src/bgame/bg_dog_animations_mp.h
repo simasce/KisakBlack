@@ -59,7 +59,7 @@ enum ActorAnimStates : __int32
 };
 
 XAnim_s *__cdecl Dog_GetAnims();
-void __cdecl Dog_CreateAnims(void *(__cdecl *xanimAlloc)(int));
+void __cdecl Dog_CreateAnims(void *(__cdecl *xanimAlloc)(unsigned int));
 void __cdecl Dog_DebugPrint(const char *msg);
 void __cdecl BG_Dog_CreateAnimChildGroup(
                 unsigned int index,

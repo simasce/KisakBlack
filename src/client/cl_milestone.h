@@ -17,6 +17,21 @@ enum milestoneTableColumns_t : __int32
     MILESTONE_COLUMN_PERKNAME = 0xA,
 };
 
+enum statsMilestoneTypes_t : __int32
+{                                       // XREF: statsMilestone_t/r
+                                        // challengeInfo_t/r ...
+    MILESTONE_GLOBAL = 0x0,
+    MILESTONE_WEAPON = 0x1,
+    MILESTONE_MAP = 0x2,
+    MILESTONE_GAMEMODE = 0x3,
+    MILESTONE_GROUP = 0x4,
+    MILESTONE_ATTACHMENTS = 0x5,
+    MILESTONE_KILLSTREAKS = 0x6,
+    MILESTONE_GRENADES = 0x7,
+    MILESTONE_COUNT = 0x8,
+    MILESTONE_INVALID = 0xFFFFFFFF,
+};
+
 int __cdecl CL_GetMilestoneRowNum(
                 XAssetHeader *stringTable,
                 int comparisonColumn1,
@@ -160,5 +175,5 @@ void __cdecl CL_GetMilestoneBackingMaterial(
                 const char *statName,
                 const char *perkName);
 void __cdecl CL_GetMilestoneMaterial(char *materialName, int stringLength, const char *statName, const char *perkName);
-int __cdecl getMilestoneType(const char *statsType);
+statsMilestoneTypes_t __cdecl getMilestoneType(const char *statsType);
 void __cdecl CL_MilestoneTier_DecToRoman(int milestoneTierId, char *milestoneTierRoman, int stringLength);

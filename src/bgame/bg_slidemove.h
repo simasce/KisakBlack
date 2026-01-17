@@ -43,7 +43,6 @@ phys_vec3 * phys_full_inv_multiply@<eax>(
                 phys_vec3 *result,
                 const phys_mat44 *mat,
                 const phys_vec3 *v);
-const phys_vec3 *__cdecl phys_inv_multiply(const phys_vec3 *result, const phys_mat44 *mat, const phys_vec3 *v);
 bool __thiscall gjk_polygon_cylinder_t::is_foot(gjk_polygon_cylinder_t *this, const phys_vec3 *hit_point);
 bool __thiscall gjk_brush_t::is_walkable(gjk_brush_t *this, const phys_vec3 *hit_point, const phys_vec3 *up);
 bool __thiscall gjk_partition_t::is_walkable(gjk_partition_t *this, const phys_vec3 *hit_point, const phys_vec3 *up);

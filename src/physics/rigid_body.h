@@ -65,8 +65,9 @@ struct    rigid_body_constraint_point : rigid_body_constraint // sizeof=0x50
             phys_multiply(&v7, &b2->m_mat, &this->m_b2_r_loc);
             b1 = this->b1;
             phys_multiply(&v6, &b1->m_mat, &this->m_b1_r_loc);
+
             pulse_sum_constraint_solver::create_point(
-                psys,
+                phys,
                 b1,
                 &v6,
                 b2,
@@ -76,6 +77,7 @@ struct    rigid_body_constraint_point : rigid_body_constraint // sizeof=0x50
                 this->m_spring_enabled,
                 this->m_spring_k,
                 this->m_damp_k);
+
         }
 };
 
@@ -469,6 +471,8 @@ public:
 
         void swap_last_position();
         void update_last_position();
+
+        void adjust_col_moved_vec(float lambda);
 
 
 

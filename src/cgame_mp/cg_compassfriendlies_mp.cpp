@@ -1,5 +1,33 @@
 #include "cg_compassfriendlies_mp.h"
 
+#include <cstring>
+#include <universal/assertive.h>
+#include <cgame/cg_compass.h>
+#include "cg_vehicles_mp.h"
+#include <bgame/bg_perks.h>
+#include <bgame/bg_misc.h>
+#include "cg_draw_mp.h"
+#include <client/cl_voice.h>
+#include "cg_main_mp.h"
+#include <cgame/cg_drawtools.h>
+#include <ui/ui_atoms.h>
+#include <qcommon/com_gamemodes.h>
+#include "cg_scoreboard_mp.h"
+#include <client_mp/cl_cgame_mp.h>
+#include <gfx_d3d/r_rendercmds.h>
+#include <client/splitscreen.h>
+
+CompassActor s_compassActors[1][32];
+CompassArtillery s_compassArtillery[1][6];
+CompassTurrets s_compassTurrets[1][32];
+CompassVehicle s_compassVehicles[1][16];
+CompassDogs s_compassDogs[1][8];
+CompassActor s_compassActors[1][32];
+CompassHelicopter s_compassHelicopter[1][8];
+CompassFakeFire s_compassFakeFire[1][32][8];
+CompassGuidedMissile s_compassGuidedMissiles[1][32];
+
+
 void __cdecl CG_ClearCompassPingData()
 {
     memset((unsigned __int8 *)s_compassActors, 0, sizeof(s_compassActors));
@@ -31,22 +59,6 @@ void __cdecl RadarPingEnemyPlayer(CompassActor *actor, int time, unsigned int Pe
         *(double *)actor->lastEnemyPos = *(double *)actor->lastPos;
         actor->beginRadarFadeTime = time;
     }
-}
-
-bool __cdecl BG_HasPerk(const unsigned int *perks, unsigned int perkIndex)
-{
-    if ( perkIndex >= 0x34
-        && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../bgame/bg_perks.h",
-                    136,
-                    0,
-                    "perkIndex doesn't index PERK_COUNT\n\t%i not in [0, %i)",
-                    perkIndex,
-                    52) )
-    {
-        __debugbreak();
-    }
-    return (*(_QWORD *)perks & (1LL << perkIndex)) != 0;
 }
 
 void __cdecl RadarPingEnemyTurrets(CompassTurrets *turret, int time)
@@ -126,10 +138,10 @@ void __cdecl CG_CompassUpdateVehicleInfo(int localClientNum, int entityIndex)
     {
         __debugbreak();
     }
-    info = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+    info = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
     if ( (cent->nextState.lerp.eFlags & 0x20) == 0 )
     {
-        team = cent->nextState.faction.iHeadIconTeam & 3;
+        team = (team_t)(cent->nextState.faction.iHeadIconTeam & 3);
         if ( (info->addToCompassEnemy || team == cgameGlob->bgs.clientinfo[cgameGlob->nextSnap->ps.clientNum].team)
             && (info->addToCompass
              || (cgameGlob->nextSnap->ps.eFlags & 0x4000) != 0
@@ -215,7 +227,7 @@ void __cdecl CG_CompassUpdateHelicopterInfo(int localClientNum, int entityIndex)
     Helicopter->lastUpdate = cgameGlob->time;
     *(double *)Helicopter->lastPos = *(double *)cent->pose.origin;
     Helicopter->lastYaw = cent->pose.angles[1];
-    Helicopter->team = cent->nextState.faction.iHeadIconTeam & 3;
+    Helicopter->team = (team_t)(cent->nextState.faction.iHeadIconTeam & 3);
     Helicopter->ownerIndex = (int)cent->nextState.faction.iHeadIconTeam >> 2;
 }
 
@@ -288,7 +300,7 @@ void __cdecl CG_CompassUpdateGuidedMissileInfo(int localClientNum, int entityInd
     GuidedMissile->lastUpdate = cgameGlob->time;
     *(double *)GuidedMissile->lastPos = *(double *)cent->pose.origin;
     GuidedMissile->lastYaw = cent->pose.angles[1];
-    GuidedMissile->team = cent->nextState.faction.iHeadIconTeam & 3;
+    GuidedMissile->team = (team_t)(cent->nextState.faction.iHeadIconTeam & 3);
     GuidedMissile->ownerIndex = (int)cent->nextState.faction.iHeadIconTeam >> 2;
 }
 
@@ -387,7 +399,7 @@ void __cdecl CG_CompassUpdateVehicleOccupantInfo(int localClientNum, int entityI
         {
             __debugbreak();
         }
-        info = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+        info = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
         if ( !info
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_compassfriendlies_mp.cpp",
@@ -482,12 +494,12 @@ void __cdecl ActorUpdatePos(int localClientNum, CompassActor *actor, const float
         {
             RadarPingEnemyPlayer(actor, cgameGlob->time, 25);
         }
-        if ( cgameGlob->predictedPlayerState.satelliteTypeEnabled && actor->lastUpdate > cgameGlob->time - 1500 )
+        if (cgameGlob->predictedPlayerState.satelliteTypeEnabled && actor->lastUpdate > cgameGlob->time - 1500)
             SatellitePingEnemyPlayer(
                 actor,
                 cgameGlob->time,
-                perk_blackbirdShowsGpsJammer->current.enabled ? 52 : 25,
-                cgameGlob->predictedPlayerState.satelliteTypeEnabled == 2);
+                perk_blackbirdShowsGpsJammer->current.enabled ? 52 : 25);
+//                cgameGlob->predictedPlayerState.satelliteTypeEnabled == 2);
         if ( CanLocalPlayerHearActorFootsteps(localClientNum, newPos, actorClientIndex) )
             RadarPingEnemyPlayer(actor, cgameGlob->time, 38);
         if ( DoesMovementCrossLocalRadar(cgameGlob->localRadarPos, cgameGlob->localRadarProgress, actor->lastPos, newPos) )
@@ -531,8 +543,10 @@ void __cdecl GetRadarLine(cg_s *cgameGlob, float radarProgress, float *line)
         __debugbreak();
     }
     margin = GetRadarLineMargin(cgameGlob);
-    *line = cgameGlob->compassNorth[1];
-    *((unsigned int *)line + 1) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
+    line[0] = cgameGlob->compassNorth[1];
+    line[1] = -cgameGlob->compassNorth[0];
+    //*((unsigned int *)line + 1) = LODWORD(cgameGlob->compassNorth[0]) ^ _mask__NegFloat_;
+
     line[2] = (float)((float)((float)(cgameGlob->compassMapUpperLeft[0] * *line)
                                                     + (float)(cgameGlob->compassMapUpperLeft[1] * line[1]))
                                     + (float)((float)((float)(2.0 * margin) + cgameGlob->compassMapWorldSize[0]) * radarProgress))
@@ -671,10 +685,11 @@ void __cdecl CG_CompassUpdateDogInfo(int localClientNum, int entityIndex)
     dog->lastUpdate = cgameGlob->time;
     *(double *)dog->lastPos = *(double *)cent->pose.origin;
     dog->lastYaw = cent->pose.angles[1];
-    dog->team = cent->nextState.lerp.u.actor.team & 3;
+    dog->team = (team_t)(cent->nextState.lerp.u.actor.team & 3);
     dog->ownerIndex = cent->nextState.lerp.u.actor.team >> 2;
 }
 
+int lastUpdateTime;
 CompassDogs *__cdecl GetDogs(int localClientNum, int entityNum, int time)
 {
     CompassDogs *v4; // ecx
@@ -751,11 +766,12 @@ void __cdecl CG_CompassUpdateTurretInfo(int localClientNum, int entityIndex)
         turret->lastYaw = cent->pose.angles[1];
     else
         turret->lastYaw = AngleNormalize360(cent->pose.angles[1] + cent->nextState.lerp.u.turret.gunAngles[1]);
-    turret->team = cent->nextState.faction.iHeadIconTeam & 3;
+    turret->team = (team_t)(cent->nextState.faction.iHeadIconTeam & 3);
     turret->ownerIndex = (int)cent->nextState.faction.iHeadIconTeam >> 2;
     turret->firing = (cent->nextState.lerp.u.turret.flags & 4) != 0;
 }
 
+int lastUpdateTime_0;
 CompassTurrets *__cdecl GetCompassTurrets(int localClientNum, int entityNum, int time)
 {
     CompassTurrets *v4; // ecx
@@ -1696,7 +1712,7 @@ void __cdecl CG_CompassUpdateActors(int localClientNum)
                 actor->lastYaw = (float)((int)(cgameGlob->nextSnap->ps.iCompassPlayerInfo & 0xFF000000) >> 24) * 1.40625;
                 actor->lastUpdate = cgameGlob->time;
                 actor->inVehicle = 0;
-                if ( ((unsigned int)&loc_800000 & cgameGlob->nextSnap->ps.eFlags) != 0 && actor->pingTime <= cgameGlob->time )
+                if ( ((unsigned int)0x800000 & cgameGlob->nextSnap->ps.eFlags) != 0 && actor->pingTime <= cgameGlob->time )
                     actor->pingTime = cgameGlob->time + 3000;
             }
         }
@@ -2009,6 +2025,7 @@ void __cdecl CG_CompassDrawFriendlies(
     }
 }
 
+int compass_jitter = 1000;
 void __cdecl CG_AddArtilleryPing(int localClientNum, float *position)
 {
     cg_s *cgameGlob; // [esp+10h] [ebp-10h]
@@ -3077,7 +3094,8 @@ LABEL_31:
         radarLineThickness = cg_hudMapRadarLineThickness->current.value;
         if ( radarLineThickness > 0.0 )
         {
-            texLeft = (float)(COERCE_FLOAT(LODWORD(radarXAmount) ^ _mask__NegFloat_) / radarLineThickness) + 0.5;
+            //texLeft = (float)(COERCE_FLOAT(LODWORD(radarXAmount) ^ _mask__NegFloat_) / radarLineThickness) + 0.5;
+            texLeft = (float)((-(radarXAmount)) / radarLineThickness) + 0.5;
             texRight = (float)((float)(1.0 - radarXAmount) / radarLineThickness) + 0.5;
             texBottom = 0.0f;
             if ( h == 0.0
@@ -3152,6 +3170,11 @@ void __cdecl CG_CompassDrawFlicker(
             material);
     }
 }
+
+const float Red[3] = { 0.89399999, 0.50099999, 0.537 };
+const float Green[3] = { 0.509, 0.77200001, 0.537 };
+
+
 
 void __cdecl CG_CompassDrawVehicles(
                 int localClientNum,
@@ -3396,7 +3419,7 @@ LABEL_72:
                         }
                         goto LABEL_9;
                     }
-                    info = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+                    info = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
                     material = info->compassIconMaterial;
                     for ( i = 0; i < com_maxclients->current.integer; ++i )
                     {
@@ -3959,7 +3982,7 @@ void __cdecl CG_CompassDrawHelicopter(
                     friendly = 0;
                     enemy = 0;
                     isSelf = 0;
-                    info = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+                    info = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
                     material = info->compassIconMaterial;
                     if ( localClientInfo->team )
                         enemy = localClientInfo->team != copter->team;

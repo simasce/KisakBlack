@@ -425,13 +425,6 @@ struct BuiltInMaterialTable // sizeof=0x8
         Material **material;
 };
 
-struct stream_source_info_t // sizeof=0x3
-{                                       // XREF: .rdata:s_streamSourceInfo/r
-    unsigned __int8 Stream;
-    unsigned __int8 Offset;
-    unsigned __int8 Type;
-};
-
 struct stream_dest_info_t // sizeof=0x2
 {                                       // XREF: .rdata:s_streamDestInfo/r
     unsigned __int8 Usage;

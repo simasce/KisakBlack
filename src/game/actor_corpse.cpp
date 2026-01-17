@@ -700,7 +700,7 @@ int __cdecl Actor_BecomeCorpse(gentity_s *self)
     body->handler = 3;
     body->model = self->model;
     body->s.enemyModel = self->s.enemyModel;
-    body->s.lerp.u.actor.index.actorNum = self->s.lerp.u.actor.index.actorNum;
+    body->s.lerp.u.actor.actorNum = self->s.lerp.u.actor.actorNum;
     body->s.lerp.u.actor.team = self->s.lerp.u.actor.team;
     self->physicsObject = 1;
     if ( Com_IsRagdollTrajectory(&body->s.lerp.pos) )

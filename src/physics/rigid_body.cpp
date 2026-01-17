@@ -364,3 +364,47 @@ unsigned int rigid_body::is_user_rigid_body()
 {
     return this->m_flags & 0x20;
 }
+
+void rigid_body::adjust_col_moved_vec(float lambda)
+{
+    double v3; // st7
+    float v4; // [esp-30h] [ebp-3Ch]
+    float v5; // [esp-2Ch] [ebp-38h]
+    float v6; // [esp-28h] [ebp-34h]
+    float v7; // [esp-20h] [ebp-2Ch]
+    float v8; // [esp-1Ch] [ebp-28h]
+    float v9; // [esp-18h] [ebp-24h]
+    float v10; // [esp-4h] [ebp-10h]
+    float v11; // [esp-4h] [ebp-10h]
+    float v12; // [esp-4h] [ebp-10h]
+    float v13; // [esp-4h] [ebp-10h]
+    float v14; // [esp-4h] [ebp-10h]
+    float v15; // [esp-4h] [ebp-10h]
+    float v16; // [esp-4h] [ebp-10h]
+
+    v7 = this->m_moved_vec.x * lambda;
+    v8 = this->m_moved_vec.y * lambda;
+    v9 = this->m_moved_vec.z * lambda;
+    v4 = this->m_mat.w.x + v7;
+    v5 = this->m_mat.w.y + v8;
+    v6 = this->m_mat.w.z + v9;
+    this->m_mat.w.x = v4;
+    this->m_mat.w.y = v5;
+    this->m_mat.w.z = v6;
+    v10 = 1.0 - lambda;
+    this->m_moved_vec.x = v10 * this->m_moved_vec.x;
+    this->m_moved_vec.y = this->m_moved_vec.y * v10;
+    this->m_moved_vec.z = v10 * this->m_moved_vec.z;
+    v3 = 100000.0;
+    v11 = fabs(this->m_moved_vec.x);
+    if (v11 > 100000.0
+        || (v12 = fabs(this->m_moved_vec.y), v12 > 100000.0)
+        || (v13 = fabs(this->m_moved_vec.z), v13 > 100000.0))
+    {
+        phys_exec_debug_callback(this);
+        v3 = 100000.0;
+    }
+    v14 = fabs(this->m_mat.w.x);
+    if (v14 > v3 || (v15 = fabs(this->m_mat.w.y), v15 > v3) || (v16 = fabs(this->m_mat.w.z), v3 < v16))
+        phys_exec_debug_callback(this);
+}

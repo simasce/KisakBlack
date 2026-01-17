@@ -202,3 +202,5 @@ void __cdecl Rope_CollideEntitiesHelper(int rope_index, float *origin);
 void __cdecl Rope_CollideEntities(int rope_index);
 
 extern rope_t *g_ropes;
+extern int g_ropeCount;
+extern int g_ropesWithEntsAnchorsCount;

@@ -259,7 +259,7 @@ void    CG_Vehicle_PreControllers(
     if ( cent->nitrousVeh )
         m_forward_vel = cent->nitrousVeh->m_forward_vel;
     VEH_UpdateMaterialTime(cent, ps[26].hud.current[28].fadeStartTime, m_forward_vel);
-    v172 = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+    v172 = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
     i = 0;
     if ( v172->type == 1 )
     {
@@ -452,7 +452,7 @@ void    CG_Vehicle_PreControllers(
     }
     else
     {
-        vehicleInfoIndex = cent->nextState.un2.vehicleState.vehicleInfoIndex;
+        vehicleInfoIndex = cent->nextState.vehicleState.vehicleInfoIndex;
         v111 = CG_GetVehicleInfo(vehicleInfoIndex);
         if ( v111->isNitrous )
         {
@@ -907,7 +907,7 @@ void    VEH_UpdateMaterialTime(float a1@<ebp>, centity_s *cent, int dt, float sp
 
     deltaTime = a1;
     scrollMultiplier = retaddr;
-    VehicleInfo = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+    VehicleInfo = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
     if ( VehicleInfo->texScroll )
     {
         v6 = 1.0f;
@@ -1135,7 +1135,7 @@ void __cdecl CG_UpdateVehicleSounds(int localClientNum, centity_s *cent)
     bool vehicleOccupied; // [esp+1Fh] [ebp-1h]
     int savedregs; // [esp+20h] [ebp+0h] BYREF
 
-    info = CG_GetVehicleInfo(cent->nextState.un2.vehicleState.vehicleInfoIndex);
+    info = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
     cgameGlob = CG_GetLocalClientGlobals(localClientNum);
     speedIPS = Abs(cent->currentState.pos.trDelta);
     if ( cent->nitrousVeh )

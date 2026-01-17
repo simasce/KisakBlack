@@ -609,8 +609,10 @@ void    AimAssist_CreateScreenMatrix(
 
         iassert(aaGlob);
 
-        MatrixForViewer(viewMtx, aaGlob->viewOrigin, aaGlob->viewAxis);
-        InfinitePerspectiveMatrix(projMtx, tanHalfFovX, tanHalfFovY, 1.0);
+        //MatrixForViewer(viewMtx, aaGlob->viewOrigin, aaGlob->viewAxis);
+        MatrixForViewer(aaGlob->viewOrigin, aaGlob->viewAxis, viewMtx);
+        //InfinitePerspectiveMatrix(projMtx, tanHalfFovX, tanHalfFovY, 1.0);
+        InfinitePerspectiveMatrix(tanHalfFovX, tanHalfFovY, 1.0f, projMtx);
         MatrixMultiply44(viewMtx, projMtx, screenMtx);
         MatrixTranspose44(screenMtx, aaGlob->screenMtx);
         MatrixInverse44(aaGlob->screenMtx, aaGlob->invScreenMtx);

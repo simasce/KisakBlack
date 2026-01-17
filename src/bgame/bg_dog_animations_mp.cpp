@@ -105,7 +105,7 @@ XAnim_s *__cdecl Dog_GetAnims()
     return s_dogAnims;
 }
 
-void __cdecl Dog_CreateAnims(void *(__cdecl *xanimAlloc)(int))
+void __cdecl Dog_CreateAnims(void *(__cdecl *xanimAlloc)(unsigned int))
 {
     signed int animIndex; // [esp+0h] [ebp-4h]
 

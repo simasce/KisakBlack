@@ -1,4 +1,8 @@
 #include "r_rope_render.h"
+#include "fxprimitives.h"
+#include <xanim/xanim.h>
+#include "r_drawsurf.h"
+#include "r_model_lighting.h"
 
 void __cdecl R_Rope_GenerateVerts_Camera(RopeGenerateVertsCmd *cmd)
 {

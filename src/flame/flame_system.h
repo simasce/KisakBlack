@@ -2,10 +2,10 @@
 #include <gfx_d3d/r_material.h>
 #include <universal/dvar.h>
 #include "flame_physics.h"
-#include "flame_class_stream.h"
 
 struct cg_s;
 struct centity_s;
+struct flameStream_s;
 
 struct flameSize_t // sizeof=0x8
 {                                                                             // XREF: flameGeneric_s/r

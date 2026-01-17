@@ -1,5 +1,7 @@
 #pragma once
 
+struct UiContext;
+
 void __cdecl UI_AnimateLocalItem(
                 int localClientNum,
                 UiContext *dc,
@@ -8,6 +10,10 @@ void __cdecl UI_AnimateLocalItem(
                 const char *newStateName,
                 int milliseconds);
 void __cdecl UI_SetLocalVarStringByName(char *inputName, char *inputValue, int localClientNum);
+inline void __cdecl UI_SetLocalVarStringByName(const char *inputName, char *inputValue, int localClientNum)
+{
+    UI_SetLocalVarStringByName((char *)inputName, inputValue, localClientNum);
+}
 void __cdecl UI_SetFakeLocalDvarStringByName(const char *inputName, char *inputValue, unsigned int localClientNum);
 void __cdecl CG_ClearPopUpUI(int localClientNum);
 void __cdecl CG_ClearCenterPopUpUI(int localClientNum);
