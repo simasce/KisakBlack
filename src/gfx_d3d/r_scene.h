@@ -385,6 +385,12 @@ struct GfxSceneParms // sizeof=0x14E0
     float sceneH;
 };
 
+struct GfxSceneDynModel // sizeof=0x6
+{
+    XModelDrawInfo info;
+    unsigned __int16 dynEntId;
+};
+
 struct GfxSceneDynBrush // sizeof=0x4
 {
     BModelDrawInfo info;
@@ -434,7 +440,7 @@ void __cdecl R_AddDObjToScene(
                 float lightingOriginToleranceSq,
                 float scale);
 unsigned int __cdecl R_AllocSceneDObj();
-GfxParticleCloud *__cdecl R_AddParticleCloudToScene(Material *material);
+struct GfxParticleCloud *__cdecl R_AddParticleCloudToScene(Material *material);
 void __cdecl R_AddOmniLightToScene(const float *org, const float (*axis)[3], int radius, float r, float g, float b);
 void __cdecl R_AddSpotLightToScene(const float *org, const float (*axis)[3], float radius, float r, float g, float b);
 double __cdecl R_GetDefaultNearClip();

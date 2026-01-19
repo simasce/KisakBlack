@@ -3,6 +3,9 @@
 #include "r_dpvs.h"
 #include "r_reflection_probe.h"
 #include "rb_light.h"
+#include "r_sky.h"
+#include "r_dpvs_dynmodel.h"
+#include "r_world_lod.h"
 
 struct GfxShadowGeometry // sizeof=0xC
 {
@@ -275,6 +278,24 @@ struct GfxWorldDraw // sizeof=0xC0
                                         // R_FinalizeSurfVerts+176/r ...
 };
 
+struct GfxWaterBuffer // sizeof=0x8
+{                                       // XREF: GfxWorld/r
+    unsigned int bufferSize;
+    float (*buffer)[4];
+};
+
+struct Occluder // sizeof=0x44
+{
+    unsigned int flags;
+    char name[16];
+    float points[4][3];
+};
+
+struct GfxOutdoorBounds // sizeof=0x18
+{
+    float bounds[2][3];
+};
+
 struct GfxWorld // sizeof=0x43C
 {                                       // XREF: .data:GfxWorld s_world/r
     const char *name;                   // XREF: R_LoadWorldInternal(char const *)+92/w
@@ -417,7 +438,7 @@ struct GfxWorld // sizeof=0x43C
                                         // R_LoadHeroOnlyLights+1C7/w ...
 };
 
-MaterialUsage *__cdecl R_GetMaterialUsageData(Material *material);
+struct MaterialUsage *__cdecl R_GetMaterialUsageData(Material *material);
 void __cdecl R_CreateMaterialList();
 void __cdecl R_ShutdownMaterialUsage();
 void __cdecl R_InterpretSunLightParseParams(SunLightParseParams *sunParse);

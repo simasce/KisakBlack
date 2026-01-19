@@ -1,7 +1,6 @@
 #pragma once
 #include <sound/snd.h>
 #include <bgame/bg_weapons_def.h>
-#include "cg_local.h"
 
 struct gentity_s;
 struct XModel;
@@ -11,7 +10,7 @@ struct DObj;
 struct XAnim_s;
 struct GfxScaledPlacement;
 struct refdef_s;
-struct localEntity_s;
+struct ViewModelInfo;
 
 struct AnimRateOffset // sizeof=0x8
 {                                       // XREF: .data:g_animRateOffsets/r

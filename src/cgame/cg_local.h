@@ -2,6 +2,8 @@
 #include <xanim/dobj.h>
 #include <xanim/xanim.h>
 
+#include <cgame/cg_weapons.h>
+
 struct ViewModelHand // sizeof=0x8
 {                                       // XREF: ViewModelInfo/r
     int iPrevAnim;

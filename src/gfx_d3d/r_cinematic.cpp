@@ -1,4 +1,5 @@
 #include "r_cinematic.h"
+#include <qcommon/common.h>
 
 void __cdecl R_CinematicInitSound(const _GUID *guid)
 {

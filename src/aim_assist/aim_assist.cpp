@@ -32,7 +32,6 @@ GraphFloat aaInputGraph[4];
 const dvar_s *aim_aimAssistRangeScale;
 const dvar_s *aim_autoAimRangeScale;
 const dvar_s *aim_input_graph_enabled;
-const dvar_s *aim_input_graph_enabled;
 const dvar_s *aim_input_graph_debug;
 const dvar_s *aim_input_graph_index;
 const dvar_s *aim_turnrate_pitch;
@@ -1440,6 +1439,19 @@ double __cdecl AimAssist_GetAimAssistRange(unsigned int weapIndex, float adsLerp
                              * aim_aimAssistRangeScale->current.value);
 }
 
+static bool __cdecl AimAssist_DoBoundsIntersectCenterBox(
+    const float *clipMins,
+    const float *clipMaxs,
+    float clipHalfWidth,
+    float clipHalfHeight)
+{
+    iassert(clipMins);
+    iassert(clipMaxs);
+
+    return (clipHalfWidth >= (double)*clipMins && *clipMaxs >= -clipHalfWidth)
+        && (clipHalfHeight >= (double)clipMins[1] && clipMaxs[1] >= -clipHalfHeight);
+}
+
 const AimScreenTarget *__cdecl AimAssist_GetBestTarget(
                 const AimAssistGlobals *aaGlob,
                 float range,
@@ -1477,19 +1489,6 @@ const AimScreenTarget *__cdecl AimAssist_GetBestTarget(
         }
     }
     return 0;
-}
-
-static bool __cdecl AimAssist_DoBoundsIntersectCenterBox(
-        const float *clipMins,
-        const float *clipMaxs,
-        float clipHalfWidth,
-        float clipHalfHeight)
-{
-        iassert(clipMins);
-        iassert(clipMaxs);
-
-        return (clipHalfWidth >= (double)*clipMins && *clipMaxs >= -clipHalfWidth)
-                && (clipHalfHeight >= (double)clipMins[1] && clipMaxs[1] >= -clipHalfHeight);
 }
 
 bool __cdecl AimAssist_IsPlayerUsingOffhand(const AimAssistPlayerState *ps)

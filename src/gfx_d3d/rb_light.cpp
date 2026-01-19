@@ -6,9 +6,7 @@
 #include <cgame_mp/cg_ents_mp.h>
 #include <qcommon/com_bsp.h>
 #include <universal/com_files.h>
-#include <libs/libtomcrypt-1.17/src/headers/tomcrypt_argchk.h>
-#include <libs/libtomcrypt-1.17/src/headers/tomcrypt_hash.h>
-#include <libs/libtomcrypt-1.17/src/headers/tomcrypt_cipher.h>
+#include <libs/libtomcrypt-1.17/src/headers/tomcrypt.h>
 
 unsigned int lightPointCount;
 tlAtomicMutex lightGridMutex;

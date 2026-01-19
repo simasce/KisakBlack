@@ -6,6 +6,8 @@
 #include <DemonWare/bdCore/bdMemory/bdMemory.h>
 #include <DemonWare/bdCore/bdReference/bdReferencable.h>
 #include <DemonWare/bdCore/bdContainers/bdByteBuffer.h>
+#include <cstring>
+#include <cgame_mp/cg_scoreboard_mp.h>
 
 struct bdDownloadInterceptor // sizeof=0x4
 {                                                                             // XREF: fileShareDownloadInterceptor/r

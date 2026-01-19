@@ -10,11 +10,6 @@ struct rigid_body_constraint // sizeof=0xC
         struct rigid_body_constraint *m_next;
 };
 
-struct pulse_sum_cache // sizeof=0x4
-{                                                                             // XREF: rigid_body_constraint_point/r
-        float m_pulse_sum;
-};
-
 struct    rigid_body_constraint_point : rigid_body_constraint // sizeof=0x50
 {                                                                             // XREF: phys_free_list<rigid_body_constraint_point>::T_internal/r
         // padding byte
@@ -36,49 +31,9 @@ struct    rigid_body_constraint_point : rigid_body_constraint // sizeof=0x50
         // padding byte
         // padding byte
 
-        void set(const phys_vec3 *b1_r_loc, const phys_vec3 *b2_r_loc)
-        {
-            this->m_b1_r_loc.x = b1_r_loc->x;
-            this->m_b1_r_loc.y = b1_r_loc->y;
-            this->m_b1_r_loc.z = b1_r_loc->z;
-
-            this->m_b2_r_loc.x = b2_r_loc->x;
-            this->m_b2_r_loc.y = b2_r_loc->y;
-            this->m_b2_r_loc.z = b2_r_loc->z;
-        }
-
-        void epilog_vel_constaint(float __formal)
-        {
-            this->m_stress = this->m_ps_cache_list[1].m_pulse_sum * this->m_ps_cache_list[1].m_pulse_sum
-                + this->m_ps_cache_list[0].m_pulse_sum * this->m_ps_cache_list[0].m_pulse_sum
-                + this->m_ps_cache_list[2].m_pulse_sum * this->m_ps_cache_list[2].m_pulse_sum;
-        }
-        void setup_constaint(struct pulse_sum_constraint_solver *phys, float delta_t)
-        {
-            rigid_body *b2; // edi
-            phys_vec3 v6; // [esp+20h] [ebp-3Ch] BYREF
-            phys_vec3 v7; // [esp+30h] [ebp-2Ch] BYREF
-            rigid_body *b1; // [esp+4Ch] [ebp-10h]
-            void *retaddr; // [esp+5Ch] [ebp+0h]
-
-            b2 = this->b2;
-            phys_multiply(&v7, &b2->m_mat, &this->m_b2_r_loc);
-            b1 = this->b1;
-            phys_multiply(&v6, &b1->m_mat, &this->m_b1_r_loc);
-
-            pulse_sum_constraint_solver::create_point(
-                phys,
-                b1,
-                &v6,
-                b2,
-                &v7,
-                this->m_ps_cache_list,
-                delta_t,
-                this->m_spring_enabled,
-                this->m_spring_k,
-                this->m_damp_k);
-
-        }
+        void set(const phys_vec3 *b1_r_loc, const phys_vec3 *b2_r_loc);
+        void epilog_vel_constaint(float __formal);
+        void setup_constaint(struct pulse_sum_constraint_solver *phys, float delta_t);
 };
 
 struct    __declspec(align(16)) rigid_body_constraint_hinge : rigid_body_constraint // sizeof=0xD0
@@ -341,6 +296,90 @@ struct    rigid_body_constraint_custom_orientation : rigid_body_constraint // si
         float m_upright_strength;
 };
 
+class rigid_body
+{
+public:
+    void add_force(const phys_vec3 *force);
+    void add_force(
+        const phys_vec3 *force,
+        const phys_vec3 *point,
+        float torque_mult);
+    void add_torque(const phys_vec3 *torque);
+
+    void set_inertia(const phys_vec3 *inertia);
+    void set_mass(float mass);
+
+    void set(
+        float mass,
+        const phys_vec3 *inertia,
+        const phys_mat44 *mat,
+        const phys_vec3 *t_vel,
+        const phys_vec3 *a_vel,
+        int stable_min_contact_count);
+
+    unsigned int get_flag(unsigned int f);
+    void set_flag(unsigned int f, int b);
+    unsigned int is_group_stable();
+
+    unsigned int is_user_rigid_body();
+
+    unsigned int is_dangerous();
+    unsigned int is_stable();
+
+    void dangerous_set_a_vel(const phys_vec3 *a_vel);
+    void dangerous_set_t_vel(const phys_vec3 *t_vel);
+
+    rigid_body &operator=(const rigid_body *__that);
+
+    void swap_last_position();
+    void update_last_position();
+
+    void adjust_col_moved_vec(float lambda);
+
+
+
+    phys_vec3 m_last_position;
+    phys_vec3 m_moved_vec;
+    float m_smallest_lambda;
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    phys_mat44 m_mat;
+    phys_vec3 m_inv_inertia;
+    phys_vec3 m_gravity_acc_vec;
+    phys_vec3 m_t_vel;
+    phys_vec3 m_a_vel;
+    phys_vec3 m_last_t_vel;
+    phys_vec3 m_last_a_vel;
+    phys_vec3 m_force_sum;
+    phys_vec3 m_torque_sum;
+    float m_inv_mass;
+    float m_max_avel;
+    float m_max_delta_t;
+    unsigned int m_flags;
+    unsigned int m_tick;
+    struct pulse_sum_node *m_node;
+    int m_constraint_count;
+    int m_contact_count;
+    int m_stable_min_contact_count;
+    float m_stable_energy_time;
+    float m_largest_vel_sq;
+    float m_t_drag_coef;
+    float m_a_drag_coef;
+    void *m_userdata;
+    rb_inplace_partition_node m_partition_node;
+};
+
+
 struct    user_rigid_body : rigid_body // sizeof=0x1B0
 {                                                                             // XREF: phys_free_list<user_rigid_body>::T_internal/r
                                                                                 // pulse_sum_constraint_solver::temp_user_rigid_body/r
@@ -432,89 +471,6 @@ struct rb_inplace_partition_node // sizeof=0x38
         struct rigid_body *m_partition_tail;
         struct rigid_body *m_next_node;
         int m_partition_size;
-};
-
-class rigid_body
-{
-public:
-        void add_force(const phys_vec3 *force);
-        void add_force(
-            const phys_vec3 *force,
-            const phys_vec3 *point,
-            float torque_mult);
-        void add_torque(const phys_vec3 *torque);
-
-        void set_inertia(const phys_vec3 *inertia);
-        void set_mass(float mass);
-
-        void set(
-                        float mass,
-                        const phys_vec3 *inertia,
-                        const phys_mat44 *mat,
-                        const phys_vec3 *t_vel,
-                        const phys_vec3 *a_vel,
-                        int stable_min_contact_count);
-
-        unsigned int get_flag(unsigned int f);
-        void set_flag(unsigned int f, int b);
-        unsigned int is_group_stable();
-
-        unsigned int is_user_rigid_body();
-
-        unsigned int is_dangerous();
-        unsigned int is_stable();
-
-        void dangerous_set_a_vel(const phys_vec3 *a_vel);
-        void dangerous_set_t_vel(const phys_vec3 *t_vel);
-
-        rigid_body& operator=(const rigid_body *__that);
-
-        void swap_last_position();
-        void update_last_position();
-
-        void adjust_col_moved_vec(float lambda);
-
-
-
-        phys_vec3 m_last_position;
-        phys_vec3 m_moved_vec;
-        float m_smallest_lambda;
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        phys_mat44 m_mat;
-        phys_vec3 m_inv_inertia;
-        phys_vec3 m_gravity_acc_vec;
-        phys_vec3 m_t_vel;
-        phys_vec3 m_a_vel;
-        phys_vec3 m_last_t_vel;
-        phys_vec3 m_last_a_vel;
-        phys_vec3 m_force_sum;
-        phys_vec3 m_torque_sum;
-        float m_inv_mass;
-        float m_max_avel;
-        float m_max_delta_t;
-        unsigned int m_flags;
-        unsigned int m_tick;
-        struct pulse_sum_node *m_node;
-        int m_constraint_count;
-        int m_contact_count;
-        int m_stable_min_contact_count;
-        float m_stable_energy_time;
-        float m_largest_vel_sq;
-        float m_t_drag_coef;
-        float m_a_drag_coef;
-        void *m_userdata;
-        rb_inplace_partition_node m_partition_node;
 };
 
 struct environment_rigid_body : rigid_body // sizeof=0x160

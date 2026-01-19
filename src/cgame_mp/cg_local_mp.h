@@ -10,6 +10,8 @@
 #include <cgame/cg_playerstate.h>
 #include <gfx_d3d/r_screenshot.h>
 #include "cg_compassfriendlies_mp.h"
+#include <client_mp/cl_main_mp.h>
+#include <cgame_mp/cg_main_mp.h>
 
 enum link_type_e : __int32
 {                                       // XREF: cg_s/r

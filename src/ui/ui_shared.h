@@ -166,7 +166,7 @@ struct animParamsDef_t // sizeof=0x6C
     float outlineColor[4];
     float textScale;
     float rotation;
-    GenericEventHandler *onEvent;
+    struct GenericEventHandler *onEvent;
 };
 
 struct UIAnimInfo // sizeof=0xEC
@@ -178,38 +178,6 @@ struct UIAnimInfo // sizeof=0xEC
     int animating;
     int animStartTime;
     int animDuration;
-};
-
-struct __declspec(align(8)) itemDef_s // sizeof=0x110
-{                                                                             // XREF: itemDef_t/r
-                                                                                // Menu_RunLeaveFocusScript/r ...
-    windowDef_t window;
-    int type;
-    int dataType;
-    int imageTrack;
-    const char *dvar;
-    const char *dvarTest;
-    const char *enableDvar;
-    int dvarFlags;
-    itemDefData_t typeData;
-    menuDef_t *parent;
-    rectData_s *rectExpData;
-    ExpressionStatement visibleExp;
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
-    unsigned __int64 showBits;
-    unsigned __int64 hideBits;
-    ExpressionStatement forecolorAExp;
-    int ui3dWindowId;
-    GenericEventHandler *onEvent;
-    UIAnimInfo *animInfo;                             // XREF: Menu_RunLeaveFocusScript+10/w
-    // Menu_RunFocusScript+10/w ...
-// padding byte
-// padding byte
-// padding byte
-// padding byte
 };
 
 struct ScriptCondition // sizeof=0x10
@@ -248,7 +216,7 @@ struct __declspec(align(8)) menuDef_t // sizeof=0x190
     int fadeTimeCounter;
     int slideTimeCounter;
     GenericEventHandler *onEvent;
-    ItemKeyHandler *onKey;
+    struct ItemKeyHandler *onKey;
     ExpressionStatement visibleExp;
     // padding byte
     // padding byte
@@ -264,7 +232,7 @@ struct __declspec(align(8)) menuDef_t // sizeof=0x190
     float disableColor[4];
     ExpressionStatement rectXExp;
     ExpressionStatement rectYExp;
-    itemDef_s **items;
+    struct itemDef_s **items;
     // padding byte
     // padding byte
     // padding byte
@@ -772,7 +740,7 @@ struct focusItemDef_s // sizeof=0x18
 union textDefData_t // sizeof=0x4
 {                                                                             // XREF: textDef_s/r
     focusItemDef_s *focusItemDef;
-    gameMsgDef_s *gameMsgDef;
+    struct gameMsgDef_s *gameMsgDef;
     void *data;
 };
 
@@ -789,7 +757,7 @@ struct textDef_s // sizeof=0x44
     float textscale;
     int textStyle;
     const char *text;
-    textExp_s *textExpData;
+    struct textExp_s *textExpData;
     textDefData_t textTypeData;
 };
 
@@ -824,6 +792,38 @@ struct ItemKeyHandler // sizeof=0xC
     int key;
     GenericEventScript *keyScript;
     ItemKeyHandler *next;
+};
+
+struct __declspec(align(8)) itemDef_s // sizeof=0x110
+{                                                                             // XREF: itemDef_t/r
+                                                                                // Menu_RunLeaveFocusScript/r ...
+    windowDef_t window;
+    int type;
+    int dataType;
+    int imageTrack;
+    const char *dvar;
+    const char *dvarTest;
+    const char *enableDvar;
+    int dvarFlags;
+    itemDefData_t typeData;
+    menuDef_t *parent;
+    rectData_s *rectExpData;
+    ExpressionStatement visibleExp;
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    unsigned __int64 showBits;
+    unsigned __int64 hideBits;
+    ExpressionStatement forecolorAExp;
+    int ui3dWindowId;
+    GenericEventHandler *onEvent;
+    UIAnimInfo *animInfo;                             // XREF: Menu_RunLeaveFocusScript+10/w
+    // Menu_RunFocusScript+10/w ...
+// padding byte
+// padding byte
+// padding byte
+// padding byte
 };
 
 void __cdecl Menu_Setup(UiContext *dc);

@@ -94,6 +94,8 @@ struct __declspec(align(8)) matchScoreBoardData_t // sizeof=0xF10
     // padding byte
 };
 
+struct cg_s;
+
 const char *__cdecl CG_GetNameForScoreboardColumn(int localClientNum, unsigned int columnNumber);
 void __cdecl CG_UpdateMatchScoreboard(int localClientNum);
 void __cdecl CG_AddSBColumnToMatchScoreBoard(

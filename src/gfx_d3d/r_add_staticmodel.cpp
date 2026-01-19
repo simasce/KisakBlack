@@ -21,6 +21,8 @@
 #include "r_pretess.h"
 #include "r_xsurface.h"
 #include <universal/com_files.h>
+#include "r_drawsurf.h"
+#include "rb_logfile.h"
 
 GfxLodParms *g_lodParms;
 
@@ -977,8 +979,7 @@ void __cdecl R_StaticModelWriteInfoHeader(int fileHandle)
     FS_Write(&dest, &v2[strlen(&dest)] - v2, fileHandle);
 }
 
-unsigned int _S1_16 = 0;
-float radius2pixels;
+
 void __cdecl R_StaticModelWriteInfo(int fileHandle, const GfxStaticModelDrawInst *smodelDrawInst, float dist)
 {
     long double len; // [esp+4Ch] [ebp-1028h]
@@ -989,12 +990,15 @@ void __cdecl R_StaticModelWriteInfo(int fileHandle, const GfxStaticModelDrawInst
     float v8; // [esp+106Ch] [ebp-8h]
     float v9; // [esp+1070h] [ebp-4h]
 
-    if ( (_S1_16 & 1) == 0 )
-    {
-        _S1_16 |= 1u;
-        __libm_sse2_tan(len);
-        radius2pixels = 720.0 / (float)22.5;
-    }
+
+    //if ( (_S1_16 & 1) == 0 )
+    //{
+    //    _S1_16 |= 1u;
+    //    __libm_sse2_tan(len);
+    //    radius2pixels = 720.0 / (float)22.5;
+    //}
+    static float radius2pixels = 720.0f / tanf(22.5f); // KISAKTODO: should this be in radians?
+
     *(unsigned int *)&v5[4099] = 4096;
     model = smodelDrawInst->model;
     if ( !model
@@ -1354,7 +1358,8 @@ void __cdecl R_SkinStaticModelsShadowForLod(
                 v7 = RB_LogTechniqueType(shadowmapBuildTechType);
                 Com_Error(ERR_DROP, "material \"%s\" lacks shadow tech %d %s", material->info.name, shadowmapBuildTechType, v7);
             }
-            drawSurf.fields = (GfxDrawSurfFields)material->info.drawSurf;
+            //drawSurf.fields = (GfxDrawSurfFields)material->info.drawSurf;
+            drawSurf.packed = material->info.drawSurf.packed;
             HIDWORD(drawSurf.packed) = ((surfType & 0xF) << 19) | HIDWORD(drawSurf.packed) & 0xFF87FFFF;
             if ( surfType != 4
                 || (Sys_QueryD3DDeviceOKEvent() ? (enabled = r_pretess->current.enabled) : (enabled = 0),
@@ -1534,7 +1539,7 @@ void __cdecl R_AddAllStaticModelSurfacesSpotShadow(
                         }
                         else
                         {
-                            *v23 = surfData.drawSurf[1].end;
+                            *v23 = (uint16)surfData.drawSurf[1].end;
                         }
                     }
                     else

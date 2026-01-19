@@ -2,12 +2,10 @@
 
 #include <qcommon/ent.h>
 #include <game/teams.h>
-#include <client_mp/client_mp.h>
 #include <sound/snd.h>
 #include "bg_animation.h"
 #include <game/g_scr_vehicle.h>
-
-
+#include "bg_mantle.h"
 
 struct GfxSkinCacheEntry // sizeof=0xC
 {                                                                             // XREF: cpose_t/r

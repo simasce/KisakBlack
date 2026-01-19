@@ -2,6 +2,7 @@
 #include "phys_assert.h"
 #include "physics_system_internal.h"
 #include <tl/physics/rbc_def_generic.h>
+#include <physics/phys_constraint_solver_multithreaded.h>
 
 void rigid_body::add_force(const phys_vec3 *force)
 {
@@ -407,4 +408,48 @@ void rigid_body::adjust_col_moved_vec(float lambda)
     v14 = fabs(this->m_mat.w.x);
     if (v14 > v3 || (v15 = fabs(this->m_mat.w.y), v15 > v3) || (v16 = fabs(this->m_mat.w.z), v3 < v16))
         phys_exec_debug_callback(this);
+}
+
+void rigid_body_constraint_point::setup_constaint(struct pulse_sum_constraint_solver *phys, float delta_t)
+{
+    rigid_body *b2; // edi
+    phys_vec3 b1_r; // [esp+20h] [ebp-3Ch] BYREF
+    phys_vec3 b2_r; // [esp+30h] [ebp-2Ch] BYREF
+    rigid_body *b1; // [esp+4Ch] [ebp-10h]
+    void *retaddr; // [esp+5Ch] [ebp+0h]
+
+    b2 = this->b2;
+    phys_multiply(&b2_r, &b2->m_mat, &this->m_b2_r_loc);
+    b1 = this->b1;
+    phys_multiply(&b1_r, &b1->m_mat, &this->m_b1_r_loc);
+
+    //pulse_sum_constraint_solver::create_point(
+        phys->create_point(
+        b1,
+        &b1_r,
+        b2,
+        &b2_r,
+        (pulse_sum_cache*)this->m_ps_cache_list,
+        delta_t,
+        this->m_spring_enabled,
+        this->m_spring_k,
+        this->m_damp_k);
+}
+
+void rigid_body_constraint_point::epilog_vel_constaint(float __formal)
+{
+    this->m_stress = this->m_ps_cache_list[1].m_pulse_sum * this->m_ps_cache_list[1].m_pulse_sum
+        + this->m_ps_cache_list[0].m_pulse_sum * this->m_ps_cache_list[0].m_pulse_sum
+        + this->m_ps_cache_list[2].m_pulse_sum * this->m_ps_cache_list[2].m_pulse_sum;
+}
+
+void rigid_body_constraint_point::set(const phys_vec3 *b1_r_loc, const phys_vec3 *b2_r_loc)
+{
+    this->m_b1_r_loc.x = b1_r_loc->x;
+    this->m_b1_r_loc.y = b1_r_loc->y;
+    this->m_b1_r_loc.z = b1_r_loc->z;
+
+    this->m_b2_r_loc.x = b2_r_loc->x;
+    this->m_b2_r_loc.y = b2_r_loc->y;
+    this->m_b2_r_loc.z = b2_r_loc->z;
 }

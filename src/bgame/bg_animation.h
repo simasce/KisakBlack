@@ -160,7 +160,7 @@ struct animConditionTable_t // sizeof=0x10
 {                                       // XREF: .data:animConditionsTable/r
     animScriptConditionTypes_t type;    // XREF: BG_EvaluateConditions+269/r
                                         // BG_SetConditionBit(int,int,int)+4C/r ...
-    animStringItem_t *values;           // XREF: BG_AnimParseAnimScript+4C4/r
+    struct animStringItem_t *values;           // XREF: BG_AnimParseAnimScript+4C4/r
                                         // BG_ParseConditions+C0/r ...
     int minValue;
     int maxValue;

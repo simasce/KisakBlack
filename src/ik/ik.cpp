@@ -357,11 +357,11 @@ void    IK_GetJointVars(IKState *ikState)
             if ( ikState->ikBoneToObjBone[*joints] != 161 )
             {
                 ikCalcBoneModelMatrix(ikState, *joints, (*ikState->matArrayPostIK)[0], (float (*)[4])&posChild[4]);
-                *(unsigned int *)posChild = &posChild[52];
+                *(unsigned int *)posChild = (unsigned int)&posChild[52];
                 *(_QWORD *)&posJoint[68] = *(_QWORD *)&posChild[52];
                 *(unsigned int *)&posJoint[76] = *(unsigned int *)&posChild[60];
                 ikCalcBoneModelMatrix(ikState, joints[1], (*ikState->matArrayPostIK)[0], (float (*)[4])&posJoint[4]);
-                *(unsigned int *)posJoint = &posJoint[52];
+                *(unsigned int *)posJoint = (unsigned int)&posJoint[52];
                 *(_QWORD *)&posParent_4[64] = *(_QWORD *)&posJoint[52];
                 *(unsigned int *)&posParent_4[72] = *(unsigned int *)&posJoint[60];
                 ikCalcBoneModelMatrix(ikState, joints[2], (*ikState->matArrayPostIK)[0], (float (*)[4])posParent_4);

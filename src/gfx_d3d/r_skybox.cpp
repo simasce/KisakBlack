@@ -1,4 +1,7 @@
 #include "r_skybox.h"
+#include <xanim/xmodel.h>
+
+XModel *g_skyboxModel;
 
 void R_RegisterSkyboxModel()
 {

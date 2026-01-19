@@ -211,33 +211,31 @@ void __cdecl R_LoadWorld(char *name, int *checksum, int savegame, int location)
 
 void __cdecl R_CopyParseParamsToDvars(const SunLightParseParams *sunParse, int savegame)
 {
-    unsigned int saveDirection; // [esp+14h] [ebp-Ch]
-    unsigned int saveDirection_4; // [esp+18h] [ebp-8h]
-    float saveDirection_8; // [esp+1Ch] [ebp-4h]
+    float saveDirection[3];
+
 
     iassert(r_lightTweakSunDirection->flags & (1 << 12));
 
-    saveDirection = *(unsigned int *)(r_lightTweakSunDirection.integer + 24);
-    saveDirection_4 = *(unsigned int *)(r_lightTweakSunDirection.integer + 28);
-    saveDirection_8 = *(float *)(r_lightTweakSunDirection.integer + 32);
+    saveDirection[0] = r_lightTweakSunDirection->current.vector[0];
+    saveDirection[1] = r_lightTweakSunDirection->current.vector[1];
+    saveDirection[2] = r_lightTweakSunDirection->current.vector[2];
     Dvar_SetFloat((dvar_s *)r_lightTweakSunLight, sunParse->sunSettings[0].sunDiffuseColor[3]);
     Dvar_SetVec3(
         (dvar_s *)r_lightTweakSunColor,
-        COERCE_UNSIGNED_INT(sunParse->sunSettings[0].sunDiffuseColor[0]),
-        COERCE_UNSIGNED_INT(sunParse->sunSettings[0].sunDiffuseColor[1]),
+        (sunParse->sunSettings[0].sunDiffuseColor[0]),
+        (sunParse->sunSettings[0].sunDiffuseColor[1]),
         sunParse->sunSettings[0].sunDiffuseColor[2]);
     Dvar_SetVec3(
-        (dvar_s *)r_lightTweakSunDirection.integer,
-        COERCE_UNSIGNED_INT(sunParse->sunSettings[0].angles[0]),
-        COERCE_UNSIGNED_INT(sunParse->sunSettings[0].angles[1]),
+        (dvar_s *)r_lightTweakSunDirection,
+        (sunParse->sunSettings[0].angles[0]),
+        (sunParse->sunSettings[0].angles[1]),
         sunParse->sunSettings[0].angles[2]);
     Dvar_ChangeResetValue((dvar_s *)r_lightTweakSunLight, r_lightTweakSunLight->current);
     Dvar_ChangeResetValue((dvar_s *)r_lightTweakSunColor, r_lightTweakSunColor->current);
-    Dvar_ChangeResetValue(
-        (dvar_s *)r_lightTweakSunDirection.integer,
-        *(DvarValue *)(r_lightTweakSunDirection.integer + 24));
-    if ( savegame )
-        Dvar_SetVec3((dvar_s *)r_lightTweakSunDirection.integer, saveDirection, saveDirection_4, saveDirection_8);
+    Dvar_ChangeResetValue((dvar_s *)r_lightTweakSunDirection, r_lightTweakSunDirection->current);
+    if (savegame)
+        Dvar_SetVec3((dvar_s *)r_lightTweakSunDirection, saveDirection[0], saveDirection[1], saveDirection[2]);
+
     Dvar_SetFloat((dvar_s *)r_lightTweakAmbient, 0.0);
     Dvar_SetFloat((dvar_s *)r_lightTweakDiffuseFraction, 0.0);
     Dvar_SetColor((dvar_s *)r_lightTweakSunDiffuseColor, 0.0, 0.0, 0.0, 1.0);
@@ -404,23 +402,28 @@ void __cdecl R_ReloadWorld()
 
 unsigned int __cdecl R_GetDebugReflectionProbeLocs(float (*locArray)[3], unsigned int maxCount)
 {
-    GfxReflectionProbe *v2; // edx
-    unsigned int *v3; // eax
-    unsigned int reflectionIndex; // [esp+0h] [ebp-8h]
-    unsigned int count; // [esp+4h] [ebp-4h]
+    unsigned int result; // r3
+    int v4; // r9
+    unsigned int v5; // r10
+    GfxReflectionProbe *v6; // r8
 
-    count = maxCount;
-    if ( s_world.draw.reflectionProbeCount - 1 < maxCount )
-        count = s_world.draw.reflectionProbeCount - 1;
-    for ( reflectionIndex = 0; reflectionIndex < count; ++reflectionIndex )
+    result = maxCount;
+    if (s_world.draw.reflectionProbeCount - 1 < maxCount)
+        result = s_world.draw.reflectionProbeCount - 1;
+    if (result)
     {
-        v2 = &s_world.draw.reflectionProbes[reflectionIndex + 1];
-        v3 = &(*locArray)[3 * reflectionIndex];
-        *v3 = LODWORD(v2->origin[0]);
-        v3[1] = LODWORD(v2->origin[1]);
-        v3[2] = LODWORD(v2->origin[2]);
+        v4 = 0;
+        v5 = result;
+        do
+        {
+            --v5;
+            v6 = &s_world.draw.reflectionProbes[++v4];
+            (*locArray)[0] = v6->origin[0];
+            (*locArray)[1] = v6->origin[1];
+            (*locArray++)[2] = v6->origin[2];
+        } while (v5);
     }
-    return count;
+    return result;
 }
 
 void __cdecl R_BspGenerateReflections()

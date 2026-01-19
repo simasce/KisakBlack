@@ -216,24 +216,8 @@ struct __declspec(align(16)) phys_contact_manifold // sizeof=0x60
         // padding byte
         // padding byte
         // padding byte
-};
 
-struct phys_gjk_geom // sizeof=0x4
-{                                                                             // XREF: gjk_base_t/r
-        //phys_gjk_geom_vtbl *__vftable;
-        virtual void support(const phys_vec3 *, phys_vec3 *, phys_vec3 *);
-        virtual void get_simplex(const cached_simplex_info *, const int, phys_vec3 *, phys_vec3 *);
-        virtual void set_simplex(
-                const phys_vec3 *simplex_inds,
-                int w_set,
-                const phys_vec3 *normal,
-                cached_simplex_info *cache_info);
-        virtual const phys_vec3 * get_center(phys_vec3 *result);
-        virtual void get_feature(phys_contact_manifold *);
-        virtual float get_geom_radius();
-        virtual void calc_aabb(const phys_mat44 *, phys_vec3 *, phys_vec3 *);
-        virtual bool ray_cast(const phys_vec3 *, const phys_vec3 *, const float, float *, phys_vec3 *);
-        virtual bool is_polyhedron();
+        void add_feature_point(const phys_vec3 *p);
 };
 
 
@@ -286,7 +270,6 @@ public:
             this->m_flags = 0;
         }
 
-        int get_contents();
         unsigned int get_geom_id();
         const phys_mat44 *get_xform();
 
@@ -430,37 +413,6 @@ struct gjk_obb_t : gjk_base_t // sizeof=0xA0
                 const phys_vec3 *v,
                 phys_vec3 *support_vert,
                 phys_vec3 *support_ind);
-};
-
-struct __declspec(align(16)) phys_contact_manifold // sizeof=0x60
-{                                                                             // XREF: phys_contact_manifold_process/r
-                                                                                // phys_contact_manifold_process/r
-        phys_vec3 m_feature_normal;
-        phys_vec3 m_feature_hitp;
-        phys_vec3 m_feature_hitn;
-        float m_feature_distance_eps;
-        float m_sin_feautre_angular_eps_sq;
-        int m_close_mesh_point_count;
-        phys_memory_heap *m_allocator;
-        contact_manifold_mesh_point *m_list_mesh_point;
-        int m_list_mesh_point_count;
-        contact_manifold_mesh_point **m_list_sorted_mesh_point;
-        contact_manifold_mesh_point **m_list_contact_point;
-        int m_list_contact_point_count;
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-        // padding byte
-
-        void add_feature_point(const phys_vec3 *p);
 };
 
 struct __declspec(align(8)) gjk_brush_t : gjk_base_t // sizeof=0x60

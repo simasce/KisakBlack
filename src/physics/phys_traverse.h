@@ -78,13 +78,13 @@ struct static_colgeom_visitor_t : colgeom_visitor_t // sizeof=0x1078
     virtual void visit(const CollisionAabbTree *);
     virtual void update(const float *, const float *, int, const float *);
 
-    void visit(const CollisionAabbTree *tree);
-    void visit(const cbrush_t *brush);
-    void update(
-        const float *_mn,
-        const float *_mx,
-        int mask,
-        const float *expand_vec);
+    //void visit(const CollisionAabbTree *tree);
+    //void visit(const cbrush_t *brush);
+    //void update(
+    //    const float *_mn,
+    //    const float *_mx,
+    //    int mask,
+    //    const float *expand_vec);
 };
 
 

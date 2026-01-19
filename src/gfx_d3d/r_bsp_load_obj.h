@@ -1,10 +1,236 @@
 #pragma once
+#include "r_material.h"
+#include <universal/aabbtree.h>
+#include <qcommon/com_bsp_load_obj.h>
+
+struct r_lightmapMerge_t // sizeof=0x14
+{                                       // XREF: GfxBspLoad/r
+    unsigned __int8 index;
+    // padding byte
+    // padding byte
+    // padding byte
+    float shift[2];
+    float scale[2];
+};
+
+struct GfxBspLoad // sizeof=0x2A4
+{                                       // XREF: r_globals_load_t/r
+    unsigned int bspVersion;            // XREF: R_LoadWorldInternal(char const *)+4D/w
+                                        // R_LoadWorldInternal(char const *)+26E/r ...
+    const dmaterial_t *diskMaterials;   // XREF: R_GetBspMaterial(uint,GfxSurface *,GfxWorldVertex *)+4C/r
+    unsigned int materialCount;
+    float outdoorMins[3];               // XREF: R_LoadWorldInternal(char const *)+57B/o
+    float outdoorMaxs[3];               // XREF: R_LoadWorldInternal(char const *)+576/o
+    r_lightmapMerge_t lmapMergeInfo[32];
+};
+
+struct r_lightmapGroup_t // sizeof=0x8
+{                                       // XREF: R_LoadLightmaps/r
+    int wideCount;                      // XREF: R_LoadLightmaps:loc_A91766/r
+    int highCount;                      // XREF: R_LoadLightmaps+122/r
+};
+
+struct DiskTriangleSoup // sizeof=0x1C
+{
+    unsigned __int16 materialIndex;
+    unsigned __int8 lightmapIndex;
+    unsigned __int8 reflectionProbeIndex;
+    unsigned __int8 primaryLightIndex;
+    bool hasPrimaryLightConflict;
+    bool castsSunShadow;
+    // padding byte
+    __int16 castsShadow;
+    // padding byte
+    // padding byte
+    int vertexLayerData;
+    unsigned int firstVertex;
+    unsigned __int16 vertexCount;
+    unsigned __int16 indexCount;
+    int firstIndex;
+};
+
+struct DiskTriangleSoup_Version8 // sizeof=0x10
+{
+    unsigned __int16 materialIndex;
+    unsigned __int8 lightmapIndex;
+    unsigned __int8 reflectionProbeIndex;
+    int firstVertex;
+    unsigned __int16 vertexCount;
+    unsigned __int16 indexCount;
+    int firstIndex;
+};
+
+struct DiskTriangleSoup_Version12 // sizeof=0x14
+{
+    unsigned __int16 materialIndex;
+    unsigned __int8 lightmapIndex;
+    unsigned __int8 reflectionProbeIndex;
+    int vertexLayerData;
+    int firstVertex;
+    unsigned __int16 vertexCount;
+    unsigned __int16 indexCount;
+    int firstIndex;
+};
+
+struct AnnotatedLightGridPoint // sizeof=0xA
+{                                       // XREF: ??$_Insertion_sort1@PAUAnnotatedLightGridPoint@@P6A_NABU1@0@ZU1@@std@@YAXPAUAnnotatedLightGridPoint@@0P6A_NABU1@1@Z0@Z/r
+    unsigned __int16 pos[3];            // XREF: std::_Insertion_sort1<AnnotatedLightGridPoint *,bool (*)(AnnotatedLightGridPoint const &,AnnotatedLightGridPoint const &),AnnotatedLightGridPoint>(AnnotatedLightGridPoint *,AnnotatedLightGridPoint *,bool (*)(AnnotatedLightGridPoint const &,AnnotatedLightGridPoint const &),AnnotatedLightGridPoint *)+42/w
+    GfxLightGridEntry entry;            // XREF: std::_Insertion_sort1<AnnotatedLightGridPoint *,bool (*)(AnnotatedLightGridPoint const &,AnnotatedLightGridPoint const &),AnnotatedLightGridPoint>(AnnotatedLightGridPoint *,AnnotatedLightGridPoint *,bool (*)(AnnotatedLightGridPoint const &,AnnotatedLightGridPoint const &),AnnotatedLightGridPoint *)+4F/w
+};
+
+struct Stream2Usage // sizeof=0x10
+{                                       // XREF: R_CalculateVertexStream2Usage/r
+    int firstVertex;                    // XREF: R_CalculateVertexStream2Usage+1B0/w
+    int byteOffset;                     // XREF: R_CalculateVertexStream2Usage+1B3/w
+    unsigned __int16 vertexCount;       // XREF: R_CalculateVertexStream2Usage+1BE/w
+    // padding byte
+    // padding byte
+    Stream2Usage *next;                 // XREF: R_CalculateVertexStream2Usage+1C2/w
+};
+
+struct DiskGfxVertex // sizeof=0x44
+{
+    float xyz[3];
+    float normal[3];
+    unsigned __int8 color[4];
+    float texCoord[2];
+    float lmapCoord[2];
+    float tangent[3];
+    float binormal[3];
+};
+
+struct GfxStaticModelCombinedInst // sizeof=0x78
+{                                       // XREF: ??$_Insertion_sort1@PAUGfxStaticModelCombinedInst@@P6A_NABU1@0@ZU1@@std@@YAXPAUGfxStaticModelCombinedInst@@0P6A_NABU1@1@Z0@Z/r
+    GfxStaticModelDrawInst smodelDrawInst;
+    GfxStaticModelInst smodelInst;
+    int isDynamicModel;
+};
+
+struct mnode_load_t // sizeof=0x10
+{
+    int cellIndex;
+    int planeIndex;
+    unsigned int children[2];
+};
+
+struct GfxLightGridEntry_Version15 // sizeof=0x8
+{
+    unsigned int xyzHighBits;
+    unsigned __int8 xyzLowBitsAndPrimaryVis;
+    unsigned __int8 needsTrace;
+    unsigned __int16 colorsIndex;
+};
+
+struct __declspec(align(4)) DiskGfxCell // sizeof=0x70
+{
+    float mins[3];
+    float maxs[3];
+    unsigned __int16 aabbTreeIndex;
+    // padding byte
+    // padding byte
+    int firstPortal;
+    int portalCount;
+    int firstCullGroup;
+    int cullGroupCount;
+    unsigned __int8 reflectionProbeCount;
+    unsigned __int8 reflectionProbes[64];
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
+struct DiskGfxCell_Version14 // sizeof=0x34
+{
+    float mins[3];
+    float maxs[3];
+    int aabbTreeIndex;
+    int firstPortal;
+    int portalCount;
+    int firstCullGroup;
+    int cullGroupCount;
+    int unused0;
+    int unused1;
+};
+
+struct DiskGfxCell_Version21 // sizeof=0x2C
+{
+    float mins[3];
+    float maxs[3];
+    unsigned __int16 aabbTreeIndex[2];
+    int firstPortal;
+    int portalCount;
+    int firstCullGroup;
+    int cullGroupCount;
+};
+
+struct DiskHeroOnlyLight // sizeof=0x38
+{
+    unsigned __int8 type;
+    unsigned __int8 unused[3];
+    float color[3];
+    float dir[3];
+    float origin[3];
+    float radius;
+    float cosHalfFovOuter;
+    float cosHalfFovInner;
+    int exponent;
+};
+
+struct DiskGfxOccluder // sizeof=0x40
+{
+    char name[16];
+    float pts[4][3];
+};
+
+struct DiskLightRegion // sizeof=0x1
+{
+    unsigned __int8 hullCount;
+};
+
+struct INFO // sizeof=0x80
+{
+    char name[64];
+    char origin[64];
+};
+
+struct DiskGfxAabbTree // sizeof=0xC
+{
+    unsigned int firstSurface;
+    unsigned int surfaceCount;
+    unsigned int childCount;
+};
+
+struct DiskGfxPortal // sizeof=0x10
+{
+    int planeIndex;
+    int cellIndex;
+    int firstPortalVertex;
+    int portalVertexCount;
+};
+
+struct DiskGfxCullGroup // sizeof=0x20
+{
+    float mins[3];
+    float maxs[3];
+    unsigned int firstSurface;
+    unsigned int surfaceCount;
+};
+
+struct DiskLeaf // sizeof=0x18
+{
+    int cluster;
+    int firstCollAabbIndex;
+    int collAabbCount;
+    int firstLeafBrush;
+    int numLeafBrushes;
+    int cellNum;
+};
 
 const Material *__cdecl R_GetBspMaterial(unsigned int materialIndex);
 void __cdecl R_CreateWorldVertexBuffer(IDirect3DVertexBuffer9 **vb, int *srcData, unsigned int sizeInBytes);
 unsigned __int8 *__cdecl R_LoadSurfaceAlloc(unsigned int bytes);
-char *__cdecl R_ParseSunLight(SunLightParseParams *params, char *text);
-GfxWorld *__cdecl R_LoadWorldInternal(const char *name);
+char *__cdecl R_ParseSunLight(struct SunLightParseParams *params, char *text);
+struct GfxWorld *__cdecl R_LoadWorldInternal(const char *name);
 void __cdecl R_LoadLightmaps(GfxBspLoad *load);
 void __cdecl R_CopyLightmap(
                 const unsigned __int8 *srcImage,
@@ -73,7 +299,7 @@ void __cdecl R_LoadMaterials(GfxBspLoad *load);
 signed int R_SortSurfaces();
 bool __cdecl R_CompareSurfaces(const GfxSurface *surf0, const GfxSurface *surf1);
 unsigned int R_CalculateVertexStream2Usage();
-Stream2Usage *__cdecl FindExistingUsage(Stream2Usage *const list, int firstVertex);
+Stream2Usage *__cdecl FindExistingUsage(Stream2Usage *list, int firstVertex);
 Stream2Usage *__cdecl InsertNewUsage(Stream2Usage **list, const Stream2Usage *copy);
 Stream2Usage *__cdecl AllocateUsage();
 void __cdecl FreeUsageList(Stream2Usage **list);
@@ -146,7 +372,7 @@ unsigned __int8 *R_AllocPrimaryLightBuffers();
 void R_LoadInitSkyIntensity();
 unsigned int R_SetStaticModelReflectionProbes();
 unsigned __int8 *R_AllocShadowGeometryHeaderMemory();
-GfxShadowGeometry *R_InitShadowGeometryArrays();
+struct GfxShadowGeometry *R_InitShadowGeometryArrays();
 void __cdecl R_ForEachShadowCastingSurfaceOnEachLight(void (__cdecl *Callback)(GfxWorld *, unsigned int, unsigned int));
 void __cdecl R_IncrementShadowGeometryCount(GfxWorld *world, unsigned int primaryLightIndex);
 void R_AddAllProbesToAllCells();

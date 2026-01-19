@@ -160,6 +160,104 @@ struct trace_t // sizeof=0x38
     // BG_CheckProne(playerState_s const *,int,float const * const,float,float,float,float *,float *,bool,bool,bool,uchar,proneCheckType_t,float)+10/w ...
 };
 
+struct cbrushside_t // sizeof=0xC
+{                                                                             // XREF: CM_TraceThroughBrush/r
+                                                                                // ?trace_sphere_through_brush@@YAXQBM0AAMMPBUcbrush_t@@QAMAAHPAUclipMap_t@@@Z/r
+    cplane_s *plane;                                        // XREF: CM_TraceThroughBrush+659/w
+    // trace_sphere_through_brush(float const * const,float const * const,float &,float,cbrush_t const *,float * const,int &,clipMap_t *)+5E4/w
+    int cflags;                                                 // XREF: CM_TraceThroughBrush+608/w
+    // trace_sphere_through_brush(float const * const,float const * const,float &,float,cbrush_t const *,float * const,int &,clipMap_t *)+58D/w
+    int sflags;                                                 // XREF: CM_TraceThroughBrush+61E/w
+    // trace_sphere_through_brush(float const * const,float const * const,float &,float,cbrush_t const *,float * const,int &,clipMap_t *)+5A6/w
+};
+
+struct __declspec(align(4)) cLeaf_s // sizeof=0x2C
+{                                       // XREF: cmodel_t/r cLeaf_t/r
+    unsigned __int16 firstCollAabbIndex;
+    unsigned __int16 collAabbCount;
+    int brushContents;                  // XREF: CM_InitBoxHull+3F/w
+    int terrainContents;                // XREF: CM_InitBoxHull+49/w
+    float mins[3];                      // XREF: CM_InitBoxHull+5B/w
+    // CM_InitBoxHull+6B/w ...
+    float maxs[3];                      // XREF: CM_InitBoxHull+8B/w
+    // CM_InitBoxHull+9B/w ...
+    int leafBrushNode;                  // XREF: CM_InitBoxHull+164/w
+    __int16 cluster;
+    // padding byte
+    // padding byte
+};
+
+struct cmodel_t // sizeof=0x48
+{                                       // XREF: .data:g_box_model/r
+                                        // clipMap_t/r
+    float mins[3];
+    float maxs[3];
+    float radius;
+    cLeaf_s leaf;                       // XREF: CM_InitBoxHull+3F/w
+    // CM_InitBoxHull+49/w ...
+};
+
+struct cLeafBrushNodeLeaf_t // sizeof=0x4
+{                                       // XREF: cLeafBrushNodeData_t/r
+    unsigned __int16 *brushes;
+};
+
+struct cLeafBrushNodeChildren_t // sizeof=0xC
+{                                       // XREF: cLeafBrushNodeData_t/r
+    float dist;
+    float range;
+    unsigned __int16 childOffset[2];
+};
+
+union cLeafBrushNodeData_t // sizeof=0xC
+{                                       // XREF: cLeafBrushNode_s/r
+    cLeafBrushNodeLeaf_t leaf;
+    cLeafBrushNodeChildren_t children;
+};
+
+struct cLeafBrushNode_s // sizeof=0x14
+{                                       // XREF: cLeafBrushNode_t/r
+    unsigned __int8 axis;
+    // padding byte
+    __int16 leafBrushCount;
+    int contents;
+    cLeafBrushNodeData_t data;
+};
+
+struct leafList_s // sizeof=0x2C
+{                                       // XREF: leafList_t/r
+                                        // CM_PositionTest/r ...
+    int count;                          // XREF: CM_BoxLeafnums(float const * const,float const * const,ushort *,int,int *)+54/w
+    // CM_BoxLeafnums(float const * const,float const * const,ushort *,int,int *)+8B/r ...
+    int maxcount;                       // XREF: CM_BoxLeafnums(float const * const,float const * const,ushort *,int,int *)+5E/w
+    // CM_PositionTest+258/w ...
+    int overflowed;                     // XREF: CM_BoxLeafnums(float const * const,float const * const,ushort *,int,int *)+6E/w
+    // CM_PositionTest+278/w ...
+    unsigned __int16 *list;             // XREF: CM_BoxLeafnums(float const * const,float const * const,ushort *,int,int *)+64/w
+    // CM_PositionTest+268/w ...
+    float bounds[2][3];                 // XREF: CM_BoxLeafnums(float const * const,float const * const,ushort *,int,int *)+D/w
+    // CM_BoxLeafnums(float const * const,float const * const,ushort *,int,int *)+1A/w ...
+    int lastLeaf;                       // XREF: CM_BoxLeafnums(float const * const,float const * const,ushort *,int,int *)+67/w
+    // CM_BoxLeafnums(float const * const,float const * const,ushort *,int,int *)+86/r ...
+};
+
+const struct __declspec(align(8)) cbrush_t // sizeof=0x60
+{                                                                             // XREF: .data:g_box_brush/r
+    float mins[3];
+    int contents;
+    float maxs[3];
+    unsigned int numsides;
+    cbrushside_t *sides;
+    int axial_cflags[2][3];
+    int axial_sflags[2][3];
+    unsigned int numverts;
+    float (*verts)[3];
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
 struct moveclip_t // sizeof=0x60
 {                                       // XREF: ?SV_TraceCapsule@@YAXPAUtrace_t@@QBM111AAUcol_context_t@@@Z/r
                                         // ?CG_TraceCapsule@@YAXPAUtrace_t@@QBM111HHAAUcol_context_t@@@Z/r ...
@@ -391,7 +489,7 @@ void __cdecl CM_GetTraceThreadInfo(TraceThreadInfo *threadInfo);
 clipMap_t *__cdecl CM_GetClipMap();
 unsigned int __cdecl CM_TempBoxModel(const float *mins, const float *maxs, int contents);
 void __cdecl CM_GetBox(cbrush_t **box_brush, cmodel_t **box_model, PhysGeomList ***geoms);
-unsigned int __cdecl CM_TempBrushModel(PhysGeomList *geoms);
+unsigned int __cdecl CM_TempBrushModel(struct PhysGeomList *geoms);
 bool __cdecl CM_ClipHandleIsValid(unsigned int handle);
 cmodel_t *__cdecl CM_ClipHandleToModel(unsigned int handle);
 int __cdecl CM_ContentsOfModel(unsigned int handle);

@@ -6,6 +6,39 @@
 
 struct centity_s;
 
+struct gjk_collision_visitor // sizeof=0x4
+{                                                                             // XREF: create_gjk_geom_collision_visitor/r
+    virtual void *allocate(const int, const int, const bool) = 0;
+    virtual bool is_query()
+    {
+        return false;
+    }
+    virtual void get_local_query_aabb(float *, float *)
+    {
+        //if (!Assert_MyHandler("c:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_colgeom.h", 35, 0, "%s", "0"))
+        //    __debugbreak();
+        iassert(0);
+    }
+    virtual bool query_create_prolog(const void *)
+    {
+        return true;
+    }
+    virtual void query_create_epilog(gjk_base_t *gjk_geom)
+    {
+        ;
+    }
+
+    // LWSS: no heckin clue why these are here, just cloned because of the default virtual impl? Maybe some macro crap
+    //virtual bool query_create_prolog_1(const float *, const float *, const void *)
+    //{
+    //    return true;
+    //}
+    //virtual void query_create_epilog_1(gjk_base_t *)
+    //{
+    //    ;
+    //}
+};
+
 struct __declspec(align(16)) gjk_trace_output_t // sizeof=0x50
 {
     phys_vec3 m_hit_normal;
@@ -63,20 +96,6 @@ struct phys_gjk_geom_id_pair_key // sizeof=0x8
 {                                       // XREF: phys_gjk_cache_info/r
     unsigned int m_id1;                 // XREF: phys_heap_gjk_cache_system_avl_tree::get_gjk_cache_info(uint,uint,bool)+8B/w
     unsigned int m_id2;                 // XREF: phys_heap_gjk_cache_system_avl_tree::get_gjk_cache_info(uint,uint,bool)+91/w
-};
-
-struct phys_gjk_cache_info // sizeof=0x80
-{                                       // XREF: phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal/r
-    phys_gjk_cache_info();
-
-    phys_vec3 m_support_dir;
-    cached_simplex_info m_support_a;
-    cached_simplex_info m_support_b;
-    int m_support_count;
-    phys_gjk_geom_id_pair_key m_key;
-    unsigned int m_flags;
-
-    void update_swapped(bool swapped);
 };
 
 struct phys_heap_gjk_cache_system_avl_tree // sizeof=0x10
@@ -259,39 +278,6 @@ struct gjk_query_output : gjk_collision_visitor // sizeof=0x150
     void accum_query_reset(const phys_vec3 *start_origin);
 };
 
-
-struct gjk_collision_visitor // sizeof=0x4
-{                                                                             // XREF: create_gjk_geom_collision_visitor/r
-    virtual void *allocate(const int, const int, const bool) = 0;
-    virtual bool is_query()
-    {
-        return false;
-    }
-    virtual void get_local_query_aabb(float *, float *)
-    {
-        //if (!Assert_MyHandler("c:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_colgeom.h", 35, 0, "%s", "0"))
-        //    __debugbreak();
-        iassert(0);
-    }
-    virtual bool query_create_prolog(const void *)
-    {
-        return true;
-    }
-    virtual void query_create_epilog(gjk_base_t *gjk_geom)
-    {
-        ;
-    }
-
-    // LWSS: no heckin clue why these are here, just cloned because of the default virtual impl? Maybe some macro crap
-    //virtual bool query_create_prolog_1(const float *, const float *, const void *)
-    //{
-    //    return true;
-    //}
-    //virtual void query_create_epilog_1(gjk_base_t *)
-    //{
-    //    ;
-    //}
-};
 
 struct create_gjk_geom_collision_visitor : gjk_collision_visitor // sizeof=0x8
 {                                       // XREF: .data:create_gjk_geom_collision_visitor g_empty_collision_visitor/r

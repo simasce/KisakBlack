@@ -1,4 +1,59 @@
 #include "r_bsp_load_obj.h"
+#include <universal/q_shared.h>
+#include "r_dvars.h"
+#include "r_buffers.h"
+#include <universal/com_memory.h>
+#include "r_bsp.h"
+#include <universal/q_parse.h>
+#include <DynEntity/DynEntity_coll.h>
+#include <qcommon/com_profilemapload.h>
+#include <qcommon/com_bsp_load_obj.h>
+#include <qcommon/cm_load_obj.h>
+#include <DynEntity/DynEntity_load_obj.h>
+#include "r_material_load_obj.h"
+#include "r_sky_load_obj.h"
+#include "r_outdoor.h"
+#include "r_staticmodelcache_load_obj.h"
+#include "r_image.h"
+#include "r_image_load_obj.h"
+
+#include <algorithm>
+#include <cgame_mp/cg_ents_mp.h>
+#include <monkey/monkey.h>
+#include "r_stream_util.h"
+#include "r_light.h"
+#include "r_staticmodel_load_obj.h"
+#include <xanim/xmodel_utils.h>
+#include <universal/com_math_anglevectors.h>
+#include <xanim/xmodel_load_obj.h>
+#include "r_model.h"
+#include <client_mp/cl_scrn_mp.h>
+
+struct r_globals_load_t // sizeof=0x2C4
+{                                       // XREF: .data:rgl/r
+    int *cullGroupIndices;              // XREF: R_LoadCells+135/r
+                                        // R_LoadCullGroupIndices+35/w
+    float (*portalVerts)[3];            // XREF: R_LoadPortalVerts+35/w
+                                        // R_LoadPortals+19B/r ...
+    GfxAabbTree *aabbTrees;             // XREF: R_LoadAabbTrees+36/w
+                                        // R_LoadAabbTrees+1B2/r ...
+    int aabbTreeCount;                  // XREF: R_LoadAabbTrees+3F/w
+    int nodeCount;                      // XREF: R_LoadNodesAndLeafs+83/w
+                                        // R_SetParentAndCell_r+12/r ...
+    mnode_load_t *nodes;                // XREF: R_LoadNodesAndLeafs+7A/w
+                                        // R_LoadNodesAndLeafs:loc_A9BE52/r ...
+    int reflectionProbesLoaded;         // XREF: R_CreateDefaultProbes+3E/w
+                                        // R_LoadReflectionProbes:loc_A95321/w ...
+    int staticModelReflectionProbesLoaded; // XREF: R_PostLoadEntities+B/r
+                                        // R_SetStaticModelReflectionProbes:loc_A9CFE9/w
+    GfxBspLoad load;                    // XREF: R_GetBspMaterial(uint,GfxSurface *,GfxWorldVertex *)+4C/r
+                                        // R_LoadWorldInternal(char const *)+4D/w ...
+};
+
+r_globals_load_t rgl;
+
+DiskGfxReflectionProbe defaultReflectionProbeRawData;
+int r_heroLightAxis;
 
 const Material *__cdecl R_GetBspMaterial(unsigned int materialIndex)
 {
@@ -157,7 +212,7 @@ char *__cdecl R_ParseSunLight(SunLightParseParams *params, char *text)
     v15 = 0.0f;
     while ( 1 )
     {
-        src = (char *)Com_Parse((const char **)&text);
+        src = (char *)Com_Parse((const char **)&text)->token;
         if ( !*src || *src == 125 )
             break;
         if ( *src != 123 )
@@ -422,7 +477,7 @@ GfxWorld *__cdecl R_LoadWorldInternal(const char *name)
     ProfLoad_End();
     for ( drawType = 0; drawType < 2; ++drawType )
     {
-        collType = drawType;
+        collType = (DynEntityCollType)drawType;
         EntityCount = DynEnt_GetEntityCount((DynEntityCollType)drawType);
         s_world.dpvsDyn.dynEntClientCount[drawType] = EntityCount;
         s_world.dpvsDyn.dynEntClientWordCount[drawType] = (s_world.dpvsDyn.dynEntClientCount[drawType] + 31) >> 5;
@@ -741,51 +796,51 @@ void __cdecl R_LoadLightmaps(GfxBspLoad *load)
                 if ( *(float *)&v34[16 * j] >= 0.0024411406 )
                     v26 = *(float *)&v34[16 * j];
                 else
-                    v26 = FLOAT_0_0024411406;
+                    v26 = 0.0024411406f;
                 if ( *(float *)&v34[16 * j + 4] >= 0.0024411406 )
                     v25 = *(float *)&v34[16 * j + 4];
                 else
-                    v25 = FLOAT_0_0024411406;
+                    v25 = 0.0024411406f;
                 if ( *(float *)&v34[16 * j + 8] >= 0.0024411406 )
                     v24 = *(float *)&v34[16 * j + 8];
                 else
-                    v24 = FLOAT_0_0024411406;
+                    v24 = 0.0024411406f;
                 if ( v26 <= 31.875 )
                     v23 = v26;
                 else
-                    v23 = FLOAT_31_875;
+                    v23 = 31.875f;
                 if ( v25 <= 31.875 )
                     v22 = v25;
                 else
-                    v22 = FLOAT_31_875;
+                    v22 = 31.875f;
                 if ( v24 <= 31.875 )
                     v21 = v24;
                 else
-                    v21 = FLOAT_31_875;
+                    v21 = 31.875f;
                 if ( *(float *)&v34[4 * dIndex] >= 0.0024411406 )
                     v20 = *(float *)&v34[4 * dIndex];
                 else
-                    v20 = FLOAT_0_0024411406;
+                    v20 = 0.0024411406f;
                 if ( *(float *)&v34[4 * dIndex + 4] >= 0.0024411406 )
                     v19 = *(float *)&v34[4 * dIndex + 4];
                 else
-                    v19 = FLOAT_0_0024411406;
+                    v19 = 0.0024411406f;
                 if ( *(float *)&v34[4 * dIndex + 8] >= 0.0024411406 )
                     v18 = *(float *)&v34[4 * dIndex + 8];
                 else
-                    v18 = FLOAT_0_0024411406;
+                    v18 = 0.0024411406f;
                 if ( v20 <= 31.875 )
                     v17 = v20;
                 else
-                    v17 = FLOAT_31_875;
+                    v17 = 31.875f;
                 if ( v19 <= 31.875 )
                     v16 = v19;
                 else
-                    v16 = FLOAT_31_875;
+                    v16 = 31.875f;
                 if ( v18 <= 31.875 )
                     v15 = v18;
                 else
-                    v15 = FLOAT_31_875;
+                    v15 = 31.875f;
                 if ( (unsigned int)(__int64)((float)((float)((float)((float)(v23 * 0.25) + (float)(v22 * 0.5))
                                                                                                      + (float)(v21 * 0.25))
                                                                                      / 31.875)
@@ -818,27 +873,27 @@ void __cdecl R_LoadLightmaps(GfxBspLoad *load)
                 if ( *(float *)&v34[16 * k] >= 0.0024411406 )
                     v12 = *(float *)&v34[16 * k];
                 else
-                    v12 = FLOAT_0_0024411406;
+                    v12 = 0.0024411406f;
                 if ( *(float *)&v34[16 * k + 4] >= 0.0024411406 )
                     v11 = *(float *)&v34[16 * k + 4];
                 else
-                    v11 = FLOAT_0_0024411406;
+                    v11 = 0.0024411406f;
                 if ( *(float *)&v34[16 * k + 8] >= 0.0024411406 )
                     v10 = *(float *)&v34[16 * k + 8];
                 else
-                    v10 = FLOAT_0_0024411406;
+                    v10 = 0.0024411406f;
                 if ( v12 <= 31.875 )
                     v9 = v12;
                 else
-                    v9 = FLOAT_31_875;
+                    v9 = 31.875f;
                 if ( v11 <= 31.875 )
                     v8 = v11;
                 else
-                    v8 = FLOAT_31_875;
+                    v8 = 31.875f;
                 if ( v10 <= 31.875 )
                     v7 = v10;
                 else
-                    v7 = FLOAT_31_875;
+                    v7 = 31.875f;
                 lum = (float)((float)(v9 * 0.25) + (float)(v8 * 0.5)) + (float)(v7 * 0.25);
                 loR = colorRound8Bit((unsigned __int8)(int)(float)((float)((float)(v9 * 0.25) / lum) * 255.0), 0x1Fu);
                 loB = colorRound8Bit((unsigned __int8)(int)(float)((float)((float)(v7 * 0.25) / lum) * 255.0), 0x1Fu);
@@ -1030,7 +1085,7 @@ unsigned int __cdecl R_DetermineLightmapCoupling(GfxBspLoad *load, int (*couplin
     }
     R_LoadTriangleSurfaces(load->bspVersion, (DiskTriangleSoup **)&triSurfs, &triSurfCount);
     if ( load->bspVersion >= 7 )
-        Com_GetBspLump(lumpType, (unsigned int)&loc_900000 + (lumpType != LUMP_LIGHTBYTES ? 0xFF7C0000 : 0), &diskLmapCount);
+        Com_GetBspLump(lumpType, (unsigned int)0x900000 + (lumpType != LUMP_LIGHTBYTES ? 0xFF7C0000 : 0), &diskLmapCount);
     else
         diskLmapCount = 0;
     origLmapCount = 0;
@@ -1041,7 +1096,7 @@ unsigned int __cdecl R_DetermineLightmapCoupling(GfxBspLoad *load, int (*couplin
             origLmapCount = lmapIndex + 1;
     }
     if ( diskLmapCount && diskLmapCount != origLmapCount )
-        Com_Error(ERR_DROP, &byte_D77C8C, s_world.name);
+        Com_Error(ERR_DROP, "LoadMap: funny lump size in %s", s_world.name);
     memset((unsigned __int8 *)lmapVertCount, 0, sizeof(lmapVertCount));
     memset((unsigned __int8 *)coupling, 0, 0x400u);
     for ( materialIndex = 0; materialIndex < load->materialCount; ++materialIndex )
@@ -1248,9 +1303,9 @@ void __cdecl R_LoadLightGridPoints_Version15(unsigned int bspVersion)
         }
         if ( !diskCellCount )
         {
-            worldMins[0] = FLOAT_N131072_0;
-            worldMins[1] = FLOAT_N131072_0;
-            worldMins[2] = FLOAT_N131072_0;
+            worldMins[0] = -131072.0f;
+            worldMins[1] = -131072.0f;
+            worldMins[2] = -131072.0f;
             worldMaxs[0] = 131072.0f;
             worldMaxs[1] = 131072.0f;
             worldMaxs[2] = 131072.0f;
@@ -1353,11 +1408,12 @@ void __cdecl R_LoadLightGridPoints_Version15(unsigned int bspVersion)
                 s_world.lightGrid.rowAxis = 1;
                 s_world.lightGrid.colAxis = 0;
             }
-            std::_Sort<AnnotatedLightGridPoint *,int,bool (__cdecl *)(AnnotatedLightGridPoint const &,AnnotatedLightGridPoint const &)>(
-                points,
-                &points[entryCount],
-                (int)(10 * entryCount) / 10,
-                R_AnnotatedLightGridPointSortsBefore);
+            //std::_Sort<AnnotatedLightGridPoint *,int,bool (__cdecl *)(AnnotatedLightGridPoint const &,AnnotatedLightGridPoint const &)>(
+            //    points,
+            //    &points[entryCount],
+            //    (int)(10 * entryCount) / 10,
+            //    R_AnnotatedLightGridPointSortsBefore);
+            std::sort(&points[0], &points[entryCount], R_AnnotatedLightGridPointSortsBefore);
             for ( entryIndex = 0; entryIndex < entryCount; ++entryIndex )
             {
                 if ( points[entryIndex].entry.needsTrace )
@@ -1873,27 +1929,27 @@ void __cdecl R_LoadLightGridColors(unsigned int bspVersion)
             if ( (float)((float)*src / 1024.0) >= 0.0024411406 )
                 v6 = (float)*src / 1024.0;
             else
-                v6 = FLOAT_0_0024411406;
+                v6 = 0.0024411406f;
             if ( (float)((float)src[1] / 1024.0) >= 0.0024411406 )
                 v5 = (float)src[1] / 1024.0;
             else
-                v5 = FLOAT_0_0024411406;
+                v5 = 0.0024411406f;
             if ( (float)((float)src[2] / 1024.0) >= 0.0024411406 )
                 v4 = (float)src[2] / 1024.0;
             else
-                v4 = FLOAT_0_0024411406;
+                v4 = 0.0024411406f;
             if ( v6 <= 31.875 )
                 v3 = v6;
             else
-                v3 = FLOAT_31_875;
+                v3 = 31.875f;
             if ( v5 <= 31.875 )
                 v2 = v5;
             else
-                v2 = FLOAT_31_875;
+                v2 = 31.875f;
             if ( v4 <= 31.875 )
                 v1 = v4;
             else
-                v1 = FLOAT_31_875;
+                v1 = 31.875f;
             lum = (float)((float)(v3 * 0.25) + (float)(v2 * 0.5)) + (float)(v1 * 0.25);
             loR = colorRound8Bit((__int64)((float)((float)(v3 * 0.25) / lum) * 255.0), 0x3Fu);
             loB = colorRound8Bit((__int64)((float)((float)(v1 * 0.25) / lum) * 255.0), 0x3Fu);
@@ -1913,8 +1969,10 @@ void __cdecl R_LoadLightGridColors(unsigned int bspVersion)
     }
     else
     {
-        for ( colorIndex = 0; colorIndex < s_world.lightGrid.colorCount; ++colorIndex )
+        for (colorIndex = 0; colorIndex < s_world.lightGrid.colorCount; ++colorIndex)
+        {
             //BLOPS_NULLSUB();
+        }
     }
     ++s_world.lightGrid.colorCount;
 }
@@ -2055,11 +2113,11 @@ void R_CreateDummyProbe()
 void __cdecl R_LoadHeroOnlyLights(unsigned int bspVersion)
 {
     float *origin; // [esp+0h] [ebp-40h]
-    float *v2; // [esp+4h] [ebp-3Ch]
+    const float *v2; // [esp+4h] [ebp-3Ch]
     float *dir; // [esp+8h] [ebp-38h]
-    float *v4; // [esp+Ch] [ebp-34h]
+    const float *v4; // [esp+Ch] [ebp-34h]
     float *color; // [esp+10h] [ebp-30h]
-    float *v6; // [esp+14h] [ebp-2Ch]
+    const float *v6; // [esp+14h] [ebp-2Ch]
     float mins[3]; // [esp+18h] [ebp-28h] BYREF
     float maxs[3]; // [esp+24h] [ebp-1Ch] BYREF
     const DiskHeroOnlyLight *src; // [esp+30h] [ebp-10h]
@@ -2533,11 +2591,12 @@ signed int R_SortSurfaces()
             __debugbreak();
         }
     }
-    std::_Sort<GfxSurface *,int,bool (__cdecl *)(GfxSurface const &,GfxSurface const &)>(
-        s_world.dpvs.surfaces,
-        &s_world.dpvs.surfaces[surfaceCount],
-        80 * surfaceCount / 80,
-        (unsigned __int8 (*)(void))R_CompareSurfaces);
+    //std::_Sort<GfxSurface *,int,bool (__cdecl *)(GfxSurface const &,GfxSurface const &)>(
+    //    s_world.dpvs.surfaces,
+    //    &s_world.dpvs.surfaces[surfaceCount],
+    //    80 * surfaceCount / 80,
+    //    (unsigned __int8 (*)(void))R_CompareSurfaces);
+    std::sort(&s_world.dpvs.surfaces[0], &s_world.dpvs.surfaces[surfaceCount], R_CompareSurfaces);
     for ( surfIndexa = 0; surfIndexa < surfaceCount; ++surfIndexa )
     {
         origSurfIndex = s_world.dpvs.surfaces[surfIndexa].tris.vertexCount;
@@ -2825,7 +2884,7 @@ unsigned int R_CalculateVertexStream2Usage()
     return result;
 }
 
-Stream2Usage *__cdecl FindExistingUsage(Stream2Usage *const list, int firstVertex)
+Stream2Usage *__cdecl FindExistingUsage(Stream2Usage *list, int firstVertex)
 {
     while ( list )
     {
@@ -2851,7 +2910,7 @@ Stream2Usage *__cdecl AllocateUsage()
 {
     unsigned int *v2; // [esp+4h] [ebp-4h]
 
-    v2 = operator new(0x10u);
+    v2 = (unsigned int*)operator new(0x10u);
     if ( !v2 )
         return 0;
     *v2 = -1;
@@ -2918,10 +2977,10 @@ void __cdecl R_LoadSurfaces(GfxBspLoad *load)
         Com_PrintWarning(8, "Bsp compiled with old version of cod2map.\n");
     R_LoadTriangleSurfaces(load->bspVersion, (DiskTriangleSoup **)&diskSurfaces, &surfCount);
     if ( !surfCount )
-        Com_Error(ERR_DROP, &byte_D78A38, s_world.name);
+        Com_Error(ERR_DROP, "LoadMap: no surfaces in %s", s_world.name);
     vertsDisk = (const DiskGfxVertex *)Com_GetBspLump(LUMP_DRAWVERTS, 0x44u, &vertCount);
     if ( !vertCount )
-        Com_Error(ERR_DROP, &byte_D78A1C, s_world.name);
+        Com_Error(ERR_DROP, "LoadMap: no vertices in %s", s_world.name);
     s_world.draw.vertexCount = vertCount;
     vertLayerDataDisk = (const unsigned __int8 *)Com_GetBspLump(LUMP_VERTEX_LAYER_DATA, 1u, &vertLayerDataSize);
     if ( !vertLayerDataSize )
@@ -2968,9 +3027,10 @@ void __cdecl R_LoadSurfaces(GfxBspLoad *load)
         else
             v1 = 1.0f;
         vertsMem[vertIndex].binormalSign = v1;
-        if ( vertIndex % 0xC350 )
+        if ( vertIndex % 50000 )
             Monkey_KeepAlive();
     }
+
     indices = (const unsigned __int16 *)Com_GetBspLump(LUMP_DRAWINDICES, 2u, &indexCount);
     if ( surfCount > 0x10000
         && !Assert_MyHandler(
@@ -3838,11 +3898,12 @@ int R_PostLoadEntities()
             smodelCombinedInsts[smodelIndex].isDynamicModel = 0;
         }
     }
-    std::_Sort<GfxStaticModelCombinedInst *,int,bool (__cdecl *)(GfxStaticModelCombinedInst const &,GfxStaticModelCombinedInst const &)>(
-        smodelCombinedInsts,
-        &smodelCombinedInsts[s_world.dpvs.smodelCount],
-        (signed int)(120 * s_world.dpvs.smodelCount) / 120,
-        (bool (__cdecl *)(const GfxStaticModelCombinedInst *, const GfxStaticModelCombinedInst *))R_StaticModelCompare);
+    //std::_Sort<GfxStaticModelCombinedInst *,int,bool (__cdecl *)(GfxStaticModelCombinedInst const &,GfxStaticModelCombinedInst const &)>(
+    //    smodelCombinedInsts,
+    //    &smodelCombinedInsts[s_world.dpvs.smodelCount],
+    //    (signed int)(120 * s_world.dpvs.smodelCount) / 120,
+    //    (bool (__cdecl *)(const GfxStaticModelCombinedInst *, const GfxStaticModelCombinedInst *))R_StaticModelCompare);
+    std::sort(&smodelCombinedInsts[0], &smodelCombinedInsts[s_world.dpvs.smodelCount], R_StaticModelCompare);
     for ( smodelIndexa = 0; smodelIndexa < s_world.dpvs.smodelCount; ++smodelIndexa )
     {
         memcpy(
@@ -4058,7 +4119,7 @@ char __cdecl DynamicModelsSortedCorrectly(
         if ( !IsDynamicModel(drawInsts[drawInstIndex].model) )
         {
 LABEL_7:
-            Com_Error(ERR_DROP, &byte_D78EB4);
+            Com_Error(ERR_DROP, "VerifyDynamicModelSorting failed");
             return 0;
         }
     }
@@ -4083,7 +4144,7 @@ void __cdecl R_LoadEntities()
     int spawnVarCount; // [esp+54h] [ebp-228h]
     int spawnVarCounta; // [esp+54h] [ebp-228h]
     char *startPos; // [esp+58h] [ebp-224h]
-    char *spawnVars[64][2]; // [esp+5Ch] [ebp-220h] BYREF
+    const char *spawnVars[64][2]; // [esp+5Ch] [ebp-220h] BYREF
     unsigned int smodelCount; // [esp+25Ch] [ebp-20h]
     unsigned int textLen; // [esp+260h] [ebp-1Ch] BYREF
     char *textPool; // [esp+264h] [ebp-18h]
@@ -4117,7 +4178,7 @@ void __cdecl R_LoadEntities()
             if ( I_stricmp(token, "classname") )
             {
                 if ( spawnVarCount == 64 )
-                    Com_Error(ERR_DROP, &byte_D79050, 64);
+                    Com_Error(ERR_DROP, "R_LoadEntities: MAX_SPAWN_VARS (%i) reached", 64);
                 spawnVarIndex = spawnVarCount++;
             }
             else
@@ -4141,7 +4202,7 @@ void __cdecl R_LoadEntities()
                 Com_Printf(0, "key: '%s'     value: '%s'\n", spawnVars[spawnVarIndex][0], spawnVars[spawnVarIndex][1]);
                 --spawnVarIndex;
             }
-            Com_Error(ERR_DROP, &byte_D78FC8);
+            Com_Error(ERR_DROP, "R_LoadEntities: entity without a classname. See output above for list of key/value pairs that were found.");
         }
         if ( !I_stricmp(spawnVars[0][1], "info_null") )
         {
@@ -4155,7 +4216,7 @@ void __cdecl R_LoadEntities()
                     I_strncpyz(info[infoCount].origin, spawnVars[i][1], 64);
             }
             if ( ++infoCount >= 0x2000 )
-                Com_Error(ERR_DROP, &byte_D78F8C, 64);
+                Com_Error(ERR_DROP, "R_LoadEntities: MAX_INFO_NULLS (%i) reached", 64);
         }
         if ( !I_stricmp(spawnVars[0][1], "misc_model") )
             ++smodelCount;
@@ -4191,7 +4252,7 @@ void __cdecl R_LoadEntities()
             if ( I_stricmp(token, "classname") )
             {
                 if ( spawnVarCounta == 64 )
-                    Com_Error(ERR_DROP, &byte_D79050, 64);
+                    Com_Error(ERR_DROP, "R_LoadEntities: MAX_SPAWN_VARS (%i) reached", 64);
                 spawnVarIndex = spawnVarCounta++;
             }
             else
@@ -4209,7 +4270,7 @@ void __cdecl R_LoadEntities()
             memcpy((unsigned __int8 *)spawnVars[spawnVarIndex][1], (unsigned __int8 *)token, v0 + 1);
         }
         if ( !*spawnVars[0][0] )
-            Com_Error(ERR_DROP, &byte_D78F4C);
+            Com_Error(ERR_DROP, "R_LoadEntities: entity without a classname");
         if ( !I_stricmp(spawnVars[0][1], "misc_model") )
         {
             for ( k = 1; k < spawnVarCounta; ++k )
@@ -4226,7 +4287,7 @@ void __cdecl R_LoadEntities()
                     }
                 }
             }
-            R_LoadMiscModel(spawnVars, spawnVarCounta);
+            R_LoadMiscModel((char*(*)[2])spawnVars, spawnVarCounta);
         }
     }
     if ( s_world.dpvs.smodelCount > 0x10000
@@ -4292,7 +4353,7 @@ void __cdecl R_LoadMiscModel(char *(*spawnVars)[2], int spawnVarCount)
         angle = R_FloatForKey("angle", 0.0, spawnVars, spawnVarCount);
         if ( angle == 0.0 )
         {
-            R_VectorForKey("angles", "0 0 0", spawnVars, spawnVarCount, angles);
+            R_VectorForKey("angles", (char*)"0 0 0", spawnVars, spawnVarCount, angles);
         }
         else
         {
@@ -4322,9 +4383,9 @@ void __cdecl R_LoadMiscModel(char *(*spawnVars)[2], int spawnVarCount)
         staticModelFlags |= modelFlags & 0xF0;
         R_CreateStaticModel(model, origin, axis, scale, smodelDrawInst, smodelInst, staticModelFlags);
         smodelInst->groundLighting.packed = 0;
-        if ( !R_VectorForKey("lightgrid_center", "0 0 0", spawnVars, spawnVarCount, lightingOrigin) )
+        if ( !R_VectorForKey("lightgrid_center", (char *)"0 0 0", spawnVars, spawnVarCount, lightingOrigin) )
         {
-            R_VectorForKey("lightorigin", "0.5 0.5 0.75", spawnVars, spawnVarCount, originWeights);
+            R_VectorForKey("lightorigin", (char *)"0.5 0.5 0.75", spawnVars, spawnVarCount, originWeights);
             if ( originWeights[0] >= 0.0 )
                 v8 = originWeights[0];
             else
@@ -4376,7 +4437,7 @@ void __cdecl R_LoadMiscModel(char *(*spawnVars)[2], int spawnVarCount)
         else
         {
             primaryLightIndex = R_GetPrimaryLightFromGrid(&s_world.lightGrid, lightingOrigin, 1u);
-            if ( R_VectorForKey("forcelight", "0.0 0.0 0.0", spawnVars, spawnVarCount, primaryLight) )
+            if ( R_VectorForKey("forcelight", (char *)"0.0 0.0 0.0", spawnVars, spawnVarCount, primaryLight) )
             {
                 found = 0;
                 for ( i = s_world.sunPrimaryLightIndex + 1; i < s_world.primaryLightCount; ++i )
@@ -4566,13 +4627,13 @@ char __cdecl R_CheckValidStaticModel(char *(*spawnVars)[2], int spawnVarCount, X
     float tempOrigin[3]; // [esp+20h] [ebp-10h] BYREF
     XModel *tempModel; // [esp+2Ch] [ebp-4h]
 
-    if ( !R_VectorForKey("origin", "0 0 0", spawnVars, spawnVarCount, tempOrigin) )
-        Com_Error(ERR_DROP, &byte_D79210);
+    if ( !R_VectorForKey("origin", (char *)"0 0 0", spawnVars, spawnVarCount, tempOrigin) )
+        Com_Error(ERR_DROP, "R_CheckValidStaticModel: no origin specified");
     if ( R_ValueForKey("bake", spawnVars, spawnVarCount) )
         return 0;
     modelName = R_ValueForKey("model", spawnVars, spawnVarCount);
     if ( !modelName )
-        Com_Error(ERR_DROP, &byte_D791B8, tempOrigin[0], tempOrigin[1], tempOrigin[2]);
+        Com_Error(ERR_DROP, "R_CheckValidStaticModel: no model specified in misc_model at (%.0f %.0f %.0f)", tempOrigin[0], tempOrigin[1], tempOrigin[2]);
     if ( Com_IsLegacyXModelName(modelName) )
         modelName += 7;
     tempModel = R_RegisterModel(modelName);
@@ -4589,9 +4650,9 @@ char __cdecl R_CheckValidStaticModel(char *(*spawnVars)[2], int spawnVarCount, X
             tempOrigin[0],
             tempOrigin[1],
             tempOrigin[2]);
-        tempModel = R_RegisterModel("default_static_model");
+        tempModel = R_RegisterModel((char*)"default_static_model");
         if ( !tempModel || XModelBad(tempModel) )
-            Com_Error(ERR_DROP, &byte_D79110);
+            Com_Error(ERR_DROP, "R_CheckValidStaticModel: could not find xmodel 'default_static_model'");
     }
     if ( !model
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_bsp_load_obj.cpp", 4512, 0, "%s", "model") )
@@ -5097,12 +5158,12 @@ mnode_t *__cdecl R_SortNodes_r(mnode_load_t *node, mnode_t *out)
         outa = out + 1;
         out->cellIndex = LOWORD(s_world.dpvsPlanes.cellCount) + node->planeIndex + 1;
         if ( out->cellIndex != s_world.dpvsPlanes.cellCount + node->planeIndex + 1 )
-            Com_Error(ERR_DROP, &byte_D79540);
+            Com_Error(ERR_DROP, "Max planes exceeded");
         outb = R_SortNodes_r(&rgl.nodes[node->children[0]], outa);
         out->rightChildOffset = ((char *)outb - (char *)out) >> 1;
 
         if ( out->rightChildOffset != ((char *)outb - (char *)out) >> 1 )
-            Com_Error(ERR_DROP, &byte_D7952C);
+            Com_Error(ERR_DROP, "Max cells exceeded");
 
         return R_SortNodes_r(&rgl.nodes[node->children[1]], outb);
     }
@@ -5882,7 +5943,7 @@ void __cdecl R_InitPrimaryLights(GfxLight *primaryLights)
         out->cookieControl2[3] = in->cookieControl2[3];
         if ( out->type == 2 )
         {
-            SpotLightViewMatrix((unsigned int)&savedregs, out->dir, out->angles[2], out->viewMatrix.m);
+            SpotLightViewMatrix(out->dir, out->angles[2], out->viewMatrix.m);
             SpotLightProjectionMatrix(out->cosHalfFovOuter, out->falloff[0], out->falloff[1], out->projMatrix.m);
         }
     }

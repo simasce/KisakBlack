@@ -1178,21 +1178,21 @@ inline void __cdecl phys_transpose(phys_mat44 *dest, const phys_mat44 *source)
     if (dest == source)
     {
         //v8 = phys_vec3::operator[]<int>(&dest->x, 1u);
-        v8 = dest->x[1];
+        v8 = &dest->x[1];
         v9 = *v8;
         *v8 = dest->y.x;
         dest->y.x = v9;
         //v5 = phys_vec3::operator[]<int>(&dest->z, 0);
-        v5 = dest->z[0];
+        v5 = &dest->z[0];
         //v6 = phys_vec3::operator[]<int>(&dest->x, 2u);
-        v6 = dest->x[2];
+        v6 = &dest->x[2];
         v7 = *v6;
         *v6 = *v5;
         *v5 = v7;
         //v2 = phys_vec3::operator[]<int>(&dest->z, 1u);
-        v2 = dest->z[1];
+        v2 = &dest->z[1];
         //v3 = phys_vec3::operator[]<int>(&dest->y, 2u);
-        v3 = dest->y[2];
+        v3 = &dest->y[2];
         v4 = *v3;
         *v3 = *v2;
         *v2 = v4;
@@ -1211,7 +1211,7 @@ inline void __cdecl phys_transpose(phys_mat44 *dest, const phys_mat44 *source)
     }
 }
 
-inline const phys_vec3 *__cdecl phys_inv_multiply(const phys_vec3 *result, const phys_mat44 *mat, const phys_vec3 *v)
+inline const phys_vec3 *__cdecl phys_inv_multiply(phys_vec3 *result, const phys_mat44 *mat, const phys_vec3 *v)
 {
     float v4; // [esp+4h] [ebp-10h]
     float v5; // [esp+Ch] [ebp-8h]

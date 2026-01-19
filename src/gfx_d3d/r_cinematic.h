@@ -1,5 +1,7 @@
 #pragma once
 #include <d3d9.h>
+#include "r_material.h"
+#include <binklib/binktextures.h>
 
 struct __declspec(align(4)) CinematicHunk // sizeof=0x18
 {                                       // XREF: CinematicGlob/r

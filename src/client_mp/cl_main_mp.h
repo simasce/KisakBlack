@@ -3,7 +3,6 @@
 #include <bgame/bg_local.h>
 #include <qcommon/bitarray.h>
 #include <qcommon/msg_mp.h>
-#include <client_mp/client_mp.h>
 #include <demo/demo_common.h>
 #include <qcommon/net_chan_mp.h>
 #include <client/screen_placement.h>

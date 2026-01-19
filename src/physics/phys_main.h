@@ -227,6 +227,7 @@ struct CollisionAabbTree;
 struct cLeafBrushNode_s;
 struct gjk_geom_list_t;
 struct chull_t;
+struct rigid_body_constraint_ragdoll;
 
 void __cdecl destroy_gjk_geom(struct gjk_aabb_t *geom);
 void __cdecl Phys_Init();

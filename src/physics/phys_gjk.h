@@ -1,7 +1,6 @@
 #pragma once
 
 #include "phys_local.h"
-#include "phys_colgeom.h"
 
 struct phys_gjk_geom_id_pair_key // sizeof=0x8
 {                                       // XREF: phys_gjk_cache_info/r
@@ -17,6 +16,9 @@ struct phys_gjk_cache_info // sizeof=0x80
     int m_support_count;
     phys_gjk_geom_id_pair_key m_key;
     unsigned int m_flags;
+
+    phys_gjk_cache_info();
+    void update_swapped(bool swapped);
 };
 
 struct __declspec(align(8)) gjk_entity_info_t // sizeof=0x50

@@ -3141,6 +3141,12 @@
     <ClCompile Include="DemonWare\bdCore\bdCrypto\bdCypher3Des.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\binklib\binktextures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\binklib\dx9rad3d.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\libs\libtomcrypt-1.17\src\headers\tomcrypt.h">
@@ -5559,6 +5565,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\steam\steam_gameserver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\binklib\bink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\binklib\binktextures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\binklib\rad3d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\binklib\radbase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

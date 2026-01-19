@@ -4,64 +4,7 @@
 
 #include <DemonWare/bdCore/bdMemory/bdMemory.h>
 
-template <typename T>
-struct bdArray//<bdAddr> // sizeof=0xC
-{                                       // XREF: bdCommonAddr/r
-                                        // bdNATTravClient/r ...
-    T *m_data;
-    unsigned int m_capacity;
-    unsigned int m_size;
-};
-
-
-/*
-===============================================================================
-  Address types (from your context)
-===============================================================================
-*/
-
-struct bdInAddr
-{
-    union
-    {
-        struct
-        {
-            uint8_t m_b1;
-            uint8_t m_b2;
-            uint8_t m_b3;
-            uint8_t m_b4;
-        } m_caddr;
-
-        uint32_t m_iaddr;
-    } inUn;
-};
-
-struct bdInetAddr
-{
-    bdInAddr m_addr;
-
-    inline ~bdInetAddr()
-    {
-        // trivial in reality, but destructor is explicitly invoked in the binary
-    }
-};
-
-struct __declspec(align(4)) bdAddr
-{
-    bdInetAddr    m_address;
-    uint16_t      m_port;
-    uint16_t      _pad;
-
-    inline bdAddr() = default;
-
-    inline bdAddr(const bdAddr *other)
-    {
-        m_address = other->m_address;
-        m_port = other->m_port;
-    }
-};
-
-static_assert(sizeof(bdAddr) == 8, "bdAddr size mismatch");
+// aislop
 
 /*
 ===============================================================================
@@ -80,14 +23,14 @@ struct bdArray
     // ctor / dtor
     // ---------------------------------------------------------------------
 
-    inline bdArray()
+    bdArray()
         : m_data(nullptr)
         , m_capacity(0)
         , m_size(0)
     {
     }
 
-    inline ~bdArray()
+    ~bdArray()
     {
         clear();
     }
