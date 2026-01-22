@@ -1,4 +1,5 @@
 #include "r_jpeg.h"
+#include <jpeg/jpeglib.h>
 
 void __cdecl R_SaveJpg(
                 char *filename,
