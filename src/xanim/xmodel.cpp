@@ -574,7 +574,7 @@ void __cdecl XModelTraceLineAnimatedPartBits(
     }
 }
 
-char __cdecl XSurfaceVisitTrianglesInAabb(
+bool __cdecl XSurfaceVisitTrianglesInAabb(
                 const XSurface *surface,
                 unsigned int vertListIndex,
                 const float *aabbMins,

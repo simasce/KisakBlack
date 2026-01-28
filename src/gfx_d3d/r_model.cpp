@@ -17,6 +17,43 @@
 #include "r_model_lod.h"
 #include <EffectsCore/fx_beam.h>
 
+#include <algorithm>
+#include "r_warn.h"
+#include "r_model_pose.h"
+#include <cgame/cg_pose_utils.h>
+#include "r_dobj_skin.h"
+#include "r_xsurface_optimize.h"
+
+const int boxVerts[24][3] =
+{
+  { 0, 0, 0 },
+  { 1, 0, 0 },
+  { 0, 0, 0 },
+  { 0, 1, 0 },
+  { 1, 1, 0 },
+  { 1, 0, 0 },
+  { 1, 1, 0 },
+  { 0, 1, 0 },
+  { 0, 0, 1 },
+  { 1, 0, 1 },
+  { 0, 0, 1 },
+  { 0, 1, 1 },
+  { 1, 1, 1 },
+  { 1, 0, 1 },
+  { 1, 1, 1 },
+  { 0, 1, 1 },
+  { 0, 0, 0 },
+  { 0, 0, 1 },
+  { 1, 0, 0 },
+  { 1, 0, 1 },
+  { 0, 1, 0 },
+  { 0, 1, 1 },
+  { 1, 1, 0 },
+  { 1, 1, 1 }
+};
+
+
+
 void __cdecl R_ModelList_f()
 {
     const char *Name; // eax
@@ -38,7 +75,8 @@ void __cdecl R_ModelList_f()
     v6 = 0;
     inData = 0;
     DB_EnumXAssets(ASSET_TYPE_XMODEL, (void (__cdecl *)(XAssetHeader, void *))R_GetModelList, &inData, 1);
-    std::_Sort<XModel * *,int,bool (__cdecl *)(XModel * &,XModel * &)>(v4, &v4[inData], (4 * inData) >> 2, R_ModelSort);
+    //std::_Sort<XModel * *,int,bool (__cdecl *)(XModel * &,XModel * &)>(v4, &v4[inData], (4 * inData) >> 2, R_ModelSort);
+    std::sort(&v4[0], &v4[inData], R_ModelSort);
     Com_Printf(8, "---------------------------\n");
     Com_Printf(8, "SM# is the number of static model instances\n");
     Com_Printf(8, "instKB is static model instance usage\n");
@@ -140,6 +178,7 @@ void __cdecl R_XModelDebug(const DObj *obj, int *partBits)
         R_XModelDebugAxes(obj, partBits);
 }
 
+float cutOffLimit;
 void __cdecl R_XModelDebugBoxes(const DObj *obj, int *partBits)
 {
     DObjAnimMat *boneMatrix; // [esp+D8h] [ebp-2D0h]
@@ -224,12 +263,18 @@ void __cdecl R_XModelDebugAxes(const DObj *obj, int *partBits)
     boneMatrix = DObjGetRotTransArray(obj);
     if ( boneMatrix )
     {
-        *(_QWORD *)&translation[0][0] = __PAIR64__(0, LODWORD(6.0f));
+        //*(_QWORD *)&translation[0][0] = __PAIR64__(0, LODWORD(6.0f));
+        translation[0][0] = 6.0f;
+        translation[0][1] = 0.0f;
         translation[0][2] = 0.0f;
-        *(_QWORD *)&translation[1][0] = __PAIR64__(LODWORD(6.0f), 0);
+        //*(_QWORD *)&translation[1][0] = __PAIR64__(LODWORD(6.0f), 0);
+        translation[1][0] = 0.0f;
+        translation[1][1] = 6.0f;
         translation[1][2] = 0.0f;
         translation[2][0] = 0.0f;
-        *(_QWORD *)&translation[2][1] = __PAIR64__(LODWORD(6.0f), 0);
+        //*(_QWORD *)&translation[2][1] = __PAIR64__(LODWORD(6.0f), 0);
+        translation[2][1] = 0.0f;
+        translation[2][2] = 6.0f;
         boneCount = DObjNumBones(obj);
         animPartBit = 0x80000000;
         for ( boneIndex = 0; boneIndex < boneCount; ++boneIndex )
@@ -252,35 +297,28 @@ void __cdecl R_XModelDebugAxes(const DObj *obj, int *partBits)
 
 void __cdecl R_LockSkinnedCache()
 {
-    int v0; // [esp+0h] [ebp-8h]
+    int v1; // [esp+0h] [ebp-8h]
     int semaphore; // [esp+4h] [ebp-4h]
 
-    if ( gfxBuf.skinnedCacheLockAddr
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model.cpp",
-                    422,
-                    0,
-                    "%s",
-                    "!gfxBuf.skinnedCacheLockAddr") )
-    {
-        __debugbreak();
-    }
-    if ( Sys_QueryD3DDeviceOKEvent() )
+    iassert(!gfxBuf.skinnedCacheLockAddr);
+
+    if (Sys_QueryD3DDeviceOKEvent())
     {
         semaphore = R_AcquireDXDeviceOwnership(0);
-        while ( *frontEndDataOut->dynamicBufferCurrentFrame
-                 && *frontEndDataOut->dynamicBufferCurrentFrame < frontEndDataOut->frameCount )
+        while (*frontEndDataOut->dynamicBufferCurrentFrame
+            && *frontEndDataOut->dynamicBufferCurrentFrame < frontEndDataOut->frameCount)
         {
-            v0 = R_ReleaseDXDeviceOwnership();
+            v1 = R_ReleaseDXDeviceOwnership();
             NET_Sleep(0);
-            if ( v0 )
+            if (v1)
                 R_AcquireDXDeviceOwnership(0);
         }
         *frontEndDataOut->dynamicBufferCurrentFrame = frontEndDataOut->frameCount;
         gfxBuf.skinnedCacheLockAddr = frontEndDataOut->skinnedCacheVb->verts;
-        dword_B472524 = (int)gfxBuf.skinnedCacheNormals + 0x200000 * (dword_B472528++ & 1);
-        dword_B472520 = (int)gfxBuf.skinnedCacheNormals + 0x200000 * (dword_B472528 & 1);
-        if ( semaphore )
+        gfxBuf.oldSkinnedCacheNormalsAddr = gfxBuf.skinnedCacheNormals[gfxBuf.skinnedCacheNormalsFrameCount & 1];
+        ++gfxBuf.skinnedCacheNormalsFrameCount;
+        gfxBuf.skinnedCacheNormalsAddr = gfxBuf.skinnedCacheNormals[gfxBuf.skinnedCacheNormalsFrameCount & 1];
+        if (semaphore)
             R_ReleaseDXDeviceOwnership();
     }
 }
@@ -291,8 +329,7 @@ void __cdecl R_UnlockSkinnedCache()
         gfxBuf.skinnedCacheLockAddr = 0;
 }
 
-int    R_SkinXModel@<eax>(
-                int a1@<ebp>,
+int    R_SkinXModel(
                 XModelDrawInfo *modelInfo,
                 const XModel *model,
                 const DObj *obj,
@@ -301,7 +338,7 @@ int    R_SkinXModel@<eax>(
                 __int16 gfxEntIndex,
                 bool offscreen)
 {
-    void *v8; // esp
+    //void *v8; // esp
     unsigned __int32 v10; // [esp+1Ch] [ebp-1C7Ch]
     int v11; // [esp+28h] [ebp-1C70h]
     unsigned int j; // [esp+34h] [ebp-1C64h]
@@ -311,24 +348,25 @@ int    R_SkinXModel@<eax>(
     unsigned __int8 *v17; // [esp+48h] [ebp-1C50h]
     unsigned __int8 v18[7180]; // [esp+4Ch] [ebp-1C4Ch] BYREF
     unsigned int v19[5]; // [esp+1C58h] [ebp-40h] BYREF
-    int Surfaces; // [esp+1C6Ch] [ebp-2Ch]
-    XSurface *v21; // [esp+1C70h] [ebp-28h] BYREF
+    int surfaceCount; // [esp+1C6Ch] [ebp-2Ch]
+    XSurface *surfaces; // [esp+1C70h] [ebp-28h] BYREF
     int LodForDist; // [esp+1C74h] [ebp-24h]
     float adjustedDist; // [esp+1C78h] [ebp-20h]
     XModelLodRampType LodRampType; // [esp+1C7Ch] [ebp-1Ch]
     float dist; // [esp+1C80h] [ebp-18h]
     float BaseLodDist; // [esp+1C84h] [ebp-14h]
-    int v27; // [esp+1C8Ch] [ebp-Ch]
-    void *v28; // [esp+1C90h] [ebp-8h]
-    void *retaddr; // [esp+1C98h] [ebp+0h]
+    //int v27; // [esp+1C8Ch] [ebp-Ch]
+    //void *v28; // [esp+1C90h] [ebp-8h]
+    //void *retaddr; // [esp+1C98h] [ebp+0h]
 
-    v27 = a1;
-    v28 = retaddr;
-    v8 = alloca(7288);
-    if ( !model && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model.cpp", 515, 0, "%s", "model") )
-        __debugbreak();
+    //v27 = a1;
+    //v28 = retaddr;
+    //v8 = alloca(7288);
+    iassert(model);
+
     if ( !useFastFile->current.enabled && XModelBad(model) )
         return 0;
+
     BaseLodDist = R_GetBaseLodDist(placement->origin);
     dist = I_fres(scale) * BaseLodDist;
     LodRampType = XModelGetLodRampType(model);
@@ -338,8 +376,8 @@ int    R_SkinXModel@<eax>(
     LodForDist = XModelGetLodForDist(model, adjustedDist, dist, 0);
     if ( LodForDist < 0 )
         return 0;
-    Surfaces = XModelGetSurfaces(model, &v21, LodForDist);
-    if ( !Surfaces
+    surfaceCount = XModelGetSurfaces(model, &surfaces, LodForDist);
+    if ( !surfaceCount
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model.cpp", 544, 0, "%s", "surfaceCount") )
     {
         __debugbreak();
@@ -347,9 +385,9 @@ int    R_SkinXModel@<eax>(
     if ( obj )
         DObjGetHidePartBits(obj, v19);
     v17 = v18;
-    for ( i = 0; i < Surfaces; ++i )
+    for ( i = 0; i < surfaceCount; ++i )
     {
-        v15 = &v21[i];
+        v15 = &surfaces[i];
         if ( !obj )
             goto LABEL_42;
         if ( !r_useHidePartbits->current.enabled )
@@ -370,7 +408,7 @@ LABEL_42:
             else
                 v11 = -1;
             *(unsigned int *)v17 = v11;
-            *((unsigned int *)v17 + 1) = v15;
+            *((unsigned int *)v17 + 1) = (unsigned int)v15;
             *((_WORD *)v17 + 7) = gfxEntIndex;
             *((_WORD *)v17 + 8) = 0;
             memcpy(v17 + 24, placement, 0x1Cu);
@@ -410,7 +448,7 @@ int __cdecl R_SkinAndBoundSceneEnt(GfxSceneEntity *sceneEnt)
     GfxSceneEntity *localSceneEnt; // [esp+8h] [ebp-4h] BYREF
     int savedregs; // [esp+Ch] [ebp+0h] BYREF
 
-    boneMatrix = R_UpdateSceneEntBounds((GfxSceneEntity *)&savedregs, sceneEnt, &localSceneEnt, &obj, 1);
+    boneMatrix = R_UpdateSceneEntBounds(sceneEnt, &localSceneEnt, &obj, 1);
     if ( boneMatrix )
     {
         if ( !localSceneEnt

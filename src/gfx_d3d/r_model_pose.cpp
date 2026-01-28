@@ -2,6 +2,8 @@
 #include <xanim/xmodel.h>
 #include <xanim/dobj_utils.h>
 #include "r_dvars.h"
+#include <cgame_mp/cg_pose_mp.h>
+#include <EffectsCore/fx_marks.h>
 
 // local variable allocation has failed, the output may be wrong!
 DObjAnimMat * R_UpdateSceneEntBounds(
@@ -75,7 +77,7 @@ DObjAnimMat * R_UpdateSceneEntBounds(
 
     localSceneEnt = a1;
     state = retaddr;
-    if ( _InterlockedCompareExchange((volatile signed __int32 *)&sceneEnt->cull, 1, 0) )
+    if ( _InterlockedCompareExchange(&sceneEnt->cull.state, 1, 0) )
     {
         *pLocalSceneEnt = 0;
         if ( waitForCullState )
@@ -447,7 +449,7 @@ void __cdecl R_UpdateGfxEntityBoundsCmd(GfxSceneEntity **data)
         __debugbreak();
     pSceneEnt = data;
     sceneEnt = *data;
-    if ( R_UpdateSceneEntBounds((GfxSceneEntity *)&savedregs, sceneEnt, &localSceneEnt, &obj, 0)
+    if ( R_UpdateSceneEntBounds(sceneEnt, &localSceneEnt, &obj, 0)
         && !localSceneEnt
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model_pose.cpp", 423, 0, "%s", "localSceneEnt") )
     {

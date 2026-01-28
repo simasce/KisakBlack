@@ -1,4 +1,49 @@
 #include "win_main.h"
+#include "win_net.h"
+#include <game_mp/g_main_mp.h>
+#include <sound/snd_driver_xaudio2.h>
+#include "win_localize.h"
+#include <monkey/monkey.h>
+#include <qcommon/threads.h>
+#include "win_syscon.h"
+#include <live/live_steam.h>
+#include "win_input.h"
+#include <client/cl_keys.h>
+#include <clientscript/cscr_stringlist.h>
+#include <qcommon/mem_track.h>
+#include <client/con_channels.h>
+#include <universal/com_memory.h>
+#include <gfx_d3d/rb_backend.h>
+#include "win_shared.h"
+#include <gfx_d3d/r_dvars.h>
+#include <mjpeg/mjpeg.h>
+#include <mjpeg/avi.h>
+#include <universal/com_buildinfo.h>
+#undef UNICODE // Module32First ascii version in below Tlhelp32.h
+#include <TlHelp32.h>
+#include "win_mini_dumper.h"
+#include <universal/physicalmemory.h>
+#include <universal/q_parse.h>
+#include <universal/timing.h>
+#include "win_wndproc.h"
+#include <tl/tl_system.h>
+#include <qcommon/tl_support.h>
+#include "win_configure.h"
+#include <direct.h>
+
+const dvar_t *sys_configureGHz;
+const dvar_t *sys_sysMB;
+const dvar_t *sys_gpu;
+const dvar_t *sys_configSum;
+const dvar_t *sys_SSE;
+
+int s_nosnd;
+SysInfo sys_info;
+char sys_exitCmdLine[1024];
+sysEvent_t eventQue[256];
+int eventHead;
+int eventTail;
+char sys_processSemaphoreFile[260];
 
 bool __cdecl PC_StartWithNoSounds()
 {
@@ -41,7 +86,7 @@ bool __cdecl Sys_ShouldUpdateForConfigChange()
     return MessageBoxA(ActiveWindow, v2, v3, 0x44u) == 6;
 }
 
-const dvar_s *Sys_RegisterInfoDvars()
+void Sys_RegisterInfoDvars()
 {
     float value; // xmm0_4
 
@@ -58,7 +103,7 @@ const dvar_s *Sys_RegisterInfoDvars()
     sys_SSE = _Dvar_RegisterBool("sys_SSE", sys_info.SSE, 0x40u, "Operating system allows Streaming SIMD Extensions");
     value = sys_info.cpuGHz;
     _Dvar_RegisterFloat("sys_cpuGHz", value, -3.4028235e38, 3.4028235e38, 0x40u, "Measured CPU speed");
-    return _Dvar_RegisterString("sys_cpuName", sys_info.cpuName, 0x40u, "CPU name description");
+    _Dvar_RegisterString("sys_cpuName", sys_info.cpuName, 0x40u, "CPU name description");
 }
 
 bool __cdecl Sys_HasInfoChanged()
@@ -156,7 +201,7 @@ void __cdecl Sys_OpenURL(const char *url, int doexit)
 
     if ( !ShellExecuteA(0, "open", url, 0, 0, 9) )
     {
-        v2 = va(aExeErrCouldntO, url);
+        v2 = va("EXE_ERR_COULDNT_OPEN_URL %s", url);
         Com_Error(ERR_DROP, v2);
     }
     wnd = GetForegroundWindow();
@@ -231,10 +276,12 @@ void Sys_SpawnQuitProcess()
             v2 = error;
             v1 = msgBuf;
             v0 = Win_LocalizeRef("WIN_COULDNT_START_PROCESS");
-            Com_Error(ERR_FATAL, &byte_D0D74C, v0, sys_exitCmdLine, v1, v2);
+            Com_Error(ERR_FATAL, "%s %s %s(0x%08x)", v0, sys_exitCmdLine, v1, v2);
         }
     }
 }
+
+int enable_OutputDebugString = 1;
 
 void __cdecl Sys_Print(char *msg)
 {
@@ -273,7 +320,7 @@ char *__cdecl Sys_GetClipboardData()
     return data;
 }
 
-void __cdecl Sys_QueEvent(unsigned inttime, sysEventType_t type, int value, int value2, int ptrLength, void *ptr)
+void __cdecl Sys_QueEvent(unsigned int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr)
 {
     sysEvent_t *ev; // [esp+0h] [ebp-4h]
 
@@ -416,6 +463,13 @@ void __cdecl Sys_MjpegClose()
     mjpeg_close();
 }
 
+cmd_function_s Sys_In_Restart_f_VAR;
+cmd_function_s Sys_Net_Restart_f_VAR;
+cmd_function_s Sys_Mjpeg_VAR;
+cmd_function_s Sys_MjpegClose_VAR;
+cmd_function_s Sys_Listen_f_VAR;
+cmd_function_s Sys_Connect_f_VAR;
+
 void __cdecl Sys_Init()
 {
     const char *BuildDisplayNameR; // eax
@@ -433,7 +487,7 @@ void __cdecl Sys_Init()
     Cmd_AddCommandInternal("net_connect", Sys_Connect_f, &Sys_Connect_f_VAR);
     osversion.dwOSVersionInfoSize = 148;
     if ( !GetVersionExA(&osversion) )
-        Sys_Error("Couldn't get OS info");
+        Sys_Error((char*)"Couldn't get OS info");
     if ( osversion.dwMajorVersion < 4 )
     {
         BuildDisplayNameR = Com_GetBuildDisplayNameR();
@@ -486,7 +540,7 @@ int __cdecl Sys_CheckCrashOrRerun()
     char *v3; // [esp-8h] [ebp-1Ch]
     unsigned int procID; // [esp+0h] [ebp-14h] BYREF
     int answer; // [esp+4h] [ebp-10h]
-    unsigned int byteCount; // [esp+8h] [ebp-Ch] BYREF
+    DWORD byteCount; // [esp+8h] [ebp-Ch] BYREF
     void *file; // [esp+Ch] [ebp-8h]
     unsigned int id; // [esp+10h] [ebp-4h] BYREF
 
@@ -551,9 +605,10 @@ void    Sys_NoFreeFilesError()
     exit(-1);
 }
 
-int __cdecl Sys_IsGameProcess(unsigned intid)
+int __cdecl Sys_IsGameProcess(unsigned int id)
 {
-    tagMODULEENTRY32 me; // [esp+0h] [ebp-350h] BYREF
+    //tagMODULEENTRY32 me; // [esp+0h] [ebp-350h] BYREF
+    MODULEENTRY32 me; // [esp+0h] [ebp-350h] BYREF
     int isGame; // [esp+22Ch] [ebp-124h]
     char *i; // [esp+230h] [ebp-120h]
     char *moduleName; // [esp+234h] [ebp-11Ch]
@@ -597,10 +652,10 @@ void __cdecl Sys_NormalExit()
     DeleteFileA(sys_processSemaphoreFile);
 }
 
+char g_ExceptionStr[32768];
 int __cdecl PrivateUnhandledExceptionFilter(_EXCEPTION_POINTERS *ExceptionInfo)
 {
-    char *v1; // eax
-    char *v3; // [esp+A4h] [ebp-B4h]
+    char *v2; // eax
     unsigned int ExceptionCode; // [esp+148h] [ebp-10h]
     int j; // [esp+14Ch] [ebp-Ch]
     int ja; // [esp+14Ch] [ebp-Ch]
@@ -608,92 +663,89 @@ int __cdecl PrivateUnhandledExceptionFilter(_EXCEPTION_POINTERS *ExceptionInfo)
 
     strcpy(g_ExceptionStr, "Exception: ");
     ExceptionCode = ExceptionInfo->ExceptionRecord->ExceptionCode;
-    if ( ExceptionCode > 0xC0000005 )
+    if (ExceptionCode > 0xC0000005)
     {
-        switch ( ExceptionCode )
+        switch (ExceptionCode)
         {
-            case 0xC0000006:
-                strcat(g_ExceptionStr, "EXCEPTION_IN_PAGE_ERROR\n");
-                break;
-            case 0xC000001D:
-                strcat(g_ExceptionStr, "EXCEPTION_ILLEGAL_INSTRUCTION\n");
-                break;
-            case 0xC0000025:
-                strcat(g_ExceptionStr, "EXCEPTION_NONCONTINUABLE_EXCEPTION\n");
-                break;
-            case 0xC0000026:
-                strcat(g_ExceptionStr, "EXCEPTION_INVALID_DISPOSITION\n");
-                break;
-            case 0xC000008C:
-                strcat(g_ExceptionStr, "EXCEPTION_ARRAY_BOUNDS_EXCEEDED\n");
-                break;
-            case 0xC000008D:
-                strcat(g_ExceptionStr, "EXCEPTION_FLT_DENORMAL_OPERAND\n");
-                break;
-            case 0xC000008E:
-                strcat(g_ExceptionStr, "EXCEPTION_FLT_DIVIDE_BY_ZERO\n");
-                break;
-            case 0xC000008F:
-                strcat(g_ExceptionStr, "EXCEPTION_FLT_INEXACT_RESULT\n");
-                break;
-            case 0xC0000090:
-                strcat(g_ExceptionStr, "EXCEPTION_FLT_INVALID_OPERATION\n");
-                break;
-            case 0xC0000091:
-                strcat(g_ExceptionStr, "EXCEPTION_FLT_OVERFLOW\n");
-                break;
-            case 0xC0000092:
-                strcat(g_ExceptionStr, "EXCEPTION_FLT_STACK_CHECK\n");
-                break;
-            case 0xC0000093:
-                strcat(g_ExceptionStr, "EXCEPTION_FLT_UNDERFLOW\n");
-                break;
-            case 0xC0000094:
-                strcat(g_ExceptionStr, "EXCEPTION_INT_DIVIDE_BY_ZERO\n");
-                break;
-            case 0xC0000095:
-                strcat(g_ExceptionStr, "EXCEPTION_INT_OVERFLOW\n");
-                break;
-            case 0xC0000096:
-                strcat(g_ExceptionStr, "EXCEPTION_PRIV_INSTRUCTION\n");
-                break;
-            case 0xC00000FD:
-                strcat(g_ExceptionStr, "EXCEPTION_STACK_OVERFLOW\n");
-                break;
-            default:
-                goto LABEL_28;
+        case 0xC0000006:
+            strcat(g_ExceptionStr, "EXCEPTION_IN_PAGE_ERROR\n");
+            break;
+        case 0xC000001D:
+            strcat(g_ExceptionStr, "EXCEPTION_ILLEGAL_INSTRUCTION\n");
+            break;
+        case 0xC0000025:
+            strcat(g_ExceptionStr, "EXCEPTION_NONCONTINUABLE_EXCEPTION\n");
+            break;
+        case 0xC0000026:
+            strcat(g_ExceptionStr, "EXCEPTION_INVALID_DISPOSITION\n");
+            break;
+        case 0xC000008C:
+            strcat(g_ExceptionStr, "EXCEPTION_ARRAY_BOUNDS_EXCEEDED\n");
+            break;
+        case 0xC000008D:
+            strcat(g_ExceptionStr, "EXCEPTION_FLT_DENORMAL_OPERAND\n");
+            break;
+        case 0xC000008E:
+            strcat(g_ExceptionStr, "EXCEPTION_FLT_DIVIDE_BY_ZERO\n");
+            break;
+        case 0xC000008F:
+            strcat(g_ExceptionStr, "EXCEPTION_FLT_INEXACT_RESULT\n");
+            break;
+        case 0xC0000090:
+            strcat(g_ExceptionStr, "EXCEPTION_FLT_INVALID_OPERATION\n");
+            break;
+        case 0xC0000091:
+            strcat(g_ExceptionStr, "EXCEPTION_FLT_OVERFLOW\n");
+            break;
+        case 0xC0000092:
+            strcat(g_ExceptionStr, "EXCEPTION_FLT_STACK_CHECK\n");
+            break;
+        case 0xC0000093:
+            strcat(g_ExceptionStr, "EXCEPTION_FLT_UNDERFLOW\n");
+            break;
+        case 0xC0000094:
+            strcat(g_ExceptionStr, "EXCEPTION_INT_DIVIDE_BY_ZERO\n");
+            break;
+        case 0xC0000095:
+            strcat(g_ExceptionStr, "EXCEPTION_INT_OVERFLOW\n");
+            break;
+        case 0xC0000096:
+            strcat(g_ExceptionStr, "EXCEPTION_PRIV_INSTRUCTION\n");
+            break;
+        case 0xC00000FD:
+            strcat(g_ExceptionStr, "EXCEPTION_STACK_OVERFLOW\n");
+            break;
+        default:
+            goto LABEL_28;
         }
     }
     else
     {
-        switch ( ExceptionCode )
+        switch (ExceptionCode)
         {
-            case 0xC0000005:
-                strcat(g_ExceptionStr, "EXCEPTION_ACCESS_VIOLATION\n");
-                break;
-            case 0x80000002:
-                strcat(g_ExceptionStr, "EXCEPTION_DATATYPE_MISALIGNMENT\n");
-                break;
-            case 0x80000003:
-                strcat(g_ExceptionStr, "EXCEPTION_BREAKPOINT\n");
-                break;
-            case 0x80000004:
-                strcat(g_ExceptionStr, "EXCEPTION_SINGLE_STEP\n");
-                break;
-            default:
-LABEL_28:
-                v3 = &g_ExceptionStr[strlen(g_ExceptionStr)];
-                *(unsigned int *)v3 = *(unsigned int *)aUnkn_2;
-                *((unsigned int *)v3 + 1) = (char *)&g_lbGlob.leaderboards[0].userStats.m_leaderBoardEntries[22].m_columns[1] + 3;
-                v3[8] = 0;
-                break;
+        case 0xC0000005:
+            strcat(g_ExceptionStr, "EXCEPTION_ACCESS_VIOLATION\n");
+            break;
+        case 0x80000002:
+            strcat(g_ExceptionStr, "EXCEPTION_DATATYPE_MISALIGNMENT\n");
+            break;
+        case 0x80000003:
+            strcat(g_ExceptionStr, "EXCEPTION_BREAKPOINT\n");
+            break;
+        case 0x80000004:
+            strcat(g_ExceptionStr, "EXCEPTION_SINGLE_STEP\n");
+            break;
+        default:
+        LABEL_28:
+            strcat(g_ExceptionStr, "UNKNOWN\n");
+            break;
         }
     }
     sprintf(
         &g_ExceptionStr[strlen(g_ExceptionStr)],
         "Exception Address: %08x\n\n",
         ExceptionInfo->ExceptionRecord->ExceptionAddress);
-    if ( (ExceptionInfo->ContextRecord->ContextFlags & 0x10001) != 0 )
+    if ((ExceptionInfo->ContextRecord->ContextFlags & 0x10001) != 0)
         sprintf(
             &g_ExceptionStr[strlen(g_ExceptionStr)],
             "EBP: %08x\tEIP: %08x\tSEGCS: %08x\tESP: %08x\tSEGSS: %08x\tEFLAGS: %08x\n\n",
@@ -703,7 +755,7 @@ LABEL_28:
             ExceptionInfo->ContextRecord->Esp,
             ExceptionInfo->ContextRecord->SegSs,
             ExceptionInfo->ContextRecord->EFlags);
-    if ( (ExceptionInfo->ContextRecord->ContextFlags & 0x10004) != 0 )
+    if ((ExceptionInfo->ContextRecord->ContextFlags & 0x10004) != 0)
         sprintf(
             &g_ExceptionStr[strlen(g_ExceptionStr)],
             "SEGGS: %08x\tSEGFS: %08x\tSEGES: %08x\tSEGDS: %08x\n",
@@ -711,7 +763,7 @@ LABEL_28:
             ExceptionInfo->ContextRecord->SegFs,
             ExceptionInfo->ContextRecord->SegEs,
             ExceptionInfo->ContextRecord->SegDs);
-    if ( (ExceptionInfo->ContextRecord->ContextFlags & 0x10002) != 0 )
+    if ((ExceptionInfo->ContextRecord->ContextFlags & 0x10002) != 0)
         sprintf(
             &g_ExceptionStr[strlen(g_ExceptionStr)],
             "EDI: %08x\tESI: %08x\nEAX: %08x\tEBX: %08x\nECX: %08x\tEDX: %08x\n\n",
@@ -721,12 +773,12 @@ LABEL_28:
             ExceptionInfo->ContextRecord->Ebx,
             ExceptionInfo->ContextRecord->Ecx,
             ExceptionInfo->ContextRecord->Edx);
-    if ( (ExceptionInfo->ContextRecord->ContextFlags & 0x10001) != 0 )
+    if ((ExceptionInfo->ContextRecord->ContextFlags & 0x10001) != 0)
     {
         strcat(g_ExceptionStr, "Stack Bytes: \n");
-        for ( i = 0; i < 128; ++i )
+        for (i = 0; i < 128; ++i)
         {
-            for ( j = 0; j < 8; ++j )
+            for (j = 0; j < 8; ++j)
             {
                 sprintf(
                     &g_ExceptionStr[strlen(g_ExceptionStr)],
@@ -735,9 +787,9 @@ LABEL_28:
                 strcat(g_ExceptionStr, " ");
             }
             strcat(g_ExceptionStr, "\t[");
-            for ( ja = 0; ja < 8; ++ja )
+            for (ja = 0; ja < 8; ++ja)
             {
-                if ( *(unsigned __int8 *)(ExceptionInfo->ContextRecord->Esp + ja + 8 * i) >= 0x21u )
+                if (*(unsigned __int8 *)(ExceptionInfo->ContextRecord->Esp + ja + 8 * i) >= 0x21u)
                     sprintf(
                         &g_ExceptionStr[strlen(g_ExceptionStr)],
                         "%c",
@@ -749,15 +801,18 @@ LABEL_28:
         }
         strcat(g_ExceptionStr, "\n");
     }
-    v1 = Win_LocalizeRef("WIN_ERROR");
-    Com_Error(ERR_FATAL, v1);
+    v2 = Win_LocalizeRef("WIN_ERROR");
+    Com_Error(ERR_FATAL, v2);
     return 1;
 }
 
+bool g_allowMature = true;
+char sys_cmdline[1024];
+char g_open_automate_benchmark[260];
 int __stdcall WinMain(HINSTANCE__ *hInstance, HINSTANCE__ *hPrevInstance, char *lpCmdLine, int nCmdShow)
 {
     int v5; // eax
-    jpeg_decompress_struct *SCRIPT_DEBUGGER_SMOKE_TEST_SUCCESS_EXIT_CODE; // [esp+0h] [ebp-4h]
+    //jpeg_decompress_struct *SCRIPT_DEBUGGER_SMOKE_TEST_SUCCESS_EXIT_CODE; // [esp+0h] [ebp-4h]
 
     if ( !StartingDedicatedServer(lpCmdLine) && CheckRemoteSession() )
         return 0;
@@ -772,7 +827,7 @@ int __stdcall WinMain(HINSTANCE__ *hInstance, HINSTANCE__ *hPrevInstance, char *
     track_init();
     Win_InitLocalization();
     if ( !I_strnicmp(lpCmdLine, "allowdupe", 9) && lpCmdLine[9] <= 32
-        || (strstr((unsigned __int8 *)lpCmdLine, "g_connectpaths 3"), v5)
+        || (strstr(lpCmdLine, "g_connectpaths 3"), v5)
         || (Sys_GetSemaphoreFileName(), Sys_CheckCrashOrRerun()) )
     {
         s_nosnd = I_stristr(lpCmdLine, "nosnd") != 0;
@@ -792,9 +847,9 @@ int __stdcall WinMain(HINSTANCE__ *hInstance, HINSTANCE__ *hPrevInstance, char *
             Win_RegisterClass();
             SetErrorMode(1u);
             Sys_Milliseconds();
-            BLOPS_NULLSUB(SCRIPT_DEBUGGER_SMOKE_TEST_SUCCESS_EXIT_CODE);
-            tlPrintf("Hello from the wonderful world of TL\n");
-            Sys_SetupTLCallbacks((int)&loc_900000);
+            //BLOPS_NULLSUB(SCRIPT_DEBUGGER_SMOKE_TEST_SUCCESS_EXIT_CODE);
+            tlPrintf("Hello from the wonderful world of TL\n"); // fuck you
+            Sys_SetupTLCallbacks(0x900000);
             if ( !Sys_IsMainThread()
                 && !Assert_MyHandler(
                             "C:\\projects_pc\\cod\\codsrc\\src\\win32\\win_main.cpp",
@@ -805,7 +860,7 @@ int __stdcall WinMain(HINSTANCE__ *hInstance, HINSTANCE__ *hPrevInstance, char *
             {
                 __debugbreak();
             }
-            Com_Init(sys_cmdline, 0);
+            Com_Init(sys_cmdline);
             PrintWorkingDir();
             SetFocus(g_wv.hWnd);
             if ( com_script_debugger_smoke_test->current.enabled )
@@ -818,7 +873,7 @@ int __stdcall WinMain(HINSTANCE__ *hInstance, HINSTANCE__ *hPrevInstance, char *
                     Com_Frame();
                 }
                 while ( !Dvar_GetBool("onlinegame") );
-                PbServerProcessEvents();
+                //PbServerProcessEvents();
             }
         }
     }
@@ -867,7 +922,7 @@ void Win_RegisterClass()
 
     memset((unsigned __int8 *)&wce, 0, sizeof(wce));
     wce.cbSize = 48;
-    wce.lpfnWndProc = (int (__stdcall *)(HWND__ *, unsigned int, unsigned int, int))MainWndProc;
+    wce.lpfnWndProc = (WNDPROC)MainWndProc;
     wce.hInstance = g_wv.hInstance;
     wce.hIcon = LoadIconA(g_wv.hInstance, (LPCSTR)1);
     wce.hCursor = LoadCursorA(0, (LPCSTR)0x7F00);
@@ -895,10 +950,10 @@ char __cdecl CheckRemoteSession()
 
 bool __cdecl StartingDedicatedServer(char *cmdline)
 {
-    int v1; // eax
+    const char *v1; // eax
     const char *p; // [esp+18h] [ebp-4h]
 
-    strstr((unsigned __int8 *)cmdline, "dedicated");
+    v1 = strstr(cmdline, "dedicated");
     if ( !v1 )
         return 0;
     for ( p = (const char *)(strlen("dedicated") + v1); *p && *p == 32; ++p )

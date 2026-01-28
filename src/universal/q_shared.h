@@ -153,6 +153,10 @@ typedef ull                         uint64;
 #define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
 #endif
 
+#ifndef M_PI_2
+#define M_PI_2 1.57079632679489661923
+#endif
+
 #define M_PI_HALF (M_PI / 2.0) // LWSS ADD
 
 // Some convenience macros to make partial accesses nicer

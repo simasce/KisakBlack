@@ -2,6 +2,8 @@
 #include "r_dvars.h"
 #include <win32/win_common.h>
 #include "r_dobj_skin.h"
+#include <qcommon/threads.h>
+#include <EffectsCore/fx_marks.h>
 
 bool TensionUsage[4];
 float TensionBuffer[4][4000];
@@ -468,6 +470,7 @@ void __cdecl R_SkinXSurfaceSkinnedSse(
                 GfxPackedVertexNormal *skinVertNormalOut,
                 GfxPackedVertex *skinVerticesOut)
 {
+#ifdef KISAK_SSE_SKINNING
     int savedregs; // [esp+0h] [ebp+0h] BYREF
 
     if ( skinVertNormalOut )
@@ -520,8 +523,9 @@ void __cdecl R_SkinXSurfaceSkinnedSse(
         if ( (xsurf->flags & 0x80) != 0 )
             R_SkinXSurfaceWeightSse(xsurf->verts0, &xsurf->vertInfo, boneMatrix, skinVerticesOut);
         else
-            R_SkinXSurfaceRigidSse((GfxPackedVertex *)&savedregs, xsurf, xsurf->vertCount, boneMatrix, skinVerticesOut);
+            R_SkinXSurfaceRigidSse(xsurf, xsurf->vertCount, boneMatrix, skinVerticesOut);
     }
+#endif
 }
 
 void __cdecl R_SkinXSurfaceWeightSse(
@@ -530,6 +534,7 @@ void __cdecl R_SkinXSurfaceWeightSse(
                 const DObjSkelMat *boneMatrix,
                 GfxPackedVertex *outVerts)
 {
+#ifdef KISAK_SSE_SKINNING
     const unsigned __int16 *vertsBlend; // [esp+0h] [ebp-8h]
     int vertIndex; // [esp+4h] [ebp-4h] BYREF
     int savedregs; // [esp+8h] [ebp+0h] BYREF
@@ -581,6 +586,7 @@ void __cdecl R_SkinXSurfaceWeightSse(
             boneMatrix,
             outVerts,
             &vertIndex);
+#endif
 }
 
 void __cdecl R_SkinXSurfaceWeightSseOut(
@@ -590,6 +596,7 @@ void __cdecl R_SkinXSurfaceWeightSseOut(
                 GfxPackedVertexNormal *outVertNormals,
                 GfxPackedVertex *outVerts)
 {
+#ifdef KISAK_SSE_SKINNING
     const unsigned __int16 *vertsBlend; // [esp+0h] [ebp-8h]
     int vertIndex; // [esp+4h] [ebp-4h] BYREF
     int savedregs; // [esp+8h] [ebp+0h] BYREF
@@ -645,6 +652,7 @@ void __cdecl R_SkinXSurfaceWeightSseOut(
             outVertNormals,
             outVerts,
             &vertIndex);
+#endif
 }
 
 void __cdecl R_SkinXSurfaceWeightSseInOut(
@@ -655,6 +663,7 @@ void __cdecl R_SkinXSurfaceWeightSseInOut(
                 GfxPackedVertexNormal *outVertNormals,
                 GfxPackedVertex *outVerts)
 {
+#ifdef KISAK_SSE_SKINNING
     const unsigned __int16 *vertsBlend; // [esp+0h] [ebp-8h]
     int vertIndex; // [esp+4h] [ebp-4h] BYREF
     int savedregs; // [esp+8h] [ebp+0h] BYREF
@@ -713,6 +722,7 @@ void __cdecl R_SkinXSurfaceWeightSseInOut(
             outVertNormals,
             outVerts,
             &vertIndex);
+#endif
 }
 
 void    R_SkinXSurfaceRigidSse(
@@ -721,6 +731,7 @@ void    R_SkinXSurfaceRigidSse(
                 const DObjSkelMat *boneMatrix,
                 GfxPackedVertex *dstVerts)
 {
+#ifdef KISAK_SSE_SKINNING
     __m128 v5; // [esp+D4h] [ebp-63Ch]
     __m128 v6; // [esp+1C4h] [ebp-54Ch]
     __m128 v7; // [esp+214h] [ebp-4FCh]
@@ -840,8 +851,10 @@ void    R_SkinXSurfaceRigidSse(
     {
         __debugbreak();
     }
+#endif
 }
 
+#ifdef KISAK_SSE_SKINNING
 __m128 * _mm_cvtpu16_ps@<eax>(int a1@<ebp>)
 {
     __m64 aa; // [esp+50h] [ebp-10h] BYREF
@@ -852,14 +865,16 @@ __m128 * _mm_cvtpu16_ps@<eax>(int a1@<ebp>)
     v4 = retaddr;
     return (__m128 *)((unsigned int)&aa.m64_u32[1] ^ __security_cookie);
 }
+#endif
 
 void    R_SkinXSurfaceRigidSseOut(
                 const XSurface *surf,
                 int totalVertCount,
                 const DObjSkelMat *boneMatrix,
-    GfxPackedVertexNormal *dstVertNormals,
+                GfxPackedVertexNormal *dstVertNormals,
                 GfxPackedVertex *dstVerts)
 {
+#ifdef KISAK_SSE_SKINNING
     __m64 v6; // [esp-Ch] [ebp-71Ch]
     __m128 v7; // [esp+D4h] [ebp-63Ch]
     __m128 v8; // [esp+1C4h] [ebp-54Ch]
@@ -1013,6 +1028,7 @@ void    R_SkinXSurfaceRigidSseOut(
     {
         __debugbreak();
     }
+#endif
 }
 
 void __cdecl R_SkinXSurfaceRigidSseInOut(
@@ -1023,6 +1039,7 @@ void __cdecl R_SkinXSurfaceRigidSseInOut(
                 GfxPackedVertexNormal *dstVertNormals,
                 GfxPackedVertex *dstVerts)
 {
+#ifdef KISAK_SSE_SKINNING
     __m128 v6; // [esp+64h] [ebp-1BCh]
     __m64 m64_u64; // [esp+164h] [ebp-BCh]
     __m64 v8; // [esp+16Ch] [ebp-B4h]
@@ -1141,98 +1158,89 @@ void __cdecl R_SkinXSurfaceRigidSseInOut(
     {
         __debugbreak();
     }
+#endif
 }
 
-void    R_SkinXModelCmd(int a1@<ebp>, SkinXModelCmd *data)
+void R_SkinXModelCmd(SkinXModelCmd *data)
 {
     void *v2; // esp
-    GfxPackedVertex *v3; // [esp-28DCh] [ebp-28E8h]
+    int v3; // [esp-28DCh] [ebp-28E8h]
     GfxPackedVertexNormal *v4; // [esp-28D0h] [ebp-28DCh]
     GfxPackedVertexNormal *v5; // [esp-28CCh] [ebp-28D8h]
-    GfxPackedVertex *skinnedVert; // [esp-28C8h] [ebp-28D4h]
-    XSurface *xsurfs; // [esp-28C4h] [ebp-28D0h]
+    GfxPackedVertex *skinVerticesOut; // [esp-28C8h] [ebp-28D4h]
+    const XSurface *v7; // [esp-28C4h] [ebp-28D0h]
     DObjSkelMat boneSkelMats[128]; // [esp-28C0h] [ebp-28CCh] BYREF
     float *viewoffset; // [esp-B4h] [ebp-C0h]
-    DObjSkelMat mat1; // [esp-B0h] [ebp-BCh] BYREF
-    DObjSkelMat mat0; // [esp-70h] [ebp-7Ch] BYREF
+    DObjSkelMat v10; // [esp-B0h] [ebp-BCh] BYREF
+    DObjSkelMat v11; // [esp-70h] [ebp-7Ch] BYREF
     int j; // [esp-30h] [ebp-3Ch]
-    DObjAnimMat *baseMats; // [esp-2Ch] [ebp-38h]
-    int totalBones; // [esp-28h] [ebp-34h]
-    GfxModelSkinnedSurface *oldSkinnedSurf; // [esp-24h] [ebp-30h]
+    int v13; // [esp-2Ch] [ebp-38h]
+    int v14; // [esp-28h] [ebp-34h]
+    GfxModelSkinnedSurface *skinnedSurf; // [esp-24h] [ebp-30h]
     unsigned int i; // [esp-20h] [ebp-2Ch]
-    int boneIndex; // [esp-1Ch] [ebp-28h]
-    GfxModelSkinnedSurface *skinnedSurf; // [esp-18h] [ebp-24h]
-    const DObjAnimMat *skinCmd_mat; // [esp-14h] [ebp-20h]
-    GfxModelSkinnedSurface *skinnedSurf__; // [esp-10h] [ebp-1Ch]
+    int v17; // [esp-1Ch] [ebp-28h]
+    GfxModelSkinnedSurface *surfPos; // [esp-18h] [ebp-24h]
+    const DObjAnimMat *mat; // [esp-14h] [ebp-20h]
+    GfxModelSkinnedSurface *modelSurfs; // [esp-10h] [ebp-1Ch]
     SkinXModelCmd *skinCmd; // [esp-Ch] [ebp-18h]
-    char v22; // [esp-7h] [ebp-13h]
-    char sseStateUsed; // [esp-6h] [ebp-12h]
-    bool v24; // [esp-5h] [ebp-11h]
-    bool sseEnabled; // [esp-4h] [ebp-10h]
-    int v26; // [esp+0h] [ebp-Ch]
-    void *v27; // [esp+4h] [ebp-8h]
-    void *retaddr; // [esp+Ch] [ebp+0h]
+    bool fastSkin; // [esp-7h] [ebp-13h]
+    char v23; // [esp-6h] [ebp-12h]
+    bool useSSE_; // [esp-5h] [ebp-11h]
+    BOOL useSSE; // [esp-4h] [ebp-10h]
+    //int v26; // [esp+0h] [ebp-Ch]
+    //void *v27; // [esp+4h] [ebp-8h]
+    //int v28; // [esp+8h] [ebp-4h] BYREF
+    //void *retaddr; // [esp+Ch] [ebp+0h]
 
-    v26 = a1;
-    v27 = retaddr;
-    v2 = alloca(10480);
-    if ( Sys_QueryD3DDeviceOKEvent() )
+    //v26 = a1;
+    //v27 = retaddr;
+    //v2 = alloca(10480);
+    if (Sys_QueryD3DDeviceOKEvent())
     {
         //PIXBeginNamedEvent(-1, "R_SkinXModelCmd");
-        sseEnabled = sys_SSE->current.enabled && r_sse_skinning->current.enabled;
-        v24 = sseEnabled;
-        sseStateUsed = 0;
-        v22 = gfxBuf_fastSkin;
+        useSSE = sys_SSE->current.enabled && r_sse_skinning->current.enabled;
+        useSSE_ = useSSE;
+        v23 = 0;
+        fastSkin = gfxBuf.fastSkin;
         skinCmd = data;
-        skinnedSurf__ = (GfxModelSkinnedSurface *)data->modelSurfs;
-        skinCmd_mat = data->mat;
-        if ( !data
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model_skin.cpp", 4431, 0, "%s", "skinCmd") )
+        modelSurfs = (GfxModelSkinnedSurface *)data->modelSurfs;
+        mat = data->mat;
+
+        iassert(skinCmd);
+        iassert(skinCmd->surfCount);
+        
+        surfPos = modelSurfs;
+        v17 = -1;
+        for (i = 0; i < skinCmd->surfCount; ++i)
         {
-            __debugbreak();
-        }
-        if ( !skinCmd->surfCount
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model_skin.cpp",
-                        4432,
-                        0,
-                        "%s",
-                        "skinCmd->surfCount") )
-        {
-            __debugbreak();
-        }
-        skinnedSurf = skinnedSurf__;
-        boneIndex = -1;
-        for ( i = 0; i < skinCmd->surfCount; ++i )
-        {
-            oldSkinnedSurf = skinnedSurf;
-            if ( skinnedSurf->skinnedCachedOffset == -3 )
+            skinnedSurf = surfPos;
+            if (surfPos->skinnedCachedOffset == -3)
             {
-                skinnedSurf = (GfxModelSkinnedSurface *)((char *)skinnedSurf + 4);
+                surfPos = (GfxModelSkinnedSurface *)((char *)surfPos + 4);
             }
             else
             {
-                if ( boneIndex != oldSkinnedSurf->info.boneIndex )
+                if (v17 != skinnedSurf->info.boneIndex)
                 {
-                    boneIndex = oldSkinnedSurf->info.boneIndex;
-                    totalBones = boneIndex + oldSkinnedSurf->info.boneCount;
-                    baseMats = (DObjAnimMat *)&oldSkinnedSurf->info.baseMat[-boneIndex];
-                    for ( j = boneIndex; j < totalBones; ++j )
+                    v17 = skinnedSurf->info.boneIndex;
+                    v14 = v17 + skinnedSurf->info.boneCount;
+                    v13 = (int)&skinnedSurf->info.baseMat[-v17];
+                    for (j = v17; j < v14; ++j)
                     {
-                        if ( (skinCmd->surfacePartBits[j >> 5] & (0x80000000 >> (j & 0x1F))) != 0 )
+                        if ((skinCmd->surfacePartBits[j >> 5] & (0x80000000 >> (j & 0x1F))) != 0)
                         {
-                            if ( sseStateUsed )
+                            if (v23)
                             {
-                                sseStateUsed = 0;
+                                v23 = 0;
                                 _m_empty();
                             }
-                            ConvertQuatToInverseSkelMat(&baseMats[j], &mat0);
-                            ConvertQuatToSkelMat(&skinCmd_mat[j], &mat1);
+                            ConvertQuatToInverseSkelMat((const DObjAnimMat *)(v13 + 32 * j), &v11);
+                            ConvertQuatToSkelMat(&mat[j], &v10);
                             viewoffset = skinCmd->viewoffset;
-                            mat1.origin[0] = mat1.origin[0] - skinCmd->viewoffset[0];
-                            mat1.origin[1] = mat1.origin[1] - skinCmd->viewoffset[1];
-                            mat1.origin[2] = mat1.origin[2] - skinCmd->viewoffset[2];
-                            R_MultiplySkelMat(&mat0, &mat1, &boneSkelMats[j]);
+                            v10.origin[0] = v10.origin[0] - skinCmd->viewoffset[0];
+                            v10.origin[1] = v10.origin[1] - skinCmd->viewoffset[1];
+                            v10.origin[2] = v10.origin[2] - skinCmd->viewoffset[2];
+                            R_MultiplySkelMat(&v11, &v10, &boneSkelMats[j]);
                             boneSkelMats[j].axis[0][3] = 0.0f;
                             boneSkelMats[j].axis[1][3] = 0.0f;
                             boneSkelMats[j].axis[2][3] = 0.0f;
@@ -1240,105 +1248,58 @@ void    R_SkinXModelCmd(int a1@<ebp>, SkinXModelCmd *data)
                         }
                     }
                 }
-                if ( oldSkinnedSurf->skinnedCachedOffset == -2 )
+                if (skinnedSurf->skinnedCachedOffset == -2)
                 {
-                    skinnedSurf = (GfxModelSkinnedSurface *)((char *)skinnedSurf + 56);
+                    surfPos = (GfxModelSkinnedSurface *)((char *)surfPos + 56);
                 }
                 else
                 {
-                    skinnedSurf = oldSkinnedSurf + 1;
-                    if ( !oldSkinnedSurf->xsurf
-                        && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model_skin.cpp",
-                                    4530,
-                                    0,
-                                    "%s",
-                                    "skinnedSurf->xsurf") )
+                    surfPos = skinnedSurf + 1;
+                    iassert(skinnedSurf->xsurf);
+                    v7 = skinnedSurf->xsurf;
+                    if (skinnedSurf->skinnedCachedOffset < 0)
                     {
-                        __debugbreak();
-                    }
-                    xsurfs = oldSkinnedSurf->xsurf;
-                    if ( oldSkinnedSurf->skinnedCachedOffset < 0 )
-                    {
-                        if ( (oldSkinnedSurf->oldSkinnedCachedOffset & 0xF) != 0
-                            && !Assert_MyHandler(
-                                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model_skin.cpp",
-                                        4556,
-                                        0,
-                                        "%s\n\t(reinterpret_cast< uint >( skinnedSurf->skinnedVert )) = %i",
-                                        "((reinterpret_cast< uint >( skinnedSurf->skinnedVert ) & 15) == 0)",
-                                        oldSkinnedSurf->oldSkinnedCachedOffset) )
-                        {
-                            __debugbreak();
-                        }
-                        skinnedVert = oldSkinnedSurf->skinnedVert;
+                        iassert(((reinterpret_cast<uint>(skinnedSurf->skinnedVert) & 15) == 0));
+                        skinVerticesOut = skinnedSurf->skinnedVert;
                     }
                     else
                     {
-                        if ( !gfxBuf.skinnedCacheLockAddr
-                            && !Assert_MyHandler(
-                                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model_skin.cpp",
-                                        4547,
-                                        0,
-                                        "%s",
-                                        "gfxBuf.skinnedCacheLockAddr") )
-                        {
-                            __debugbreak();
-                        }
-                        if ( ((int)gfxBuf.skinnedCacheLockAddr & 0xF) != 0
-                            && !Assert_MyHandler(
-                                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model_skin.cpp",
-                                        4548,
-                                        0,
-                                        "%s\n\t(reinterpret_cast< uint >( gfxBuf.skinnedCacheLockAddr )) = %i",
-                                        "((reinterpret_cast< uint >( gfxBuf.skinnedCacheLockAddr ) & 15) == 0)",
-                                        gfxBuf.skinnedCacheLockAddr) )
-                        {
-                            __debugbreak();
-                        }
-                        if ( (oldSkinnedSurf->skinnedCachedOffset & 0xF) != 0
-                            && !Assert_MyHandler(
-                                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model_skin.cpp",
-                                        4549,
-                                        0,
-                                        "%s\n\t(skinnedSurf->skinnedCachedOffset) = %i",
-                                        "((skinnedSurf->skinnedCachedOffset & 15) == 0)",
-                                        oldSkinnedSurf->skinnedCachedOffset) )
-                        {
-                            __debugbreak();
-                        }
-                        skinnedVert = (GfxPackedVertex *)&gfxBuf.skinnedCacheLockAddr[oldSkinnedSurf->skinnedCachedOffset];
+                        iassert(gfxBuf.skinnedCacheLockAddr);
+                        iassert((reinterpret_cast<uint>(gfxBuf.skinnedCacheLockAddr) & 15) == 0);
+                        iassert((skinnedSurf->skinnedCachedOffset & 15) == 0);
+
+                        skinVerticesOut = (GfxPackedVertex *)&gfxBuf.skinnedCacheLockAddr[skinnedSurf->skinnedCachedOffset];
                     }
-                    if ( v24 )
+                    if (useSSE_)
                     {
-                        if ( !sseStateUsed )
+                        if (!v23)
                         {
-                            sseStateUsed = 1;
+                            v23 = 1;
                             _m_empty();
                         }
                         v5 = 0;
                         v4 = 0;
-                        if ( v22 )
+                        if (fastSkin)
                         {
-                            if ( oldSkinnedSurf->skinnedCachedOffset >= 0 )
-                                v4 = (GfxPackedVertexNormal *)(dword_B472520 + 8 * (oldSkinnedSurf->skinnedCachedOffset >> 5));
-                            v3 = oldSkinnedSurf->skinnedVert;
-                            if ( (int)v3 >= 0 )
-                                v5 = (GfxPackedVertexNormal *)(dword_B472524 + 8 * ((int)v3 >> 5));
+                            if (skinnedSurf->skinnedCachedOffset >= 0)
+                                v4 = &gfxBuf.skinnedCacheNormalsAddr[skinnedSurf->skinnedCachedOffset >> 5];
+                            v3 = skinnedSurf->oldSkinnedCachedOffset;
+                            if (v3 >= 0)
+                                v5 = &gfxBuf.oldSkinnedCacheNormalsAddr[v3 >> 5];
                         }
-                        R_SkinXSurfaceSkinnedSse(xsurfs, &boneSkelMats[boneIndex], v5, v4, skinnedVert);
+                        R_SkinXSurfaceSkinnedSse(v7, &boneSkelMats[v17], v5, v4, skinVerticesOut);
                     }
                     else
                     {
-                        R_SkinXSurfaceSkinned(xsurfs, &boneSkelMats[boneIndex], skinnedVert);
+                        R_SkinXSurfaceSkinned(v7, &boneSkelMats[v17], skinVerticesOut);
                     }
                 }
             }
         }
-        if ( sseStateUsed )
+        if (v23)
             _m_empty();
-        //if ( g_DXDeviceThread == GetCurrentThreadId() )
-            //D3DPERF_EndEvent();
+        //if (g_DXDeviceThread == GetCurrentThreadId())
+        //    D3DPERF_EndEvent();
     }
 }
 
@@ -1376,6 +1337,7 @@ void __cdecl R_MultiplySkelMat(const DObjSkelMat *mat0, const DObjSkelMat *mat1,
                                  + mat1->origin[2];
 }
 
+#ifdef KISAK_SSE_SKINNING
 __m128 * _mm_cvtpu8_ps@<eax>(int a1@<ebp>)
 {
     __m64 aa; // [esp+0h] [ebp-10h] BYREF
@@ -1386,4 +1348,5 @@ __m128 * _mm_cvtpu8_ps@<eax>(int a1@<ebp>)
     v4 = retaddr;
     return _mm_cvtpu16_ps((int)&aa.m64_i32[1]);
 }
+#endif
 

@@ -52,6 +52,8 @@ void __cdecl R_SkinXSurfaceRigid(
 void    R_SkinXModelCmd(struct SkinXModelCmd *data);
 void __cdecl R_MultiplySkelMat(const DObjSkelMat *mat0, const DObjSkelMat *mat1, DObjSkelMat *out);
 
+
+
 void __cdecl R_SkinXSurfaceSkinnedSse(
                 const XSurface *xsurf,
                 const DObjSkelMat *boneMatrix,

@@ -4,6 +4,10 @@
 #include "r_staticmodelcache.h"
 #include "r_debug.h"
 #include "r_dpvs.h"
+#include <universal/com_workercmds.h>
+#include "r_warn.h"
+#include <universal/com_memory.h>
+#include "r_image_load_common.h"
 
 struct $ACD36BF6C142509D89D5FAE1478EBC2D // sizeof=0x64
 {                                       // XREF: .data:modelLightGlob/r
@@ -240,7 +244,7 @@ unsigned int __cdecl R_AllocModelLighting(
                 GfxLightingInfo *lightingInfoOut)
 {
     unsigned int v7; // ecx
-    int v10; // eax
+    DWORD v10; // eax
     unsigned int v11; // ecx
     unsigned int v12; // edx
     GfxLightingInfo *lightingInfo; // esi
@@ -324,12 +328,8 @@ unsigned int __cdecl R_AllocModelLighting(
         pixelFreeRover = modelLightGlob.pixelFreeRover;
         while ( 1 )
         {
-            if ( !_BitScanReverse(
-                            (unsigned int *)&v10,
-                            modelLightGlob.prevPrevPixelFreeBits[pixelFreeRover]
-                        & modelLightGlob.prevPixelFreeBits[pixelFreeRover]
-                        & modelLightGlob.currPixelFreeBits[pixelFreeRover]) )
-                v10 = `CountLeadingZeros'::`2'::notFound;
+            if (!_BitScanReverse(&v10, modelLightGlob.prevPrevPixelFreeBits[pixelFreeRover] & modelLightGlob.prevPixelFreeBits[pixelFreeRover] & modelLightGlob.currPixelFreeBits[pixelFreeRover]))
+                v10 = 63;// `CountLeadingZeros'::`2': : notFound;
             usedCount = v10 ^ 0x1F;
             if ( (v10 ^ 0x1Fu) < 0x20 )
                 break;
@@ -376,7 +376,7 @@ unsigned int __cdecl R_AllocModelLighting(
         cmd.lightingOrigin[1] = lightingOrigin[1];
         cmd.lightingOrigin[2] = lightingOrigin[2];
         cmd.nonSunPrimaryLightIndex = nonSunPrimaryLightIndex;
-        cmd.extrapolateBehavior = GFX_MODELLIGHT_SHOW_MISSING;
+        cmd.extrapolateBehavior = (GfxModelLightExtrapolation)GFX_MODELLIGHT_SHOW_MISSING;
         cmd.useHeroLighting = useHeroLighting;
         cmd.primaryLightIndex1 = &lightingInfoOut->primaryLightIndex;
         cmd.primaryLightIndex2 = &modelLightGlob.lightingInfo[usedIndex].primaryLightIndex;
@@ -585,7 +585,7 @@ void __cdecl R_BeginAllStaticModelLighting()
 
 void __cdecl R_SetAllStaticModelLighting()
 {
-    int v1; // eax
+    DWORD v1; // eax
     unsigned int wordCount; // [esp+14h] [ebp-1Ch]
     unsigned int bits; // [esp+18h] [ebp-18h]
     unsigned int indexLow; // [esp+20h] [ebp-10h]
@@ -594,8 +594,8 @@ void __cdecl R_SetAllStaticModelLighting()
     //PIXBeginNamedEvent(-1, "R_SetAllStaticModelLighting");
     if ( !smodelLightGlob.local.anyNewLighting )
     {
-        if ( g_DXDeviceThread != GetCurrentThreadId() )
-            return;
+        //if ( g_DXDeviceThread != GetCurrentThreadId() )
+        //    return;
         goto LABEL_20;
     }
     smodelLightGlob.local.anyNewLighting = 0;
@@ -617,8 +617,11 @@ void __cdecl R_SetAllStaticModelLighting()
         {
             while ( 1 )
             {
-                if ( !_BitScanReverse((unsigned int *)&v1, bits) )
-                    v1 = `CountLeadingZeros'::`2'::notFound;
+                //if ( !_BitScanReverse((unsigned int *)&v1, bits) )
+                //    v1 = `CountLeadingZeros'::`2'::notFound;
+                //indexLow = v1 ^ 0x1F;
+                if (!_BitScanReverse(&v1, bits))
+                    v1 = 63;// `CountLeadingZeros'::`2': : notFound;
                 indexLow = v1 ^ 0x1F;
                 if ( (v1 ^ 0x1Fu) >= 0x20 )
                     break;
@@ -674,7 +677,7 @@ void __cdecl R_SetStaticModelLighting(unsigned int smodelIndex)
             entryIndex,
             smodelInst->lightingOrigin,
             primaryLight,
-            GFX_MODELLIGHT_EXTRAPOLATE,
+            (GfxModelLightExtrapolation)GFX_MODELLIGHT_EXTRAPOLATE,
             0,
             &smodelDrawInst->primaryLightIndex,
             0);
@@ -752,6 +755,7 @@ bool __cdecl R_StaticModelHasLighting(unsigned int smodelIndex)
     return rgp.world->dpvs.smodelDrawInsts[smodelIndex].lightingHandle != 0;
 }
 
+int s_modelLightingSampleDelta[64];
 void __cdecl RB_PatchModelLighting(const GfxModelLightingPatch *patchList, unsigned int patchCount)
 {
     unsigned __int8 *pixels; // [esp+Ch] [ebp-14h]
@@ -761,22 +765,14 @@ void __cdecl RB_PatchModelLighting(const GfxModelLightingPatch *patchList, unsig
 
     if ( patchCount )
     {
-        if ( modelLightGlob.lockedBox.pBits
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_model_lighting.cpp",
-                        1052,
-                        0,
-                        "%s",
-                        "modelLightGlob.lockedBox.pBits == NULL") )
-        {
-            __debugbreak();
-        }
-        ((void (__stdcall *)(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int))modelLightGlob.image->texture.basemap->__vftable[1].Release)(
-            (GfxTexture)modelLightGlob.image->texture.basemap,
-            0,
-            &modelLightGlob.lockedBox,
-            0,
-            0);
+        iassert(modelLightGlob.lockedBox.pBits == NULL);
+        //((void (__stdcall *)(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int))modelLightGlob.image->texture.basemap->__vftable[1].Release)(
+        //    (GfxTexture)modelLightGlob.image->texture.basemap,
+        //    0,
+        //    &modelLightGlob.lockedBox,
+        //    0,
+        //    0);
+        modelLightGlob.image->texture.volmap->LockBox(0, &modelLightGlob.lockedBox, 0, 0);
         R_SetModelLightingSampleDeltas();
         R_SetLightGridSampleDeltas(modelLightGlob.lockedBox.RowPitch, modelLightGlob.lockedBox.SlicePitch);
         for ( patchIter = 0; patchIter < patchCount; ++patchIter )
@@ -805,7 +801,8 @@ void __cdecl RB_PatchModelLighting(const GfxModelLightingPatch *patchList, unsig
         {
             __debugbreak();
         }
-        modelLightGlob.image->texture.basemap->__vftable[1].GetDevice(modelLightGlob.image->texture.basemap, 0);
+        //modelLightGlob.image->texture.basemap->__vftable[1].GetDevice(modelLightGlob.image->texture.basemap, 0);
+        modelLightGlob.image->texture.volmap->UnlockBox(0);
         modelLightGlob.lockedBox.pBits = 0;
     }
 }
@@ -837,9 +834,9 @@ void __cdecl R_SetModelLightingLookupScale(GfxCmdBufInput *input)
 {
     float lookupScale[4]; // [esp+4h] [ebp-10h] BYREF
 
-    lookupScale[0] = FLOAT_0_005859375;
+    lookupScale[0] = 0.005859375f;
     lookupScale[1] = 1.5 * modelLightGlob.invImageHeight;
-    lookupScale[2] = FLOAT_0_375;
+    lookupScale[2] = 0.375f;
     lookupScale[3] = 0.0f;
     R_SetInputCodeConstantFromVec4(input, 0x35u, lookupScale);
 }
@@ -866,14 +863,17 @@ void __cdecl R_SetupCachedStaticModelLighting(GfxCmdBufSourceState *source)
 
 void __cdecl R_InitModelLightingGlobals()
 {
-    int v1; // eax
+    DWORD v1; // eax
     unsigned int totalBitsNeeded; // [esp+Ch] [ebp-8h]
     unsigned int i; // [esp+10h] [ebp-4h]
 
     modelLightGlob.xmodelEntryLimit = gfxCfg.maxClientViews << 10;
-    if ( !_BitScanReverse((unsigned int *)&v1, gfxCfg.maxClientViews << 10) )
-        v1 = `CountLeadingZeros'::`2'::notFound;
-    totalBitsNeeded = 32 - (v1 ^ 0x1F);
+    //if ( !_BitScanReverse((unsigned int *)&v1, gfxCfg.maxClientViews << 10) )
+    //    v1 = `CountLeadingZeros'::`2'::notFound;
+    //totalBitsNeeded = 32 - (v1 ^ 0x1F);
+    if (!_BitScanReverse(&v1, gfxCfg.maxClientViews << 10))
+        v1 = 63;// `CountLeadingZeros'::`2': : notFound;
+    totalBitsNeeded = 32 - (v1 ^ 31);
     for ( smodelLightGlob.local.entryLimit = (1 << (32 - (v1 ^ 0x1F))) - modelLightGlob.xmodelEntryLimit;
                 smodelLightGlob.local.entryLimit < 0x800;
                 smodelLightGlob.local.entryLimit += 1 << totalBitsNeeded++ )

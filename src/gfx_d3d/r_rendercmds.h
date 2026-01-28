@@ -833,6 +833,30 @@ struct GfxQuadVertex // sizeof=0x14
     GfxColor color;
 };
 
+struct GfxCmdSetScissor // sizeof=0x18
+{
+    GfxCmdHeader header;
+    int enabled;
+    GfxViewport scissor;
+};
+
+struct GfxCmdClearScreen // sizeof=0x1C
+{
+    GfxCmdHeader header;
+    unsigned __int8 whichToClear;
+    unsigned __int8 stencil;
+    // padding byte
+    // padding byte
+    float depth;
+    float color[4];
+};
+
+struct GfxCmdProjectionSet // sizeof=0x8
+{
+    GfxCmdHeader header;
+    GfxProjectionTypes projection;
+};
+
 void __cdecl R_InitRenderCommands();
 void __cdecl R_ShutdownRenderCommands();
 void __cdecl R_RecreateGlassRenderBuffers();
@@ -855,8 +879,8 @@ void __cdecl R_InitRenderThread();
 void __cdecl R_SyncRenderThread();
 GfxCmdArray *R_ClearCmdList();
 void __cdecl R_IssueRenderCommands(unsigned int type);
-unsigned intR_PerformanceCounters();
-__int64 R_UpdateSkinCacheUsage();
+void R_PerformanceCounters();
+void R_UpdateSkinCacheUsage();
 char __cdecl R_HandOffToBackend(char type);
 void __cdecl R_ToggleSmpFrameCmd(char type);
 void __cdecl R_AbortRenderCommands();
@@ -866,7 +890,7 @@ void __cdecl R_BeginSharedCmdList();
 void __cdecl R_BeginCompositingCmdList();
 void __cdecl R_AddCmdEndOfList();
 GfxCmdHeader *__cdecl R_GetCommandBuffer(GfxRenderCommand renderCmd, int bytes);
-unsigned intR_ToggleSmpFrame();
+void R_ToggleSmpFrame();
 void R_FreeTempSkinBuffer();
 unsigned int __cdecl R_GetFrameCount();
 GfxViewParms *__cdecl R_AllocViewParms();

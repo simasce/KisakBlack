@@ -900,6 +900,7 @@ void __cdecl RB_BloomStreak(const GfxViewInfo *viewInfo, unsigned __int8 *srcRt,
   }
 }
 
+#if 0
 void __cdecl RB_SetBlurConstants(float radius, float textureScaler)
 {
   double v2; // xmm0_8
@@ -945,6 +946,7 @@ void __cdecl RB_SetBlurConstants(float radius, float textureScaler)
     t = (float)(*(float *)&v2 + *(float *)&v2) + t;
     x = x + 1.0;
   }
+
   for ( j = 0; j < 12; ++j )
     blurWeights[j] = blurWeights[j] / t;
   if ( (float)(blurWeights[0] + blurWeights[1]) == 0.0 )
@@ -1002,6 +1004,100 @@ void __cdecl RB_SetBlurConstants(float radius, float textureScaler)
   gfxCmdBufSourceState.input.consts[124][2] = 0.0f;
   gfxCmdBufSourceState.input.consts[124][3] = 0.0f;
   R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x7Cu);
+}
+#endif
+
+// aislop
+void RB_SetBlurConstants(float radius, float textureScaler)
+{
+    float sigma;
+    float x;
+    float t = 0.0f;
+    float blurWeights[12];
+    int i;
+
+    // Clamp radius into [1, 3]
+    if (radius > 3.0f)
+        sigma = 3.0f;
+    else if (radius < 1.0f)
+        sigma = 1.0f;
+    else
+        sigma = radius;
+
+    // Generate Gaussian weights
+    x = 0.5f;
+    for (i = 0; i < 12; ++i)
+    {
+        float exponent = -(x * x) / (2.0f * sigma * sigma);
+        float w = expf(exponent);
+
+        blurWeights[i] = w;
+        t += 2.0f * w;
+        x += 1.0f;
+    }
+
+    // Normalize
+    for (i = 0; i < 12; ++i)
+        blurWeights[i] /= t;
+
+    // Compute bilinear tap offsets
+    float tap01 = (blurWeights[0] + blurWeights[1]) != 0.0f
+        ? (blurWeights[1] / (blurWeights[0] + blurWeights[1])) + 0.0f
+        : 0.0f;
+
+    float tap23 = (blurWeights[2] + blurWeights[3]) != 0.0f
+        ? (blurWeights[3] / (blurWeights[2] + blurWeights[3])) + 2.0f
+        : 0.0f;
+
+    float tap45 = (blurWeights[4] + blurWeights[5]) != 0.0f
+        ? (blurWeights[5] / (blurWeights[4] + blurWeights[5])) + 4.0f
+        : 0.0f;
+
+    float tap67 = (blurWeights[6] + blurWeights[7]) != 0.0f
+        ? (blurWeights[7] / (blurWeights[6] + blurWeights[7])) + 6.0f
+        : 0.0f;
+
+    float tap89 = (blurWeights[8] + blurWeights[9]) != 0.0f
+        ? (blurWeights[9] / (blurWeights[8] + blurWeights[9])) + 8.0f
+        : 0.0f;
+
+    float tapAB = (blurWeights[10] + blurWeights[11]) != 0.0f
+        ? (blurWeights[11] / (blurWeights[10] + blurWeights[11])) + 10.0f
+        : 0.0f;
+
+    // Apply texture scaling
+    tap01 *= textureScaler;
+    tap23 *= textureScaler;
+    tap45 *= textureScaler;
+    tap67 *= textureScaler;
+    tap89 *= textureScaler;
+    tapAB *= textureScaler;
+
+    // Upload tap offsets
+    gfxCmdBufSourceState.input.consts[121][0] = tap01;
+    gfxCmdBufSourceState.input.consts[121][1] = tap23;
+    gfxCmdBufSourceState.input.consts[121][2] = tap45;
+    gfxCmdBufSourceState.input.consts[121][3] = 0.0f;
+    R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x79);
+
+    gfxCmdBufSourceState.input.consts[122][0] = tap67;
+    gfxCmdBufSourceState.input.consts[122][1] = tap89;
+    gfxCmdBufSourceState.input.consts[122][2] = tapAB;
+    gfxCmdBufSourceState.input.consts[122][3] = 0.0f;
+    R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x7A);
+
+    // Upload combined weights
+    gfxCmdBufSourceState.input.consts[123][0] = blurWeights[0] + blurWeights[1];
+    gfxCmdBufSourceState.input.consts[123][1] = blurWeights[2] + blurWeights[3];
+    gfxCmdBufSourceState.input.consts[123][2] = blurWeights[4] + blurWeights[5];
+    gfxCmdBufSourceState.input.consts[123][3] = blurWeights[6] + blurWeights[7];
+    R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x7B);
+
+    gfxCmdBufSourceState.input.consts[124][0] = blurWeights[8] + blurWeights[9];
+    gfxCmdBufSourceState.input.consts[124][1] = blurWeights[10] + blurWeights[11];
+    gfxCmdBufSourceState.input.consts[124][2] = 0.0f;
+    gfxCmdBufSourceState.input.consts[124][3] = 0.0f;
+    R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x7C);
 }
 
 void __cdecl RB_SetFilmCurveConstants(const GfxViewInfo *viewInfo)
@@ -1337,7 +1433,7 @@ void __cdecl RB_BloomLDR(const GfxViewInfo *viewInfo)
     unsigned __int8 dstRt; // [esp+62h] [ebp-2h] BYREF
     unsigned __int8 tmp; // [esp+63h] [ebp-1h]
 
-    //PIXBeginNamedEvent(-1, "LDR Bloom");
+    ////PIXBeginNamedEvent(-1, "LDR Bloom");
     R_SetRenderTargetSize(&gfxCmdBufSourceState, 0x19u);
     R_SetRenderTarget(gfxCmdBufContext, 0x19u);
     R_ClearRenderTargetForMultiGpu(gfxCmdBufContext, 0x19u);
@@ -1445,6 +1541,7 @@ bool __cdecl RB_UsingColorManipulation(const GfxViewInfo *viewInfo)
     return viewInfo->film.filmLut >= 1.0 || viewInfo->film.enabled;
 }
 
+#if 0
 void __cdecl RB_PoisonFX(const GfxViewInfo *viewInfo)
 {
   double v1; // xmm0_8
@@ -1555,6 +1652,121 @@ void __cdecl RB_PoisonFX(const GfxViewInfo *viewInfo)
     (-(dvision0b)) + 0.5,
     (-(v18)) + 0.5);
   RB_Filter(rgp.poisonFXMaterial, viewInfo);
+}
+#endif
+
+#include <math.h>
+#include "r_singlethreaded_device_pc.h"
+#include "rb_logfile.h"
+#include "rb_shade.h"
+#include "r_state_utils.h"
+#include "rb_imagefilter.h"
+
+void RB_PoisonFX(const GfxViewInfo *viewInfo)
+{
+    float pulse, pulseSmooth;
+    float warpX0, warpY0;
+    float warpX1, warpY1;
+    float finalWarpX, finalWarpY;
+    float dvisionX, dvisionY;
+    float dvisionPhase0, dvisionPhase1;
+    float time;
+
+    R_SetRenderTargetSize(&gfxCmdBufSourceState, 3);
+    R_SetRenderTarget(gfxCmdBufContext, 3);
+
+    /* smooth pulse (clamped cubic) */
+    pulse = r_poisonFX_pulse->current.value - 1.0f;
+    if (pulse < 0.0f)
+        pulse = 0.0f;
+
+    pulseSmooth = pulse * pulse * (3.0f - 2.0f * pulse);
+
+    /* primary warp */
+    time = viewInfo->sceneDef.floatTime;
+
+    warpX0 =
+        r_poisonFX_warpX->current.value *
+        sinf((time / 10.0f) * (2.0f * (float)M_PI));
+
+    warpY0 =
+        r_poisonFX_warpY->current.value *
+        sinf((time / 8.45f) * (2.0f * (float)M_PI) + (float)M_PI_2);
+
+    /* secondary warp */
+    warpX1 =
+        r_poisonFX_warpX->current.value *
+        sinf((time / 5.0f) * (2.0f * (float)M_PI));
+
+    warpY1 =
+        r_poisonFX_warpY->current.value *
+        sinf((time / 4.225f) * (2.0f * (float)M_PI) + (float)M_PI_2);
+
+    /* blend warps by pulse */
+    finalWarpX =
+        ((1.0f - pulseSmooth) * warpX0 + pulseSmooth * warpX1) *
+        viewInfo->poisonFx.curAmount;
+
+    finalWarpY =
+        ((1.0f - pulseSmooth) * warpY0 + pulseSmooth * warpY1) *
+        viewInfo->poisonFx.curAmount;
+
+    /* upload warp constants */
+    R_UpdateCodeConstant(
+        &gfxCmdBufSourceState,
+        0x79,
+        finalWarpX,
+        finalWarpY,
+        (1.0f / (1.0f - finalWarpX)) * 0.5f,
+        (1.0f / (1.0f - finalWarpY)) * 0.5f);
+
+    /* double vision base direction */
+    dvisionPhase0 = r_poisonFX_dvisionA->current.value * (float)(M_PI / 180.0);
+
+    dvisionX =
+        cosf(dvisionPhase0) *
+        r_poisonFX_dvisionX->current.value;
+
+    dvisionY =
+        sinf(dvisionPhase0) *
+        r_poisonFX_dvisionY->current.value;
+
+    /* oscillating distortion phases */
+    time = viewInfo->sceneDef.floatTime;
+
+    if (((int)(time / 4.0f)) & 1)
+        dvisionPhase0 = 0.0f;
+    else
+        dvisionPhase0 = sinf(time * (float)M_PI) * 3.25f;
+
+    if (((int)(time / 2.0f)) & 1)
+        dvisionPhase1 = 0.0f;
+    else
+        dvisionPhase1 = sinf(time * (float)M_PI) * 3.75f;
+
+    /* final double vision offset */
+    dvisionX =
+        ((cosf((time / 12.0f) * (2.0f * (float)M_PI)) * 1.25f) +
+            ((1.0f - pulseSmooth) * dvisionPhase0 + pulseSmooth * dvisionPhase1) +
+            dvisionX)
+        / viewInfo->fullSceneViewMesh->width
+        * viewInfo->poisonFx.curAmount;
+
+    dvisionY =
+        (dvisionY / viewInfo->fullSceneViewMesh->height) *
+        viewInfo->poisonFx.curAmount;
+
+    /* upload double vision constants */
+    R_UpdateCodeConstant(
+        &gfxCmdBufSourceState,
+        0x7A,
+        dvisionX + 0.5f,
+        dvisionY + 0.5f,
+        -dvisionX + 0.5f,
+        -dvisionY + 0.5f);
+
+    /* final pass */
+    RB_Filter(rgp.poisonFXMaterial, viewInfo);
 }
 
 // local variable allocation has failed, the output may be wrong!
@@ -1674,16 +1886,16 @@ void    RB_GenericFilterFX(const GfxViewInfo *viewInfo)
   char v113; // [esp+203h] [ebp-61h]
   int i; // [esp+204h] [ebp-60h] OVERLAPPED
   _BYTE iPass[76]; // [esp+208h] [ebp-5Ch] OVERLAPPED BYREF
-  GfxGenericFilter *p_genericFilter; // [esp+254h] [ebp-10h]
-  const GfxMatrix *ProjMatrix; // [esp+258h] [ebp-Ch]
-  const GfxMatrix *ViewMatrix; // [esp+25Ch] [ebp-8h]
-  const GfxMatrix *retaddr; // [esp+264h] [ebp+0h]
+  const GfxGenericFilter *p_genericFilter; // [esp+254h] [ebp-10h]
+  //const GfxMatrix *ProjMatrix; // [esp+258h] [ebp-Ch]
+  //const GfxMatrix *ViewMatrix; // [esp+25Ch] [ebp-8h]
+  //const GfxMatrix *retaddr; // [esp+264h] [ebp+0h]
 
-  ProjMatrix = a1;
-  ViewMatrix = retaddr;
+  //ProjMatrix = a1;
+  //ViewMatrix = retaddr;
   p_genericFilter = &viewInfo->genericFilter;
-  *(unsigned int *)&iPass[72] = viewInfo;
-  *(unsigned int *)&iPass[68] = &viewInfo->cullViewInfo.viewParms.projectionMatrix;
+  *(unsigned int *)&iPass[72] = (unsigned int)viewInfo;
+  *(unsigned int *)&iPass[68] = (unsigned int)&viewInfo->cullViewInfo.viewParms.projectionMatrix;
   MatrixMultiply44(
     viewInfo->cullViewInfo.viewParms.viewMatrix.m,
     viewInfo->cullViewInfo.viewParms.projectionMatrix.m,
@@ -1761,19 +1973,19 @@ LABEL_18:
             {
               R_SetRenderTargetSize(&gfxCmdBufSourceState, 0xCu);
               R_SetRenderTarget(gfxCmdBufContext, 0xCu);
-              R_Resolve(gfxCmdBufContext, stru_B50E920.image);
+              R_Resolve(gfxCmdBufContext, gfxRenderTargets[12].image);
             }
             if ( v108 == 13 || HIBYTE(semaphore) == 13 )
             {
               R_SetRenderTargetSize(&gfxCmdBufSourceState, 0xDu);
               R_SetRenderTarget(gfxCmdBufContext, 0xDu);
-              R_Resolve(gfxCmdBufContext, stru_B50E934.image);
+              R_Resolve(gfxCmdBufContext, gfxRenderTargets[13].image);
             }
             if ( v108 == 3 || HIBYTE(semaphore) == 3 )
             {
               R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
               R_SetRenderTarget(gfxCmdBufContext, 3u);
-              Surface = Image_GetSurface(stru_B50E8A8.image);
+              Surface = Image_GetSurface(gfxRenderTargets[6].image);
               if ( !Surface
                 && !Assert_MyHandler(
                       "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\rb_postfx.cpp",
@@ -1791,7 +2003,6 @@ LABEL_18:
                   "tId].surface.color, 0, imageSurface, 0, D3DTEXF_LINEAR )\n");
               v102 = R_AcquireDXDeviceOwnership(0);
               LODWORD(Param0to4[3]) = gfxCmdBufContext.state->prim.device->StretchRect(
-                                        gfxCmdBufContext.state->prim.device,
                                         gfxRenderTargets[gfxCmdBufContext.state->renderTargetId].surface.color,
                                         0,
                                         Surface,
@@ -1815,7 +2026,7 @@ LABEL_18:
               if ( r_logFile && r_logFile->current.integer )
                 RB_LogPrint("imageSurface->Release()\n");
               LODWORD(Param0to4[2]) = R_AcquireDXDeviceOwnership(0);
-              LODWORD(Param0to4[1]) = Surface->Release(Surface);
+              LODWORD(Param0to4[1]) = Surface->Release();
               if ( LODWORD(Param0to4[2]) )
                 R_ReleaseDXDeviceOwnership();
               if ( Param0to4[1] < 0.0 )
@@ -2042,13 +2253,16 @@ LABEL_18:
               R_DirtyCodeConstant(&gfxCmdBufSourceState, 0xB9u);
               v10 = p_genericFilter->passParam[i][j][12];
               v9 = p_genericFilter->passParam[i][j][13];
-              Intensity = (float)gfxRenderTargets[v110].width;
-              colorBlack[3] = (float)gfxRenderTargets[v110].height;
-              LODWORD(colorBlack[2]) = gfxCmdBufSourceState.input.consts[186];
+              //Intensity = (float)gfxRenderTargets[v110].width;
+              //colorBlack[3] = (float)gfxRenderTargets[v110].height;
+              //LODWORD(colorBlack[2]) = gfxCmdBufSourceState.input.consts[186];
               gfxCmdBufSourceState.input.consts[186][0] = v10;
-              *(float *)(LODWORD(colorBlack[2]) + 4) = v9;
-              *(float *)(LODWORD(colorBlack[2]) + 8) = Intensity;
-              *(float *)(LODWORD(colorBlack[2]) + 12) = colorBlack[3];
+              gfxCmdBufSourceState.input.consts[186][1] = v9;
+              gfxCmdBufSourceState.input.consts[186][2] = gfxRenderTargets[v110].width;
+              gfxCmdBufSourceState.input.consts[186][3] = gfxRenderTargets[v110].height;
+              //*(float *)(LODWORD(colorBlack[2]) + 4) = v9;
+              //*(float *)(LODWORD(colorBlack[2]) + 8) = Intensity;
+              //*(float *)(LODWORD(colorBlack[2]) + 12) = colorBlack[3];
               R_DirtyCodeConstant(&gfxCmdBufSourceState, 0xBAu);
               R_Set2D(&gfxCmdBufSourceState);
               if ( p_genericFilter->passQuads[i][j] <= 0 )
@@ -2061,8 +2275,8 @@ LABEL_18:
                 if ( !v112 )
                 {
                   v4 = 0.0f;
-                  v5 = *(unsigned int *)&FLOAT_0_0;
-                  v6 = *(unsigned int *)&FLOAT_0_0;
+                  v5 = 0;// *(unsigned int *)&FLOAT_0_0;
+                  v6 = 0;// *(unsigned int *)&FLOAT_0_0;
                   colorBlack[0] = 0.0f;
                   R_ClearScreen(gfxCmdBufContext.state->prim.device, 1u, &v4, 0.0, 0, 0);
                   v112 = 1;
@@ -2087,273 +2301,266 @@ LABEL_18:
     }
     if ( v113 )
     {
-      RB_SetBlurConstants(viewInfo->bloom.bloomBlurRadius, 1.0 / (float)stru_B50E934.width);
-      R_SetRenderTargetSize(&gfxCmdBufSourceState, 0xDu);
-      R_SetRenderTarget(gfxCmdBufContext, 0xDu);
-      R_ClearRenderTargetForMultiGpu(gfxCmdBufContext, 0xDu);
-      R_SetCodeImageTexture(&gfxCmdBufSourceState, 0x22u, stru_B50E920.image);
-      RB_Filter(rgp.bloomBlurX, viewInfo);
-      RB_SetBlurConstants(viewInfo->bloom.bloomBlurRadius, 1.0 / (float)stru_B50E920.height);
-      R_SetRenderTargetSize(&gfxCmdBufSourceState, 0xCu);
-      R_SetRenderTarget(gfxCmdBufContext, 0xCu);
-      R_ClearRenderTargetForMultiGpu(gfxCmdBufContext, 0xCu);
-      R_SetCodeImageTexture(&gfxCmdBufSourceState, 0x22u, stru_B50E934.image);
-      RB_Filter(rgp.bloomBlurY, viewInfo);
-      gfxCmdBufSourceState.input.codeImageRenderTargetControl[13].packed = ((unsigned int)&loc_800000 + 201326592)
-                                                                         | 0x62;
-      R_SetRenderTargetSize(&gfxCmdBufSourceState, viewInfo->sceneComposition.mainScene);
-      R_SetRenderTarget(gfxCmdBufContext, viewInfo->sceneComposition.mainScene);
-      R_Set2D(&gfxCmdBufSourceState);
-      RB_DrawFullSceneQuad(
-        rgp.superFlareApply,
-        viewInfo->sceneComposition.mainScene,
-        0.0,
-        0.0,
-        1.0,
-        1.0,
-        GFX_PRIM_STATS_CODE);
-      RB_EndTessSurface();
+        RB_SetBlurConstants(viewInfo->bloom.bloomBlurRadius, 1.0 / gfxRenderTargets[13].width);
+        R_SetRenderTargetSize(&gfxCmdBufSourceState, 0xDu);
+        R_SetRenderTarget(gfxCmdBufContext, 0xDu);
+        R_ClearRenderTargetForMultiGpu(gfxCmdBufContext, 0xDu);
+        R_SetCodeImageTexture(&gfxCmdBufSourceState, 0x22u, gfxRenderTargets[12].image);
+        RB_Filter(rgp.bloomBlurX, viewInfo);
+        RB_SetBlurConstants(viewInfo->bloom.bloomBlurRadius, 1.0 / gfxRenderTargets[12].height);
+        R_SetRenderTargetSize(&gfxCmdBufSourceState, 0xCu);
+        R_SetRenderTarget(gfxCmdBufContext, 0xCu);
+        R_ClearRenderTargetForMultiGpu(gfxCmdBufContext, 0xCu);
+        R_SetCodeImageTexture(&gfxCmdBufSourceState, 0x22u, gfxRenderTargets[13].image);
+        RB_Filter(rgp.bloomBlurY, viewInfo);
+        gfxCmdBufSourceState.input.codeImageRenderTargetControl[13].packed = 0xC800062;
+        R_SetRenderTargetSize(&gfxCmdBufSourceState, viewInfo->sceneComposition.mainScene);
+        R_SetRenderTarget(gfxCmdBufContext, viewInfo->sceneComposition.mainScene);
+        R_Set2D(&gfxCmdBufSourceState);
+        RB_DrawFullSceneQuad(
+            rgp.superFlareApply,
+            viewInfo->sceneComposition.mainScene,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            GFX_PRIM_STATS_CODE);
+        RB_EndTessSurface();
     }
   }
 }
 
 void __cdecl RB_FlameFX(const GfxViewInfo *viewInfo)
 {
-  float x; // [esp+10h] [ebp-34h]
-  float v2; // [esp+2Ch] [ebp-18h]
-  float fadeEffect; // [esp+3Ch] [ebp-8h]
-  const Material *flameFxMaterial; // [esp+40h] [ebp-4h]
+    float x; // [esp+10h] [ebp-34h]
+    float v2; // [esp+2Ch] [ebp-18h]
+    float fadeEffect; // [esp+3Ch] [ebp-8h]
+    const Material *flameFxMaterial; // [esp+40h] [ebp-4h]
 
-  R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, stru_B50E8A8.image);
-  R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
-  R_SetRenderTarget(gfxCmdBufContext, 3u);
-  flameFxMaterial = rgp.permapAssets.flameThrowerFXMaterial;
-  R_UpdateCodeConstant(
-    &gfxCmdBufSourceState,
-    0x58u,
-    (float)rgp.permapAssets.flameThrowerFXMaterial->info.textureAtlasColumnCount,
-    (float)rgp.permapAssets.flameThrowerFXMaterial->info.textureAtlasRowCount,
-    (float)(rgp.permapAssets.flameThrowerFXMaterial->info.textureAtlasColumnCount
-          * rgp.permapAssets.flameThrowerFXMaterial->info.textureAtlasRowCount),
-    viewInfo->flameFx.frameRate);
-  if ( viewInfo->flameFx.duration )
-  {
-    fadeEffect = 1.0
-               - (float)((float)(viewInfo->flameFx.duration
-                               - (viewInfo->flameFx.currentTime
-                                - viewInfo->flameFx.startMSec))
-                       / (float)viewInfo->flameFx.duration);
-    if ( (float)(fadeEffect - 1.0) < 0.0 )
-      v2 = 1.0
-         - (float)((float)(viewInfo->flameFx.duration - (viewInfo->flameFx.currentTime - viewInfo->flameFx.startMSec))
-                 / (float)viewInfo->flameFx.duration);
-    else
-      v2 = 1.0f;
-    if ( (float)(0.0 - fadeEffect) < 0.0 )
-      x = v2;
-    else
-      x = 0.0f;
-    R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, x, 0.0, 0.0, 0.0);
-  }
-  else
-  {
-    R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, 0.0, 0.0, 0.0, 0.0);
-  }
-  if ( viewInfo->flameFx.distortionScale[1] <= 0.0 )
+    R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, gfxRenderTargets[6].image);
+    R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
+    R_SetRenderTarget(gfxCmdBufContext, 3u);
+    flameFxMaterial = rgp.permapAssets.flameThrowerFXMaterial;
     R_UpdateCodeConstant(
-      &gfxCmdBufSourceState,
-      0x56u,
-      viewInfo->flameFx.distortionScale[0],
-      viewInfo->flameFx.distortionScale[1],
-      0.0,
-      viewInfo->flameFx.distortionMagnitude);
-  else
-    R_UpdateCodeConstant(
-      &gfxCmdBufSourceState,
-      0x56u,
-      viewInfo->flameFx.distortionScale[0],
-      viewInfo->flameFx.distortionScale[1],
-      1.0 / viewInfo->flameFx.distortionScale[1],
-      viewInfo->flameFx.distortionMagnitude);
-  RB_Filter(flameFxMaterial, viewInfo);
+        &gfxCmdBufSourceState,
+        0x58u,
+        rgp.permapAssets.flameThrowerFXMaterial->info.textureAtlasColumnCount,
+        rgp.permapAssets.flameThrowerFXMaterial->info.textureAtlasRowCount,
+        (rgp.permapAssets.flameThrowerFXMaterial->info.textureAtlasColumnCount
+            * rgp.permapAssets.flameThrowerFXMaterial->info.textureAtlasRowCount),
+        viewInfo->flameFx.frameRate);
+    if (viewInfo->flameFx.duration)
+    {
+        fadeEffect = 1.0
+            - ((viewInfo->flameFx.duration - (viewInfo->flameFx.currentTime - viewInfo->flameFx.startMSec))
+                / viewInfo->flameFx.duration);
+        if ((fadeEffect - 1.0) < 0.0)
+            v2 = 1.0
+            - ((viewInfo->flameFx.duration - (viewInfo->flameFx.currentTime - viewInfo->flameFx.startMSec))
+                / viewInfo->flameFx.duration);
+        else
+            v2 = 1.0f;
+        if ((0.0 - fadeEffect) < 0.0)
+            x = v2;
+        else
+            x = 0.0f;
+        R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, x, 0.0, 0.0, 0.0);
+    }
+    else
+    {
+        R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, 0.0, 0.0, 0.0, 0.0);
+    }
+    if (viewInfo->flameFx.distortionScale[1] <= 0.0)
+        R_UpdateCodeConstant(
+            &gfxCmdBufSourceState,
+            0x56u,
+            viewInfo->flameFx.distortionScale[0],
+            viewInfo->flameFx.distortionScale[1],
+            0.0,
+            viewInfo->flameFx.distortionMagnitude);
+    else
+        R_UpdateCodeConstant(
+            &gfxCmdBufSourceState,
+            0x56u,
+            viewInfo->flameFx.distortionScale[0],
+            viewInfo->flameFx.distortionScale[1],
+            1.0 / viewInfo->flameFx.distortionScale[1],
+            viewInfo->flameFx.distortionMagnitude);
+    RB_Filter(flameFxMaterial, viewInfo);
 }
 
 void __cdecl RB_ElectrifiedFX(const GfxViewInfo *viewInfo)
 {
-  float x; // [esp+10h] [ebp-34h]
-  float v2; // [esp+2Ch] [ebp-18h]
-  const Material *electrifiedMtl; // [esp+3Ch] [ebp-8h]
-  float fadeEffect; // [esp+40h] [ebp-4h]
+    float x; // [esp+10h] [ebp-34h]
+    float v2; // [esp+2Ch] [ebp-18h]
+    const Material *electrifiedMtl; // [esp+3Ch] [ebp-8h]
+    float fadeEffect; // [esp+40h] [ebp-4h]
 
-  R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, stru_B50E8A8.image);
-  R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
-  R_SetRenderTarget(gfxCmdBufContext, 3u);
-  electrifiedMtl = rgp.permapAssets.electrifiedFXMaterial;
-  R_UpdateCodeConstant(
-    &gfxCmdBufSourceState,
-    0x58u,
-    (float)rgp.permapAssets.electrifiedFXMaterial->info.textureAtlasColumnCount,
-    (float)rgp.permapAssets.electrifiedFXMaterial->info.textureAtlasRowCount,
-    (float)(rgp.permapAssets.electrifiedFXMaterial->info.textureAtlasColumnCount
-          * rgp.permapAssets.electrifiedFXMaterial->info.textureAtlasRowCount),
-    viewInfo->electrifiedFx.frameRate);
-  if ( viewInfo->electrifiedFx.duration )
-  {
-    fadeEffect = 1.0
-               - (float)((float)(viewInfo->electrifiedFx.duration
-                               - (viewInfo->electrifiedFx.currentTime
-                                - viewInfo->electrifiedFx.startMSec))
-                       / (float)viewInfo->electrifiedFx.duration);
-    if ( (float)(fadeEffect - 1.0) < 0.0 )
-      v2 = 1.0
-         - (float)((float)(viewInfo->electrifiedFx.duration
-                         - (viewInfo->electrifiedFx.currentTime
-                          - viewInfo->electrifiedFx.startMSec))
-                 / (float)viewInfo->electrifiedFx.duration);
-    else
-      v2 = 1.0f;
-    if ( (float)(0.0 - fadeEffect) < 0.0 )
-      x = v2;
-    else
-      x = 0.0f;
-    R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, x, 0.0, 0.0, 0.0);
-  }
-  else
-  {
-    R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, 0.0, 0.0, 0.0, 0.0);
-  }
-  if ( viewInfo->electrifiedFx.distortionScale[1] <= 0.0 )
+    R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, gfxRenderTargets[6].image);
+    R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
+    R_SetRenderTarget(gfxCmdBufContext, 3u);
+    electrifiedMtl = rgp.permapAssets.electrifiedFXMaterial;
     R_UpdateCodeConstant(
-      &gfxCmdBufSourceState,
-      0x56u,
-      viewInfo->electrifiedFx.distortionScale[0],
-      viewInfo->electrifiedFx.distortionScale[1],
-      0.0,
-      viewInfo->electrifiedFx.distortionMagnitude);
-  else
-    R_UpdateCodeConstant(
-      &gfxCmdBufSourceState,
-      0x56u,
-      viewInfo->electrifiedFx.distortionScale[0],
-      viewInfo->electrifiedFx.distortionScale[1],
-      1.0 / viewInfo->electrifiedFx.distortionScale[1],
-      viewInfo->electrifiedFx.distortionMagnitude);
-  RB_Filter(electrifiedMtl, viewInfo);
+        &gfxCmdBufSourceState,
+        0x58u,
+        rgp.permapAssets.electrifiedFXMaterial->info.textureAtlasColumnCount,
+        rgp.permapAssets.electrifiedFXMaterial->info.textureAtlasRowCount,
+        (rgp.permapAssets.electrifiedFXMaterial->info.textureAtlasColumnCount
+            * rgp.permapAssets.electrifiedFXMaterial->info.textureAtlasRowCount),
+        viewInfo->electrifiedFx.frameRate);
+    if (viewInfo->electrifiedFx.duration)
+    {
+        fadeEffect = 1.0
+            - ((viewInfo->electrifiedFx.duration
+                - (viewInfo->electrifiedFx.currentTime
+                    - viewInfo->electrifiedFx.startMSec))
+                / viewInfo->electrifiedFx.duration);
+        if ((fadeEffect - 1.0) < 0.0)
+            v2 = 1.0
+            - ((viewInfo->electrifiedFx.duration - (viewInfo->electrifiedFx.currentTime - viewInfo->electrifiedFx.startMSec))
+                / viewInfo->electrifiedFx.duration);
+        else
+            v2 = 1.0f;
+        if ((0.0 - fadeEffect) < 0.0)
+            x = v2;
+        else
+            x = 0.0f;
+        R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, x, 0.0, 0.0, 0.0);
+    }
+    else
+    {
+        R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, 0.0, 0.0, 0.0, 0.0);
+    }
+    if (viewInfo->electrifiedFx.distortionScale[1] <= 0.0)
+        R_UpdateCodeConstant(
+            &gfxCmdBufSourceState,
+            0x56u,
+            viewInfo->electrifiedFx.distortionScale[0],
+            viewInfo->electrifiedFx.distortionScale[1],
+            0.0,
+            viewInfo->electrifiedFx.distortionMagnitude);
+    else
+        R_UpdateCodeConstant(
+            &gfxCmdBufSourceState,
+            0x56u,
+            viewInfo->electrifiedFx.distortionScale[0],
+            viewInfo->electrifiedFx.distortionScale[1],
+            1.0 / viewInfo->electrifiedFx.distortionScale[1],
+            viewInfo->electrifiedFx.distortionMagnitude);
+    RB_Filter(electrifiedMtl, viewInfo);
 }
 
 void __cdecl RB_TransportedFX(const GfxViewInfo *viewInfo)
 {
-  float x; // [esp+10h] [ebp-34h]
-  float v2; // [esp+2Ch] [ebp-18h]
-  const Material *transportedMtl; // [esp+3Ch] [ebp-8h]
-  float fadeEffect; // [esp+40h] [ebp-4h]
+    float x; // [esp+10h] [ebp-34h]
+    float v2; // [esp+2Ch] [ebp-18h]
+    const Material *transportedMtl; // [esp+3Ch] [ebp-8h]
+    float fadeEffect; // [esp+40h] [ebp-4h]
 
-  R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, stru_B50E8A8.image);
-  R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
-  R_SetRenderTarget(gfxCmdBufContext, 3u);
-  transportedMtl = rgp.permapAssets.transportedFXMaterial;
-  R_UpdateCodeConstant(
-    &gfxCmdBufSourceState,
-    0x58u,
-    (float)rgp.permapAssets.transportedFXMaterial->info.textureAtlasColumnCount,
-    (float)rgp.permapAssets.transportedFXMaterial->info.textureAtlasRowCount,
-    (float)(rgp.permapAssets.transportedFXMaterial->info.textureAtlasColumnCount
-          * rgp.permapAssets.transportedFXMaterial->info.textureAtlasRowCount),
-    viewInfo->transportedFx.frameRate);
-  if ( viewInfo->transportedFx.duration )
-  {
-    fadeEffect = 1.0
-               - (float)((float)(viewInfo->transportedFx.duration
-                               - (viewInfo->transportedFx.currentTime
-                                - viewInfo->transportedFx.startMSec))
-                       / (float)viewInfo->transportedFx.duration);
-    if ( (float)(fadeEffect - 1.0) < 0.0 )
-      v2 = 1.0
-         - (float)((float)(viewInfo->transportedFx.duration
-                         - (viewInfo->transportedFx.currentTime
-                          - viewInfo->transportedFx.startMSec))
-                 / (float)viewInfo->transportedFx.duration);
-    else
-      v2 = 1.0f;
-    if ( (float)(0.0 - fadeEffect) < 0.0 )
-      x = v2;
-    else
-      x = 0.0f;
-    R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, x, 0.0, 0.0, 0.0);
-  }
-  else
-  {
-    R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, 0.0, 0.0, 0.0, 0.0);
-  }
-  if ( viewInfo->transportedFx.distortionScale[1] <= 0.0 )
+    R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, gfxRenderTargets[6].image);
+    R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
+    R_SetRenderTarget(gfxCmdBufContext, 3u);
+    transportedMtl = rgp.permapAssets.transportedFXMaterial;
     R_UpdateCodeConstant(
-      &gfxCmdBufSourceState,
-      0x56u,
-      viewInfo->transportedFx.distortionScale[0],
-      viewInfo->transportedFx.distortionScale[1],
-      0.0,
-      viewInfo->transportedFx.distortionMagnitude);
-  else
-    R_UpdateCodeConstant(
-      &gfxCmdBufSourceState,
-      0x56u,
-      viewInfo->transportedFx.distortionScale[0],
-      viewInfo->transportedFx.distortionScale[1],
-      1.0 / viewInfo->transportedFx.distortionScale[1],
-      viewInfo->transportedFx.distortionMagnitude);
-  RB_Filter(transportedMtl, viewInfo);
+        &gfxCmdBufSourceState,
+        0x58u,
+        rgp.permapAssets.transportedFXMaterial->info.textureAtlasColumnCount,
+        rgp.permapAssets.transportedFXMaterial->info.textureAtlasRowCount,
+        (rgp.permapAssets.transportedFXMaterial->info.textureAtlasColumnCount
+            * rgp.permapAssets.transportedFXMaterial->info.textureAtlasRowCount),
+        viewInfo->transportedFx.frameRate);
+    if (viewInfo->transportedFx.duration)
+    {
+        fadeEffect = 1.0
+            - ((viewInfo->transportedFx.duration
+                - (viewInfo->transportedFx.currentTime
+                    - viewInfo->transportedFx.startMSec))
+                / viewInfo->transportedFx.duration);
+        if ((fadeEffect - 1.0) < 0.0)
+            v2 = 1.0
+            - ((viewInfo->transportedFx.duration - (viewInfo->transportedFx.currentTime - viewInfo->transportedFx.startMSec))
+                / viewInfo->transportedFx.duration);
+        else
+            v2 = 1.0f;
+        if ((0.0 - fadeEffect) < 0.0)
+            x = v2;
+        else
+            x = 0.0f;
+        R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, x, 0.0, 0.0, 0.0);
+    }
+    else
+    {
+        R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x5Cu, 0.0, 0.0, 0.0, 0.0);
+    }
+    if (viewInfo->transportedFx.distortionScale[1] <= 0.0)
+        R_UpdateCodeConstant(
+            &gfxCmdBufSourceState,
+            0x56u,
+            viewInfo->transportedFx.distortionScale[0],
+            viewInfo->transportedFx.distortionScale[1],
+            0.0,
+            viewInfo->transportedFx.distortionMagnitude);
+    else
+        R_UpdateCodeConstant(
+            &gfxCmdBufSourceState,
+            0x56u,
+            viewInfo->transportedFx.distortionScale[0],
+            viewInfo->transportedFx.distortionScale[1],
+            1.0 / viewInfo->transportedFx.distortionScale[1],
+            viewInfo->transportedFx.distortionMagnitude);
+    RB_Filter(transportedMtl, viewInfo);
 }
 
 void __cdecl RB_WaterSheetingFX(const GfxViewInfo *viewInfo)
 {
-  float distortionMagnitude; // [esp+8h] [ebp-4Ch]
-  float v2; // [esp+14h] [ebp-40h]
-  float v3; // [esp+18h] [ebp-3Ch]
-  float v4; // [esp+24h] [ebp-30h]
-  float v5; // [esp+28h] [ebp-2Ch]
-  float gameTimeVec[4]; // [esp+38h] [ebp-1Ch] BYREF
-  float y_speed; // [esp+48h] [ebp-Ch]
-  float fadeEffect; // [esp+4Ch] [ebp-8h]
-  float x_speed; // [esp+50h] [ebp-4h]
+    float distortionMagnitude; // [esp+8h] [ebp-4Ch]
+    float v2; // [esp+14h] [ebp-40h]
+    float v3; // [esp+18h] [ebp-3Ch]
+    float v4; // [esp+24h] [ebp-30h]
+    float v5; // [esp+28h] [ebp-2Ch]
+    float gameTimeVec[4]; // [esp+38h] [ebp-1Ch] BYREF
+    float y_speed; // [esp+48h] [ebp-Ch]
+    float fadeEffect; // [esp+4Ch] [ebp-8h]
+    float x_speed; // [esp+50h] [ebp-4h]
 
-  R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, stru_B50E8A8.image);
-  R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
-  R_SetRenderTarget(gfxCmdBufContext, 3u);
-  R_CalcGameTimeVec(gfxCmdBufSourceState.sceneDef.floatTime, gameTimeVec);
-  x_speed = viewInfo->waterSheetingFx.distortionScale[0];
-  if ( viewInfo->waterSheetingFx.distortionScale[1] <= 0.0 )
-    y_speed = 0.0f;
-  else
-    y_speed = 1.0 / viewInfo->waterSheetingFx.distortionScale[1];
-  if ( viewInfo->waterSheetingFx.duration )
-    fadeEffect = 1.0
-               - (float)((float)(viewInfo->waterSheetingFx.duration
-                               - (viewInfo->waterSheetingFx.currentTime
-                                - viewInfo->waterSheetingFx.startMSec))
-                       / (float)viewInfo->waterSheetingFx.duration);
-  else
-    fadeEffect = 0.0f;
-  v4 = gameTimeVec[1] * 0.5;
-  v5 = gameTimeVec[0] * 0.5;
-  gfxCmdBufSourceState.input.consts[121][0] = 1.0f;
-  gfxCmdBufSourceState.input.consts[121][1] = FLOAT_0_47499999;
-  gfxCmdBufSourceState.input.consts[121][2] = v4;
-  gfxCmdBufSourceState.input.consts[121][3] = v5;
-  R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x79u);
-  v2 = 1.0 - (float)(gameTimeVec[3] * y_speed);
-  v3 = (float)(gameTimeVec[0] * x_speed) * 0.47499999;
-  gfxCmdBufSourceState.input.consts[122][0] = gameTimeVec[0] * x_speed;
-  gfxCmdBufSourceState.input.consts[122][1] = v2;
-  gfxCmdBufSourceState.input.consts[122][2] = v3;
-  gfxCmdBufSourceState.input.consts[122][3] = v2 * 0.47499999;
-  R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x7Au);
-  distortionMagnitude = viewInfo->waterSheetingFx.distortionMagnitude;
-  gfxCmdBufSourceState.input.consts[123][0] = 1.0 - (float)(2.0 * fadeEffect);
-  gfxCmdBufSourceState.input.consts[123][1] = distortionMagnitude;
-  gfxCmdBufSourceState.input.consts[123][2] = 0.0f;
-  gfxCmdBufSourceState.input.consts[123][3] = 0.0f;
-  R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x7Bu);
-  RB_Filter(rgp.waterSheetingFXMaterial, viewInfo);
+    R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, gfxRenderTargets[6].image);
+    R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
+    R_SetRenderTarget(gfxCmdBufContext, 3u);
+    R_CalcGameTimeVec(gfxCmdBufSourceState.sceneDef.floatTime, gameTimeVec);
+    x_speed = viewInfo->waterSheetingFx.distortionScale[0];
+    if (viewInfo->waterSheetingFx.distortionScale[1] <= 0.0)
+        y_speed = 0.0f;
+    else
+        y_speed = 1.0 / viewInfo->waterSheetingFx.distortionScale[1];
+    if (viewInfo->waterSheetingFx.duration)
+        fadeEffect = 1.0
+        - ((viewInfo->waterSheetingFx.duration
+            - (viewInfo->waterSheetingFx.currentTime
+                - viewInfo->waterSheetingFx.startMSec))
+            / viewInfo->waterSheetingFx.duration);
+    else
+        fadeEffect = 0.0f;
+    v4 = gameTimeVec[1] * 0.5;
+    v5 = gameTimeVec[0] * 0.5;
+    gfxCmdBufSourceState.input.consts[121][0] = 1.0f;
+    gfxCmdBufSourceState.input.consts[121][1] = 0.475;
+    gfxCmdBufSourceState.input.consts[121][2] = v4;
+    gfxCmdBufSourceState.input.consts[121][3] = v5;
+    R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x79u);
+    v2 = 1.0 - (gameTimeVec[3] * y_speed);
+    v3 = (gameTimeVec[0] * x_speed) * 0.47499999;
+    gfxCmdBufSourceState.input.consts[122][0] = gameTimeVec[0] * x_speed;
+    gfxCmdBufSourceState.input.consts[122][1] = v2;
+    gfxCmdBufSourceState.input.consts[122][2] = v3;
+    gfxCmdBufSourceState.input.consts[122][3] = v2 * 0.47499999;
+    R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x7Au);
+    distortionMagnitude = viewInfo->waterSheetingFx.distortionMagnitude;
+    gfxCmdBufSourceState.input.consts[123][0] = 1.0 - (2.0 * fadeEffect);
+    gfxCmdBufSourceState.input.consts[123][1] = distortionMagnitude;
+    gfxCmdBufSourceState.input.consts[123][2] = 0.0f;
+    gfxCmdBufSourceState.input.consts[123][3] = 0.0f;
+    R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x7Bu);
+    RB_Filter(rgp.waterSheetingFXMaterial, viewInfo);
 }
 
 void __cdecl RB_ReviveFX(const GfxViewInfo *viewInfo)
@@ -2372,11 +2579,11 @@ void __cdecl RB_ReviveFX(const GfxViewInfo *viewInfo)
   float finalMatrix[4][4]; // [esp+A4h] [ebp-80h] BYREF
   float whiteTempMatrix[4][4]; // [esp+E4h] [ebp-40h] BYREF
 
-  PIXBeginNamedEvent(-1, "RB_ReviveFX");
+  ////PIXBeginNamedEvent(-1, "RB_ReviveFX");
   RB_GaussianFilterImage(6.4000001, 6u, 0xCu);
   R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
   R_SetRenderTarget(gfxCmdBufContext, 3u);
-  R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, stru_B50E8A8.image);
+  R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, gfxRenderTargets[6].image);
   colorTempMatrix(whiteTempMatrix, viewInfo->reviveFx.reviveEdgeColorTemp);
   colorSaturationMatrix(saturationMatrix, viewInfo->reviveFx.reviveEdgeSaturation);
   MatrixMultiply44(whiteTempMatrix, saturationMatrix, finalMatrix);
@@ -2429,8 +2636,8 @@ void __cdecl RB_ReviveFX(const GfxViewInfo *viewInfo)
   gfxCmdBufSourceState.input.consts[124][3] = 0.0f;
   R_DirtyCodeConstant(&gfxCmdBufSourceState, 0x7Cu);
   RB_Filter(rgp.reviveFXMaterial, viewInfo);
-  if ( GetCurrentThreadId() == g_DXDeviceThread )
-    D3DPERF_EndEvent();
+  //if ( GetCurrentThreadId() == g_DXDeviceThread )
+  //  D3DPERF_EndEvent();
 }
 
 void __cdecl RB_ProcessPostEffects(const GfxViewInfo *viewInfo)
@@ -2450,41 +2657,41 @@ void __cdecl RB_ProcessPostEffects(const GfxViewInfo *viewInfo)
     RB_GetResolvedScene();
     if ( RB_UsingFlameFX(viewInfo) )
     {
-      PIXBeginNamedEvent(-1, "RB_ApplyFlameFX");
+      //PIXBeginNamedEvent(-1, "RB_ApplyFlameFX");
       RB_FlameFX(viewInfo);
-      if ( GetCurrentThreadId() == g_DXDeviceThread )
-        goto LABEL_28;
+      //if ( GetCurrentThreadId() == g_DXDeviceThread )
+      //  goto LABEL_28;
     }
     else
     {
       if ( RB_UsingReviveFX(viewInfo) )
       {
-        PIXBeginNamedEvent(-1, "RB_ApplyReviveFX");
+        //PIXBeginNamedEvent(-1, "RB_ApplyReviveFX");
         RB_ReviveFX(viewInfo);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-          D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //  D3DPERF_EndEvent();
         goto LABEL_29;
       }
       if ( RB_UsingElectrifiedFX(viewInfo) )
       {
-        PIXBeginNamedEvent(-1, "RB_ApplyElectrifiedFX");
+        //PIXBeginNamedEvent(-1, "RB_ApplyElectrifiedFX");
         RB_ElectrifiedFX(viewInfo);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-          goto LABEL_28;
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //  goto LABEL_28;
       }
       else if ( RB_UsingTransportedFX(viewInfo) )
       {
-        PIXBeginNamedEvent(-1, "RB_ApplyTransportedFX");
+        //PIXBeginNamedEvent(-1, "RB_ApplyTransportedFX");
         RB_TransportedFX(viewInfo);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-          goto LABEL_28;
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //  goto LABEL_28;
       }
       else if ( RB_UsingWaterSheetingFX(viewInfo) )
       {
-        PIXBeginNamedEvent(-1, "RB_WaterSheetingFX");
+        //PIXBeginNamedEvent(-1, "RB_WaterSheetingFX");
         RB_WaterSheetingFX(viewInfo);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-          goto LABEL_28;
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+        //  goto LABEL_28;
       }
       else
       {
@@ -2492,26 +2699,27 @@ void __cdecl RB_ProcessPostEffects(const GfxViewInfo *viewInfo)
         {
           if ( !RB_UsingDepthOfFieldFX(viewInfo) )
             goto LABEL_29;
-          PIXBeginNamedEvent(-1, "RB_ApplyDepthOfField");
+          //PIXBeginNamedEvent(-1, "RB_ApplyDepthOfField");
           RB_ApplyDepthOfField(viewInfo);
-          if ( GetCurrentThreadId() != g_DXDeviceThread )
-            goto LABEL_29;
+          //if ( GetCurrentThreadId() != g_DXDeviceThread )
+          //  goto LABEL_29;
           goto LABEL_28;
         }
-        PIXBeginNamedEvent(-1, "RB_PoisonFX");
+        //PIXBeginNamedEvent(-1, "RB_PoisonFX");
         RB_PoisonFX(viewInfo);
-        if ( GetCurrentThreadId() == g_DXDeviceThread )
-LABEL_28:
-          D3DPERF_EndEvent();
+        //if ( GetCurrentThreadId() == g_DXDeviceThread )
+    LABEL_28:
+        ;
+          //D3DPERF_EndEvent();
       }
     }
 LABEL_29:
     if ( RB_UsingGenericFilter(viewInfo) && !rg.renderHiResShot )
     {
-      PIXBeginNamedEvent(-1, "genericFilter effect");
-      RB_GenericFilterFX((const GfxMatrix *)&savedregs, viewInfo);
-      if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+      //PIXBeginNamedEvent(-1, "genericFilter effect");
+      RB_GenericFilterFX(viewInfo);
+      //if ( GetCurrentThreadId() == g_DXDeviceThread )
+      //  D3DPERF_EndEvent();
     }
     if ( RB_UsingBlur(viewInfo) )
     {
@@ -2527,24 +2735,24 @@ LABEL_29:
       {
         __debugbreak();
       }
-      PIXBeginNamedEvent(-1, "RB_BlurScreen()");
+      //PIXBeginNamedEvent(-1, "RB_BlurScreen()");
       RB_BlurScreen(viewInfo, blurRadius);
-      if ( g_DXDeviceThread == GetCurrentThreadId() )
-        D3DPERF_EndEvent();
+      //if ( g_DXDeviceThread == GetCurrentThreadId() )
+      //  D3DPERF_EndEvent();
     }
     if ( viewInfo->saveScreenFx.blendBlurredParam.enabled
       || viewInfo->saveScreenFx.blendFlashedParam.enabled
       || viewInfo->saveScreenFx.saveScreenParam.mode )
     {
-      PIXBeginNamedEvent(-1, "saveScreenFx");
+      //PIXBeginNamedEvent(-1, "saveScreenFx");
       RB_SaveScreen_BlendBlurred(&viewInfo->saveScreenFx.blendBlurredParam, viewInfo);
       RB_SaveScreen_BlendFlashed(&viewInfo->saveScreenFx.blendFlashedParam, viewInfo);
       RB_SaveScreen(&viewInfo->saveScreenFx.saveScreenParam, viewInfo);
-      if ( GetCurrentThreadId() == g_DXDeviceThread )
-        D3DPERF_EndEvent();
+      //if ( GetCurrentThreadId() == g_DXDeviceThread )
+      //  D3DPERF_EndEvent();
     }
-    R_Resolve(gfxCmdBufContext, stru_B50E8A8.image);
-    R_SetCodeImageTexture(&gfxCmdBufSourceState, 0xAu, stru_B50E8A8.image);
+    R_Resolve(gfxCmdBufContext, gfxRenderTargets[6].image);
+    R_SetCodeImageTexture(&gfxCmdBufSourceState, 0xAu, gfxRenderTargets[6].image);
   }
 }
 
@@ -2602,11 +2810,11 @@ void RB_GetResolvedScene()
   {
     __debugbreak();
   }
-  R_Resolve(gfxCmdBufContext, stru_B50E8A8.image);
-  R_SetCodeImageTexture(&gfxCmdBufSourceState, 0xAu, stru_B50E8A8.image);
+  R_Resolve(gfxCmdBufContext, gfxRenderTargets[6].image);
+  R_SetCodeImageTexture(&gfxCmdBufSourceState, 0xAu, gfxRenderTargets[6].image);
 }
 
-void    RB_ApplyDepthOfField(float a1@<ebp>, const GfxViewInfo *viewInfo)
+void    RB_ApplyDepthOfField(const GfxViewInfo *viewInfo)
 {
   double v2; // xmm0_8
   const char *v3; // eax
@@ -2619,8 +2827,8 @@ void    RB_ApplyDepthOfField(float a1@<ebp>, const GfxViewInfo *viewInfo)
   float dofEquation[4]; // [esp+48h] [ebp-10h]
   float retaddr; // [esp+58h] [ebp+0h]
 
-  dofEquation[1] = a1;
-  dofEquation[2] = retaddr;
+  //dofEquation[1] = a1;
+  //dofEquation[2] = retaddr;
   if ( !RB_UsingDepthOfFieldFX(viewInfo)
     && !Assert_MyHandler(
           "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\rb_postfx.cpp",
@@ -2661,10 +2869,15 @@ void    RB_ApplyDepthOfField(float a1@<ebp>, const GfxViewInfo *viewInfo)
     viewInfo->cullViewInfo.viewParms.zNear);
   R_UpdateCodeConstantFromVec4(&gfxCmdBufSourceState, 0x1Bu, v9);
   RB_GetViewModelDepthOfFieldEquation(viewInfo->dof.viewModelStart, viewInfo->dof.viewModelEnd, v9);
-  v2 = (float)(viewInfo->dof.farBlur / viewInfo->dof.nearBlur);
-  __libm_sse2_pow(v5, v6);
-  *(float *)&v2 = v2;
-  dofEquation[0] = *(float *)&v2;
+
+  {
+      float blurRatio = viewInfo->dof.farBlur / viewInfo->dof.nearBlur;
+      dofEquation[0] = powf(blurRatio, 2.0f);
+  }
+  //v2 = (float)(viewInfo->dof.farBlur / viewInfo->dof.nearBlur);
+  //__libm_sse2_pow(v5, v6);
+  //*(float *)&v2 = v2;
+  //dofEquation[0] = *(float *)&v2;
   R_UpdateCodeConstantFromVec4(&gfxCmdBufSourceState, 0x1Au, v9);
   farOutOfFocus = 1.0 / (double)vidConfig.sceneHeight;
   R_UpdateCodeConstant(&gfxCmdBufSourceState, 0x1Eu, 0.0, farOutOfFocus, 0.0, 0.0);
@@ -2695,7 +2908,7 @@ void    RB_ApplyDepthOfField(float a1@<ebp>, const GfxViewInfo *viewInfo)
     1.0,
     v7 / (float)(v7 - DepthOfFieldBlurFraction),
     1.0 / (float)(1.0 - v7),
-    COERCE_FLOAT(LODWORD(v7) ^ _mask__NegFloat_) / (float)(1.0 - v7));
+    (-(v7)) / (float)(1.0 - v7));
   RB_GetDepthOfFieldInputImages(viewInfo->dof.nearBlur);
   R_SetRenderTargetSize(&gfxCmdBufSourceState, 2u);
   R_SetRenderTarget(gfxCmdBufContext, 2u);
@@ -2768,7 +2981,7 @@ void __cdecl RB_GetViewModelDepthOfFieldEquation(float outOfFocus, float inFocus
     nearClip = r_znear_depthhack->current.value;
     if ( dx.supportsIntZ )
     {
-        dofEquation[1] = FLOAT_0_015625;
+        dofEquation[1] = 0.015625;
         depthScale = nearClip * 0.015625;
     }
     else
@@ -2826,7 +3039,7 @@ void __cdecl RB_GetDepthOfFieldInputImages(float radius)
   RB_FullScreenFilter(rgp.dofNearCocMaterial);
   R_SetRenderTargetSize(&gfxCmdBufSourceState, 0xDu);
   R_SetRenderTarget(gfxCmdBufContext, 0xDu);
-  R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, stru_B50E8D0.image);
+  R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, gfxRenderTargets[8].image);
   RB_FullScreenFilter(rgp.smallBlurMaterial);
 }
 
@@ -2875,24 +3088,23 @@ void __cdecl RB_BlurScreen(const GfxViewInfo *viewInfo, float blurRadius)
     HIBYTE(color) = (int)((float)((float)(blurRadius / blurRadiusMin) * 255.0) + 9.313225746154785e-10);
     blurRadius = 1440.0 / (float)gfxCmdBufSourceState.sceneViewport.height;
   }
-  imageSurface = Image_GetSurface(stru_B50E8A8.image);
-  if ( !imageSurface
-    && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\rb_postfx.cpp", 4254, 0, "%s", "imageSurface") )
-  {
-    __debugbreak();
-  }
+  imageSurface = Image_GetSurface(gfxRenderTargets[6].image);
+  iassert(imageSurface);
   R_AssertDXDeviceOwnership();
   if ( r_logFile && r_logFile->current.integer )
     RB_LogPrint(
       "gfxCmdBufContext.state->prim.device->StretchRect( gfxRenderTargets[srcRtId].surface.color, 0, imageSurface, 0, D3DTEXF_LINEAR )\n");
   semaphore = R_AcquireDXDeviceOwnership(0);
-  hr = gfxCmdBufContext.state->prim.device->StretchRect(
-         gfxCmdBufContext.state->prim.device,
-         (IDirect3DSurface9 *)dword_B50E870,
-         0,
-         imageSurface,
-         0,
-         D3DTEXF_LINEAR);
+
+  //hr = gfxCmdBufContext.state->prim.device->StretchRect(
+  //       gfxCmdBufContext.state->prim.device,
+  //       (IDirect3DSurface9 *)dword_B50E870,
+  //       0,
+  //       imageSurface,
+  //       0,
+  //       D3DTEXF_LINEAR);
+
+  hr = gfxCmdBufContext.state->prim.device->StretchRect(gfxRenderTargets[3].surface.color, NULL, imageSurface, NULL, D3DTEXF_LINEAR);
   if ( semaphore )
     R_ReleaseDXDeviceOwnership();
   if ( hr < 0 )
@@ -2910,7 +3122,7 @@ void __cdecl RB_BlurScreen(const GfxViewInfo *viewInfo, float blurRadius)
   if ( r_logFile && r_logFile->current.integer )
     RB_LogPrint("imageSurface->Release()\n");
   v4 = R_AcquireDXDeviceOwnership(0);
-  v5 = imageSurface->Release(imageSurface);
+  v5 = imageSurface->Release();
   if ( v4 )
     R_ReleaseDXDeviceOwnership();
   if ( v5 < 0 )
@@ -2926,7 +3138,7 @@ void __cdecl RB_BlurScreen(const GfxViewInfo *viewInfo, float blurRadius)
   RB_GaussianFilterImage(blurRadius, 6u, 0xCu);
   R_SetRenderTargetSize(&gfxCmdBufSourceState, 3u);
   R_SetRenderTarget(gfxCmdBufContext, 3u);
-  R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, stru_B50E920.image);
+  R_SetCodeImageTexture(&gfxCmdBufSourceState, 8u, gfxRenderTargets[12].image);
   RB_ColoredFilter(rgp.feedbackBlendMaterial, viewInfo, color);
 }
 

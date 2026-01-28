@@ -9,6 +9,8 @@
 #include <cgame_mp/cg_ents_mp.h>
 #include <glass/glass_client.h>
 #include <universal/com_math_anglevectors.h>
+#include <xanim/xmodel_utils.h>
+#include <EffectsCore/fx_marks.h>
 
 void    R_BoxSurfaces(
                 const float *mins,
@@ -1015,8 +1017,9 @@ bool __cdecl R_Mark_MaterialAllowsMarks(const Material *markReceiverMaterialHand
     return (markReceiverMaterialHandle->info.surfaceTypeBits & markMaterialHandle->info.surfaceTypeBits) == markMaterialHandle->info.surfaceTypeBits;
 }
 
-const float SEETHRU_DECAL_EPSISON = 0.001f;
+const float SEETHRU_DECAL_EPSISON = 0.001f; // "EPSISON". 0 Google results. You are doomed to live in a world more complex than you can possibly ever comprehend.
 
+#if 0
 char __cdecl R_MarkFragments_BrushSurface(
                 MarkInfo *markInfo,
                 GfxMarkContext *markContext,
@@ -1039,11 +1042,11 @@ char __cdecl R_MarkFragments_BrushSurface(
     __int64 out; // [esp+44h] [ebp-39Ch] BYREF
     PackedUnitVec v19; // [esp+4Ch] [ebp-394h]
     PackedUnitVec in; // [esp+50h] [ebp-390h]
-    float *v21; // [esp+58h] [ebp-388h]
-    float *v22; // [esp+5Ch] [ebp-384h]
-    float *v23; // [esp+60h] [ebp-380h]
-    float *v24; // [esp+64h] [ebp-37Ch]
-    float *v25; // [esp+68h] [ebp-378h]
+    const float *v21; // [esp+58h] [ebp-388h]
+    const float *v22; // [esp+5Ch] [ebp-384h]
+    const float *v23; // [esp+60h] [ebp-380h]
+    const float *v24; // [esp+64h] [ebp-37Ch]
+    const float *v25; // [esp+68h] [ebp-378h]
     const unsigned __int8 *triVerts1; // [esp+B4h] [ebp-32Ch]
     FxMarkPoint *points; // [esp+B8h] [ebp-328h]
     float planeTestEpsilon; // [esp+BCh] [ebp-324h]
@@ -1144,17 +1147,18 @@ char __cdecl R_MarkFragments_BrushSurface(
                     v21 = lmapCoord[2];
                     v22 = triVert1[2]->lmapCoord;
                     *(_QWORD *)&lmapCoord[2][0] = *(_QWORD *)triVert1[2]->lmapCoord;
-                    v17.packed = (unsigned int)triVert1[0]->normal;
-                    LODWORD(out) = v17;
-                    HIDWORD(out) = v17;
+                    v17.packed = triVert1[0]->normal.packed;
+                    //LODWORD(out) = v17;
+                    //HIDWORD(out) = v17;
+                    out = v17.packed;
                     v19.packed = v17.packed;
                     in.packed = v17.packed;
                     Vec3UnpackUnitVec(v17, (float *)&out);
                     in.packed = 0;
                     *(_QWORD *)&normal[0][0] = out;
-                    LODWORD(normal[0][2]) = (PackedUnitVec)v19.packed;
+                    LODWORD(normal[0][2]) = v19.packed;
                     v11 = normal[1];
-                    v12.packed = (unsigned int)triVert1[1]->normal;
+                    v12.packed = (unsigned int)triVert1[1]->normal.packed;
                     v13.packed = v12.packed;
                     v14.packed = v12.packed;
                     v15.packed = v12.packed;
@@ -1241,7 +1245,197 @@ LABEL_14:
         return 1;
     }
 }
+#endif
 
+bool __cdecl R_MarkFragments_BrushSurface(
+    MarkInfo *markInfo,
+    GfxMarkContext *markContext,
+    const MarkClipPlaneSet *clipPlanes,
+    const float *markDir,
+    const GfxSurface *surface,
+    bool *anyMarks)
+{
+    const srfTriangles_t *triSurf;
+    const GfxWorldVertex *verts;
+    const unsigned __int16 *indices;
+
+    FxWorldMarkPoint clipPoints[2][14];
+
+    float normal[3][3];
+    float lmapCoord[3][2];
+
+    int triIndex;
+    int planeIndex;
+    int pointIndex;
+    int pingPong;
+    int fragmentPointCount;
+
+    float planeTestEpsilon;
+
+    markContext->lmapIndex = surface->lightmapIndex;
+
+    /* Lightmap compatibility check */
+    if (!markInfo->isSeeThruDecal &&
+        markInfo->markHasLightmap != (markContext->lmapIndex != 31))
+    {
+        if (fx_marks_debug_text->current.enabled)
+        {
+            R_WarnOncePerFrame(
+                R_WARN_MARKS_ERR_LMAP_MISMATCH,
+                markInfo->markHasLightmap,
+                surface->lightmapIndex,
+                markInfo->material->info.name,
+                surface->material->info.name);
+        }
+        return true;
+    }
+
+    markContext->primaryLightIndex = surface->primaryLightIndex;
+    markContext->reflectionProbeIndex = surface->reflectionProbeIndex;
+
+    /* Reflection compatibility check */
+    if (markInfo->markHasReflection != (markContext->reflectionProbeIndex != 0))
+    {
+        if (fx_marks_debug_text->current.enabled)
+        {
+            R_WarnOncePerFrame(
+                R_WARN_MARKS_ERR_PROBE_MISMATCH,
+                markInfo->markHasReflection,
+                surface->reflectionProbeIndex,
+                markInfo->material->info.name,
+                surface->material->info.name);
+        }
+        return true;
+    }
+
+    triSurf = &surface->tris;
+    verts = &g_worldDraw->vd.vertices[triSurf->firstVertex];
+    indices = &g_worldDraw->indices[triSurf->baseIndex];
+
+    planeTestEpsilon = markInfo->isSeeThruDecal
+        ? SEETHRU_DECAL_EPSISON
+        : 0.5f;
+
+    for (triIndex = 0; triIndex < triSurf->triCount; ++triIndex, indices += 3)
+    {
+        /* Facing test */
+        if (R_MarkFragment_IsTriangleRejected(
+            markDir,
+            verts[indices[0]].xyz,
+            verts[indices[1]].xyz,
+            verts[indices[2]].xyz))
+        {
+            continue;
+        }
+
+        /* Initial clip triangle */
+        R_MarkFragment_SetupWorldClipPoints(verts, indices, clipPoints);
+
+        pingPong = 0;
+        fragmentPointCount = 3;
+
+        /* Clip against all planes */
+        for (planeIndex = 0; planeIndex < clipPlanes->planeCount; ++planeIndex)
+        {
+            fragmentPointCount = R_ChopWorldPolyBehindPlane(
+                fragmentPointCount,
+                clipPoints[pingPong],
+                clipPoints[pingPong ^ 1],
+                clipPlanes->planes[planeIndex],
+                planeTestEpsilon);
+
+            if (!fragmentPointCount)
+                break;
+
+            iassert(fragmentPointCount <= 14);
+            pingPong ^= 1;
+        }
+
+        if (!fragmentPointCount)
+            continue;
+
+        /* Capacity check */
+        if (fragmentPointCount > markInfo->maxPoints - markInfo->usedPointCount ||
+            3 * (fragmentPointCount - 2) > markInfo->maxTris - markInfo->usedTriCount)
+        {
+            return false;
+        }
+
+        /* Emit triangles */
+        {
+            FxMarkTri *tris = &markInfo->tris[markInfo->usedTriCount];
+            int baseIndex = markInfo->usedPointCount;
+
+            for (pointIndex = 2; pointIndex < fragmentPointCount; ++pointIndex)
+            {
+                tris->indices[0] = baseIndex;
+                tris->indices[1] = baseIndex + pointIndex - 1;
+                tris->indices[2] = baseIndex + pointIndex;
+                tris->context = *markContext;
+                ++tris;
+            }
+        }
+
+        /* Triangle data */
+        const GfxWorldVertex *v0 = &verts[indices[0]];
+        const GfxWorldVertex *v1 = &verts[indices[1]];
+        const GfxWorldVertex *v2 = &verts[indices[2]];
+
+        Vec2Copy(v0->lmapCoord, lmapCoord[0]);
+        Vec2Copy(v1->lmapCoord, lmapCoord[1]);
+        Vec2Copy(v2->lmapCoord, lmapCoord[2]);
+
+        Vec3UnpackUnitVec(v0->normal, normal[0]);
+        Vec3UnpackUnitVec(v1->normal, normal[1]);
+        Vec3UnpackUnitVec(v2->normal, normal[2]);
+
+        /* Emit points */
+        {
+            FxMarkPoint *points = &markInfo->points[markInfo->usedPointCount];
+
+            for (pointIndex = 0; pointIndex < fragmentPointCount; ++pointIndex)
+            {
+                const FxWorldMarkPoint *cp = &clipPoints[pingPong][pointIndex];
+                FxMarkPoint *p = &points[pointIndex];
+
+                Vec3Copy(cp->xyz, p->xyz);
+
+                p->lmapCoord[0] =
+                    cp->vertWeights[0] * lmapCoord[0][0] +
+                    cp->vertWeights[1] * lmapCoord[1][0] +
+                    cp->vertWeights[2] * lmapCoord[2][0];
+
+                p->lmapCoord[1] =
+                    cp->vertWeights[0] * lmapCoord[0][1] +
+                    cp->vertWeights[1] * lmapCoord[1][1] +
+                    cp->vertWeights[2] * lmapCoord[2][1];
+
+                p->normal[0] =
+                    cp->vertWeights[0] * normal[0][0] +
+                    cp->vertWeights[1] * normal[1][0] +
+                    cp->vertWeights[2] * normal[2][0];
+
+                p->normal[1] =
+                    cp->vertWeights[0] * normal[0][1] +
+                    cp->vertWeights[1] * normal[1][1] +
+                    cp->vertWeights[2] * normal[2][1];
+
+                p->normal[2] =
+                    cp->vertWeights[0] * normal[0][2] +
+                    cp->vertWeights[1] * normal[1][2] +
+                    cp->vertWeights[2] * normal[2][2];
+            }
+        }
+
+        iassert(fragmentPointCount >= 3);
+
+        markInfo->usedPointCount += fragmentPointCount;
+        markInfo->usedTriCount += fragmentPointCount - 2;
+        *anyMarks = true;
+    }
+
+    return true;
+}
 int __cdecl R_ChopWorldPolyBehindPlane(
                 int inPointCount,
                 FxWorldMarkPoint *inPoints,
@@ -1559,7 +1753,7 @@ char __cdecl R_MarkFragments_Glass(MarkInfo *markInfo)
     float v3; // [esp+10h] [ebp-188h]
     float v4; // [esp+18h] [ebp-180h]
     float v5; // [esp+1Ch] [ebp-17Ch]
-    float *origin; // [esp+48h] [ebp-150h]
+    const float *origin; // [esp+48h] [ebp-150h]
     float pos_4; // [esp+54h] [ebp-144h]
     float pos_8; // [esp+58h] [ebp-140h]
     int p; // [esp+5Ch] [ebp-13Ch]
@@ -1831,7 +2025,6 @@ char __cdecl R_MarkFragments_AnimatedXModel(
                             __debugbreak();
                         }
                         if ( !R_MarkFragments_AnimatedXModel_VertList(
-                                        (int)&savedregs,
                                         markInfo,
                                         vertListIndex,
                                         &boneMtxList[boneOffset],
@@ -1876,9 +2069,196 @@ char __cdecl R_MarkFragments_AnimatedXModel(
     return 1;
 }
 
+// aislop
+int __cdecl R_AddMarkFragment_0_(
+    FxModelMarkPoint(*clipPoints)[14],
+    const MarkClipPlaneSet *planes,
+    const GfxMarkContext *markContext,
+    unsigned __int16 baseIndex,
+    int maxTris,
+    FxMarkTri *tris,
+    int maxPoints,
+    PackedUnitVec **triNormals,
+    const float (*transformNormalMatrix)[3], // intentionally unused
+    FxMarkPoint *points)
+{
+    int pingPong = 0;
+    int clipPointCount = 3;
+
+
+    int planeIndex;
+    int pointIndex;
+
+
+    float normal[3][3];
+    FxModelMarkPoint *clipPoint;
+    FxMarkPoint *point;
+
+
+    /* Clip triangle against all planes */
+    for (planeIndex = 0; planeIndex < planes->planeCount; ++planeIndex)
+    {
+        clipPointCount = R_ChopPolyBehindPlane(
+            clipPointCount,
+            clipPoints[pingPong],
+            clipPoints[pingPong ^ 1],
+            planes->planes[planeIndex]);
+
+
+        iassert(clipPointCount <= 14);
+
+
+        pingPong ^= 1;
+
+
+        if (!clipPointCount)
+            return 0;
+    }
+
+
+    /* Capacity checks */
+    if (clipPointCount > maxPoints || 3 * (clipPointCount - 2) > maxTris)
+        return -1;
+
+
+    /* Unpack triangle normals */
+    Vec3UnpackUnitVec(*triNormals[0], normal[0]);
+    Vec3UnpackUnitVec(*triNormals[1], normal[1]);
+    Vec3UnpackUnitVec(*triNormals[2], normal[2]);
+
+
+    /* Build mark points */
+    for (pointIndex = 0; pointIndex < clipPointCount; ++pointIndex)
+    {
+        clipPoint = &clipPoints[pingPong][pointIndex];
+        point = &points[pointIndex];
+
+
+        Vec3Copy(clipPoint->xyz, point->xyz);
+
+
+        point->lmapCoord[0] = 0.0f;
+        point->lmapCoord[1] = 0.0f;
+
+
+        point->normal[0] =
+            clipPoint->vertWeights[0] * normal[0][0] +
+            clipPoint->vertWeights[1] * normal[1][0] +
+            clipPoint->vertWeights[2] * normal[2][0];
+
+
+        point->normal[1] =
+            clipPoint->vertWeights[0] * normal[0][1] +
+            clipPoint->vertWeights[1] * normal[1][1] +
+            clipPoint->vertWeights[2] * normal[2][1];
+
+
+        point->normal[2] =
+            clipPoint->vertWeights[0] * normal[0][2] +
+            clipPoint->vertWeights[1] * normal[1][2] +
+            clipPoint->vertWeights[2] * normal[2][2];
+    }
+
+
+    /* Emit triangles (fan) */
+    for (pointIndex = 2; pointIndex < clipPointCount; ++pointIndex)
+    {
+        tris->indices[0] = baseIndex;
+        tris->indices[1] = baseIndex + pointIndex - 1;
+        tris->indices[2] = baseIndex + pointIndex;
+        tris->context = *markContext;
+        ++tris;
+    }
+
+
+    return clipPointCount;
+}
+
+char __cdecl R_MarkFragment_DoTriangle_0_(
+    MarkInfo *markInfo,
+    const MarkClipPlaneSet *clipPlanes,
+    const GfxMarkContext *markContext,
+    PackedUnitVec **triNormals,
+    const float (*transformNormalMatrix)[3],
+    FxModelMarkPoint(*clipPoints)[14])
+{
+    int fragmentPointCount; // [esp+0h] [ebp-4h]
+
+    fragmentPointCount = R_AddMarkFragment_0_(
+        clipPoints,
+        clipPlanes,
+        markContext,
+        markInfo->usedPointCount,
+        markInfo->maxTris - markInfo->usedTriCount,
+        &markInfo->tris[markInfo->usedTriCount],
+        markInfo->maxPoints - markInfo->usedPointCount,
+        triNormals,
+        transformNormalMatrix,
+        &markInfo->points[markInfo->usedPointCount]);
+    if (fragmentPointCount == -1)
+        return 0;
+    if (fragmentPointCount)
+    {
+        if (fragmentPointCount < 3
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_marks.cpp",
+                1197,
+                0,
+                "%s\n\t(fragmentPointCount) = %i",
+                "(fragmentPointCount >= 3)",
+                fragmentPointCount))
+        {
+            __debugbreak();
+        }
+        markInfo->usedPointCount += fragmentPointCount;
+        markInfo->usedTriCount = fragmentPointCount + markInfo->usedTriCount - 2;
+    }
+    return 1;
+}
+
+bool __cdecl R_MarkModelCoreCallback_0_(
+    void *contextAsVoid,
+    const unsigned __int8 **triVerts0,
+    const unsigned __int8 **triVerts1)
+{
+    MarkModelCoreContext *context = (MarkModelCoreContext *)contextAsVoid;
+
+    float *vertWeights; // [esp+2Ch] [ebp-2B8h]
+    float *xyz; // [esp+30h] [ebp-2B4h]
+    const float *pos; // [esp+34h] [ebp-2B0h]
+    FxModelMarkPoint clipPoints[2][14]; // [esp+3Ch] [ebp-2A8h] BYREF
+    int vertIndex; // [esp+2E0h] [ebp-4h]
+
+    for (vertIndex = 0; vertIndex != 3; ++vertIndex)
+    {
+        pos = (const float*)triVerts0[vertIndex];
+        xyz = clipPoints[0][vertIndex].xyz;
+        *xyz = *pos;
+        xyz[1] = pos[1];
+        xyz[2] = pos[2];
+        vertWeights = clipPoints[0][vertIndex].vertWeights;
+        *vertWeights = 0.0f;
+        vertWeights[1] = 0.0f;
+        vertWeights[2] = 0.0f;
+        clipPoints[0][vertIndex].vertWeights[vertIndex] = 1.0f;
+    }
+    return R_MarkFragment_IsTriangleRejected(
+        context->markDir,
+        clipPoints[0][0].xyz,
+        clipPoints[0][1].xyz,
+        clipPoints[0][2].xyz)
+        || R_MarkFragment_DoTriangle_0_(
+            context->markInfo,
+            context->clipPlanes,
+            context->markContext,
+            (PackedUnitVec**)triVerts1,
+            context->transformNormalMatrix,
+            clipPoints) != 0;
+}
+
+#if 0
 // local variable allocation has failed, the output may be wrong!
-char    R_MarkFragments_AnimatedXModel_VertList@<al>(
-                int a1@<ebp>,
+char    R_MarkFragments_AnimatedXModel_VertList(
                 MarkInfo *markInfo,
                 unsigned int vertListIndex,
                 const DObjAnimMat *poseBone,
@@ -1939,13 +2319,14 @@ char    R_MarkFragments_AnimatedXModel_VertList@<al>(
         (float (*)[3])originalOrigin);
     Vec3Copy(markInfo->origin, localMins);
     MatrixTransformVector43(localMins, (const float (*)[3])originalOrigin, markInfo->localOrigin);
-    Vec3AddScalar(markInfo->localOrigin, COERCE_FLOAT(LODWORD(markInfo->radius) ^ _mask__NegFloat_), localMaxs);
+    Vec3AddScalar(markInfo->localOrigin, -(markInfo->radius), localMaxs);
     Vec3AddScalar(markInfo->localOrigin, markInfo->radius, (float *)&markModelCoreContext.clipPlanes);
     v8[0] = markInfo;
     v8[1] = markContext;
     visitorFunc = (bool (__cdecl *)(void *, const unsigned __int8 **, const unsigned __int8 **))markInfo->localOrigin;
     markModelCoreContext.markInfo = (MarkInfo *)v18;
     markModelCoreContext.markContext = (GfxMarkContext *)markDir;
+
     if ( !XSurfaceVisitTrianglesInAabb(
                     surface,
                     vertListIndex,
@@ -1954,12 +2335,118 @@ char    R_MarkFragments_AnimatedXModel_VertList@<al>(
                     (bool (__cdecl *)(void *, const unsigned __int8 **, const unsigned __int8 **))R_MarkModelCoreCallback_0_,
                     v8) )
         return 0;
+
     if ( markInfo->usedPointCount )
     {
         MatrixTransposeTransformVector(markInfo->axis[1], (const float (*)[3])clipPlanes_172, markInfo->localTexCoordAxis);
         MatrixTransposeTransformVector(markInfo->axis[0], (const float (*)[3])clipPlanes_172, markInfo->localHitNormal);
     }
+
     return 1;
+}
+#endif
+
+// aislop
+bool R_MarkFragments_AnimatedXModel_VertList(
+    MarkInfo *markInfo,
+    unsigned int vertListIndex,
+    const DObjAnimMat *poseBone,
+    const DObjAnimMat *baseBone,
+    GfxMarkContext *markContext,
+    XSurface *surface)
+{
+    float localMins[3], localMaxs[3];
+    float originalOrigin[3];
+    float markDir[3];
+
+    float invSurfaceMatrix[4][3];
+    float baseBoneMatrix[4][3];
+    float invPoseBoneMatrix[4][3];
+
+    DObjSkelMat poseBoneSkelMat;
+    DObjSkelMat baseBoneSkelMat;
+    DObjSkelMat invPoseBoneSkelMat;
+    DObjSkelMat invBaseBoneSkelMat;
+
+    MarkClipPlaneSet clipPlanes;
+    MarkModelCoreContext ctx;
+
+    ConvertQuatToSkelMat(poseBone, &poseBoneSkelMat);
+    ConvertQuatToInverseSkelMat(baseBone, &invBaseBoneSkelMat);
+
+    DObjSkelMatToMatrix43(&poseBoneSkelMat, invPoseBoneMatrix);
+    DObjSkelMatToMatrix43(&invBaseBoneSkelMat, invSurfaceMatrix);
+
+    MatrixMultiply43(invSurfaceMatrix, invPoseBoneMatrix, invSurfaceMatrix);
+
+    iassert(markInfo->usedPointCount == 0);
+
+    R_Mark_TransformClipPlanes(
+        &markInfo->clipPlanes,
+        invSurfaceMatrix,
+        &clipPlanes);
+
+    MatrixTransposeTransformVector(
+        markInfo->axis[0],
+        invSurfaceMatrix,
+        markDir);
+
+    /* ------------------------------------------------------------
+       Build local space transform
+       ------------------------------------------------------------ */
+
+    ConvertQuatToSkelMat(baseBone, &baseBoneSkelMat);
+    ConvertQuatToInverseSkelMat(poseBone, &invPoseBoneSkelMat);
+
+    DObjSkelMatToMatrix43(&invPoseBoneSkelMat, invPoseBoneMatrix);
+    DObjSkelMatToMatrix43(&baseBoneSkelMat, baseBoneMatrix);
+
+    MatrixMultiply43(invPoseBoneMatrix, baseBoneMatrix, invSurfaceMatrix);
+
+    Vec3Copy(markInfo->origin, originalOrigin);
+    MatrixTransformVector43(
+        originalOrigin,
+        invSurfaceMatrix,
+        markInfo->localOrigin);
+
+    Vec3AddScalar(
+        markInfo->localOrigin,
+        -markInfo->radius,
+        localMins);
+
+    Vec3AddScalar(
+        markInfo->localOrigin,
+        markInfo->radius,
+        localMaxs);
+
+    /* ------------------------------------------------------------
+       Visitor setup
+       ------------------------------------------------------------ */
+
+    ctx.markInfo = markInfo;
+    ctx.markContext = markContext;
+    ctx.markOrigin = markInfo->localOrigin;
+    ctx.markDir = markDir;
+    ctx.clipPlanes = &clipPlanes;
+
+    if (!XSurfaceVisitTrianglesInAabb(
+        surface,
+        vertListIndex,
+        localMins,
+        localMaxs,
+        R_MarkModelCoreCallback_0_,
+        &ctx))
+    {
+        return false;
+    }
+
+    if (markInfo->usedPointCount)
+    {
+        MatrixTransposeTransformVector(markInfo->axis[1], invSurfaceMatrix, markInfo->localTexCoordAxis);
+        MatrixTransposeTransformVector(markInfo->axis[0], invSurfaceMatrix, markInfo->localHitNormal);
+    }
+
+    return true;
 }
 
 char __cdecl R_MarkFragments_StaticModels(MarkInfo *markInfo)
@@ -2134,6 +2621,202 @@ char __cdecl R_MarkFragments_EntirelyRigidXModel(
     return 1;
 }
 
+int __cdecl R_AddMarkFragment_1_(
+    FxModelMarkPoint(*clipPoints)[14],
+    const MarkClipPlaneSet *planes,
+    const GfxMarkContext *markContext,
+    unsigned __int16 baseIndex,
+    int maxTris,
+    FxMarkTri *tris,
+    int maxPoints,
+    PackedUnitVec **triNormals,
+    const float (*transformNormalMatrix)[3],
+    FxMarkPoint *points)
+{
+    PackedUnitVec v11; // [esp+54h] [ebp-8Ch] BYREF
+    PackedUnitVec v12; // [esp+58h] [ebp-88h]
+    PackedUnitVec v13; // [esp+5Ch] [ebp-84h]
+    PackedUnitVec v14; // [esp+60h] [ebp-80h]
+    PackedUnitVec v15; // [esp+68h] [ebp-78h]
+    PackedUnitVec v16; // [esp+6Ch] [ebp-74h] BYREF
+    PackedUnitVec v17; // [esp+70h] [ebp-70h]
+    PackedUnitVec v18; // [esp+74h] [ebp-6Ch]
+    PackedUnitVec v19; // [esp+78h] [ebp-68h]
+    PackedUnitVec v20; // [esp+80h] [ebp-60h]
+    PackedUnitVec out; // [esp+84h] [ebp-5Ch] BYREF
+    PackedUnitVec v22; // [esp+88h] [ebp-58h]
+    PackedUnitVec v23; // [esp+8Ch] [ebp-54h]
+    PackedUnitVec in; // [esp+90h] [ebp-50h]
+    float tempNormal[3]; // [esp+98h] [ebp-48h] BYREF
+    float normal[3][3]; // [esp+A4h] [ebp-3Ch] BYREF
+    FxModelMarkPoint *clipPoint; // [esp+C8h] [ebp-18h]
+    int pointIndex; // [esp+CCh] [ebp-14h]
+    int pingPong; // [esp+D0h] [ebp-10h]
+    int clipPointCount; // [esp+D4h] [ebp-Ch]
+    int planeIndex; // [esp+D8h] [ebp-8h]
+    FxMarkPoint *point; // [esp+DCh] [ebp-4h]
+
+    pingPong = 0;
+    clipPointCount = 3;
+    for (planeIndex = 0; planeIndex < planes->planeCount; ++planeIndex)
+    {
+        clipPointCount = R_ChopPolyBehindPlane(
+            clipPointCount,
+            &(*clipPoints)[14 * pingPong],
+            &(*clipPoints)[14 * (pingPong == 0)],
+            planes->planes[planeIndex]);
+        if (clipPointCount > 14
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_marks.cpp",
+                1031,
+                0,
+                "%s\n\t(clipPointCount) = %i",
+                "(clipPointCount <= 3 + 11)",
+                clipPointCount))
+        {
+            __debugbreak();
+        }
+        pingPong ^= 1u;
+        if (!clipPointCount)
+            return 0;
+    }
+    if (clipPointCount > maxPoints || 3 * (clipPointCount - 2) > maxTris)
+        return -1;
+    v20.packed = (*triNormals)->packed;
+    out.packed = v20.packed;
+    v22.packed = v20.packed;
+    v23.packed = v20.packed;
+    in.packed = v20.packed;
+    Vec3UnpackUnitVec(v20, (float*)&out.packed);
+    in.packed = 0.0f;
+    tempNormal[0] = *&out.packed;
+    tempNormal[1] = *&v22.packed;
+    tempNormal[2] = *&v23.packed;
+    MatrixTransformVector(tempNormal, transformNormalMatrix, normal[0]);
+    v15.packed = triNormals[1]->packed;
+    v16.packed = v15.packed;
+    v17.packed = v15.packed;
+    v18.packed = v15.packed;
+    v19.packed = v15.packed;
+    Vec3UnpackUnitVec(v15, (float *)&v16.packed);
+    v19.packed = 0.0f;
+    tempNormal[0] = *&v16.packed;
+    tempNormal[1] = *&v17.packed;
+    tempNormal[2] = *&v18.packed;
+    MatrixTransformVector(tempNormal, transformNormalMatrix, normal[1]);
+    v11.packed = triNormals[2]->packed;
+    v12.packed = v11.packed;
+    v13.packed = v11.packed;
+    v14.packed = v11.packed;
+    Vec3UnpackUnitVec(v11, (float *)&v11.packed);
+    v14.packed = 0.0f;
+    tempNormal[0] = *&v11.packed;
+    tempNormal[1] = *&v12.packed;
+    tempNormal[2] = *&v13.packed;
+    MatrixTransformVector(tempNormal, transformNormalMatrix, normal[2]);
+    for (pointIndex = 0; pointIndex < clipPointCount; ++pointIndex)
+    {
+        point = &points[pointIndex];
+        clipPoint = &(*clipPoints)[14 * pingPong + pointIndex];
+        point->xyz[0] = clipPoint->xyz[0];
+        point->xyz[1] = clipPoint->xyz[1];
+        point->xyz[2] = clipPoint->xyz[2];
+        point->lmapCoord[0] = 0.0f;
+        point->lmapCoord[1] = 0.0f;
+        point->normal[0] = ((clipPoint->vertWeights[0] * normal[0][0]) + (clipPoint->vertWeights[1] * normal[1][0]))
+            + (clipPoint->vertWeights[2] * normal[2][0]);
+        point->normal[1] = ((clipPoint->vertWeights[0] * normal[0][1]) + (clipPoint->vertWeights[1] * normal[1][1]))
+            + (clipPoint->vertWeights[2] * normal[2][1]);
+        point->normal[2] = ((clipPoint->vertWeights[0] * normal[0][2]) + (clipPoint->vertWeights[1] * normal[1][2]))
+            + (clipPoint->vertWeights[2] * normal[2][2]);
+    }
+    for (pointIndex = 2; pointIndex < clipPointCount; ++pointIndex)
+    {
+        tris->indices[0] = baseIndex + pointIndex - 1;
+        tris->indices[1] = pointIndex + baseIndex;
+        tris->indices[2] = baseIndex;
+        tris->context = *markContext;
+        ++tris;
+    }
+    return clipPointCount;
+}
+
+char __cdecl R_MarkFragment_DoTriangle_1_(
+    MarkInfo *markInfo,
+    const MarkClipPlaneSet *clipPlanes,
+    const GfxMarkContext *markContext,
+    PackedUnitVec **triNormals,
+    const float (*transformNormalMatrix)[3],
+    FxModelMarkPoint(*clipPoints)[14])
+{
+    int fragmentPointCount; // [esp+0h] [ebp-4h]
+
+    fragmentPointCount = R_AddMarkFragment_1_(
+        clipPoints,
+        clipPlanes,
+        markContext,
+        markInfo->usedPointCount,
+        markInfo->maxTris - markInfo->usedTriCount,
+        &markInfo->tris[markInfo->usedTriCount],
+        markInfo->maxPoints - markInfo->usedPointCount,
+        triNormals,
+        transformNormalMatrix,
+        &markInfo->points[markInfo->usedPointCount]);
+    if (fragmentPointCount == -1)
+        return 0;
+    if (fragmentPointCount)
+    {
+        if (fragmentPointCount < 3
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_marks.cpp",
+                1197,
+                0,
+                "%s\n\t(fragmentPointCount) = %i",
+                "(fragmentPointCount >= 3)",
+                fragmentPointCount))
+        {
+            __debugbreak();
+        }
+        markInfo->usedPointCount += fragmentPointCount;
+        markInfo->usedTriCount = fragmentPointCount + markInfo->usedTriCount - 2;
+    }
+    return 1;
+}
+
+bool __cdecl R_MarkModelCoreCallback_1_(
+    void *contextAsVoid,
+    const unsigned __int8 **triVerts0,
+    PackedUnitVec **triVerts1)
+{
+    MarkModelCoreContext *context = (MarkModelCoreContext *)contextAsVoid;
+
+    float *vertWeights; // [esp+2Ch] [ebp-2B8h]
+    FxModelMarkPoint clipPoints[2][14]; // [esp+3Ch] [ebp-2A8h] BYREF
+    int vertIndex; // [esp+2E0h] [ebp-4h]
+
+    for (vertIndex = 0; vertIndex != 3; ++vertIndex)
+    {
+        MatrixTransformVector43((const float*)triVerts0[vertIndex], context->transformMatrix, clipPoints[0][vertIndex].xyz);
+        vertWeights = clipPoints[0][vertIndex].vertWeights;
+        *vertWeights = 0.0f;
+        vertWeights[1] = 0.0f;
+        vertWeights[2] = 0.0f;
+        clipPoints[0][vertIndex].vertWeights[vertIndex] = 1.0f;
+    }
+    return R_MarkFragment_IsTriangleRejected(
+        context->markDir,
+        clipPoints[0][0].xyz,
+        clipPoints[0][1].xyz,
+        clipPoints[0][2].xyz)
+        || R_MarkFragment_DoTriangle_1_(
+            context->markInfo,
+            context->clipPlanes,
+            context->markContext,
+            triVerts1,
+            context->transformNormalMatrix,
+            clipPoints) != 0;
+}
+
 char __cdecl R_MarkFragments_XModelSurface_Basic(
                 MarkInfo *markInfo,
                 const XSurface *surface,
@@ -2177,9 +2860,9 @@ char __cdecl R_MarkFragments_XModelSurface_Basic(
     localOrigin[1] = (float)(1.0 / modelScale) * localOriginRotated[1];
     localOrigin[2] = (float)(1.0 / modelScale) * localOriginRotated[2];
     localRadius = markInfo->radius * (float)(1.0 / modelScale);
-    localMins[0] = localOrigin[0] + COERCE_FLOAT(LODWORD(localRadius) ^ _mask__NegFloat_);
-    localMins[1] = localOrigin[1] + COERCE_FLOAT(LODWORD(localRadius) ^ _mask__NegFloat_);
-    localMins[2] = localOrigin[2] + COERCE_FLOAT(LODWORD(localRadius) ^ _mask__NegFloat_);
+    localMins[0] = localOrigin[0] + -(localRadius);
+    localMins[1] = localOrigin[1] + -(localRadius);
+    localMins[2] = localOrigin[2] + -(localRadius);
     localMaxs[0] = localOrigin[0] + localRadius;
     localMaxs[1] = localOrigin[1] + localRadius;
     localMaxs[2] = localOrigin[2] + localRadius;

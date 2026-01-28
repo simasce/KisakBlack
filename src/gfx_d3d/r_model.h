@@ -1,5 +1,11 @@
 #pragma once
 
+#include <database/db_registry.h>
+#include <xanim/xmodel.h>
+#include <xanim/dobj.h>
+#include <gfx_d3d/r_scene.h>
+#include <gfx_d3d/r_gfx.h>
+
 void __cdecl R_ModelList_f();
 bool __cdecl R_ModelSort(XModel **model1, XModel **model2);
 void __cdecl R_GetModelList(XAssetHeader header, XAssetHeader *data);

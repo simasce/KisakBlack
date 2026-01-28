@@ -3,6 +3,7 @@
 #include <xanim/xanim.h>
 #include "r_drawsurf.h"
 #include "r_model_lighting.h"
+#include <universal/com_workercmds.h>
 
 void __cdecl R_Rope_GenerateVerts_Camera(RopeGenerateVertsCmd *cmd)
 {
@@ -304,10 +305,10 @@ void __cdecl R_Rope_GenerateVerts_Internal(
                     v4 = Abs((const float *)&v);
                     *(float *)&ropeTextureUDist = v4 * invHalfCircumfenceTimes4 + *(float *)&ropeTextureUDist;
                     prePos = basePos;
-                    nrm0.u[0] = perpDir.u[0] ^ _mask__NegFloat_;
-                    nrm0.u[1] = perpDir.u[1] ^ _mask__NegFloat_;
-                    nrm0.u[2] = perpDir.u[2] ^ _mask__NegFloat_;
-                    nrm0.u[3] = perpDir.u[3] ^ _mask__NegFloat_;
+                    nrm0.u[0] = -perpDir.v[0];
+                    nrm0.u[1] = -perpDir.v[1];
+                    nrm0.u[2] = -perpDir.v[2];
+                    nrm0.u[3] = -perpDir.v[3];
                     tpos0.v[0] = (float)(COERCE_FLOAT(perpDir.u[0] ^ _mask__NegFloat_) * lerpedRadius.v[0]) + basePos.v[0];
                     tpos0.v[1] = (float)(COERCE_FLOAT(perpDir.u[1] ^ _mask__NegFloat_) * lerpedRadius.v[1]) + basePos.v[1];
                     tpos0.v[2] = (float)(COERCE_FLOAT(perpDir.u[2] ^ _mask__NegFloat_) * lerpedRadius.v[2]) + basePos.v[2];

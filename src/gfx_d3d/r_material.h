@@ -148,7 +148,7 @@ struct MaterialVertexShader // sizeof=0x10
 
 struct __declspec(align(4)) GfxPixelShaderLoadDef // sizeof=0x8
 {                                                                             // XREF: MaterialPixelShaderProgram/r
-        unsigned int *program;
+        DWORD *program;
         unsigned __int16 programSize;
         // padding byte
         // padding byte

@@ -1,4 +1,2081 @@
 #include "r_material_load_obj.h"
+#include <universal/q_shared.h>
+#include <qcommon/common.h>
+#include <universal/q_parse.h>
+#include <universal/com_files.h>
+#include <qcommon/com_profilemapload.h>
+#include "r_utils.h"
+#include "r_singlethreaded_device_pc.h"
+#include "r_init.h"
+#include <universal/com_memory.h>
+#include <qcommon/md4.h>
+#include <qcommon/com_bsp_load_obj.h>
+#include "r_bsp_load_obj.h"
+#include "r_dvars.h"
+#include "r_water_load_obj.h"
+
+#include <algorithm>
+#include <cgame/cg_drawtools.h>
+#include "r_material_consts.h"
+
+MaterialTypeInfo g_materialTypeInfo[5] =
+{
+  { "", "", 0u },
+  { "m/", "m_", 2u },
+  { "mc/", "mc_", 3u },
+  { "w/", "w_", 2u },
+  { "wc/", "wc_", 3u }
+};
+
+const MaterialUpdateFrequency s_codeSamplerUpdateFreq[43] =
+{
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY
+};
+
+
+const MaterialUpdateFrequency s_codeConstUpdateFreq[] =
+{
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY
+};
+
+
+const MaterialUpdateFrequency s_codeConstUpdateFreq[] =
+{
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY
+};
+
+
+const LayeredTechniqueSetName s_lyrTechSetNames[121] =
+{
+  { "l_sm_a0c0", "l_sm_", "l_[hsm|sm]_", "a0c0" },
+  { "l_sm_a0c0d0", "l_sm_", "l_[hsm|sm]_", "a0c0d0" },
+  { "l_sm_a0c0d0n0", "l_sm_", "l_[hsm|sm]_", "a0c0d0n0" },
+  { "l_sm_a0c0d0n0s0", "l_sm_", "l_[hsm|sm]_", "a0c0d0n0s0" },
+  { "l_sm_a0c0d0s0", "l_sm_", "l_[hsm|sm]_", "a0c0d0s0" },
+  { "l_sm_a0c0n0", "l_sm_", "l_[hsm|sm]_", "a0c0n0" },
+  { "l_sm_a0c0n0s0", "l_sm_", "l_[hsm|sm]_", "a0c0n0s0" },
+  { "l_sm_a0c0s0", "l_sm_", "l_[hsm|sm]_", "a0c0s0" },
+  { "l_sm_b0c0", "l_sm_", "l_[hsm|sm]_", "b0c0" },
+  { "l_sm_b0c0_sco", "l_sm_", "l_[hsm|sm]_", "b0c0_sco" },
+  { "l_sm_b0c0_seethru", "l_sm_", "l_[hsm|sm]_", "b0c0_seethru" },
+  { "l_sm_b0c0d0", "l_sm_", "l_[hsm|sm]_", "b0c0d0" },
+  { "l_sm_b0c0d0_sco", "l_sm_", "l_[hsm|sm]_", "b0c0d0_sco" },
+  { "l_sm_b0c0d0_seethru", "l_sm_", "l_[hsm|sm]_", "b0c0d0_seethru" },
+  { "l_sm_b0c0d0n0", "l_sm_", "l_[hsm|sm]_", "b0c0d0n0" },
+  { "l_sm_b0c0d0n0_sco", "l_sm_", "l_[hsm|sm]_", "b0c0d0n0_sco" },
+  { "l_sm_b0c0d0n0_seethru", "l_sm_", "l_[hsm|sm]_", "b0c0d0n0_seethru" },
+  { "l_sm_b0c0d0n0s0", "l_sm_", "l_[hsm|sm]_", "b0c0d0n0s0" },
+  { "l_sm_b0c0d0n0s0_sco", "l_sm_", "l_[hsm|sm]_", "b0c0d0n0s0_sco" },
+  { "l_sm_b0c0d0n0s0_seethru", "l_sm_", "l_[hsm|sm]_", "b0c0d0n0s0_seethru" },
+  { "l_sm_b0c0d0n0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "b0c0d0n0s0sc0x0" },
+  { "l_sm_b0c0d0n0s0x0", "l_sm_", "l_[hsm|sm]_", "b0c0d0n0s0x0" },
+  { "l_sm_b0c0d0n0x0", "l_sm_", "l_[hsm|sm]_", "b0c0d0n0x0" },
+  { "l_sm_b0c0d0s0", "l_sm_", "l_[hsm|sm]_", "b0c0d0s0" },
+  { "l_sm_b0c0d0s0_sco", "l_sm_", "l_[hsm|sm]_", "b0c0d0s0_sco" },
+  { "l_sm_b0c0d0s0_seethru", "l_sm_", "l_[hsm|sm]_", "b0c0d0s0_seethru" },
+  { "l_sm_b0c0d0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "b0c0d0s0sc0x0" },
+  { "l_sm_b0c0d0s0x0", "l_sm_", "l_[hsm|sm]_", "b0c0d0s0x0" },
+  { "l_sm_b0c0d0x0", "l_sm_", "l_[hsm|sm]_", "b0c0d0x0" },
+  { "l_sm_b0c0n0", "l_sm_", "l_[hsm|sm]_", "b0c0n0" },
+  { "l_sm_b0c0n0_sco", "l_sm_", "l_[hsm|sm]_", "b0c0n0_sco" },
+  { "l_sm_b0c0n0_seethru", "l_sm_", "l_[hsm|sm]_", "b0c0n0_seethru" },
+  { "l_sm_b0c0n0s0", "l_sm_", "l_[hsm|sm]_", "b0c0n0s0" },
+  { "l_sm_b0c0n0s0_sco", "l_sm_", "l_[hsm|sm]_", "b0c0n0s0_sco" },
+  { "l_sm_b0c0n0s0_seethru", "l_sm_", "l_[hsm|sm]_", "b0c0n0s0_seethru" },
+  { "l_sm_b0c0n0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "b0c0n0s0sc0x0" },
+  { "l_sm_b0c0n0s0x0", "l_sm_", "l_[hsm|sm]_", "b0c0n0s0x0" },
+  { "l_sm_b0c0n0x0", "l_sm_", "l_[hsm|sm]_", "b0c0n0x0" },
+  { "l_sm_b0c0s0", "l_sm_", "l_[hsm|sm]_", "b0c0s0" },
+  { "l_sm_b0c0s0_sco", "l_sm_", "l_[hsm|sm]_", "b0c0s0_sco" },
+  { "l_sm_b0c0s0_seethru", "l_sm_", "l_[hsm|sm]_", "b0c0s0_seethru" },
+  { "l_sm_b0c0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "b0c0s0sc0x0" },
+  { "l_sm_b0c0s0x0", "l_sm_", "l_[hsm|sm]_", "b0c0s0x0" },
+  { "l_sm_b0c0x0", "l_sm_", "l_[hsm|sm]_", "b0c0x0" },
+  { "l_sm_r0c0", "l_sm_", "l_[hsm|sm]_", "r0c0" },
+  { "l_sm_r0c0_sco", "l_sm_", "l_[hsm|sm]_", "r0c0_sco" },
+  { "l_sm_r0c0_seethru", "l_sm_", "l_[hsm|sm]_", "r0c0_seethru" },
+  { "l_sm_r0c0d0", "l_sm_", "l_[hsm|sm]_", "r0c0d0" },
+  { "l_sm_r0c0d0_sco", "l_sm_", "l_[hsm|sm]_", "r0c0d0_sco" },
+  { "l_sm_r0c0d0_seethru", "l_sm_", "l_[hsm|sm]_", "r0c0d0_seethru" },
+  { "l_sm_r0c0d0n0", "l_sm_", "l_[hsm|sm]_", "r0c0d0n0" },
+  { "l_sm_r0c0d0n0_sco", "l_sm_", "l_[hsm|sm]_", "r0c0d0n0_sco" },
+  { "l_sm_r0c0d0n0_seethru", "l_sm_", "l_[hsm|sm]_", "r0c0d0n0_seethru" },
+  { "l_sm_r0c0d0n0s0", "l_sm_", "l_[hsm|sm]_", "r0c0d0n0s0" },
+  { "l_sm_r0c0d0n0s0_sco", "l_sm_", "l_[hsm|sm]_", "r0c0d0n0s0_sco" },
+  { "l_sm_r0c0d0n0s0_seethru", "l_sm_", "l_[hsm|sm]_", "r0c0d0n0s0_seethru" },
+  { "l_sm_r0c0d0n0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "r0c0d0n0s0sc0x0" },
+  { "l_sm_r0c0d0n0s0x0", "l_sm_", "l_[hsm|sm]_", "r0c0d0n0s0x0" },
+  { "l_sm_r0c0d0n0x0", "l_sm_", "l_[hsm|sm]_", "r0c0d0n0x0" },
+  { "l_sm_r0c0d0s0", "l_sm_", "l_[hsm|sm]_", "r0c0d0s0" },
+  { "l_sm_r0c0d0s0_sco", "l_sm_", "l_[hsm|sm]_", "r0c0d0s0_sco" },
+  { "l_sm_r0c0d0s0_seethru", "l_sm_", "l_[hsm|sm]_", "r0c0d0s0_seethru" },
+  { "l_sm_r0c0d0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "r0c0d0s0sc0x0" },
+  { "l_sm_r0c0d0s0x0", "l_sm_", "l_[hsm|sm]_", "r0c0d0s0x0" },
+  { "l_sm_r0c0d0x0", "l_sm_", "l_[hsm|sm]_", "r0c0d0x0" },
+  { "l_sm_r0c0n0", "l_sm_", "l_[hsm|sm]_", "r0c0n0" },
+  { "l_sm_r0c0n0_sco", "l_sm_", "l_[hsm|sm]_", "r0c0n0_sco" },
+  { "l_sm_r0c0n0_seethru", "l_sm_", "l_[hsm|sm]_", "r0c0n0_seethru" },
+  { "l_sm_r0c0n0s0", "l_sm_", "l_[hsm|sm]_", "r0c0n0s0" },
+  { "l_sm_r0c0n0s0_sco", "l_sm_", "l_[hsm|sm]_", "r0c0n0s0_sco" },
+  { "l_sm_r0c0n0s0_seethru", "l_sm_", "l_[hsm|sm]_", "r0c0n0s0_seethru" },
+  { "l_sm_r0c0n0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "r0c0n0s0sc0x0" },
+  { "l_sm_r0c0n0s0x0", "l_sm_", "l_[hsm|sm]_", "r0c0n0s0x0" },
+  { "l_sm_r0c0n0x0", "l_sm_", "l_[hsm|sm]_", "r0c0n0x0" },
+  { "l_sm_r0c0s0", "l_sm_", "l_[hsm|sm]_", "r0c0s0" },
+  { "l_sm_r0c0s0_sco", "l_sm_", "l_[hsm|sm]_", "r0c0s0_sco" },
+  { "l_sm_r0c0s0_seethru", "l_sm_", "l_[hsm|sm]_", "r0c0s0_seethru" },
+  { "l_sm_r0c0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "r0c0s0sc0x0" },
+  { "l_sm_r0c0s0x0", "l_sm_", "l_[hsm|sm]_", "r0c0s0x0" },
+  { "l_sm_r0c0x0", "l_sm_", "l_[hsm|sm]_", "r0c0x0" },
+  { "l_sm_t0c0", "l_sm_", "l_[hsm|sm]_", "t0c0" },
+  { "l_sm_t0c0_sco", "l_sm_", "l_[hsm|sm]_", "t0c0_sco" },
+  { "l_sm_t0c0_seethru", "l_sm_", "l_[hsm|sm]_", "t0c0_seethru" },
+  { "l_sm_t0c0d0", "l_sm_", "l_[hsm|sm]_", "t0c0d0" },
+  { "l_sm_t0c0d0_sco", "l_sm_", "l_[hsm|sm]_", "t0c0d0_sco" },
+  { "l_sm_t0c0d0_seethru", "l_sm_", "l_[hsm|sm]_", "t0c0d0_seethru" },
+  { "l_sm_t0c0d0n0", "l_sm_", "l_[hsm|sm]_", "t0c0d0n0" },
+  { "l_sm_t0c0d0n0_sco", "l_sm_", "l_[hsm|sm]_", "t0c0d0n0_sco" },
+  { "l_sm_t0c0d0n0_seethru", "l_sm_", "l_[hsm|sm]_", "t0c0d0n0_seethru" },
+  { "l_sm_t0c0d0n0s0", "l_sm_", "l_[hsm|sm]_", "t0c0d0n0s0" },
+  { "l_sm_t0c0d0n0s0_sco", "l_sm_", "l_[hsm|sm]_", "t0c0d0n0s0_sco" },
+  { "l_sm_t0c0d0n0s0_seethru", "l_sm_", "l_[hsm|sm]_", "t0c0d0n0s0_seethru" },
+  { "l_sm_t0c0d0n0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "t0c0d0n0s0sc0x0" },
+  { "l_sm_t0c0d0n0s0x0", "l_sm_", "l_[hsm|sm]_", "t0c0d0n0s0x0" },
+  { "l_sm_t0c0d0n0x0", "l_sm_", "l_[hsm|sm]_", "t0c0d0n0x0" },
+  { "l_sm_t0c0d0s0", "l_sm_", "l_[hsm|sm]_", "t0c0d0s0" },
+  { "l_sm_t0c0d0s0_sco", "l_sm_", "l_[hsm|sm]_", "t0c0d0s0_sco" },
+  { "l_sm_t0c0d0s0_seethru", "l_sm_", "l_[hsm|sm]_", "t0c0d0s0_seethru" },
+  { "l_sm_t0c0d0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "t0c0d0s0sc0x0" },
+  { "l_sm_t0c0d0s0x0", "l_sm_", "l_[hsm|sm]_", "t0c0d0s0x0" },
+  { "l_sm_t0c0d0x0", "l_sm_", "l_[hsm|sm]_", "t0c0d0x0" },
+  { "l_sm_t0c0n0", "l_sm_", "l_[hsm|sm]_", "t0c0n0" },
+  { "l_sm_t0c0n0_sco", "l_sm_", "l_[hsm|sm]_", "t0c0n0_sco" },
+  { "l_sm_t0c0n0_seethru", "l_sm_", "l_[hsm|sm]_", "t0c0n0_seethru" },
+  { "l_sm_t0c0n0s0", "l_sm_", "l_[hsm|sm]_", "t0c0n0s0" },
+  { "l_sm_t0c0n0s0_sco", "l_sm_", "l_[hsm|sm]_", "t0c0n0s0_sco" },
+  { "l_sm_t0c0n0s0_seethru", "l_sm_", "l_[hsm|sm]_", "t0c0n0s0_seethru" },
+  { "l_sm_t0c0n0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "t0c0n0s0sc0x0" },
+  { "l_sm_t0c0n0s0x0", "l_sm_", "l_[hsm|sm]_", "t0c0n0s0x0" },
+  { "l_sm_t0c0n0x0", "l_sm_", "l_[hsm|sm]_", "t0c0n0x0" },
+  { "l_sm_t0c0s0", "l_sm_", "l_[hsm|sm]_", "t0c0s0" },
+  { "l_sm_t0c0s0_sco", "l_sm_", "l_[hsm|sm]_", "t0c0s0_sco" },
+  { "l_sm_t0c0s0_seethru", "l_sm_", "l_[hsm|sm]_", "t0c0s0_seethru" },
+  { "l_sm_t0c0s0sc0x0", "l_sm_", "l_[hsm|sm]_", "t0c0s0sc0x0" },
+  { "l_sm_t0c0s0x0", "l_sm_", "l_[hsm|sm]_", "t0c0s0x0" },
+  { "l_sm_t0c0x0", "l_sm_", "l_[hsm|sm]_", "t0c0x0" },
+  { "unlit_add", NULL, NULL, "a0c0" },
+  { "unlit_blend", NULL, NULL, "b0c0" },
+  { "unlit_multiply", NULL, NULL, "m0c0" },
+  { "unlitdecalblend_add", NULL, NULL, "a0c0" },
+  { "unlitdecalblend_multiply", NULL, NULL, "m0c0" }
+};
+
+const MaterialUpdateFrequency s_codeConstUpdateFreq[] =
+{
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_PER_PRIM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_CUSTOM,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_RARELY,
+  MTL_UPDATE_PER_OBJECT,
+  MTL_UPDATE_RARELY
+};
+
+const bool g_useTechnique[130] =
+{
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  false,
+  false,
+  false,
+  false,
+  true,
+  false,
+  true,
+  true,
+  true
+};
+
+const CodeSamplerSource s_lightSamplers[2] =
+{
+  { "attenuation", TEXTURE_SRC_CODE_LIGHT_ATTENUATION, NULL, 0, 0 },
+  { NULL, TEXTURE_SRC_CODE_BLACK, NULL, 0, 0 }
+};
+
+const CodeSamplerSource s_lightmapSamplers[4] =
+{
+  { "primary", TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY, NULL, 0, 0 },
+  { "secondary", TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY, NULL, 0, 0 },
+  { "secondaryb", TEXTURE_SRC_CODE_LIGHTMAP_SECONDARYB, NULL, 0, 0 },
+  { NULL, TEXTURE_SRC_CODE_BLACK, NULL, 0, 0 }
+};
+
+const CodeSamplerSource s_codeSamplers[28] =
+{
+  { "white", TEXTURE_SRC_CODE_WHITE, NULL, 0, 0 },
+  { "black", TEXTURE_SRC_CODE_BLACK, NULL, 0, 0 },
+  { "identityNormalMap", TEXTURE_SRC_CODE_IDENTITY_NORMAL_MAP, NULL, 0, 0 },
+  { "lightmap", TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY, s_lightmapSamplers, 0, 0 },
+  { "outdoor", TEXTURE_SRC_CODE_OUTDOOR, NULL, 0, 0 },
+  { "shadowmapSun", TEXTURE_SRC_CODE_SHADOWMAP_SUN, NULL, 0, 0 },
+  { "shadowmapSpot", TEXTURE_SRC_CODE_SHADOWMAP_SPOT, NULL, 0, 0 },
+  { "feedback", TEXTURE_SRC_CODE_FEEDBACK, NULL, 0, 0 },
+  { "resolvedPostSun", TEXTURE_SRC_CODE_RESOLVED_POST_SUN, NULL, 0, 0 },
+  { "resolvedScene", TEXTURE_SRC_CODE_RESOLVED_SCENE, NULL, 0, 0 },
+  { "postEffectSrc", TEXTURE_SRC_CODE_POST_EFFECT_SRC, NULL, 0, 0 },
+  { "postEffectGodRays", TEXTURE_SRC_CODE_POST_EFFECT_GODRAYS, NULL, 0, 0 },
+  { "postEffect0", TEXTURE_SRC_CODE_POST_EFFECT_0, NULL, 0, 0 },
+  { "postEffect1", TEXTURE_SRC_CODE_POST_EFFECT_1, NULL, 0, 0 },
+  { "sky", TEXTURE_SRC_CODE_SKY, NULL, 0, 0 },
+  { "light", TEXTURE_SRC_CODE_LIGHT_ATTENUATION, s_lightSamplers, 0, 0 },
+  { "floatZ", TEXTURE_SRC_CODE_FLOATZ, NULL, 0, 0 },
+  { "processedFloatZ", TEXTURE_SRC_CODE_PROCESSED_FLOATZ, NULL, 0, 0 },
+  { "rawFloatZ", TEXTURE_SRC_CODE_RAW_FLOATZ, NULL, 0, 0 },
+  { "codeTexture0", TEXTURE_SRC_CODE_TEXTURE_0, NULL, 0, 0 },
+  { "codeTexture1", TEXTURE_SRC_CODE_TEXTURE_1, NULL, 0, 0 },
+  { "codeTexture2", TEXTURE_SRC_CODE_TEXTURE_2, NULL, 0, 0 },
+  { "codeTexture3", TEXTURE_SRC_CODE_TEXTURE_3, NULL, 0, 0 },
+  { "impactMask", TEXTURE_SRC_CODE_IMPACT_MASK, NULL, 0, 0 },
+  { "ui3d", TEXTURE_SRC_CODE_UI3D, NULL, 0, 0 },
+  { "missileCam", TEXTURE_SRC_CODE_MISSILE_CAM, NULL, 0, 0 },
+  { "compositeResult", TEXTURE_SRC_CODE_COMPOSITE_RESULT, NULL, 0, 0 },
+  { NULL, TEXTURE_SRC_CODE_BLACK, NULL, 0, 0 }
+};
+
+const CodeSamplerSource s_defaultCodeSamplers[27] =
+{
+  { "shadowmapSamplerSun", TEXTURE_SRC_CODE_SHADOWMAP_SUN, NULL, 0, 0 },
+  { "shadowmapSamplerSpot", TEXTURE_SRC_CODE_SHADOWMAP_SPOT, NULL, 0, 0 },
+  { "feedbackSampler", TEXTURE_SRC_CODE_FEEDBACK, NULL, 0, 0 },
+  { "floatZSampler", TEXTURE_SRC_CODE_FLOATZ, NULL, 0, 0 },
+  { "processedFloatZSampler", TEXTURE_SRC_CODE_PROCESSED_FLOATZ, NULL, 0, 0 },
+  { "rawFloatZSampler", TEXTURE_SRC_CODE_RAW_FLOATZ, NULL, 0, 0 },
+  { "featherFloatZSampler", TEXTURE_SRC_CODE_FEATHER_FLOAT_Z, NULL, 0, 0 },
+  { "attenuationSampler", TEXTURE_SRC_CODE_LIGHT_ATTENUATION, NULL, 0, 0 },
+  {
+    "dlightAttenuationSampler",
+    TEXTURE_SRC_CODE_DLIGHT_ATTENUATION,
+    NULL,
+    0,
+    0
+  },
+  { "lightmapSamplerPrimary", TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY, NULL, 0, 0 },
+  {
+    "lightmapSamplerSecondary",
+    TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY,
+    NULL,
+    0,
+    0
+  },
+  {
+    "lightmapSamplerSecondaryB",
+    TEXTURE_SRC_CODE_LIGHTMAP_SECONDARYB,
+    NULL,
+    0,
+    0
+  },
+  { "modelLightingSampler", TEXTURE_SRC_CODE_MODEL_LIGHTING, NULL, 0, 0 },
+  { "cinematicYSampler", TEXTURE_SRC_CODE_CINEMATIC_Y, NULL, 0, 0 },
+  { "cinematicCrSampler", TEXTURE_SRC_CODE_CINEMATIC_CR, NULL, 0, 0 },
+  { "cinematicCbSampler", TEXTURE_SRC_CODE_CINEMATIC_CB, NULL, 0, 0 },
+  { "cinematicASampler", TEXTURE_SRC_CODE_CINEMATIC_A, NULL, 0, 0 },
+  { "reflectionProbeSampler", TEXTURE_SRC_CODE_REFLECTION_PROBE, NULL, 0, 0 },
+  {
+    "terrainScorchTextureSampler0",
+    TEXTURE_SRC_CODE_TERRAIN_SCORCH_TEXTURE_0,
+    NULL,
+    0,
+    0
+  },
+  {
+    "terrainScorchTextureSampler1",
+    TEXTURE_SRC_CODE_TERRAIN_SCORCH_TEXTURE_1,
+    NULL,
+    0,
+    0
+  },
+  {
+    "terrainScorchTextureSampler2",
+    TEXTURE_SRC_CODE_TERRAIN_SCORCH_TEXTURE_2,
+    NULL,
+    0,
+    0
+  },
+  {
+    "terrainScorchTextureSampler3",
+    TEXTURE_SRC_CODE_TERRAIN_SCORCH_TEXTURE_3,
+    NULL,
+    0,
+    0
+  },
+  { "impactMaskSampler", TEXTURE_SRC_CODE_IMPACT_MASK, NULL, 0, 0 },
+  { "ui3dSampler", TEXTURE_SRC_CODE_UI3D, NULL, 0, 0 },
+  { "missileCamSampler", TEXTURE_SRC_CODE_MISSILE_CAM, NULL, 0, 0 },
+  { "heatmapSampler", TEXTURE_SRC_CODE_HEATMAP, NULL, 0, 0 },
+  { NULL, TEXTURE_SRC_CODE_BLACK, NULL, 0, 0 }
+};
+
+const CodeConstantSource s_sunConsts[4] =
+{
+  { "position", 50u, NULL, 0, 0 },
+  { "diffuse", 51u, NULL, 0, 0 },
+  { "specular", 52u, NULL, 0, 0 },
+  { NULL, 0u, NULL, 0, 0 }
+};
+
+const CodeConstantSource s_lightConsts[18] =
+{
+  { "position", 0u, NULL, 0, 0 },
+  { "diffuse", 1u, NULL, 0, 0 },
+  { "specular", 2u, NULL, 0, 0 },
+  { "spotDir", 3u, NULL, 0, 0 },
+  { "spotFactors", 4u, NULL, 0, 0 },
+  { "falloffPlacement", 25u, NULL, 0, 0 },
+  { "attenuation", 5u, NULL, 0, 0 },
+  { "fallOffA", 6u, NULL, 0, 0 },
+  { "fallOffB", 7u, NULL, 0, 0 },
+  { "spotMatrix0", 8u, NULL, 0, 0 },
+  { "spotMatrix1", 9u, NULL, 0, 0 },
+  { "spotMatrix2", 10u, NULL, 0, 0 },
+  { "spotMatrix3", 11u, NULL, 0, 0 },
+  { "spotAABB", 12u, NULL, 0, 0 },
+  { "coneControl1", 13u, NULL, 0, 0 },
+  { "coneControl2", 14u, NULL, 0, 0 },
+  { "spotCookieSlideControl", 15u, NULL, 0, 0 },
+  { NULL, 0u, NULL, 0, 0 }
+};
+
+const CodeConstantSource s_nearPlaneConsts[4] =
+{
+  { "org", 16u, NULL, 0, 0 },
+  { "dx", 17u, NULL, 0, 0 },
+  { "dy", 18u, NULL, 0, 0 },
+  { NULL, 0u, NULL, 0, 0 }
+};
+
+const CodeConstantSource s_codeConsts[185] =
+{
+  { "nearPlane", 230u, s_nearPlaneConsts, 0, 0 },
+  { "sun", 230u, s_sunConsts, 0, 0 },
+  { "light", 230u, s_lightConsts, 0, 0 },
+  { "baseLightingCoords", 78u, NULL, 0, 0 },
+  { "lightingLookupScale", 53u, NULL, 0, 0 },
+  { "debugBumpmap", 54u, NULL, 0, 0 },
+  { "pixelCostFracs", 34u, NULL, 0, 0 },
+  { "pixelCostDecode", 35u, NULL, 0, 0 },
+  { "materialColor", 55u, NULL, 0, 0 },
+  { "fogConsts", 56u, NULL, 0, 0 },
+  { "fogConsts2", 57u, NULL, 0, 0 },
+  { "fogColor", 58u, NULL, 0, 0 },
+  { "sunFogColor", 61u, NULL, 0, 0 },
+  { "sunFogDir", 60u, NULL, 0, 0 },
+  { "sunFog", 59u, NULL, 0, 0 },
+  { "glowSetup", 62u, NULL, 0, 0 },
+  { "glowApply", 63u, NULL, 0, 0 },
+  { "filterTap", 36u, NULL, 8, 1 },
+  { "codeMeshArg", 76u, NULL, 2, 1 },
+  { "renderTargetSize", 21u, NULL, 0, 0 },
+  { "vposx_to_world", 22u, NULL, 0, 0 },
+  { "vposy_to_world", 23u, NULL, 0, 0 },
+  { "vpos1_to_world", 24u, NULL, 0, 0 },
+  { "shadowmapSwitchPartition", 47u, NULL, 0, 0 },
+  { "shadowmapScale", 48u, NULL, 0, 0 },
+  { "shadowmapPolygonOffset", 20u, NULL, 0, 0 },
+  { "shadowParms", 19u, NULL, 0, 0 },
+  { "zNear", 49u, NULL, 0, 0 },
+  { "clipSpaceLookupScale", 72u, NULL, 0, 0 },
+  { "clipSpaceLookupOffset", 73u, NULL, 0, 0 },
+  { "dofEquationViewModelAndFarBlur", 26u, NULL, 0, 0 },
+  { "dofEquationScene", 27u, NULL, 0, 0 },
+  { "dofLerpScale", 28u, NULL, 0, 0 },
+  { "dofLerpBias", 29u, NULL, 0, 0 },
+  { "dofRowDelta", 30u, NULL, 0, 0 },
+  { "depthFromClip", 75u, NULL, 0, 0 },
+  { "outdoorFeatherParms", 67u, NULL, 0, 0 },
+  { "skyTransition", 68u, NULL, 0, 0 },
+  { "envMapParms", 69u, NULL, 0, 0 },
+  { "waterParms", 80u, NULL, 0, 0 },
+  { "colorMatrixR", 44u, NULL, 0, 0 },
+  { "colorMatrixG", 45u, NULL, 0, 0 },
+  { "colorMatrixB", 46u, NULL, 0, 0 },
+  { "colorBias", 64u, NULL, 0, 0 },
+  { "colorTintBase", 65u, NULL, 0, 0 },
+  { "colorTintDelta", 66u, NULL, 0, 0 },
+  { "gameTime", 32u, NULL, 0, 0 },
+  { "alphaFade", 33u, NULL, 0, 0 },
+  { "destructibleParms", 114u, NULL, 0, 0 },
+  { "particleCloudColor", 31u, NULL, 0, 0 },
+  { "particleCloudMatrix", 74u, NULL, 0, 0 },
+  { "worldMatrix", 197u, NULL, 0, 0 },
+  { "inverseWorldMatrix", 198u, NULL, 0, 0 },
+  { "transposeWorldMatrix", 199u, NULL, 0, 0 },
+  { "inverseTransposeWorldMatrix", 200u, NULL, 0, 0 },
+  { "viewMatrix", 201u, NULL, 0, 0 },
+  { "inverseViewMatrix", 202u, NULL, 0, 0 },
+  { "transposeViewMatrix", 203u, NULL, 0, 0 },
+  { "inverseTransposeViewMatrix", 204u, NULL, 0, 0 },
+  { "projectionMatrix", 205u, NULL, 0, 0 },
+  { "inverseProjectionMatrix", 206u, NULL, 0, 0 },
+  { "transposeProjectionMatrix", 207u, NULL, 0, 0 },
+  { "inverseTransposeProjectionMatrix", 208u, NULL, 0, 0 },
+  { "worldViewMatrix", 209u, NULL, 0, 0 },
+  { "inverseWorldViewMatrix", 210u, NULL, 0, 0 },
+  { "transposeWorldViewMatrix", 211u, NULL, 0, 0 },
+  { "inverseTransposeWorldViewMatrix", 212u, NULL, 0, 0 },
+  { "viewProjectionMatrix", 213u, NULL, 0, 0 },
+  { "inverseViewProjectionMatrix", 214u, NULL, 0, 0 },
+  { "transposeViewProjectionMatrix", 215u, NULL, 0, 0 },
+  { "inverseTransposeViewProjectionMatrix", 216u, NULL, 0, 0 },
+  { "worldViewProjectionMatrix", 217u, NULL, 0, 0 },
+  { "inverseWorldViewProjectionMatrix", 218u, NULL, 0, 0 },
+  { "transposeWorldViewProjectionMatrix", 219u, NULL, 0, 0 },
+  { "inverseTransposeWorldViewProjectionMatrix", 220u, NULL, 0, 0 },
+  { "shadowLookupMatrix", 221u, NULL, 0, 0 },
+  { "inverseShadowLookupMatrix", 222u, NULL, 0, 0 },
+  { "transposeShadowLookupMatrix", 223u, NULL, 0, 0 },
+  { "inverseTransposeShadowLookupMatrix", 224u, NULL, 0, 0 },
+  { "worldOutdoorLookupMatrix", 225u, NULL, 0, 0 },
+  { "inverseWorldOutdoorLookupMatrix", 226u, NULL, 0, 0 },
+  { "transposeWorldOutdoorLookupMatrix", 227u, NULL, 0, 0 },
+  { "inverseTransposeWorldOutdoorLookupMatrix", 228u, NULL, 0, 0 },
+  { "windDirection", 79u, NULL, 0, 0 },
+  { "variantWindSpring", 98u, NULL, 16, 1 },
+  { "u_customWindCenter", 192u, NULL, 0, 0 },
+  { "u_customWindSpring", 193u, NULL, 0, 0 },
+  { "grassParms", 81u, NULL, 0, 0 },
+  { "grassForce0", 82u, NULL, 0, 0 },
+  { "grassForce1", 83u, NULL, 0, 0 },
+  { "grassWindForce0", 84u, NULL, 0, 0 },
+  { "cloudWorldArea", 115u, NULL, 0, 0 },
+  { "waterScroll", 116u, NULL, 0, 0 },
+  { "motionblurDirectionAndMagnitude", 85u, NULL, 0, 0 },
+  { "flameDistortion", 86u, NULL, 0, 0 },
+  { "bloomScale", 87u, NULL, 0, 0 },
+  { "overlayTexCoord", 88u, NULL, 0, 0 },
+  { "colorBias1", 89u, NULL, 0, 0 },
+  { "colorTintBase1", 90u, NULL, 0, 0 },
+  { "colorTintDelta1", 91u, NULL, 0, 0 },
+  { "fadeEffect", 92u, NULL, 0, 0 },
+  { "viewportDimensions", 93u, NULL, 0, 0 },
+  { "framebufferRead", 94u, NULL, 0, 0 },
+  { "resizeParams1", 95u, NULL, 0, 0 },
+  { "resizeParams2", 96u, NULL, 0, 0 },
+  { "resizeParams3", 97u, NULL, 0, 0 },
+  { "crossFadeAlpha", 117u, NULL, 0, 0 },
+  { "__characterCharredAmount", 118u, NULL, 0, 0 },
+  { "treeCanopyParms", 119u, NULL, 0, 0 },
+  { "marksHitNormal", 120u, NULL, 0, 0 },
+  { "postFxControl0", 121u, NULL, 0, 0 },
+  { "postFxControl1", 122u, NULL, 0, 0 },
+  { "postFxControl2", 123u, NULL, 0, 0 },
+  { "postFxControl3", 124u, NULL, 0, 0 },
+  { "postFxControl4", 125u, NULL, 0, 0 },
+  { "postFxControl5", 126u, NULL, 0, 0 },
+  { "postFxControl6", 127u, NULL, 0, 0 },
+  { "postFxControl7", 128u, NULL, 0, 0 },
+  { "postFxControl8", 129u, NULL, 0, 0 },
+  { "postFxControl9", 130u, NULL, 0, 0 },
+  { "postFxControlA", 131u, NULL, 0, 0 },
+  { "postFxControlB", 132u, NULL, 0, 0 },
+  { "postFxControlC", 133u, NULL, 0, 0 },
+  { "postFxControlD", 134u, NULL, 0, 0 },
+  { "postFxControlE", 135u, NULL, 0, 0 },
+  { "postFxControlF", 136u, NULL, 0, 0 },
+  { "hdrControl0", 137u, NULL, 0, 0 },
+  { "hdrControl1", 138u, NULL, 0, 0 },
+  { "glightPosXs", 139u, NULL, 0, 0 },
+  { "glightPosYs", 140u, NULL, 0, 0 },
+  { "glightPosZs", 141u, NULL, 0, 0 },
+  { "glightFallOffs", 142u, NULL, 0, 0 },
+  { "glightReds", 143u, NULL, 0, 0 },
+  { "glightGreens", 144u, NULL, 0, 0 },
+  { "glightBlues", 145u, NULL, 0, 0 },
+  { "dlightPosition", 146u, NULL, 0, 0 },
+  { "dlightDiffuse", 147u, NULL, 0, 0 },
+  { "dlightSpecular", 148u, NULL, 0, 0 },
+  { "dlightAttenuation", 149u, NULL, 0, 0 },
+  { "dlightFallOff", 150u, NULL, 0, 0 },
+  { "dlightSpotMatrix0", 151u, NULL, 0, 0 },
+  { "dlightSpotMatrix1", 152u, NULL, 0, 0 },
+  { "dlightSpotMatrix2", 153u, NULL, 0, 0 },
+  { "dlightSpotMatrix3", 154u, NULL, 0, 0 },
+  { "dlightSpotDir", 155u, NULL, 0, 0 },
+  { "dlightSpotFactors", 156u, NULL, 0, 0 },
+  { "dlightShadowLookupMatrix0", 157u, NULL, 0, 0 },
+  { "dlightShadowLookupMatrix1", 158u, NULL, 0, 0 },
+  { "dlightShadowLookupMatrix2", 159u, NULL, 0, 0 },
+  { "dlightShadowLookupMatrix3", 160u, NULL, 0, 0 },
+  { "cloudLayerControl0", 161u, NULL, 0, 0 },
+  { "cloudLayerControl1", 162u, NULL, 0, 0 },
+  { "cloudLayerControl2", 163u, NULL, 0, 0 },
+  { "cloudLayerControl3", 164u, NULL, 0, 0 },
+  { "cloudLayerControl4", 165u, NULL, 0, 0 },
+  { "heroLightingR", 166u, NULL, 0, 0 },
+  { "heroLightingG", 167u, NULL, 0, 0 },
+  { "heroLightingB", 168u, NULL, 0, 0 },
+  { "lightHeroScale", 169u, NULL, 0, 0 },
+  { "cinematicBlurBox", 170u, NULL, 0, 0 },
+  { "cinematicBlurBox2", 171u, NULL, 0, 0 },
+  { "adsZScale", 172u, NULL, 0, 0 },
+  { "ui3dUVSetup0", 173u, NULL, 0, 0 },
+  { "ui3dUVSetup1", 174u, NULL, 0, 0 },
+  { "ui3dUVSetup2", 175u, NULL, 0, 0 },
+  { "ui3dUVSetup3", 176u, NULL, 0, 0 },
+  { "ui3dUVSetup4", 177u, NULL, 0, 0 },
+  { "ui3dUVSetup5", 178u, NULL, 0, 0 },
+  { "__characterDissolveColor", 179u, NULL, 0, 0 },
+  { "cameraLook", 180u, NULL, 0, 0 },
+  { "cameraUp", 181u, NULL, 0, 0 },
+  { "cameraSide", 182u, NULL, 0, 0 },
+  { "scriptVector0", 183u, NULL, 0, 0 },
+  { "scriptVector1", 184u, NULL, 0, 0 },
+  { "scriptVector2", 185u, NULL, 0, 0 },
+  { "scriptVector3", 186u, NULL, 0, 0 },
+  { "scriptVector4", 187u, NULL, 0, 0 },
+  { "scriptVector5", 188u, NULL, 0, 0 },
+  { "scriptVector6", 189u, NULL, 0, 0 },
+  { "scriptVector7", 190u, NULL, 0, 0 },
+  { "eyeOffset", 191u, NULL, 0, 0 },
+  { "skyColorMultiplier", 194u, NULL, 0, 0 },
+  { "extraCamParam", 195u, NULL, 0, 0 },
+  { "emblemLUTSelector", 196u, NULL, 0, 0 },
+  { NULL, 0u, NULL, 0, 0 }
+};
+
+const CodeConstantSource s_defaultCodeConsts[26] =
+{
+  { "nearPlaneOrg", 16u, NULL, 0, 0 },
+  { "nearPlaneDx", 17u, NULL, 0, 0 },
+  { "nearPlaneDy", 18u, NULL, 0, 0 },
+  { "sunPosition", 50u, NULL, 0, 0 },
+  { "sunDiffuse", 51u, NULL, 0, 0 },
+  { "sunSpecular", 52u, NULL, 0, 0 },
+  { "lightPosition", 0u, NULL, 0, 0 },
+  { "lightDiffuse", 1u, NULL, 0, 0 },
+  { "lightSpecular", 2u, NULL, 0, 0 },
+  { "lightSpotDir", 3u, NULL, 0, 0 },
+  { "lightSpotFactors", 4u, NULL, 0, 0 },
+  { "lightFalloffPlacement", 25u, NULL, 0, 0 },
+  { "lightAttenuation", 5u, NULL, 0, 0 },
+  { "lightFallOffA", 6u, NULL, 0, 0 },
+  { "lightFallOffB", 7u, NULL, 0, 0 },
+  { "lightSpotMatrix0", 8u, NULL, 0, 0 },
+  { "lightSpotMatrix1", 9u, NULL, 0, 0 },
+  { "lightSpotMatrix2", 10u, NULL, 0, 0 },
+  { "lightSpotMatrix3", 11u, NULL, 0, 0 },
+  { "lightSpotAABB", 12u, NULL, 0, 0 },
+  { "lightConeControl1", 13u, NULL, 0, 0 },
+  { "lightConeControl2", 14u, NULL, 0, 0 },
+  { "lightSpotCookieSlideControl", 15u, NULL, 0, 0 },
+  { "spotShadowmapPixelAdjust", 70u, NULL, 0, 0 },
+  { "dlightSpotShadowmapPixelAdjust", 71u, NULL, 0, 0 },
+  { NULL, 0u, NULL, 0, 0 }
+};
+
+const MtlStateMapBitName s_alphaTestBitNames[5] =
+{
+  { "Always", 2048 },
+  { "GE128", 12288 },
+  { "GT0", 4096 },
+  { "GE255", 8192 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_blendOpRgbBitNames[7] =
+{
+  { "Disable", 0 },
+  { "Add", 256 },
+  { "Subtract", 512 },
+  { "RevSubtract", 768 },
+  { "Min", 1024 },
+  { "Max", 1280 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_srcBlendRgbBitNames[11] =
+{
+  { "Zero", 1 },
+  { "One", 2 },
+  { "SrcColor", 3 },
+  { "InvSrcColor", 4 },
+  { "SrcAlpha", 5 },
+  { "InvSrcAlpha", 6 },
+  { "DestAlpha", 7 },
+  { "InvDestAlpha", 8 },
+  { "DestColor", 9 },
+  { "InvDestColor", 10 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_dstBlendRgbBitNames[11] =
+{
+  { "Zero", 16 },
+  { "One", 32 },
+  { "SrcColor", 48 },
+  { "InvSrcColor", 64 },
+  { "SrcAlpha", 80 },
+  { "InvSrcAlpha", 96 },
+  { "DestAlpha", 112 },
+  { "InvDestAlpha", 128 },
+  { "DestColor", 144 },
+  { "InvDestColor", 160 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_blendOpAlphaBitNames[7] =
+{
+  { "Disable", 0 },
+  { "Add", 16777216 },
+  { "Subtract", 33554432 },
+  { "RevSubtract", 50331648 },
+  { "Min", 67108864 },
+  { "Max", 83886080 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_srcBlendAlphaBitNames[11] =
+{
+  { "Zero", 65536 },
+  { "One", 131072 },
+  { "SrcColor", 196608 },
+  { "InvSrcColor", 262144 },
+  { "SrcAlpha", 327680 },
+  { "InvSrcAlpha", 393216 },
+  { "DestAlpha", 458752 },
+  { "InvDestAlpha", 524288 },
+  { "DestColor", 589824 },
+  { "InvDestColor", 655360 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_dstBlendAlphaBitNames[11] =
+{
+  { "Zero", 1048576 },
+  { "One", 2097152 },
+  { "SrcColor", 3145728 },
+  { "InvSrcColor", 4194304 },
+  { "SrcAlpha", 5242880 },
+  { "InvSrcAlpha", 6291456 },
+  { "DestAlpha", 7340032 },
+  { "InvDestAlpha", 8388608 },
+  { "DestColor", 9437184 },
+  { "InvDestColor", 10485760 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_cullFaceBitNames[4] =
+{ { "None", 16384 }, { "Back", 32768 }, { "Front", 49152 }, { NULL, 0 } };
+
+const MtlStateMapBitName s_depthTestBitNames[6] =
+{
+  { "Disable", 2 },
+  { "Less", 4 },
+  { "LessEqual", 12 },
+  { "Equal", 8 },
+  { "Always", 0 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_depthWriteBitNames[5] =
+{ { "Enable", 1 }, { "Disable", 0 }, { "On", 1 }, { "Off", 0 }, { NULL, 0 } };
+
+const MtlStateMapBitName s_colorWriteRgbBitNames[3] =
+{ { "Enable", 134217728 }, { "Disable", 0 }, { NULL, 0 } };
+
+const MtlStateMapBitName s_colorWriteAlphaBitNames[3] =
+{ { "Enable", 268435456 }, { "Disable", 0 }, { NULL, 0 } };
+
+const MtlStateMapBitName s_polygonOffsetBitNames[5] =
+{ { "0", 0 }, { "1", 16 }, { "2", 32 }, { "shadowmap", 48 }, { NULL, 0 } };
+
+const MtlStateMapBitName s_wireframeBitNames[3] =
+{ { "Enable", 2147483648 }, { "Disable", 0 }, { NULL, 0 } };
+
+const MtlStateMapBitName s_stencilBitNames[4] =
+{ { "Disable", 0 }, { "OneSided", 64 }, { "TwoSided", 192 }, { NULL, 0 } };
+
+const MtlStateMapBitName s_stencilOpFrontPassBitNames[9] =
+{
+  { "Keep", 0 },
+  { "Zero", 256 },
+  { "Replace", 512 },
+  { "IncrSat", 768 },
+  { "DecrSat", 1024 },
+  { "Invert", 1280 },
+  { "Incr", 1536 },
+  { "Decr", 1792 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_stencilOpFrontFailBitNames[9] =
+{
+  { "Keep", 0 },
+  { "Zero", 2048 },
+  { "Replace", 4096 },
+  { "IncrSat", 6144 },
+  { "DecrSat", 8192 },
+  { "Invert", 10240 },
+  { "Incr", 12288 },
+  { "Decr", 14336 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_stencilOpFrontZFailBitNames[9] =
+{
+  { "Keep", 0 },
+  { "Zero", 16384 },
+  { "Replace", 32768 },
+  { "IncrSat", 49152 },
+  { "DecrSat", 65536 },
+  { "Invert", 81920 },
+  { "Incr", 98304 },
+  { "Decr", 114688 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_stencilFuncFrontBitNames[9] =
+{
+  { "Never", 0 },
+  { "Less", 131072 },
+  { "Equal", 262144 },
+  { "LessEqual", 393216 },
+  { "Greater", 524288 },
+  { "NotEqual", 655360 },
+  { "GreaterEqual", 786432 },
+  { "Always", 917504 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_stencilOpBackPassBitNames[9] =
+{
+  { "Keep", 0 },
+  { "Zero", 1048576 },
+  { "Replace", 2097152 },
+  { "IncrSat", 3145728 },
+  { "DecrSat", 4194304 },
+  { "Invert", 5242880 },
+  { "Incr", 6291456 },
+  { "Decr", 7340032 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_stencilOpBackFailBitNames[9] =
+{
+  { "Keep", 0 },
+  { "Zero", 8388608 },
+  { "Replace", 16777216 },
+  { "IncrSat", 25165824 },
+  { "DecrSat", 33554432 },
+  { "Invert", 41943040 },
+  { "Incr", 50331648 },
+  { "Decr", 58720256 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_stencilOpBackZFailBitNames[9] =
+{
+  { "Keep", 0 },
+  { "Zero", 67108864 },
+  { "Replace", 134217728 },
+  { "IncrSat", 201326592 },
+  { "DecrSat", 268435456 },
+  { "Invert", 335544320 },
+  { "Incr", 402653184 },
+  { "Decr", 469762048 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitName s_stencilFuncBackBitNames[9] =
+{
+  { "Never", 0 },
+  { "Less", 536870912 },
+  { "Equal", 1073741824 },
+  { "LessEqual", 1610612736 },
+  { "Greater", 2147483648 },
+  { "NotEqual", -1610612736 },
+  { "GreaterEqual", -1073741824 },
+  { "Always", -536870912 },
+  { NULL, 0 }
+};
+
+const MtlStateMapBitGroup s_stateMapSrcBitGroup[23] =
+{
+  { "mtlAlphaTest", s_alphaTestBitNames, { 14336, 0 } },
+  { "mtlBlendOp", s_blendOpRgbBitNames, { 1792, 0 } },
+  { "mtlSrcBlend", s_srcBlendRgbBitNames, { 15, 0 } },
+  { "mtlDestBlend", s_dstBlendRgbBitNames, { 240, 0 } },
+  { "mtlBlendOpAlpha", s_blendOpAlphaBitNames, { 117440512, 0 } },
+  { "mtlSrcBlendAlpha", s_srcBlendAlphaBitNames, { 983040, 0 } },
+  { "mtlDestBlendAlpha", s_dstBlendAlphaBitNames, { 15728640, 0 } },
+  { "mtlCullFace", s_cullFaceBitNames, { 49152, 0 } },
+  { "mtlColorWriteRgb", s_colorWriteRgbBitNames, { 134217728, 0 } },
+  { "mtlColorWriteAlpha", s_colorWriteAlphaBitNames, { 268435456, 0 } },
+  { "mtlDepthTest", s_depthTestBitNames, { 0, 14 } },
+  { "mtlDepthWrite", s_depthWriteBitNames, { 0, 1 } },
+  { "mtlPolygonOffset", s_polygonOffsetBitNames, { 0, 48 } },
+  { "mtlStencil", s_stencilBitNames, { 0, 192 } },
+  { "mtlStencilFuncFront", s_stencilFuncFrontBitNames, { 0, 917504 } },
+  { "mtlStencilOpFrontPass", s_stencilOpFrontPassBitNames, { 0, 1792 } },
+  { "mtlStencilOpFrontFail", s_stencilOpFrontFailBitNames, { 0, 14336 } },
+  { "mtlStencilOpFrontZFail", s_stencilOpFrontZFailBitNames, { 0, 114688 } },
+  { "mtlStencilFuncBack", s_stencilFuncBackBitNames, { 0, 917504 } },
+  { "mtlStencilOpBackPass", s_stencilOpBackPassBitNames, { 0, 1792 } },
+  { "mtlStencilOpBackFail", s_stencilOpBackFailBitNames, { 0, 14336 } },
+  { "mtlStencilOpBackZFail", s_stencilOpBackZFailBitNames, { 0, 114688 } },
+  { NULL, NULL, { 0, 0 } }
+};
+
+const MtlStateMapBitGroup s_stateMapDstAlphaTestBitGroup[2] =
+{
+  { "alphaTest", s_alphaTestBitNames, { 14336, 0 } },
+  { NULL, NULL, { 0, 0 } }
+};
+
+const MtlStateMapBitGroup s_stateMapDstBlendFuncRgbBitGroup[4] =
+{
+  { "blendFuncRgb", s_blendOpRgbBitNames, { 1792, 0 } },
+  { "blendFuncRgb", s_srcBlendRgbBitNames, { 1807, 0 } },
+  { "blendFuncRgb", s_dstBlendRgbBitNames, { 2032, 0 } },
+  { NULL, NULL, { 0, 0 } }
+};
+
+const MtlStateMapBitGroup s_stateMapDstBlendFuncAlphaBitGroup[4] =
+{
+  { "blendFuncAlpha", s_blendOpAlphaBitNames, { 117440512, 0 } },
+  { "blendFuncAlpha", s_srcBlendAlphaBitNames, { 983040, 0 } },
+  { "blendFuncAlpha", s_dstBlendAlphaBitNames, { 15728640, 0 } },
+  { NULL, NULL, { 0, 0 } }
+};
+
+const MtlStateMapBitGroup s_stateMapDstCullFaceBitGroup[2] =
+{ { "cullFace", s_cullFaceBitNames, { 49152, 0 } }, { NULL, NULL, { 0, 0 } } };
+
+const MtlStateMapBitGroup s_stateMapDstDepthTestBitGroup[2] =
+{ { "depthTest", s_depthTestBitNames, { 0, 14 } }, { NULL, NULL, { 0, 0 } } };
+
+const MtlStateMapBitGroup s_stateMapDstDepthWriteBitGroup[2] =
+{ { "depthWrite", s_depthWriteBitNames, { 0, 1 } }, { NULL, NULL, { 0, 0 } } };
+
+const MtlStateMapBitGroup s_stateMapDstColorWriteBitGroup[3] =
+{
+  { "colorWrite", s_colorWriteRgbBitNames, { 134217728, 0 } },
+  { "colorWrite", s_colorWriteAlphaBitNames, { 268435456, 0 } },
+  { NULL, NULL, { 0, 0 } }
+};
+
+const MtlStateMapBitGroup s_stateMapDstPolygonOffsetBitGroup[2] =
+{
+  { "polygonOffset", s_polygonOffsetBitNames, { 0, 48 } },
+  { NULL, NULL, { 0, 0 } }
+};
+
+const MtlStateMapBitGroup s_stateMapDstWireframeBitGroup[2] =
+{
+  { "wireframe", s_wireframeBitNames, { 2147483648, 0 } },
+  { NULL, NULL, { 0, 0 } }
+};
+
+const MtlStateMapBitGroup s_stateMapDstStencilBitGroup[10] =
+{
+  { "stencil", s_stencilBitNames, { 0, 192 } },
+  { "stencil", s_stencilFuncFrontBitNames, { 0, 917504 } },
+  { "stencil", s_stencilOpFrontPassBitNames, { 0, 1792 } },
+  { "stencil", s_stencilOpFrontFailBitNames, { 0, 14336 } },
+  { "stencil", s_stencilOpFrontZFailBitNames, { 0, 114688 } },
+  { "stencil", s_stencilFuncBackBitNames, { 0, 917504 } },
+  { "stencil", s_stencilOpBackPassBitNames, { 0, 1792 } },
+  { "stencil", s_stencilOpBackFailBitNames, { 0, 14336 } },
+  { "stencil", s_stencilOpBackZFailBitNames, { 0, 114688 } },
+  { NULL, NULL, { 0, 0 } }
+};
+
+const MaterialWorldVertexFormat s_worldVertFormatForLayerCount[4] =
+{
+  MTL_WORLDVERT_TEX_1_NRM_1,
+  MTL_WORLDVERT_TEX_2_NRM_1,
+  MTL_WORLDVERT_TEX_3_NRM_1,
+  MTL_WORLDVERT_TEX_4_NRM_1
+};
+
+
+// *WARNING* One or more selections were skipped as they could not be interpreted as c data
+
+
+
+unsigned int g_customSamplerSrc[4] = { 27u, 4u, 5u, 33u };
+unsigned int g_customSamplerDest[4] = { 15u, 12u, 13u, 14u };
+
+ScriptableConstant g_scriptableConstantArray[13] =
+{
+  { 118u, NULL },
+  { 179u, NULL },
+  { 183u, NULL },
+  { 184u, NULL },
+  { 185u, NULL },
+  { 186u, NULL },
+  { 187u, NULL },
+  { 188u, NULL },
+  { 189u, NULL },
+  { 190u, NULL },
+  { 166u, NULL },
+  { 167u, NULL },
+  { 168u, NULL }
+};
+
+
+const bool g_useTechnique[130] =
+{
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  false,
+  false,
+  false,
+  false,
+  true,
+  false,
+  true,
+  true,
+  true
+};
+
+
+
+struct //$54435CF730F84DB67694F69169881761 // sizeof=0x2CE28
+{                                       // XREF: .data:mtlLoadGlob/r
+    unsigned int cachedShaderCount;     // XREF: Material_FindCachedShaderText+D/r
+                                        // Material_PreLoadAllShaderText(void)+6F/w ...
+    GfxCachedShaderText *cachedShaderText;
+                                        // XREF: Material_FindCachedShaderText+31/r
+                                        // Material_FindCachedShaderText+59/r ...
+    unsigned int vertexDeclCount;       // XREF: Material_FreeAll(void)+60/w
+                                        // Material_AllocVertexDecl:loc_ACE889/r ...
+    MaterialVertexDeclaration vertexDeclHashTable[64];
+                                        // XREF: Material_FreeAll(void)+53/o
+                                        // Material_AllocVertexDecl+4D/o ...
+    unsigned int literalCount;          // XREF: Material_FreeAllLiterals+3/w
+                                        // Material_RegisterLiteral+1B/r ...
+    float literalTable[32][4];          // XREF: Material_RegisterLiteral+2D/o
+                                        // Material_RegisterLiteral+A4/o ...
+    unsigned int stringCount;           // XREF: Material_FreeAllStrings+17/w
+                                        // Material_RegisterString:loc_AD2296/r ...
+    MaterialString stringHashTable[1024];
+                                        // XREF: Material_FreeAllStrings+A/o
+                                        // Material_RegisterString+24/r ...
+    unsigned int vertexShaderCount;     // XREF: Material_FreeAll(void)+7E/w
+                                        // Material_RegisterVertexShader+CC/r ...
+    MaterialVertexShader *vertexShaderHashTable[5120];
+                                        // XREF: Material_FreeAll(void)+71/o
+                                        // Material_RegisterVertexShader+24/r ...
+    unsigned int pixelShaderCount;      // XREF: Material_FreeAll(void)+9C/w
+                                        // Material_RegisterPixelShader+CC/r ...
+    MaterialPixelShader *pixelShaderHashTable[20480];
+                                        // XREF: Material_FreeAll(void)+8F/o
+                                        // Material_RegisterPixelShader+24/r ...
+    unsigned int stateMapCount;         // XREF: Material_FreeAllStateMaps+17/w
+    MaterialStateMap *stateMapHashTable[64];
+                                        // XREF: Material_FreeAllStateMaps+A/o
+                                        // Material_FindStateMap+22/r ...
+    unsigned int techniqueCount;        // XREF: Material_FreeAll(void)+42/w
+                                        // Material_SetTechnique+4/r ...
+    MaterialTechnique *techniqueHashTable[16384];
+                                        // XREF: Material_FreeAll(void)+35/o
+                                        // Material_FindTechnique+4E/r ...
+    const MaterialRaw *sortMtlRaw;      // XREF: Material_FinishLoadingInstance+D1/w
+} mtlLoadGlob;
+
+bool gIsPIMPEnabled;
+bool gIsSW2Material;
+bool gCheckedForPimp;
 
 bool __cdecl Material_CachedShaderTextLess(const GfxCachedShaderText *cached0, const GfxCachedShaderText *cached1)
 {
@@ -43,9 +2120,9 @@ void Material_FreeAllStateMaps()
 
 MaterialTechniqueSet *__cdecl Material_LoadTechniqueSet(char *name)
 {
-    int v1; // eax
-    int v2; // eax
-    int v3; // eax
+    char *v1; // eax
+    char *v2; // eax
+    char *v3; // eax
     unsigned int v5; // [esp+0h] [ebp-1ECh]
     bool v6; // [esp+10h] [ebp-1DCh]
     bool v7; // [esp+18h] [ebp-1D4h]
@@ -72,14 +2149,14 @@ MaterialTechniqueSet *__cdecl Material_LoadTechniqueSet(char *name)
             Com_Printf(0, "^0PIMP (%s)\n", "disabled");
         gCheckedForPimp = 1;
     }
-    strstr((unsigned __int8 *)name, "sw_");
+    v1 = strstr(name, "sw_");
     v6 = 1;
     if ( !v1 )
     {
-        strstr((unsigned __int8 *)name, "swb_");
+        v2 = strstr(name, "swb_");
         if ( !v2 )
         {
-            strstr((unsigned __int8 *)name, "swl_");
+            v3 = strstr(name, "swl_");
             if ( !v3 )
                 v6 = 0;
         }
@@ -329,7 +2406,7 @@ MaterialTechnique *__cdecl Material_LoadTechnique(char *name)
             nameSize = strlen(name) + 1;
             technique = Material_Alloc(nameSize + 24 * passCount + 8);
             stateMapForPass = (MaterialStateMap **)&technique[20 * passCount + 8];
-            *(unsigned int *)technique = &stateMapForPass[passCount];
+            *(unsigned int *)technique = (unsigned int)&stateMapForPass[passCount];
             memcpy(*(unsigned __int8 **)technique, (unsigned __int8 *)name, nameSize);
 
             *((_WORD *)technique + 2) = techFlags;
@@ -384,7 +2461,7 @@ char __cdecl Material_LoadPass(
                 MaterialPass *pass,
                 MaterialStateMap **stateMap)
 {
-    int v5; // eax
+    char *v5; // eax
     MaterialShaderArgument *v6; // [esp+14h] [ebp-6550h]
     int j; // [esp+1Ch] [ebp-6548h]
     int k; // [esp+1Ch] [ebp-6548h]
@@ -554,7 +2631,7 @@ char __cdecl Material_LoadPass(
                 //BLOPS_NULLSUB();
                 //BLOPS_NULLSUB();
                 Material_LoadDeclTypes((const char **)text, pass);
-                strstr((unsigned __int8 *)*text, "vertexDef");
+                v5 = strstr(*text, "vertexDef");
                 if ( v5 )
                 {
                     while ( strcmp(";", Com_Parse((const char **)text)->token) )
@@ -731,7 +2808,7 @@ bool __cdecl Material_ParseStateMap(char **text, MaterialStateMap *stateMap)
 
 char __cdecl Material_ParseRuleSet(
                 char **text,
-                char *ruleSetName,
+                const char *ruleSetName,
                 const MtlStateMapBitGroup *stateSet,
                 MaterialStateMapRuleSet **ruleSet)
 {
@@ -862,7 +2939,7 @@ int __cdecl Material_ParseRuleSetCondition(const char **text, const char *token,
     }
     if ( !strcmp(token, "default") )
         return Material_MatchToken(text, ":") ? 0 : 2;
-    success = Material_ParseRuleSetConditionTest(text, token, rule);
+    success = (MtlParseSuccess)Material_ParseRuleSetConditionTest(text, token, rule);
     if ( success )
         return success;
     do
@@ -870,13 +2947,13 @@ int __cdecl Material_ParseRuleSetCondition(const char **text, const char *token,
         tokena = Com_Parse(text);
         if ( !strcmp(tokena->token, ":") )
             return 0;
-        if ( strcmp(tokena->token, AMPERSAND_2X) )
+        if ( strcmp(tokena->token, "&&"))
         {
             Com_ScriptError("expected ':' or '&&', found '%s'\n", tokena->token);
             return 2;
         }
         tokenb = Com_Parse(text);
-        successa = Material_ParseRuleSetConditionTest(text, tokenb->token, rule);
+        successa = (MtlParseSuccess)Material_ParseRuleSetConditionTest(text, tokenb->token, rule);
     }
     while ( successa == MTL_PARSE_SUCCESS );
     if ( successa == MTL_PARSE_NO_MATCH )
@@ -1476,7 +3553,7 @@ char __cdecl Material_LoadPassVertexShader(
                      (char **)text,
                      (char *)mtlShader->name,
                      MTL_VERTEX_SHADER,
-                     (const unsigned int *)&mtlShader[1],
+                     (const DWORD *)&mtlShader[1],
                      techFlags,
                      paramSet,
                      argLimit,
@@ -1511,7 +3588,7 @@ MaterialVertexShader *__cdecl Material_LoadVertexShader(char *shaderName)
     unsigned int programSize; // [esp+10h] [ebp-38h]
     int hr; // [esp+18h] [ebp-30h]
     char target[16]; // [esp+1Ch] [ebp-2Ch] BYREF
-    unsigned int *program; // [esp+30h] [ebp-18h]
+    DWORD *program; // [esp+30h] [ebp-18h]
     unsigned int nameSize; // [esp+34h] [ebp-14h]
     int semaphore; // [esp+38h] [ebp-10h]
     ID3DXBuffer *shader; // [esp+3Ch] [ebp-Ch]
@@ -1519,10 +3596,10 @@ MaterialVertexShader *__cdecl Material_LoadVertexShader(char *shaderName)
     MaterialVertexShader *mtlShader; // [esp+44h] [ebp-4h]
 
     Material_GetShaderTargetString(target, 0x10u, "vs");
-    shader = Material_CompileShader(shaderName, MTL_VERTEX_SHADER, "vs_main", target);
+    shader = Material_CompileShader(shaderName, MTL_VERTEX_SHADER, (char*)"vs_main", target);
     if ( !shader )
         return 0;
-    programSize = shader->GetBufferSize(shader);
+    programSize = shader->GetBufferSize();
     if ( !programSize
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_material_load_obj.cpp",
@@ -1537,18 +3614,20 @@ MaterialVertexShader *__cdecl Material_LoadVertexShader(char *shaderName)
     nameSize = strlen(shaderName) + 1;
     totalSize = programSize + nameSize + 16;
     mtlShader = (MaterialVertexShader *)Material_Alloc(totalSize);
-    program = (unsigned int *)&mtlShader[1];
+    program = (DWORD*)&mtlShader[1];
     mtlShader->name = (char *)&mtlShader[1] + programSize;
     memcpy((unsigned __int8 *)mtlShader->name, (unsigned __int8 *)shaderName, nameSize);
     v4 = shader;
-    v2 = (unsigned __int8 *)((int (__thiscall *)(ID3DXBuffer *))shader->GetBufferPointer)(shader);
+    v2 = (unsigned __int8 *)shader->GetBufferPointer();
+    //v2 = (unsigned __int8 *)((int (__thiscall *)(ID3DXBuffer *))shader->GetBufferPointer)(shader);
     memcpy((unsigned __int8 *)program, v2, (unsigned int)v4);
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = ((int (__stdcall *)(IDirect3DDevice9 *, unsigned int *, MaterialVertexShaderProgram *, unsigned int))dx.device->CreateVertexShader)(
-                 dx.device,
-                 program,
-                 &mtlShader->prog,
-                 programSize);
+    hr = dx.device->CreateVertexShader((const DWORD*)program, &mtlShader->prog.vs);
+    //hr = ((int (__stdcall *)(IDirect3DDevice9 *, unsigned int *, MaterialVertexShaderProgram *, unsigned int))dx.device->CreateVertexShader)(
+    //             dx.device,
+    //             program,
+    //             &mtlShader->prog,
+    //             programSize);
     if ( hr >= 0 )
     {
         if ( semaphore )
@@ -1567,7 +3646,7 @@ MaterialVertexShader *__cdecl Material_LoadVertexShader(char *shaderName)
             __debugbreak();
         }
         mtlShader->prog.loadDef.program = program;
-        shader->Release(shader);
+        shader->Release();
         return mtlShader;
     }
     else
@@ -1584,14 +3663,14 @@ ID3DXBuffer *__cdecl Material_CompileShader(
                 char *entryPoint,
                 char *target)
 {
-    int v5; // eax
+    char *v5; // eax
     const char *v6; // eax
     const char *v7; // eax
     char *ScriptErrorPrefix; // [esp+0h] [ebp-8E64h]
     _BYTE v9[2052]; // [esp+4h] [ebp-8E60h] BYREF
     char *prefix; // [esp+808h] [ebp-865Ch]
     char *fileName; // [esp+80Ch] [ebp-8658h] BYREF
-    void (*v12)(char *, ...); // [esp+810h] [ebp-8654h]
+    void (*v12)(const char *, ...); // [esp+810h] [ebp-8654h]
     char v13; // [esp+817h] [ebp-864Dh]
     char *errorMessage; // [esp+818h] [ebp-864Ch]
     unsigned int lineNumber[2]; // [esp+81Ch] [ebp-8648h] BYREF
@@ -1625,11 +3704,12 @@ LABEL_22:
         return shader;
     }
     v24 = 2;
-    strstr((unsigned __int8 *)shaderName, "pimp_shader_sw4");
+    v5 = strstr(shaderName, "pimp_shader_sw4");
     if ( !v5 )
         v24 |= 0x10000u;
-    hr = D3DXCompileShader(shaderString, shaderTextLen, 0, 0, entryPoint, target, v24, &shader, v22, &v18);
-    __asm { fnclex }
+    hr = D3DXCompileShader(shaderString, shaderTextLen, 0, 0, entryPoint, target, v24, &shader, NULL, NULL);
+    //hr = D3DXCompileShader(shaderString, shaderTextLen, 0, 0, entryPoint, target, v24, &shader, v22, &v18);
+    //__asm { fnclex }
     if ( v22[0] )
     {
         v13 = 0;
@@ -1648,7 +3728,7 @@ LABEL_22:
             Com_SetScriptErrorPrefix("^1ERROR: ");
             v9[0] = 0;
             v12(
-                "compiler message(s) for %s (entryPoint=\"%s\", target=\"%s\"):\n%s\n%s\n%s(%d)\n",
+                (char*)"compiler message(s) for %s (entryPoint=\"%s\", target=\"%s\"):\n%s\n%s\n%s(%d)\n",
                 dest,
                 entryPoint,
                 target,
@@ -1672,7 +3752,7 @@ LABEL_22:
     {
         if ( !v18 )
         {
-            shader->Release(shader);
+            shader->Release();
             Com_ScriptError("%s compilation failed - NULL constants\n", dest);
             Hunk_FreeTempMemory(shaderString);
             return 0;
@@ -1700,7 +3780,7 @@ unsigned int __cdecl Material_GenerateShaderString(
     bool wasGenerated; // [esp+117h] [ebp-115h]
     int textSize; // [esp+118h] [ebp-114h]
     char filepath[260]; // [esp+11Ch] [ebp-110h] BYREF
-    char *formatString; // [esp+224h] [ebp-8h]
+    const char *formatString; // [esp+224h] [ebp-8h]
     char *text; // [esp+228h] [ebp-4h] BYREF
 
     if ( !gIsPIMPEnabled || gIsSW2Material )
@@ -2004,7 +4084,7 @@ void __cdecl Material_FileIncludeFileAndLineNumber(
     }
     else
     {
-        *fileName = "Message format changed.    Update Material_FileIncludeFileAndLineNumber.";
+        *fileName = (char*)"Message format changed.    Update Material_FileIncludeFileAndLineNumber.";
         *lineNumber = 0;
     }
 }
@@ -2015,7 +4095,7 @@ bool __cdecl Material_ParseLineNumber(char *errorMessage, unsigned int *lineNumb
     const char *lineNumberStart; // [esp+0h] [ebp-8h]
     int charNumber; // [esp+4h] [ebp-4h] BYREF
 
-    strchr((unsigned __int8 *)errorMessage, 0x28u);
+    v2 = strchr(errorMessage, 0x28u);
     lineNumberStart = v2;
     if ( !v2 )
         return 0;
@@ -2024,6 +4104,7 @@ bool __cdecl Material_ParseLineNumber(char *errorMessage, unsigned int *lineNumb
     return sscanf(lineNumberStart, "(%d)", lineNumber) == 1;
 }
 
+const char *IW_PROJECT_GAMEDIR = getenv("IW_PROJECT_GAMEDIR");
 char __cdecl Material_FindCachedShaderDX(
                 char *shaderText,
                 unsigned int shaderTextLen,
@@ -2142,6 +4223,7 @@ void Material_DeleteOldCachedShaders()
     char dirname[264]; // [esp+8h] [ebp-110h] BYREF
     unsigned int oldShaderCacheVersion; // [esp+114h] [ebp-4h]
 
+    static bool once = false;
     if ( !once )
     {
         once = 1;
@@ -2163,7 +4245,7 @@ void Material_DeleteOldCachedShaders()
 
 void __cdecl Material_DeleteOldFilesInDirectory(const char *dirname, unsigned __int16 daysOld)
 {
-    unsigned interrorCode; // [esp+0h] [ebp-378h]
+    unsigned int errorCode; // [esp+0h] [ebp-378h]
     HANDLE handle; // [esp+4h] [ebp-374h]
     _WIN32_FIND_DATAA findData; // [esp+8h] [ebp-370h] BYREF
     char fullfilename[264]; // [esp+148h] [ebp-230h] BYREF
@@ -2228,7 +4310,7 @@ void __cdecl Material_SubtractDays(_SYSTEMTIME *sysTime, unsigned __int16 daysOl
 
 void __cdecl Material_DeleteDirectory(const char *dirname)
 {
-    unsigned interrorCode; // [esp+0h] [ebp-360h]
+    unsigned int errorCode; // [esp+0h] [ebp-360h]
     HANDLE handle; // [esp+4h] [ebp-35Ch]
     _WIN32_FIND_DATAA findData; // [esp+8h] [ebp-358h] BYREF
     char fullfilename[264]; // [esp+148h] [ebp-218h] BYREF
@@ -2265,7 +4347,7 @@ char __cdecl Material_CopyTextToDXBuffer(unsigned __int8 *cachedShader, unsigned
     hr = D3DXCreateBuffer(shaderLen, shader);
     if ( hr >= 0 )
     {
-        v5 = (unsigned __int8 *)(*shader)->GetBufferPointer(*shader);
+        v5 = (unsigned __int8 *)(*shader)->GetBufferPointer();
         memcpy(v5, cachedShader, shaderLen);
         return 1;
     }
@@ -2320,9 +4402,11 @@ void __cdecl Material_CacheShaderDX(
         checksum[1],
         checksum[2],
         checksum[3]);
-    ((void (__stdcall *)(ID3DXBuffer *, const char *))shader->GetBufferSize)(shader, v7);
-    v6 = (const void *)((int (__thiscall *)(ID3DXBuffer *))shader->GetBufferPointer)(shader);
-    Material_CacheShader(shaderText, shaderTextLen, filename, v6, (unsigned int)shader);
+    //((void (__stdcall *)(ID3DXBuffer *, const char *))shader->GetBufferSize)(shader, v7);
+    //v6 = (const void *)((int (__thiscall *)(ID3DXBuffer *))shader->GetBufferPointer)(shader);
+    //Material_CacheShader(shaderText, shaderTextLen, filename, v6, (unsigned int)shader);
+
+    Material_CacheShader(shaderText, shaderTextLen, filename, shader->GetBufferPointer(), shader->GetBufferSize());
 }
 
 void __cdecl Material_CacheShader(
@@ -2409,7 +4493,7 @@ char __cdecl Material_SetPassShaderArguments_DX(
                 char **text,
                 char *shaderName,
                 MaterialShaderType shaderType,
-                const unsigned int *program,
+                const DWORD *program,
                 unsigned __int16 *techFlags,
                 ShaderParameterSet *paramSet,
                 unsigned int argLimit,
@@ -2420,28 +4504,18 @@ char __cdecl Material_SetPassShaderArguments_DX(
     HRESULT v11; // [esp-4h] [ebp-10A8h]
     _D3DXSHADER_CONSTANTTABLE *constantTable; // [esp+0h] [ebp-10A4h]
     _D3DXSEMANTIC semantic[512]; // [esp+4h] [ebp-10A0h] BYREF
-    int v14; // [esp+1008h] [ebp-9Ch] BYREF
-    unsigned int v15; // [esp+100Ch] [ebp-98h] BYREF
+    LPD3DXCONSTANTTABLE constants; // [esp+1008h] [ebp-9Ch] BYREF
     HRESULT hr; // [esp+1010h] [ebp-94h]
     unsigned int v17; // [esp+1014h] [ebp-90h] BYREF
     char v18; // [esp+101Bh] [ebp-89h]
     _D3DXSEMANTIC v19[16]; // [esp+101Ch] [ebp-88h] BYREF
     unsigned int i; // [esp+10A0h] [ebp-4h]
 
-    hr = D3DXGetShaderConstantTable(program, &v14);
+    hr = D3DXGetShaderConstantTable(program, &constants);
     if ( hr >= 0 )
     {
-        if ( !v14
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_material_load_obj.cpp",
-                        7973,
-                        0,
-                        "%s",
-                        "constants") )
-        {
-            __debugbreak();
-        }
-        constantTable = (_D3DXSHADER_CONSTANTTABLE *)(*(int (__stdcall **)(int))(*(unsigned int *)v14 + 12))(v14);
+        iassert(constants);
+        constantTable = (_D3DXSHADER_CONSTANTTABLE*)constants->GetBufferPointer();
         paramSet->uniformInputCount = Material_PrepareToParseShaderArguments(constantTable, paramSet->uniformInputs);
         v18 = Material_ParseShaderArguments(
                         text,
@@ -2453,12 +4527,14 @@ char __cdecl Material_SetPassShaderArguments_DX(
                         argLimit,
                         argCount,
                         args);
-        (*(void (__stdcall **)(int))(*(unsigned int *)v14 + 8))(v14);
+        //(*(void (__stdcall **)(int))(*(unsigned int *)constants + 8))(constants);
+        constants->Release();
         if ( v18 )
         {
-            hr = D3DXGetShaderInputSemantics(program, semantic, &v15);
+            UINT count;
+            hr = D3DXGetShaderInputSemantics(program, semantic, &count);
             paramSet->varyingInputCount = 0;
-            for ( i = 0; i < v15; ++i )
+            for ( i = 0; i < count; ++i )
             {
                 Material_SetVaryingParameterDef(&semantic[i], &paramSet->varyingInputs[paramSet->varyingInputCount]);
                 ++paramSet->varyingInputCount;
@@ -3595,7 +5671,7 @@ unsigned int __cdecl Material_CombineShaderArguments(unsigned int usedCount, Mat
         if ( !Material_AttemptCombineShaderArguments(&localArgs[dstIndex], &localArgs[srcIndex]) )
         {
             ++dstIndex;
-            LODWORD(v2.literalConst) = localArgs[srcIndex].u;
+            LODWORD(v2.literalConst) = localArgs[srcIndex].u.nameHash;
             *(unsigned int *)&localArgs[dstIndex].type = *(unsigned int *)&localArgs[srcIndex].type;
             localArgs[dstIndex].u = v2;
         }
@@ -4119,7 +6195,7 @@ char __cdecl Material_LoadPassPixelShader(
                      (char **)text,
                      (char *)mtlShader->name,
                      MTL_PIXEL_SHADER,
-                     (const unsigned int *)&mtlShader[1],
+                     (const DWORD *)&mtlShader[1],
                      techFlags,
                      paramSet,
                      argLimit,
@@ -4154,7 +6230,7 @@ MaterialPixelShader *__cdecl Material_LoadPixelShader(char *shaderName)
     unsigned int programSize; // [esp+10h] [ebp-38h]
     int hr; // [esp+18h] [ebp-30h]
     char target[16]; // [esp+1Ch] [ebp-2Ch] BYREF
-    unsigned int *program; // [esp+30h] [ebp-18h]
+    DWORD *program; // [esp+30h] [ebp-18h]
     unsigned int nameSize; // [esp+34h] [ebp-14h]
     int semaphore; // [esp+38h] [ebp-10h]
     ID3DXBuffer *shader; // [esp+3Ch] [ebp-Ch]
@@ -4162,10 +6238,10 @@ MaterialPixelShader *__cdecl Material_LoadPixelShader(char *shaderName)
     MaterialPixelShader *mtlShader; // [esp+44h] [ebp-4h]
 
     Material_GetShaderTargetString(target, 0x10u, "ps");
-    shader = Material_CompileShader(shaderName, MTL_PIXEL_SHADER, "ps_main", target);
+    shader = Material_CompileShader(shaderName, MTL_PIXEL_SHADER, (char*)"ps_main", target);
     if ( !shader )
         return 0;
-    programSize = shader->GetBufferSize(shader);
+    programSize = shader->GetBufferSize();
     if ( !programSize
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_material_load_obj.cpp",
@@ -4180,18 +6256,21 @@ MaterialPixelShader *__cdecl Material_LoadPixelShader(char *shaderName)
     nameSize = strlen(shaderName) + 1;
     totalSize = programSize + nameSize + 16;
     mtlShader = (MaterialPixelShader *)Material_Alloc(totalSize);
-    program = (unsigned int *)&mtlShader[1];
+    program = (DWORD*)&mtlShader[1];
     mtlShader->name = (char *)&mtlShader[1] + programSize;
     memcpy((unsigned __int8 *)mtlShader->name, (unsigned __int8 *)shaderName, nameSize);
     v4 = shader;
-    v2 = (unsigned __int8 *)((int (__thiscall *)(ID3DXBuffer *))shader->GetBufferPointer)(shader);
-    memcpy((unsigned __int8 *)program, v2, (unsigned int)v4);
+    //v2 = (unsigned __int8 *)((int (__thiscall *)(ID3DXBuffer *))shader->GetBufferPointer)(shader);
+    //memcpy((unsigned __int8 *)program, v2, (unsigned int)v4);
+    memcpy(program, shader->GetBufferPointer(), programSize);
     semaphore = R_AcquireDXDeviceOwnership(0);
-    hr = ((int (__stdcall *)(IDirect3DDevice9 *, unsigned int *, MaterialPixelShaderProgram *, unsigned int))dx.device->CreatePixelShader)(
-                 dx.device,
-                 program,
-                 &mtlShader->prog,
-                 programSize);
+
+    hr = dx.device->CreatePixelShader(program, &mtlShader->prog.ps);
+    //hr = ((int (__stdcall *)(IDirect3DDevice9 *, unsigned int *, MaterialPixelShaderProgram *, unsigned int))dx.device->CreatePixelShader)(
+    //             dx.device,
+    //             program,
+    //             &mtlShader->prog,
+    //             programSize);
     if ( hr >= 0 )
     {
         if ( semaphore )
@@ -4210,7 +6289,7 @@ MaterialPixelShader *__cdecl Material_LoadPixelShader(char *shaderName)
             __debugbreak();
         }
         mtlShader->prog.loadDef.program = program;
-        shader->Release(shader);
+        shader->Release();
         return mtlShader;
     }
     else
@@ -4572,13 +6651,13 @@ unsigned __int8 __cdecl Material_TechniqueTypeForName(const char *name)
 
 bool __cdecl MaterialTexture_IsMatureContent(unsigned __int8 texSemantic, char *texImageName)
 {
-    int v3; // eax
+    char *v3; // eax
     char FILENAME_PATTERN[8]; // [esp+0h] [ebp-Ch] BYREF
 
     strcpy(FILENAME_PATTERN, "_mature");
     if ( texSemantic == 11 || texSemantic == 1 || !texSemantic )
         return 0;
-    strstr((unsigned __int8 *)texImageName, (unsigned __int8 *)FILENAME_PATTERN);
+    v3 = strstr(texImageName, FILENAME_PATTERN);
     return v3 != 0;
 }
 
@@ -4935,7 +7014,7 @@ Material *__cdecl Material_CreateLayered(
         }
         if ( !isTintSpecified )
         {
-            strncpy((unsigned __int8 *)newConstEntry->name, "colorTint", 0xCu);
+            strncpy(newConstEntry->name, "colorTint", 0xCu);
             newConstEntry->nameHash = tintConstNameHash;
             literal = newConstEntry->literal;
             newConstEntry->literal[0] = colorWhite[0];
@@ -5668,9 +7747,9 @@ bool __cdecl Material_HasNormalMap(const Material *mtl)
 
 MaterialTechniqueSet *__cdecl Material_RegisterLayeredTechniqueSet(const Material **mtl, unsigned int layerCount)
 {
-    int v2; // eax
-    int v3; // eax
-    int v5; // eax
+    const char *v2; // eax
+    const char *v3; // eax
+    const char *v5; // eax
     const char *v6; // eax
     unsigned __int8 v7; // al
     char v8; // [esp+1Bh] [ebp-8A9h]
@@ -5704,7 +7783,7 @@ MaterialTechniqueSet *__cdecl Material_RegisterLayeredTechniqueSet(const Materia
     {
         __debugbreak();
     }
-    worldVertFormat = s_stateMapDstStencilBitGroup[9].stateBitsMask[layerCount + 1];
+    worldVertFormat = (MaterialWorldVertexFormat)s_stateMapDstStencilBitGroup[9].stateBitsMask[layerCount + 1];
     normalMapCount = 0;
     newTechSetNameLen = 0;
     found = 0;
@@ -5734,7 +7813,7 @@ MaterialTechniqueSet *__cdecl Material_RegisterLayeredTechniqueSet(const Materia
                     {
                         normalMapCount = 1;
                         strcpy(newTechSetName, "swl_");
-                        strstr((unsigned __int8 *)lyrTechSetName->nameChunk, "n0");
+                        v2 = strstr(lyrTechSetName->nameChunk, "n0");
                         if ( v2 )
                         {
                             v17 = (char *)&techSet + 3;
@@ -5743,7 +7822,7 @@ MaterialTechniqueSet *__cdecl Material_RegisterLayeredTechniqueSet(const Materia
                             strcpy(v17, "n1_");
                             ++normalMapCount;
                         }
-                        strstr((unsigned __int8 *)lyrTechSetName->nameChunk, "d0");
+                        v3 = strstr(lyrTechSetName->nameChunk, "d0");
                         if ( v3 )
                         {
                             v15 = (char *)&techSet + 3;
@@ -5789,11 +7868,11 @@ MaterialTechniqueSet *__cdecl Material_RegisterLayeredTechniqueSet(const Materia
             }
             else
             {
-                newTechSetNameLen = Material_AppendTechniqueSetName(newTechSetName, newTechSetNameLen, "_", layerToken);
+                newTechSetNameLen = Material_AppendTechniqueSetName(newTechSetName, newTechSetNameLen, (char*)"_", layerToken);
             }
             if ( lyrTechSetName )
             {
-                strchr((unsigned __int8 *)lyrTechSetName->nameChunk, 0x6Eu);
+                v5 = strchr(lyrTechSetName->nameChunk, 0x6Eu);
                 if ( v5 )
                     ++normalMapCount;
             }
@@ -5808,7 +7887,7 @@ MaterialTechniqueSet *__cdecl Material_RegisterLayeredTechniqueSet(const Materia
     if ( techSet )
     {
         if ( normalMapCount > 1 )
-            worldVertFormat = worldVertFormat + normalMapCount - 1;
+            worldVertFormat = (MaterialWorldVertexFormat)(worldVertFormat + normalMapCount - 1);
         if ( techSet->worldVertFormat )
         {
             if ( techSet->worldVertFormat != worldVertFormat )
@@ -5921,7 +8000,7 @@ Material *__cdecl Material_LoadRaw(const MaterialRaw *mtlRaw, unsigned int mater
     unsigned int v5; // eax
     unsigned int v6; // [esp+1Ch] [ebp-6Ch]
     float *literal; // [esp+3Ch] [ebp-4Ch]
-    float *v8; // [esp+40h] [ebp-48h]
+    const float *v8; // [esp+40h] [ebp-48h]
     int texIndex; // [esp+44h] [ebp-44h]
     char *imageName; // [esp+48h] [ebp-40h]
     char *constName; // [esp+4Ch] [ebp-3Ch]
@@ -6035,7 +8114,7 @@ Material *__cdecl Material_LoadRaw(const MaterialRaw *mtlRaw, unsigned int mater
             constName = (char *)mtlRaw + constantTableRaw[constIndex].nameOffset;
             v5 = R_HashString(constName);
             material->localConstantTable[constIndex].nameHash = v5;
-            strncpy((unsigned __int8 *)material->localConstantTable[constIndex].name, (unsigned __int8 *)constName, 0xCu);
+            strncpy(material->localConstantTable[constIndex].name, constName, 0xCu);
             literal = material->localConstantTable[constIndex].literal;
             v8 = constantTableRaw[constIndex].literal;
             *literal = *v8;
@@ -6044,7 +8123,7 @@ Material *__cdecl Material_LoadRaw(const MaterialRaw *mtlRaw, unsigned int mater
             literal[3] = v8[3];
         }
     }
-    Material_BuildStateBitsTable(material, mtlRaw->info.toolFlags, mtlRaw->refStateBits);
+    Material_BuildStateBitsTable(material, mtlRaw->info.toolFlags, (unsigned int*)mtlRaw->refStateBits);
     Material_SetMaterialDrawRegion(material);
     if ( !Material_Validate(material) )
         return 0;
@@ -6099,7 +8178,7 @@ water_t *__cdecl Material_RegisterWaterImage(const MaterialWaterDef *water)
     setup.N = setup.M;
     setup.Lx = water->horizontalWorldLength;
     setup.Lz = water->verticalWorldLength;
-    setup.gravity = FLOAT_800_0;
+    setup.gravity = 800.0f;
     setup.windvel = water->windSpeed;
     *(_QWORD *)setup.winddir = *(_QWORD *)water->windDirection;
     setup.amplitude = water->amplitude;
@@ -6332,9 +8411,9 @@ void __cdecl Material_PreLoadAllShaderText()
     const char **shaderListLib2; // [esp+178h] [ebp-8h]
     int fileCountLib1; // [esp+17Ch] [ebp-4h] BYREF
 
-    shaderListLib1 = FS_ListFilesInLocation("shaders/lib/", "hlsl", FS_LIST_PURE_ONLY, &fileCountLib1, 8);
-    shaderListLib2 = FS_ListFilesInLocation("shaders/", "hlsl", FS_LIST_PURE_ONLY, &fileCountLib2, 8);
-    shaderListLib3 = FS_ListFilesInLocation("shaders/", "fx", FS_LIST_PURE_ONLY, &fileCountLib3, 8);
+    shaderListLib1 = FS_ListFilesInLocation("shaders/lib/", (char*)"hlsl", FS_LIST_PURE_ONLY, &fileCountLib1, 8);
+    shaderListLib2 = FS_ListFilesInLocation("shaders/", (char *)"hlsl", FS_LIST_PURE_ONLY, &fileCountLib2, 8);
+    shaderListLib3 = FS_ListFilesInLocation("shaders/", (char *)"fx", FS_LIST_PURE_ONLY, &fileCountLib3, 8);
     mtlLoadGlob.cachedShaderCount = fileCountLib3 + fileCountLib2 + fileCountLib1;
     mtlLoadGlob.cachedShaderText = (GfxCachedShaderText *)Hunk_Alloc(
                                                                                                                     12 * (fileCountLib3 + fileCountLib2 + fileCountLib1),
@@ -6353,11 +8432,13 @@ void __cdecl Material_PreLoadAllShaderText()
             shaderListLib3[fileIndex],
             "",
             &mtlLoadGlob.cachedShaderText[cachedIndex++]);
-    std::_Sort<GfxCachedShaderText *,int,bool (__cdecl *)(GfxCachedShaderText const &,GfxCachedShaderText const &)>(
-        mtlLoadGlob.cachedShaderText,
-        &mtlLoadGlob.cachedShaderText[mtlLoadGlob.cachedShaderCount],
-        (signed int)(12 * mtlLoadGlob.cachedShaderCount) / 12,
-        Material_CachedShaderTextLess);
+    //std::_Sort<GfxCachedShaderText *,int,bool (__cdecl *)(GfxCachedShaderText const &,GfxCachedShaderText const &)>(
+    //    mtlLoadGlob.cachedShaderText,
+    //    &mtlLoadGlob.cachedShaderText[mtlLoadGlob.cachedShaderCount],
+    //    (signed int)(12 * mtlLoadGlob.cachedShaderCount) / 12,
+    //    Material_CachedShaderTextLess);
+
+    std::sort(&mtlLoadGlob.cachedShaderText[0], &mtlLoadGlob.cachedShaderText[mtlLoadGlob.cachedShaderCount], Material_CachedShaderTextLess);
     FS_FreeFileList(shaderListLib1);
     FS_FreeFileList(shaderListLib2);
     FS_FreeFileList(shaderListLib3);
@@ -6458,11 +8539,14 @@ void __cdecl Material_SortInternal(Material **sortedMaterials, unsigned int mate
     unsigned int sortedIndex; // [esp+9Ch] [ebp-Ch]
     Material *material; // [esp+A4h] [ebp-4h]
 
-    std::_Sort<Material * *,int,bool (__cdecl *)(Material const *,Material const *)>(
-        (const GfxStaticModelDrawInst **)sortedMaterials,
-        (const GfxStaticModelDrawInst **)&sortedMaterials[materialCount],
-        (int)(4 * materialCount) >> 2,
-        (bool (__cdecl *)(const GfxStaticModelDrawInst *, const GfxStaticModelDrawInst *))Material_Compare);
+    //std::_Sort<Material * *,int,bool (__cdecl *)(Material const *,Material const *)>(
+    //    (const GfxStaticModelDrawInst **)sortedMaterials,
+    //    (const GfxStaticModelDrawInst **)&sortedMaterials[materialCount],
+    //    (int)(4 * materialCount) >> 2,
+    //    (bool (__cdecl *)(const GfxStaticModelDrawInst *, const GfxStaticModelDrawInst *))Material_Compare);
+
+    std::sort(&sortedMaterials[0], &sortedMaterials[materialCount], Material_Compare);
+
     for ( sortedIndex = 0; sortedIndex < materialCount; ++sortedIndex )
     {
         material = sortedMaterials[sortedIndex];
@@ -6785,6 +8869,7 @@ unsigned int __cdecl R_DrawSurfPrimarySortKey(const Material *material)
     return material->info.sortKey;
 }
 
+bool g_scriptableConstantArrayBuilt;
 char __cdecl R_FindScriptableConstantSource_ByName(const char *name, unsigned __int8 *dest)
 {
     unsigned int i; // [esp+4h] [ebp-4h]

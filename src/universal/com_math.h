@@ -253,6 +253,7 @@ void __cdecl Vec3ScaleMad(float scale0, const float *dir0, float scale1, const f
 void __cdecl Vec3Add(const float *a, const float *b, float *sum);
 void __cdecl Vec3AddScalar(const float *a, float s, float *sum);
 void __cdecl Vec3Sub(const float *a, const float *b, float *diff);
+void Vec2Copy(const float *from, float *to);
 void __cdecl Vec3Copy(const float *from, float *to);
 #define VectorCopy(...) \
     typedef char VectorCopy_From_Quake_Is_Vec3Copy_same_args_though[-1]

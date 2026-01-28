@@ -3,8 +3,40 @@
 #include "r_dpvs.h"
 #include "r_model_lighting.h"
 #include "r_model.h"
+#include "r_debug.h"
+#include <universal/com_memory.h>
+#include "rb_logfile.h"
+#include "r_dvars.h"
+#include <qcommon/threads.h>
+#include <universal/com_workercmds.h>
+#include "r_singlethreaded_device_pc.h"
+#include "rb_backend.h"
+#include <win32/win_net.h>
+#include "r_ui3d.h"
+#include <cgame/cg_perf.h>
+#include "r_foliage.h"
+#include <cgame/cg_drawtools.h>
+#include "r_material_load_obj.h"
+#include "r_drawsurf.h"
+#include "r_draw_method.h"
+#include <client/splitscreen.h>
+#include <xanim/xmodel_utils.h>
+#include <client/cl_debugdata.h>
 
 GfxBackEndData *frontEndDataOut;
+GfxCmdArray g_frontEndCmds[2];
+GfxBackEndData s_backEndData[2];
+GfxCmdArray *s_cmdList;
+
+int g_currCodeMesh;
+GfxMeshData g_codeMesh[2];
+
+GfxViewInfo g_viewInfo[2][4];
+unsigned int s_smpFrame;
+DynSModelClientView g_dynSModelClientView[2][4];
+unsigned int g_frameIndex;
+
+volatile unsigned int g_mainThreadBlocked;
 
 void __cdecl R_InitRenderCommands()
 {
@@ -318,7 +350,7 @@ void __cdecl R_InitTempSkinBuf()
                             "!data->tempSkinBuf") )
                 __debugbreak();
         }
-        data->tempSkinBuf = (unsigned __int8 *)Z_VirtualReserve((int)&loc_800000);
+        data->tempSkinBuf = (unsigned __int8 *)Z_VirtualReserve(0x800000);
     }
 }
 
@@ -436,39 +468,27 @@ void __cdecl R_IssueRenderCommands(unsigned int type)
     }
 }
 
-unsigned intR_PerformanceCounters()
+void R_PerformanceCounters()
 {
-    unsigned intresult; // eax
-
-    //PIXBeginNamedEvent(-1, "dev perf counters");
-    result = GetCurrentThreadId();
-    if ( result == (unsigned int)g_DXDeviceThread )
-    {
-        result = 0;
-        if ( !HIDWORD(g_DXDeviceThread) )
-            return //D3DPERF_EndEvent();
-    }
-    return result;
+    return;
+    //unsigned int result; // eax
+    //
+    ////PIXBeginNamedEvent(-1, "dev perf counters");
+    //result = GetCurrentThreadId();
+    //if ( result == (unsigned int)g_DXDeviceThread )
+    //{
+    //    result = 0;
+    //    if ( !HIDWORD(g_DXDeviceThread) )
+    //        return //D3DPERF_EndEvent();
+    //}
+    //return result;
 }
 
-__int64 R_UpdateSkinCacheUsage()
+void R_UpdateSkinCacheUsage()
 {
-    __int64 result; // rax
+    iassert(frontEndDataOut->skinnedCacheVb);
 
-    if ( !frontEndDataOut->skinnedCacheVb
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_rendercmds.cpp",
-                    878,
-                    0,
-                    "%s",
-                    "frontEndDataOut->skinnedCacheVb") )
-    {
-        __debugbreak();
-    }
-    LODWORD(result) = frontEndDataOut;
-    HIDWORD(result) = frontEndDataOut->skinnedCacheVb->used >= (unsigned int)&loc_6AACC0;
-    rg.skinnedCacheReachedThreshold = HIDWORD(result);
-    return result;
+    rg.skinnedCacheReachedThreshold = frontEndDataOut->skinnedCacheVb->used >= 0x6AACC0u;
 }
 
 char __cdecl R_HandOffToBackend(char type)
@@ -535,7 +555,7 @@ void __cdecl R_ToggleSmpFrameCmd(char type)
     v1 = R_AcquireDXDeviceOwnership(0);
     front_end_data = frontEndDataOut;
     R_ToggleSmpFrame();
-    PIXSetMarker(-1, "wake renderer");
+    //PIXSetMarker(-1, "wake renderer");
     Sys_WakeRenderer((void *)front_end_data);
     if ( v1 )
         R_ReleaseDXDeviceOwnership();
@@ -677,7 +697,7 @@ GfxCmdHeader *__cdecl R_GetCommandBuffer(GfxRenderCommand renderCmd, int bytes)
         sizeLimit -= 0x2000 - s_cmdList->usedCritical;
     if ( bytes <= sizeLimit )
     {
-        PIXSetMarker(0, gfxRenderCommandNames[renderCmd]);
+        //PIXSetMarker(0, gfxRenderCommandNames[renderCmd]);
         header = (GfxCmdHeader *)&s_cmdList->cmds[s_cmdList->usedTotal];
         s_cmdList->usedTotal += bytes;
         s_cmdList->usedCritical += renderCmd >= RC_FIRST_NONCRITICAL ? 0 : bytes;
@@ -723,7 +743,7 @@ GfxCmdHeader *__cdecl R_GetCommandBuffer(GfxRenderCommand renderCmd, int bytes)
     }
 }
 
-unsigned intR_ToggleSmpFrame()
+void R_ToggleSmpFrame()
 {
     unsigned intresult; // eax
     volatile int surfPos; // [esp+0h] [ebp-20h]
@@ -849,14 +869,14 @@ unsigned intR_ToggleSmpFrame()
     debugGlobalsEntry->stringCount = 0;
     debugGlobalsEntry->polySet.vertCount = 0;
     R_DynSModelInitGfxState(&frontEndDataOut->dynSModelState);
-    result = GetCurrentThreadId();
-    if ( result == (unsigned int)g_DXDeviceThread )
-    {
-        result = 0;
-        if ( !HIDWORD(g_DXDeviceThread) )
-            return //D3DPERF_EndEvent();
-    }
-    return result;
+    //result = GetCurrentThreadId();
+    //if ( result == (unsigned int)g_DXDeviceThread )
+    //{
+    //    result = 0;
+    //    if ( !HIDWORD(g_DXDeviceThread) )
+    //        return //D3DPERF_EndEvent();
+    //}
+    //return result;
 }
 
 void R_FreeTempSkinBuffer()
@@ -1893,7 +1913,7 @@ void __cdecl R_AddCmdPCCopyImageGenMIP(void (__cdecl *callback)(void *), GfxImag
 
 void __cdecl R_BeginFrame()
 {
-    int v0; // eax
+    const char *v0; // eax
     bool v1; // [esp+0h] [ebp-468h]
     bool v2; // [esp+4h] [ebp-464h]
     int semaphore; // [esp+Ch] [ebp-45Ch]
@@ -1925,25 +1945,33 @@ void __cdecl R_BeginFrame()
                 R_AcquireDXDeviceOwnership(0);
             Material_Sort();
             R_SortWorldSurfaces();
-            dx.d3d9->GetAdapterIdentifier(dx.d3d9, dx.adapterIndex, 0, &id);
-            strstr((unsigned __int8 *)id.Description, "NVIDIA");
+            dx.d3d9->GetAdapterIdentifier(dx.adapterIndex, 0, &id);
+            v0 = strstr(id.Description, "NVIDIA");
             if ( v0 )
                 Dvar_SetBool((dvar_s *)r_warm_dpvs, 1);
         }
         v2 = r_skinCache->current.enabled && useFastFile->current.enabled;
-        gfxBuf_skinCache = v2;
+        gfxBuf.skinCache = v2;
         v1 = v2 && r_fastSkin->current.enabled;
-        gfxBuf_fastSkin = v1;
-        if ( gfxBuf_skinCache )
+        gfxBuf.fastSkin = v1;
+        if ( gfxBuf.skinCache )
             R_LockSkinnedCache();
     }
 }
 
+float s_debugShaderConsts[5][4] =
+{
+  { 0.0, 0.0, 0.0, 0.0 },
+  { 0.0, 0.0, 0.0, 1.0 },
+  { 1.0, 0.0, 0.0, 0.0 },
+  { 0.0, 1.0, 0.0, 0.0 },
+  { 0.0, 0.0, 1.0, 0.0 }
+};
+
 void R_UpdateFrontEndDvarOptions()
 {
-    int v0; // [esp+0h] [ebp-10h]
-    bool v1; // [esp+0h] [ebp-10h]
-    const GfxImage *v2; // [esp+4h] [ebp-Ch]
+    bool v2; // [esp+0h] [ebp-10h]
+    GfxImage *image; // [esp+4h] [ebp-Ch]
 
     if (R_LightTweaksModified())
         R_UpdateLightsFromDvars();
@@ -1968,7 +1996,7 @@ void R_UpdateFrontEndDvarOptions()
     }
     if (R_CheckDvarModified(r_outdoorFeather))
         R_SetOutdoorFeatherConst();
-    R_SetInputCodeConstantFromVec4(&gfxCmdBufInput, 0x36u, s_debugShaderConsts[r_debugShader->current.integer]);
+    R_SetInputCodeConstantFromVec4(&gfxCmdBufInput, 0x36u, (float *)s_debugShaderConsts[r_debugShader->current.integer]);
     if (R_CheckDvarModified(r_envMapOverride)
         || R_CheckDvarModified(r_envMapMinIntensity)
         || R_CheckDvarModified(r_envMapMaxIntensity)
@@ -1977,17 +2005,18 @@ void R_UpdateFrontEndDvarOptions()
     {
         R_EnvMapOverrideConstants();
     }
-    v1 = r_distortion->current.enabled && CL_LocalClient_GetActiveCount(v0) == 1;
-    if (rg.distortion != v1)
+    v2 = r_distortion->current.enabled && CL_LocalClient_GetActiveCount() == 1;
+    if (rg.distortion != v2)
         R_SyncRenderThread();
-    rg.distortion = v1;
-    v2 = (const GfxImage *)dword_B50E894;
+    rg.distortion = v2;
+    image = gfxRenderTargets[5].image;
+
     if (!&gfxCmdBufInput
         && !Assert_MyHandler("c:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_state.h", 1850, 0, "%s", "input"))
     {
         __debugbreak();
     }
-    gfxCmdBufInput.codeImages[9] = v2;
+    gfxCmdBufInput.codeImages[9] = image;
     rg.drawWorld = r_drawWorld->current.enabled;
     rg.drawBModels = r_drawBModels->current.enabled;
     rg.drawSModels = r_drawSModels->current.enabled;
@@ -2065,7 +2094,7 @@ bool __cdecl R_LightTweaksModified()
     {
         __debugbreak();
     }
-    if ( !r_lightTweakSunDirection.integer
+    if ( !r_lightTweakSunDirection
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_rendercmds.cpp",
                     2522,
@@ -2081,7 +2110,8 @@ bool __cdecl R_LightTweaksModified()
     v4 = R_CheckDvarModified(r_lightTweakAmbientColor) | v3;
     v5 = R_CheckDvarModified(r_lightTweakSunColor) | v4;
     v6 = R_CheckDvarModified(r_lightTweakSunDiffuseColor) | v5;
-    return R_CheckDvarModified((const dvar_s *)r_lightTweakSunDirection.integer) | v6;
+
+    return R_CheckDvarModified((const dvar_s *)r_lightTweakSunDirection) | v6;
 }
 
 bool __cdecl R_GpuSyncModified()
@@ -2575,19 +2605,19 @@ bool __cdecl R_IsRemoteScreenUpdateActive()
     return r_glob.remoteScreenUpdateNesting > 0;
 }
 
-GfxViewInfo *__thiscall GfxViewInfo::GfxViewInfo(GfxViewInfo *this)
-{
-    int v3; // [esp+4h] [ebp-14h]
-    GfxDrawSurfListInfo *j; // [esp+8h] [ebp-10h]
-    int v5; // [esp+Ch] [ebp-Ch]
-    PointLightPartition *i; // [esp+10h] [ebp-8h]
-
-    v5 = 4;
-    for ( i = this->pointLightPartitions; --v5 >= 0; ++i )
-        `vector constructor iterator'(i->info.group, 8u, 3, (void *(__thiscall *)(void *))jqBatchGroup::jqBatchGroup);
-    v3 = 14;
-    for ( j = this->drawList; --v3 >= 0; ++j )
-        `vector constructor iterator'(j->group, 8u, 3, (void *(__thiscall *)(void *))jqBatchGroup::jqBatchGroup);
-    return this;
-}
+//GfxViewInfo *__thiscall GfxViewInfo::GfxViewInfo(GfxViewInfo *this)
+//{
+//    int v3; // [esp+4h] [ebp-14h]
+//    GfxDrawSurfListInfo *j; // [esp+8h] [ebp-10h]
+//    int v5; // [esp+Ch] [ebp-Ch]
+//    PointLightPartition *i; // [esp+10h] [ebp-8h]
+//
+//    v5 = 4;
+//    for ( i = this->pointLightPartitions; --v5 >= 0; ++i )
+//        `vector constructor iterator'(i->info.group, 8u, 3, (void *(__thiscall *)(void *))jqBatchGroup::jqBatchGroup);
+//    v3 = 14;
+//    for ( j = this->drawList; --v3 >= 0; ++j )
+//        `vector constructor iterator'(j->group, 8u, 3, (void *(__thiscall *)(void *))jqBatchGroup::jqBatchGroup);
+//    return this;
+//}
 

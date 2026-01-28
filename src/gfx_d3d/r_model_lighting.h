@@ -2,9 +2,33 @@
 #include "rb_state.h"
 #include "r_rendercmds.h"
 
+struct GfxLightingInfo // sizeof=0x8
+{                                       // XREF: .data:lightingInfo/r
+    unsigned __int8 primaryLightIndex;
+    unsigned __int8 reflectionProbeIndex;
+    // padding byte
+    // padding byte
+    unsigned int lightingHandle;
+};
+
+struct GfxFindLightForSphere // sizeof=0x14
+{                                       // XREF: ?R_AllocModelLighting_Sphere@@YAIPBUGfxViewInfo@@QBMM1M_NPAGPAUGfxLightingInfo@@@Z/r
+    const GfxViewInfo *viewInfo;        // XREF: R_AllocModelLighting_Sphere(GfxViewInfo const *,float const * const,float,float const * const,float,bool,ushort *,GfxLightingInfo *)+9/w
+    float origin[3];                    // XREF: R_AllocModelLighting_Sphere(GfxViewInfo const *,float const * const,float,float const * const,float,bool,ushort *,GfxLightingInfo *)+13/w
+                                        // R_AllocModelLighting_Sphere(GfxViewInfo const *,float const * const,float,float const * const,float,bool,ushort *,GfxLightingInfo *)+20/w ...
+    float radius;                       // XREF: R_AllocModelLighting_Sphere(GfxViewInfo const *,float const * const,float,float const * const,float,bool,ushort *,GfxLightingInfo *)+37/w
+};
+
+struct GfxFindLightForBox // sizeof=0x1C
+{                                       // XREF: ?R_AllocModelLighting_Box@@YAIPBUGfxViewInfo@@QBMM11_NPAGPAUGfxLightingInfo@@@Z/r
+    const GfxViewInfo *viewInfo;        // XREF: R_AllocModelLighting_Box(GfxViewInfo const *,float const * const,float,float const * const,float const * const,bool,ushort *,GfxLightingInfo *)+9/w
+    float midPoint[3];                  // XREF: R_AllocModelLighting_Box(GfxViewInfo const *,float const * const,float,float const * const,float const * const,bool,ushort *,GfxLightingInfo *)+22/w
+                                        // R_AllocModelLighting_Box(GfxViewInfo const *,float const * const,float,float const * const,float const * const,bool,ushort *,GfxLightingInfo *)+3F/w ...
+    float halfSize[3];                  // XREF: R_AllocModelLighting_Box(GfxViewInfo const *,float const * const,float,float const * const,float const * const,bool,ushort *,GfxLightingInfo *)+6D/w
+};
+
 enum GfxModelLightExtrapolation : __int32
 {                                       // XREF: CalcLightingCmd/r
-                                        // R_CalcModelLighting/r ...
     GFX_MODELLIGHT_EXTRAPOLATE  = 0x0,
     GFX_MODELLIGHT_SHOW_MISSING = 0x1,
 };

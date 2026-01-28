@@ -1,4 +1,12 @@
 #include "r_primarylights.h"
+#include <cgame_mp/cg_ents_mp.h>
+#include <client/con_channels.h>
+#include "r_dvars.h"
+#include "r_spotshadow.h"
+#include <physics/rope.h>
+#include "r_debug.h"
+
+GfxShadowedLightHistory s_shadowHistory[4];
 
 void __cdecl R_ClearShadowedPrimaryLightHistory(int localClientNum)
 {
@@ -35,8 +43,8 @@ bool __cdecl R_IsPrimaryLight(unsigned int shadowableLightIndex)
 void __cdecl R_ChooseShadowedLights(GfxViewInfo *viewInfo)
 {
     bool v1; // zf
-    int v2; // eax
-    int v3; // eax
+    DWORD v2; // eax
+    DWORD v3; // eax
     float v4; // [esp+Ch] [ebp-A0h]
     float v5; // [esp+18h] [ebp-94h]
     float cullDist; // [esp+28h] [ebp-84h]
@@ -75,9 +83,9 @@ void __cdecl R_ChooseShadowedLights(GfxViewInfo *viewInfo)
             usedBits = scene.shadowableLightIsUsed[scanIndex];
             while ( 1 )
             {
-                v1 = !_BitScanReverse((unsigned int *)&v2, usedBits);
-                if ( v1 )
-                    v2 = `CountLeadingZeros'::`2'::notFound;
+                v1 = !_BitScanReverse(&v2, usedBits);
+                if (v1)
+                    v2 = 63;// `CountLeadingZeros'::`2': : notFound;
                 leadingZeros = v2 ^ 0x1F;
                 if ( (v2 ^ 0x1F) == 0x20 )
                     break;
@@ -110,9 +118,9 @@ void __cdecl R_ChooseShadowedLights(GfxViewInfo *viewInfo)
             usedBits = scene.shadowableLightIsUsed[scanIndex];
             while ( 1 )
             {
-                v1 = !_BitScanReverse((unsigned int *)&v3, usedBits);
-                if ( v1 )
-                    v3 = `CountLeadingZeros'::`2'::notFound;
+                v1 = !_BitScanReverse(&v3, usedBits);
+                if (v1)
+                    v3 = 63;// `CountLeadingZeros'::`2': : notFound;
                 leadingZeros = v3 ^ 0x1F;
                 if ( (v3 ^ 0x1F) == 0x20 )
                     break;
@@ -210,7 +218,7 @@ double __cdecl R_ShadowedSpotLightScore(const GfxViewParms *viewParms, const Gfx
     value = sm_lightScore_eyeProjectDist->current.value;
     deltaToLight_4 = light->origin[1] - (float)((float)(value * viewParms->axis[0][1]) + viewParms->origin[1]);
     deltaToLight_8 = light->origin[2] - (float)((float)(value * viewParms->axis[0][2]) + viewParms->origin[2]);
-    v3 = COERCE_FLOAT(LODWORD(light->radius) ^ _mask__NegFloat_) * sm_lightScore_spotProjectFrac->current.value;
+    v3 = (-(light->radius)) * sm_lightScore_spotProjectFrac->current.value;
     deltaToFocus[0] = (float)(v3 * light->dir[0])
                                     + (float)(light->origin[0] - (float)((float)(value * viewParms->axis[0][0]) + viewParms->origin[0]));
     deltaToFocus[1] = (float)(v3 * light->dir[1]) + deltaToLight_4;
@@ -498,12 +506,8 @@ char __cdecl R_CullBoxFromLightRegionHull(
     for ( axisIter = 0; axisIter < hull->axisCount; ++axisIter )
     {
         dir = &hull->axis[axisIter];
-        if ( COERCE_FLOAT(
-                     COERCE_UNSIGNED_INT(
-                         (float)((float)((float)(*boxMidPoint * dir->dir[0]) + (float)(boxMidPoint[1] * dir->dir[1]))
-                                     + (float)(boxMidPoint[2] * dir->dir[2]))
-                     - dir->midPoint)
-                 & _mask__AbsFloat_) >= (float)((float)((float)((float)(*boxHalfSize
+        if ( fabs(((((*boxMidPoint * dir->dir[0]) + (boxMidPoint[1] * dir->dir[1]))+ (boxMidPoint[2] * dir->dir[2])) - dir->midPoint)) 
+            >= (float)((float)((float)((float)(*boxHalfSize
                                                                                                                             * fabs(dir->dir[0]))
                                                                                                             + (float)(boxHalfSize[1]
                                                                                                                             * fabs(dir->dir[1])))
@@ -881,13 +885,7 @@ char __cdecl R_CullSphereFromLightRegionHull(const GfxLightRegionHull *hull, con
         return 1;
     for ( axisIter = 0; axisIter < hull->axisCount; ++axisIter )
     {
-        if ( COERCE_FLOAT(
-                     COERCE_UNSIGNED_INT(
-                         (float)((float)((float)(*origin * hull->axis[axisIter].dir[0])
-                                                     + (float)(origin[1] * hull->axis[axisIter].dir[1]))
-                                     + (float)(origin[2] * hull->axis[axisIter].dir[2]))
-                     - hull->axis[axisIter].midPoint)
-                 & _mask__AbsFloat_) >= (float)(radius + hull->axis[axisIter].halfSize) )
+        if ( fabs(((((*origin * hull->axis[axisIter].dir[0]) + (float)(origin[1] * hull->axis[axisIter].dir[1])) + (float)(origin[2] * hull->axis[axisIter].dir[2])) - hull->axis[axisIter].midPoint)) >= (float)(radius + hull->axis[axisIter].halfSize) )
             return 1;
     }
     return 0;

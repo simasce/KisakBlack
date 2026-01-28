@@ -1,5 +1,411 @@
 #pragma once
 
+#include "r_material.h"
+#include <d3dx9.h>
+
+enum MtlParseSuccess : __int32
+{                                       // XREF: Material_ParseRuleSetCondition/r
+    MTL_PARSE_SUCCESS  = 0x0,
+    MTL_PARSE_NO_MATCH = 0x1,
+    MTL_PARSE_ERROR    = 0x2,
+};
+
+enum MaterialWorldVertexFormat : __int32
+{                                       // XREF: Material_RegisterLayeredTechniqueSet/r
+    MTL_WORLDVERT_TEX_1_NRM_1 = 0x0,    // XREF: .rdata:s_worldVertFormatForLayerCount/s
+    MTL_WORLDVERT_TEX_2_NRM_1 = 0x1,    // XREF: .rdata:s_worldVertFormatForLayerCount/s
+    MTL_WORLDVERT_TEX_2_NRM_2 = 0x2,
+    MTL_WORLDVERT_TEX_3_NRM_1 = 0x3,    // XREF: .rdata:s_worldVertFormatForLayerCount/s
+    MTL_WORLDVERT_TEX_3_NRM_2 = 0x4,
+    MTL_WORLDVERT_TEX_3_NRM_3 = 0x5,
+    MTL_WORLDVERT_TEX_4_NRM_1 = 0x6,    // XREF: .rdata:s_worldVertFormatForLayerCount/s
+    MTL_WORLDVERT_TEX_4_NRM_2 = 0x7,
+    MTL_WORLDVERT_TEX_4_NRM_3 = 0x8,
+};
+
+enum MaterialUpdateFrequency : __int32
+{                                       // XREF: Material_CompareShaderArgumentsForRuntime/r
+    MTL_UPDATE_PER_PRIM   = 0x0,
+    MTL_UPDATE_PER_OBJECT = 0x1,
+    MTL_UPDATE_RARELY     = 0x2,
+    MTL_UPDATE_CUSTOM     = 0x3,
+};
+
+enum MaterialTextureSource : __int32
+{                                       // XREF: CodeSamplerSource/r
+    TEXTURE_SRC_CODE_BLACK           = 0x0,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_WHITE           = 0x1,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_IDENTITY_NORMAL_MAP = 0x2,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_MODEL_LIGHTING  = 0x3,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_LIGHTMAP_PRIMARY = 0x4,
+                                        // XREF: .rdata:s_lightmapSamplers/s
+                                        // .rdata:s_codeSamplers/s ...
+    TEXTURE_SRC_CODE_LIGHTMAP_SECONDARY = 0x5,
+                                        // XREF: .rdata:s_lightmapSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_SHADOWMAP_SUN   = 0x6,
+                                        // XREF: .rdata:s_codeSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_SHADOWMAP_SPOT  = 0x7,
+                                        // XREF: .rdata:s_codeSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_FEEDBACK        = 0x8,
+                                        // XREF: .rdata:s_codeSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_RESOLVED_POST_SUN = 0x9,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_RESOLVED_SCENE  = 0xA,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_POST_EFFECT_SRC = 0xB,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_POST_EFFECT_GODRAYS = 0xC,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_POST_EFFECT_0   = 0xD,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_POST_EFFECT_1   = 0xE,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_SKY             = 0xF,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_LIGHT_ATTENUATION = 0x10,
+                                        // XREF: .rdata:s_lightSamplers/s
+                                        // .rdata:s_codeSamplers/s ...
+    TEXTURE_SRC_CODE_DLIGHT_ATTENUATION = 0x11,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_OUTDOOR         = 0x12,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_FLOATZ          = 0x13,
+                                        // XREF: .rdata:s_codeSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_PROCESSED_FLOATZ = 0x14,
+                                        // XREF: .rdata:s_codeSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_RAW_FLOATZ      = 0x15,
+                                        // XREF: .rdata:s_codeSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_CASE_TEXTURE    = 0x16,
+    TEXTURE_SRC_CODE_CINEMATIC_Y     = 0x17,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_CINEMATIC_CR    = 0x18,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_CINEMATIC_CB    = 0x19,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_CINEMATIC_A     = 0x1A,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_REFLECTION_PROBE = 0x1B,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_FEATHER_FLOAT_Z = 0x1C,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_TERRAIN_SCORCH_TEXTURE_0 = 0x1D,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_TERRAIN_SCORCH_TEXTURE_1 = 0x1E,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_TERRAIN_SCORCH_TEXTURE_2 = 0x1F,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_TERRAIN_SCORCH_TEXTURE_3 = 0x20,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_TERRAIN_SCORCH_TEXTURE_LAST = 0x20,
+    TEXTURE_SRC_CODE_LIGHTMAP_SECONDARYB = 0x21,
+                                        // XREF: .rdata:s_lightmapSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_TEXTURE_0       = 0x22,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_TEXTURE_1       = 0x23,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_TEXTURE_2       = 0x24,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_TEXTURE_3       = 0x25,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_IMPACT_MASK     = 0x26,
+                                        // XREF: .rdata:s_codeSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_UI3D            = 0x27,
+                                        // XREF: .rdata:s_codeSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_MISSILE_CAM     = 0x28,
+                                        // XREF: .rdata:s_codeSamplers/s
+                                        // .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_COMPOSITE_RESULT = 0x29,
+                                        // XREF: .rdata:s_codeSamplers/s
+    TEXTURE_SRC_CODE_HEATMAP         = 0x2A,
+                                        // XREF: .rdata:s_defaultCodeSamplers/s
+    TEXTURE_SRC_CODE_COUNT           = 0x2B,
+};
+
+enum MaterialShaderType : __int32
+{                                       // XREF: Material_GenerateShaderString/r
+    MTL_VERTEX_SHADER = 0x0,
+    MTL_PIXEL_SHADER  = 0x1,
+};
+
+enum ShaderParamType : __int32
+{                                       // XREF: ShaderUniformDef/r
+    SHADER_PARAM_FLOAT4       = 0x0,
+    SHADER_PARAM_SAMPLER_2D   = 0x1,
+    SHADER_PARAM_SAMPLER_3D   = 0x2,
+    SHADER_PARAM_SAMPLER_CUBE = 0x3,
+    SHADER_PARAM_SAMPLER_1D   = 0x4,
+};
+
+struct MaterialStateMapRule // sizeof=0x20
+{                                       // XREF: MaterialStateMapRuleSet/r
+    unsigned int stateBitsMask[2];
+    unsigned int stateBitsValue[2];
+    unsigned int stateBitsSet[2];
+    unsigned int stateBitsClear[2];
+};
+
+struct MaterialStateMapRuleSet // sizeof=0x24
+{
+    int ruleCount;
+    MaterialStateMapRule rules[1];
+};
+
+struct MaterialStateMap // sizeof=0x2C
+{
+    const char *name;
+    MaterialStateMapRuleSet *ruleSet[10];
+};
+
+struct GfxCachedShaderText // sizeof=0xC
+{                                       // XREF: ??$_Insertion_sort1@PAUGfxCachedShaderText@@P6A_NABU1@0@ZU1@@std@@YAXPAUGfxCachedShaderText@@0P6A_NABU1@1@Z0@Z/r
+    const char *name;                   // XREF: std::_Insertion_sort1<GfxCachedShaderText *,bool (*)(GfxCachedShaderText const &,GfxCachedShaderText const &),GfxCachedShaderText>(GfxCachedShaderText *,GfxCachedShaderText *,bool (*)(GfxCachedShaderText const &,GfxCachedShaderText const &),GfxCachedShaderText *)+38/w
+    const char *text;                   // XREF: std::_Insertion_sort1<GfxCachedShaderText *,bool (*)(GfxCachedShaderText const &,GfxCachedShaderText const &),GfxCachedShaderText>(GfxCachedShaderText *,GfxCachedShaderText *,bool (*)(GfxCachedShaderText const &,GfxCachedShaderText const &),GfxCachedShaderText *)+3E/w
+    int textSize;                       // XREF: std::_Insertion_sort1<GfxCachedShaderText *,bool (*)(GfxCachedShaderText const &,GfxCachedShaderText const &),GfxCachedShaderText>(GfxCachedShaderText *,GfxCachedShaderText *,bool (*)(GfxCachedShaderText const &,GfxCachedShaderText const &),GfxCachedShaderText *)+44/w
+};
+
+struct MtlStateMapBitName // sizeof=0x8
+{                                       // XREF: .rdata:s_alphaTestBitNames/r
+    const char *name;
+    int bits;
+};
+
+struct MaterialTypeInfo // sizeof=0xC
+{                                       // XREF: .data:g_materialTypeInfo/r
+    const char *prefix;                 // XREF: Material_Load(char const *,int)+B3/r
+                                        // Material_LoadRaw+BE/r
+    const char *techniqueSetPrefix;     // XREF: Material_LoadRaw+1C/r
+    unsigned int prefixLen;             // XREF: Material_Load(char const *,int)+A0/r
+                                        // Material_LoadRaw+4E/r
+};
+
+struct MaterialConstantDefRaw // sizeof=0x14
+{
+    unsigned int nameOffset;
+    float literal[4];
+};
+
+struct MtlStateMapBitGroup // sizeof=0x10
+{                                       // XREF: .rdata:s_stateMapSrcBitGroup/r
+                                        // .rdata:s_stateMapDstAlphaTestBitGroup/r ...
+    const char *name;                   // XREF: Material_ParseRuleSetConditionTest+1F/r
+                                        // Material_ParseRuleSetConditionTest+32/r ...
+    const MtlStateMapBitName *bitNames; // XREF: Material_ParseRuleSetConditionTest+BF/r
+    int stateBitsMask[2];               // XREF: Material_ParseRuleSetConditionTest+F5/r
+};
+
+struct ShaderVaryingDef // sizeof=0x8
+{                                       // XREF: ShaderParameterSet/r
+    const char *name;
+    unsigned __int8 streamDest;
+    unsigned __int8 resourceDest;
+    bool isAssigned;
+    bool isSpecialFragmentRegister;
+};
+
+struct __declspec(align(4)) ShaderUniformDef // sizeof=0x10
+{                                       // XREF: ShaderParameterSet/r
+    ShaderParamType type;
+    const char *name;
+    unsigned __int16 index;
+    unsigned __int16 resourceDest;
+    bool isTransposed;
+    bool isAssigned;
+    // padding byte
+    // padding byte
+};
+
+struct ShaderParameterSet // sizeof=0x308C
+{                                       // XREF: Material_LoadPass/r
+                                        // Material_LoadPass/r
+    ShaderUniformDef uniformInputs[512];
+    ShaderVaryingDef varyingInputs[512]; // XREF: Material_LoadPass+58F/o
+                                        // Material_LoadPass+5E3/o
+    ShaderVaryingDef outputs[16];       // XREF: Material_LoadPass+59D/o
+    unsigned int uniformInputCount;
+    unsigned int varyingInputCount;     // XREF: Material_LoadPass+588/r
+                                        // Material_LoadPass+5DC/r
+    unsigned int outputCount;           // XREF: Material_LoadPass+596/r
+};
+
+struct GfxAssembledShaderTextFile // sizeof=0x108
+{                                       // XREF: GfxAssembledShaderText/r
+    unsigned int srcLine;
+    unsigned int destLine;
+    char fileName[256];
+};
+
+struct GfxAssembledShaderText // sizeof=0x8418
+{                                       // XREF: Material_CompileShader/r
+    char *string;
+    unsigned int used;
+    unsigned int total;
+    unsigned int currentDestLine;
+    bool overflowed;
+    // padding byte
+    // padding byte
+    // padding byte
+    unsigned int fileCount;
+    GfxAssembledShaderTextFile files[128];
+};
+
+struct __declspec(align(4)) ShaderIndexRange // sizeof=0xC
+{                                       // XREF: ShaderArgumentDest/r
+    unsigned int first;                 // XREF: Material_ParseShaderArguments+354/w
+    unsigned int count;                 // XREF: Material_ParseShaderArguments+35A/w
+    bool isImplicit;                    // XREF: Material_ParseShaderArguments+364/w
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
+struct ShaderArgumentSource // sizeof=0x14
+{                                       // XREF: Material_ParseShaderArguments/r
+    ShaderIndexRange indexRange;
+    unsigned __int16 type;              // XREF: Material_ParseShaderArguments:loc_AD17EC/r
+                                        // Material_ParseShaderArguments:loc_AD1962/r ...
+    // padding byte
+    // padding byte
+    //ShaderArgumentSource::<unnamed_type_u> u;
+    union //ShaderArgumentSource::<unnamed_type_u> // sizeof=0x4
+    {                                       // XREF: Material_ParseShaderArguments+248/r
+        const float *literalConst;
+        unsigned __int16 codeIndex;
+        const char *name;
+    } u;
+};
+
+struct CodeSamplerSource // sizeof=0x14
+{                                       // XREF: .rdata:s_lightSamplers/r
+    const char *name;
+    MaterialTextureSource source;
+    const CodeSamplerSource *subtable;
+    int arrayCount;
+    int arrayStride;
+};
+
+struct CodeConstantSource // sizeof=0x14
+{                                       // XREF: .rdata:s_sunConsts/r
+    const char *name;
+    unsigned __int8 source;
+    // padding byte
+    // padding byte
+    // padding byte
+    const CodeConstantSource *subtable;
+    int arrayCount;
+    int arrayStride;
+};
+
+struct __declspec(align(4)) ShaderIndexRange // sizeof=0xC
+{                                       // XREF: ShaderArgumentDest/r
+    unsigned int first;                 // XREF: Material_ParseShaderArguments+354/w
+    unsigned int count;                 // XREF: Material_ParseShaderArguments+35A/w
+    bool isImplicit;                    // XREF: Material_ParseShaderArguments+364/w
+    // padding byte
+    // padding byte
+    // padding byte
+};
+
+struct ShaderArgumentDest // sizeof=0x10
+{
+    ShaderIndexRange indexRange;
+    const char *paramName;
+};
+
+struct LayeredTechniqueSetName // sizeof=0x10
+{                                       // XREF: .rdata:s_lyrTechSetNames/r
+    const char *inputName;              // XREF: Material_GetLayeredTechniqueSetName+6D/r
+    const char *namePrefixRegister;
+    const char *namePrefixGenerate;
+    const char *nameChunk;
+};
+
+struct MaterialInfoRaw // sizeof=0x28
+{                                       // XREF: MaterialRaw/r
+    unsigned int nameOffset;
+    unsigned int refImageNameOffset;
+    unsigned __int8 gameFlags;
+    unsigned __int8 sortKey;
+    unsigned __int8 textureAtlasRowCount;
+    unsigned __int8 textureAtlasColumnCount;
+    float maxDeformMove;
+    unsigned __int8 deformFlags;
+    unsigned __int8 usage;
+    unsigned __int16 toolFlags;
+    unsigned int locale;
+    unsigned __int16 autoTexScaleWidth;
+    unsigned __int16 autoTexScaleHeight;
+    float tessSize;
+    int surfaceFlags;
+    int contents;
+};
+
+struct MaterialRaw // sizeof=0x40
+{
+    MaterialInfoRaw info;
+    unsigned int refStateBits[2];
+    unsigned __int16 textureCount;
+    unsigned __int16 constantCount;
+    unsigned int techSetNameOffset;
+    unsigned int textureTableOffset;
+    unsigned int constantTableOffset;
+};
+
+struct MaterialWaterDef // sizeof=0x20
+{
+    int textureWidth;
+    float horizontalWorldLength;
+    float verticalWorldLength;
+    float amplitude;
+    float windSpeed;
+    float windDirection[2];
+    water_t *map;
+};
+
+struct MaterialTextureDefRaw // sizeof=0xC
+{
+    unsigned int nameOffset;
+    unsigned __int8 samplerState;
+    unsigned __int8 semantic;
+    // padding byte
+    // padding byte
+    //MaterialTextureDefRaw::<unnamed_type_u> u;
+    union //MaterialTextureDefRaw::<unnamed_type_u> // sizeof=0x4
+    {                                       // XREF: MaterialTextureDefRaw/r
+        unsigned int imageNameOffset;
+        unsigned int waterDefOffset;
+    } u;
+};
+
+struct ScriptableConstant // sizeof=0x8
+{                                       // XREF: .data:ScriptableConstant * g_scriptableConstantArray/r
+    unsigned __int8 source;
+    // padding byte
+    // padding byte
+    // padding byte
+    const char *sourceName;
+};
+
+struct MaterialString // sizeof=0x8
+{                                       // XREF: $54435CF730F84DB67694F69169881761/r
+    const char *string;                 // XREF: Material_RegisterString+24/r
+                                        // Material_RegisterString+4E/r ...
+    unsigned int hash;                  // XREF: Material_RegisterString+35/r
+};
+
 bool __cdecl Material_CachedShaderTextLess(const GfxCachedShaderText *cached0, const GfxCachedShaderText *cached1);
 void __cdecl Material_FreeAll();
 void Material_FreeAllLiterals();
@@ -27,7 +433,7 @@ MaterialStateMap *__cdecl Material_LoadStateMap(char *name);
 bool __cdecl Material_ParseStateMap(char **text, MaterialStateMap *stateMap);
 char __cdecl Material_ParseRuleSet(
                 char **text,
-                char *ruleSetName,
+                const char *ruleSetName,
                 const MtlStateMapBitGroup *stateSet,
                 MaterialStateMapRuleSet **ruleSet);
 int __cdecl Material_ParseRuleSetCondition(const char **text, const char *token, MaterialStateMapRule *rule);
@@ -137,7 +543,7 @@ char __cdecl Material_SetPassShaderArguments_DX(
                 char **text,
                 char *shaderName,
                 MaterialShaderType shaderType,
-                const unsigned int *program,
+                const DWORD *program,
                 unsigned __int16 *techFlags,
                 ShaderParameterSet *paramSet,
                 unsigned int argLimit,

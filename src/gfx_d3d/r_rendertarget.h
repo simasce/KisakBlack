@@ -1,4 +1,6 @@
 #pragma once
+#include <d3d9.h>
+#include "r_gfx.h"
 
 enum FullscreenType : __int32
 {                                       // XREF: R_InitFullscreenRenderTargetImage/r
@@ -64,7 +66,22 @@ struct __declspec(align(4)) GfxRenderTarget // sizeof=0x14
     // padding byte
 };
 
+struct ExtraCamSettings // sizeof=0x10
+{                                       // XREF: .data:ExtraCamSettings g_extraCamSettings/r
+    bool enabled;                       // XREF: R_CheckExtraCamTargets(void)+3/r
+                                        // R_InitExtraCamRenderTargets(uint,uint,int)+6/w ...
+    // padding byte
+    // padding byte
+    // padding byte
+    int width;                          // XREF: R_CheckExtraCamTargets(void)+27/r
+                                        // R_InitExtraCamRenderTargets(uint,uint,int)+10/w
+    int height;                         // XREF: R_CheckExtraCamTargets(void)+20/r
+                                        // R_InitExtraCamRenderTargets(uint,uint,int)+18/w
+    int location;                       // XREF: R_CheckExtraCamTargets(void):loc_AF9C79/r
+                                        // R_InitExtraCamRenderTargets(uint,uint,int)+21/w
+};
 
+struct GfxImage;
 
 int __cdecl R_GetDepthStencilFormat(_D3DFORMAT renderTargetFormat);
 bool __cdecl R_IsDepthStencilFormatOk(_D3DFORMAT renderTargetFormat, _D3DFORMAT depthStencilFormat);

@@ -137,6 +137,17 @@ struct __declspec(align(4)) MarkInfo // sizeof=0x4AC
     // padding byte
 };
 
+struct MarkModelCoreContext // sizeof=0x1C
+{                                       // XREF: R_MarkFragments_AnimatedXModel_VertList/r
+    MarkInfo *markInfo;                 // XREF: R_MarkFragments_XModelSurface_Basic+1F0/w
+    GfxMarkContext *markContext;        // XREF: R_MarkFragments_XModelSurface_Basic+1F9/w
+    const float *markOrigin;            // XREF: R_MarkFragments_XModelSurface_Basic+202/w
+    const float *markDir;               // XREF: R_MarkFragments_XModelSurface_Basic+20E/w
+    const MarkClipPlaneSet *clipPlanes; // XREF: R_MarkFragments_XModelSurface_Basic+21D/w
+    const float (*transformMatrix)[3];  // XREF: R_MarkFragments_XModelSurface_Basic+226/w
+    const float (*transformNormalMatrix)[3];
+};
+
 struct GfxSurface;
 
 void    R_BoxSurfaces(
@@ -273,7 +284,7 @@ bool __cdecl R_MarkFragments_Brushes(MarkInfo *markInfo);
 char __cdecl R_MarkFragments_WorldBrushes(MarkInfo *markInfo);
 bool __cdecl R_AllowMarks(int surfIndex, const Material *markMaterialAsVoid);
 bool __cdecl R_Mark_MaterialAllowsMarks(const Material *markReceiverMaterialHandle, const Material *markMaterialHandle);
-char __cdecl R_MarkFragments_BrushSurface(
+bool __cdecl R_MarkFragments_BrushSurface(
                 MarkInfo *markInfo,
                 GfxMarkContext *markContext,
                 const MarkClipPlaneSet *clipPlanes,
@@ -317,7 +328,7 @@ char __cdecl R_MarkFragments_AnimatedXModel(
                 int boneCount,
                 GfxMarkContext *markContext);
 // local variable allocation has failed, the output may be wrong!
-char    R_MarkFragments_AnimatedXModel_VertList(
+bool R_MarkFragments_AnimatedXModel_VertList(
                 MarkInfo *markInfo,
                 unsigned int vertListIndex,
                 const DObjAnimMat *poseBone,

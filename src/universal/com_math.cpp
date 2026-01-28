@@ -3597,6 +3597,12 @@ void __cdecl Vec3Sub(const float *a, const float *b, float *diff)
     diff[2] = a[2] - b[2];
 }
 
+void Vec2Copy(const float *from, float *to)
+{
+    to[0] = from[0];
+    to[1] = from[1];
+}
+
 void __cdecl Vec3Copy(const float *from, float *to)
 {
     to[0] = from[0];
