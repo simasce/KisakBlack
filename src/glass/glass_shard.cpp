@@ -7,6 +7,7 @@
 #include "glass_client.h"
 #include <physics/physpreset_load_obj.h>
 #include <client/cl_debugdata.h>
+#include <gfx_d3d/r_bsp.h>
 
 float hitPos[3];
 

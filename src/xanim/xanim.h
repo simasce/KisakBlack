@@ -5,6 +5,7 @@
 #include <d3d9.h>
 #include <flame/flame_system.h>
 #include <universal/com_pack.h>
+#include <gfx_d3d/r_gfx.h>
 
 struct XAnimParam // sizeof=0x14
 {
@@ -139,13 +140,6 @@ struct XAnimParent // sizeof=0x4
         unsigned __int16 children;
 };
 
-union $AE2C40205408E7677B548FCC327D21B5 // sizeof=0x4
-{                                                                             // XREF: XAnimClearTreeGoalWeightsInternal+42/r
-                                                                                // XAnimClearTreeGoalWeightsInternal+5F/r ...
-        XAnimParts *parts;
-        XAnimParent animParent;
-};
-
 struct XAnimEntry // sizeof=0x10
 {                                                                             // XREF: XAnim_s/r
         unsigned __int16 bCreated;
@@ -155,7 +149,13 @@ struct XAnimEntry // sizeof=0x10
         unsigned __int16 parent;
         // padding byte
         // padding byte
-        $AE2C40205408E7677B548FCC327D21B5 ___u5;
+        //$AE2C40205408E7677B548FCC327D21B5 ___u5;
+        union //$AE2C40205408E7677B548FCC327D21B5 // sizeof=0x4
+        {                                                                             // XREF: XAnimClearTreeGoalWeightsInternal+42/r
+                                                                                        // XAnimClearTreeGoalWeightsInternal+5F/r ...
+            XAnimParts *parts;
+            XAnimParent animParent;
+        };
 };
 
 struct XAnim_s // sizeof=0x28
@@ -316,7 +316,11 @@ struct __declspec(align(4)) XAnimInfo // sizeof=0x40
                                                                                 // XAnimClearTreeGoalWeightsInternal+F2/r ...
         unsigned __int16 animToModel;             // XREF: XAnimClearTreeGoalWeightsInternal+31/r
                                                                                 // XAnimClearGoalWeightKnobInternal+1D8/r
-        $AE2C40205408E7677B548FCC327D21B5 ___u10;
+        union //$AE2C40205408E7677B548FCC327D21B5 // sizeof=0x4
+        {                                       // XREF: XAnimClearTreeGoalWeightsInternal+42/r
+            XAnimParts *parts;
+            XAnimParent animParent;
+        };
                                                                                 // XREF: XAnimClearTreeGoalWeightsInternal+42/r
                                                                                 // XAnimClearTreeGoalWeightsInternal+5F/r ...
         XAnimState state;                                     // XREF: XAnimInit(void)+6A/w
@@ -363,6 +367,19 @@ struct XAnimTime // sizeof=0xC
         float time;
         float frameFrac;                                        // XREF: XAnimCalcParts_unsigned_char_+29E/w
         int frameIndex;                                         // XREF: XAnimCalcParts_unsigned_char_+28E/r
+};
+
+struct __declspec(align(4)) XAnimToXModel // sizeof=0xB8
+{                                       // XREF: ?XAnimGetAnimMap@@YAIPBUXAnimParts@@PBUXModelNameMap@@@Z/r
+    bitarray<160> partBits;             // XREF: XAnimGetAnimMap(XAnimParts const *,XModelNameMap const *)+3D/w
+                                        // XAnimGetAnimMap(XAnimParts const *,XModelNameMap const *)+78/w ...
+    unsigned __int8 boneCount;          // XREF: XAnimGetAnimMap(XAnimParts const *,XModelNameMap const *)+192/w
+                                        // XAnimGetAnimMap(XAnimParts const *,XModelNameMap const *)+198/r
+    unsigned __int8 boneIndex[160];     // XREF: XAnimGetAnimMap(XAnimParts const *,XModelNameMap const *)+130/w
+                                        // XAnimGetAnimMap(XAnimParts const *,XModelNameMap const *)+167/w
+    // padding byte
+    // padding byte
+    // padding byte
 };
 
 struct XModelNameMap;

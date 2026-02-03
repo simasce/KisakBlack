@@ -1,5 +1,19 @@
 #include "xmodel.h"
 #include <universal/assertive.h>
+#include <universal/q_shared.h>
+#include <database/db_registry.h>
+#include <gfx_d3d/r_model.h>
+#include <clientscript/cscr_stringlist.h>
+#include <universal/com_memory.h>
+#include <qcommon/com_profilemapload.h>
+#include "xmodel_load_obj.h"
+#include <qcommon/cm_tracebox.h>
+#include "xmodel_utils.h"
+#include "dobj_utils.h"
+#include <cgame/cg_drawtools.h>
+
+Material *g_materials[1];
+XModelDefault g_default;
 
 bool __cdecl XModelBad(const XModel *model)
 {
@@ -148,7 +162,7 @@ XModelPartsLoad *__cdecl XModelCreateDefaultParts()
 
 XModel *__cdecl XModelPrecache_FastFile(const char *name)
 {
-    return DB_FindXAssetHeader(ASSET_TYPE_XMODEL, name, 1, -1).model;
+    return DB_FindXAssetHeader(ASSET_TYPE_XMODEL, (char*)name, 1, -1).model;
 }
 
 unsigned __int16 *__cdecl XModelBoneNames(XModel *model)
@@ -381,8 +395,8 @@ int __cdecl XModelTraceLineAnimated(
                     }
                     else
                     {
-                        ConvertQuatToInverseMat(baseMat, invBaseMat);
-                        ConvertQuatToMat(boneMtx, mat);
+                        ConvertQuatToInverseMat(baseMat, (float(*)[3])invBaseMat);
+                        ConvertQuatToMat(boneMtx, (float(*)[3])mat);
                         mat[3][0] = boneMtx->trans[0];
                         mat[3][1] = boneMtx->trans[1];
                         mat[3][2] = boneMtx->trans[2];
@@ -459,13 +473,13 @@ int __cdecl XModelTraceLineAnimated(
             }
         }
         v15 = partIndex;
-        if ( GetCurrentThreadId() == (unsigned int)g_DXDeviceThread && !MEMORY[0xA8402BC] )
+        //if ( GetCurrentThreadId() == (unsigned int)g_DXDeviceThread && !MEMORY[0xA8402BC] )
             //D3DPERF_EndEvent();
         return v15;
     }
     else
     {
-        if ( GetCurrentThreadId() == (unsigned int)g_DXDeviceThread && !MEMORY[0xA8402BC] )
+        //if ( GetCurrentThreadId() == (unsigned int)g_DXDeviceThread && !MEMORY[0xA8402BC] )
             //D3DPERF_EndEvent();
         return -1;
     }
@@ -530,18 +544,9 @@ void __cdecl ConvertQuatToInverseMat(const DObjAnimMat *mat, float (*axis)[3])
     (*axis)[6] = xz - yw;
     (*axis)[7] = yz + xw;
     (*axis)[8] = 1.0 - (float)(xx + yy);
-    LODWORD((*axis)[9]) = COERCE_UNSIGNED_INT(
-                                                    (float)((float)(mat->trans[0] * (*axis)[0]) + (float)(mat->trans[1] * (*axis)[3]))
-                                                + (float)(mat->trans[2] * (*axis)[6]))
-                                            ^ _mask__NegFloat_;
-    LODWORD((*axis)[10]) = COERCE_UNSIGNED_INT(
-                                                     (float)((float)(mat->trans[0] * (*axis)[1]) + (float)(mat->trans[1] * (*axis)[4]))
-                                                 + (float)(mat->trans[2] * (*axis)[7]))
-                                             ^ _mask__NegFloat_;
-    LODWORD((*axis)[11]) = COERCE_UNSIGNED_INT(
-                                                     (float)((float)(mat->trans[0] * (*axis)[2]) + (float)(mat->trans[1] * (*axis)[5]))
-                                                 + (float)(mat->trans[2] * (*axis)[8]))
-                                             ^ _mask__NegFloat_;
+    ((*axis)[9]) =  -((float)((float)(mat->trans[0] * (*axis)[0]) + (float)(mat->trans[1] * (*axis)[3])) + (float)(mat->trans[2] * (*axis)[6]));
+    ((*axis)[10]) = -((float)((float)(mat->trans[0] * (*axis)[1]) + (float)(mat->trans[1] * (*axis)[4])) + (float)(mat->trans[2] * (*axis)[7]));
+    ((*axis)[11]) = -((float)((float)(mat->trans[0] * (*axis)[2]) + (float)(mat->trans[1] * (*axis)[5])) + (float)(mat->trans[2] * (*axis)[8]));
 }
 
 void __cdecl XModelTraceLineAnimatedPartBits(

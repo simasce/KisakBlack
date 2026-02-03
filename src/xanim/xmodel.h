@@ -3,7 +3,52 @@
 struct XSurfaceCollisionTree;
 struct trace_t;
 struct DObj;
-struct XSurfaceGetTriCandidatesLocals;
+struct DObjAnimMat;
+struct XSurface;
+
+struct QueueElement // sizeof=0x8
+{                                       // XREF: XSurfaceGetTriCandidatesLocals/r
+                                        // XSurfaceGetTriCandidatesLocals/r ...
+    unsigned int beginIndex;            // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+10E/w
+    unsigned int count;                 // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+118/w
+};
+
+struct XSurfaceGetTriCandidatesLocals // sizeof=0x2AC
+{                                       // XREF: ?XSurfaceVisitTrianglesInAabb@@YA_NPBUXSurface@@IQBM1P6A_NPAXPAPBE3@Z2@Z/r
+    int mins[3];
+    int maxs[3];                        // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+E9/o
+    const XSurfaceCollisionTree *tree;  // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+5A/w
+                                        // XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+60/r ...
+    const unsigned __int16 *inIndices;  // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+CB/w
+    const unsigned __int8 *inVertices0; // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+D7/w
+    const unsigned __int8 *inVertices1; // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+E3/w
+    bool (__cdecl *visitorFunc)(void *, const unsigned __int8 **, const unsigned __int8 **);
+                                        // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+B6/w
+    void *visitorContext;               // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+BF/w
+    unsigned __int16 vertexSize0;       // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+185/w
+    unsigned __int16 surfaceFlags;      // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+179/w
+    unsigned int nodeQueueBegin;        // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+122/w
+                                        // XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *):loc_8023BC/r
+    unsigned int nodeQueueEnd;          // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+12C/w
+                                        // XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+192/r
+    unsigned int leafQueueBegin;        // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+136/w
+                                        // XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *):loc_8023E9/r
+    unsigned int leafQueueEnd;          // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+140/w
+                                        // XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+1BF/r
+    unsigned int triangleQueueBegin;    // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+14A/w
+                                        // XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *):loc_802413/r
+    unsigned int triangleQueueEnd;      // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+154/w
+                                        // XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+1E9/r
+    unsigned int vertexQueueBegin;      // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+15E/w
+                                        // XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *):loc_80243D/r
+    unsigned int vertexQueueEnd;        // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+168/w
+                                        // XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+213/r
+    QueueElement nodeQueue[64];         // XREF: XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+10E/w
+                                        // XSurfaceVisitTrianglesInAabb(XSurface const *,uint,float const * const,float const * const,bool (*)(void *,uchar const * *,uchar const * *),void *)+118/w
+    QueueElement leafQueue[4];
+    QueueElement triangleQueue[4];
+    unsigned __int16 vertexQueue[4][3];
+};
 
 struct XModelLodInfo // sizeof=0x20
 {                                                                             // XREF: XModel/r
@@ -176,6 +221,20 @@ struct XModelPieces // sizeof=0xC
     const char *name;
     int numpieces;
     XModelPiece *pieces;
+};
+
+struct XModelDefault // sizeof=0x50
+{                                       // XREF: .data:XModelDefault g_default/r
+    unsigned __int16 boneNames[1];
+    unsigned __int8 parentList[1];      // XREF: XModelCreateDefaultParts+17/o
+    // padding byte
+    XModelPartsLoad modelParts;         // XREF: XModelCreateDefaultParts+D/o
+    XBoneInfo boneInfo;                 // XREF: XModelMakeDefault+84/o
+    unsigned __int8 partClassification[1];
+    // XREF: XModelCreateDefaultParts+4B/o
+    // XModelCreateDefaultParts+52/w
+// padding byte
+    unsigned __int16 surfNames[1];
 };
 
 bool __cdecl XModelBad(const XModel *model);

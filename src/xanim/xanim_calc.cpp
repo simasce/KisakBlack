@@ -1,133 +1,12 @@
 #include "xanim_calc.h"
+#include "xanim.h"
+#include <demo/demo_common.h>
+#include "xmodel.h"
+#include <clientscript/cscr_stringlist.h>
+#include <clientscript/scr_const.h>
+#include <game_mp/g_spawnsystem_mp.h>
 
-void __cdecl XAnimSetTime(XAnimTree_s *tree, unsigned int animIndex, float time, unsigned __int16 cmdIndex)
-{
-    char *AnimDebugName; // eax
-    const char *v5; // eax
-    char *v6; // eax
-    const char *v7; // eax
-    bool bLoop; // [esp+8h] [ebp-28h]
-    bool v9; // [esp+10h] [ebp-20h]
-    float v10; // [esp+18h] [ebp-18h]
-    float v11; // [esp+1Ch] [ebp-14h]
-    XAnimInfo *info; // [esp+24h] [ebp-Ch]
-    unsigned int infoIndex; // [esp+28h] [ebp-8h]
-    const XAnimEntry *anim; // [esp+2Ch] [ebp-4h]
-
-    if ( !tree && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 4807, 0, "%s", "tree") )
-        __debugbreak();
-    if ( !tree->anims
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 4808, 0, "%s", "tree->anims") )
-    {
-        __debugbreak();
-    }
-    if ( animIndex >= tree->anims->size
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp",
-                    4809,
-                    0,
-                    "%s\n\t(animIndex) = %i",
-                    "(animIndex < tree->anims->size)",
-                    animIndex) )
-    {
-        __debugbreak();
-    }
-    infoIndex = XAnimGetInfoIndex(tree, animIndex);
-    if ( infoIndex )
-    {
-        anim = &tree->anims->entries[animIndex];
-        if ( !XAnimHasTime(tree->anims, animIndex) )
-        {
-            AnimDebugName = XAnimGetAnimDebugName(tree->anims, animIndex);
-            v5 = va("Anim name: '%s', time: %f", AnimDebugName, time);
-            if ( !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp",
-                            4816,
-                            0,
-                            "%s\n\t%s",
-                            "XAnimHasTime( tree->anims, animIndex )",
-                            v5) )
-                __debugbreak();
-        }
-        if ( Demo_IsPlaying() )
-        {
-            if ( (float)(time - 1.0) < 0.0 )
-                v11 = time;
-            else
-                v11 = 1.0f;
-            if ( (float)(0.0 - time) < 0.0 )
-                v10 = v11;
-            else
-                v10 = 0.0f;
-            time = v10;
-        }
-        if ( (time < 0.0 || time > 1.0)
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp",
-                        4828,
-                        0,
-                        "%s\n\t(time) = %g",
-                        "(time >= 0.0f && time <= 1.0f)",
-                        time) )
-        {
-            __debugbreak();
-        }
-        if ( XAnimIsLooped(tree->anims, animIndex) )
-            v9 = time < 1.0;
-        else
-            v9 = time <= 1.0;
-        if ( !v9 )
-        {
-            bLoop = anim->parts->bLoop;
-            v6 = XAnimGetAnimDebugName(tree->anims, animIndex);
-            v7 = va("name: '%s', time: %f, parts->bLoop: %d", v6, time, bLoop);
-            if ( !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp",
-                            4829,
-                            0,
-                            "%s\n\t%s",
-                            "XAnimIsLooped( tree->anims, animIndex ) ? (time < 1.0f) : (time <= 1.0f)",
-                            v7) )
-                __debugbreak();
-        }
-        if ( infoIndex >= 0x1000
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp",
-                        4831,
-                        0,
-                        "%s\n\t(infoIndex) = %i",
-                        "(infoIndex && (infoIndex < 4096))",
-                        infoIndex) )
-        {
-            __debugbreak();
-        }
-        info = &g_xAnimInfo[infoIndex];
-        if ( *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) )
-        {
-            if ( *(unsigned int *)(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) + 184) )
-                (*(void (__cdecl **)(unsigned int, unsigned int))(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer
-                                                                                                                    + _tls_index)
-                                                                                                                + 8)
-                                                                                        + 184))(
-                    cmdIndex,
-                    (unsigned __int16)infoIndex);
-        }
-        info->state.currentAnimTime = time;
-        info->state.cycleCount = 0;
-        info->state.oldTime = time;
-        info->state.oldCycleCount = 0;
-        info->notifyIndex = -1;
-    }
-}
-
-void __cdecl XAnim_SetTime(float time, int frameCount, XAnimTime *animTime)
-{
-    animTime->time = time;
-    animTime->frameFrac = (float)frameCount * time;
-    animTime->frameIndex = (int)animTime->frameFrac;
-}
-
-void    DObjCalcAnim(int a1@<ebp>, const DObj *obj, int *partBits)
+void    DObjCalcAnim(DObj *obj, int *partBits)
 {
     void *v3; // esp
     const char *v4; // eax
@@ -156,22 +35,23 @@ void    DObjCalcAnim(int a1@<ebp>, const DObj *obj, int *partBits)
     DSkel *p_skel; // [esp+E0h] [ebp-7854h]
     XAnimInfo *AnimInfo; // [esp+E4h] [ebp-7850h]
     XAnimCalcAnimInfo v29; // [esp+E8h] [ebp-784Ch] BYREF
-    int v30; // [esp+7928h] [ebp-Ch]
-    void *v31; // [esp+792Ch] [ebp-8h]
-    void *retaddr; // [esp+7934h] [ebp+0h]
+    //int v30; // [esp+7928h] [ebp-Ch]
+    //void *v31; // [esp+792Ch] [ebp-8h]
+    //void *retaddr; // [esp+7934h] [ebp+0h]
 
-    v30 = a1;
-    v31 = retaddr;
-    v3 = alloca(30988);
-    XAnimCalcAnimInfo::XAnimCalcAnimInfo(&v29);
-    if ( !obj && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp", 2161, 0, "%s", "obj") )
-        __debugbreak();
+    //v30 = a1;
+    //v31 = retaddr;
+    //v3 = alloca(30988);
+    //XAnimCalcAnimInfo::XAnimCalcAnimInfo(&v29);
+    
+    iassert(obj);
+
     p_skel = &obj->skel;
-    if ( obj == (const DObj *)-20
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp", 2164, 0, "%s", "skel") )
-    {
-        __debugbreak();
-    }
+    //if ( obj == (const DObj *)-20
+    //    && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp", 2164, 0, "%s", "skel") )
+    //{
+    //    __debugbreak();
+    //}
     for ( i = 0; i < 5; ++i )
         v29.animPartBits.array[i] = partBits[i];
     for ( j = 0; j < 5; ++j )
@@ -194,7 +74,8 @@ LABEL_22:
         mat = obj->skel.mat;
         for ( n = 0; n < obj->numBones; ++n )
         {
-            if ( bitarray<160>::testBit((bitarray<160> *)p_skel, n) )
+            //if ( bitarray<160>::testBit((bitarray<160> *)p_skel, n) )
+            if (p_skel->partBits.anim.testBit(n))
             {
                 if ( ((LODWORD(mat[n].quat[0]) & 0x7F800000) == 0x7F800000
                      || (LODWORD(mat[n].quat[1]) & 0x7F800000) == 0x7F800000
@@ -231,7 +112,8 @@ LABEL_22:
         localTree = obj->localTree;
         if ( obj->localTree && localTree->children )
         {
-            bitarray<160>::setBit(&v29.ignorePartBits, 0x9Fu);
+            //bitarray<160>::setBit(&v29.ignorePartBits, 159);
+            v29.ignorePartBits.setBit(159);
             AnimInfo = GetAnimInfo(localTree->children);
             XAnimCalc(obj, AnimInfo, 1.0, 1, 0, &v29, 0, obj->skel.mat);
         }
@@ -247,9 +129,11 @@ LABEL_22:
             v12 = localModels[kk];
             for ( mm = v12->numRootBones; mm; --mm )
             {
-                if ( bitarray<160>::testBit(&v29.animPartBits, v15) )
+                //if ( bitarray<160>::testBit(&v29.animPartBits, v15) )
+                if ( v29.animPartBits.testBit(v15) )
                 {
-                    if ( bitarray<160>::testBit((bitarray<160> *)p_skel, v15) )
+                    //if ( bitarray<160>::testBit((bitarray<160> *)p_skel, v15) )
+                    if ( p_skel->partBits.anim.testBit(v15) )
                     {
                         if ( v15 >= obj->numBones )
                         {
@@ -310,9 +194,11 @@ LABEL_22:
             v11 = v12->numBones - v12->numRootBones;
             while ( v11 )
             {
-                if ( bitarray<160>::testBit(&v29.animPartBits, v15) )
+                //if ( bitarray<160>::testBit(&v29.animPartBits, v15) )
+                if ( v29.animPartBits.testBit(v15) )
                 {
-                    if ( bitarray<160>::testBit((bitarray<160> *)p_skel, v15) )
+                    //if ( bitarray<160>::testBit((bitarray<160> *)p_skel, v15) )
+                    if ( p_skel->partBits.anim.testBit(v15) )
                     {
                         if ( ((LODWORD(v21->quat[0]) & 0x7F800000) == 0x7F800000
                              || (LODWORD(v21->quat[1]) & 0x7F800000) == 0x7F800000
@@ -548,7 +434,8 @@ void __cdecl XAnimClearRotTransArray(const DObj *obj, DObjAnimMat *rotTransArray
 
     for ( modelPartIndex = 0; modelPartIndex < obj->numBones; ++modelPartIndex )
     {
-        if ( !bitarray<160>::testBit(&info->ignorePartBits, modelPartIndex) )
+        //if ( !bitarray<160>::testBit(&info->ignorePartBits, modelPartIndex) )
+        if ( !info->ignorePartBits.testBit(modelPartIndex) )
         {
             rotTransArray->quat[0] = 0.0f;
             rotTransArray->quat[1] = 0.0f;
@@ -582,6 +469,1212 @@ void __cdecl XAnimCalcLeaf(XAnimInfo *info, float weightScale, DObjAnimMat *rotT
         rotTransArray,
         &animInfo->animPartBits,
         &animInfo->ignorePartBits);
+}
+
+void __cdecl XAnim_GetTimeIndex_unsigned_short_(
+        const XAnimTime *animTime,
+        const unsigned __int16 *indices,
+        int tableSize,
+        int *keyFrameIndex,
+        float *keyFrameLerpFrac)
+{
+  unsigned int low; // [esp+18h] [ebp-10h]
+  unsigned int lowa; // [esp+18h] [ebp-10h]
+  unsigned int frameIndex; // [esp+1Ch] [ebp-Ch]
+  int index; // [esp+20h] [ebp-8h]
+  int high; // [esp+24h] [ebp-4h]
+  int higha; // [esp+24h] [ebp-4h]
+
+  index = (int)(float)((float)tableSize * animTime->time);
+  frameIndex = animTime->frameIndex;
+  if ( frameIndex >= indices[index] )
+  {
+    if ( frameIndex >= indices[index + 1] )
+    {
+      lowa = index + 1;
+      higha = tableSize;
+      while ( frameIndex >= indices[++lowa] )
+      {
+        index = (higha + lowa) >> 1;
+        if ( frameIndex >= indices[index] )
+        {
+          lowa = index + 1;
+          if ( frameIndex < indices[index + 1] )
+            goto LABEL_16;
+        }
+        else
+        {
+          higha = (higha + lowa) >> 1;
+        }
+      }
+      index = lowa - 1;
+    }
+  }
+  else
+  {
+    low = 0;
+    high = (int)(float)((float)tableSize * animTime->time);
+    while ( frameIndex < indices[--high] )
+    {
+      index = (high + low) >> 1;
+      if ( frameIndex >= indices[index] )
+      {
+        low = index + 1;
+        if ( frameIndex < indices[index + 1] )
+          goto LABEL_16;
+      }
+      else
+      {
+        high = (high + low) >> 1;
+      }
+    }
+    index = high;
+  }
+LABEL_16:
+  if ( frameIndex < indices[index]
+    && !Assert_MyHandler(
+          "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+          167,
+          0,
+          "%s",
+          "frameIndex >= indices[index]") )
+  {
+    __debugbreak();
+  }
+  if ( frameIndex >= indices[index + 1]
+    && !Assert_MyHandler(
+          "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+          168,
+          0,
+          "%s",
+          "frameIndex < indices[index + 1]") )
+  {
+    __debugbreak();
+  }
+  *keyFrameLerpFrac = (float)(animTime->frameFrac - (float)indices[index])
+                    / (float)(indices[index + 1] - indices[index]);
+  *keyFrameIndex = index;
+  if ( (*keyFrameLerpFrac < 0.0 || *keyFrameLerpFrac > 1.0)
+    && !Assert_MyHandler(
+          "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+          176,
+          1,
+          "*keyFrameLerpFrac not in [0.0f, 1.0f]\n\t%g not in [%g, %g]",
+          *keyFrameLerpFrac,
+          0.0,
+          1.0) )
+  {
+    __debugbreak();
+  }
+}
+
+void __cdecl XAnimCalcParts_unsigned_short_(
+    const XAnimParts *parts,
+    const unsigned __int8 *animToModel,
+    float time,
+    float weightScale,
+    DObjAnimMat *rotTransArray,
+    bitarray<160> *ignorePartBits)
+{
+    int v7; // [esp+10h] [ebp-20Ch]
+    int v8; // [esp+14h] [ebp-208h]
+    int v9; // [esp+18h] [ebp-204h]
+    int v10; // [esp+1Ch] [ebp-200h]
+    XAnimNotifyInfo *notify; // [esp+20h] [ebp-1FCh]
+    int *v12; // [esp+24h] [ebp-1F8h]
+    __int16 *v13; // [esp+28h] [ebp-1F4h]
+    unsigned __int8 *v14; // [esp+2Ch] [ebp-1F0h]
+    char v15; // [esp+37h] [ebp-1E5h]
+    int v16; // [esp+3Ch] [ebp-1E0h] BYREF
+    int v17; // [esp+40h] [ebp-1DCh]
+    int v18; // [esp+44h] [ebp-1D8h]
+    unsigned __int16 *v19; // [esp+48h] [ebp-1D4h]
+    unsigned __int8 *v20; // [esp+4Ch] [ebp-1D0h]
+    char v21; // [esp+53h] [ebp-1C9h]
+    unsigned int v22; // [esp+54h] [ebp-1C8h]
+    int v23; // [esp+58h] [ebp-1C4h] BYREF
+    int v24; // [esp+5Ch] [ebp-1C0h]
+    int v25; // [esp+60h] [ebp-1BCh]
+    unsigned __int16 *v26; // [esp+64h] [ebp-1B8h]
+    DObjAnimMat *v27; // [esp+68h] [ebp-1B4h]
+    float v28; // [esp+6Ch] [ebp-1B0h]
+    DObjAnimMat *v29; // [esp+70h] [ebp-1ACh]
+    float v30; // [esp+74h] [ebp-1A8h]
+    float v31; // [esp+78h] [ebp-1A4h]
+    float v32; // [esp+7Ch] [ebp-1A0h]
+    float *quat; // [esp+80h] [ebp-19Ch]
+    float dir[5]; // [esp+84h] [ebp-198h] BYREF
+    char v35; // [esp+9Bh] [ebp-181h]
+    unsigned int v36; // [esp+9Ch] [ebp-180h]
+    int v37; // [esp+A0h] [ebp-17Ch] BYREF
+    int v38; // [esp+A4h] [ebp-178h]
+    int v39; // [esp+A8h] [ebp-174h]
+    unsigned __int16 *v40; // [esp+ACh] [ebp-170h]
+    float v41; // [esp+B0h] [ebp-16Ch]
+    float scale; // [esp+B4h] [ebp-168h]
+    float *start; // [esp+B8h] [ebp-164h]
+    float result[5]; // [esp+BCh] [ebp-160h] BYREF
+    char v45; // [esp+D3h] [ebp-149h]
+    unsigned int v46; // [esp+D4h] [ebp-148h]
+    int v47; // [esp+D8h] [ebp-144h] BYREF
+    int v48; // [esp+DCh] [ebp-140h]
+    int v49; // [esp+E0h] [ebp-13Ch]
+    unsigned __int16 *v50; // [esp+E4h] [ebp-138h]
+    int v51; // [esp+ECh] [ebp-130h] BYREF
+    unsigned __int16 *v52; // [esp+F0h] [ebp-12Ch]
+    float4 v53; // [esp+F4h] [ebp-128h] BYREF
+    float v54; // [esp+104h] [ebp-118h] BYREF
+    float4 v55; // [esp+108h] [ebp-114h] BYREF
+    int v56; // [esp+11Ch] [ebp-100h] BYREF
+    unsigned __int8 *v57; // [esp+120h] [ebp-FCh]
+    float4 v58; // [esp+124h] [ebp-F8h] BYREF
+    float v59; // [esp+134h] [ebp-E8h] BYREF
+    float4 v60; // [esp+138h] [ebp-E4h] BYREF
+    float v61; // [esp+148h] [ebp-D4h]
+    float v62; // [esp+14Ch] [ebp-D0h]
+    float v63; // [esp+150h] [ebp-CCh]
+    float v64; // [esp+154h] [ebp-C8h]
+    float4 frameVec; // [esp+158h] [ebp-C4h]
+    int v66; // [esp+16Ch] [ebp-B0h] BYREF
+    __int16 *v67; // [esp+170h] [ebp-ACh]
+    float to[4]; // [esp+174h] [ebp-A8h] BYREF
+    float frac; // [esp+184h] [ebp-98h] BYREF
+    float from[4]; // [esp+188h] [ebp-94h] BYREF
+    int keyFrameIndex; // [esp+19Ch] [ebp-80h] BYREF
+    const __int16 *frame; // [esp+1A0h] [ebp-7Ch]
+    float4 toVec; // [esp+1A4h] [ebp-78h] BYREF
+    float keyFrameLerpFrac; // [esp+1B4h] [ebp-68h] BYREF
+    float4 fromVec; // [esp+1B8h] [ebp-64h] BYREF
+    const XAnimNotifyInfo *note; // [esp+1CCh] [ebp-50h]
+    XAnimTime notifyTime; // [esp+1D0h] [ebp-4Ch] BYREF
+    int iNote; // [esp+1DCh] [ebp-40h]
+    __int16 *dataShort; // [esp+1E0h] [ebp-3Ch]
+    XAnimTime animTime; // [esp+1E4h] [ebp-38h] BYREF
+    unsigned int animPartIndex; // [esp+1F0h] [ebp-2Ch]
+    unsigned __int8 *dataByte; // [esp+1F4h] [ebp-28h]
+    int *randomDataInt; // [esp+1F8h] [ebp-24h]
+    const XAnimNotifyInfo *notifies; // [esp+1FCh] [ebp-20h]
+    unsigned int size; // [esp+200h] [ebp-1Ch]
+    int *dataInt; // [esp+204h] [ebp-18h]
+    __int16 *randomDataShort; // [esp+208h] [ebp-14h]
+    unsigned __int8 *randomDataByte; // [esp+20Ch] [ebp-10h]
+    unsigned int tableSize; // [esp+210h] [ebp-Ch]
+    unsigned __int16 *indices; // [esp+214h] [ebp-8h]
+    int modelPartIndex; // [esp+218h] [ebp-4h]
+
+    if (!parts->numframes
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp", 1000, 0, "%s", "parts->numframes"))
+    {
+        __debugbreak();
+    }
+    if (time < 0.0
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp", 1001, 0, "%s", "time >= 0"))
+    {
+        __debugbreak();
+    }
+    if (time >= 1.0
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp", 1002, 0, "%s", "time < 1.f"))
+    {
+        __debugbreak();
+    }
+    if (parts->dataByte)
+        v14 = parts->dataByte;
+    else
+        v14 = 0;
+    dataByte = v14;
+    if (parts->dataShort)
+        v13 = parts->dataShort;
+    else
+        v13 = 0;
+    dataShort = v13;
+    if (parts->dataInt)
+        v12 = parts->dataInt;
+    else
+        v12 = 0;
+    dataInt = v12;
+    if (parts->notify)
+        notify = parts->notify;
+    else
+        notify = 0;
+    notifies = notify;
+    randomDataByte = parts->randomDataByte;
+    randomDataShort = parts->randomDataShort;
+    randomDataInt = parts->randomDataInt;
+    indices = parts->indices._2;
+    animPartIndex = 0;
+    size = parts->boneCount[0];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[animPartIndex];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1026,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        //if (!ignorePartBits->testBit(modelPartIndex))
+        if (!ignorePartBits->testBit(modelPartIndex))
+            rotTransArray[modelPartIndex].quat[3] = rotTransArray[modelPartIndex].quat[3] + weightScale;
+        ++animPartIndex;
+    }
+    XAnim_SetTime(time, parts->numframes, &animTime);
+    for (iNote = 0; iNote < parts->notifyCount; ++iNote)
+    {
+        note = &notifies[iNote];
+        if (note->name == scr_const.jumpcut)
+        {
+            XAnim_SetTime(note->time, parts->numframes, &notifyTime);
+            if (notifyTime.frameIndex - 1 == animTime.frameIndex)
+            {
+                animTime.frameFrac = (float)animTime.frameIndex;
+                break;
+            }
+        }
+    }
+    size += parts->boneCount[1];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[animPartIndex];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1222,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        tableSize = (unsigned __int16)*dataShort++;
+        if ((int)tableSize >= 64)
+        {
+            v50 = (unsigned __int16 *)dataShort;
+            v48 = ((int)(tableSize - 1) >> 8) + 1;
+            dataShort += v48 + 1;
+            //if (ignorePartBits->testBit(modelPartIndex))
+            if (ignorePartBits->testBit(modelPartIndex))
+            {
+                indices += tableSize + 1;
+                v45 = 0;
+                goto LABEL_54;
+            }
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v50, v48, &v47, &animTime.time);
+            v47 <<= 8;
+            v46 = tableSize - v47;
+            if ((int)(tableSize - v47) > 256)
+                v10 = 256;
+            else
+                v10 = v46;
+            v49 = v10;
+            v50 = &indices[v47];
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v50, v10, &keyFrameIndex, &keyFrameLerpFrac);
+            keyFrameIndex += v47;
+            indices += tableSize + 1;
+        }
+        else
+        {
+            v50 = (unsigned __int16 *)dataShort;
+            dataShort += tableSize + 1;
+            //if (ignorePartBits->testBit(modelPartIndex))
+            if (ignorePartBits->testBit(modelPartIndex))
+            {
+                v45 = 0;
+                goto LABEL_54;
+            }
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v50, tableSize, &keyFrameIndex, &keyFrameLerpFrac);
+        }
+        v45 = 1;
+    LABEL_54:
+        if (v45)
+        {
+            frame = &randomDataShort[2 * keyFrameIndex];
+            fromVec.v[0] = 0.0f;
+            fromVec.v[1] = 0.0f;
+            fromVec.v[2] = (float)*frame * 0.000030518509;
+            fromVec.v[3] = (float)frame[1] * 0.000030518509;
+            toVec.v[0] = 0.0f;
+            toVec.v[1] = 0.0f;
+            toVec.v[2] = (float)frame[2] * 0.000030518509;
+            toVec.v[3] = (float)frame[3] * 0.000030518509;
+            v41 = keyFrameLerpFrac;
+            scale = weightScale;
+            start = rotTransArray[modelPartIndex].quat;
+            Vec4Lerp(fromVec.v, toVec.v, keyFrameLerpFrac, result);
+            if ((float)((float)((float)((float)(result[0] * *start) + (float)(result[1] * start[1])) + (float)(result[2] * start[2])) + (float)(result[3] * start[3])) < 0.0)
+                scale = -scale;
+            Vec4Mad(start, scale, result, start);
+        }
+        ++animPartIndex;
+        randomDataShort += 2 * tableSize + 2;
+    }
+    size += parts->boneCount[2];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[animPartIndex];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1270,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        tableSize = (unsigned __int16)*dataShort++;
+        if ((int)tableSize >= 64)
+        {
+            v40 = (unsigned __int16 *)dataShort;
+            v38 = ((int)(tableSize - 1) >> 8) + 1;
+            dataShort += v38 + 1;
+            if (ignorePartBits->testBit(modelPartIndex))
+            {
+                indices += tableSize + 1;
+                v35 = 0;
+                goto LABEL_75;
+            }
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v40, v38, &v37, &animTime.time);
+            v37 <<= 8;
+            v36 = tableSize - v37;
+            if ((int)(tableSize - v37) > 256)
+                v9 = 256;
+            else
+                v9 = v36;
+            v39 = v9;
+            v40 = &indices[v37];
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v40, v9, &v66, &frac);
+            v66 += v37;
+            indices += tableSize + 1;
+        }
+        else
+        {
+            v40 = (unsigned __int16 *)dataShort;
+            dataShort += tableSize + 1;
+            if (ignorePartBits->testBit(modelPartIndex))
+            {
+                v35 = 0;
+                goto LABEL_75;
+            }
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v40, tableSize, &v66, &frac);
+        }
+        v35 = 1;
+    LABEL_75:
+        if (v35)
+        {
+            v67 = &randomDataShort[4 * v66];
+            from[0] = (float)*v67 * 0.000030518509;
+            from[1] = (float)v67[1] * 0.000030518509;
+            from[2] = (float)v67[2] * 0.000030518509;
+            from[3] = (float)v67[3] * 0.000030518509;
+            to[0] = (float)v67[4] * 0.000030518509;
+            to[1] = (float)v67[5] * 0.000030518509;
+            to[2] = (float)v67[6] * 0.000030518509;
+            to[3] = (float)v67[7] * 0.000030518509;
+            v31 = frac;
+            v32 = weightScale;
+            quat = rotTransArray[modelPartIndex].quat;
+            Vec4Lerp(from, to, frac, dir);
+            if ((float)((float)((float)((float)(dir[0] * *quat) + (float)(dir[1] * quat[1])) + (float)(dir[2] * quat[2]))
+                + (float)(dir[3] * quat[3])) < 0.0)
+                v32 = -v32;
+            Vec4Mad(quat, v32, dir, quat);
+        }
+        ++animPartIndex;
+        randomDataShort += 4 * tableSize + 4;
+    }
+    size += parts->boneCount[3];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[animPartIndex];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1314,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        if (!ignorePartBits->testBit(modelPartIndex))
+        {
+            frameVec.u[0] = 0.0f;
+            frameVec.u[1] = 0.0f;
+            frameVec.v[2] = (float)*dataShort * 0.000030518509;
+            frameVec.v[3] = (float)dataShort[1] * 0.000030518509;
+            v29 = &rotTransArray[modelPartIndex];
+            v30 = weightScale;
+            if ((float)((float)((float)((float)(0.0 * v29->quat[0]) + (float)(0.0 * v29->quat[1])) + (float)(frameVec.v[2] * v29->quat[2])) + (float)(frameVec.v[3] * v29->quat[3])) < 0.0)
+                v30 = -v30;
+            v29->quat[0] = (float)(v30 * frameVec.v[0]) + v29->quat[0];
+            v29->quat[1] = (float)(v30 * frameVec.v[1]) + v29->quat[1];
+            v29->quat[2] = (float)(v30 * frameVec.v[2]) + v29->quat[2];
+            v29->quat[3] = (float)(v30 * frameVec.v[3]) + v29->quat[3];
+        }
+        ++animPartIndex;
+        dataShort += 2;
+    }
+    size += parts->boneCount[4];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[animPartIndex];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1340,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        if (!ignorePartBits->testBit(modelPartIndex))
+        {
+            v61 = (float)*dataShort * 0.000030518509;
+            v62 = (float)dataShort[1] * 0.000030518509;
+            v63 = (float)dataShort[2] * 0.000030518509;
+            v64 = (float)dataShort[3] * 0.000030518509;
+            v27 = &rotTransArray[modelPartIndex];
+            v28 = weightScale;
+            if ((float)((float)((float)((float)(v61 * v27->quat[0]) + (float)(v62 * v27->quat[1])) + (float)(v63 * v27->quat[2])) + (float)(v64 * v27->quat[3])) < 0.0)
+                v28 = -v28;
+            v27->quat[0] = (float)(v28 * v61) + v27->quat[0];
+            v27->quat[1] = (float)(v28 * v62) + v27->quat[1];
+            v27->quat[2] = (float)(v28 * v63) + v27->quat[2];
+            v27->quat[3] = (float)(v28 * v64) + v27->quat[3];
+        }
+        ++animPartIndex;
+        dataShort += 4;
+    }
+    animPartIndex = 0;
+    size = parts->boneCount[5];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[*dataByte++];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1373,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        tableSize = (unsigned __int16)*dataShort++;
+        if ((int)tableSize >= 64)
+        {
+            v26 = (unsigned __int16 *)dataShort;
+            v24 = ((int)(tableSize - 1) >> 8) + 1;
+            dataShort += v24 + 1;
+            if (ignorePartBits->testBit(modelPartIndex))
+            {
+                indices += tableSize + 1;
+                v21 = 0;
+                goto LABEL_116;
+            }
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v26, v24, &v23, &animTime.time);
+            v23 <<= 8;
+            v22 = tableSize - v23;
+            if ((int)(tableSize - v23) > 256)
+                v8 = 256;
+            else
+                v8 = v22;
+            v25 = v8;
+            v26 = &indices[v23];
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v26, v8, &v56, &v59);
+            v56 += v23;
+            indices += tableSize + 1;
+        }
+        else
+        {
+            v26 = (unsigned __int16 *)dataShort;
+            dataShort += tableSize + 1;
+            if (ignorePartBits->testBit(modelPartIndex))
+            {
+                v21 = 0;
+                goto LABEL_116;
+            }
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v26, tableSize, &v56, &v59);
+        }
+        v21 = 1;
+    LABEL_116:
+        if (v21)
+        {
+            v57 = &randomDataByte[3 * v56];
+            v60.v[0] = (float)*v57;
+            v60.v[1] = (float)v57[1];
+            v60.v[2] = (float)v57[2];
+            v60.u[3] = 0.0f;
+            v20 = v57 + 3;
+            v58.v[0] = (float)v57[3];
+            v58.v[1] = (float)v57[4];
+            v58.v[2] = (float)v57[5];
+            v58.u[3] = 0.0f;
+            XAnimWeightedAccumLerpedTrans(&v60, &v58, v59, weightScale, dataInt, &rotTransArray[modelPartIndex]);
+        }
+        ++animPartIndex;
+        dataInt += 6;
+        randomDataByte += 3 * tableSize + 3;
+    }
+    size += parts->boneCount[6];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[*dataByte++];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1406,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        tableSize = (unsigned __int16)*dataShort++;
+        if ((int)tableSize >= 64)
+        {
+            v19 = (unsigned __int16 *)dataShort;
+            v17 = ((int)(tableSize - 1) >> 8) + 1;
+            dataShort += v17 + 1;
+            if (ignorePartBits->testBit(modelPartIndex))
+            {
+                indices += tableSize + 1;
+                v15 = 0;
+                goto LABEL_135;
+            }
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v19, v17, &v16, &animTime.time);
+            v16 <<= 8;
+            if ((int)(tableSize - v16) > 256)
+                v7 = 256;
+            else
+                v7 = tableSize - v16;
+            v18 = v7;
+            v19 = &indices[v16];
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v19, v7, &v51, &v54);
+            v51 += v16;
+            indices += tableSize + 1;
+        }
+        else
+        {
+            v19 = (unsigned __int16 *)dataShort;
+            dataShort += tableSize + 1;
+            if (ignorePartBits->testBit(modelPartIndex))
+            {
+                v15 = 0;
+                goto LABEL_135;
+            }
+            XAnim_GetTimeIndex_unsigned_short_(&animTime, v19, tableSize, &v51, &v54);
+        }
+        v15 = 1;
+    LABEL_135:
+        if (v15)
+        {
+            v52 = (unsigned __int16 *)&randomDataShort[3 * v51];
+            v55.v[0] = (float)*v52;
+            v55.v[1] = (float)v52[1];
+            v55.v[2] = (float)v52[2];
+            v55.u[3] = 0.0f;
+            v53.v[0] = (float)v52[3];
+            v53.v[1] = (float)v52[4];
+            v53.v[2] = (float)v52[5];
+            v53.u[3] = 0.0f;
+            XAnimWeightedAccumLerpedTrans(&v55, &v53, v54, weightScale, dataInt, &rotTransArray[modelPartIndex]);
+        }
+        ++animPartIndex;
+        dataInt += 6;
+        randomDataShort += 3 * tableSize + 3;
+    }
+    size += parts->boneCount[7];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[*dataByte];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1432,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        if (!ignorePartBits->testBit(modelPartIndex))
+            XAnimWeightedAccumTrans(weightScale, (float *)dataInt, &rotTransArray[modelPartIndex]);
+        ++animPartIndex;
+        ++dataByte;
+        dataInt += 3;
+    }
+    size += parts->boneCount[8];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[*dataByte];
+        if (modelPartIndex >= 160
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1446,
+                0,
+                "%s",
+                "modelPartIndex < DOBJ_MAX_PARTS"))
+        {
+            __debugbreak();
+        }
+        if (!ignorePartBits->testBit(modelPartIndex))
+            rotTransArray[modelPartIndex].transWeight = rotTransArray[modelPartIndex].transWeight + weightScale;
+        ++animPartIndex;
+        ++dataByte;
+    }
+}
+
+void __cdecl XAnim_GetTimeIndex_unsigned_char_(
+    const XAnimTime *animTime,
+    const unsigned __int8 *indices,
+    int tableSize,
+    int *keyFrameIndex,
+    float *keyFrameLerpFrac)
+{
+    unsigned int low; // [esp+18h] [ebp-10h]
+    unsigned int lowa; // [esp+18h] [ebp-10h]
+    unsigned int frameIndex; // [esp+1Ch] [ebp-Ch]
+    int index; // [esp+20h] [ebp-8h]
+    int high; // [esp+24h] [ebp-4h]
+    int higha; // [esp+24h] [ebp-4h]
+
+    index = (int)(float)((float)tableSize * animTime->time);
+    frameIndex = animTime->frameIndex;
+    if (frameIndex >= indices[index])
+    {
+        if (frameIndex >= indices[index + 1])
+        {
+            lowa = index + 1;
+            higha = tableSize;
+            while (frameIndex >= indices[++lowa])
+            {
+                index = (higha + lowa) >> 1;
+                if (frameIndex >= indices[index])
+                {
+                    lowa = index + 1;
+                    if (frameIndex < indices[index + 1])
+                        goto LABEL_16;
+                }
+                else
+                {
+                    higha = (higha + lowa) >> 1;
+                }
+            }
+            index = lowa - 1;
+        }
+    }
+    else
+    {
+        low = 0;
+        high = (int)(float)((float)tableSize * animTime->time);
+        while (frameIndex < indices[--high])
+        {
+            index = (high + low) >> 1;
+            if (frameIndex >= indices[index])
+            {
+                low = index + 1;
+                if (frameIndex < indices[index + 1])
+                    goto LABEL_16;
+            }
+            else
+            {
+                high = (high + low) >> 1;
+            }
+        }
+        index = high;
+    }
+LABEL_16:
+    if (frameIndex < indices[index]
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+            167,
+            0,
+            "%s",
+            "frameIndex >= indices[index]"))
+    {
+        __debugbreak();
+    }
+    if (frameIndex >= indices[index + 1]
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+            168,
+            0,
+            "%s",
+            "frameIndex < indices[index + 1]"))
+    {
+        __debugbreak();
+    }
+    *keyFrameLerpFrac = (float)(animTime->frameFrac - (float)indices[index])
+        / (float)(indices[index + 1] - indices[index]);
+    *keyFrameIndex = index;
+    if ((*keyFrameLerpFrac < 0.0 || *keyFrameLerpFrac > 1.0)
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+            176,
+            1,
+            "*keyFrameLerpFrac not in [0.0f, 1.0f]\n\t%g not in [%g, %g]",
+            *keyFrameLerpFrac,
+            0.0,
+            1.0))
+    {
+        __debugbreak();
+    }
+}
+
+void __cdecl XAnimCalcParts_unsigned_char_(
+    const XAnimParts *parts,
+    const unsigned __int8 *animToModel,
+    float time,
+    float weightScale,
+    DObjAnimMat *rotTransArray,
+    bitarray<160> *ignorePartBits)
+{
+    XAnimNotifyInfo *notify; // [esp+10h] [ebp-1BCh]
+    int *v7; // [esp+14h] [ebp-1B8h]
+    __int16 *v8; // [esp+18h] [ebp-1B4h]
+    unsigned __int8 *v9; // [esp+1Ch] [ebp-1B0h]
+    char v10; // [esp+27h] [ebp-1A5h]
+    const unsigned __int8 *v11; // [esp+28h] [ebp-1A4h]
+    char v12; // [esp+33h] [ebp-199h]
+    const unsigned __int8 *v13; // [esp+34h] [ebp-198h]
+    DObjAnimMat *v14; // [esp+38h] [ebp-194h]
+    float v15; // [esp+3Ch] [ebp-190h]
+    DObjAnimMat *v16; // [esp+40h] [ebp-18Ch]
+    float v17; // [esp+44h] [ebp-188h]
+    float v18; // [esp+4Ch] [ebp-180h]
+    DObjAnimMat *v19; // [esp+50h] [ebp-17Ch]
+    float dir[5]; // [esp+54h] [ebp-178h] BYREF
+    char v21; // [esp+6Bh] [ebp-161h]
+    unsigned __int8 *v22; // [esp+6Ch] [ebp-160h]
+    float v23; // [esp+70h] [ebp-15Ch]
+    float scale; // [esp+74h] [ebp-158h]
+    float *start; // [esp+78h] [ebp-154h]
+    float result[5]; // [esp+7Ch] [ebp-150h] BYREF
+    char v27; // [esp+93h] [ebp-139h]
+    unsigned __int8 *v28; // [esp+94h] [ebp-138h]
+    int v29; // [esp+9Ch] [ebp-130h] BYREF
+    unsigned __int16 *v30; // [esp+A0h] [ebp-12Ch]
+    float4 v31; // [esp+A4h] [ebp-128h] BYREF
+    float v32; // [esp+B4h] [ebp-118h] BYREF
+    float4 v33; // [esp+B8h] [ebp-114h] BYREF
+    int v34; // [esp+CCh] [ebp-100h] BYREF
+    unsigned __int8 *v35; // [esp+D0h] [ebp-FCh]
+    float4 v36; // [esp+D4h] [ebp-F8h] BYREF
+    float v37; // [esp+E4h] [ebp-E8h] BYREF
+    float4 v38; // [esp+E8h] [ebp-E4h] BYREF
+    float v39; // [esp+F8h] [ebp-D4h]
+    float v40; // [esp+FCh] [ebp-D0h]
+    float v41; // [esp+100h] [ebp-CCh]
+    float v42; // [esp+104h] [ebp-C8h]
+    float4 frameVec; // [esp+108h] [ebp-C4h]
+    int v44; // [esp+11Ch] [ebp-B0h] BYREF
+    __int16 *v45; // [esp+120h] [ebp-ACh]
+    float to[4]; // [esp+124h] [ebp-A8h] BYREF
+    float frac; // [esp+134h] [ebp-98h] BYREF
+    float from[4]; // [esp+138h] [ebp-94h] BYREF
+    int keyFrameIndex; // [esp+14Ch] [ebp-80h] BYREF
+    const __int16 *frame; // [esp+150h] [ebp-7Ch]
+    float4 toVec; // [esp+154h] [ebp-78h] BYREF
+    float keyFrameLerpFrac; // [esp+164h] [ebp-68h] BYREF
+    float4 fromVec; // [esp+168h] [ebp-64h] BYREF
+    const XAnimNotifyInfo *note; // [esp+17Ch] [ebp-50h]
+    XAnimTime notifyTime; // [esp+180h] [ebp-4Ch] BYREF
+    int iNote; // [esp+18Ch] [ebp-40h]
+    __int16 *dataShort; // [esp+190h] [ebp-3Ch]
+    XAnimTime animTime; // [esp+194h] [ebp-38h] BYREF
+    unsigned int animPartIndex; // [esp+1A0h] [ebp-2Ch]
+    unsigned __int8 *dataByte; // [esp+1A4h] [ebp-28h]
+    int *randomDataInt; // [esp+1A8h] [ebp-24h]
+    const XAnimNotifyInfo *notifies; // [esp+1ACh] [ebp-20h]
+    unsigned int size; // [esp+1B0h] [ebp-1Ch]
+    int *dataInt; // [esp+1B4h] [ebp-18h]
+    __int16 *randomDataShort; // [esp+1B8h] [ebp-14h]
+    unsigned __int8 *randomDataByte; // [esp+1BCh] [ebp-10h]
+    unsigned int tableSize; // [esp+1C0h] [ebp-Ch]
+    unsigned __int8 *indices; // [esp+1C4h] [ebp-8h]
+    int modelPartIndex; // [esp+1C8h] [ebp-4h]
+
+    if (!parts->numframes
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp", 1000, 0, "%s", "parts->numframes"))
+    {
+        __debugbreak();
+    }
+    if (time < 0.0
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp", 1001, 0, "%s", "time >= 0"))
+    {
+        __debugbreak();
+    }
+    if (time >= 1.0
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp", 1002, 0, "%s", "time < 1.f"))
+    {
+        __debugbreak();
+    }
+    if (parts->dataByte)
+        v9 = parts->dataByte;
+    else
+        v9 = 0;
+    dataByte = v9;
+    if (parts->dataShort)
+        v8 = parts->dataShort;
+    else
+        v8 = 0;
+    dataShort = v8;
+    if (parts->dataInt)
+        v7 = parts->dataInt;
+    else
+        v7 = 0;
+    dataInt = v7;
+    if (parts->notify)
+        notify = parts->notify;
+    else
+        notify = 0;
+    notifies = notify;
+    randomDataByte = parts->randomDataByte;
+    randomDataShort = parts->randomDataShort;
+    randomDataInt = parts->randomDataInt;
+    indices = parts->indices._1;
+    animPartIndex = 0;
+    size = parts->boneCount[0];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[animPartIndex];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1026,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        if (!ignorePartBits->testBit(modelPartIndex))
+            rotTransArray[modelPartIndex].quat[3] = rotTransArray[modelPartIndex].quat[3] + weightScale;
+        ++animPartIndex;
+    }
+    XAnim_SetTime(time, parts->numframes, &animTime);
+    for (iNote = 0; iNote < parts->notifyCount; ++iNote)
+    {
+        note = &notifies[iNote];
+        if (note->name == scr_const.jumpcut)
+        {
+            XAnim_SetTime(note->time, parts->numframes, &notifyTime);
+            if (notifyTime.frameIndex - 1 == animTime.frameIndex)
+            {
+                animTime.frameFrac = (float)animTime.frameIndex;
+                break;
+            }
+        }
+    }
+    size += parts->boneCount[1];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[animPartIndex];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1222,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        tableSize = (unsigned __int16)*dataShort++;
+        v28 = dataByte;
+        dataByte += tableSize + 1;
+        if (ignorePartBits->testBit(modelPartIndex))
+        {
+            v27 = 0;
+        }
+        else
+        {
+            XAnim_GetTimeIndex_unsigned_char_(&animTime, v28, tableSize, &keyFrameIndex, &keyFrameLerpFrac);
+            v27 = 1;
+        }
+        if (v27)
+        {
+            frame = &randomDataShort[2 * keyFrameIndex];
+            fromVec.v[0] = 0.0f;
+            fromVec.v[1] = 0.0f;
+            fromVec.v[2] = (float)*frame * 0.000030518509;
+            fromVec.v[3] = (float)frame[1] * 0.000030518509;
+            toVec.v[0] = 0.0f;
+            toVec.v[1] = 0.0f;
+            toVec.v[2] = (float)frame[2] * 0.000030518509;
+            toVec.v[3] = (float)frame[3] * 0.000030518509;
+            v23 = keyFrameLerpFrac;
+            scale = weightScale;
+            start = rotTransArray[modelPartIndex].quat;
+            Vec4Lerp(fromVec.v, toVec.v, keyFrameLerpFrac, result);
+            if ((float)((float)((float)((float)(result[0] * *start) + (float)(result[1] * start[1]))
+                + (float)(result[2] * start[2]))
+                + (float)(result[3] * start[3])) < 0.0)
+                scale = -scale;
+            Vec4Mad(start, scale, result, start);
+        }
+        ++animPartIndex;
+        randomDataShort += 2 * tableSize + 2;
+    }
+    size += parts->boneCount[2];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[animPartIndex];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1270,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        tableSize = (unsigned __int16)*dataShort++;
+        v22 = dataByte;
+        dataByte += tableSize + 1;
+        if (ignorePartBits->testBit(modelPartIndex))
+        {
+            v21 = 0;
+        }
+        else
+        {
+            XAnim_GetTimeIndex_unsigned_char_(&animTime, v22, tableSize, &v44, &frac);
+            v21 = 1;
+        }
+        if (v21)
+        {
+            v45 = &randomDataShort[4 * v44];
+            from[0] = (float)*v45 * 0.000030518509;
+            from[1] = (float)v45[1] * 0.000030518509;
+            from[2] = (float)v45[2] * 0.000030518509;
+            from[3] = (float)v45[3] * 0.000030518509;
+            to[0] = (float)v45[4] * 0.000030518509;
+            to[1] = (float)v45[5] * 0.000030518509;
+            to[2] = (float)v45[6] * 0.000030518509;
+            to[3] = (float)v45[7] * 0.000030518509;
+            v18 = weightScale;
+            v19 = &rotTransArray[modelPartIndex];
+            Vec4Lerp(from, to, frac, dir);
+            if ((float)((float)((float)((float)(dir[0] * v19->quat[0]) + (float)(dir[1] * v19->quat[1])) + (float)(dir[2] * v19->quat[2])) + (float)(dir[3] * v19->quat[3])) < 0.0)
+                v18 = -weightScale;
+            Vec4Mad(v19->quat, v18, dir, v19->quat);
+        }
+        ++animPartIndex;
+        randomDataShort += 4 * tableSize + 4;
+    }
+    size += parts->boneCount[3];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[animPartIndex];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1314,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        if (!ignorePartBits->testBit(modelPartIndex))
+        {
+            frameVec.u[0] = 0.0f;
+            frameVec.u[1] = 0.0f;
+            frameVec.v[2] = (float)*dataShort * 0.000030518509;
+            frameVec.v[3] = (float)dataShort[1] * 0.000030518509;
+            v16 = &rotTransArray[modelPartIndex];
+            v17 = weightScale;
+            if ((float)((float)((float)((float)(0.0 * v16->quat[0]) + (float)(0.0 * v16->quat[1])) + (float)(frameVec.v[2] * v16->quat[2])) + (float)(frameVec.v[3] * v16->quat[3])) < 0.0)
+                v17 = -weightScale;
+            v16->quat[0] = (float)(v17 * frameVec.v[0]) + v16->quat[0];
+            v16->quat[1] = (float)(v17 * frameVec.v[1]) + v16->quat[1];
+            v16->quat[2] = (float)(v17 * frameVec.v[2]) + v16->quat[2];
+            v16->quat[3] = (float)(v17 * frameVec.v[3]) + v16->quat[3];
+        }
+        ++animPartIndex;
+        dataShort += 2;
+    }
+    size += parts->boneCount[4];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[animPartIndex];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1340,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        if (!ignorePartBits->testBit(modelPartIndex))
+        {
+            v39 = (float)*dataShort * 0.000030518509;
+            v40 = (float)dataShort[1] * 0.000030518509;
+            v41 = (float)dataShort[2] * 0.000030518509;
+            v42 = (float)dataShort[3] * 0.000030518509;
+            v14 = &rotTransArray[modelPartIndex];
+            v15 = weightScale;
+            if ((float)((float)((float)((float)(v39 * v14->quat[0]) + (float)(v40 * v14->quat[1])) + (float)(v41 * v14->quat[2])) + (float)(v42 * v14->quat[3])) < 0.0)
+                v15 = -weightScale;
+            v14->quat[0] = (float)(v15 * v39) + v14->quat[0];
+            v14->quat[1] = (float)(v15 * v40) + v14->quat[1];
+            v14->quat[2] = (float)(v15 * v41) + v14->quat[2];
+            v14->quat[3] = (float)(v15 * v42) + v14->quat[3];
+        }
+        ++animPartIndex;
+        dataShort += 4;
+    }
+    animPartIndex = 0;
+    size = parts->boneCount[5];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[*dataByte++];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1373,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        tableSize = (unsigned __int16)*dataShort++;
+        v13 = dataByte;
+        dataByte += tableSize + 1;
+        if (ignorePartBits->testBit(modelPartIndex))
+        {
+            v12 = 0;
+        }
+        else
+        {
+            XAnim_GetTimeIndex_unsigned_char_(&animTime, v13, tableSize, &v34, &v37);
+            v12 = 1;
+        }
+        if (v12)
+        {
+            v35 = &randomDataByte[3 * v34];
+            v38.v[0] = (float)*v35;
+            v38.v[1] = (float)v35[1];
+            v38.v[2] = (float)v35[2];
+            v38.u[3] = 0.0f;
+            v36.v[0] = (float)v35[3];
+            v36.v[1] = (float)v35[4];
+            v36.v[2] = (float)v35[5];
+            v36.u[3] = 0.0f;
+            XAnimWeightedAccumLerpedTrans(&v38, &v36, v37, weightScale, dataInt, &rotTransArray[modelPartIndex]);
+        }
+        ++animPartIndex;
+        dataInt += 6;
+        randomDataByte += 3 * tableSize + 3;
+    }
+    size += parts->boneCount[6];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[*dataByte++];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1406,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        tableSize = (unsigned __int16)*dataShort++;
+        v11 = dataByte;
+        dataByte += tableSize + 1;
+        if (ignorePartBits->testBit(modelPartIndex))
+        {
+            v10 = 0;
+        }
+        else
+        {
+            XAnim_GetTimeIndex_unsigned_char_(&animTime, v11, tableSize, &v29, &v32);
+            v10 = 1;
+        }
+        if (v10)
+        {
+            v30 = (unsigned __int16 *)&randomDataShort[3 * v29];
+            v33.v[0] = (float)*v30;
+            v33.v[1] = (float)v30[1];
+            v33.v[2] = (float)v30[2];
+            v33.u[3] = 0.0f;
+            v31.v[0] = (float)v30[3];
+            v31.v[1] = (float)v30[4];
+            v31.v[2] = (float)v30[5];
+            v31.u[3] = 0.0f;
+            XAnimWeightedAccumLerpedTrans(&v33, &v31, v32, weightScale, dataInt, &rotTransArray[modelPartIndex]);
+        }
+        ++animPartIndex;
+        dataInt += 6;
+        randomDataShort += 3 * tableSize + 3;
+    }
+    size += parts->boneCount[7];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[*dataByte];
+        if ((unsigned int)modelPartIndex >= 0xA0
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1432,
+                0,
+                "modelPartIndex doesn't index DOBJ_MAX_PARTS\n\t%i not in [0, %i)",
+                modelPartIndex,
+                160))
+        {
+            __debugbreak();
+        }
+        if (!ignorePartBits->testBit(modelPartIndex))
+            XAnimWeightedAccumTrans(weightScale, (float *)dataInt, &rotTransArray[modelPartIndex]);
+        ++animPartIndex;
+        ++dataByte;
+        dataInt += 3;
+    }
+    size += parts->boneCount[8];
+    while (animPartIndex < size)
+    {
+        modelPartIndex = animToModel[*dataByte];
+        if (modelPartIndex >= 160
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+                1446,
+                0,
+                "%s",
+                "modelPartIndex < DOBJ_MAX_PARTS"))
+        {
+            __debugbreak();
+        }
+        if (!ignorePartBits->testBit(modelPartIndex))
+            rotTransArray[modelPartIndex].transWeight = rotTransArray[modelPartIndex].transWeight + weightScale;
+        ++animPartIndex;
+        ++dataByte;
+    }
 }
 
 void __cdecl XAnimCalcLeafInternal(
@@ -733,7 +1826,7 @@ void __cdecl XAnimCalcNonLoopEnd(
         {
             __debugbreak();
         }
-        if ( !bitarray<160>::testBit(ignorePartBits, modelPartIndex) )
+        if ( !ignorePartBits->testBit(modelPartIndex) )
         {
             totalRotTrans = &rotTransArray[modelPartIndex];
             totalRotTrans->quat[3] = totalRotTrans->quat[3] + weightScale;
@@ -768,7 +1861,7 @@ void __cdecl XAnimCalcNonLoopEnd(
         {
             dataShort += tableSize + 1;
         }
-        if ( !bitarray<160>::testBit(ignorePartBits, modelPartIndex) )
+        if ( !ignorePartBits->testBit(modelPartIndex) )
         {
             rotLastFrame = &randomDataShort[2 * tableSize];
             frameVec.u[0] = 0;
@@ -814,7 +1907,7 @@ void __cdecl XAnimCalcNonLoopEnd(
         {
             dataShort += tableSize + 1;
         }
-        if ( !bitarray<160>::testBit(ignorePartBits, modelPartIndex) )
+        if ( !ignorePartBits->testBit(modelPartIndex) )
         {
             v35 = &randomDataShort[4 * tableSize];
             dir = (float)*v35 * 0.000030518509;
@@ -847,7 +1940,7 @@ void __cdecl XAnimCalcNonLoopEnd(
         {
             __debugbreak();
         }
-        if ( !bitarray<160>::testBit(ignorePartBits, modelPartIndex) )
+        if ( !ignorePartBits->testBit(modelPartIndex) )
         {
             v28[0] = 0.0f;
             v28[1] = 0.0f;
@@ -879,7 +1972,7 @@ void __cdecl XAnimCalcNonLoopEnd(
         {
             __debugbreak();
         }
-        if ( !bitarray<160>::testBit(ignorePartBits, modelPartIndex) )
+        if ( !ignorePartBits->testBit(modelPartIndex) )
         {
             v24 = (float)*dataShort * 0.000030518509;
             v25 = (float)dataShort[1] * 0.000030518509;
@@ -925,7 +2018,7 @@ void __cdecl XAnimCalcNonLoopEnd(
         {
             dataShort += tableSize + 1;
         }
-        if ( !bitarray<160>::testBit(ignorePartBits, modelPartIndex) )
+        if ( !ignorePartBits->testBit(modelPartIndex) )
         {
             totalRotTrans = &rotTransArray[modelPartIndex];
             posVec = *(_QWORD *)totalRotTrans->trans;
@@ -982,7 +2075,7 @@ void __cdecl XAnimCalcNonLoopEnd(
         {
             dataShort += tableSize + 1;
         }
-        if ( !bitarray<160>::testBit(ignorePartBits, modelPartIndex) )
+        if ( !ignorePartBits->testBit(modelPartIndex) )
         {
             totalRotTrans = &rotTransArray[modelPartIndex];
             v18 = (float)(weightScale
@@ -1024,7 +2117,7 @@ void __cdecl XAnimCalcNonLoopEnd(
         {
             __debugbreak();
         }
-        if ( !bitarray<160>::testBit(ignorePartBits, modelPartIndex) )
+        if ( !ignorePartBits->testBit(modelPartIndex) )
         {
             totalRotTrans = &rotTransArray[modelPartIndex];
             v15 = (float)(weightScale * *((float *)dataInt + 1)) + totalRotTrans->trans[1];
@@ -1056,7 +2149,7 @@ void __cdecl XAnimCalcNonLoopEnd(
         {
             __debugbreak();
         }
-        if ( !bitarray<160>::testBit(ignorePartBits, modelPartIndex) )
+        if ( !ignorePartBits->testBit(modelPartIndex) )
         {
             totalRotTrans = &rotTransArray[modelPartIndex];
             totalRotTrans->transWeight = totalRotTrans->transWeight + weightScale;
@@ -1101,7 +2194,7 @@ void __cdecl XAnimScaleRotTransArray(int numBones, const XAnimCalcAnimInfo *info
 
     for ( i = 0; i < numBones; ++i )
     {
-        if ( !bitarray<160>::testBit(&info->ignorePartBits, i) && rotTransArray->transWeight != 0.0 )
+        if ( !info->ignorePartBits.testBit(i) && rotTransArray->transWeight != 0.0 )
         {
             r = 1.0 / rotTransArray->transWeight;
             rotTransArray->quat[0] = r * rotTransArray->quat[0];
@@ -1129,7 +2222,7 @@ void __cdecl XAnimNormalizeRotScaleTransArray(
 
     for ( i = 0; i < numBones; ++i )
     {
-        if ( !bitarray<160>::testBit(&info->ignorePartBits, i) )
+        if ( !info->ignorePartBits.testBit(i) )
         {
             *(float *)&r = Vec4LengthSq(rotTransArray->quat);
             if ( *(float *)&r != 0.0 )
@@ -1171,7 +2264,7 @@ void __cdecl XAnimMadRotTransArray(
 
     for ( i = 0; i < numBones; ++i )
     {
-        if ( !bitarray<160>::testBit(&info->ignorePartBits, i) )
+        if ( !info->ignorePartBits.testBit(i) )
         {
             if ( (float)((float)((float)((float)(totalRotTrans->quat[0] * rotTrans->quat[0])
                                                                  + (float)(totalRotTrans->quat[1] * rotTrans->quat[1]))
@@ -1233,7 +2326,7 @@ void __cdecl XAnimApplyAdditives(
     ignorePartBits = &info->ignorePartBits;
     for ( i = 0; i < boneCount; ++i )
     {
-        if ( !bitarray<160>::testBit((bitarray<160> *)ignorePartBits, i) )
+        if ( !ignorePartBits->testBit(i) )
         {
             r = Vec4LengthSq(additiveArray[i].quat);
             if ( r != 0.0 )
@@ -1264,7 +2357,7 @@ void __cdecl XAnimApplyAdditives(
     }
 }
 
-XAnimCalcAnimInfo *__thiscall XAnimCalcAnimInfo::XAnimCalcAnimInfo(XAnimCalcAnimInfo *this)
+XAnimCalcAnimInfo::XAnimCalcAnimInfo()
 {
     int j; // [esp+8h] [ebp-Ch]
     int i; // [esp+10h] [ebp-4h]
@@ -1273,7 +2366,320 @@ XAnimCalcAnimInfo *__thiscall XAnimCalcAnimInfo::XAnimCalcAnimInfo(XAnimCalcAnim
         this->animPartBits.array[i] = 0;
     for ( j = 0; j < 5; ++j )
         this->ignorePartBits.array[j] = 0;
-    return this;
+}
+
+void __cdecl XAnim_CalcRotDeltaDuring_unsigned_char_(
+    const XAnimDeltaPart *animDelta,
+    float time,
+    int frameCount,
+    float *rotDelta)
+{
+    const XAnimDeltaPartQuatData *p_u; // [esp+10h] [ebp-1Ch]
+    int keyFrameIndex; // [esp+14h] [ebp-18h] BYREF
+    XAnimTime animTime; // [esp+18h] [ebp-14h] BYREF
+    float keyFrameLerpFrac; // [esp+24h] [ebp-8h] BYREF
+    const XAnimDeltaPartQuat *rotFrameDeltas; // [esp+28h] [ebp-4h]
+
+    if ((!frameCount || time == 1.0)
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+            2352,
+            0,
+            "%s",
+            "frameCount && (time != 1.0f)"))
+    {
+        __debugbreak();
+    }
+    if (animDelta->quat)
+    {
+        rotFrameDeltas = animDelta->quat;
+        if (rotFrameDeltas->size)
+        {
+            XAnim_SetTime(time, frameCount, &animTime);
+            XAnim_GetTimeIndex_unsigned_char_(
+                &animTime,
+                rotFrameDeltas->u.frames.indices._1,
+                rotFrameDeltas->size,
+                &keyFrameIndex,
+                &keyFrameLerpFrac);
+            Short2LerpAsVec2(
+                rotFrameDeltas->u.frames.frames[keyFrameIndex],
+                rotFrameDeltas->u.frames.frames[keyFrameIndex + 1],
+                keyFrameLerpFrac,
+                rotDelta);
+        }
+        else
+        {
+            p_u = &rotFrameDeltas->u;
+            *rotDelta = (float)rotFrameDeltas->u.frame0[0];
+            rotDelta[1] = (float)p_u->frame0[1];
+        }
+    }
+    else
+    {
+        *rotDelta = 0.0;
+        rotDelta[1] = 32767.0f;
+    }
+}
+
+void __cdecl XAnim_CalcRotDeltaDuring_unsigned_short_(
+    const XAnimDeltaPart *animDelta,
+    float time,
+    int frameCount,
+    float *rotDelta)
+{
+    const XAnimDeltaPartQuatData *p_u; // [esp+10h] [ebp-1Ch]
+    int keyFrameIndex; // [esp+14h] [ebp-18h] BYREF
+    XAnimTime animTime; // [esp+18h] [ebp-14h] BYREF
+    float keyFrameLerpFrac; // [esp+24h] [ebp-8h] BYREF
+    const XAnimDeltaPartQuat *rotFrameDeltas; // [esp+28h] [ebp-4h]
+
+    if ((!frameCount || time == 1.0)
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+            2352,
+            0,
+            "%s",
+            "frameCount && (time != 1.0f)"))
+    {
+        __debugbreak();
+    }
+    if (animDelta->quat)
+    {
+        rotFrameDeltas = animDelta->quat;
+        if (rotFrameDeltas->size)
+        {
+            XAnim_SetTime(time, frameCount, &animTime);
+            XAnim_GetTimeIndex_unsigned_short_(
+                &animTime,
+                rotFrameDeltas->u.frames.indices._2,
+                rotFrameDeltas->size,
+                &keyFrameIndex,
+                &keyFrameLerpFrac);
+            Short2LerpAsVec2(
+                rotFrameDeltas->u.frames.frames[keyFrameIndex],
+                rotFrameDeltas->u.frames.frames[keyFrameIndex + 1],
+                keyFrameLerpFrac,
+                rotDelta);
+        }
+        else
+        {
+            p_u = &rotFrameDeltas->u;
+            *rotDelta = (float)rotFrameDeltas->u.frame0[0];
+            rotDelta[1] = (float)p_u->frame0[1];
+        }
+    }
+    else
+    {
+        *rotDelta = 0.0;
+        rotDelta[1] = 32767.0f;
+    }
+}
+
+void __cdecl XAnim_CalcPosDeltaDuring_unsigned_short_(
+    const XAnimDeltaPart *animDelta,
+    float time,
+    int frameCount,
+    float4 *posDelta)
+{
+    unsigned __int8 *v4; // [esp+2Ch] [ebp-84h]
+    unsigned __int8 *v5; // [esp+30h] [ebp-80h]
+    unsigned __int8 *v6; // [esp+34h] [ebp-7Ch]
+    unsigned __int8 *v7; // [esp+38h] [ebp-78h]
+    const XAnimPartTransData *p_u; // [esp+3Ch] [ebp-74h]
+    int keyFrameIndex; // [esp+40h] [ebp-70h] BYREF
+    float4 sizeVec; // [esp+44h] [ebp-6Ch]
+    float4 toVec; // [esp+54h] [ebp-5Ch]
+    XAnimTime animTime; // [esp+64h] [ebp-4Ch] BYREF
+    int nextKeyFrameIndex; // [esp+70h] [ebp-40h]
+    float keyFrameLerpFrac; // [esp+74h] [ebp-3Ch] BYREF
+    float4 fromVec; // [esp+78h] [ebp-38h]
+    float4 lerp; // [esp+88h] [ebp-28h]
+    float4 minsVec; // [esp+98h] [ebp-18h]
+    const XAnimPartTrans *posFrameDeltas; // [esp+ACh] [ebp-4h]
+
+    if ((!frameCount || time == 1.0)
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+            2400,
+            0,
+            "%s",
+            "frameCount && time != 1.0f"))
+    {
+        __debugbreak();
+    }
+    if (animDelta->trans)
+    {
+        posFrameDeltas = animDelta->trans;
+        if (posFrameDeltas->size)
+        {
+            XAnim_SetTime(time, frameCount, &animTime);
+            XAnim_GetTimeIndex_unsigned_short_(
+                &animTime,
+                posFrameDeltas->u.frames.indices._2,
+                posFrameDeltas->size,
+                &keyFrameIndex,
+                &keyFrameLerpFrac);
+            nextKeyFrameIndex = keyFrameIndex + 1;
+            if (posFrameDeltas->smallTrans)
+            {
+                v7 = posFrameDeltas->u.frames.frames._1[keyFrameIndex];
+                fromVec.v[0] = (float)*v7;
+                fromVec.v[1] = (float)v7[1];
+                fromVec.v[2] = (float)v7[2];
+                fromVec.v[3] = 0.0;
+                v6 = posFrameDeltas->u.frames.frames._1[nextKeyFrameIndex];
+                toVec.v[0] = (float)*v6;
+                toVec.v[1] = (float)v6[1];
+                toVec.v[2] = (float)v6[2];
+            }
+            else
+            {
+                v5 = posFrameDeltas->u.frames.frames._1[2 * keyFrameIndex];
+                fromVec.v[0] = (float)*(unsigned __int16 *)v5;
+                fromVec.v[1] = (float)*((unsigned __int16 *)v5 + 1);
+                fromVec.v[2] = (float)*((unsigned __int16 *)v5 + 2);
+                fromVec.v[3] = 0.0;
+                v4 = posFrameDeltas->u.frames.frames._1[2 * nextKeyFrameIndex];
+                toVec.v[0] = (float)*(unsigned __int16 *)v4;
+                toVec.v[1] = (float)*((unsigned __int16 *)v4 + 1);
+                toVec.v[2] = (float)*((unsigned __int16 *)v4 + 2);
+            }
+            toVec.v[3] = 0.0;
+            lerp.v[0] = (float)(keyFrameLerpFrac * (float)(toVec.v[0] - fromVec.v[0])) + fromVec.v[0];
+            lerp.v[1] = (float)(keyFrameLerpFrac * (float)(toVec.v[1] - fromVec.v[1])) + fromVec.v[1];
+            lerp.v[2] = (float)(keyFrameLerpFrac * (float)(toVec.v[2] - fromVec.v[2])) + fromVec.v[2];
+            lerp.v[3] = (float)(keyFrameLerpFrac * (float)(0.0 - fromVec.v[3])) + fromVec.v[3];
+            *(_QWORD *)minsVec.v = *(_QWORD *)posFrameDeltas->u.frames.mins;
+            minsVec.u[2] = LODWORD(posFrameDeltas->u.frames.mins[2]);
+            minsVec.v[3] = 0.0;
+            *(_QWORD *)sizeVec.v = *(_QWORD *)&posFrameDeltas->u.frame0[3];
+            sizeVec.u[2] = LODWORD(posFrameDeltas->u.frames.size[2]);
+            sizeVec.u[3] = 0.0;
+            posDelta->v[0] = (float)(sizeVec.v[0] * lerp.v[0]) + minsVec.v[0];
+            posDelta->v[1] = (float)(sizeVec.v[1] * lerp.v[1]) + minsVec.v[1];
+            posDelta->v[2] = (float)(sizeVec.v[2] * lerp.v[2]) + minsVec.v[2];
+            posDelta->v[3] = (float)(sizeVec.v[3] * lerp.v[3]) + minsVec.v[3];
+        }
+        else
+        {
+            p_u = &posFrameDeltas->u;
+            posDelta->v[0] = posFrameDeltas->u.frames.mins[0];
+            posDelta->v[1] = p_u->frames.mins[1];
+            posDelta->v[2] = p_u->frames.mins[2];
+            posDelta->u[3] = 0.0;
+        }
+    }
+    else
+    {
+        posDelta->u[0] = 0.0;
+        posDelta->u[1] = 0.0;
+        posDelta->u[2] = 0.0;
+        posDelta->u[3] = 0.0;
+    }
+}
+
+void __cdecl XAnim_CalcPosDeltaDuring_unsigned_char_(
+    const XAnimDeltaPart *animDelta,
+    float time,
+    int frameCount,
+    float4 *posDelta)
+{
+    unsigned __int8 *v4; // [esp+2Ch] [ebp-84h]
+    unsigned __int8 *v5; // [esp+30h] [ebp-80h]
+    unsigned __int8 *v6; // [esp+34h] [ebp-7Ch]
+    unsigned __int8 *v7; // [esp+38h] [ebp-78h]
+    const XAnimPartTransData *p_u; // [esp+3Ch] [ebp-74h]
+    int keyFrameIndex; // [esp+40h] [ebp-70h] BYREF
+    float4 sizeVec; // [esp+44h] [ebp-6Ch]
+    float4 toVec; // [esp+54h] [ebp-5Ch]
+    XAnimTime animTime; // [esp+64h] [ebp-4Ch] BYREF
+    int nextKeyFrameIndex; // [esp+70h] [ebp-40h]
+    float keyFrameLerpFrac; // [esp+74h] [ebp-3Ch] BYREF
+    float4 fromVec; // [esp+78h] [ebp-38h]
+    float4 lerp; // [esp+88h] [ebp-28h]
+    float4 minsVec; // [esp+98h] [ebp-18h]
+    const XAnimPartTrans *posFrameDeltas; // [esp+ACh] [ebp-4h]
+
+    if ((!frameCount || time == 1.0)
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim_calc.cpp",
+            2400,
+            0,
+            "%s",
+            "frameCount && time != 1.0f"))
+    {
+        __debugbreak();
+    }
+    if (animDelta->trans)
+    {
+        posFrameDeltas = animDelta->trans;
+        if (posFrameDeltas->size)
+        {
+            XAnim_SetTime(time, frameCount, &animTime);
+            XAnim_GetTimeIndex_unsigned_char_(
+                &animTime,
+                posFrameDeltas->u.frames.indices._1,
+                posFrameDeltas->size,
+                &keyFrameIndex,
+                &keyFrameLerpFrac);
+            nextKeyFrameIndex = keyFrameIndex + 1;
+            if (posFrameDeltas->smallTrans)
+            {
+                v7 = posFrameDeltas->u.frames.frames._1[keyFrameIndex];
+                fromVec.v[0] = (float)*v7;
+                fromVec.v[1] = (float)v7[1];
+                fromVec.v[2] = (float)v7[2];
+                fromVec.u[3] = 0.0;
+                v6 = posFrameDeltas->u.frames.frames._1[nextKeyFrameIndex];
+                toVec.v[0] = (float)*v6;
+                toVec.v[1] = (float)v6[1];
+                toVec.v[2] = (float)v6[2];
+            }
+            else
+            {
+                v5 = posFrameDeltas->u.frames.frames._1[2 * keyFrameIndex];
+                fromVec.v[0] = (float)*(unsigned __int16 *)v5;
+                fromVec.v[1] = (float)*((unsigned __int16 *)v5 + 1);
+                fromVec.v[2] = (float)*((unsigned __int16 *)v5 + 2);
+                fromVec.u[3] = 0.0;
+                v4 = posFrameDeltas->u.frames.frames._1[2 * nextKeyFrameIndex];
+                toVec.v[0] = (float)*(unsigned __int16 *)v4;
+                toVec.v[1] = (float)*((unsigned __int16 *)v4 + 1);
+                toVec.v[2] = (float)*((unsigned __int16 *)v4 + 2);
+            }
+            toVec.u[3] = 0.0;
+            lerp.v[0] = (float)(keyFrameLerpFrac * (float)(toVec.v[0] - fromVec.v[0])) + fromVec.v[0];
+            lerp.v[1] = (float)(keyFrameLerpFrac * (float)(toVec.v[1] - fromVec.v[1])) + fromVec.v[1];
+            lerp.v[2] = (float)(keyFrameLerpFrac * (float)(toVec.v[2] - fromVec.v[2])) + fromVec.v[2];
+            lerp.v[3] = (float)(keyFrameLerpFrac * (float)(0.0 - fromVec.v[3])) + fromVec.v[3];
+            *(_QWORD *)minsVec.v = *(_QWORD *)posFrameDeltas->u.frames.mins;
+            minsVec.u[2] = LODWORD(posFrameDeltas->u.frames.mins[2]);
+            minsVec.u[3] = 0.0;
+            *(_QWORD *)sizeVec.v = *(_QWORD *)&posFrameDeltas->u.frame0[3];
+            sizeVec.u[2] = LODWORD(posFrameDeltas->u.frames.size[2]);
+            sizeVec.u[3] = 0.0;
+            posDelta->v[0] = (float)(sizeVec.v[0] * lerp.v[0]) + minsVec.v[0];
+            posDelta->v[1] = (float)(sizeVec.v[1] * lerp.v[1]) + minsVec.v[1];
+            posDelta->v[2] = (float)(sizeVec.v[2] * lerp.v[2]) + minsVec.v[2];
+            posDelta->v[3] = (float)(sizeVec.v[3] * lerp.v[3]) + minsVec.v[3];
+        }
+        else
+        {
+            p_u = &posFrameDeltas->u;
+            posDelta->v[0] = posFrameDeltas->u.frames.mins[0];
+            posDelta->v[1] = p_u->frames.mins[1];
+            posDelta->v[2] = p_u->frames.mins[2];
+            posDelta->u[3] = 0.0;
+        }
+    }
+    else
+    {
+        posDelta->u[0] = 0.0;
+        posDelta->u[1] = 0.0;
+        posDelta->u[2] = 0.0;
+        posDelta->u[3] = 0.0;
+    }
 }
 
 void __cdecl XAnim_CalcDeltaForTime(const XAnimParts *anim, float time, float *rotDelta, float4 *posDelta)
@@ -1390,20 +2796,20 @@ void __cdecl XAnim_CalcPosDeltaEntire(const XAnimDeltaPart *animDelta, float4 *p
     }
 }
 
-bool __thiscall bitarray<160>::testBit(bitarray<160> *this, unsigned int pos)
-{
-    if ( pos >= 0xA0
-        && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\universal\\../qcommon/bitarray.h",
-                    109,
-                    0,
-                    "%s",
-                    "pos < BIT_COUNT") )
-    {
-        __debugbreak();
-    }
-    return (this->array[pos >> 5] & (0x80000000 >> (pos & 0x1F))) != 0;
-}
+//bool __thiscall bitarray<160>::testBit(bitarray<160> *this, unsigned int pos)
+//{
+//    if ( pos >= 0xA0
+//        && !Assert_MyHandler(
+//                    "c:\\projects_pc\\cod\\codsrc\\src\\universal\\../qcommon/bitarray.h",
+//                    109,
+//                    0,
+//                    "%s",
+//                    "pos < BIT_COUNT") )
+//    {
+//        __debugbreak();
+//    }
+//    return (this->array[pos >> 5] & (0x80000000 >> (pos & 0x1F))) != 0;
+//}
 
 void __cdecl XAnimWeightedAccumLerpedTrans(
                 const float4 *fromVec,

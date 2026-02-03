@@ -2,6 +2,34 @@
 
 #include <qcommon/bitarray.h>
 
+struct SavedDObjModel // sizeof=0x2
+{                                       // XREF: SavedDObj/r
+    unsigned __int16 boneName;
+};
+
+struct SavedDObj // sizeof=0x68
+{                                       // XREF: ?DObjArchive@@YAXPAUDObj@@@Z/r
+    SavedDObjModel dobjModels[32];
+    struct XModel **models;                    // XREF: DObjArchive(DObj *)+43/w
+                                        // DObjUnarchive(DObj *)+8A/r ...
+    unsigned int ignoreCollision;       // XREF: DObjArchive(DObj *)+33/w
+                                        // DObjArchive(DObj *)+111/r ...
+    unsigned __int16 numModels;         // XREF: DObjArchive(DObj *)+19/o
+                                        // DObjArchive(DObj *):loc_7E550E/r ...
+    unsigned __int16 entnum;            // XREF: DObjArchive(DObj *)+B/o
+                                        // DObjUnarchive(DObj *)+102/r
+    unsigned __int8 flags;              // XREF: DObjArchive(DObj *)+4F/w
+                                        // DObjUnarchive(DObj *)+E0/r ...
+    char localClientNum;                // XREF: DObjArchive(DObj *)+5B/w
+                                        // DObjUnarchive(DObj *)+D8/r
+    // padding byte
+    // padding byte
+    struct XAnimTree_s *tree;                  // XREF: DObjArchive(DObj *)+12/o
+                                        // DObjUnarchive(DObj *)+10E/r
+    unsigned int hidePartBits[5];       // XREF: DObjArchive(DObj *)+69/w
+                                        // DObjArchive(DObj *)+72/w ...
+};
+
 struct DObjAnimMat // sizeof=0x20
 {                                                                             // XREF: XAnimCalcAnimInfo/r
         float quat[4];                                            // XREF: CG_DoBaseOriginController+1D7/w
@@ -27,12 +55,7 @@ struct DSkelPartBits // sizeof=0x3C
                                                                                 // DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+9C/r
 };
 
-union $E37E2D40D980A1CD669FE5FFE5D2594A // sizeof=0x4
-{                                                                             // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+64/w
-                                                                                // DSkel/r
-        DObjAnimMat *mat;
-        DObjAnimMat *localMat;
-};
+
 
 struct DSkel // sizeof=0x44
 {                                                                             // XREF: DObj/r
@@ -40,8 +63,13 @@ struct DSkel // sizeof=0x44
         DSkelPartBits partBits;                         // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+92/w
                                                                                 // DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+9C/r ...
         int timeStamp;                                            // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+67/w
-        $E37E2D40D980A1CD669FE5FFE5D2594A ___u2;
                                                                                 // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+64/w
+        union //$E37E2D40D980A1CD669FE5FFE5D2594A // sizeof=0x4
+        {                                                                             // XREF: DObjCalcBaseSkel(DObj const *,DObjAnimMat *,int * const)+64/w
+                                                                                        // DSkel/r
+            DObjAnimMat *mat;
+            DObjAnimMat *localMat;
+        };
 };
 
 struct DObj // sizeof=0x7C
@@ -59,7 +87,7 @@ struct DObj // sizeof=0x7C
         unsigned __int8 numBones;
         // padding byte
         unsigned int ignoreCollision;
-        volatile int locked;
+        volatile unsigned int locked;
         DSkel skel;
         float radius;
         unsigned int hidePartBits[5];

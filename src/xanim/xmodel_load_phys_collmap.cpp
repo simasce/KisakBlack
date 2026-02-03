@@ -1,9 +1,22 @@
 #include "xmodel_load_phys_collmap.h"
+#include <universal/com_math.h>
+#include <qcommon/common.h>
+#include <gfx_d3d/r_material_load_obj.h>
+#include <universal/com_files.h>
+#include <universal/q_parse.h>
+#include "dobj.h"
+#include "xanim.h"
+#include "xmodel.h"
+#include <clientscript/cscr_stringlist.h>
+#include <common/brush_edges.h>
+#include <universal/com_math_anglevectors.h>
+
+collision_material_t g_collision_materials[512];
+int g_collision_materials_count;
 
 bool __cdecl PlaneEqual(const float *p1, const float *p2)
 {
-    return VecNCompareCustomEpsilon(p1, p2, 0.001, 3)
-            && fabs(p1[3] - p2[3]) < 0.001;
+    return VecNCompareCustomEpsilon(p1, p2, 0.001, 3) && fabs(p1[3] - p2[3]) < 0.001;
 }
 
 char __cdecl RemoveDuplicateBrushPlanes(
@@ -43,11 +56,10 @@ char __cdecl RemoveDuplicateBrushPlanes(
                     --sideIndexI;
                     break;
                 }
-                LODWORD(negatedNormal[0]) = LODWORD((*planes)[4 * sideIndexJ]) ^ _mask__NegFloat_;
-                LODWORD(negatedNormal[1]) = LODWORD((*planes)[4 * sideIndexJ + 1]) ^ _mask__NegFloat_;
-                LODWORD(negatedNormal[2]) = LODWORD((*planes)[4 * sideIndexJ + 2]) ^ _mask__NegFloat_;
-                if ( VecNCompareCustomEpsilon(&(*planes)[4 * sideIndexI], negatedNormal, 0.001, 3)
-                    && COERCE_FLOAT(LODWORD((*planes)[4 * sideIndexJ + 3]) ^ _mask__NegFloat_) >= (*planes)[4 * sideIndexI + 3] )
+                (negatedNormal[0]) = -((*planes)[4 * sideIndexJ]);
+                (negatedNormal[1]) = -((*planes)[4 * sideIndexJ + 1]);
+                (negatedNormal[2]) = -((*planes)[4 * sideIndexJ + 2]);
+                if ( VecNCompareCustomEpsilon(&(*planes)[4 * sideIndexI], negatedNormal, 0.001, 3) && (-((*planes)[4 * sideIndexJ + 3])) >= (*planes)[4 * sideIndexI + 3] )
                 {
                     Com_PrintWarning(19, "Map %s, Brush %i: mirrored plane\n", mapname, brushnum);
                     return 0;
@@ -119,7 +131,7 @@ void __cdecl GetCollisionMaterial(char *name, collision_material_t *cmat)
     fileSize = FS_ReadFile(filename, (void **)&mtlRaw);
     if ( fileSize > 0 )
     {
-        strncpy((unsigned __int8 *)cmat, (unsigned __int8 *)name, 0x40u);
+        strncpy(cmat->name, name, 0x40u);
         cmat->cflags = mtlRaw->info.contents;
         cmat->sflags = mtlRaw->info.surfaceFlags;
         FS_FreeFile((void *)mtlRaw);
@@ -146,12 +158,12 @@ int __cdecl IsAxisAligned(float *normal)
 
 char __cdecl SkipEpair(char *token, const char **file)
 {
-    int v3; // eax
-    int v4; // eax
-    int v5; // eax
-    int v6; // eax
-    int v7; // eax
-    int v8; // eax
+    char *v3; // eax
+    char *v4; // eax
+    char *v5; // eax
+    char *v6; // eax
+    char *v7; // eax
+    char *v8; // eax
     parseInfo_t *tokena; // [esp+28h] [ebp+8h]
 
     if ( token[strlen(token) - 2] == 92 )
@@ -161,15 +173,15 @@ char __cdecl SkipEpair(char *token, const char **file)
     }
     else
     {
-        strchr((unsigned __int8 *)token, 0xAu);
-        if ( v3 || (strchr((unsigned __int8 *)token, 0xDu), v4) )
+        v3 = strchr(token, 0xAu);
+        if ( v3 || (v4 = strchr(token, 0xDu), v4) )
         {
             Com_PrintError(19, "SkipEpair: key '%s' contains a newline character\n", token);
             return 0;
         }
         else
         {
-            strchr((unsigned __int8 *)token, 0x22u);
+            v5 = strchr(token, 0x22u);
             if ( v5 )
             {
                 Com_PrintError(19, "SkipEpair: key '%s' contains a \" character, will cause parsing errors\n", token);
@@ -185,8 +197,8 @@ char __cdecl SkipEpair(char *token, const char **file)
                 }
                 else
                 {
-                    strchr((unsigned __int8 *)tokena, 0xAu);
-                    if ( v6 || (strchr((unsigned __int8 *)tokena, 0xDu), v7) )
+                    v6 = strchr(tokena->token, 0xAu);
+                    if ( v6 || (v7 = strchr(tokena->token, 0xDu), v7) )
                     {
                         Com_PrintError(
                             19,
@@ -196,7 +208,7 @@ char __cdecl SkipEpair(char *token, const char **file)
                     }
                     else
                     {
-                        strchr((unsigned __int8 *)tokena, 0x22u);
+                        v8 = strchr(tokena->token, 0x22u);
                         if ( v8 )
                         {
                             Com_PrintError(
@@ -823,13 +835,13 @@ PhysGeomList *__cdecl Xmodel_ParsePhysicsCollMap(
 }
 
 char __cdecl Xmodel_ParsePhysicsBrush(
-                char **file,
-                char *mapname,
-                unsigned int brushCount,
-                PhysGeomInfo *geom,
-                unsigned int boneHash,
-                DObjAnimMat *boneMat,
-                void *(__cdecl *Alloc)(int))
+    char **file,
+    char *mapname,
+    unsigned int brushCount,
+    PhysGeomInfo *geom,
+    unsigned int boneHash,
+    DObjAnimMat *boneMat,
+    void *(__cdecl *Alloc)(int))
 {
     float *v8; // [esp+3Ch] [ebp-6ABCh]
     SimplePlaneIntersection *v9; // [esp+40h] [ebp-6AB8h]
@@ -851,15 +863,15 @@ char __cdecl Xmodel_ParsePhysicsBrush(
     int v25; // [esp+134h] [ebp-69C4h]
     unsigned int sideCount; // [esp+138h] [ebp-69C0h] BYREF
     unsigned int n; // [esp+13Ch] [ebp-69BCh]
-    unsigned int dst[33]; // [esp+140h] [ebp-69B8h] BYREF
+    _DWORD dst[33]; // [esp+140h] [ebp-69B8h] BYREF
     float v29; // [esp+1C4h] [ebp-6934h]
     float v30; // [esp+1C8h] [ebp-6930h]
     float v31; // [esp+1CCh] [ebp-692Ch]
-    _OWORD plane[32]; // [esp+1D0h] [ebp-6928h] BYREF
+    float plane[128]; // [esp+1D0h] [ebp-6928h] BYREF
     SimplePlaneIntersection OutPts[1024]; // [esp+3D0h] [ebp-6728h] BYREF
     int InPtCount; // [esp+63D0h] [ebp-728h]
     unsigned int j; // [esp+63D4h] [ebp-724h]
-    unsigned int v36[32]; // [esp+63D8h] [ebp-720h] BYREF
+    _DWORD v36[32]; // [esp+63D8h] [ebp-720h] BYREF
     int basePlaneIndex; // [esp+6458h] [ebp-6A0h]
     float v38; // [esp+645Ch] [ebp-69Ch]
     float v39; // [esp+6460h] [ebp-698h]
@@ -871,26 +883,26 @@ char __cdecl Xmodel_ParsePhysicsBrush(
     unsigned int k; // [esp+6AF4h] [ebp-4h]
 
     v42 = 32;
-    if ( !geom
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xmodel_load_phys_collmap.cpp", 365, 0, "%s", "geom") )
+    if (!geom
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xmodel_load_phys_collmap.cpp", 365, 0, "%s", "geom"))
     {
         __debugbreak();
     }
     sideCount = 0;
     Map_SkipOptionalArg((const char **)file, "layer");
-    if ( !Map_SkipNamedFlags((const char **)file, "contents") )
+    if (!Map_SkipNamedFlags((const char **)file, "contents"))
         return 0;
-    if ( !Map_SkipNamedFlags((const char **)file, "toolFlags") )
+    if (!Map_SkipNamedFlags((const char **)file, "toolFlags"))
         return 0;
     str = (char *)Com_Parse((const char **)file);
-    if ( !strcmp(str, "collmap_bone") )
+    if (!strcmp(str, "collmap_bone"))
     {
         str = (char *)Com_Parse((const char **)file);
-        if ( boneHash != SL_FindLowercaseString(str, SCRIPTINSTANCE_SERVER) )
+        if (boneHash != SL_FindLowercaseString(str, SCRIPTINSTANCE_SERVER))
             return 0;
         str = (char *)Com_Parse((const char **)file);
     }
-    else if ( boneHash != SL_FindLowercaseString("", SCRIPTINSTANCE_SERVER) )
+    else if (boneHash != SL_FindLowercaseString("", SCRIPTINSTANCE_SERVER))
     {
         return 0;
     }
@@ -898,44 +910,44 @@ char __cdecl Xmodel_ParsePhysicsBrush(
     v24 = 0;
     memset((unsigned __int8 *)dst, 0, 0x80u);
     memset((unsigned __int8 *)v36, 0, sizeof(v36));
-    while ( 1 )
+    while (1)
     {
         str = (char *)Com_Parse((const char **)file);
-        if ( !*str )
+        if (!*str)
             return 0;
-        if ( !strcmp(str, "}") )
+        if (!strcmp(str, "}"))
             break;
         Com_UngetToken();
-        if ( sideCount == 32 )
+        if (sideCount == 32)
         {
-            Com_PrintError(19, "ERROR: MAX_BUILD_SIDES (%i) -- brush too many sides.    Simplify the collision geometry.\n", 32);
+            Com_PrintError(19, "ERROR: MAX_BUILD_SIDES (%i) -- brush too many sides.  Simplify the collision geometry.\n", 32);
             return 0;
         }
         Com_Parse1DMatrix((const char **)file, 3, m);
         Com_Parse1DMatrix((const char **)file, 3, in);
         Com_Parse1DMatrix((const char **)file, 3, out);
-        if ( boneMat )
+        if (boneMat)
         {
             InvMatrixTransformVectorQuatTrans(m, boneMat, m);
             InvMatrixTransformVectorQuatTrans(in, boneMat, in);
             InvMatrixTransformVectorQuatTrans(out, boneMat, out);
         }
-        PlaneFromPoints((float *)&plane[sideCount], m, in, out);
-        SnapPlane((float *)&plane[sideCount]);
+        PlaneFromPoints(&plane[4 * sideCount], m, in, out);
+        SnapPlane(&plane[4 * sideCount]);
         name = Com_Parse((const char **)file);
-        for ( i = 0; i < g_collision_materials_count; ++i )
+        for (i = 0; i < g_collision_materials_count; ++i)
         {
             v18 = &g_collision_materials[i];
-            if ( !strcmp(name->token, v18->name) )
+            if (!strcmp(name->token, v18->name))
             {
                 dst[sideCount] = v18->cflags;
                 v36[sideCount] = v18->sflags;
                 break;
             }
         }
-        if ( i == g_collision_materials_count )
+        if (i == g_collision_materials_count)
         {
-            if ( g_collision_materials_count >= 512 )
+            if (g_collision_materials_count >= 512)
             {
                 Com_PrintError(19, "Max number of collision materials exceeded %d\n", 512);
             }
@@ -950,9 +962,9 @@ char __cdecl Xmodel_ParsePhysicsBrush(
         v24 |= dst[sideCount++];
         Com_SkipRestOfLine((const char **)file);
     }
-    if ( !RemoveDuplicateBrushPlanes((float (*)[4])plane, &sideCount, mapname, brushCount) )
+    if (!RemoveDuplicateBrushPlanes((float (*)[4])plane, &sideCount, mapname, brushCount))
         return 0;
-    if ( !sideCount )
+    if (!sideCount)
         return 0;
     InPtCount = GetPlaneIntersections((const float (*)[4])plane, sideCount, OutPts, 0x400u);
     v44 = 0;
@@ -962,13 +974,13 @@ char __cdecl Xmodel_ParsePhysicsBrush(
     v38 = OutPts[0].xyz[0];
     v39 = OutPts[0].xyz[1];
     v40 = OutPts[0].xyz[2];
-    for ( j = 1; j < InPtCount; ++j )
+    for (j = 1; j < InPtCount; ++j)
     {
-        for ( k = 0; k < 3; ++k )
+        for (k = 0; k < 3; ++k)
         {
-            if ( *(&v29 + k) <= OutPts[j].xyz[k] )
+            if (*(&v29 + k) <= OutPts[j].xyz[k])
             {
-                if ( OutPts[j].xyz[k] > *(&v38 + k) )
+                if (OutPts[j].xyz[k] > *(&v38 + k))
                     *(&v38 + k) = OutPts[j].xyz[k];
             }
             else
@@ -979,24 +991,24 @@ char __cdecl Xmodel_ParsePhysicsBrush(
     }
     InPtCount = GetPlaneIntersections((const float (*)[4])plane, sideCount, OutPts, 0x400u);
     v44 = 0;
-    for ( basePlaneIndex = 0; basePlaneIndex < sideCount; ++basePlaneIndex )
+    for (basePlaneIndex = 0; basePlaneIndex < sideCount; ++basePlaneIndex)
     {
-        if ( BuildBrushdAdjacencyWindingForSide(
-                     mapname,
-                     (float *)&plane[basePlaneIndex],
-                     basePlaneIndex,
-                     OutPts,
-                     InPtCount,
-                     &optionalOutWinding[basePlaneIndex],
-                     12) )
+        if (BuildBrushdAdjacencyWindingForSide(
+            mapname,
+            &plane[4 * basePlaneIndex],
+            basePlaneIndex,
+            OutPts,
+            InPtCount,
+            &optionalOutWinding[basePlaneIndex],
+            12))
         {
-            if ( optionalOutWinding[basePlaneIndex].numsides <= 0
+            if (optionalOutWinding[basePlaneIndex].numsides <= 0
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xmodel_load_phys_collmap.cpp",
-                            498,
-                            0,
-                            "%s",
-                            "windings[sideIndex].numsides > 0") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xmodel_load_phys_collmap.cpp",
+                    498,
+                    0,
+                    "%s",
+                    "windings[sideIndex].numsides > 0"))
             {
                 __debugbreak();
             }
@@ -1007,7 +1019,7 @@ char __cdecl Xmodel_ParsePhysicsBrush(
             optionalOutWinding[basePlaneIndex].numsides = 0;
         }
     }
-    if ( v44 )
+    if (v44)
     {
         geom->brush = (BrushWrapper *)Alloc(96);
         memset((unsigned __int8 *)geom->brush, 0, sizeof(BrushWrapper));
@@ -1021,32 +1033,32 @@ char __cdecl Xmodel_ParsePhysicsBrush(
         maxs[1] = v39;
         maxs[2] = v40;
         v25 = 0;
-        for ( k = 0; k < 3; ++k )
+        for (k = 0; k < 3; ++k)
         {
-            for ( n = 0; n < 2; geom->brush->axial_sflags[n++][k] = v36[v25++] )
+            for (n = 0; n < 2; geom->brush->axial_sflags[n++][k] = v36[v25++])
                 geom->brush->axial_cflags[n][k] = dst[v25];
         }
         geom->brush->numsides = sideCount;
-        for ( ii = 0; ii < 6; ++ii )
+        for (ii = 0; ii < 6; ++ii)
         {
-            if ( IsAxisAligned((float *)&plane[ii]) )
+            if (IsAxisAligned(&plane[4 * ii]))
                 --geom->brush->numsides;
         }
-        if ( geom->brush->numsides )
+        if (geom->brush->numsides)
         {
             geom->brush->sides = (cbrushside_t *)Alloc(12 * geom->brush->numsides);
             geom->brush->planes = (cplane_s *)Alloc(20 * geom->brush->numsides);
             v15 = 0;
-            for ( basePlaneIndex = 0; basePlaneIndex < sideCount; ++basePlaneIndex )
+            for (basePlaneIndex = 0; basePlaneIndex < sideCount; ++basePlaneIndex)
             {
-                if ( (unsigned int)basePlaneIndex >= 6 || !IsAxisAligned((float *)&plane[basePlaneIndex]) )
+                if ((unsigned int)basePlaneIndex >= 6 || !IsAxisAligned(&plane[4 * basePlaneIndex]))
                 {
                     v10 = &geom->brush->planes[v15];
-                    v11 = (float *)&plane[basePlaneIndex];
+                    v11 = &plane[4 * basePlaneIndex];
                     v10->normal[0] = *v11;
                     v10->normal[1] = v11[1];
                     v10->normal[2] = v11[2];
-                    geom->brush->planes[v15].dist = *((float *)&plane[basePlaneIndex] + 3);
+                    geom->brush->planes[v15].dist = plane[4 * basePlaneIndex + 3];
                     geom->brush->sides[v15].plane = &geom->brush->planes[v15];
                     geom->brush->sides[v15].cflags = dst[basePlaneIndex];
                     geom->brush->sides[v15++].sflags = v36[basePlaneIndex];
@@ -1055,7 +1067,7 @@ char __cdecl Xmodel_ParsePhysicsBrush(
         }
         geom->brush->numverts = InPtCount;
         geom->brush->verts = (float (*)[3])Alloc(12 * geom->brush->numverts);
-        for ( jj = 0; jj < geom->brush->numverts; ++jj )
+        for (jj = 0; jj < geom->brush->numverts; ++jj)
         {
             v8 = geom->brush->verts[jj];
             v9 = &OutPts[jj];

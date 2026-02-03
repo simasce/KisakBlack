@@ -1,5 +1,19 @@
 #pragma once
 
+struct collision_material_t // sizeof=0x48
+{                                       // XREF: .data:collision_material_t * g_collision_materials/r
+    char name[64];
+    int cflags;
+    int sflags;
+};
+
+struct XModel;
+struct PhysGeomList;
+struct PhysGeomInfo;
+struct SimplePlaneIntersection;
+struct DObjAnimMat;
+
+
 bool __cdecl PlaneEqual(const float *p1, const float *p2);
 char __cdecl RemoveDuplicateBrushPlanes(
                 float (*planes)[4],

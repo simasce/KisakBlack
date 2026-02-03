@@ -1,5 +1,10 @@
 #pragma once
 
+struct XModel;
+struct DObj;
+struct DObjAnimMat;
+struct DSkel;
+
 char __cdecl DobjHasAnyPartBits(const int *partBits);
 void __cdecl DObjCalcSkel(DObj *obj, int *partBits);
 void __cdecl GetControlAndDuplicatePartBits(

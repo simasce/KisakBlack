@@ -1,5 +1,10 @@
 #pragma once
 
+struct DObj;
+struct DObjAnimMat;
+struct XBoneInfo;
+struct XModel;
+
 int __cdecl DObjGetModelBoneIndex(const DObj *obj, const char *modelName, unsigned int name, unsigned __int8 *index);
 DObjAnimMat *__cdecl DObjGetRotTransArray(const DObj *obj);
 int __cdecl DObjGetNumModels(const DObj *obj);
@@ -33,7 +38,7 @@ void __cdecl DObjClearSkel(const DObj *obj);
 int __cdecl DObjSkelAreBonesUpToDate(const DObj *obj, int *partBits);
 void __cdecl DObjSkelSetSkel(const DObj *obj, int *partBits);
 int __cdecl DObjGetAllocSkelSize(const DObj *obj);
-void __cdecl DObjCreateSkel(const DObj *obj, char *buf, int timeStamp);
+void __cdecl DObjCreateSkel(DObj *obj, char *buf, int timeStamp);
 DObjAnimMat *__cdecl I_dmaGetDObjSkel(const DObj *obj);
 void __cdecl DObjGetHidePartBits(const DObj *obj, unsigned int *partBits);
 int __cdecl DObjGetBoneIndex(const DObj *obj, unsigned int name, unsigned __int8 *index, int modelNum);

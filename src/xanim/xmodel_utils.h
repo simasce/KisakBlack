@@ -1,4 +1,9 @@
 #pragma once
+#include <gfx_d3d/r_model_lod.h>
+#include "xmodel.h"
+
+struct Material;
+struct PhysGeomList;
 
 int __cdecl XModelNumBones(const cpose_t *pose);
 const char *__cdecl XModelGetName(const XModel *model);

@@ -1,4 +1,12 @@
 #include "dobj_skel.h"
+#include "dobj.h"
+#include <universal/assertive.h>
+#include "xanim_calc.h"
+#include <clientscript/cscr_stringlist.h>
+#include <ik/ik_import.h>
+#include "xmodel.h"
+#include <cgame_mp/cg_pose_mp.h>
+#include <cgame/cg_drawtools.h>
 
 char __cdecl DobjHasAnyPartBits(const int *partBits)
 {
@@ -58,7 +66,7 @@ void __cdecl DObjCalcSkel(DObj *obj, int *partBits)
     }
     else
     {
-        DObjCalcAnim((int)&savedregs, obj, partBits);
+        DObjCalcAnim(obj, partBits);
         if ( !obj->duplicateParts
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\dobj_skel.cpp",
@@ -156,7 +164,7 @@ void __cdecl GetControlAndDuplicatePartBits(
     int i; // [esp+10h] [ebp-8h]
     unsigned int boneIndexLow; // [esp+14h] [ebp-4h]
 
-    skel = &obj->skel;
+    skel = (DSkel*)&obj->skel;
     if ( obj == (const DObj *)-20
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\dobj_skel.cpp", 60, 0, "%s", "skel") )
     {
@@ -227,7 +235,7 @@ void __cdecl CalcSkelRootBonesNoParentOrDuplicate(
                 int minBoneIndex,
                 int *calcPartBits)
 {
-    int v5; // eax
+    DWORD v5; // eax
     int v6; // [esp+0h] [ebp-50h]
     float *v; // [esp+20h] [ebp-30h]
     float v8; // [esp+24h] [ebp-2Ch]
@@ -254,8 +262,8 @@ void __cdecl CalcSkelRootBonesNoParentOrDuplicate(
             v6 = maxBoneIndex;
         while ( 1 )
         {
-            if ( !_BitScanReverse((unsigned int *)&v5, bits) )
-                v5 = `CountLeadingZeros'::`2'::notFound;
+            if (!_BitScanReverse(&v5, bits))
+                v5 = 63;// `CountLeadingZeros'::`2': : notFound;
             boneIndexLow = v5 ^ 0x1F;
             if ( (v5 ^ 0x1F) >= v6 )
                 break;
@@ -318,7 +326,7 @@ void __cdecl CalcSkelRootBonesWithParent(
                 int *calcPartBits,
                 const int *controlPartBits)
 {
-    int v7; // eax
+    DWORD v7; // eax
     unsigned int v8; // [esp+0h] [ebp-C8h]
     float v9; // [esp+3Ch] [ebp-8Ch]
     const DObjAnimMat *parentMat; // [esp+8Ch] [ebp-3Ch]
@@ -348,8 +356,8 @@ void __cdecl CalcSkelRootBonesWithParent(
             v8 = maxBoneIndex;
         while ( 1 )
         {
-            if ( !_BitScanReverse((unsigned int *)&v7, bits) )
-                v7 = `CountLeadingZeros'::`2'::notFound;
+            if (!_BitScanReverse(&v7, bits))
+                v7 = 63;// `CountLeadingZeros'::`2': : notFound;
             boneIndexLow = v7 ^ 0x1F;
             if ( (v7 ^ 0x1Fu) >= v8 )
                 break;
@@ -545,7 +553,7 @@ void __cdecl CalcSkelNonRootBones(
                 int *calcPartBits,
                 const int *controlPartBits)
 {
-    int v6; // eax
+    DWORD v6; // eax
     int v7; // [esp+0h] [ebp-100h]
     float v8; // [esp+44h] [ebp-BCh]
     DObjAnimMat *childMat; // [esp+B4h] [ebp-4Ch]
@@ -578,8 +586,8 @@ void __cdecl CalcSkelNonRootBones(
             v7 = maxBoneIndex;
         while ( 1 )
         {
-            if ( !_BitScanReverse((unsigned int *)&v6, bits) )
-                v6 = `CountLeadingZeros'::`2'::notFound;
+            if (!_BitScanReverse(&v6, bits))
+                v6 = 63;// `CountLeadingZeros'::`2': : notFound;
             boneIndexLow = v6 ^ 0x1F;
             if ( (v6 ^ 0x1F) >= v7 )
                 break;

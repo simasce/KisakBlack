@@ -1,4 +1,21 @@
 #include "xmodel_load_obj.h"
+#include "xmodel.h"
+
+#include <universal/assertive.h>
+#include <physics/physpreset_load_obj.h>
+#include <physics/physconstraints_load_obj.h>
+#include <cfloat>
+#include "xmodel_utils.h"
+#include <universal/com_memory.h>
+#include <gfx_d3d/r_xsurface.h>
+#include <qcommon/common.h>
+#include <universal/com_files.h>
+#include "xmodel_load_phys_collmap.h"
+#include <clientscript/cscr_stringlist.h>
+#include <game_mp/g_spawnsystem_mp.h>
+#include <cgame_mp/cg_pose_mp.h>
+#include <gfx_d3d/r_stream_util.h>
+#include <gfx_d3d/r_model.h>
 
 PhysPreset *__cdecl XModel_PhysPresetPrecache(const char *name, void *(__cdecl *Alloc)(int))
 {
@@ -46,9 +63,11 @@ void __cdecl R_GetXModelBounds(XModel *model, const float (*axes)[3], float *min
     *mins = FLT_MAX;
     mins[1] = FLT_MAX;
     mins[2] = FLT_MAX;
+
     *maxs = -FLT_MAX;
     maxs[1] = -FLT_MAX;
     maxs[2] = -FLT_MAX;
+
     surfaceCount = XModelGetSurfaces(model, &surfaces, 0);
     if ( !surfaces
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xmodel_load_obj.cpp", 1230, 0, "%s", "surfaces") )

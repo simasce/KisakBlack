@@ -1,6 +1,7 @@
 #include "ik_process.h"
 #include "ik_import.h"
 #include "ik_math.h"
+#include "ik_layers.h"
 
 void __cdecl IK_GeneratePreIKMatrices(IKState *ikState, bool isLocalBones)
 {
@@ -223,28 +224,21 @@ char __cdecl IK_HasAnimatedBones(IKState *ikState)
 
 void    IK_Process(IKState *ikState, bool isLocalBones)
 {
-    void *v3; // esp
+    //void *v3; // esp
     int v4; // [esp-1CC0h] [ebp-1CCCh] BYREF
     int v5; // [esp-1700h] [ebp-170Ch] BYREF
     int v6; // [esp-1140h] [ebp-114Ch] BYREF
     int v7; // [esp-B80h] [ebp-B8Ch] BYREF
     int v8; // [esp-5C0h] [ebp-5CCh] BYREF
-    _BYTE v9[12]; // [esp+0h] [ebp-Ch] BYREF
-    _UNKNOWN *retaddr; // [esp+Ch] [ebp+0h]
+    //_BYTE v9[12]; // [esp+0h] [ebp-Ch] BYREF
+    //_UNKNOWN *retaddr; // [esp+Ch] [ebp+0h]
 
-    *(unsigned int *)v9 = a1;
-    *(unsigned int *)&v9[4] = retaddr;
-    v3 = alloca(7368);
-    if ( ikState->matArrayPostIK
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\ik\\ik_process.cpp",
-                    184,
-                    0,
-                    "%s",
-                    "!ikState->matArrayPostIK") )
-    {
-        __debugbreak();
-    }
+    //*(unsigned int *)v9 = a1;
+    //*(unsigned int *)&v9[4] = retaddr;
+    //v3 = alloca(7368);
+
+    iassert(!ikState->matArrayPostIK);
+
     ikState->matArrayPostIK = (float (*)[4][4])&v8;
     ikState->matArrayPreIK = (float (*)[4][4])&v7;
     ikState->matArrayXforms = (float (*)[4][4])&v6;
@@ -264,14 +258,14 @@ void    IK_Process(IKState *ikState, bool isLocalBones)
         IK_GeneratePreIKMatrices(ikState, isLocalBones);
         memcpy(ikState->matArrayPostIK, ikState->matArrayPreIK, 0x5C0u);
         if ( !ikState->bJointVarsValid )
-            IK_GetJointVars((IKJointBones *)v9, ikState);
-        IKImport_Profiler((int)v9, ikState);
-        IK_ProcessLayers((int)v9, ikState);
+            IK_GetJointVars(ikState);
+        IKImport_Profiler(ikState);
+        IK_ProcessLayers(ikState);
         if ( ikState->bHasActiveLayers )
-            IK_GenerateIKXformMatrices((float *)v9, ikState, isLocalBones);
+            IK_GenerateIKXformMatrices(ikState, isLocalBones);
         IKImport_ApplyIKToSkeleton(ikState, isLocalBones);
         if ( IKImport_GetVar_IK_Debug() == 2 )
-            IKImport_DrawDebugSkeleton((int)v9, ikState);
+            IKImport_DrawDebugSkeleton(ikState);
     }
     ikState->matArrayPostIK = 0;
     ikState->matArrayPreIK = 0;

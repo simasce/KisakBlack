@@ -1,8 +1,27 @@
 #pragma once
+#include "dobj.h"
 
-void __cdecl XAnimSetTime(XAnimTree_s *tree, unsigned int animIndex, float time, unsigned __int16 cmdIndex);
-void __cdecl XAnim_SetTime(float time, int frameCount, XAnimTime *animTime);
-void    DObjCalcAnim(int a1@<ebp>, const DObj *obj, int *partBits);
+struct __declspec(align(8)) XAnimCalcAnimInfo // sizeof=0x7830
+{
+    DObjAnimMat rotTransArray[960];
+    bitarray<160> animPartBits;
+    bitarray<160> ignorePartBits;
+    bool bLeftHandGripIKActive;
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+    // padding byte
+
+    XAnimCalcAnimInfo();
+};
+
+struct XAnimInfo;
+struct XAnimParts;
+
+void    DObjCalcAnim(DObj *obj, int *partBits);
 void __cdecl XAnimCalc(
                 const DObj *obj,
                 XAnimInfo *info,
@@ -49,11 +68,10 @@ void __cdecl XAnimApplyAdditives(
                 float weight,
                 int boneCount,
                 XAnimCalcAnimInfo *info);
-XAnimCalcAnimInfo *__thiscall XAnimCalcAnimInfo::XAnimCalcAnimInfo(XAnimCalcAnimInfo *this);
 void __cdecl XAnim_CalcDeltaForTime(const XAnimParts *anim, float time, float *rotDelta, float4 *posDelta);
 void __cdecl XAnim_CalcRotDeltaEntire(const XAnimDeltaPart *animDelta, float *rotDelta);
 void __cdecl XAnim_CalcPosDeltaEntire(const XAnimDeltaPart *animDelta, float4 *posDelta);
-bool __thiscall bitarray<160>::testBit(bitarray<160> *this, unsigned int pos);
+//bool __thiscall bitarray<160>::testBit(bitarray<160> *this, unsigned int pos);
 void __cdecl XAnimWeightedAccumLerpedTrans(
                 const float4 *fromVec,
                 const float4 *toVec,

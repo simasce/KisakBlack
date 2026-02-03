@@ -1,4 +1,26 @@
 #include "xmodel_utils.h"
+#include "xmodel.h"
+
+#include <bgame/bg_local.h>
+
+struct TestLod // sizeof=0x8
+{                                       // XREF: .data:g_testLods/r
+    bool enabled;                       // XREF: XModelLodInfo_GetDist(XModelLodInfo const *,int)+7/r
+                                        // XModelSetTestLods(int,float)+65/w
+    // padding byte
+    // padding byte
+    // padding byte
+    float dist;                         // XREF: XModelLodInfo_GetDist(XModelLodInfo const *,int)+24/r
+                                        // XModelSetTestLods(int,float)+38/w
+};
+
+TestLod g_testLods[4] = 
+{
+    { false, -1.0f },
+    { false, -1.0f },
+    { false, -1.0f },
+    { false, -1.0f },
+};
 
 int __cdecl XModelNumBones(const cpose_t *pose)
 {
@@ -202,7 +224,7 @@ void __cdecl XModelGetSurfaceStreamBounds(const XModel *model, int surfIndex, fl
     *outMaxs = v6->center[0];
     outMaxs[1] = v6->center[1];
     outMaxs[2] = v6->center[2];
-    LODWORD(v5) = COERCE_UNSIGNED_INT(sqrtf(model->streamInfo.highMipBounds[surfIndex].himipRadiusSq)) ^ _mask__NegFloat_;
+    (v5) = -(sqrtf(model->streamInfo.highMipBounds[surfIndex].himipRadiusSq));
     *outMins = *outMins + v5;
     outMins[1] = outMins[1] + v5;
     outMins[2] = outMins[2] + v5;
@@ -238,7 +260,7 @@ Material **__cdecl XModelGetSkins(const XModel *model, int lod)
 
 XModelLodRampType __cdecl XModelGetLodRampType(const XModel *model)
 {
-    return model->lodRampType;
+    return (XModelLodRampType)model->lodRampType;
 }
 
 int __cdecl XModelGetNumLods(const XModel *model)

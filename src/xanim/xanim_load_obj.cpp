@@ -1,4 +1,36 @@
 #include "xanim_load_obj.h"
+#include <universal/com_files.h>
+#include <clientscript/cscr_stringlist.h>
+#include <qcommon/common.h>
+
+const char *g_highPrecisionParts[18] =
+{
+  "j_ankle_le",
+  "j_ankle_ri",
+  "j_clavicle_le",
+  "j_clavicle_ri",
+  "j_elbow_le",
+  "j_elbow_ri",
+  "j_hip_le",
+  "j_hip_ri",
+  "j_knee_le",
+  "j_knee_ri",
+  "j_mainroot",
+  "j_shoulder_le",
+  "j_shoulder_ri",
+  "j_spine4",
+  "j_spinelower",
+  "j_spineupper",
+  "j_wrist_le",
+  "j_wrist_ri"
+};
+
+int g_highPrecisionPart[160];
+int g_checkBoneOrder;
+HunkUser *g_animUser;
+XAnimPartQuatPtr *g_partQuatArray;
+XAnimPartTransPtr *g_partTransArray;
+char *g_simpleQuatBits;
 
 unsigned __int8 *__cdecl GetDeltaQuaternions(
                 XAnimDeltaPart *deltaPart,
@@ -342,7 +374,7 @@ XAnimParts *__cdecl XAnimLoadFile(char *name, void *(__cdecl *Alloc)(int), bool 
     int v62; // [esp+698h] [ebp-1334h]
     int v63; // [esp+69Ch] [ebp-1330h]
     int v64; // [esp+6A0h] [ebp-132Ch]
-    char *fmt; // [esp+6A4h] [ebp-1328h]
+    const char *fmt; // [esp+6A4h] [ebp-1328h]
     __int16 v66; // [esp+6A8h] [ebp-1324h]
     unsigned __int16 v67; // [esp+6ACh] [ebp-1320h]
     void *buffer; // [esp+6B0h] [ebp-131Ch] BYREF
@@ -593,7 +625,7 @@ XAnimParts *__cdecl XAnimLoadFile(char *name, void *(__cdecl *Alloc)(int), bool 
                                 v87[animPartIndex].partIndex = j;
                                 v7 = *(unsigned int *)&part[animPartIndex].partIndex;
                                 v8 = j;
-                                v85[2 * j] = part[animPartIndex].quat;
+                                v85[2 * j] = (unsigned int)part[animPartIndex].quat;
                                 v85[2 * v8 + 1] = v7;
                                 parts->names[j] = v82[animPartIndex];
                                 PartQuatType = XAnimGetPartQuatType(animPartIndex);
@@ -636,7 +668,7 @@ XAnimParts *__cdecl XAnimLoadFile(char *name, void *(__cdecl *Alloc)(int), bool 
                                 animPartIndex = *(unsigned __int16 *)&v86[2 * j];
                                 v14 = *(unsigned int *)&v87[animPartIndex].partIndex;
                                 v15 = j;
-                                *(unsigned int *)&dest[8 * j + 128] = v87[animPartIndex].trans;
+                                *(unsigned int *)&dest[8 * j + 128] = (unsigned int)v87[animPartIndex].trans;
                                 *(unsigned int *)&dest[8 * v15 + 132] = v14;
                                 PartQuatType = XAnimGetPartTransType(animPartIndex);
                                 *(&i + PartQuatType) = j + 1;

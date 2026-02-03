@@ -1,4 +1,14 @@
 #include "dobj_utils.h"
+#include "dobj.h"
+#include "xmodel.h"
+
+#include <universal/assertive.h>
+#include <clientscript/cscr_stringlist.h>
+#include <universal/q_shared.h>
+#include "xmodel_utils.h"
+#include <EffectsCore/fx_beam.h>
+#include <gfx_d3d/r_dvars.h>
+#include <ik/ik_import.h>
 
 int __cdecl DObjGetModelBoneIndex(const DObj *obj, const char *modelName, unsigned int name, unsigned __int8 *index)
 {
@@ -324,7 +334,7 @@ int __cdecl DObjSetRotTransIndex(const DObj *obj, const int *partBits, int boneI
     boneIndexLow = 0x80000000 >> (boneIndex & 0x1F);
     if ( (boneIndexLow & partBits[boneIndex >> 5]) == 0 )
         return 0;
-    skel = &obj->skel;
+    skel = (DSkel*)&obj->skel;
     if ( (boneIndexLow & obj->skel.partBits.anim[boneIndexHigh]) != 0 )
         return 0;
     if ( (boneIndexLow & skel->partBits.skel[boneIndexHigh]) != 0
@@ -355,7 +365,7 @@ char __cdecl DObjSetSkelRotTransIndex(const DObj *obj, const int *partBits, int 
     boneIndexLow = 0x80000000 >> (boneIndex & 0x1F);
     if ( (boneIndexLow & partBits[boneIndex >> 5]) == 0 )
         return 1;
-    skel = &obj->skel;
+    skel = (DSkel*)&obj->skel;
     if ( (boneIndexLow & obj->skel.partBits.anim[boneIndexHigh]) != 0 )
         return 0;
     if ( (boneIndexLow & skel->partBits.skel[boneIndexHigh]) != 0
@@ -495,12 +505,10 @@ void __cdecl DObjSetAngles(DObjAnimMat *rotTrans, const float *angles)
     v2 = angles[2] * 0.0087266462;
     rollQuat_4 = cos(v2);
     rollQuat = sin(v2);
-    tempQuat = COERCE_FLOAT(LODWORD(pitchQuat) ^ _mask__NegFloat_) * yawQuat;
+    tempQuat = (-(pitchQuat)) * yawQuat;
     rotTrans->quat[0] = (float)(rollQuat * (float)(pitchQuat_4 * yawQuat_4)) + (float)(rollQuat_4 * tempQuat);
-    rotTrans->quat[1] = (float)(rollQuat_4 * (float)(pitchQuat * yawQuat_4))
-                                        + (float)(rollQuat * (float)(pitchQuat_4 * yawQuat));
-    rotTrans->quat[2] = (float)(COERCE_FLOAT(LODWORD(rollQuat) ^ _mask__NegFloat_) * (float)(pitchQuat * yawQuat_4))
-                                        + (float)(rollQuat_4 * (float)(pitchQuat_4 * yawQuat));
+    rotTrans->quat[1] = (float)(rollQuat_4 * (float)(pitchQuat * yawQuat_4)) + (float)(rollQuat * (float)(pitchQuat_4 * yawQuat));
+    rotTrans->quat[2] = (float)((-(rollQuat)) * (float)(pitchQuat * yawQuat_4)) + (float)(rollQuat_4 * (float)(pitchQuat_4 * yawQuat));
     rotTrans->quat[3] = (float)(rollQuat_4 * (float)(pitchQuat_4 * yawQuat_4)) - (float)(rollQuat * tempQuat);
 }
 
@@ -681,7 +689,7 @@ int __cdecl DObjSetControlRotTransIndex(const DObj *obj, const int *partBits, in
     boneIndexLow = 0x80000000 >> (boneIndex & 0x1F);
     if ( (boneIndexLow & partBits[boneIndex >> 5]) == 0 )
         return 0;
-    skel = &obj->skel;
+    skel = (DSkel*)&obj->skel;
     if ( (boneIndexLow & obj->skel.partBits.anim[boneIndexHigh]) != 0 )
         return 0;
     if ( (boneIndexLow & skel->partBits.skel[boneIndexHigh]) != 0
@@ -743,7 +751,7 @@ void __cdecl DObjSkelSetSkel(const DObj *obj, int *partBits)
 
     if ( !obj && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\dobj_utils.cpp", 1051, 0, "%s", "obj") )
         __debugbreak();
-    skel = &obj->skel;
+    skel = (DSkel*)&obj->skel;
     if ( obj == (const DObj *)-20
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\dobj_utils.cpp", 1054, 0, "%s", "skel") )
     {
@@ -761,7 +769,7 @@ int __cdecl DObjGetAllocSkelSize(const DObj *obj)
     return 32 * obj->numBones;
 }
 
-void __cdecl DObjCreateSkel(const DObj *obj, char *buf, int timeStamp)
+void __cdecl DObjCreateSkel(DObj *obj, char *buf, int timeStamp)
 {
     int i; // [esp+0h] [ebp-4h]
 
@@ -920,9 +928,9 @@ int __cdecl DObjGetChildBones(const DObj *obj, unsigned __int8 parentBone, unsig
 
 void __cdecl DObjLock(const DObj *obj)
 {
-    volatile int *p_locked; // [esp+0h] [ebp-4h]
+    volatile unsigned int *p_locked; // [esp+0h] [ebp-4h]
 
-    p_locked = &obj->locked;
+    p_locked = &(((DObj*)obj)->locked);
     do
     {
         while ( *p_locked )
@@ -933,12 +941,10 @@ void __cdecl DObjLock(const DObj *obj)
 
 void __cdecl DObjUnlock(const DObj *obj)
 {
-    if ( !obj->locked
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\dobj_utils.cpp", 1380, 0, "%s", "obj->locked") )
-    {
-        __debugbreak();
-    }
-    obj->locked = 0;
+    iassert(obj->locked);
+
+    //obj->locked = 0;
+    ((DObj *)obj)->locked = 0;
 }
 
 bool __cdecl DObjIsRecorded(const DObj *obj)

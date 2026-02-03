@@ -1,4 +1,21 @@
 #include "dobj.h"
+#include <clientscript/cscr_stringlist.h>
+#include <qcommon/common.h>
+#include "xmodel_utils.h"
+#include "xmodel.h"
+
+#include <bgame/bg_local.h>
+#include <cstring>
+#include <ik/ik_import.h>
+#include <clientscript/cscr_memorytree.h>
+#include <universal/com_math_anglevectors.h>
+#include "xmodel_load_obj.h"
+#include "dobj_utils.h"
+#include <cgame_mp/cg_pose_mp.h>
+#include <cgame/cg_drawtools.h>
+#include "dobj_skel.h"
+
+unsigned int g_empty;
 
 void __cdecl DObjInit()
 {
@@ -223,7 +240,7 @@ void __cdecl DObjSetTree(DObj *obj, XAnimTree_s *tree)
     if ( tree )
     {
         if ( tree->children )
-            XAnimResetAnimMap((XModelNameMap)&savedregs, obj, tree->children);
+            XAnimResetAnimMap(obj, tree->children);
         tree->inst = !DObjIsServer(obj);
     }
 }
@@ -336,7 +353,7 @@ void __cdecl DObjCreateDuplicateParts(DObj *obj, DObjModel_s *dobjModels, unsign
                 __debugbreak();
             }
             DObjDumpCreationInfo(dobjModels, numModels);
-            Com_Error(ERR_DROP, &byte_D0F658, model[0]->name, 160);
+            Com_Error(ERR_DROP, "dobj for xmodel '%s' has more than %d bones (see console for details)", model[0]->name, 160);
         }
         model[v17] = (XModel *)pose;
         index[v17] = -1;
@@ -640,7 +657,7 @@ void __cdecl DObjFree(DObj *obj)
     models = obj->localModels;
     if ( models )
     {
-        MT_Free(models, 5 * obj->numModels, SCRIPTINSTANCE_SERVER);
+        MT_Free((unsigned char*)models, 5 * obj->numModels, SCRIPTINSTANCE_SERVER);
         obj->localModels = 0;
     }
     obj->numModels = 0;
@@ -911,19 +928,15 @@ int __cdecl DObjGetLocalClientIndex(const DObj *obj)
 
 void __cdecl DObjGetBounds(const DObj *obj, float *mins, float *maxs)
 {
-    float radius; // [esp+4h] [ebp-14h]
-    int v4; // [esp+10h] [ebp-8h]
+    iassert(obj);
 
-    if ( !obj && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\dobj.cpp", 1308, 0, "%s", "obj") )
-        __debugbreak();
-    v4 = LODWORD(obj->radius) ^ _mask__NegFloat_;
-    *(unsigned int *)mins = v4;
-    *((unsigned int *)mins + 1) = v4;
-    *((unsigned int *)mins + 2) = v4;
-    radius = obj->radius;
-    *maxs = radius;
-    maxs[1] = radius;
-    maxs[2] = radius;
+    mins[0] = -obj->radius;
+    mins[1] = -obj->radius;
+    mins[2] = -obj->radius;
+
+    maxs[0] = obj->radius;
+    maxs[1] = obj->radius;
+    maxs[2] = obj->radius;
 }
 
 void __cdecl DObjPhysicsGetBounds(const DObj *obj, float *mins, float *maxs)
@@ -1050,6 +1063,8 @@ int __cdecl DObjBad(const DObj *obj)
     return 0;
 }
 
+float s_cutOffSq = 4.0f;
+
 void __cdecl DObjTracelinePartBits(DObj *obj, int *partBits)
 {
     unsigned int j; // [esp+8h] [ebp-28h]
@@ -1174,15 +1189,15 @@ void __cdecl DObjTraceline(DObj *obj, float *start, float *end, unsigned __int8 
     deltaLengthSq = (float)((float)(delta * delta) + (float)(delta_4 * delta_4)) + (float)(delta_8 * delta_8);
     if ( deltaLengthSq == 0.0 )
     {
-        if ( g_DXDeviceThread != GetCurrentThreadId() )
-            return;
+        //if ( g_DXDeviceThread != GetCurrentThreadId() )
+        //    return;
         goto LABEL_6;
     }
     boneMatrix = DObjGetRotTransArray(obj);
     if ( !boneMatrix )
     {
-        if ( GetCurrentThreadId() != g_DXDeviceThread )
-            return;
+        //if ( GetCurrentThreadId() != g_DXDeviceThread )
+        //    return;
 LABEL_6:
         //D3DPERF_EndEvent();
         return;
@@ -1337,18 +1352,9 @@ LABEL_25:
                                 startOffset[0] = *start - center[0];
                                 startOffset[1] = start[1] - center[1];
                                 startOffset[2] = start[2] - center[2];
-                                sphereFraction = COERCE_FLOAT(
-                                                                     COERCE_UNSIGNED_INT(
-                                                                         (float)((float)(startOffset[0] * delta) + (float)(startOffset[1] * delta_4))
-                                                                     + (float)(startOffset[2] * delta_8))
-                                                                 ^ _mask__NegFloat_)
+                                sphereFraction = (-((float)((float)(startOffset[0] * delta) + (float)(startOffset[1] * delta_4)) + (float)(startOffset[2] * delta_8)))
                                                              * invL2;
-                                v10 = (float)(sphereFraction - 1.0) < 0.0
-                                        ? COERCE_FLOAT(
-                                                COERCE_UNSIGNED_INT(
-                                                    (float)((float)(startOffset[0] * delta) + (float)(startOffset[1] * delta_4))
-                                                + (float)(startOffset[2] * delta_8))
-                                            ^ _mask__NegFloat_)
+                                v10 = (float)(sphereFraction - 1.0) < 0.0 ? (-((float)((float)(startOffset[0] * delta) + (float)(startOffset[1] * delta_4)) + (float)(startOffset[2] * delta_8)))
                                         * invL2
                                         : 1.0f;
                                 v7 = (float)(0.0 - sphereFraction) < 0.0 ? v10 : 0.0f;

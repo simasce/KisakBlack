@@ -1,5 +1,41 @@
 #pragma once
 
+struct PhysPreset;
+struct PhysConstraints;
+struct XModelPartsLoad;
+struct XModel;
+struct Material;
+struct XSurface;
+struct XModelSurfs;
+struct GfxImage;
+struct XModelPieces;
+
+struct XModelConfigEntry // sizeof=0x404
+{                                       // XREF: XModelConfig/r
+    char filename[1024];                // XREF: XModelLoadFile+24B/r
+                                        // XModelLoadFile+794/r ...
+    float dist;                         // XREF: XModelLoadFile+3A5/r
+};
+
+struct XModelConfig // sizeof=0x1C34
+{                                       // XREF: XModelLoadFile/r
+    XModelConfigEntry entries[4];       // XREF: XModelLoadFile+24B/r
+                                        // XModelLoadFile+3A5/r ...
+    float mins[3];
+    float maxs[3];                      // XREF: XModelLoadFile+F85/r
+                                        // XModelLoadFile+FC2/r
+    int collLod;                        // XREF: XModelLoadFile+FD8/r
+    unsigned int flags;                 // XREF: XModelLoadFile+1AF/r
+    char physicsPresetFilename[1024];   // XREF: XModelLoadFile:loc_8043AA/r
+                                        // XModelLoadFile+1039/o
+    char physicsConstraintsFilename[1024];
+                                        // XREF: XModelLoadFile:loc_8043D4/r
+                                        // XModelLoadFile+1063/o
+    char collMapFilename[1024];         // XREF: XModelLoadFile:loc_8043FE/r
+                                        // XModelLoadFile+1098/o
+    float bakeLightmapScale;
+};
+
 PhysPreset *__cdecl XModel_PhysPresetPrecache(const char *name, void *(__cdecl *Alloc)(int));
 PhysConstraints *__cdecl XModel_PhysConstraintsPrecache(const char *name, void *(__cdecl *Alloc)(int));
 __int64 __cdecl FS_GetModTime();

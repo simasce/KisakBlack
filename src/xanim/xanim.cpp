@@ -1,4 +1,21 @@
 #include "xanim.h"
+#include "xmodel.h"
+#include "xanim_clientnotify.h"
+
+#include <clientscript/cscr_stringlist.h>
+#include <universal/com_memory.h>
+#include "xanim_load_obj.h"
+#include <qcommon/common.h>
+#include "xanim_calc.h"
+#include <qcommon/threads.h>
+#include <cgame_mp/cg_local_mp.h>
+#include <clientscript/cscr_vm.h>
+
+XAnimInfo g_xAnimInfo[4096];
+unsigned int g_endNotetrackName;
+bool g_anim_developer;
+XAnimClientNotifyList *g_clientList;
+XAnimServerNotifyList *g_currList;
 
 int __cdecl XAnimTreeSize()
 {
@@ -93,14 +110,14 @@ XAnimParts *__cdecl XAnimPrecache(char *name, void *(__cdecl *Alloc)(int))
                                                                              "void",
                                                                              Hunk_AllocXAnimPrecache);
             else
-                Data_LoadObj = XAnimFindData_LoadObj("void", (void *(__cdecl *)(int))Hunk_AllocXAnimPrecache);
+                Data_LoadObj = XAnimFindData_LoadObj((char *)"void", (void *(__cdecl *)(int))Hunk_AllocXAnimPrecache);
             defaultParts = Data_LoadObj;
             if ( !Data_LoadObj )
             {
-                defaultParts = XAnimLoadFile("void", Alloc, 0);
+                defaultParts = XAnimLoadFile((char*)"void", Alloc, 0);
                 if ( !defaultParts )
                 {
-                    Com_Error(ERR_DROP, &byte_D104CC, "void");
+                    Com_Error(ERR_DROP, "Cannot find xanim '%s'", "void");
                     return 0;
                 }
                 Hunk_SetDataForFile(6, "void", defaultParts, Alloc);
@@ -130,7 +147,7 @@ XAnimParts *__cdecl XAnimFindData_LoadObj(char *name, void *(__cdecl *Alloc)(int
 
 XAnimParts *__cdecl XAnimFindData_FastFile(const char *name)
 {
-    return DB_FindXAssetHeader(ASSET_TYPE_XANIMPARTS, name, 1, -1).parts;
+    return DB_FindXAssetHeader(ASSET_TYPE_XANIMPARTS, (char *)name, 1, -1).parts;
 }
 
 XAnimParts *__cdecl XAnimClone(XAnimParts *fromParts, void *(__cdecl *Alloc)(int))
@@ -213,7 +230,7 @@ void __cdecl XAnimCreate(XAnim_s *anims, unsigned int animIndex, char *name)
     }
     else
     {
-        Com_Error(ERR_DROP, &byte_D10568, name);
+        Com_Error(ERR_DROP, "Cannot find xanim '%s'", name);
     }
 }
 
@@ -281,7 +298,7 @@ void __cdecl XAnimBlend(
         for ( parentIndex = anims->entries[animIndex].parent; parentIndex; parentIndex = anims->entries[parentIndex].parent )
         {
             if ( IsNodeAdditive(&anims->entries[parentIndex]) )
-                Com_Error(ERR_DROP, &byte_D1058C);
+                Com_Error(ERR_DROP, "Do not nest additives");
         }
     }
     if ( anims->debugAnimNames )
@@ -333,7 +350,7 @@ void __cdecl XAnimSetParamValue(XAnim_s *anims, unsigned int paramIndex, char *s
     {
         __debugbreak();
     }
-    strncpy((unsigned __int8 *)&anims->params[paramIndex], (unsigned __int8 *)strParamName, 0x10u);
+    strncpy(anims->params[paramIndex].strName, strParamName, 0x10u);
     anims->params[paramIndex].fValue = paramValue;
 }
 
@@ -354,7 +371,7 @@ void __cdecl XAnimSetValueSection(
 
 XAnim_s *__cdecl XAnimCreateAnims(const char *debugName, int size, void *(__cdecl *Alloc)(unsigned int))
 {
-    return XAnimCreateAnimsWithValues(debugName, size, 0, Alloc);
+    return XAnimCreateAnimsWithValues(debugName, size, 0, (void*(*)(int))Alloc);
 }
 
 XAnim_s *__cdecl XAnimCreateAnimsWithValues(
@@ -555,7 +572,8 @@ unsigned int __cdecl XAnimGetAnimMap(const XAnimParts *parts, const XModelNameMa
         }
         boneIndex = modelMap[hash].index;
         animToModel.boneIndex[partIndex] = boneIndex;
-        bitarray<160>::setBit(&animToModel.partBits, boneIndex);
+        //bitarray<160>::setBit(&animToModel.partBits, boneIndex);
+        animToModel.partBits.setBit(boneIndex);
 LABEL_8:
         ;
     }
@@ -735,7 +753,8 @@ void __cdecl XAnimAddClientNotify(unsigned int notetrackName, float frac, unsign
 
 void __cdecl AddSignalToNoteList(XAnimClientNotifyList *pList, const ClientNotifyData *ourNote)
 {
-    XAnimClientNotifyList::AddNotify(pList, ourNote);
+    //XAnimClientNotifyList::AddNotify(pList, ourNote);
+    pList->AddNotify(ourNote);
 }
 
 void __cdecl XAnimAddClientNotifyNamed(unsigned int notetrackName, float frac, unsigned int notifyName)
@@ -760,16 +779,15 @@ void __cdecl XAnimAddClientNotifyNamed(unsigned int notetrackName, float frac, u
     }
 }
 
-void    XAnimResetAnimMap(XModelNameMap a1@<ebp>, const DObj *obj, unsigned int infoIndex)
+void    XAnimResetAnimMap(const DObj *obj, unsigned int infoIndex)
 {
-    XModelNameMap v3[3]; // [esp-Ch] [ebp-80Ch] BYREF
     XModelNameMap modelMap[512]; // [esp+0h] [ebp-800h]
-    XModelNameMap retaddr; // [esp+800h] [ebp+0h]
+    //XModelNameMap retaddr; // [esp+800h] [ebp+0h]
 
-    modelMap[509] = a1;
-    modelMap[510] = retaddr;
-    XAnimInitModelMap(obj->localModels, obj->numModels, v3);
-    XAnimResetAnimMap_r(v3, infoIndex);
+    //modelMap[509] = a1;
+    //modelMap[510] = retaddr;
+    XAnimInitModelMap(obj->localModels, obj->numModels, modelMap);
+    XAnimResetAnimMap_r(modelMap, infoIndex);
 }
 
 void __cdecl XAnimResetAnimMap_r(XModelNameMap *modelMap, unsigned int infoIndex)
@@ -1157,7 +1175,7 @@ char *__cdecl XAnimGetAnimDebugName(const XAnim_s *anims, unsigned int animIndex
     bool isDefault; // [esp+Bh] [ebp-15h]
     XAnimParts *parts; // [esp+Ch] [ebp-14h]
     const char *debugName; // [esp+14h] [ebp-Ch]
-    XAnimEntry *anim; // [esp+18h] [ebp-8h]
+    const XAnimEntry *anim; // [esp+18h] [ebp-8h]
 
     if ( !anims && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 3150, 0, "%s", "anims") )
         __debugbreak();
@@ -1622,45 +1640,43 @@ void __cdecl XAnimFreeInfo(XAnimTree_s *tree, unsigned int infoIndex)
     char *animToModel; // [esp+8h] [ebp-Ch]
     unsigned int prev; // [esp+Ch] [ebp-8h]
 
-    if ( !tree && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 1205, 0, "%s", "tree") )
+    if (!tree && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 1205, 0, "%s", "tree"))
         __debugbreak();
-    if ( (!infoIndex || infoIndex >= 0x1000)
+    if ((!infoIndex || infoIndex >= 0x1000)
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp",
-                    1207,
-                    0,
-                    "%s\n\t(infoIndex) = %i",
-                    "(infoIndex && (infoIndex < 4096))",
-                    infoIndex) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp",
+            1207,
+            0,
+            "%s\n\t(infoIndex) = %i",
+            "(infoIndex && (infoIndex < 4096))",
+            infoIndex))
     {
         __debugbreak();
     }
     info = &g_xAnimInfo[infoIndex];
-    if ( *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8)
-        && *(unsigned int *)(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) + 180) )
+
+    if (bgs && bgs->AnimCmdRefCount)
     {
-        (*(void (__cdecl **)(int, unsigned int, unsigned int))(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer
-                                                                                                                     + _tls_index)
-                                                                                                                 + 8)
-                                                                                         + 180))(
+        bgs->AnimCmdRefCount(
             -1,
-            (unsigned __int16)infoIndex,
-            *(unsigned int *)(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) + 4));
+            infoIndex,
+            bgs->time);
     }
-    if ( info->animToModel )
+
+    if (info->animToModel)
     {
-        if ( info->children
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 1232, 0, "%s", "!info->children") )
+        if (info->children
+            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 1232, 0, "%s", "!info->children"))
         {
             __debugbreak();
         }
-        if ( !info->parts
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 1235, 0, "%s", "parts") )
+        if (!info->parts
+            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 1235, 0, "%s", "parts"))
         {
             __debugbreak();
         }
-        if ( !info->animToModel
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 1237, 0, "%s", "info->animToModel") )
+        if (!info->animToModel
+            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 1237, 0, "%s", "info->animToModel"))
         {
             __debugbreak();
         }
@@ -1670,16 +1686,16 @@ void __cdecl XAnimFreeInfo(XAnimTree_s *tree, unsigned int infoIndex)
     }
     else
     {
-        while ( info->children )
+        while (info->children)
             XAnimFreeInfo(tree, info->children);
     }
     prev = info->prev;
     next = info->next;
-    if ( info->prev )
+    if (info->prev)
     {
         g_xAnimInfo[prev].next = next;
     }
-    else if ( info->parent )
+    else if (info->parent)
     {
         g_xAnimInfo[info->parent].children = next;
     }
@@ -1687,7 +1703,7 @@ void __cdecl XAnimFreeInfo(XAnimTree_s *tree, unsigned int infoIndex)
     {
         tree->children = next;
     }
-    if ( next )
+    if (next)
         g_xAnimInfo[next].prev = prev;
     XAnimClearServerNotify(info, (scriptInstance_t)tree->inst);
     info->prev = 0;
@@ -1843,7 +1859,7 @@ void __cdecl XAnimUpdateTimeAndNotetrackLeaf(
             else
             {
                 if ( (float)(g_xAnimInfo[infoIndex].state.oldTime - 0.99999988) < 0.0 )
-                    v9 = FLOAT_0_99999988;
+                    v9 = 0.99999988f;
                 else
                     v9 = 1.0f;
                 time = v9;
@@ -2305,7 +2321,7 @@ void __cdecl XAnimUpdateTimeAndNotetrackSyncSubTree(
                 __debugbreak();
             }
             if ( (float)(g_xAnimInfo[infoIndex].state.oldTime - 0.99999988) < 0.0 )
-                v8 = FLOAT_0_99999988;
+                v8 = 0.99999988f;
             else
                 v8 = 1.0f;
             time = v8;
@@ -2761,7 +2777,7 @@ void __cdecl XAnimDisplay(
     {
         color = "^4";
     }
-    inst = *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) != (unsigned int)&level_bgs;
+    inst = (scriptInstance_t)(bgs != &level_bgs);
     if ( info->animToModel )
     {
         duration = XAnimGetLength(tree->anims, animIndex);
@@ -3509,71 +3525,62 @@ unsigned int __cdecl XAnimAllocInfoWithParent(
     else
     {
         Sys_LeaveCriticalSection(CRITSECT_XANIM_ALLOC);
-        Com_Error(ERR_DROP, &byte_D111A8);
+        Com_Error(ERR_DROP, "exceeded maximum number of anim info");
         return 0;
     }
 }
 
-unsigned int    XAnimAllocInfoIndex@<eax>(
-                unsigned int a1@<ebp>,
+unsigned int XAnimAllocInfoIndex(
                 DObj *obj,
                 unsigned int animIndex,
                 int after,
                 int cmdIndex)
 {
-    unsigned __int16 AnimMap; // [esp-Ch] [ebp-820h]
-    XModelNameMap v7[2]; // [esp-8h] [ebp-81Ch] BYREF
+    unsigned __int16 animToModel; // [esp-Ch] [ebp-820h]
     XModelNameMap modelMap[512]; // [esp+4h] [ebp-810h]
-    unsigned int parentInfoIndex; // [esp+804h] [ebp-10h]
-    unsigned int parentAnimIndex; // [esp+808h] [ebp-Ch]
-    const XAnimEntry *anim; // [esp+80Ch] [ebp-8h]
-    const XAnimEntry *retaddr; // [esp+814h] [ebp+0h]
+    XAnimTree_s *tree; // [esp+804h] [ebp-10h]
+    //unsigned int parentAnimIndex; // [esp+808h] [ebp-Ch]
+    //const XAnimEntry *anim; // [esp+80Ch] [ebp-8h]
+    //const XAnimEntry *retaddr; // [esp+814h] [ebp+0h]
+    const XAnimEntry *animEntry; // [esp+400h] [ebp-14h]
+    unsigned int parentAnimIndex; // [esp+3FCh] [ebp-18h]
+    unsigned int parentInfoIndex; // [esp+3FCh] [ebp-18h]
 
-    parentAnimIndex = a1;
-    anim = retaddr;
-    parentInfoIndex = (unsigned int)obj->localTree;
-    if ( !parentInfoIndex
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 4026, 0, "%s", "tree") )
-    {
-        __debugbreak();
-    }
-    if ( !*(unsigned int *)parentInfoIndex
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 4027, 0, "%s", "tree->anims") )
-    {
-        __debugbreak();
-    }
-    if ( animIndex >= *(unsigned int *)(*(unsigned int *)parentInfoIndex + 4)
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp",
-                    4028,
-                    0,
-                    "%s\n\t(animIndex) = %i",
-                    "(animIndex < tree->anims->size)",
-                    animIndex) )
-    {
-        __debugbreak();
-    }
+    //parentAnimIndex = a1;
+    //anim = retaddr;
+    tree = obj->localTree;
+
+    iassert(tree);
+    iassert(tree->anims);
+
+    iassert(animIndex < tree->anims->size);
+    
     if ( animIndex )
     {
-        modelMap[511] = (XModelNameMap)(*(unsigned int *)parentInfoIndex + 16 * animIndex + 24);
-        modelMap[510] = (XModelNameMap)*(unsigned __int16 *)(*(unsigned int *)&modelMap[511] + 8);
-        modelMap[509] = (XModelNameMap)XAnimEnsureGoalWeightParent(obj, *(unsigned int *)&modelMap[510], cmdIndex);
-        if ( IsLeafNode(*(const XAnimEntry **)&modelMap[511]) )
+        //modelMap[511] = (XModelNameMap)(*(unsigned int *)tree + 16 * animIndex + 24);
+        animEntry = &tree->anims->entries[animIndex];
+        parentAnimIndex = animEntry->parent;
+        parentInfoIndex = XAnimEnsureGoalWeightParent(obj, parentAnimIndex, cmdIndex);
+        //modelMap[510] = (XModelNameMap)*(unsigned __int16 *)(*(unsigned int *)&modelMap[511] + 8);
+        //modelMap[509] = (XModelNameMap)XAnimEnsureGoalWeightParent(obj, *(unsigned int *)&modelMap[510], cmdIndex);
+
+        if (IsLeafNode(animEntry))
         {
-            XAnimInitModelMap(obj->localModels, obj->numModels, v7);
-            AnimMap = XAnimGetAnimMap(*(const XAnimParts **)(*(unsigned int *)&modelMap[511] + 12), v7);
+            XAnimInitModelMap(obj->localModels, obj->numModels, modelMap);
+            animToModel = XAnimGetAnimMap(animEntry->parts, modelMap);
         }
         else
         {
-            AnimMap = 0;
+            animToModel = 0;
         }
     }
     else
     {
-        modelMap[509] = 0;
-        AnimMap = 0;
+        parentInfoIndex = 0;
+        animToModel = 0;
     }
-    return XAnimAllocInfoWithParent((XAnimTree_s *)parentInfoIndex, AnimMap, animIndex, *(unsigned int *)&modelMap[509], after);
+
+    return XAnimAllocInfoWithParent(tree, animToModel, animIndex, parentInfoIndex, after);
 }
 
 unsigned int __cdecl XAnimEnsureGoalWeightParent(DObj *obj, unsigned int animIndex, int cmdIndex)
@@ -3630,35 +3637,35 @@ void __cdecl XAnimClearGoalWeight(
 }
 
 void __cdecl XAnimClearGoalWeightInternal(
-                XAnimTree_s *tree,
-                unsigned int infoIndex,
-                float blendTime,
-                int forceBlendTime,
-                unsigned __int16 cmdIndex)
+    XAnimTree_s *tree,
+    unsigned int infoIndex,
+    float blendTime,
+    int forceBlendTime,
+    unsigned __int16 cmdIndex)
 {
     float goalTime; // [esp+0h] [ebp-10h]
 
-    if ( !tree && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 4099, 0, "%s", "tree") )
+    if (!tree && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 4099, 0, "%s", "tree"))
         __debugbreak();
-    if ( !tree->anims
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 4100, 0, "%s", "tree->anims") )
+    if (!tree->anims
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp", 4100, 0, "%s", "tree->anims"))
     {
         __debugbreak();
     }
-    if ( (!infoIndex || infoIndex >= 0x1000)
+    if ((!infoIndex || infoIndex >= 0x1000)
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp",
-                    4101,
-                    0,
-                    "%s\n\t(infoIndex) = %i",
-                    "(infoIndex && (infoIndex < 4096))",
-                    infoIndex) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\xanim\\xanim.cpp",
+            4101,
+            0,
+            "%s\n\t(infoIndex) = %i",
+            "(infoIndex && (infoIndex < 4096))",
+            infoIndex))
     {
         __debugbreak();
     }
-    if ( g_xAnimInfo[infoIndex].state.goalWeight == 0.0 && !forceBlendTime )
+    if (g_xAnimInfo[infoIndex].state.goalWeight == 0.0 && !forceBlendTime)
     {
-        if ( (float)(blendTime - g_xAnimInfo[infoIndex].state.goalTime) < 0.0 )
+        if ((float)(blendTime - g_xAnimInfo[infoIndex].state.goalTime) < 0.0)
             goalTime = blendTime;
         else
             goalTime = g_xAnimInfo[infoIndex].state.goalTime;
@@ -3669,19 +3676,11 @@ void __cdecl XAnimClearGoalWeightInternal(
         g_xAnimInfo[infoIndex].state.goalTime = blendTime;
     }
     g_xAnimInfo[infoIndex].state.goalWeight = 0.0f;
-    if ( *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8)
-        && *(unsigned int *)(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) + 180) )
+    if (bgs && bgs->AnimCmdRefCount)
     {
-        (*(void (__cdecl **)(unsigned int, unsigned int, int))(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer
-                                                                                                                     + _tls_index)
-                                                                                                                 + 8)
-                                                                                         + 180))(
-            cmdIndex,
-            (unsigned __int16)infoIndex,
-            *(unsigned int *)(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) + 4)
-        + (int)(float)(blendTime * 1000.0));
+        bgs->AnimCmdRefCount(cmdIndex, infoIndex, bgs->time + (int)(float)(blendTime * 1000.0));
     }
-    if ( blendTime == 0.0 )
+    if (blendTime == 0.0)
     {
         g_xAnimInfo[infoIndex].state.oldTime = 0.0f;
         g_xAnimInfo[infoIndex].state.currentAnimTime = 0.0f;
@@ -3794,7 +3793,7 @@ int __cdecl XAnimSetCompleteGoalWeightKnob(
     }
     else
     {
-        infoIndex = XAnimAllocInfoIndex((unsigned int)&savedregs, obj, animIndex, 0, cmdIndex);
+        infoIndex = XAnimAllocInfoIndex(obj, animIndex, 0, cmdIndex);
         XAnimInitInfo(&g_xAnimInfo[infoIndex]);
     }
     XAnimClearGoalWeightKnobInternal(tree, infoIndex, goalWeight, goalTime, cmdIndex);
@@ -4037,7 +4036,7 @@ int __cdecl XAnimSetGoalWeightKnob(
     }
     else
     {
-        infoIndex = XAnimAllocInfoIndex((unsigned int)&savedregs, obj, animIndex, 0, cmdIndex);
+        infoIndex = XAnimAllocInfoIndex(obj, animIndex, 0, cmdIndex);
         XAnimInitInfo(&g_xAnimInfo[infoIndex]);
     }
     XAnimClearGoalWeightKnobInternal(tree, infoIndex, goalWeight, goalTime, cmdIndex);
@@ -4181,17 +4180,12 @@ int __cdecl XAnimSetGoalWeightNode(
             info->state.goalTime = v9;
         }
     }
-    if ( *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8)
-        && *(unsigned int *)(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) + 180) )
+    if (bgs && bgs->AnimCmdRefCount)
     {
-        (*(void (__cdecl **)(unsigned int, unsigned int, int))(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer
-                                                                                                                     + _tls_index)
-                                                                                                                 + 8)
-                                                                                         + 180))(
+        bgs->AnimCmdRefCount(
             cmdIndex,
-            (unsigned __int16)infoIndex,
-            *(unsigned int *)(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) + 4)
-        + (int)(float)(goalTime * 1000.0));
+            infoIndex,
+            bgs->time + (int)(float)(goalTime * 1000.0));
     }
     info->state.goalWeight = goalWeight;
     info->state.rate = rate;
@@ -4277,6 +4271,7 @@ void __cdecl    XAnimSetupSyncNodes(XAnim_s *anims)
     XAnimSetupSyncNodes_r(anims, 0, 0);
 }
 
+int iFoo;
 void __cdecl XAnimSetupSyncNodes_r(XAnim_s *anims, unsigned int animIndex, int parFlags)
 {
     XAnimParts *Data_LoadObj; // eax
@@ -4309,28 +4304,28 @@ void __cdecl XAnimSetupSyncNodes_r(XAnim_s *anims, unsigned int animIndex, int p
                 if ( IsXAssetDefault )
                 {
                     if ( !useFastFile->current.enabled )
-                        XAnimPrecache("void_loop", (void *(__cdecl *)(int))Hunk_AllocXAnimPrecache);
+                        XAnimPrecache((char *)"void_loop", (void *(__cdecl *)(int))Hunk_AllocXAnimPrecache);
                     if ( useFastFile->current.enabled )
                         Data_LoadObj = (XAnimParts *)((int (__cdecl *)(const char *, unsigned __int8 *(__cdecl *)(unsigned int)))XAnimFindData_FastFile)(
                                                                                      "void_loop",
                                                                                      Hunk_AllocXAnimPrecache);
                     else
-                        Data_LoadObj = XAnimFindData_LoadObj("void_loop", (void *(__cdecl *)(int))Hunk_AllocXAnimPrecache);
+                        Data_LoadObj = XAnimFindData_LoadObj((char*)"void_loop", (void *(__cdecl *)(int))Hunk_AllocXAnimPrecache);
                     anims->entries[animIndex].parts = Data_LoadObj;
                     if ( !anims->entries[animIndex].parts )
-                        Com_Error(ERR_DROP, &byte_D11390, "void_loop");
+                        Com_Error(ERR_DROP, "Cannot find 'xanim/%s' that you should have", "void_loop");
                 }
                 else if ( (parFlags & 1) != 0 )
                 {
                     debugName = anims->debugName;
                     AnimDebugName = XAnimGetAnimDebugName(anims, animIndex);
-                    Com_Error(ERR_DROP, &byte_D11350, AnimDebugName, debugName);
+                    Com_Error(ERR_DROP, "animation '%s' in '%s' cannot be sync looping and nonlooping", AnimDebugName, debugName);
                 }
                 else
                 {
                     v8 = anims->debugName;
                     v5 = XAnimGetAnimDebugName(anims, animIndex);
-                    Com_Error(ERR_DROP, &byte_D11310, v5, v8);
+                    Com_Error(ERR_DROP, "animation '%s' in '%s' cannot be sync nonlooping and looping", v5, v8);
                 }
             }
             return;
@@ -4345,7 +4340,7 @@ void __cdecl XAnimSetupSyncNodes_r(XAnim_s *anims, unsigned int animIndex, int p
             }
             while ( !IsLeafNode(anim) );
             v6 = XAnimGetAnimDebugName(anims, animIndex);
-            Com_Error(ERR_DROP, &byte_D112C8, anims->debugName, count, v6);
+            Com_Error(ERR_DROP, "duplicate specification of animation sync in '%s' %d nodes above '%s'", anims->debugName, count, v6);
         }
     }
     if ( !IsLeafNode(anim) )
@@ -4358,7 +4353,7 @@ void __cdecl XAnimSetupSyncNodes_r(XAnim_s *anims, unsigned int animIndex, int p
         if ( flag )
         {
             if ( flag == 3 )
-                Com_Error(ERR_DROP, &byte_D11290);
+                Com_Error(ERR_DROP, "animation cannot be sync looping and sync nonlooping");
             anim->animParent.flags |= 4u;
         }
         anim->animParent.flags |= parFlags;
@@ -4479,15 +4474,10 @@ void __cdecl XAnimSetTime(XAnimTree_s *tree, unsigned int animIndex, float time,
             __debugbreak();
         }
         info = &g_xAnimInfo[infoIndex];
-        if ( *(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) )
+        if (bgs)
         {
-            if ( *(unsigned int *)(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) + 184) )
-                (*(void (__cdecl **)(unsigned int, unsigned int))(*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer
-                                                                                                                    + _tls_index)
-                                                                                                                + 8)
-                                                                                        + 184))(
-                    cmdIndex,
-                    (unsigned __int16)infoIndex);
+            if (bgs->AnimCmdAddDependent)
+                bgs->AnimCmdAddDependent(cmdIndex, infoIndex);
         }
         info->state.currentAnimTime = time;
         info->state.cycleCount = 0;
@@ -4590,7 +4580,7 @@ int __cdecl XAnimSetGoalWeight(
     }
     else
     {
-        infoIndex = XAnimAllocInfoIndex((unsigned int)&savedregs, obj, animIndex, 0, cmdIndex);
+        infoIndex = XAnimAllocInfoIndex(obj, animIndex, 0, cmdIndex);
         XAnimInitInfo(&g_xAnimInfo[infoIndex]);
     }
     if ( !bBypass )
@@ -4777,7 +4767,7 @@ int __cdecl XAnimSetCompleteGoalWeight(
     }
     else
     {
-        infoIndex = XAnimAllocInfoIndex((unsigned int)&savedregs, obj, animIndex, 0, cmdIndex);
+        infoIndex = XAnimAllocInfoIndex(obj, animIndex, 0, cmdIndex);
         XAnimInitInfo(&g_xAnimInfo[infoIndex]);
     }
     return XAnimSetCompleteGoalWeightNode(tree, infoIndex, goalWeight, goalTime, rate, notifyName, notifyType, cmdIndex);
@@ -4979,20 +4969,20 @@ bool __cdecl XAnimGetParamValueTree(
     return XAnimGetParamValueTree(anims, anims->entries[animIndex].parent, paramName, outValue);
 }
 
-void __thiscall bitarray<160>::setBit(bitarray<160> *this, unsigned int pos)
-{
-    if ( pos >= 0xA0
-        && !Assert_MyHandler(
-                    "c:\\projects_pc\\cod\\codsrc\\src\\universal\\../qcommon/bitarray.h",
-                    115,
-                    0,
-                    "%s",
-                    "pos < BIT_COUNT") )
-    {
-        __debugbreak();
-    }
-    this->array[pos >> 5] |= 0x80000000 >> (pos & 0x1F);
-}
+//void __thiscall bitarray<160>::setBit(bitarray<160> *this, unsigned int pos)
+//{
+//    if ( pos >= 0xA0
+//        && !Assert_MyHandler(
+//                    "c:\\projects_pc\\cod\\codsrc\\src\\universal\\../qcommon/bitarray.h",
+//                    115,
+//                    0,
+//                    "%s",
+//                    "pos < BIT_COUNT") )
+//    {
+//        __debugbreak();
+//    }
+//    this->array[pos >> 5] |= 0x80000000 >> (pos & 0x1F);
+//}
 
 void __cdecl XAnim_SetTime(float time, int frameCount, XAnimTime *animTime)
 {
