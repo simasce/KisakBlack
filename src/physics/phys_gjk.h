@@ -224,8 +224,36 @@ struct __declspec(align(8)) gjk_entity_info_t // sizeof=0x50
 
     const Glass *get_glass();
     const void *get_ent();
-    const gentity_s *__thiscall get_gent();
-    const centity_s *__thiscall get_cent();
+
+    inline const gentity_s *get_gent()
+    {
+        if ((this->m_ent_type || !this->m_ent)
+            && !Assert_MyHandler(
+                "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../physics/phys_gjk_collision_detection.h",
+                86,
+                0,
+                "%s",
+                "m_ent_type == ET_GENT && m_ent != NULL"))
+        {
+            __debugbreak();
+        }
+        return (const gentity_s *)this->m_ent;
+    }
+
+    inline const centity_s *get_cent()
+    {
+        if ((this->m_ent_type != ET_CENT || !this->m_ent)
+            && !Assert_MyHandler(
+                "c:\\projects_pc\\cod\\codsrc\\src\\bgame\\../physics/phys_gjk_collision_detection.h",
+                87,
+                0,
+                "%s",
+                "m_ent_type == ET_CENT && m_ent != NULL"))
+        {
+            __debugbreak();
+        }
+        return (const centity_s *)this->m_ent;
+    }
 
     const DynEntityDef *get_dent();
 };
@@ -261,8 +289,11 @@ struct phys_gjk_geom // sizeof=0x4
     virtual void set_simplex(const phys_vec3 *, const int, const phys_vec3 *, cached_simplex_info *);
     virtual const phys_vec3 * get_center(const phys_vec3 * result);
     virtual void get_feature(phys_contact_manifold *);
-    virtual float get_geom_radius();
-    virtual void calc_aabb(const phys_mat44 *, phys_vec3 *, phys_vec3 *);
+    virtual float get_geom_radius() const
+    {
+        return 0.0f;
+    }
+    virtual void calc_aabb(const phys_mat44 *, phys_vec3 *, phys_vec3 *) const;
     virtual bool ray_cast(const phys_vec3 *, const phys_vec3 *, const float, float *, phys_vec3 *);
     virtual bool is_polyhedron();
 

@@ -74,6 +74,15 @@ struct phys_vec3 // sizeof=0x10
         return reinterpret_cast<const float *>(this)[i];
     }
 
+    inline phys_vec3 operator+(const phys_vec3 &other)
+    {
+        phys_vec3 r;
+        r.x = x + other.x;
+        r.y = y + other.y;
+        r.z = z + other.z;
+        r.w = 0.0f;
+        return r;
+    }
 };
 
 // KISAKTODO: operator cleanup
@@ -301,7 +310,7 @@ struct phys_mat44 // sizeof=0x40
     // SetIdentity(phys_mat44 &)+20/r ...
     phys_vec3 z;                                                // XREF: gjk_cylinder_t::get_feature(phys_contact_manifold *):loc_834A44/o
     // SetIdentity(phys_mat44 &)+3B/r ...
-    phys_vec3 w;                                                // XREF: phys_calc_world_aabb(phys_vec3 const &,phys_vec3 const &,phys_mat44 const &,phys_vec3 *,phys_vec3 *)+10/w
+    phys_vec3 w; // position                                                // XREF: phys_calc_world_aabb(phys_vec3 const &,phys_vec3 const &,phys_mat44 const &,phys_vec3 *,phys_vec3 *)+10/w
     // create_obb_gjk_geom(float const (* const)[3],float const * const,float const * const,int,gjk_collision_visitor *)+10/w ...
 };
 
@@ -324,6 +333,16 @@ struct phys_link_list //<pulse_sum_node> // sizeof=0xC
 
     void add(T *p)
     {
+        //if (!this->m_last_next_ptr
+        //    && _tlAssert(
+        //        "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_mem.h",
+        //        230,
+        //        "m_last_next_ptr",
+        //        ""))
+        //{
+        //    __debugbreak();
+        //}
+
         p->m_next_link = NULL;
         this->m_alloc_count++;
         *this->m_last_next_ptr = p;

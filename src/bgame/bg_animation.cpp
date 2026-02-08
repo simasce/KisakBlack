@@ -3450,7 +3450,7 @@ void __cdecl BG_LoadAnim(const char *levelName)
         levelName);
     Scr_PrecacheAnimTrees(
         SCRIPTINSTANCE_SERVER,
-        bgs->AllocXAnim,
+        (void*(*)(int))bgs->AllocXAnim,
         bgs->anim_user,
         bgs == &level_bgs);
     BG_FindAnimTrees();

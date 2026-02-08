@@ -1,4 +1,231 @@
 #include "bg_unlockable_items.h"
+#include <qcommon/com_gamemodes.h>
+#include <ddl/ddl_api.h>
+#include <live/live_storage.h>
+#include <live/live_stats.h>
+#include <ui_mp/ui_gametype_custom_mp.h>
+#include <universal/com_stringtable_obj.h>
+#include <universal/q_parse.h>
+#include <live/live_counter.h>
+#include "bg_weapons_def.h"
+#include <ui_mp/ui_gametype_variants_mp.h>
+
+const char *connectionString_4[11] =
+{
+  "CA_DISCONNECTED",
+  "CA_CINEMATIC",
+  "CA_UICINEMATIC",
+  "CA_LOGO",
+  "CA_CONNECTING",
+  "CA_CHALLENGING",
+  "CA_CONNECTED",
+  "CA_SENDINGSTATS",
+  "CA_LOADING",
+  "CA_PRIMED",
+  "CA_ACTIVE"
+};
+
+const char *s_itemGroupNames[24] =
+{
+  "weapon_smg",
+  "weapon_assault",
+  "weapon_cqb",
+  "weapon_lmg",
+  "weapon_sniper",
+  "weapon_pistol",
+  "weapon_launcher",
+  "weapon_special",
+  "weapon_shotgun",
+  "weapon_explosive",
+  "weapon_grenade",
+  "weapon_masterkey",
+  "weapon_grenadelauncher",
+  "weapon_flamethrower",
+  "specialty",
+  "specialgrenade",
+  "inventory",
+  "head",
+  "headgear",
+  "body",
+  "miscweapon",
+  "feature",
+  "deathstreak",
+  "killstreak"
+};
+
+const char *s_customClassNames[10] =
+{
+  "customClass1",
+  "customClass2",
+  "customClass3",
+  "customClass4",
+  "customClass5",
+  "prestigeClass1",
+  "prestigeClass2",
+  "prestigeClass3",
+  "prestigeClass4",
+  "prestigeClass5"
+};
+
+const char *s_classNames[20] =
+{
+  "CLASS_SMG",
+  "CLASS_CQB",
+  "CLASS_ASSAULT",
+  "CLASS_LMG",
+  "CLASS_SNIPER",
+  "CLASS_CUSTOM_SMG",
+  "CLASS_CUSTOM_CQB",
+  "CLASS_CUSTOM_ASSAULT",
+  "CLASS_CUSTOM_LMG",
+  "CLASS_CUSTOM_SNIPER",
+  "CLASS_WAGER1",
+  "CLASS_WAGER2",
+  "CLASS_WAGER3",
+  "CLASS_WAGER4",
+  "CLASS_WAGER5",
+  "CLASS_WAGER6",
+  "CLASS_WAGER7",
+  "CLASS_WAGER8",
+  "CLASS_WAGER9",
+  "CLASS_WAGER10"
+};
+
+const char *s_loadoutNames[40] =
+{
+  "primary",
+  "primaryattachment",
+  "primaryattachmenttop",
+  "primaryattachmentbottom",
+  "primaryattachmenttrigger",
+  "primaryattachmentmuzzle",
+  "primarycamo",
+  "primaryreticle",
+  "primaryreticlecolor",
+  "primarylens",
+  "primaryemblem",
+  "primarytag",
+  "secondary",
+  "secondaryattachment",
+  "secondaryattachmenttop",
+  "secondaryattachmentbottom",
+  "secondaryattachmenttrigger",
+  "secondaryattachmentmuzzle",
+  "secondarycamo",
+  "secondaryreticle",
+  "secondaryreticlecolor",
+  "secondarylens",
+  "secondaryemblem",
+  "secondarytag",
+  "specialty1",
+  "specialty2",
+  "specialty3",
+  "classbonus",
+  "head",
+  "body",
+  "primarygrenade",
+  "specialgrenade",
+  "equipment",
+  "facepaintpattern",
+  "facepaintcolor",
+  "killstreak1",
+  "killstreak2",
+  "killstreak3",
+  "deathstreak",
+  NULL
+};
+
+int lastItem =
+-1;
+
+const char *_bad_alloc_Message_9 =
+"bad allocation";
+
+const char *impactTypeNames[15] =
+{
+  "bullet_small",
+  "bullet_large",
+  "bullet_ap",
+  "bullet_xtreme",
+  "shotgun",
+  "grenade_bounce",
+  "grenade_explode",
+  "rifle_grenade",
+  "rocket_explode",
+  "rocket_explode_xtreme",
+  "projectile_dud",
+  "mortar_shell",
+  "tank_shell",
+  "bolt",
+  "blade"
+};
+
+const char *WeaponStateNames[50] =
+{
+  "WEAPON_READY",
+  "WEAPON_RAISING",
+  "WEAPON_RAISING_ALTSWITCH",
+  "WEAPON_DROPPING",
+  "WEAPON_DROPPING_QUICK",
+  "WEAPON_DROPPING_ALTSWITCH",
+  "WEAPON_FIRING",
+  "WEAPON_RECHAMBERING",
+  "WEAPON_RELOADING_RIGHT",
+  "WEAPON_RELOADING_LEFT",
+  "WEAPON_RELOADING",
+  "WEAPON_RELOADING_INTERUPT",
+  "WEAPON_RELOAD_START",
+  "WEAPON_RELOAD_START_INTERUPT",
+  "WEAPON_RELOAD_END",
+  "WEAPON_RELOAD_QUICK",
+  "WEAPON_RELOAD_QUICK_EMPTY",
+  "WEAPON_MELEE_INIT",
+  "WEAPON_MELEE_FIRE",
+  "WEAPON_MELEE_END",
+  "WEAPON_OFFHAND_INIT",
+  "WEAPON_OFFHAND_PREPARE",
+  "WEAPON_OFFHAND_HOLD",
+  "WEAPON_OFFHAND_START",
+  "WEAPON_OFFHAND",
+  "WEAPON_OFFHAND_END",
+  "WEAPON_DETONATING",
+  "WEAPON_SPRINT_RAISE",
+  "WEAPON_SPRINT_LOOP",
+  "WEAPON_SPRINT_DROP",
+  "WEAPON_CONT_FIRE_IN",
+  "WEAPON_CONT_FIRE_LOOP",
+  "WEAPON_CONT_FIRE_OUT",
+  "WEAPON_NIGHTVISION_WEAR",
+  "WEAPON_NIGHTVISION_REMOVE",
+  "WEAPON_DEPLOYING",
+  "WEAPON_DEPLOYED",
+  "WEAPON_BREAKING_DOWN",
+  "WEAPON_SWIM_IN",
+  "WEAPON_SWIM_OUT",
+  "WEAPON_DTP_IN",
+  "WEAPON_DTP_LOOP",
+  "WEAPON_DTP_OUT",
+  "WEAPON_SLIDE_IN",
+  "WEAPON_FIRING_LEFT",
+  "WEAPON_FIRING_BOTH",
+  "WEAPON_JAMMED",
+  "WEAPON_LOWREADY_RAISE",
+  "WEAPON_LOWREADY_LOOP",
+  "WEAPON_LOWREADY_DROP"
+};
+
+
+// *WARNING* One or more selections were skipped as they could not be interpreted as c data
+
+const dvar_t *attachmentFilter;
+const dvar_t *maxAttachmentsPerWeapon;
+const dvar_t *allItemsUnlocked;
+const dvar_t *allItemsPurchased;
+const dvar_t *itemSellFactor;
+const dvar_t *ui_currentWeaponOptionGroup;
+const dvar_t *bodyTypeFromGun;
+
+unlockableItemsData s_unlockableItems;
 
 const char *__cdecl BG_UnlockablesGetCustomClassNameForInt(customClass_t customClassNum)
 {
@@ -641,7 +868,7 @@ char __cdecl BG_UnlockablesBuildItemInfo(int itemIndex, itemInfo_t *itemInfo)
         ColumnValueForRow = StringTable_GetColumnValueForRow(statsTable, row, 1);
         itemInfo->isPassive = I_stricmp(ColumnValueForRow, "passive") == 0;
         v6 = StringTable_GetColumnValueForRow(statsTable, row, 2);
-        itemInfo->group = BG_UnlockablesGetItemGroupFromName(v6);
+        itemInfo->group = (itemGroup_t)BG_UnlockablesGetItemGroupFromName(v6);
         v7 = StringTable_GetColumnValueForRow(statsTable, row, 5);
         itemInfo->count = atoi(v7);
         itemInfo->imageRef = StringTable_GetColumnValueForRow(statsTable, row, 6);
@@ -718,7 +945,7 @@ int __cdecl BG_UnlockablesParseDefaultClassesForItem(itemInfo_t *itemInfo, const
             defaultClassName = Com_ParseOnLine(&parseLocation);
             if ( !parseLocation || !defaultClassName )
                 break;
-            EntryInList = FindEntryInList(defaultClassName->token, s_classNames, 20);
+            EntryInList = (defaultClass_t)FindEntryInList(defaultClassName->token, s_classNames, 20);
             if ( EntryInList == CLASS_NONE )
             {
                 v2 = va("Default Class %s not found", defaultClassName->token);
@@ -780,7 +1007,7 @@ void __cdecl BG_UnlockablesParseAttachmentsForItem(itemInfo_t *itemInfo, const c
             if ( !parseLocation || !attachmentName )
                 break;
             AttachmentNames = BG_GetAttachmentNames();
-            EntryInList = FindEntryInList(attachmentName->token, AttachmentNames, 24);
+            EntryInList = (eAttachment)FindEntryInList(attachmentName->token, AttachmentNames, 24);
             if ( EntryInList == -1 )
             {
                 v3 = va("Attachment %s not found", attachmentName->token);
@@ -1114,7 +1341,7 @@ eAttachment __cdecl BG_UnlockablesGetItemAttachment(int itemIndex, int attachmen
 
     itemInfo = BG_UnlockablesGetItemInfo(itemIndex);
     if ( !itemInfo || !attachmentNum )
-        return 0;
+        return ATTACHMENT_NONE;
     if ( attachmentNum < itemInfo->numAttachments[0] )
         return itemInfo->attachments[attachmentNum];
     Com_PrintWarning(
@@ -1123,7 +1350,7 @@ eAttachment __cdecl BG_UnlockablesGetItemAttachment(int itemIndex, int attachmen
         itemInfo->name,
         attachmentNum,
         itemInfo->numAttachments[0]);
-    return 0;
+    return ATTACHMENT_NONE;
 }
 
 int __cdecl BG_UnlockablesGetItemAttachmentIndexForAttachmentPoint(
@@ -1337,7 +1564,7 @@ eAttachment __cdecl BG_UnlockablesGetItemAttachmentAtPointByIndex(
                 return itemInfo->attachments[attachment];
         }
     }
-    return 0;
+    return ATTACHMENT_NONE;
 }
 
 const char *__cdecl BG_UnlockablesGetItemGroup(int itemIndex)
@@ -1362,7 +1589,7 @@ int __cdecl BG_UnlockablesGetItemGroupEnum(int itemIndex)
         return -1;
 }
 
-int __cdecl BG_UnlockablesGetLoadoutSlotFromString(const char *slotName)
+loadoutSlot_t __cdecl BG_UnlockablesGetLoadoutSlotFromString(const char *slotName)
 {
     if ( !slotName
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_unlockable_items.cpp", 1615, 0, "%s", "slotName") )
@@ -1370,9 +1597,9 @@ int __cdecl BG_UnlockablesGetLoadoutSlotFromString(const char *slotName)
         __debugbreak();
     }
     if ( slotName && *slotName )
-        return FindEntryInList(slotName, s_loadoutNames, 39);
+        return (loadoutSlot_t)FindEntryInList(slotName, s_loadoutNames, 39);
     else
-        return -1;
+        return LOADOUTSLOT_INVALID;
 }
 
 int __cdecl BG_UnlockablesGetItemLoadoutSlot(int itemIndex)
@@ -1945,7 +2172,7 @@ int __cdecl BG_UnlockablesIsItemAttachmentValid(itemInfo_t *itemInfo, const char
     eAttachment attachment; // [esp+4h] [ebp-4h]
 
     AttachmentNames = BG_GetAttachmentNames();
-    attachment = FindEntryInList(attachmentString, AttachmentNames, 24);
+    attachment = (eAttachment)FindEntryInList(attachmentString, AttachmentNames, 24);
     if ( attachment != -1 )
     {
         for ( numAttachments = 0; numAttachments < itemInfo->numAttachments[0]; ++numAttachments )
@@ -3554,6 +3781,44 @@ void __cdecl SV_SetClanTagFeatureNewForClient(char *buffer, int clientRank, int 
     }
 }
 
+cmd_function_s BG_UnlockablesEquipClassCmd_VAR;
+cmd_function_s BG_UnlockablesEquipClassAttachmentCmd_VAR;
+cmd_function_s BG_UnlockablesEquipClassCurrentAttachmentCmd_VAR;
+cmd_function_s BG_UnlockablesEquipClassCurrentItemCmd_VAR;
+cmd_function_s BG_UnlockablesEquipClassCurrentGlobalItemCmd_VAR;
+cmd_function_s BG_UnlockablesEquipDefaultClassCmd_VAR;
+cmd_function_s BG_UnlockablesEquipDefaultItemToSlotCmd_VAR;
+cmd_function_s BG_UnlockablesEquipDefaultGlobalItemToSlotCmd_VAR;
+cmd_function_s BG_UnlockablesEquipDefaultGlobalItemsCmd_VAR;
+cmd_function_s BG_UnlockablesClearItemNewCmd_VAR;
+cmd_function_s BG_UnlockablesClearAllItemsNewCmd_VAR;
+cmd_function_s BG_UnlockablesPurchaseCurrentItemCmd_VAR;
+cmd_function_s BG_UnlockablesPurchaseCurrentProItemCmd_VAR;
+cmd_function_s BG_UnlockablesSellCurrentItemCmd_VAR;
+cmd_function_s BG_UnlockablesPurchaseCurrentItemAttachmentCmd_VAR;
+cmd_function_s BG_UnlockablesPurchaseItemAttachmentPointCmd_VAR;
+cmd_function_s OpenAttachmentMenuForCurrentItemCmd_VAR;
+cmd_function_s BG_ClearAllAttachmentsForItemCmd_VAR;
+cmd_function_s BG_ClearAttachmentForItemAtPointCmd_VAR;
+cmd_function_s BG_UnlockablesEquipItemInSlotSortedCmd_VAR;
+cmd_function_s BG_UnlockablesPurchaseCurrentItemOptionCmd_VAR;
+cmd_function_s BG_UnlockablesEquipClassCurrentOptionCmd_VAR;
+cmd_function_s BG_UnlockablesEquipGlobalItemInSlotSortedCmd_VAR;
+cmd_function_s BG_UnlockablesSetCurrentItemIndexCmd_VAR;
+cmd_function_s BG_UnlockablesEquipClassItemCmd_VAR;
+cmd_function_s BG_UnlockablesPurchaseItemCmd_VAR;
+cmd_function_s BG_UnlockablesBuildItemListForSlotNameCmd_VAR;
+cmd_function_s BG_UnlockablesBuildItemListForChallengesPerksCmd_VAR;
+cmd_function_s BG_UnlockablesBuildItemListForGroupCmd_VAR;
+cmd_function_s BG_UnlockablesBuildItemListForGroupForWeaponTableCmd_VAR;
+cmd_function_s BG_UnlockablesBuildItemListForGroupNameCmd_VAR;
+cmd_function_s BG_UnlockablesBuildItemListForSlotNameAndGroupCmd_VAR;
+cmd_function_s BG_UnlockablesPurchaseClanTagFeatureCmd_VAR;
+cmd_function_s BG_UnlockablesToggleWeaponOptionCmd_VAR;
+cmd_function_s BG_UnlockablesPurchaseWeaponOptionCmd_VAR;
+cmd_function_s BG_UnlockablesCopyClassCmd_VAR;
+cmd_function_s BG_UnlockablesSetClanTagCmd_VAR;
+
 void __cdecl BG_UnlockableItemsInit()
 {
     int numPurchasedItemsInSlot; // [esp+1Ch] [ebp-40Ch]
@@ -3738,7 +4003,7 @@ void __cdecl BG_UnlockablesPurchaseClanTagFeatureCmd()
 
 void __cdecl BG_UnlockablesPurchaseCurrentItemAttachmentCmd()
 {
-    BG_UnlockablesPurchaseItemAttachment(0, sharedUiInfo.modIndex, SLODWORD(sharedUiInfo.itemColor[3]));
+    BG_UnlockablesPurchaseItemAttachment(0, sharedUiInfo.modIndex, (eAttachment)SLODWORD(sharedUiInfo.itemColor[3]));
 }
 
 void __cdecl BG_UnlockablesPurchaseItemAttachmentPointCmd()
@@ -4510,7 +4775,7 @@ void __cdecl BG_UnlockablesEquipDefaultClassCmd()
     {
         customClassName = Cmd_Argv(1);
         defaultClassName = Cmd_Argv(2);
-        defaultClassNum = FindEntryInList(defaultClassName, s_classNames, 20);
+        defaultClassNum = (defaultClass_t)FindEntryInList(defaultClassName, s_classNames, 20);
         if ( defaultClassNum == CLASS_NONE )
         {
             v0 = va("Default class %s not found\n", defaultClassName);
@@ -4823,7 +5088,7 @@ void __cdecl BG_UnlockablesBuildItemListForGroupCmd()
     if ( Cmd_Argc() >= 2 )
     {
         v0 = Cmd_Argv(1);
-        group = atoi(v0);
+        group = (itemGroup_t)atoi(v0);
         BG_UnlockablesBuildItemListForGroup(group);
     }
     else
@@ -4840,7 +5105,7 @@ void __cdecl BG_UnlockablesBuildItemListForGroupForWeaponTableCmd()
     if ( Cmd_Argc() >= 2 )
     {
         v0 = Cmd_Argv(1);
-        group = atoi(v0);
+        group = (itemGroup_t)atoi(v0);
         BG_UnlockablesBuildItemListForGroupForWeaponTable(group);
     }
     else
@@ -4882,7 +5147,7 @@ int __cdecl BG_UnlockablesBuildItemListForGroupName(int controllerIndex, const c
     s_unlockableItems.numItemsInSlot = 0;
     if ( groupName )
     {
-        group = FindEntryInList(groupName, s_itemGroupNames, 24);
+        group = (itemGroup_t)FindEntryInList(groupName, s_itemGroupNames, 24);
         if ( group == ITEMGROUP_INVALID )
         {
             v2 = va("Item Group %s not found", groupName);
@@ -5345,7 +5610,7 @@ void __cdecl BG_ClearAttachmentForItemAtPointCmd()
         v0 = Cmd_Argv(2);
         itemIndex = atoi(v0);
         v1 = Cmd_Argv(3);
-        attachPoint = atoi(v1);
+        attachPoint = (eAttachmentPoint)atoi(v1);
         itemInfo = BG_UnlockablesGetItemInfo(itemIndex);
         if ( itemInfo->loadoutSlot == LOADOUTSLOT_INVALID
             && !Assert_MyHandler(

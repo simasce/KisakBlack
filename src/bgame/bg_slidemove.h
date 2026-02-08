@@ -90,9 +90,9 @@ int __cdecl gjk_slide_move(
                 gjk_slide_move_input_t *input,
                 gjk_slide_move_output_t *output);
 void    setup_player_push_slide_move_input(
-                player_push_slide_move_input_t *input,
-                pmove_t *pm,
-                pml_t *pml,
+                struct player_push_slide_move_input_t *input,
+                struct pmove_t *pm,
+                struct pml_t *pml,
                 const phys_vec3 *push_movement);
 void    gjk_sentient_push(
                 pmove_t *pm,
@@ -205,16 +205,3 @@ int __cdecl PM_SlideMove(pmove_t *pm, pml_t *pml, int gravity);
 //                phys_inplace_avl_tree<phys_gjk_geom_id_pair_key,phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal,phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal::avl_tree_accessor> *this,
 //                phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal **root);
 //bool __thiscall gjk_collision_visitor::is_query(gjk_collision_visitor *this);
-
-struct cbrush_t;
-struct CollisionPartition;
-
-bool is_walkable(
-    const cbrush_t *brush,
-    const phys_vec3 *hit_point_loc,
-    const phys_vec3 *up_loc);
-bool is_walkable(
-    const CollisionPartition *partition,
-    const phys_vec3 *hit_point_loc,
-    const phys_vec3 *up_loc);
-bool is_walkable(const gjk_trace_output_t *gto);

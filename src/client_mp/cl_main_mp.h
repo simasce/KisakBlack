@@ -1340,3 +1340,19 @@ extern const dvar_t *motd;
 
 extern unsigned int frame_msec;
 extern int old_com_frameTime;
+
+
+static const char *customClassDvars[11] =
+{
+  "customclass1",
+  "customclass2",
+  "customclass3",
+  "customclass4",
+  "customclass5",
+  "prestigeclass1",
+  "prestigeclass2",
+  "prestigeclass3",
+  "prestigeclass4",
+  "prestigeclass5",
+  NULL
+};

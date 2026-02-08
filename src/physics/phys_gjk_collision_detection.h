@@ -119,11 +119,11 @@ struct phys_heap_gjk_cache_system_avl_tree // sizeof=0x10
 
     ~phys_heap_gjk_cache_system_avl_tree();
 
-    phys_gjk_cache_info_internal *get_gjk_cache_info(
+    static phys_gjk_cache_info_internal *get_gjk_cache_info(
         phys_heap_gjk_cache_system_avl_tree *gjk_cache,
         gjk_base_t *cg1,
         gjk_base_t *cg2);
-    phys_gjk_cache_info_internal *get_gjk_cache_info(
+    static phys_gjk_cache_info_internal *get_gjk_cache_info(
         unsigned int id1,
         unsigned int id2,
         bool __formal);
@@ -134,7 +134,37 @@ struct phys_heap_gjk_cache_system_avl_tree // sizeof=0x10
         struct tlAtomicReadWriteMutex *query_mutex,
         bool __formal);
 
-    void shutdown();
+    // phys_heap_gjk_cache_system_avl_tree::shutdown()
+    inline void shutdown()
+    {
+        phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal *next; // [esp+154h] [ebp-4h]
+
+        while (this->m_list_head)
+        {
+            next = this->m_list_head->m_next_gjk_ci;
+
+            this->m_search_tree.remove(&this->m_list_head->m_key);
+            //phys_inplace_avl_tree<phys_gjk_geom_id_pair_key,phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal,phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal::avl_tree_accessor>::remove(
+            //    &this->m_search_tree,
+            //    &this->m_list_head->m_key);
+            this->m_list_phys_gjk_cache_info_internal.free(this->m_list_head);
+            //phys_simple_allocator<phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal>::free(
+            //    &this->m_list_phys_gjk_cache_info_internal,
+            //    this->m_list_head);
+            this->m_list_head = next;
+        }
+        if (this->m_list_phys_gjk_cache_info_internal.m_count)
+        {
+            if (_tlAssert(
+                "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\collision\\phys_gjk_cache_system.h",
+                260,
+                "m_list_phys_gjk_cache_info_internal.get_count() == 0",
+                ""))
+            {
+                __debugbreak();
+            }
+        }
+    }
     void update_cache();
 };
 
@@ -503,21 +533,22 @@ void    setup_gjk_capsule(
                 float *mins,
                 float *maxs,
                 float radius_adjust,
-                gjk_double_sphere_t *gjk_capsule);
+                struct gjk_double_sphere_t *gjk_capsule);
 void    setup_gjk_cylinder(
                 float *mins,
                 float *maxs,
                 float radius_adjust,
-                gjk_cylinder_t *gjk_cylinder);
+                struct gjk_cylinder_t *gjk_cylinder);
 
 bool    is_walkable(
                 const cbrush_t *brush,
                 const phys_vec3 *hit_point_loc,
                 const phys_vec3 *up_loc);
 bool    is_walkable(
-                const CollisionPartition *partition,
+                const struct CollisionPartition *partition,
                 const phys_vec3 *hit_point_loc,
                 const phys_vec3 *up_loc);
+
 void    project(
                 const phys_vec3 *point,
                 phys_static_array<geom_plane,128> *list_geom_plane,

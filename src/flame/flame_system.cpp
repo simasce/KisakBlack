@@ -899,7 +899,7 @@ flameVarDef_t flameVars[128] =
   { NULL, NULL, 0.0, 0.0, 0.0, NULL }
 };
 
-cspField_t flameTableFields[] =
+cspField_t flameTableFields[119] =
 {
   { "flameVar_streamChunkGravityStart", 0, 7 },
   { "flameVar_streamChunkGravityEnd", 4, 7 },

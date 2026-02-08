@@ -69,6 +69,17 @@ enum customClass_t : __int32
     PRESTIGE_CLASS_5         = 0x9,
     CUSTOM_CLASS_COUNT       = 0xA,
 };
+inline customClass_t &operator++(customClass_t &t)
+{
+    t = static_cast<customClass_t>((static_cast<int>(t) + 1));
+    return t;
+}
+inline customClass_t operator++(customClass_t &t, int)
+{
+    customClass_t old = t;
+    t = static_cast<customClass_t>((static_cast<int>(t) + 1));
+    return old;
+}
 
 struct __declspec(align(4)) itemInfo_t // sizeof=0x128
 {                                       // XREF: unlockableItemsData/r
@@ -111,6 +122,43 @@ struct __declspec(align(4)) itemInfo_t // sizeof=0x128
     // padding byte
     // padding byte
     // padding byte
+};
+
+struct unlockableItemsData // sizeof=0x13E58
+{                                       // XREF: .data:s_unlockableItems/r
+    int maxItem;                        // XREF: BG_InitUnlockables(void)+68/w
+                                        // BG_UnlockablesIsItemGroupNew(int,char const *)+D7/r ...
+    int numItems;                       // XREF: BG_InitUnlockables(void)+56/r
+                                        // BG_InitUnlockables(void)+5F/w
+    itemInfo_t itemTable[256];          // XREF: BG_UnlockablesGetItemInfo+DB/o
+                                        // BG_InitUnlockables(void)+3C/o ...
+    int defaultClassLoadouts[20][35];   // XREF: BG_UnlockablesBuildDefaultClasses+42/w
+                                        // BG_UnlockablesBuildDefaultClasses+184/r ...
+    int defaultGlobalItems[4];          // XREF: BG_UnlockablesBuildDefaultClasses+24F/w
+    itemInfo_t *itemsInSlot[256];       // XREF: BG_UnlockablesBuildItemListForGroup(itemGroup_t)+81/w
+                                        // BG_UnlockablesBuildItemListForGroup(itemGroup_t)+A6/o ...
+    int numItemsInSlot;                 // XREF: BG_UnlockablesBuildItemListForGroup(itemGroup_t)+4/w
+                                        // BG_UnlockablesBuildItemListForGroup(itemGroup_t)+7B/r ...
+    int numPurchasedItemsInSlot;        // XREF: BG_UnlockablesIsItemClassified(int)+22/r
+                                        // BG_UnlockablesGetNumPurchasesBeforeDeclassified(int)+2F/r ...
+    int defaultItems[39];               // XREF: BG_UnlockablesBuildDefaultItems+C1/w
+                                        // BG_UnlockablesGetDefaultItem(int)+48/r
+    int actualDefaultItems[39];         // XREF: BG_UnlockablesBuildActualDefaultItems+DF/w
+                                        // BG_UnlockablesGetActualDefaultItem(int)+48/r
+    int clanTagFeatureRows[256];        // XREF: BG_UnlockablesGetClanTagFeature(uint,clanTagFeatureColumn_t)+12/r
+                                        // BG_UnlockablesGetClanTagFeature(uint,clanTagFeatureColumn_t)+92/r ...
+    int faceCamoPatterns[64];           // XREF: BG_UnlockablesGetFaceCamoItemIndex(int)+32/r
+                                        // BG_UnlockablesParseFaceCamoInfo+54/w ...
+    int faceCamoColors[64];             // XREF: BG_UnlockablesParseFaceCamoInfo+AA/w
+                                        // BG_UnlockablesGetFaceCamoNumFromItemIndex+53/o
+    int numClanTagFeatures;             // XREF: BG_UnlockablesGetClanTagFeatureCount(void)+3/r
+                                        // BG_UnlockablesBuildClanTagFeatureRows+B8/w
+    int numFaceCamoPatterns;            // XREF: BG_UnlockablesGetFaceCamoItemIndex(int)+6/r
+                                        // BG_UnlockablesGetFaceCamoItemIndex(int)+12/r ...
+    int numFaceCamoColors;              // XREF: BG_UnlockablesParseFaceCamoInfo+96/r
+                                        // BG_UnlockablesParseFaceCamoInfo+9F/r ...
+    int professionalPerkIndex;          // XREF: BG_UnlockablesGetProfessionalIndex(void)+3/r
+                                        // BG_UnlockablesSetProfessionalIndex+10/w
 };
 
 const char *__cdecl BG_UnlockablesGetCustomClassNameForInt(customClass_t customClassNum);
@@ -176,7 +224,7 @@ eAttachment __cdecl BG_UnlockablesGetItemAttachmentAtPointByIndex(
                 int attachmentIndex);
 const char *__cdecl BG_UnlockablesGetItemGroup(int itemIndex);
 int __cdecl BG_UnlockablesGetItemGroupEnum(int itemIndex);
-int __cdecl BG_UnlockablesGetLoadoutSlotFromString(const char *slotName);
+loadoutSlot_t __cdecl BG_UnlockablesGetLoadoutSlotFromString(const char *slotName);
 int __cdecl BG_UnlockablesGetItemLoadoutSlot(int itemIndex);
 bool __cdecl BG_UnlockablesIsItemLockedForRank(int pLevel, int rank, int itemIndex);
 bool __cdecl BG_UnlockablesIsItemLocked(int controllerIndex, int itemIndex);

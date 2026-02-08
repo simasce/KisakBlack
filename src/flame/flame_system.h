@@ -337,3 +337,5 @@ extern const dvar_t *flame_kick_recover_speed;
 
 extern unsigned int flame_spawn_id;
 extern unsigned int flame_freeze_id;
+
+extern cspField_t flameTableFields[119];

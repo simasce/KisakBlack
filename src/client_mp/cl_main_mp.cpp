@@ -91,21 +91,6 @@
 #include <live/live_pcache_profile.h>
 #include <client/cl_debugdata.h>
 
-const char *customClassDvars[11] =
-{
-  "customclass1",
-  "customclass2",
-  "customclass3",
-  "customclass4",
-  "customclass5",
-  "prestigeclass1",
-  "prestigeclass2",
-  "prestigeclass3",
-  "prestigeclass4",
-  "prestigeclass5",
-  NULL
-};
-
 const dvar_t *cl_noprint;
 const dvar_t *playlist;
 const dvar_t *category;

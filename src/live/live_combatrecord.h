@@ -101,6 +101,17 @@ enum loadoutSlot_t : __int32
     LOADOUTSLOT_DEATHSTREAK          = 0x26,
     LOADOUTSLOT_COUNT                = 0x27,
 };
+inline loadoutSlot_t &operator++(loadoutSlot_t &t)
+{
+    t = static_cast<loadoutSlot_t>((static_cast<int>(t) + 1));
+    return t;
+}
+inline loadoutSlot_t operator++(loadoutSlot_t &t, int)
+{
+    loadoutSlot_t old = t;
+    t = static_cast<loadoutSlot_t>((static_cast<int>(t) + 1));
+    return old;
+}
 
 struct sortedItemsData_t // sizeof=0x14
 {                                       // XREF: LiveCombatRecord_BuildSortedItemListByStats+50C/o

@@ -45,6 +45,18 @@ enum eAttachmentPoint : __int32
     ATTACHMENT_POINT_COUNT = 0x5,
     ATTACHMENT_POINT_INVALID = 0x5,
 };
+inline eAttachmentPoint &operator++(eAttachmentPoint &t)
+{
+    t = static_cast<eAttachmentPoint>((static_cast<int>(t) + 1));
+    return t;
+}
+inline eAttachmentPoint operator++(eAttachmentPoint &t, int)
+{
+    eAttachmentPoint old = t;
+    t = static_cast<eAttachmentPoint>((static_cast<int>(t) + 1));
+    return old;
+}
+
 
 enum eWeaponOptionGroup : __int32
 {                                       // XREF: WeaponOptionTableEntry/r
@@ -125,7 +137,7 @@ const char **__cdecl BG_GetAttachmentNames();
 const char *__cdecl BG_GetAttachmentName(eAttachment index);
 eAttachment __cdecl BG_GetAttachmentIndex(const char *name);
 const char *__cdecl BG_GetAttachmentPointName(eAttachmentPoint index);
-int __cdecl BG_GetAttachmentPointIndex(const char *name);
+eAttachmentPoint __cdecl BG_GetAttachmentPointIndex(const char *name);
 int __cdecl BG_GetWeaponOptionGroup(const char *name);
 const char *__cdecl BG_GetAttachmentDisplayName(eAttachment attachment);
 int __cdecl BG_GetAttachmentArrayIndex(eAttachment attachment);

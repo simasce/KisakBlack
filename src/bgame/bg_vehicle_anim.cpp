@@ -1,4 +1,19 @@
 #include "bg_vehicle_anim.h"
+#include "bg_local.h"
+
+#include <universal/dvar.h>
+
+#include <cstring>
+#include <universal/com_math_anglevectors.h>
+#include <universal/com_math.h>
+#include "bg_misc.h"
+
+vehAnimClient_t clVehAnimClients[1];
+vehAnimClient_t svVehAnimClients[32];
+
+const dvar_t *vehanim_enable;
+const dvar_t *vehanim_debug;
+
 
 void __cdecl VehAnim_RegisterDvars()
 {
@@ -38,7 +53,7 @@ void __cdecl VehAnim_UpdatePosRot(
 
     if ( vehanim_enable->current.enabled )
     {
-        VehAnim_GetAnimDelta(ci->pXAnimTree, es->un2.animState.state & 0xFFFFFBFF, rot, trans);
+        VehAnim_GetAnimDelta(ci->pXAnimTree, es->animState.state & 0xFFFFFBFF, rot, trans);
         AnglesToAxis(angles, axis);
         for ( i = 0; i < 3; ++i )
         {
@@ -61,12 +76,14 @@ void __cdecl VehAnim_GetAnimDelta(XAnimTree_s *tree, unsigned int animIndex, flo
     XAnim_s *pXAnims; // [esp+8h] [ebp-4h]
 
     BG_CheckThread();
-    if ( !*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8)
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_vehicle_anim.cpp", 144, 0, "%s", "bgs") )
-    {
-        __debugbreak();
-    }
-    pXAnims = *(XAnim_s **)(**(unsigned int **)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) + 578412);
+    iassert(bgs);
+    //if ( !*(unsigned int *)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8)
+    //    && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_vehicle_anim.cpp", 144, 0, "%s", "bgs") )
+    //{
+    //    __debugbreak();
+    //}
+    //pXAnims = *(XAnim_s **)(**(unsigned int **)(*((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index) + 8) + 578412);
+    pXAnims = bgs->animData->animScriptData.animTree.anims;
     frac = XAnimGetTime(tree, animIndex);
     XAnimGetAbsDelta(pXAnims, animIndex, rot, trans, frac);
 }

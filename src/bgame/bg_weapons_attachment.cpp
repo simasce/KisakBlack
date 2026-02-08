@@ -82,13 +82,13 @@ eAttachment __cdecl BG_GetAttachmentIndex(const char *name)
     int index; // [esp+0h] [ebp-4h]
 
     if ( !name || !*name )
-        return 24;
+        return ATTACHMENT_INVALID;
     for ( index = 0; index < 24; ++index )
     {
         if ( !I_strcmp(name, s_attachmentNames[index]) )
-            return index;
+            return (eAttachment)index;
     }
-    return 24;
+    return ATTACHMENT_INVALID;
 }
 
 const char *__cdecl BG_GetAttachmentPointName(eAttachmentPoint index)
@@ -110,18 +110,18 @@ const char *__cdecl BG_GetAttachmentPointName(eAttachmentPoint index)
         return s_attachmentPointNames[index];
 }
 
-int __cdecl BG_GetAttachmentPointIndex(const char *name)
+eAttachmentPoint __cdecl BG_GetAttachmentPointIndex(const char *name)
 {
     int index; // [esp+0h] [ebp-4h]
 
     if ( !name || !*name )
-        return 5;
+        return ATTACHMENT_POINT_INVALID;
     for ( index = 0; index < 5; ++index )
     {
         if ( !I_strcmp(name, s_attachmentPointNames[index]) )
-            return index;
+            return (eAttachmentPoint)index;
     }
-    return 5;
+    return ATTACHMENT_POINT_INVALID;
 }
 
 int __cdecl BG_GetWeaponOptionGroup(const char *name)
