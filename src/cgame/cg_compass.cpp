@@ -995,6 +995,7 @@ void __cdecl CG_CompassDrawPlayerBack(
     }
 }
 
+#if 0
 void __cdecl CG_DrawPlayerPopUps(
                 int localClientNum,
                 const rectDef_s *rect,
@@ -1122,6 +1123,116 @@ void __cdecl CG_DrawPlayerPopUps(
         }
     }
 }
+#endif
+
+// aislop
+void CG_DrawPlayerPopUps(
+    int localClientNum,
+    const rectDef_s *rect,
+    Font_s *font,
+    float scale,
+    float *color,
+    Material *material,
+    int textStyle,
+    itemDef_s *item,
+    char *text,
+    bool doSwing)
+{
+    if (!text || color[3] == 0.0f)
+        return;
+
+    cg_s *cgame = CG_GetLocalClientGlobals(localClientNum);
+    const ScreenPlacement *place = &scrPlaceView[localClientNum];
+
+    const int swingStart = cgame->popUpSwayStartTime;
+    const int now = cgame->time;
+
+    if (!swingStart && doSwing)
+        return;
+
+    if (swingStart && now > swingStart + 2500)
+    {
+        cgame->popupRotationAngle = 0.0f;
+        cgame->popUpAngleDelta = 0.0f;
+    }
+
+    const float textScale = R_NormalizedTextScale(font, scale);
+    const float textWidth =
+        R_TextWidth(text, 0, font) * textScale;
+
+    float x = rect->x;
+    float y = rect->y;
+
+    if (doSwing && swingStart && now < swingStart + 2500)
+    {
+        const float t =
+            (float)(swingStart + 2500 - now) / 2500.0f;
+        const float t2 = t * t;
+
+        if (cgame->popupRotationAngle > t2 * 7.0f)
+            cgame->popUpAngleDelta = -0.5f * t2;
+        else if (cgame->popupRotationAngle < -t2 * 7.0f)
+            cgame->popUpAngleDelta = 0.5f * t2;
+
+        cgame->popupRotationAngle += cgame->popUpAngleDelta;
+
+        const float angleRad =
+            cgame->popupRotationAngle * (float)(M_PI / 180.0);
+
+        const float cosA = cosf(angleRad);
+        const float sinA = sinf(angleRad);
+
+        const float swayRadius = rect->y + 100.0f;
+
+        x = rect->x
+            + ((1.0f - cosA) * textWidth * 0.5f)
+            - sinA * swayRadius;
+
+        y = rect->y
+            - (sinA * textWidth * 0.5f)
+            + (cosA * swayRadius - swayRadius);
+    }
+
+    const float rotation = cgame->popupRotationAngle;
+
+    if (item->window.outlineColor[3] == 0.0f)
+    {
+        CL_DrawTextRotate(
+            place,
+            text,
+            256,
+            font,
+            x,
+            y,
+            rotation,
+            rect->horzAlign,
+            rect->vertAlign,
+            textScale,
+            textScale,
+            color,
+            textStyle);
+    }
+    else
+    {
+        CL_DrawTextWithEffects(
+            place,
+            text,
+            256,
+            font,
+            x,
+            y,
+            rotation,
+            rect->horzAlign,
+            rect->vertAlign,
+            textScale,
+            textScale,
+            color,
+            item->window.style,
+            item->window.outlineColor,
+            0, 0, 0, 0, 0, 0);
+    }
+}
+
 
 void __cdecl CG_DrawPlayerCOD7TypeWriter(
                 int localClientNum,
@@ -2741,6 +2852,7 @@ void __cdecl CG_CompassUpYawVector(const cg_s *cgameGlob, float *result)
         *(double *)result = *(double *)cgameGlob->compassNorth;
 }
 
+#if 0
 void    CG_CompassDrawTickertape(
                 int localClientNum,
                 CompassType compassType,
@@ -2939,6 +3051,191 @@ void    CG_CompassDrawTickertape(
         }
     }
 }
+#endif
+
+// aislop
+void CG_CompassDrawTickertape(
+    const cg_s * /*unused*/,
+    int localClientNum,
+    CompassType compassType,
+    const rectDef_s *parentRect,
+    const rectDef_s *rect,
+    Material *material,
+    const float *color,
+    Font_s *textFont,
+    float textScale,
+    int textStyle,
+    bool drawObjectives)
+{
+    if (compassType != COMPASS_TYPE_PARTIAL)
+    {
+        Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_compass.cpp",
+            2083,
+            0,
+            "%s",
+            "compassType == COMPASS_TYPE_PARTIAL");
+        return;
+    }
+
+    const cg_s *cgame = CG_GetLocalClientGlobals(localClientNum);
+
+    float fade =
+        CG_FadeCompass(localClientNum, cgame->compassFadeTime, compassType);
+
+    if (fade <= 0.0f)
+        return;
+
+    if (fade > color[3])
+        fade = color[3];
+
+    float colorMod[4] = {
+        color[0],
+        color[1],
+        color[2],
+        fade
+    };
+
+    if (compassPartialType->current.value != 0)
+        return;
+
+    /* yaw setup */
+    float yawDelta =
+        AngleNormalize360(
+            cgame->refdefViewAngles[1] - cgame->compassNorthYaw);
+
+    float tapeCenter = yawDelta / 360.0f;
+    float stretch = compassTickertapeStretch->current.value;
+
+    float tapeLeft = tapeCenter - stretch * 0.5f;
+    float tapeRight = tapeCenter + stretch * 0.5f;
+
+    float x, y, w, h;
+    CG_CompassCalcDimensions(
+        compassType,
+        cgame,
+        parentRect,
+        rect,
+        &x,
+        &y,
+        &w,
+        &h);
+
+    CL_DrawStretchPic(
+        &scrPlaceView[localClientNum],
+        x,
+        y,
+        w,
+        h,
+        rect->horzAlign,
+        rect->vertAlign,
+        tapeLeft,
+        0.0f,
+        tapeRight,
+        1.0f,
+        colorMod,
+        material);
+
+    if (!drawObjectives)
+        return;
+
+    float iconW, iconH;
+    CalcCompassPointerSize(compassType, &iconW, &iconH);
+
+    float iconY = y + h * 0.5f;
+    float iconDrawY = iconY - iconH * 0.5f;
+
+    float angleRange = stretch * 360.0f * 0.5f;
+    float angleCenter = AngleNormalize360(-yawDelta);
+
+    for (int i = 0; i < 32; ++i)
+    {
+        const objective_t *obj =
+            &cgame->nextSnap->ps.objective[i];
+
+        if (obj->state != OBJST_CURRENT &&
+            obj->state != OBJST_ACTIVE)
+            continue;
+
+        float target[3];
+
+        if (obj->entNum == 1023)
+        {
+            target[0] = obj->origin[0];
+            target[1] = obj->origin[1];
+            target[2] = obj->origin[2];
+        }
+        else
+        {
+            centity_s *cent =
+                CG_GetEntity(localClientNum, obj->entNum);
+            target[0] = cent->pose.origin[0];
+            target[1] = cent->pose.origin[1];
+            target[2] = cent->pose.origin[2];
+        }
+
+        if (target[0] == 0.0f &&
+            target[1] == 0.0f &&
+            target[2] == 0.0f)
+            continue;
+
+        float delta[2];
+        delta[0] = target[0] - cgame->refdef.vieworg[0];
+        delta[1] = target[1] - cgame->refdef.vieworg[1];
+
+        float distMeters =
+            Vec2Length(delta) * 0.0254f;
+
+        float yaw =
+            AngleNormalize360(
+                atan2f(delta[1], delta[0]) * (180.0f / M_PI)
+                - cgame->compassNorthYaw);
+
+        float angleDelta =
+            -AngleDelta(yaw, angleCenter);
+
+        float percent;
+        if (angleDelta < -angleRange)
+            percent = 0.0f;
+        else if (angleDelta > angleRange)
+            percent = 1.0f;
+        else
+            percent = (angleDelta + angleRange) / (angleRange * 2.0f);
+
+        Material *icon =
+            CG_ObjectiveIcon(localClientNum, obj->icon, 0);
+
+        float iconX = x + w * percent;
+
+        CL_DrawStretchPic(
+            &scrPlaceView[localClientNum],
+            iconX - iconW * 0.5f,
+            iconDrawY,
+            iconW,
+            iconH,
+            rect->horzAlign,
+            rect->vertAlign,
+            0.0f,
+            0.0f,
+            1.0f,
+            1.0f,
+            colorMod,
+            icon);
+
+        DrawIconDistanceText(
+            localClientNum,
+            distMeters,
+            iconX,
+            iconY,
+            iconH,
+            rect,
+            colorMod,
+            textFont,
+            textScale,
+            textStyle);
+    }
+}
+
 
 void __cdecl CalcCompassPointerSize(CompassType compassType, float *w, float *h)
 {

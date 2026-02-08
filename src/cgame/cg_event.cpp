@@ -1983,7 +1983,7 @@ LABEL_570:
                                     if ( attachedCorpse->pose.isRagdoll && attachedCorpse->pose.ragdollHandle > 0 )
                                         Ragdoll_Attach(
                                             localClientNum,
-                                            attachedCorpse->pose.ragdollHandle,
+                                            &attachedCorpse->pose,
                                             p_nextState->number,
                                             (const hitLocation_t)p_nextState->index.bone);
                                 }

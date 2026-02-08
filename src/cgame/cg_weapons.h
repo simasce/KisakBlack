@@ -92,6 +92,25 @@ struct __declspec(align(4)) snd_weapon_shot // sizeof=0x34
     // padding byte
 };
 
+struct snd_autosim_play // sizeof=0x38
+{
+    unsigned int frame;
+    snd_weapon_shot shot;
+};
+
+struct snd_autosim // sizeof=0x4C
+{                                       // XREF: .data:snd_autosim * g_snd_autosims/r
+    snd_weapon_shot shot;               // XREF: CG_SndKillAutoSimEnt(SndEntHandle)+22/r
+    // CG_SndPingAutoSim+6C/r ...
+    unsigned int lastPing;
+    unsigned int lastShot;
+    unsigned int fireTime;
+    unsigned int shotCount;
+    int used;                           // XREF: CG_SndKillAutoSimEnt(SndEntHandle)+33/w
+    // CG_SndPingAutoSim+43/r
+    int isNew;
+};
+
 bool __cdecl CG_JavelinADS(int localClientNum);
 bool __cdecl CG_UICheckWeapLockBlink(int localClientNum, float blinkPerSec);
 bool __cdecl CG_UICheckWeapLockAttackTop(int localClientNum);

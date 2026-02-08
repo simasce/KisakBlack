@@ -321,7 +321,7 @@ void CScr_FGetArg();
 void CScr_SetUI3DTextureWindow();
 void CScr_GetWeaponModel();
 void (__cdecl *__cdecl CScr_GetFunction(const char **pName, int *type))();
-void __cdecl CScr_Print();
+void __cdecl CScr_Print(scr_entref_t entref);
 void __cdecl CScrCmd_Delete(scr_entref_t entref);
 void __cdecl CScr_FreeEntity(centity_s *cent, int clientNum);
 void __cdecl CScrCmd_ForceDelete(scr_entref_t entref);

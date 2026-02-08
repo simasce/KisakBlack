@@ -47,7 +47,27 @@ void __cdecl CG_PlaySound(
                 bool doNotify,
                 float attenuation,
                 char *name);
+inline void CG_PlaySound(int localClientNum,
+    int entitynum,
+    float *origin,
+    int fadeMs,
+    bool doNotify,
+    float attenuation,
+    const char *name)
+{
+    CG_PlaySound(entitynum,
+        origin,
+        fadeMs,
+        doNotify,
+        attenuation,
+        (char*)name);
+}
 void __cdecl CG_PlaySound(int localClientNum, float *origin, int fadeMs, bool doNotify, float attenuation, char *name);
+inline void __cdecl CG_PlaySound(int localClientNum, float *origin, int fadeMs, bool doNotify, float attenuation, const char *name)
+{
+    CG_PlaySound(localClientNum, origin, fadeMs, doNotify, attenuation, (char *)name);
+}
+
 int __cdecl CG_PlaySoundWithHandle(
                 int localClientNum,
                 int entitynum,
@@ -64,6 +84,24 @@ int __cdecl CG_PlaySoundWithHandle(
                 bool doNotify,
                 float attenuation,
                 char *name);
+inline int CG_PlaySoundWithHandle(
+    int localClientNum,
+    int entitynum,
+    float *origin,
+    int fadeMs,
+    bool doNotify,
+    float attenuation,
+    const char *name)
+{
+    return CG_PlaySoundWithHandle(
+        localClientNum,
+        entitynum,
+        origin,
+        fadeMs,
+        doNotify,
+        attenuation,
+        (char *)name);
+}
 void __cdecl CG_PumpEntityLoopSound(int localClientNum, const centity_s *cent);
 void __cdecl CG_PlayAnimScriptSoundAlias(int clientIndex, snd_alias_list_t *aliasList);
 void __cdecl CG_SubtitlePrint(int msec, const char *subtitle);

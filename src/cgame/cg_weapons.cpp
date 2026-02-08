@@ -39,6 +39,39 @@
 #include <game/g_debug.h>
 #include "cg_world.h"
 #include <universal/com_math_anglevectors.h>
+#include "cg_local.h"
+#include "cg_weapon_options.h"
+#include "cg_laser.h"
+#include <EffectsCore/fx_dvars.h>
+#include <EffectsCore/fx_update.h>
+#include "cg_draw_debug.h"
+#include <xanim/xanim_clientnotify.h>
+#include <clientscript/cscr_vm.h>
+#include "cg_scr_main.h"
+#include "cg_draw_reticles.h"
+#include <bgame/bg_weapons_view.h>
+#include <cgame_mp/cg_servercmds_mp.h>
+#include <bgame/bg_weapons_ammo.h>
+#include <gfx_d3d/r_foliage.h>
+#include <game/bullet.h>
+#include "cg_main.h"
+#include <sound/snd_utils.h>
+#include "cg_localents.h"
+#include <EffectsCore/fx_beam.h>
+#include <EffectsCore/fx_system.h>
+#include <universal/q_parse.h>
+#include <bgame/bg_unlockable_items.h>
+#include <client/client.h>
+#include <server/sv_world.h>
+
+unsigned __int8 bulletPriorityMap[] = { 1u, 3u, 3u, 3u };
+unsigned __int8 riflePriorityMap[19] = { 1u, 9u, 9u, 9u, 8u, 7u, 6u, 6u, 6u, 6u, 5u, 5u, 4u, 4u, 4u, 4u, 3u, 3u, 0u };
+
+unsigned int snd_autosim_time;
+const dvar_t *snd_autoSim;
+snd_autosim g_snd_autosims[64];
+snd_autosim_play g_snd_autosim_history[64];
+unsigned int snd_autosim_frame;
 
 AnimRateOffset g_animRateOffsets[66] =
 {
@@ -1019,7 +1052,7 @@ void __cdecl CG_CreateWeaponViewModelXAnim(ViewModelInfo *viewModelInfo, const W
     }
     if ( !viewModelInfo->anims )
     {
-        pAnims = XAnimCreateAnims("VIEWMODEL", 66, (void*(*)(int))Hunk_AllocXAnimClient);
+        pAnims = XAnimCreateAnims("VIEWMODEL", 66, Hunk_AllocXAnimClient);
         if ( !pAnims
             && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_weapons.cpp", 1344, 0, "%s", "pAnims") )
         {
@@ -1552,11 +1585,18 @@ void __cdecl CG_UpdateViewModelStackCounter(
         }
         else
         {
-            v4 = (float)((float)((float)(int)(Sys_Milliseconds() - cgameGlob->counterSpinTime - 250) / 250.0) * 2.3561945);
-            __libm_sse2_sin(v5);
-            *(float *)&v4 = v4;
-            __libm_sse2_sin(v6);
-            inc = (float)(cgameGlob->counterSpinTarget - cgameGlob->counterSpinAngle) * (float)((float)((float)(*(float *)&v4 / (float)2.356194496154785) + 1.0) / 2.0);
+            //v4 = (float)((float)((float)(int)(Sys_Milliseconds() - cgameGlob->counterSpinTime - 250) / 250.0) * 2.3561945);
+            //__libm_sse2_sin(v5);
+            //*(float *)&v4 = v4;
+            //__libm_sse2_sin(v6);
+            //inc = (float)(cgameGlob->counterSpinTarget - cgameGlob->counterSpinAngle) * (float)((float)((float)(*(float *)&v4 / (float)2.356194496154785) + 1.0) / 2.0);
+            //
+            //v4 = (float)((float)((float)(int)(Sys_Milliseconds() - cgameGlob->counterSpinTime - 250) / 250.0f) * 2.3561945f);
+
+            // FIX: replace SSE2 sin with standard sinf
+            float sinVal = sinf((float)v4);
+
+            inc = (float)(cgameGlob->counterSpinTarget - cgameGlob->counterSpinAngle) * ((sinVal / 2.3561945f + 1.0f) / 2.0f);
         }
         angles[0] = cgameGlob->counterSpinAngle + inc;
         angles[1] = 0.0f;
@@ -2387,7 +2427,7 @@ void __cdecl CG_AddPlayerWeapon(
     unsigned int fLeanDista; // [esp+24h] [ebp-68h]
     unsigned int fLeanDistb; // [esp+24h] [ebp-68h]
     bool v12; // [esp+2Ch] [ebp-60h]
-    const WeaponVariantDef *WeaponVariantDef; // [esp+30h] [ebp-5Ch]
+    const WeaponVariantDef *weapVarDef; // [esp+30h] [ebp-5Ch]
     snapshot_s *nextSnap; // [esp+34h] [ebp-58h]
     float *v15; // [esp+3Ch] [ebp-50h]
     float pos[3]; // [esp+44h] [ebp-48h] BYREF
@@ -2455,14 +2495,14 @@ void __cdecl CG_AddPlayerWeapon(
                 AddLeanToPosition(lightingOrigin, ps->viewangles[1], ps->leanf, 16.0, 20.0);
                 constantSet = &cent->pose.constantSet;
                 if ( weapDef->inventoryType == WEAPINVENTORY_ALTMODE )
-                    WeaponVariantDef = BG_GetWeaponVariantDef(ps->lastWeaponAltModeSwitch);
+                    weapVarDef = BG_GetWeaponVariantDef(ps->lastWeaponAltModeSwitch);
                 else
-                    WeaponVariantDef = BG_GetWeaponVariantDef(weaponNum);
-                primaryWeaponDef = WeaponVariantDef;
+                    weapVarDef = BG_GetWeaponVariantDef(weaponNum);
+                primaryWeaponDef = weapVarDef;
                 textureOverrideIndex = CG_SetupWeaponOptionsRender(
                                                                  localClientNum,
                                                                  0,
-                                                                 WeaponVariantDef,
+                                                                 weapVarDef,
                                                                  cent->nextState.renderOptions,
                                                                  constantSet,
                                                                  0);
@@ -2879,7 +2919,6 @@ void __cdecl CG_UpdateViewWeaponAnim(int localClientNum, int newPlayerstate)
     unsigned __int8 weaponModel; // [esp+17h] [ebp-625h]
     weaponInfo_s *weapInfo; // [esp+18h] [ebp-624h]
     cg_s *cgameGlob; // [esp+20h] [ebp-61Ch]
-    XAnimClientNotifyList veryLargeNameOfNotifyListToMinimizeContact; // [esp+24h] [ebp-618h] BYREF
     ViewModelInfo *viewModelInfo; // [esp+630h] [ebp-Ch]
     int weaponIndex; // [esp+634h] [ebp-8h]
     const playerState_s *ps; // [esp+638h] [ebp-4h]
@@ -2927,12 +2966,14 @@ void __cdecl CG_UpdateViewWeaponAnim(int localClientNum, int newPlayerstate)
             {
                 __debugbreak();
             }
-            XAnimClientNotifyList::XAnimClientNotifyList(&veryLargeNameOfNotifyListToMinimizeContact);
+
+            XAnimClientNotifyList veryLargeNameOfNotifyListToMinimizeContact; // [esp+24h] [ebp-618h] BYREF
+            //XAnimClientNotifyList::XAnimClientNotifyList(&veryLargeNameOfNotifyListToMinimizeContact);
             DObjSetClientNotifies(&veryLargeNameOfNotifyListToMinimizeContact);
             DObjUpdateClientInfo(viewModelInfo->viewModelDObj, (float)cgameGlob->frametime * 0.001, 3);
             ProcessWeaponNoteTracks(localClientNum, ps, 1);
             DObjClearClientNotifies();
-            XAnimClientNotifyList::~XAnimClientNotifyList(&veryLargeNameOfNotifyListToMinimizeContact);
+            //XAnimClientNotifyList::~XAnimClientNotifyList(&veryLargeNameOfNotifyListToMinimizeContact);
         }
     }
     else
@@ -3209,7 +3250,7 @@ void __cdecl WeaponRunXModelAnims(
                     PlayIdleAnim(localClientNum, ps, viewModelInfo, obj, weaponIndex, 0.0, newPlayerstate);
                 }
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 53) )
-                    StartCameraAnim(localClientNum, weaponIndex, obj, 53, 0.0, newPlayerstate);
+                    StartCameraAnim(localClientNum, weaponIndex, obj, 53, 0.0);
                 break;
             case 0x1Du:
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 27) )
@@ -3248,7 +3289,7 @@ void __cdecl WeaponRunXModelAnims(
                     PlayIdleAnim(localClientNum, ps, viewModelInfo, obj, weaponIndex, 0.0, newPlayerstate);
                 }
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 53) )
-                    StartCameraAnim(localClientNum, weaponIndex, obj, 53, 0.0, newPlayerstate);
+                    StartCameraAnim(localClientNum, weaponIndex, obj, 53, 0.0);
                 break;
             case 0x20u:
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 30) )
@@ -3311,7 +3352,7 @@ void __cdecl WeaponRunXModelAnims(
                     PlayIdleAnim(localClientNum, ps, viewModelInfo, obj, weaponIndex, 0.0, newPlayerstate);
                 }
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 54) )
-                    StartCameraAnim(localClientNum, weaponIndex, obj, 54, 0.0, newPlayerstate);
+                    StartCameraAnim(localClientNum, weaponIndex, obj, 54, 0.0);
                 break;
             case 0x2Eu:
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 46) )
@@ -3324,7 +3365,7 @@ void __cdecl WeaponRunXModelAnims(
                     PlayIdleAnim(localClientNum, ps, viewModelInfo, obj, weaponIndex, 0.0, newPlayerstate);
                 }
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 55) )
-                    StartCameraAnim(localClientNum, weaponIndex, obj, 55, 0.0, newPlayerstate);
+                    StartCameraAnim(localClientNum, weaponIndex, obj, 55, 0.0);
                 break;
             case 0x2Fu:
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 47) )
@@ -3337,7 +3378,7 @@ void __cdecl WeaponRunXModelAnims(
                     PlayIdleAnim(localClientNum, ps, viewModelInfo, obj, weaponIndex, 0.0, newPlayerstate);
                 }
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 56) )
-                    StartCameraAnim(localClientNum, weaponIndex, obj, 56, 0.0, newPlayerstate);
+                    StartCameraAnim(localClientNum, weaponIndex, obj, 56, 0.0);
                 break;
             case 0x30u:
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 48) )
@@ -3355,7 +3396,7 @@ void __cdecl WeaponRunXModelAnims(
                     PlayIdleAnim(localClientNum, ps, viewModelInfo, obj, weaponIndex, 0.0, newPlayerstate);
                 }
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 54) )
-                    StartCameraAnim(localClientNum, weaponIndex, obj, 54, 0.0, newPlayerstate);
+                    StartCameraAnim(localClientNum, weaponIndex, obj, 54, 0.0);
                 break;
             case 0x31u:
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 49) )
@@ -3373,7 +3414,7 @@ void __cdecl WeaponRunXModelAnims(
                     PlayIdleAnim(localClientNum, ps, viewModelInfo, obj, weaponIndex, 0.0, newPlayerstate);
                 }
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 55) )
-                    StartCameraAnim(localClientNum, weaponIndex, obj, 55, 0.0, newPlayerstate);
+                    StartCameraAnim(localClientNum, weaponIndex, obj, 55, 0.0);
                 break;
             case 0x32u:
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 50) )
@@ -3391,7 +3432,7 @@ void __cdecl WeaponRunXModelAnims(
                     PlayIdleAnim(localClientNum, ps, viewModelInfo, obj, weaponIndex, 0.0, newPlayerstate);
                 }
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 56) )
-                    StartCameraAnim(localClientNum, weaponIndex, obj, 56, 0.0, newPlayerstate);
+                    StartCameraAnim(localClientNum, weaponIndex, obj, 56, 0.0);
                 break;
             case 0x33u:
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 51) )
@@ -3416,7 +3457,7 @@ LABEL_68:
                     PlayIdleAnim(localClientNum, ps, viewModelInfo, obj, weaponIndex, 0.0, newPlayerstate);
                 }
                 if ( **((_BYTE **)weapVariantDef->szXAnims + 57) && Mantle_DoAnim(ps) )
-                    StartCameraAnim(localClientNum, weaponIndex, obj, 57, 0.0, newPlayerstate);
+                    StartCameraAnim(localClientNum, weaponIndex, obj, 57, 0.0);
                 break;
             default:
                 PlayIdleAnim(localClientNum, ps, viewModelInfo, obj, weaponIndex, 0.0, newPlayerstate);
@@ -3627,23 +3668,28 @@ void __cdecl ProcessWeaponNoteTracks(int localClientNum, const playerState_s *pr
             noteListSize = pNotifyList->m_numNotifies;
             for ( i = 0; i < noteListSize; ++i )
             {
-                notify = (XAnimClientNotify *)((char *)XAnimClientNotifyList::GetNotifyList(pNotifyList) + 24 * i);
-                NotifyStringName = XAnimClientNotify::GetNotifyStringName(notify);
+                //notify = (XAnimClientNotify *)((char *)XAnimClientNotifyList::GetNotifyList(pNotifyList) + 24 * i);
+                notify = (XAnimClientNotify *)((char *)pNotifyList->GetNotifyList() + 24 * i);
+                //NotifyStringName = XAnimClientNotify::GetNotifyStringName(notify);
+                NotifyStringName = notify->GetNotifyStringName();
                 if ( I_stricmp(NotifyStringName, "end") )
                 {
-                    value = (char *)XAnimClientNotify::GetNotifyStringName(notify);
+                    //value = (char *)XAnimClientNotify::GetNotifyStringName(notify);
+                    value = (char*)notify->GetNotifyStringName();
                     Scr_AddString(value, SCRIPTINSTANCE_CLIENT);
                     Scr_AddInt(localClientNum, SCRIPTINSTANCE_CLIENT);
                     Scr_AddString("notetrack", SCRIPTINSTANCE_CLIENT);
                     t = Scr_ExecThread(SCRIPTINSTANCE_CLIENT, cg_scr_data.levelnotify, 3u);
                     Scr_FreeThread(t, SCRIPTINSTANCE_CLIENT);
-                    v5 = XAnimClientNotify::GetNotifyStringName(notify);
+                    //v5 = XAnimClientNotify::GetNotifyStringName(notify);
+                    v5 = notify->GetNotifyStringName();
                     PlayNoteMappedSoundAliases(localClientNum, v5, weapDef);
-                    v6 = XAnimClientNotify::GetNotifyStringName(notify);
+                    //v6 = XAnimClientNotify::GetNotifyStringName(notify);
+                    v6 = notify->GetNotifyStringName();
                     CG_PlayClientSoundNoteTracks(
                         localClientNum,
                         predictedPlayerState->clientNum,
-                        predictedPlayerState->origin,
+                        (float*)predictedPlayerState->origin,
                         v6,
                         isViewArms);
                 }
@@ -3773,7 +3819,7 @@ void __cdecl CG_AddViewWeapon(int localClientNum)
     ps = &cgameGlob->predictedPlayerState;
     cgameGlob->refdef.dof.viewModelStart = 0.0f;
     cgameGlob->refdef.dof.viewModelEnd = 0.0f;
-    CG_TouchViewModels(localClientNum, ps);
+    CG_TouchViewModels(localClientNum);
     if ( ps->pm_type != 4
         && ps->pm_type != 5
         && (ps->eFlags & 0x300) == 0
@@ -4107,7 +4153,8 @@ char __cdecl CG_CancelOffhand(cg_s *cgameGlob)
     {
         return 0;
     }
-    bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x31u);
+    //bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x31u);
+    cgameGlob->extraButton_bits.setBit(49);
     return 1;
 }
 
@@ -4362,7 +4409,7 @@ unsigned int __cdecl CG_GetLastWeaponForAlt(const cg_s *cgameGlob, const playerS
 
 unsigned int __cdecl CG_GetAltWeapon(const cg_s *cgameGlob, unsigned int weapIndex)
 {
-    const WeaponVariantDef *WeaponVariantDef; // eax
+    const WeaponVariantDef *weapVarDef; // eax
     const WeaponVariantDef *weapVariantDef; // [esp+0h] [ebp-Ch]
     const WeaponDef *weapDef; // [esp+4h] [ebp-8h]
     unsigned int lastWeaponForAlt; // [esp+8h] [ebp-4h]
@@ -4402,8 +4449,8 @@ unsigned int __cdecl CG_GetAltWeapon(const cg_s *cgameGlob, unsigned int weapInd
     else
     {
         lastWeaponForAlt = CG_GetLastWeaponForAlt(cgameGlob, &cgameGlob->predictedPlayerState, weapIndex);
-        WeaponVariantDef = BG_GetWeaponVariantDef(lastWeaponForAlt);
-        if ( BG_GetWeaponDef(WeaponVariantDef->altWeaponIndex) != weapDef
+        weapVarDef = BG_GetWeaponVariantDef(lastWeaponForAlt);
+        if ( BG_GetWeaponDef(weapVarDef->altWeaponIndex) != weapDef
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_weapons.cpp",
                         5405,
@@ -4421,7 +4468,7 @@ unsigned int __cdecl CG_AltWeaponToggleIndex(int localClientNum, const cg_s *cga
 {
     unsigned int altWeaponIndex; // [esp+0h] [ebp-14h]
     const WeaponVariantDef *weapVariantDef; // [esp+4h] [ebp-10h]
-    playerState_s *ps; // [esp+8h] [ebp-Ch]
+    const playerState_s *ps; // [esp+8h] [ebp-Ch]
     unsigned int newPrimaryIdx; // [esp+10h] [ebp-4h]
 
     if ( !cgameGlob
@@ -4520,17 +4567,29 @@ void __cdecl CG_ActionSlotDown_f()
         switch ( slot )
         {
             case 0:
-                bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x2Du);
+            {
+                //bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x2Du);
+                cgameGlob->extraButton_bits.setBit(45);
                 break;
+            }
             case 1:
-                bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x2Eu);
+            {
+                //bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x2Eu);
+                cgameGlob->extraButton_bits.setBit(46);
                 break;
+            }
             case 2:
-                bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x2Fu);
+            {
+                //bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x2Fu);
+                cgameGlob->extraButton_bits.setBit(47);
                 break;
+            }
             case 3:
-                bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x30u);
+            {
+                //bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x30u);
+                cgameGlob->extraButton_bits.setBit(48);
                 break;
+            }
             default:
                 break;
         }
@@ -4584,7 +4643,8 @@ void __cdecl CG_ActionSlotDown_f()
                     didSomething = ToggleWeaponAltMode(localClientNum);
                     break;
                 case ACTIONSLOTTYPE_NIGHTVISION:
-                    bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x12u);
+                    //bitarray<51>::setBit(&cgameGlob->extraButton_bits, 0x12u);
+                    cgameGlob->extraButton_bits.setBit(18);
                     didSomething = 1;
                     break;
             }
@@ -4592,8 +4652,11 @@ void __cdecl CG_ActionSlotDown_f()
             if ( didSomething )
             {
                 cgameGlob->lastActionSlotTime = cgameGlob->time;
-                if ( (ps->eFlags & 0x300) != 0 && ps->actionSlotType[slot] == ACTIONSLOTTYPE_SPECIFYWEAPON )
-                    bitarray<51>::setBit(&cgameGlob->extraButton_bits, 5u);
+                if ((ps->eFlags & 0x300) != 0 && ps->actionSlotType[slot] == ACTIONSLOTTYPE_SPECIFYWEAPON)
+                {
+                    //bitarray<51>::setBit(&cgameGlob->extraButton_bits, 5u);
+                    cgameGlob->extraButton_bits.setBit(5);
+                }
             }
         }
     }
@@ -4682,9 +4745,13 @@ bool __cdecl ActionSlotUsageAllowed(cg_s *cgameGlob)
     if ( newCmdIndex <= 1 )
         return 1;
     CL_GetUserCmd(cgameGlob->localClientNum, newCmdIndex, &cmd);
-    if ( bitarray<51>::testBit(&cmd.button_bits, 4u) )
+
+    //if ( bitarray<51>::testBit(&cmd.button_bits, 4u) )
+    if ( cmd.button_bits.testBit(4) )
         return 0;
-    return !bitarray<51>::testBit(&cmd.button_bits, 5u);
+
+    //return !bitarray<51>::testBit(&cmd.button_bits, 5u);
+    return !cmd.button_bits.testBit(5);
 }
 
 char __cdecl ActionParms(int *slotResult)
@@ -4803,11 +4870,12 @@ void __cdecl CG_EjectWeaponBrass(int localClientNum, const entityState_s *ent, i
         }
         else
         {
-            Com_Error(ERR_DROP, &byte_C9553C);
+            Com_Error(ERR_DROP, "CG_EjectWeaponBrass: ent->weapon >= BG_GetNumWeapons()");
         }
     }
 }
 
+float force = 50000.0f;
 void __cdecl CG_VehicleJolt(centity_s *cent, float *origin, float *dir)
 {
     float v3; // [esp+8h] [ebp-Ch]
@@ -4818,7 +4886,7 @@ void __cdecl CG_VehicleJolt(centity_s *cent, float *origin, float *dir)
         && BG_GetWeaponDef(cent->nextState.weapon)->weapType == WEAPTYPE_PROJECTILE )
     {
         v3 = -force;
-        *dir = COERCE_FLOAT(LODWORD(force) ^ _mask__NegFloat_) * *dir;
+        *dir = (-(force)) * *dir;
         dir[1] = v3 * dir[1];
         dir[2] = v3 * dir[2];
         if ( !cent->nitrousVeh->m_phys_user_data
@@ -4832,7 +4900,7 @@ void __cdecl CG_VehicleJolt(centity_s *cent, float *origin, float *dir)
         {
             __debugbreak();
         }
-        Phys_ObjAddForce((int)&savedregs, (int)cent->nitrousVeh->m_phys_user_data, origin, dir, 0);
+        Phys_ObjAddForce((int)cent->nitrousVeh->m_phys_user_data, origin, dir, 0);
     }
 }
 
@@ -4950,7 +5018,7 @@ void __cdecl CG_FireWeapon_OriginAndDirection(
 }
 
 void __cdecl CG_FireWeapon(
-                jpeg_decompress_struct *localClientNum,
+                int localClientNum,
                 centity_s *cent,
                 int event,
                 unsigned __int16 tagName,
@@ -4985,8 +5053,8 @@ void __cdecl CG_FireWeapon(
         weapon = ent->weapon;
     if ( !weapon )
     {
-        if ( g_DXDeviceThread != GetCurrentThreadId() )
-            return;
+        //if ( g_DXDeviceThread != GetCurrentThreadId() )
+        //    return;
         goto LABEL_5;
     }
     if ( weapon < BG_GetNumWeapons() )
@@ -5023,7 +5091,7 @@ void __cdecl CG_FireWeapon(
             isLocalPlayer = 0;
             isPlayer = 0;
         }
-        if ( CG_FireWeapon_GenerateMark(cent, ps, weaponDef, isPlayer) )
+        if ( CG_FireWeapon_GenerateMark(cent, ps, weaponDef) )
             DrawBulletImpacts((int)localClientNum, cent, tagName, ps, weapon, event, isPlayer || isLocalPlayer);
         if ( isPlayer && cent->pose.eType != 12 )
         {
@@ -5083,7 +5151,7 @@ void __cdecl CG_FireWeapon(
     }
     else
     {
-        Com_Error(ERR_DROP, &byte_C955DC);
+        Com_Error(ERR_DROP, "CG_FireWeapon: weapon >= BG_GetNumWeapons()");
         //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_5:
             //D3DPERF_EndEvent();
@@ -5167,16 +5235,16 @@ void __cdecl DrawBulletImpacts(
             boneIndex = 0;
             if ( !CG_GetBoneIndex(localClientNum, dobjNumber, boneName, &boneIndex) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
 LABEL_66:
                 //D3DPERF_EndEvent();
                 return;
             }
             if ( !FX_GetBoneOrientation(localClientNum, dobjNumber, boneIndex, &gunOrient) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_66;
             }
             tracerStart[0] = gunOrient.origin[0];
@@ -5200,14 +5268,14 @@ LABEL_66:
             boneIndex = 0;
             if ( !CG_GetBoneIndex(localClientNum, dobjNumber, boneName, &boneIndex) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_66;
             }
             if ( !FX_GetBoneOrientation(localClientNum, dobjNumber, boneIndex, &gunOrient) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_66;
             }
             tracerStart[0] = gunOrient.origin[0];
@@ -5244,16 +5312,16 @@ LABEL_66:
             boneIndex = 0;
             if ( !CG_GetBoneIndex(localClientNum, dobjNumber, boneName, &boneIndex) )
             {
-                if ( GetCurrentThreadId() != g_DXDeviceThread )
-                    return;
+                //if ( GetCurrentThreadId() != g_DXDeviceThread )
+                //    return;
 LABEL_36:
                 //D3DPERF_EndEvent();
                 return;
             }
             if ( !FX_GetBoneOrientation(localClientNum, dobjNumber, boneIndex, &orient) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_36;
             }
             CG_CalcEyePoint(localClientNum, ent->nextState.number, origin);
@@ -5326,14 +5394,14 @@ LABEL_94:
             boneIndex = 0;
             if ( !CG_GetBoneIndex(localClientNum, dobjNumber, boneName, &boneIndex) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_66;
             }
             if ( !FX_GetBoneOrientation(localClientNum, dobjNumber, boneIndex, &orient) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_66;
             }
 LABEL_52:
@@ -5364,14 +5432,14 @@ LABEL_52:
             boneIndex = 0;
             if ( !CG_GetBoneIndex(localClientNum, dobjNumber, boneName, &boneIndex) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_66;
             }
             if ( !FX_GetBoneOrientation(localClientNum, dobjNumber, boneIndex, &orient) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_66;
             }
             origin[0] = orient.origin[0];
@@ -5422,14 +5490,14 @@ LABEL_52:
             boneIndex = 0;
             if ( !CG_GetBoneIndex(localClientNum, dobjNumber, boneName, &boneIndex) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_36;
             }
             if ( !FX_GetBoneOrientation(localClientNum, dobjNumber, boneIndex, &orient) )
             {
-                if ( g_DXDeviceThread != GetCurrentThreadId() )
-                    return;
+                //if ( g_DXDeviceThread != GetCurrentThreadId() )
+                //    return;
                 goto LABEL_36;
             }
             goto LABEL_52;
@@ -5506,8 +5574,11 @@ void __cdecl CG_BulletEndpos(
     }
     if ( !end && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_weapons.cpp", 3336, 0, "%s", "end") )
         __debugbreak();
-    __libm_sse2_tan(v9);
-    aimOffset = (float)(spread * 0.017453292) * maxRange;
+    //__libm_sse2_tan(v9);
+    //aimOffset = (float)(spread * 0.017453292) * maxRange;
+
+    aimOffset = tanf(spread * 0.017453292f) * maxRange; // convert spread to radians and tan
+
     if ( (LODWORD(aimOffset) & 0x7F800000) == 0x7F800000
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_weapons.cpp",
@@ -5661,7 +5732,7 @@ void __cdecl CG_FakeFireWeapon(
         }
         else
         {
-            Com_Error(ERR_DROP, &byte_C956D8);
+            Com_Error(ERR_DROP, "CG_FakeFireWeapon: weapon >= BG_GetNumWeapons()");
         }
     }
 }
@@ -5689,9 +5760,9 @@ void __cdecl CG_SndKillAutoSimEnt(SndEntHandle ent)
 
 void __cdecl CG_SndUpdateAutoSim()
 {
-    unsigned intv0; // eax
-    double v1; // xmm0_8
-    long double v2; // [esp+0h] [ebp-ACh]
+    DWORD v1; // eax
+    double v2; // xmm0_8
+    long double v3; // [esp+0h] [ebp-ACh]
     unsigned int n; // [esp+5Ch] [ebp-50h]
     float da[3]; // [esp+60h] [ebp-4Ch] BYREF
     float db[3]; // [esp+6Ch] [ebp-40h] BYREF
@@ -5709,56 +5780,56 @@ void __cdecl CG_SndUpdateAutoSim()
     unsigned int dt; // [esp+A4h] [ebp-8h]
     cg_s *cgameGlob; // [esp+A8h] [ebp-4h]
 
-    v0 = Sys_Milliseconds();
-    dt = v0 - snd_autosim_time;
-    snd_autosim_time = v0;
+    v1 = Sys_Milliseconds();
+    dt = v1 - snd_autosim_time;
+    snd_autosim_time = v1;
     ++snd_autosim_frame;
-    if ( !cl_paused->current.integer )
+    if (!cl_paused->current.integer)
     {
-        for ( i = 0; i < 0x40; ++i )
+        for (i = 0; i < 0x40; ++i)
         {
             sim = &g_snd_autosims[i];
-            if ( sim->used )
+            if (sim->used)
             {
                 sim->lastPing += dt;
                 cent = CG_GetEntity(sim->shot.localClientNum, sim->shot.shooter.handle & 0xFFF);
                 weapDef = BG_GetWeaponDef(sim->shot.weapon);
-                if ( sim->lastPing <= 0xC8 )
+                if (sim->lastPing <= 0xC8)
                 {
-                    if ( cent->nextState.eType != 1 || (cent->nextState.lerp.eFlags & 0x40) != 0 || sim->shot.isLastShotInClip )
+                    if (cent->nextState.eType != 1 || (cent->nextState.lerp.eFlags & 0x40) != 0 || sim->shot.isLastShotInClip)
                     {
-                        if ( weapDef->fireType == WEAPON_FIRETYPE_BURSTFIRE3 && sim->shotCount >= 3 )
+                        if (weapDef->fireType == WEAPON_FIRETYPE_BURSTFIRE3 && sim->shotCount >= 3)
                         {
-                            if ( sim->shotCount >= 4 )
+                            if (sim->shotCount >= 4)
                             {
                                 sim->used = 0;
                                 sim->lastShot = 0;
                                 sim->shotCount = 0;
                             }
                         }
-                        else if ( sim->shot.fakeFire && sim->shotCount >= sim->shot.burstCount )
+                        else if (sim->shot.fakeFire && sim->shotCount >= sim->shot.burstCount)
                         {
                             sim->used = 0;
                         }
                         else
                         {
-                            if ( !sim->isNew )
+                            if (!sim->isNew)
                                 sim->lastShot += dt;
-                            if ( sim->lastShot >= sim->fireTime || sim->isNew )
+                            if (sim->lastShot >= sim->fireTime || sim->isNew)
                             {
                                 sim->lastShot = 0;
-                                for ( k = 0; k < 0x40; ++k )
+                                for (k = 0; k < 0x40; ++k)
                                 {
-                                    if ( !g_snd_autosim_history[k].frame )
+                                    if (!g_snd_autosim_history[k].frame)
                                     {
                                         g_snd_autosim_history[k].frame = snd_autosim_frame;
-                                        memcpy((char *)&unk_F65414 + 56 * k, sim, 0x34u);
+                                        memcpy(&g_snd_autosim_history[k].shot, sim, sizeof(g_snd_autosim_history[k].shot));
                                         break;
                                     }
                                 }
                                 sim->isNew = 0;
                                 ++sim->shotCount;
-                                if ( sim->shot.fakeFire )
+                                if (sim->shot.fakeFire)
                                     sim->lastPing = 0;
                             }
                         }
@@ -5775,25 +5846,25 @@ void __cdecl CG_SndUpdateAutoSim()
             }
         }
         cgameGlob = CG_GetLocalClientGlobals(0);
-        if ( snd_autosim_window->current.enabled )
+        if (snd_autosim_window->current.enabled)
         {
-            for ( m = 0; m < 0x40; ++m )
+            for (m = 0; m < 0x40; ++m)
             {
-                if ( g_snd_autosim_history[m].frame )
+                if (g_snd_autosim_history[m].frame)
                 {
-                    for ( j = 0; (unsigned int)j < 0x40; ++j )
+                    for (j = 0; (unsigned int)j < 0x40; ++j)
                     {
-                        if ( g_snd_autosim_history[j].frame )
+                        if (g_snd_autosim_history[j].frame)
                         {
-                            if ( m != j )
+                            if (m != j)
                             {
                                 masker = &g_snd_autosim_history[m];
                                 masked = &g_snd_autosim_history[j];
-                                if ( masker->shot.weapon == masked->shot.weapon )
+                                if (masker->shot.weapon == masked->shot.weapon)
                                 {
                                     maskerDistance = Vec3Distance(cgameGlob->refdef.vieworg, masker->shot.origin);
                                     maskedDistance = Vec3Distance(cgameGlob->refdef.vieworg, masked->shot.origin);
-                                    if ( maskedDistance > maskerDistance )
+                                    if (maskedDistance > maskerDistance)
                                     {
                                         da[0] = masker->shot.origin[0] - cgameGlob->refdef.vieworg[0];
                                         da[1] = masker->shot.origin[1] - cgameGlob->refdef.vieworg[1];
@@ -5803,10 +5874,10 @@ void __cdecl CG_SndUpdateAutoSim()
                                         db[2] = masked->shot.origin[2] - cgameGlob->refdef.vieworg[2];
                                         Vec3Normalize(da);
                                         Vec3Normalize(db);
-                                        v1 = (float)((float)((float)(da[0] * db[0]) + (float)(da[1] * db[1])) + (float)(da[2] * db[2]));
-                                        __libm_sse2_acos(v2);
-                                        *(float *)&v1 = v1;
-                                        if ( *(float *)&v1 < 0.52359879 )
+                                        v2 = (float)((float)((float)(da[0] * db[0]) + (float)(da[1] * db[1])) + (float)(da[2] * db[2]));
+                                        //__libm_sse2_acos(v3);
+                                        //*(float *)&v2 = v2;
+                                        if (acos(v2) < 0.52359879)
                                         {
                                             g_snd_autosim_history[j].frame = 0;
                                             break;
@@ -5819,11 +5890,11 @@ void __cdecl CG_SndUpdateAutoSim()
                 }
             }
         }
-        for ( n = 0; n < 0x40; ++n )
+        for (n = 0; n < 0x40; ++n)
         {
-            if ( g_snd_autosim_history[n].frame == snd_autosim_frame - 1 )
+            if (g_snd_autosim_history[n].frame == snd_autosim_frame - 1)
             {
-                CG_SndWeaponFire((snd_weapon_shot *)((char *)&unk_F65414 + 56 * n));
+                CG_SndWeaponFire(&g_snd_autosim_history[n].shot);
                 g_snd_autosim_history[n].frame = 0;
             }
         }
@@ -5868,15 +5939,15 @@ void __cdecl CG_SndWeaponFire(snd_weapon_shot *shot)
         CG_SndWeaponFakeFire(shot, weaponDef);
     if ( !firesound )
     {
-        if ( g_DXDeviceThread != GetCurrentThreadId() )
-            return;
+        //if ( g_DXDeviceThread != GetCurrentThreadId() )
+        //    return;
         goto LABEL_28;
     }
     if ( CG_ShouldPlaySoundOnLocalClient(shot->localClientNum, shot->shooter.handle & 0xFFF, shot->origin, firesound) )
     {
         SND_Play(firesound, 0, 1.0, shot->shooter, shot->origin, shot->direction, 0);
-        if ( g_DXDeviceThread != GetCurrentThreadId() )
-            return;
+        //if ( g_DXDeviceThread != GetCurrentThreadId() )
+        //    return;
         goto LABEL_28;
     }
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
@@ -5884,6 +5955,7 @@ LABEL_28:
         //D3DPERF_EndEvent();
 }
 
+float range_0 = 30.0f;
 void __cdecl CG_SndWeaponFakeFire(snd_weapon_shot *shot, const WeaponDef *weaponDef)
 {
     float v3; // [esp+14h] [ebp-80h]
@@ -5900,9 +5972,9 @@ void __cdecl CG_SndWeaponFakeFire(snd_weapon_shot *shot, const WeaponDef *weapon
     cgameGlob = CG_GetLocalClientGlobals(shot->localClientNum);
     shot_ent = CG_GetEntity(shot->localClientNum, shot->shooter.handle & 0xFFF);
     shooter_index = shot->shooter.handle & 0xFFF;
-    v5 = CG_flrand(COERCE_FLOAT(LODWORD(range_0) ^ _mask__NegFloat_), range_0);
-    v6 = CG_flrand(COERCE_FLOAT(LODWORD(range_0) ^ _mask__NegFloat_), range_0);
-    v7 = CG_flrand(COERCE_FLOAT(LODWORD(range_0) ^ _mask__NegFloat_), range_0);
+    v5 = CG_flrand((-(range_0)), range_0);
+    v6 = CG_flrand((-(range_0)), range_0);
+    v7 = CG_flrand((-(range_0)), range_0);
     endPosition[0] = shot->origin[0] + v5;
     endPosition[1] = shot->origin[1] + v6;
     endPosition[2] = shot->origin[2] + v7;
@@ -6495,31 +6567,27 @@ void __cdecl CG_CalcEyePoint(int localClientNum, int entityNum, float *eyePos)
 void __cdecl CG_RandomEffectAxis(float *forward, float *left, float *up)
 {
     float degrees; // [esp+0h] [ebp-30h]
-    float v4; // [esp+10h] [ebp-20h]
-    float v5; // [esp+18h] [ebp-18h]
-    float v6; // [esp+1Ch] [ebp-14h]
+    float dot; // [esp+10h] [ebp-20h]
     float point[3]; // [esp+24h] [ebp-Ch] BYREF
 
-    if ( !forward
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_weapons.cpp", 7138, 0, "%s", "forward") )
-    {
-        __debugbreak();
-    }
-    if ( !left && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_weapons.cpp", 7139, 0, "%s", "left") )
-        __debugbreak();
-    if ( !up && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_weapons.cpp", 7140, 0, "%s", "up") )
-        __debugbreak();
-    v5 = *forward;
-    LODWORD(v6) = *((unsigned int *)forward + 1) ^ _mask__NegFloat_;
-    LODWORD(point[0]) = *((unsigned int *)forward + 2) ^ _mask__NegFloat_;
-    point[1] = v5;
-    point[2] = v6;
-    LODWORD(v4) = COERCE_UNSIGNED_INT((float)((float)(point[0] * *forward) + (float)(v5 * forward[1])) + (float)(v6 * forward[2]))
-                            ^ _mask__NegFloat_;
-    point[0] = (float)(v4 * *forward) + point[0];
-    point[1] = (float)(v4 * forward[1]) + v5;
-    point[2] = (float)(v4 * forward[2]) + v6;
+    iassert(forward);
+    iassert(left);
+    iassert(up);
+
+    point[0] = -forward[2];
+    point[1] = forward[0]; // v5
+    point[2] = -forward[1]; // v6
+
+    //dot = -((float)((float)(forward[0] * forward[0]) + (float)(v5 * forward[1])) + (float)(v6 * forward[2]));
+
+    dot = -Vec3Dot(forward, forward);
+
+    point[0] += (dot * forward[0]);
+    point[1] += (dot * forward[1]);
+    point[2] += (dot * forward[2]);
+
     degrees = random() * 360.0;
+
     RotatePointAroundVector(left, forward, point, degrees);
     Vec3Normalize(left);
     Vec3Cross(forward, left, up);
@@ -6624,7 +6692,7 @@ void __cdecl CG_ImpactEffectForWeapon(
             if ( weaponDef->bounceSound )
                 AliasId = SND_FindAliasId((char *)weaponDef->bounceSound[surfType]);
             else
-                AliasId = SND_FindAliasId(0);
+                AliasId = SND_FindAliasId((char*)NULL);
             *outSnd = AliasId;
             break;
         case 7:
@@ -6911,7 +6979,7 @@ void __cdecl CG_BulletHitEvent_Internal(
     if ( fx && (!cg_blood->current.enabled || !CG_IsMature()) && surfType == 7 )
         fx = cgMedia.fxDogNoBlood;
     if ( hitSound )
-        CG_PlaySound(localClientNum, 1022, position, 0, 0, 1.0, hitSound);
+        CG_PlaySound(localClientNum, 1022, (float*)position, 0, 0, 1.0, hitSound);
     time = CG_GetLocalClientGlobals(localClientNum)->time;
     if ( fx )
     {
@@ -6941,9 +7009,9 @@ void __cdecl CG_BulletHitEvent_Internal(
                     fx = cgMedia.fxPlayerSliding;
                 else
                     fx = cgMedia.fxPuff;
-                LODWORD(axis[0][0]) ^= _mask__NegFloat_;
-                LODWORD(axis[0][1]) ^= _mask__NegFloat_;
-                LODWORD(axis[0][2]) ^= _mask__NegFloat_;
+                (axis[0][0]) = -(axis[0][0]);
+                (axis[0][1]) = -(axis[0][1]);
+                (axis[0][2]) = -(axis[0][2]);
                 FX_PlayOrientedEffectWithMarkEntity(localClientNum, fx, cgameGlob->time, position, axis, targetEntityNum);
             }
             else
@@ -7249,7 +7317,7 @@ void __cdecl CG_SetBaseWeaponForStats(const WeaponVariantDef *weapVariantDef)
 void __cdecl CG_SetupWeaponConfigString(int configStringIndex)
 {
     int WeaponIndexForName; // eax
-    const WeaponVariantDef *WeaponVariantDef; // eax
+    const WeaponVariantDef *weapVarDef; // eax
     unsigned int currentIndex; // [esp+0h] [ebp-81Ch]
     int variantCount; // [esp+4h] [ebp-818h]
     const WeaponVariantDef *weapVariantDef; // [esp+8h] [ebp-814h]
@@ -7289,8 +7357,8 @@ void __cdecl CG_SetupWeaponConfigString(int configStringIndex)
             {
                 for ( currentIndex = weaponIndex; currentIndex < variantCount + weaponIndex; ++currentIndex )
                 {
-                    WeaponVariantDef = BG_GetWeaponVariantDef(currentIndex);
-                    CG_SetBaseWeaponForStats(WeaponVariantDef);
+                    weapVarDef = BG_GetWeaponVariantDef(currentIndex);
+                    CG_SetBaseWeaponForStats(weapVarDef);
                 }
                 return;
             }
@@ -7304,7 +7372,7 @@ void __cdecl CG_SetupWeaponDef()
 {
     unsigned int configStringIndex; // [esp+0h] [ebp-4h]
 
-    CG_GetWeaponIndexForName("defaultweapon_mp");
+    CG_GetWeaponIndexForName((char*)"defaultweapon_mp");
     if ( !G_ExitAfterToolComplete() )
     {
         BG_LoadWeaponTable("_mp", 0);
@@ -7705,6 +7773,7 @@ double __cdecl CG_GetPlayerVehicleHandbrakeTurnSpeedValue(int localClientNum)
         return 0.0;
 }
 
+static float offset = 5.0f;
 void __cdecl CG_MolotovFloat(int localClientNum, const centity_s *cent, const entityState_s *es)
 {
     XModel *model; // [esp+4h] [ebp-38h]
@@ -7803,7 +7872,7 @@ char __cdecl Bullet_Trace(
             bp->start,
             bp->end,
             bp->ignoreEntIndex,
-            (int)&cls.recentServers[7543].countrycode[1],
+            0x280E833,
             riflePriorityMap);
     else
         G_LocationalTraceAllowChildren(
@@ -7811,7 +7880,7 @@ char __cdecl Bullet_Trace(
             bp->start,
             bp->end,
             bp->ignoreEntIndex,
-            (int)&cls.recentServers[7543].countrycode[1],
+            0x280E833,
             bulletPriorityMap);
     if ( br->trace.hitType == TRACE_HITTYPE_NONE && (br->trace.sflags & 4) == 0 )
         return 0;
@@ -7829,12 +7898,11 @@ char __cdecl Bullet_Trace(
         if ( (br->hitEnt->s.eType == 1 || br->hitEnt->s.eType == 2 || br->hitEnt->s.eType == 17 || br->hitEnt->s.eType == 19)
             && !br->trace.sflags )
         {
-            br->trace.sflags = (int)&off_700000;
+            br->trace.sflags = 0x700000;
         }
         br->ignoreHitEnt = Bullet_IgnoreHitEntity(bp, br, attacker);
     }
-    br->depthSurfaceType = (unsigned __int8)((int)((unsigned int)&bg_vehicleInfos[11].rotorTailStartFx[20]
-                                                                                             & br->trace.sflags) >> 20);
+    br->depthSurfaceType = (br->trace.sflags & 0x3F00000) >> 20;
     if ( (br->trace.sflags & 0x100) != 0 )
     {
         br->depthSurfaceType = 0;

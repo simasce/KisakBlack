@@ -51,3 +51,6 @@ bool __cdecl CG_Flash(int timeMs);
 void __cdecl CG_DrawVersion();
 void CG_QuickPrint(const char *fmt, ...);
 void __cdecl CG_QuickPrintFlush();
+
+
+extern float g_TagColors[6][4];

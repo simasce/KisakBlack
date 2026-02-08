@@ -5,6 +5,40 @@
 #include <bgame/bg_weapons.h>
 #include <clientscript/cscr_memorytree.h>
 #include <cgame_mp/cg_local_mp.h>
+#include <xanim/dobj_utils.h>
+#include <xanim/xmodel_utils.h>
+#include <clientscript/scr_const.h>
+#include <cgame_mp/cg_vehicles_mp.h>
+#include <universal/surfaceflags.h>
+#include <sound/snd_bank.h>
+#include "cg_sound.h"
+#include <clientscript/cscr_vm.h>
+#include "cg_scr_main.h"
+#include "cg_event.h"
+#include <bgame/bg_slidemove.h>
+#include <clientscript/cscr_stringlist.h>
+#include <gfx_d3d/r_foliage.h>
+#include <sound/snd_public_async.h>
+#include <sound/snd_utils.h>
+#include <qcommon/dobj_management.h>
+
+bool playOverheatSounds = true;
+bool playTurretRotationSounds = true;
+
+const int seat_positions[2] = { 0, 1 };
+const int yawturn_masks[2] = { 1048576, 4194304 };
+const int pitchturn_masks[2] = { 2097152, 8388608 };
+const int overheating_shifts[2] = { 24, 25 };
+const int overheating_masks[2] = { 16777216, 33554432 };
+const int overheat_flags[2] = { 4, 8 };
+
+
+
+const float factor[2] =
+{ -1.0, 1.0 };
+
+
+// *WARNING* One or more selections were skipped as they could not be interpreted as c data
 
 float foam = 1.9;
 float foamLerpRate = 0.5;
@@ -17,6 +51,90 @@ float depth2 = 2.0;
 float lerpRate2 = 0.18000001;
 float radius2 = 30.0;
 float dist2 = -200.0;
+
+float s_minVelocityForTireSound = 0.025;
+float recoilDist = 24.0;
+float recoilBackPow = 0.25;
+int recoilBackTime = 250;
+int recoilDuration = 1500;
+float aScrollSpeed = 300.0;
+int fadetime = 500;
+bool playTreadClacks = true;
+bool playTreadSqueaks = true;
+bool playBodyDmgLoop = true;
+bool playFireSounds = true;
+bool playOverheatSounds = true;
+bool playTurretRotationSounds = true;
+
+const int aaWheels_0[2][3] =
+{ { 0, 4, 2 }, { 1, 5, 3 } };
+
+
+const int s_kaiSurfaceGroups[31] =
+{
+  0,
+  0,
+  1,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  1,
+  0,
+  1,
+  1,
+  1,
+  0,
+  0,
+  1,
+  1,
+  0,
+  0,
+  0,
+  1,
+  1,
+  1,
+  1,
+  0,
+  0,
+  0,
+  1,
+  0,
+  0
+};
+
+
+const int aaWheels[2][2] = { { 0, 2 }, { 1, 3 } };
+
+unsigned __int16 *g_wheelTags[6] =
+{
+    &scr_const.tag_wheel_front_left,
+    &scr_const.tag_wheel_front_right,
+    &scr_const.tag_wheel_back_left,
+    &scr_const.tag_wheel_back_right,
+    &scr_const.tag_wheel_middle_left,
+    &scr_const.tag_wheel_middle_right
+};
+
+unsigned __int16 *g_gunnerBarrelTags[4] =
+{
+    &scr_const.tag_gunner_barrel1,
+    &scr_const.tag_gunner_barrel2,
+    &scr_const.tag_gunner_barrel3,
+    &scr_const.tag_gunner_barrel4
+};
+
+unsigned __int16 *g_gunnerTurretTags[4] =
+{
+    &scr_const.tag_gunner_turret1,
+    &scr_const.tag_gunner_turret2,
+    &scr_const.tag_gunner_turret3,
+    &scr_const.tag_gunner_turret4,
+};
+
+
 
 void __cdecl CG_UpdateVehicleWaterFX(int localClientNum, centity_s *cent)
 {
@@ -37,6 +155,7 @@ void __cdecl CG_UpdateVehicleWaterFX(int localClientNum, centity_s *cent)
     }
 }
 
+
 // local variable allocation has failed, the output may be wrong!
 void    CG_Vehicle_PreControllers(
                 int localClientNum,
@@ -47,355 +166,348 @@ void    CG_Vehicle_PreControllers(
     float v6; // xmm0_4
     long double v7; // [esp+8h] [ebp-5BCh]
     long double v8; // [esp+10h] [ebp-5B4h]
-    int v9; // [esp+1Ch] [ebp-5A8h]
-    cg_s **v10; // [esp+24h] [ebp-5A0h]
-    unsigned int v11[3]; // [esp+2Ch] [ebp-598h] BYREF
-    col_context_t context; // [esp+38h] [ebp-58Ch] BYREF
-    float expand_vec[3]; // [esp+60h] [ebp-564h]
-    int contents_mask; // [esp+6Ch] [ebp-558h]
-    float *v15; // [esp+70h] [ebp-554h]
-    float *v16; // [esp+74h] [ebp-550h]
-    _BYTE v17[12]; // [esp+78h] [ebp-54Ch] BYREF
-    float trace_points[6][2][3]; // [esp+84h] [ebp-540h] BYREF
-    float wheelPos[3]; // [esp+114h] [ebp-4B0h]
-    const DObjAnimMat *mtx; // [esp+120h] [ebp-4A4h] BYREF
-    unsigned int boneIndex; // [esp+124h] [ebp-4A0h]
-    int presence_mask; // [esp+128h] [ebp-49Ch]
-    float mx[3]; // [esp+12Ch] [ebp-498h] BYREF
-    float mn[3]; // [esp+138h] [ebp-48Ch] BYREF
-    int bitmask; // [esp+144h] [ebp-480h]
-    float angles_vec3[3]; // [esp+14Ch] [ebp-478h] BYREF
-    float axis_loc_vec3[3]; // [esp+158h] [ebp-46Ch] BYREF
-    phys_vec3 axis_loc; // [esp+164h] [ebp-460h]
-    float m_wheel_pos; // [esp+174h] [ebp-450h]
-    float v30; // [esp+178h] [ebp-44Ch]
-    float v31; // [esp+17Ch] [ebp-448h]
-    float rotation; // [esp+180h] [ebp-444h]
-    float v33; // [esp+184h] [ebp-440h]
-    float v34; // [esp+188h] [ebp-43Ch]
-    float v35; // [esp+18Ch] [ebp-438h]
-    float lerp; // [esp+190h] [ebp-434h]
-    float v37; // [esp+194h] [ebp-430h]
-    const VehicleParameter *v38; // [esp+198h] [ebp-42Ch]
-    float m_wheel_displaced_center_dist; // [esp+19Ch] [ebp-428h]
-    float lerpRate; // [esp+1A0h] [ebp-424h]
-    rigid_body_constraint_wheel *v41; // [esp+1A4h] [ebp-420h]
-    const VehicleParameter *v42; // [esp+1A8h] [ebp-41Ch]
-    float v43; // [esp+1ACh] [ebp-418h]
-    float v44; // [esp+1B0h] [ebp-414h]
-    rigid_body_constraint_wheel *v45; // [esp+1B4h] [ebp-410h]
-    float v46; // [esp+1B8h] [ebp-40Ch]
-    const VehicleParameter *v47; // [esp+1BCh] [ebp-408h]
-    rigid_body_constraint_wheel *wheel2; // [esp+1C0h] [ebp-404h]
-    float newWheelHeight; // [esp+1C4h] [ebp-400h]
+    float *v9; // [esp+1Ch] [ebp-5A8h]
+    float *v10; // [esp+24h] [ebp-5A0h]
+    col_context_t context; // [esp+2Ch] [ebp-598h] BYREF
+    float expand_vec[3]; // [esp+54h] [ebp-570h] BYREF
+    int contents_mask; // [esp+60h] [ebp-564h]
+    float v14; // [esp+64h] [ebp-560h]
+    float *v15; // [esp+68h] [ebp-55Ch]
+    float *v16; // [esp+6Ch] [ebp-558h]
+    float *v17; // [esp+70h] [ebp-554h]
+    float *v18; // [esp+74h] [ebp-550h]
+    float trace_points[6][2][3]; // [esp+78h] [ebp-54Ch] BYREF
+    float wheelPos[3]; // [esp+108h] [ebp-4BCh] BYREF
+    const DObjAnimMat *mtx; // [esp+114h] [ebp-4B0h]
+    unsigned int boneIndex; // [esp+118h] [ebp-4ACh]
+    int presence_mask; // [esp+11Ch] [ebp-4A8h]
+    float mx[3]; // [esp+120h] [ebp-4A4h] BYREF
+    float mn[3]; // [esp+12Ch] [ebp-498h] BYREF
+    int bitmask; // [esp+138h] [ebp-48Ch]
+    vehicle_cache_t *vehicle_cache; // [esp+13Ch] [ebp-488h]
+    float angles_vec3[3]; // [esp+140h] [ebp-484h] BYREF
+    float axis_loc_vec3[3]; // [esp+14Ch] [ebp-478h] BYREF
+    phys_vec3 axis_loc; // [esp+158h] [ebp-46Ch] BYREF
+    float rotation; // [esp+174h] [ebp-450h]
+    float v32; // [esp+178h] [ebp-44Ch]
+    float v33; // [esp+17Ch] [ebp-448h]
+    float m_susp_min_height; // [esp+180h] [ebp-444h]
+    float lerp; // [esp+184h] [ebp-440h]
+    float v36; // [esp+188h] [ebp-43Ch]
+    float v37; // [esp+18Ch] [ebp-438h]
+    float v38; // [esp+190h] [ebp-434h]
+    float lerpRate; // [esp+194h] [ebp-430h]
+    const VehicleParameter *v40; // [esp+198h] [ebp-42Ch]
+    float v41; // [esp+19Ch] [ebp-428h]
+    float v42; // [esp+1A0h] [ebp-424h]
+    rigid_body_constraint_wheel *v43; // [esp+1A4h] [ebp-420h]
+    const VehicleParameter *v44; // [esp+1A8h] [ebp-41Ch]
+    float v45; // [esp+1ACh] [ebp-418h]
+    float v46; // [esp+1B0h] [ebp-414h]
+    rigid_body_constraint_wheel *wheel2; // [esp+1B4h] [ebp-410h]
+    float newWheelHeight; // [esp+1B8h] [ebp-40Ch]
+    const VehicleParameter *v49; // [esp+1BCh] [ebp-408h]
+    float m_wheel_displaced_center_dist; // [esp+1C0h] [ebp-404h]
+    float wheelRadiusDelta; // [esp+1C4h] [ebp-400h]
     float m_wheel_radius; // [esp+1C8h] [ebp-3FCh]
     const VehicleParameter *m_parameter; // [esp+1CCh] [ebp-3F8h]
-    rigid_body_constraint_wheel *wheelRadiusDelta; // [esp+1D0h] [ebp-3F4h]
+    rigid_body_constraint_wheel *wheel; // [esp+1D0h] [ebp-3F4h]
     int j; // [esp+1D4h] [ebp-3F0h]
-    const DObjAnimMat *BasePose; // [esp+1D8h] [ebp-3ECh]
-    rigid_body_constraint_wheel *wheel; // [esp+1DCh] [ebp-3E8h]
-    float *v56; // [esp+1E0h] [ebp-3E4h]
-    float boneMtxList[3]; // [esp+1E4h] [ebp-3E0h] OVERLAPPED BYREF
-    float axis[4][3]; // [esp+1F0h] [ebp-3D4h] BYREF
-    const WeaponDef *suspTravel; // [esp+220h] [ebp-3A4h]
-    int v60; // [esp+224h] [ebp-3A0h]
-    int *v61; // [esp+228h] [ebp-39Ch]
-    const WeaponDef *turretWeapon; // [esp+22Ch] [ebp-398h]
-    float v63; // [esp+230h] [ebp-394h]
-    const clientInfo_t *ci; // [esp+234h] [ebp-390h]
-    int clientNum; // [esp+238h] [ebp-38Ch]
-    float v66; // [esp+23Ch] [ebp-388h]
-    float v67; // [esp+240h] [ebp-384h]
-    float v68; // [esp+244h] [ebp-380h]
-    float v69; // [esp+248h] [ebp-37Ch]
-    hudelem_color_t v70; // [esp+24Ch] [ebp-378h]
-    float v71; // [esp+250h] [ebp-374h]
-    float v72; // [esp+254h] [ebp-370h]
-    float v73; // [esp+258h] [ebp-36Ch]
-    float *v74; // [esp+25Ch] [ebp-368h]
-    float v75[2]; // [esp+260h] [ebp-364h] BYREF
-    float v76; // [esp+268h] [ebp-35Ch] BYREF
-    float v77; // [esp+26Ch] [ebp-358h]
-    float v78; // [esp+270h] [ebp-354h]
-    float fc; // [esp+274h] [ebp-350h]
-    float v80; // [esp+278h] [ebp-34Ch]
-    float v81; // [esp+27Ch] [ebp-348h]
-    float f; // [esp+280h] [ebp-344h]
-    float v83; // [esp+284h] [ebp-340h]
-    hudelem_color_t v84; // [esp+288h] [ebp-33Ch]
-    float v85; // [esp+28Ch] [ebp-338h]
-    float v86; // [esp+290h] [ebp-334h]
-    float v87; // [esp+294h] [ebp-330h]
-    float v88; // [esp+298h] [ebp-32Ch]
-    float v89; // [esp+29Ch] [ebp-328h]
-    float v90; // [esp+2A0h] [ebp-324h]
-    __int16 v91; // [esp+2A6h] [ebp-31Eh]
-    float v92; // [esp+2A8h] [ebp-31Ch]
-    float v93; // [esp+2ACh] [ebp-318h]
-    float v94; // [esp+2B0h] [ebp-314h]
-    float v95; // [esp+2B4h] [ebp-310h]
-    hudelem_color_t v96; // [esp+2B8h] [ebp-30Ch]
-    float v97; // [esp+2BCh] [ebp-308h]
-    float v98; // [esp+2C0h] [ebp-304h]
-    float v99; // [esp+2C4h] [ebp-300h]
-    float v100; // [esp+2C8h] [ebp-2FCh]
-    hudelem_color_t v101; // [esp+2CCh] [ebp-2F8h]
-    float v102; // [esp+2D0h] [ebp-2F4h]
-    float v103; // [esp+2D4h] [ebp-2F0h]
-    float v104; // [esp+2D8h] [ebp-2ECh]
-    float v105; // [esp+2DCh] [ebp-2E8h]
-    hudelem_color_t v106; // [esp+2E0h] [ebp-2E4h]
-    float v107; // [esp+2E4h] [ebp-2E0h]
-    float v108; // [esp+2E8h] [ebp-2DCh]
-    float v109; // [esp+2ECh] [ebp-2D8h]
-    float v110; // [esp+2F0h] [ebp-2D4h]
-    const vehicle_info_t *v111; // [esp+2F4h] [ebp-2D0h]
-    __int16 vehicleInfoIndex; // [esp+2F8h] [ebp-2CCh]
-    float v113; // [esp+2FCh] [ebp-2C8h]
-    const vehicle_info_t *vehicleInfo; // [esp+300h] [ebp-2C4h]
-    float infoIdx; // [esp+304h] [ebp-2C0h] OVERLAPPED
-    hudelem_color_t fromColor; // [esp+308h] [ebp-2BCh]
-    float v117; // [esp+30Ch] [ebp-2B8h]
-    float v118; // [esp+310h] [ebp-2B4h]
-    float v119; // [esp+314h] [ebp-2B0h]
-    float v120; // [esp+318h] [ebp-2ACh]
-    float v121; // [esp+31Ch] [ebp-2A8h]
-    float v122; // [esp+320h] [ebp-2A4h]
-    float v123; // [esp+324h] [ebp-2A0h]
-    float v124; // [esp+328h] [ebp-29Ch]
-    float v125; // [esp+32Ch] [ebp-298h]
-    float v126; // [esp+330h] [ebp-294h]
-    const LerpEntityState *v127; // [esp+334h] [ebp-290h]
-    float v128; // [esp+338h] [ebp-28Ch] BYREF
-    float newViewAngles[3]; // [esp+344h] [ebp-280h] BYREF
-    float newViewAxis[3][3]; // [esp+350h] [ebp-274h] BYREF
-    float yawAxis[3][3]; // [esp+374h] [ebp-250h] BYREF
-    unsigned int yawAngles[5]; // [esp+398h] [ebp-22Ch] OVERLAPPED BYREF
-    float vehAxis[3][3]; // [esp+3ACh] [ebp-218h] BYREF
-    float vehYaw; // [esp+3D0h] [ebp-1F4h]
-    float vehAngles[3]; // [esp+3D4h] [ebp-1F0h]
-    float v136; // [esp+3E0h] [ebp-1E4h]
-    float v137; // [esp+3E4h] [ebp-1E0h]
-    float ofsPitch; // [esp+3E8h] [ebp-1DCh]
-    hudelem_color_t localYaw; // [esp+3ECh] [ebp-1D8h]
-    float v140; // [esp+3F0h] [ebp-1D4h]
-    float absYaw; // [esp+3F4h] [ebp-1D0h]
-    float v142; // [esp+3F8h] [ebp-1CCh]
-    float v143; // [esp+3FCh] [ebp-1C8h]
-    float v144; // [esp+400h] [ebp-1C4h]
-    float v145; // [esp+404h] [ebp-1C0h]
-    float v146; // [esp+408h] [ebp-1BCh]
-    float v147; // [esp+40Ch] [ebp-1B8h]
-    float v148[3]; // [esp+410h] [ebp-1B4h] BYREF
-    float turretAnglesAxis[3][3]; // [esp+41Ch] [ebp-1A8h] BYREF
-    __int128 turretAngles; // [esp+440h] [ebp-184h] OVERLAPPED BYREF
-    float invMat[3][3]; // [esp+450h] [ebp-174h] BYREF
-    float baseAnglesAxis[3][3]; // [esp+474h] [ebp-150h] BYREF
-    float baseAngles[3]; // [esp+498h] [ebp-12Ch]
-    float v154; // [esp+4A4h] [ebp-120h]
-    float v155; // [esp+4A8h] [ebp-11Ch]
-    float v156; // [esp+4ACh] [ebp-118h]
-    float v157; // [esp+4B0h] [ebp-114h]
-    float v158; // [esp+4B4h] [ebp-110h]
-    float v159; // [esp+4B8h] [ebp-10Ch]
-    float v160; // [esp+4BCh] [ebp-108h] BYREF
-    float v161; // [esp+4C0h] [ebp-104h]
-    float tagAngles[3]; // [esp+4C8h] [ebp-FCh] BYREF
-    float tagAxis[4][3]; // [esp+4D4h] [ebp-F0h] BYREF
-    DObjAnimMat animMat; // [esp+504h] [ebp-C0h] BYREF
-    unsigned __int16 *p_tag_gunner_barrel1; // [esp+524h] [ebp-A0h]
-    int gunnerIndex; // [esp+528h] [ebp-9Ch]
-    DObj *obja; // [esp+52Ch] [ebp-98h]
-    unsigned __int16 *gunnerViewTags[4]; // [esp+530h] [ebp-94h]
+    //float boneMtxList[3]; // [esp+1D8h] [ebp-3ECh]
+    const DObjAnimMat *pose;
+    float axis[4][3]; // [esp+1E4h] [ebp-3E0h] BYREF
+    float suspTravel; // [esp+214h] [ebp-3B0h]
+    float v59; // [esp+218h] [ebp-3ACh]
+    float weaponSpin; // [esp+21Ch] [ebp-3A8h]
+    const WeaponDef *turretWeapon; // [esp+220h] [ebp-3A4h]
+    int v62; // [esp+224h] [ebp-3A0h]
+    const clientInfo_t *ci; // [esp+228h] [ebp-39Ch]
+    int clientNum; // [esp+22Ch] [ebp-398h]
+    float v65; // [esp+230h] [ebp-394h]
+    float v66; // [esp+234h] [ebp-390h]
+    float v67; // [esp+238h] [ebp-38Ch]
+    float v68; // [esp+23Ch] [ebp-388h]
+    float v69; // [esp+240h] [ebp-384h]
+    float v70; // [esp+244h] [ebp-380h]
+    float v71; // [esp+248h] [ebp-37Ch]
+    float v72; // [esp+24Ch] [ebp-378h]
+    float v73; // [esp+250h] [ebp-374h]
+    float v74; // [esp+254h] [ebp-370h]
+    float v75; // [esp+258h] [ebp-36Ch]
+    float *v76; // [esp+25Ch] [ebp-368h]
+    float v77[2]; // [esp+260h] [ebp-364h] BYREF
+    float fc; // [esp+268h] [ebp-35Ch] BYREF
+    float v79; // [esp+26Ch] [ebp-358h]
+    float v80; // [esp+270h] [ebp-354h]
+    float f; // [esp+274h] [ebp-350h]
+    float v82; // [esp+278h] [ebp-34Ch]
+    float v83; // [esp+27Ch] [ebp-348h]
+    float v84; // [esp+280h] [ebp-344h]
+    float v85; // [esp+284h] [ebp-340h]
+    float v86; // [esp+288h] [ebp-33Ch]
+    float v87; // [esp+28Ch] [ebp-338h]
+    float v88; // [esp+290h] [ebp-334h]
+    float v89; // [esp+294h] [ebp-330h]
+    float v90; // [esp+298h] [ebp-32Ch]
+    float v91; // [esp+29Ch] [ebp-328h]
+    float v92; // [esp+2A0h] [ebp-324h]
+    __int16 v93; // [esp+2A6h] [ebp-31Eh]
+    float v94; // [esp+2A8h] [ebp-31Ch]
+    float v95; // [esp+2ACh] [ebp-318h]
+    float v96; // [esp+2B0h] [ebp-314h]
+    float v97; // [esp+2B4h] [ebp-310h]
+    float v98; // [esp+2B8h] [ebp-30Ch]
+    float v99; // [esp+2BCh] [ebp-308h]
+    float v100; // [esp+2C0h] [ebp-304h]
+    float v101; // [esp+2C4h] [ebp-300h]
+    float v102; // [esp+2C8h] [ebp-2FCh]
+    float v103; // [esp+2CCh] [ebp-2F8h]
+    float v104; // [esp+2D0h] [ebp-2F4h]
+    float v105; // [esp+2D4h] [ebp-2F0h]
+    float v106; // [esp+2D8h] [ebp-2ECh]
+    float v107; // [esp+2DCh] [ebp-2E8h]
+    float v108; // [esp+2E0h] [ebp-2E4h]
+    float v109; // [esp+2E4h] [ebp-2E0h]
+    float v110; // [esp+2E8h] [ebp-2DCh]
+    float v111; // [esp+2ECh] [ebp-2D8h]
+    float v112; // [esp+2F0h] [ebp-2D4h]
+    const vehicle_info_t *vehicleInfo; // [esp+2F4h] [ebp-2D0h]
+    //float infoIdx; // [esp+2F8h] [ebp-2CCh]
+    float v115; // [esp+2FCh] [ebp-2C8h]
+    float v116; // [esp+300h] [ebp-2C4h]
+    float v117; // [esp+304h] [ebp-2C0h]
+    float v118; // [esp+308h] [ebp-2BCh]
+    float v119; // [esp+30Ch] [ebp-2B8h]
+    float v120; // [esp+310h] [ebp-2B4h]
+    float v121; // [esp+314h] [ebp-2B0h]
+    float v122; // [esp+318h] [ebp-2ACh]
+    float v123; // [esp+31Ch] [ebp-2A8h]
+    float v124; // [esp+320h] [ebp-2A4h]
+    float v125; // [esp+324h] [ebp-2A0h]
+    float v126; // [esp+328h] [ebp-29Ch]
+    float v127; // [esp+32Ch] [ebp-298h]
+    float v128; // [esp+330h] [ebp-294h]
+    int v129; // [esp+334h] [ebp-290h]
+    float newViewAngles[3]; // [esp+338h] [ebp-28Ch] BYREF
+    float newViewAxis[3][3]; // [esp+344h] [ebp-280h] BYREF
+    float yawAxis[3][3]; // [esp+368h] [ebp-25Ch] BYREF
+    unsigned int yawAngles[5]; // [esp+38Ch] [ebp-238h] BYREF
+    float vehAxis[3][3]; // [esp+3A0h] [ebp-224h] BYREF
+    float vehYaw; // [esp+3C4h] [ebp-200h]
+    float vehAngles[4]; // [esp+3C8h] [ebp-1FCh] BYREF
+    float v137; // [esp+3D8h] [ebp-1ECh]
+    float ofsPitch; // [esp+3DCh] [ebp-1E8h]
+    float localYaw; // [esp+3E0h] [ebp-1E4h]
+    float v140; // [esp+3E4h] [ebp-1E0h]
+    float absYaw; // [esp+3E8h] [ebp-1DCh]
+    float frameInterpolation; // [esp+3ECh] [ebp-1D8h]
+    float v143; // [esp+3F0h] [ebp-1D4h]
+    float v144; // [esp+3F4h] [ebp-1D0h]
+    float v145; // [esp+3F8h] [ebp-1CCh]
+    float v146; // [esp+3FCh] [ebp-1C8h]
+    float v147; // [esp+400h] [ebp-1C4h]
+    float v148; // [esp+404h] [ebp-1C0h]
+    float v149; // [esp+408h] [ebp-1BCh]
+    float v150; // [esp+40Ch] [ebp-1B8h]
+    float turretAnglesAxis[3][3]; // [esp+410h] [ebp-1B4h] BYREF
+    float turretAngles[4]; // [esp+434h] [ebp-190h] BYREF
+    float invMat[3][3]; // [esp+444h] [ebp-180h] BYREF
+    float baseAnglesAxis[3][3]; // [esp+468h] [ebp-15Ch] BYREF
+    float baseAngles[4]; // [esp+48Ch] [ebp-138h] BYREF
+    float v156; // [esp+49Ch] [ebp-128h]
+    float v157; // [esp+4A0h] [ebp-124h]
+    float v158; // [esp+4A4h] [ebp-120h]
+    float v159; // [esp+4A8h] [ebp-11Ch]
+    float v160; // [esp+4ACh] [ebp-118h]
+    float v161; // [esp+4B0h] [ebp-114h]
+    float v162; // [esp+4B4h] [ebp-110h]
+    float v163; // [esp+4B8h] [ebp-10Ch]
+    float tagAngles[3]; // [esp+4BCh] [ebp-108h] BYREF
+    float tagAxis[4][3]; // [esp+4C8h] [ebp-FCh] BYREF
+    DObjAnimMat animMat; // [esp+4F8h] [ebp-CCh] BYREF
+    unsigned char index; // [esp+518h] [ebp-ACh] BYREF
+    int gunnerIndex; // [esp+51Ch] [ebp-A8h]
+    DObj *obja; // [esp+520h] [ebp-A4h]
+    unsigned __int16 *gunnerViewTags[4]; // [esp+524h] [ebp-A0h]
+    float *lastAngles; // [esp+534h] [ebp-90h]
+    vehicle_cache_t *v172; // [esp+538h] [ebp-8Ch]
+    int i; // [esp+53Ch] [ebp-88h]
     colgeom_visitor_inlined_t<200> *p_proximity_data; // [esp+540h] [ebp-84h]
-    colgeom_visitor_inlined_t<200>_vtbl *v170; // [esp+544h] [ebp-80h]
-    int i; // [esp+548h] [ebp-7Ch]
-    const vehicle_info_t *v172; // [esp+54Ch] [ebp-78h]
-    float m_forward_vel; // [esp+550h] [ebp-74h]
-    int numWheels; // [esp+554h] [ebp-70h]
-    const vehicle_info_t *info; // [esp+558h] [ebp-6Ch] BYREF
-    float speed; // [esp+55Ch] [ebp-68h]
-    float v177; // [esp+560h] [ebp-64h]
-    float forward[3]; // [esp+564h] [ebp-60h]
-    const playerState_s *ps; // [esp+570h] [ebp-54h]
-    const entityState_s *ns; // [esp+574h] [ebp-50h]
-    const LerpEntityState *v181; // [esp+578h] [ebp-4Ch]
-    cg_s *cgameGlob; // [esp+57Ch] [ebp-48h] BYREF
-    cg_s *v183; // [esp+580h] [ebp-44h] OVERLAPPED
-    int ignoreGunner; // [esp+584h] [ebp-40h]
-    trace_t trace; // [esp+588h] [ebp-3Ch]
-    int retaddr; // [esp+5C4h] [ebp+0h]
-
-    trace.staticModel = a1;
-    trace.hitPartition = retaddr;
-    LODWORD(v7) = a2;
-    cgameGlob = *(cg_s **)&FLOAT_0_0;
-    v183 = *(cg_s **)&FLOAT_0_0;
-    ignoreGunner = 0;
-    trace.normal.vec.u[0] = 0;
-    if ( !obj && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_vehicle.cpp", 339, 0, "%s", "obj") )
+    //colgeom_visitor_inlined_t<200>_vtbl *v175; // [esp+544h] [ebp-80h]
+    int numWheels; // [esp+548h] [ebp-7Ch]
+    const vehicle_info_t *info; // [esp+54Ch] [ebp-78h]
+    float speed[2]; // [esp+550h] [ebp-74h]
+    float forward[3]; // [esp+558h] [ebp-6Ch] BYREF
+    const playerState_s *ps; // [esp+564h] [ebp-60h]
+    const entityState_s *ns; // [esp+568h] [ebp-5Ch]
+    const LerpEntityState *p_currentState; // [esp+56Ch] [ebp-58h]
+    cg_s *cgameGlob; // [esp+570h] [ebp-54h]
+    bool barrelPitchAlreadySet; // [esp+577h] [ebp-4Dh]
+    int ignoreGunner; // [esp+578h] [ebp-4Ch]
+    trace_t trace; // [esp+57Ch] [ebp-48h] BYREF
+    //_UNKNOWN *v187[2]; // [esp+5B8h] [ebp-Ch] BYREF
+    //centity_s *centa; // [esp+5C4h] [ebp+0h]
+    //
+    //v187[0] = a1;
+    //v187[1] = centa;
+    //LODWORD(v7) = a2;
+    memset(&trace, 0, 16);
+    if (!obj && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_vehicle.cpp", 339, 0, "%s", "obj"))
         __debugbreak();
-    v181 = (const LerpEntityState *)-1;
-    HIBYTE(ns) = 0;
-    if ( !cent->vehicle )
+    ignoreGunner = -1;
+    barrelPitchAlreadySet = 0;
+    if (!cent->vehicle)
     {
         cent->vehicle = (cgVehicle_s *)MT_Alloc(84, 21, SCRIPTINSTANCE_SERVER);
-        if ( !cent->vehicle
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_vehicle.cpp", 347, 0, "%s", "cent->vehicle") )
+        if (!cent->vehicle
+            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_vehicle.cpp", 347, 0, "%s", "cent->vehicle"))
         {
             __debugbreak();
         }
         memset((unsigned __int8 *)cent->vehicle, 0, sizeof(cgVehicle_s));
     }
-    ps = (const playerState_s *)CG_GetLocalClientGlobals(localClientNum);
-    LODWORD(forward[2]) = &cent->currentState;
-    LODWORD(forward[1]) = &cent->nextState;
-    LODWORD(forward[0]) = &ps[26].hud.current[28].duration;
-    AngleVectors(cent->pose.angles, (float *)&info, 0, 0);
-    numWheels = LODWORD(forward[1]) + 36;
-    m_forward_vel = (float)((float)(*(float *)(LODWORD(forward[1]) + 36) * *(float *)&info)
-                                                + (float)(*(float *)(LODWORD(forward[1]) + 40) * speed))
-                                + (float)(*(float *)(LODWORD(forward[1]) + 44) * v177);
-    if ( cent->nitrousVeh )
-        m_forward_vel = cent->nitrousVeh->m_forward_vel;
-    VEH_UpdateMaterialTime(cent, ps[26].hud.current[28].fadeStartTime, m_forward_vel);
-    v172 = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
-    i = 0;
-    if ( v172->type == 1 )
+    cgameGlob = CG_GetLocalClientGlobals((int)localClientNum);
+    p_currentState = &cent->currentState;
+    ns = &cent->nextState;
+    ps = &cgameGlob->predictedPlayerState;
+    AngleVectors(cent->pose.angles, forward, 0, 0);
+    //LODWORD(speed[1]) = ns->lerp.pos.trDelta;
+    speed[0] = (float)((float)(ns->lerp.pos.trDelta[0] * forward[0]) + (float)(ns->lerp.pos.trDelta[1] * forward[1])) + (float)(ns->lerp.pos.trDelta[2] * forward[2]);
+    if (cent->nitrousVeh)
+        speed[0] = cent->nitrousVeh->m_forward_vel;
+    VEH_UpdateMaterialTime(cent, cgameGlob->frametime, speed[0]);
+    info = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
+    numWheels = 0;
+    if (info->type == 1)
     {
-        i = 2;
+        numWheels = 2;
     }
-    else if ( v172->type )
+    else if (info->type)
     {
-        if ( v172->type == 2 )
-            i = 6;
+        if (info->type == 2)
+            numWheels = 6;
     }
     else
     {
-        i = 4;
+        numWheels = 4;
     }
-    if ( !cent->vehicle->vehicle_cache && i > 0 )
+    if (!cent->vehicle->vehicle_cache && numWheels > 0)
     {
         cent->vehicle->vehicle_cache = (vehicle_cache_t *)MT_Alloc(1928, 21, SCRIPTINSTANCE_SERVER);
-        if ( !cent->vehicle->vehicle_cache
+        if (!cent->vehicle->vehicle_cache
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_vehicle.cpp",
-                        382,
-                        0,
-                        "%s",
-                        "cent->vehicle->vehicle_cache") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_vehicle.cpp",
+                382,
+                0,
+                "%s",
+                "cent->vehicle->vehicle_cache"))
         {
             __debugbreak();
         }
-        if ( (_S1_2 & 1) == 0 )
+
+        static colgeom_visitor_inlined_t<200> dummy;
+
+        //if ((_S1_2 & 1) == 0)
+        //{
+        //    _S1_2 |= 1u;
+        //    colgeom_visitor_t::colgeom_visitor_t(&dummy);
+        //    dummy.__vftable = (colgeom_visitor_inlined_t<200>_vtbl *) & colgeom_visitor_inlined_t<200>::`vftable';
+        //        colgeom_visitor_inlined_t<500>::reset(&dummy);
+        //    atexit(CG_Vehicle_PreControllers_::_19_::_dynamic_atexit_destructor_for__dummy__);
+        //}
+        //v175 = dummy.__vftable;
+        //p_proximity_data = &cent->vehicle->vehicle_cache->proximity_data;
+        //p_proximity_data->__vftable = dummy.__vftable;
+
+        //colgeom_visitor_inlined_t<500>::reset(&cent->vehicle->vehicle_cache->proximity_data);
+        cent->vehicle->vehicle_cache->proximity_data.reset();
+
+        for (i = 0; i < 6; ++i)
         {
-            _S1_2 |= 1u;
-            colgeom_visitor_t::colgeom_visitor_t(&dummy);
-            dummy.__vftable = (colgeom_visitor_inlined_t<200>_vtbl *)&colgeom_visitor_inlined_t<200>::`vftable';
-            colgeom_visitor_inlined_t<500>::reset(&dummy);
-            atexit(CG_Vehicle_PreControllers_::_19_::_dynamic_atexit_destructor_for__dummy__);
-        }
-        v170 = dummy.__vftable;
-        p_proximity_data = &cent->vehicle->vehicle_cache->proximity_data;
-        p_proximity_data->__vftable = dummy.__vftable;
-        colgeom_visitor_inlined_t<500>::reset(&cent->vehicle->vehicle_cache->proximity_data);
-        for ( gunnerViewTags[3] = 0; (int)gunnerViewTags[3] < 6; ++gunnerViewTags[3] )
-        {
-            cent->vehicle->vehicle_cache->hit_indices[(int)gunnerViewTags[3]] = -1;
-            gunnerViewTags[2] = (unsigned __int16 *)cent->vehicle->vehicle_cache;
-            *(float *)gunnerViewTags[2] = FLT_MAX;
-            *((float *)gunnerViewTags[2] + 1) = FLT_MAX;
-            *((float *)gunnerViewTags[2] + 2) = FLT_MAX;
-            gunnerViewTags[1] = (unsigned __int16 *)cent->vehicle->vehicle_cache->lastAngles;
-            *(float *)gunnerViewTags[1] = FLT_MAX;
-            *((float *)gunnerViewTags[1] + 1) = FLT_MAX;
-            *((float *)gunnerViewTags[1] + 2) = FLT_MAX;
+            cent->vehicle->vehicle_cache->hit_indices[i] = -1;
+            v172 = cent->vehicle->vehicle_cache;
+            v172->lastOrigin[0] = FLT_MAX;
+            v172->lastOrigin[1] = FLT_MAX;
+            v172->lastOrigin[2] = FLT_MAX;
+            lastAngles = cent->vehicle->vehicle_cache->lastAngles;
+            *lastAngles = FLT_MAX;
+            lastAngles[1] = FLT_MAX;
+            lastAngles[2] = FLT_MAX;
         }
     }
-    if ( (*(unsigned int *)(LODWORD(forward[0]) + 224) & 0x4000) != 0
-        && *(__int16 *)(LODWORD(forward[0]) + 1088) == cent->nextState.number )
+    if ((ps->eFlags & 0x4000) != 0 && ps->viewlocked_entNum == cent->nextState.number)
     {
-        if ( *(int *)(LODWORD(forward[0]) + 1092) >= 1
-            && *(int *)(LODWORD(forward[0]) + 1092) <= 4
-            && gVehicleRelativeGunnerAngles )
+        if (ps->vehiclePos >= 1 && ps->vehiclePos <= 4 && gVehicleRelativeGunnerAngles)
         {
-            p_tag_gunner_barrel1 = &scr_const.tag_gunner_barrel1;
-            gunnerIndex = (int)&scr_const.tag_gunner_barrel2;
-            obja = (DObj *)&scr_const.tag_gunner_barrel3;
-            gunnerViewTags[0] = &scr_const.tag_gunner_barrel4;
-            LODWORD(animMat.transWeight) = Com_GetClientDObj(cent->nextState.number, localClientNum);
-            if ( LODWORD(animMat.transWeight) )
+            gunnerViewTags[0] = &scr_const.tag_gunner_barrel1;
+            gunnerViewTags[1] = &scr_const.tag_gunner_barrel2;
+            gunnerViewTags[2] = &scr_const.tag_gunner_barrel3;
+            gunnerViewTags[3] = &scr_const.tag_gunner_barrel4;
+            obja = Com_GetClientDObj(cent->nextState.number, (int)localClientNum);
+            if (obja)
             {
-                LODWORD(animMat.trans[2]) = *(unsigned int *)(LODWORD(forward[0]) + 1092) - 1;
-                HIBYTE(animMat.trans[1]) = 0;
-                DObjGetBoneIndex(
-                    (const DObj *)LODWORD(animMat.transWeight),
-                    *(&p_tag_gunner_barrel1)[LODWORD(animMat.trans[2])],
-                    (unsigned __int8 *)&animMat.trans[1] + 3,
-                    -1);
-                DObjGetBasePoseMatrix(
-                    (const DObj *)LODWORD(animMat.transWeight),
-                    HIBYTE(animMat.trans[1]),
-                    (DObjAnimMat *)tagAxis[3]);
-                QuatToAxis(tagAxis[3], (float (*)[3])tagAngles);
-                AxisToAngles((const float (*)[3])tagAngles, &v160);
-                v159 = *(float *)(LODWORD(forward[0]) + 384) + v160;
+                gunnerIndex = ps->vehiclePos - 1;
+                index = 0;
+                DObjGetBoneIndex(obja, *gunnerViewTags[gunnerIndex], &index, -1);
+                DObjGetBasePoseMatrix(obja, 0, &animMat);
+                QuatToAxis(animMat.quat, tagAxis);
+                AxisToAngles(tagAxis, tagAngles);
+                v163 = ps->viewangles[0] + tagAngles[0];
+                v162 = floor(v163 * 182.04445 + 0.5);
+                cent->currentState.u.vehicle.gunnerAngles[gunnerIndex].pitch = (int)v162;
+                v161 = ps->viewangles[1] + tagAngles[1];
+                v160 = floor(v161 * 182.04445 + 0.5);
+                cent->currentState.u.vehicle.gunnerAngles[gunnerIndex].yaw = (int)v160;
+                v159 = ps->viewangles[0] + tagAngles[0];
                 v158 = floor(v159 * 182.04445 + 0.5);
-                cent->currentState.u.vehicle.gunnerAngles[LODWORD(animMat.trans[2])].pitch = (int)v158;
-                v157 = *(float *)(LODWORD(forward[0]) + 388) + v161;
+                cent->nextState.lerp.u.vehicle.gunnerAngles[gunnerIndex].pitch = (int)v158;
+                v157 = ps->viewangles[1] + tagAngles[1];
                 v156 = floor(v157 * 182.04445 + 0.5);
-                cent->currentState.u.vehicle.gunnerAngles[LODWORD(animMat.trans[2])].yaw = (int)v156;
-                v155 = *(float *)(LODWORD(forward[0]) + 384) + v160;
-                v154 = floor(v155 * 182.04445 + 0.5);
-                cent->nextState.lerp.u.vehicle.gunnerAngles[LODWORD(animMat.trans[2])].pitch = (int)v154;
-                baseAngles[2] = *(float *)(LODWORD(forward[0]) + 388) + v161;
-                baseAngles[1] = floor(baseAngles[2] * 182.04445 + 0.5);
-                cent->nextState.lerp.u.vehicle.gunnerAngles[LODWORD(animMat.trans[2])].yaw = (int)baseAngles[1];
+                cent->nextState.lerp.u.vehicle.gunnerAngles[gunnerIndex].yaw = (int)v156;
             }
         }
-        else if ( !vehLockTurretToPlayerView->current.enabled || *(unsigned int *)(LODWORD(forward[0]) + 1092) )
+        else if (!vehLockTurretToPlayerView->current.enabled || ps->vehiclePos)
         {
-            v143 = (float)*(__int16 *)(LODWORD(forward[1]) + 112) * 0.0054931641;
-            v142 = (float)*(__int16 *)(LODWORD(forward[2]) + 108) * 0.0054931641;
-            absYaw = v142 + *(float *)(LODWORD(forward[2]) + 60);
-            v140 = v143 + *(float *)(LODWORD(forward[1]) + 64);
-            localYaw = ps[26].hud.current[28].fromColor;
-            ofsPitch = AngleNormalize180(v140 - absYaw) * *(float *)&localYaw.rgba + absYaw;
-            v137 = cent->pose.angles[1];
-            v136 = AngleNormalize180(ofsPitch - v137);
-            vehAngles[2] = 0.0f;
-            vehAngles[1] = floor(v136 * 182.04445 + 0.5);
-            cent->pose.vehicle.yaw = (int)vehAngles[1];
-            if ( *(int *)(LODWORD(forward[0]) + 1092) >= 1 && *(int *)(LODWORD(forward[0]) + 1092) <= 4 )
+            v146 = (float)ns->lerp.u.vehicle.gunYaw * 0.0054931641;
+            v145 = (float)p_currentState->u.vehicle.gunYaw * 0.0054931641;
+            v144 = v145 + p_currentState->apos.trBase[1];
+            v143 = v146 + ns->lerp.apos.trBase[1];
+            frameInterpolation = cgameGlob->frameInterpolation;
+            absYaw = AngleNormalize180(v143 - v144) * frameInterpolation + v144;
+            v140 = cent->pose.angles[1];
+            localYaw = AngleNormalize180(absYaw - v140);
+            ofsPitch = 0.0f;
+            v137 = floor(localYaw * 182.04445 + 0.5);
+            cent->pose.vehicle.yaw = (int)v137;
+            if (ps->vehiclePos >= 1 && ps->vehiclePos <= 4)
             {
-                LODWORD(vehAngles[0]) = cent->pose.angles;
-                *(_QWORD *)&vehAxis[2][1] = *(_QWORD *)cent->pose.angles;
-                vehYaw = cent->pose.angles[2];
-                vehAxis[2][0] = vehAxis[2][2];
-                vehAxis[2][2] = 0.0f;
-                AnglesToAxis(&vehAxis[2][1], (float (*)[3])&yawAngles[2]);
-                yawAngles[1] = *(unsigned int *)(LODWORD(forward[0]) + 388);
-                *(float *)yawAngles = AngleNormalize180(*(float *)&yawAngles[1] - vehAxis[2][0]);
-                *(_QWORD *)&yawAxis[2][0] = __PAIR64__(yawAngles[0], 0);
-                yawAxis[2][2] = 0.0f;
-                AnglesToAxis(yawAxis[2], (float (*)[3])newViewAxis[2]);
-                MatrixMultiply(
-                    (const float (*)[3])newViewAxis[2],
-                    (const float (*)[3])&yawAngles[2],
-                    (float (*)[3])newViewAngles);
-                AxisToAngles((const float (*)[3])newViewAngles, &v128);
-                vehAngles[2] = AngleNormalize180(v128);
-                *(float *)&ps[46].hud.current[14].color.rgba = vehAngles[2];
-                v127 = (const LerpEntityState *)(*(unsigned int *)(LODWORD(forward[0]) + 1092) - 1);
-                v126 = *(float *)(LODWORD(forward[0]) + 384);
-                v125 = AngleNormalize180(v126 - vehAngles[2]);
-                v124 = floor(v125 * 182.04445 + 0.5);
-                cent->pose.vehicle.gunnerPitch[(unsigned int)v127] = (int)v124;
-                v123 = *(float *)(LODWORD(forward[0]) + 388);
-                v122 = AngleNormalize180(v123 - ofsPitch);
-                v121 = floor(v122 * 182.04445 + 0.5);
-                cent->pose.vehicle.gunnerYaw[(unsigned int)v127] = (int)v121;
-                v181 = v127;
+                //LODWORD(vehAngles[3]) = cent->pose.angles;
+                vehAngles[0] = cent->pose.angles[0];
+                vehAngles[1] = cent->pose.angles[1];
+                vehAngles[2] = cent->pose.angles[2];
+                vehYaw = vehAngles[1];
+                vehAngles[1] = 0.0f;
+                AnglesToAxis(vehAngles, vehAxis);
+                yawAngles[4] = LODWORD(ps->viewangles[1]);
+                *(float *)&yawAngles[3] = AngleNormalize180(*(float *)&yawAngles[4] - vehYaw);
+                yawAngles[0] = 0;
+                yawAngles[1] = yawAngles[3];
+                yawAngles[2] = 0;
+                AnglesToAxis((const float *)yawAngles, yawAxis);
+                MatrixMultiply(yawAxis, vehAxis, newViewAxis);
+                AxisToAngles(newViewAxis, newViewAngles);
+                ofsPitch = AngleNormalize180(newViewAngles[0]);
+                cgameGlob->gunnerPitchOffset = ofsPitch;
+                v129 = ps->vehiclePos - 1;
+                v128 = ps->viewangles[0];
+                v127 = AngleNormalize180(v128 - ofsPitch);
+                v126 = floor(v127 * 182.04445 + 0.5);
+                cent->pose.vehicle.gunnerPitch[v129] = (int)v126;
+                v125 = ps->viewangles[1];
+                v124 = AngleNormalize180(v125 - absYaw);
+                v123 = floor(v124 * 182.04445 + 0.5);
+                cent->pose.vehicle.gunnerYaw[v129] = (int)v123;
+                ignoreGunner = v129;
             }
             DObjLock(obj);
             DObjSkelClear(obj);
@@ -403,279 +515,300 @@ void    CG_Vehicle_PreControllers(
         }
         else
         {
-            LODWORD(baseAngles[0]) = cent->pose.angles;
-            *(_QWORD *)&baseAnglesAxis[2][0] = *(_QWORD *)cent->pose.angles;
-            baseAnglesAxis[2][2] = cent->pose.angles[2];
-            AnglesToAxis(baseAnglesAxis[2], (float (*)[3])invMat[2]);
-            MatrixTranspose((const float (*)[3])invMat[2], (float (*)[3])((char *)&turretAngles + 4));
-            LODWORD(turretAngles) = LODWORD(forward[0]) + 384;
-            *(_QWORD *)&turretAnglesAxis[2][0] = *(_QWORD *)(LODWORD(forward[0]) + 384);
-            turretAnglesAxis[2][2] = *(float *)(LODWORD(forward[0]) + 392);
-            turretAnglesAxis[2][2] = cent->pose.angles[2];
-            AnglesToAxis(turretAnglesAxis[2], (float (*)[3])v148);
-            MatrixMultiply((const float (*)[3])v148, (const float (*)[3])((char *)&turretAngles + 4), (float (*)[3])invMat[2]);
-            AxisToAngles((const float (*)[3])invMat[2], turretAnglesAxis[2]);
-            v147 = turretAnglesAxis[2][1];
-            v146 = floor(turretAnglesAxis[2][1] * 182.04445 + 0.5);
-            cent->pose.vehicle.yaw = (int)v146;
-            v145 = turretAnglesAxis[2][0];
-            v144 = floor(turretAnglesAxis[2][0] * 182.04445 + 0.5);
-            cent->pose.vehicle.barrelPitch = (int)v144;
+            //LODWORD(baseAngles[3]) = cent->pose.angles;
+            baseAngles[0] = cent->pose.angles[0];
+            baseAngles[1] = cent->pose.angles[1];
+            baseAngles[2] = cent->pose.angles[2];
+            AnglesToAxis(baseAngles, baseAnglesAxis);
+            MatrixTranspose(baseAnglesAxis, invMat);
+            //LODWORD(turretAngles[3]) = ps->viewangles;
+            *(_QWORD *)turretAngles = *(_QWORD *)ps->viewangles;
+            turretAngles[2] = ps->viewangles[2];
+            turretAngles[2] = cent->pose.angles[2];
+            AnglesToAxis(turretAngles, turretAnglesAxis);
+            MatrixMultiply(turretAnglesAxis, invMat, baseAnglesAxis);
+            AxisToAngles(baseAnglesAxis, turretAngles);
+            v150 = turretAngles[1];
+            v149 = floor(turretAngles[1] * 182.04445 + 0.5);
+            cent->pose.vehicle.yaw = (int)v149;
+            v148 = turretAngles[0];
+            v147 = floor(turretAngles[0] * 182.04445 + 0.5);
+            cent->pose.vehicle.barrelPitch = (int)v147;
             DObjLock(obj);
             DObjSkelClear(obj);
             DObjUnlock(obj);
-            HIBYTE(ns) = 1;
+            barrelPitchAlreadySet = 1;
         }
     }
     else
     {
-        v120 = (float)*(__int16 *)(LODWORD(forward[1]) + 112) * 0.0054931641;
-        v119 = (float)*(__int16 *)(LODWORD(forward[2]) + 108) * 0.0054931641;
-        v118 = v119 + *(float *)(LODWORD(forward[2]) + 60);
-        v117 = v120 + *(float *)(LODWORD(forward[1]) + 64);
-        fromColor = ps[26].hud.current[28].fromColor;
-        infoIdx = AngleNormalize180(v117 - v118) * *(float *)&fromColor.rgba + v118;
-        *(float *)&vehicleInfo = infoIdx - cent->pose.angles[1];
-        v113 = floor(*(float *)&vehicleInfo * 182.04445 + 0.5);
-        cent->pose.vehicle.yaw = (int)v113;
+        v122 = (float)ns->lerp.u.vehicle.gunYaw * 0.0054931641;
+        v121 = (float)p_currentState->u.vehicle.gunYaw * 0.0054931641;
+        v120 = v121 + p_currentState->apos.trBase[1];
+        v119 = v122 + ns->lerp.apos.trBase[1];
+        v118 = cgameGlob->frameInterpolation;
+        v117 = AngleNormalize180(v119 - v120) * v118 + v120;
+        v116 = v117 - cent->pose.angles[1];
+        v115 = floor(v116 * 182.04445 + 0.5);
+        cent->pose.vehicle.yaw = (int)v115;
     }
-    if ( cent->nitrousVeh )
+    if (cent->nitrousVeh)
     {
+        v92 = floor(0.0 * 182.04445 + 0.5);
+        cent->pose.vehicle.pitch = (int)v92;
+        v91 = floor(0.0 * 182.04445 + 0.5);
+        cent->pose.vehicle.roll = (int)v91;
         v90 = floor(0.0 * 182.04445 + 0.5);
-        cent->pose.vehicle.pitch = (int)v90;
+        cent->pose.vehicle.steerPitch = (int)v90;
         v89 = floor(0.0 * 182.04445 + 0.5);
-        cent->pose.vehicle.roll = (int)v89;
-        v88 = floor(0.0 * 182.04445 + 0.5);
-        cent->pose.vehicle.steerPitch = (int)v88;
-        v87 = floor(0.0 * 182.04445 + 0.5);
-        cent->pose.vehicle.steerYaw = (int)v87;
+        cent->pose.vehicle.steerYaw = (int)v89;
     }
     else
     {
-        vehicleInfoIndex = cent->nextState.vehicleState.vehicleInfoIndex;
-        v111 = CG_GetVehicleInfo(vehicleInfoIndex);
-        if ( v111->isNitrous )
+        vehicleInfo = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
+        if (vehicleInfo->isNitrous)
         {
-            v110 = floor(0.0 * 182.04445 + 0.5);
-            cent->pose.vehicle.pitch = (int)v110;
-            v109 = floor(0.0 * 182.04445 + 0.5);
-            cent->pose.vehicle.roll = (int)v109;
+            v112 = floor(0.0 * 182.04445 + 0.5);
+            cent->pose.vehicle.pitch = (int)v112;
+            v111 = floor(0.0 * 182.04445 + 0.5);
+            cent->pose.vehicle.roll = (int)v111;
         }
         else
         {
-            v108 = (float)*(__int16 *)(LODWORD(forward[1]) + 108) * 0.0054931641;
-            v107 = (float)*(__int16 *)(LODWORD(forward[2]) + 104) * 0.0054931641;
-            v106 = ps[26].hud.current[28].fromColor;
-            v105 = AngleNormalize180(v108 - v107) * *(float *)&v106.rgba + v107;
-            v104 = floor(v105 * 182.04445 + 0.5);
-            cent->pose.vehicle.pitch = (int)v104;
-            v103 = *(float *)(LODWORD(forward[2]) + 84);
-            v102 = *(float *)(LODWORD(forward[1]) + 88);
-            v101 = ps[26].hud.current[28].fromColor;
-            v100 = AngleNormalize180(v102 - v103) * *(float *)&v101.rgba + v103;
-            v99 = floor(v100 * 182.04445 + 0.5);
-            cent->pose.vehicle.roll = (int)v99;
+            v110 = (float)ns->lerp.u.vehicle.throttle * 0.0054931641;
+            v109 = (float)p_currentState->u.vehicle.throttle * 0.0054931641;
+            v108 = cgameGlob->frameInterpolation;
+            v107 = AngleNormalize180(v110 - v109) * v108 + v109;
+            v106 = floor(v107 * 182.04445 + 0.5);
+            cent->pose.vehicle.pitch = (int)v106;
+            v105 = p_currentState->u.turret.gunAngles[1];
+            v104 = ns->lerp.u.turret.gunAngles[1];
+            v103 = cgameGlob->frameInterpolation;
+            v102 = AngleNormalize180(v104 - v105) * v103 + v105;
+            v101 = floor(v102 * 182.04445 + 0.5);
+            cent->pose.vehicle.roll = (int)v101;
         }
-        v98 = *(float *)(LODWORD(forward[2]) + 80);
-        v97 = *(float *)(LODWORD(forward[1]) + 84);
-        v96 = ps[26].hud.current[28].fromColor;
-        v95 = AngleNormalize180(v97 - v98) * *(float *)&v96.rgba + v98;
-        v94 = floor(v95 * 182.04445 + 0.5);
-        cent->pose.vehicle.steerYaw = (int)v94;
-        if ( v172->wheelRotRate == 0.0 )
+        v100 = p_currentState->u.turret.gunAngles[0];
+        v99 = ns->lerp.u.turret.gunAngles[0];
+        v98 = cgameGlob->frameInterpolation;
+        v97 = AngleNormalize180(v99 - v100) * v98 + v100;
+        v96 = floor(v97 * 182.04445 + 0.5);
+        cent->pose.vehicle.steerYaw = (int)v96;
+        if (info->wheelRotRate == 0.0)
         {
             cent->pose.vehicle.steerPitch = 0;
         }
         else
         {
-            v93 = (float)((float)((float)ps[26].hud.current[28].fadeStartTime * 0.001) * v172->wheelRotRate) * m_forward_vel;
-            v92 = floor(v93 * 182.04445 + 0.5);
-            v91 = (int)v92;
-            cent->pose.vehicle.steerPitch += v91;
+            v95 = (float)((float)((float)cgameGlob->frametime * 0.001) * info->wheelRotRate) * speed[0];
+            v94 = floor(v95 * 182.04445 + 0.5);
+            v93 = (int)v94;
+            cent->pose.vehicle.steerPitch += v93;
         }
     }
-    if ( !HIBYTE(ns) )
+    if (!barrelPitchAlreadySet)
     {
-        v86 = (float)*(__int16 *)(LODWORD(forward[1]) + 110) * 0.0054931641;
-        v85 = (float)*(__int16 *)(LODWORD(forward[2]) + 106) * 0.0054931641;
-        v84 = ps[26].hud.current[28].fromColor;
-        v83 = AngleNormalize180(v86 - v85) * *(float *)&v84.rgba + v85;
-        f = floor(v83 * 182.04445 + 0.5);
-        cent->pose.vehicle.barrelPitch = (int)f;
+        v88 = (float)ns->lerp.u.vehicle.gunPitch * 0.0054931641;
+        v87 = (float)p_currentState->u.vehicle.gunPitch * 0.0054931641;
+        v86 = cgameGlob->frameInterpolation;
+        v85 = AngleNormalize180(v88 - v87) * v86 + v87;
+        v84 = floor(v85 * 182.04445 + 0.5);
+        cent->pose.vehicle.barrelPitch = (int)v84;
     }
-    if ( cent->vehicle->fireTime && cent->vehicle->fireTime > ps[26].hud.current[28].scaleStartTime - recoilDuration )
+#if 0
+    if (cent->vehicle->fireTime && cent->vehicle->fireTime > cgameGlob->time - recoilDuration)
     {
-        if ( cent->vehicle->fireTime <= ps[26].hud.current[28].scaleStartTime - recoilBackTime )
+        if (cent->vehicle->fireTime <= cgameGlob->time - recoilBackTime)
         {
-            fc = 1.0
-                 - (float)((float)(ps[26].hud.current[28].scaleStartTime - cent->vehicle->fireTime - recoilBackTime)
-                                 / (float)(recoilDuration - recoilBackTime));
+            f = 1.0
+                - (float)((float)(cgameGlob->time - cent->vehicle->fireTime - recoilBackTime)
+                    / (float)(recoilDuration - recoilBackTime));
         }
         else
         {
-            v81 = (float)(ps[26].hud.current[28].scaleStartTime - cent->vehicle->fireTime) / (float)recoilBackTime;
-            v80 = recoilBackPow;
+            v83 = (float)(cgameGlob->time - cent->vehicle->fireTime) / (float)recoilBackTime;
+            v82 = recoilBackPow;
             __libm_sse2_pow(v7, v8);
-            fc = v81;
+            f = v83;
         }
-        if ( (float)(fc - 1.0) < 0.0 )
-            v78 = fc;
+        if ((float)(f - 1.0) < 0.0)
+            v80 = f;
         else
-            v78 = 1.0f;
-        if ( (float)(0.0 - fc) < 0.0 )
-            v77 = v78;
+            v80 = 1.0f;
+        if ((float)(0.0 - f) < 0.0)
+            v79 = v80;
         else
-            v77 = 0.0f;
-        LODWORD(v75[1]) = &v76;
-        v74 = v75;
-        v73 = (float)(v77 * 3.1415927) - 1.5707964;
-        v76 = cos(v73);
-        v75[0] = sin(v73);
-        fc = (float)(v75[0] + 1.0) / 2.0;
-        cent->pose.vehicle.barrelRecoil = fc * recoilDist;
+            v79 = 0.0f;
+        LODWORD(v77[1]) = &fc;
+        v76 = v77;
+        v75 = (float)(v79 * 3.1415927) - 1.5707964;
+        fc = cos(v75);
+        v77[0] = sin(v75);
+        f = (float)(v77[0] + 1.0) / 2.0;
+        cent->pose.vehicle.barrelRecoil = f * recoilDist;
+    }
+#endif
+    if (cent->vehicle->fireTime && cent->vehicle->fireTime > cgameGlob->time - recoilDuration)
+    {
+        if (cent->vehicle->fireTime <= cgameGlob->time - recoilBackTime)
+        {
+            f = 1.0f - (float)(cgameGlob->time - cent->vehicle->fireTime - recoilBackTime)
+                / (float)(recoilDuration - recoilBackTime);
+        }
+        else
+        {
+            v83 = (float)(cgameGlob->time - cent->vehicle->fireTime) / (float)recoilBackTime;
+            v82 = recoilBackPow;
+            f = powf(v83, v82);  // FIX: replaced SSE2 pow with standard powf
+        }
+
+        if ((float)(f - 1.0f) < 0.0f)
+            v80 = f;
+        else
+            v80 = 1.0f;
+
+        if ((float)(0.0f - f) < 0.0f)
+            v79 = v80;
+        else
+            v79 = 0.0f;
+
+        LODWORD(v77[1]) = (int)&fc;
+        v76 = v77;
+        v75 = (float)(v79 * 3.1415927f) - 1.5707964f;
+        fc = cosf(v75);
+        v77[0] = sinf(v75);
+        f = (float)(v77[0] + 1.0f) / 2.0f;
+        cent->pose.vehicle.barrelRecoil = f * recoilDist;
     }
     else
     {
         cent->pose.vehicle.barrelRecoil = 0.0f;
     }
-    for ( gunnerViewTags[3] = 0; (int)gunnerViewTags[3] < 4; ++gunnerViewTags[3] )
+    for (i = 0; i < 4; ++i)
     {
-        if ( v181 != (const LerpEntityState *)gunnerViewTags[3] )
+        if (ignoreGunner != i)
         {
-            v72 = (float)*(__int16 *)(LODWORD(forward[1]) + 4 * (int)gunnerViewTags[3] + 92) * 0.0054931641;
-            v71 = (float)*(__int16 *)(LODWORD(forward[2]) + 4 * (int)gunnerViewTags[3] + 88) * 0.0054931641;
-            v70 = ps[26].hud.current[28].fromColor;
-            v69 = AngleNormalize180(v72 - v71) * *(float *)&v70.rgba + v71;
-            v68 = floor(v69 * 182.04445 + 0.5);
-            cent->pose.vehicle.gunnerPitch[(int)gunnerViewTags[3]] = (int)v68;
-            v67 = (float)*(__int16 *)(LODWORD(forward[1]) + 4 * (int)gunnerViewTags[3] + 94) * 0.0054931641;
-            v66 = (float)*(__int16 *)(LODWORD(forward[2]) + 4 * (int)gunnerViewTags[3] + 90) * 0.0054931641;
-            clientNum = ps[26].hud.current[28].fromColor.rgba;
-            *(float *)&ci = AngleNormalize180(v67 - v66) * *(float *)&clientNum + v66;
-            v63 = floor(*(float *)&ci * 182.04445 + 0.5);
-            cent->pose.vehicle.gunnerYaw[(int)gunnerViewTags[3]] = (int)v63;
+            v74 = (float)ns->lerp.u.vehicle.gunnerAngles[i].pitch * 0.0054931641;
+            v73 = (float)p_currentState->u.vehicle.gunnerAngles[i].pitch * 0.0054931641;
+            v72 = cgameGlob->frameInterpolation;
+            v71 = AngleNormalize180(v74 - v73) * v72 + v73;
+            v70 = floor(v71 * 182.04445 + 0.5);
+            cent->pose.vehicle.gunnerPitch[i] = (int)v70;
+            v69 = (float)ns->lerp.u.vehicle.gunnerAngles[i].yaw * 0.0054931641;
+            v68 = (float)p_currentState->u.vehicle.gunnerAngles[i].yaw * 0.0054931641;
+            v67 = cgameGlob->frameInterpolation;
+            v66 = AngleNormalize180(v69 - v68) * v67 + v68;
+            v65 = floor(v66 * 182.04445 + 0.5);
+            cent->pose.vehicle.gunnerYaw[i] = (int)v65;
         }
     }
     DObjGetBoneIndex(obj, scr_const.tag_body, &cent->pose.vehicle.tag_body, -1);
     DObjGetBoneIndex(obj, scr_const.tag_turret, &cent->pose.vehicle.tag_turret, -1);
     DObjGetBoneIndex(obj, scr_const.tag_barrel, &cent->pose.vehicle.tag_barrel, -1);
-
-    if ( v172->type != 6 )
+    if (info->type != 6)
         DObjGetBoneIndex(obj, scr_const.tag_barrel_recoil, &cent->pose.vehicle.tag_barrel_recoil, -1);
     cent->pose.vehicle.tag_minigun_spin = -2;
     cent->pose.vehicle.minigun_rotation = 0;
-    for ( gunnerViewTags[3] = 0; (int)gunnerViewTags[3] < 4; ++gunnerViewTags[3] )
+    for (i = 0; i < 4; ++i)
     {
-        DObjGetBoneIndex(
-            obj,
-            *g_gunnerBarrelTags[(int)gunnerViewTags[3]],
-            &cent->pose.vehicle.tag_gunner_barrel[(unsigned int)gunnerViewTags[3]],
-            -1);
-        DObjGetBoneIndex(
-            obj,
-            *g_gunnerTurretTags[(int)gunnerViewTags[3]],
-            &cent->pose.vehicle.tag_gunner_turret[(unsigned int)gunnerViewTags[3]],
-            -1);
+        DObjGetBoneIndex(obj, *g_gunnerBarrelTags[i], &cent->pose.vehicle.tag_gunner_barrel[i], -1);
+        DObjGetBoneIndex(obj, *g_gunnerTurretTags[i], &cent->pose.vehicle.tag_gunner_turret[i], -1);
     }
-    for ( turretWeapon = 0; (int)turretWeapon < 32; turretWeapon = (const WeaponDef *)((char *)turretWeapon + 1) )
+    for (clientNum = 0; clientNum < 32; ++clientNum)
     {
-        v61 = &ps[39].hud.current[3].fadeStartTime + 370 * (unsigned int)turretWeapon;
-        if ( *v61 )
+        ci = &cgameGlob->bgs.clientinfo[clientNum];
+        if (ci->infoValid)
         {
-            if ( v61[343] == cent->nextState.number && v61[344] >= 1 && v61[344] <= 4 )
+            if (ci->attachedVehEntNum == cent->nextState.number && ci->attachedVehSeat >= 1 && ci->attachedVehSeat <= 4)
             {
-                v60 = v61[344] - 1;
-                suspTravel = BG_GetWeaponDef(v172->gunnerWeaponIndex[v60]);
-                if ( suspTravel->fireType == WEAPON_FIRETYPE_MINIGUN )
+                v62 = ci->attachedVehSeat - 1;
+                turretWeapon = BG_GetWeaponDef(info->gunnerWeaponIndex[v62]);
+                if (turretWeapon->fireType == WEAPON_FIRETYPE_MINIGUN)
                 {
                     DObjGetBoneIndex(obj, scr_const.tag_minigun_right_barrel, &cent->pose.vehicle.tag_minigun_spin, -1);
-                    LODWORD(axis[3][2]) = v61[365];
-                    axis[3][1] = floor(axis[3][2] * 182.04445 + 0.5);
-                    cent->pose.vehicle.minigun_rotation = (int)axis[3][1];
+                    weaponSpin = ci->weaponSpin;
+                    v59 = floor(weaponSpin * 182.04445 + 0.5);
+                    cent->pose.vehicle.minigun_rotation = (int)v59;
                     break;
                 }
             }
         }
     }
-    cent->pose.vehicle.extra_wheel_rot_scale = v172->extraWheelRotScale;
-    for ( gunnerViewTags[3] = 0; (int)gunnerViewTags[3] < 4; ++gunnerViewTags[3] )
+    cent->pose.vehicle.extra_wheel_rot_scale = info->extraWheelRotScale;
+    for (i = 0; i < 4; ++i)
     {
-        if ( v172->extraWheelTags[(int)gunnerViewTags[3]] )
-            DObjGetBoneIndex(
-                obj,
-                v172->extraWheelTags[(int)gunnerViewTags[3]],
-                &cent->pose.vehicle.tag_extra_tank_wheels[(unsigned int)gunnerViewTags[3]],
-                -1);
+        if (info->extraWheelTags[i])
+            DObjGetBoneIndex(obj, info->extraWheelTags[i], &cent->pose.vehicle.tag_extra_tank_wheels[i], -1);
         else
-            *((_BYTE *)gunnerViewTags[3] + (unsigned int)cent + 236) = -2;
+            cent->pose.vehicle.tag_extra_tank_wheels[i] = -2;
     }
-    if ( cent->pose.cullIn == 2 )
+    if (cent->pose.cullIn == 2)
     {
-        axis[3][0] = cent->pose.vehicle.time;
-        AnglesToAxis(cent->pose.angles, (float (*)[3])boneMtxList);
-        v56 = axis[2];
-        wheel = (rigid_body_constraint_wheel *)cent->pose.origin;
-        axis[2][0] = cent->pose.origin[0];
-        axis[2][1] = cent->pose.origin[1];
-        axis[2][2] = cent->pose.origin[2];
+        suspTravel = cent->pose.vehicle.time;
+        AnglesToAxis(cent->pose.angles, axis);
+        //LODWORD(boneMtxList[2] = axis[3];
+        //LODWORD(boneMtxList[1]) = cent->pose.origin;
+        axis[3][0] = cent->pose.origin[0];
+        axis[3][1] = cent->pose.origin[1];
+        axis[3][2] = cent->pose.origin[2];
         Model = DObjGetModel(obj, 0);
-        BasePose = XModelGetBasePose(Model);
-        if ( *g_wheelTags[0] != scr_const.tag_wheel_front_left
+        //LODWORD(boneMtxList[0]) = XModelGetBasePose(Model);
+        pose = XModelGetBasePose(Model);
+        if (*g_wheelTags[0] != scr_const.tag_wheel_front_left
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_vehicle.cpp",
-                        667,
-                        0,
-                        "%s",
-                        "*g_wheelTags[TAG_WHEEL_FRONT_LEFT] == scr_const.tag_wheel_front_left") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_vehicle.cpp",
+                667,
+                0,
+                "%s",
+                "*g_wheelTags[TAG_WHEEL_FRONT_LEFT] == scr_const.tag_wheel_front_left"))
         {
             __debugbreak();
         }
-        if ( *g_wheelTags[1] != scr_const.tag_wheel_front_right
+        if (*g_wheelTags[1] != scr_const.tag_wheel_front_right
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_vehicle.cpp",
-                        668,
-                        0,
-                        "%s",
-                        "*g_wheelTags[TAG_WHEEL_FRONT_RIGHT] == scr_const.tag_wheel_front_right") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_vehicle.cpp",
+                668,
+                0,
+                "%s",
+                "*g_wheelTags[TAG_WHEEL_FRONT_RIGHT] == scr_const.tag_wheel_front_right"))
         {
             __debugbreak();
         }
-        if ( cent->nitrousVeh )
+        if (cent->nitrousVeh)
         {
-            for ( j = 0; j < 6; ++j )
+            for (j = 0; j < 6; ++j)
             {
                 cent->vehicle->wheelSurfType[j] = cent->nitrousVeh->m_wheel_surf_types[j];
-                wheelRadiusDelta = cent->nitrousVeh->m_wheels[j];
-                if ( wheelRadiusDelta )
+                wheel = cent->nitrousVeh->m_wheels[j];
+                if (wheel)
                 {
                     m_parameter = cent->nitrousVeh->m_parameter;
-                    m_wheel_radius = wheelRadiusDelta->m_wheel_radius;
-                    newWheelHeight = m_parameter->m_wheel_radius - m_wheel_radius;
-                    wheel2 = (rigid_body_constraint_wheel *)LODWORD(wheelRadiusDelta->m_wheel_displaced_center_dist);
-                    v47 = cent->nitrousVeh->m_parameter;
-                    v46 = (float)(*(float *)&wheel2 - v47->m_susp_adj) + newWheelHeight;
-                    if ( v172->type == 1 )
+                    m_wheel_radius = wheel->m_wheel_radius;
+                    wheelRadiusDelta = m_parameter->m_wheel_radius - m_wheel_radius;
+                    m_wheel_displaced_center_dist = wheel->m_wheel_displaced_center_dist;
+                    v49 = cent->nitrousVeh->m_parameter;
+                    newWheelHeight = (float)(m_wheel_displaced_center_dist - v49->m_susp_adj) + wheelRadiusDelta;
+                    if (info->type == 1)
                     {
-                        if ( j )
+                        if (j)
                         {
-                            if ( j == 2 )
+                            if (j == 2)
                             {
-                                v41 = cent->nitrousVeh->m_wheels[3];
-                                lerpRate = wheelRadiusDelta->m_wheel_displaced_center_dist;
-                                m_wheel_displaced_center_dist = v41->m_wheel_displaced_center_dist;
-                                v38 = cent->nitrousVeh->m_parameter;
-                                v46 = (float)((float)((float)(lerpRate + m_wheel_displaced_center_dist) * 0.5) - v38->m_susp_adj)
-                                        + newWheelHeight;
+                                v43 = cent->nitrousVeh->m_wheels[3];
+                                v42 = wheel->m_wheel_displaced_center_dist;
+                                v41 = v43->m_wheel_displaced_center_dist;
+                                v40 = cent->nitrousVeh->m_parameter;
+                                newWheelHeight = (float)((float)((float)(v42 + v41) * 0.5) - v40->m_susp_adj) + wheelRadiusDelta;
                                 DObjGetBoneIndex(obj, scr_const.tag_wheel_back, &cent->pose.vehicle.wheelBoneIndex[2], -1);
                             }
                         }
                         else
                         {
-                            v45 = cent->nitrousVeh->m_wheels[1];
-                            v44 = wheelRadiusDelta->m_wheel_displaced_center_dist;
-                            v43 = v45->m_wheel_displaced_center_dist;
-                            v42 = cent->nitrousVeh->m_parameter;
-                            v46 = (float)((float)((float)(v44 + v43) * 0.5) - v42->m_susp_adj) + newWheelHeight;
+                            wheel2 = cent->nitrousVeh->m_wheels[1];
+                            v46 = wheel->m_wheel_displaced_center_dist;
+                            v45 = wheel2->m_wheel_displaced_center_dist;
+                            v44 = cent->nitrousVeh->m_parameter;
+                            newWheelHeight = (float)((float)((float)(v46 + v45) * 0.5) - v44->m_susp_adj) + wheelRadiusDelta;
                             DObjGetBoneIndex(obj, scr_const.tag_wheel_front, cent->pose.vehicle.wheelBoneIndex, -1);
                         }
                     }
@@ -683,61 +816,59 @@ void    CG_Vehicle_PreControllers(
                     {
                         DObjGetBoneIndex(obj, *g_wheelTags[j], &cent->pose.vehicle.wheelBoneIndex[j], -1);
                     }
-                    if ( cent->nitrousVeh->m_owner )
+                    if (cent->nitrousVeh->m_owner)
                     {
-                        cent->pose.vehicle.wheelHeight[j] = v46;
+                        cent->pose.vehicle.wheelHeight[j] = newWheelHeight;
                     }
                     else
                     {
-                        v37 = 30.0f;
-                        lerp = (float)((float)ps[26].hud.current[28].fadeStartTime * 0.001) * 30.0;
-                        if ( (float)(lerp - 1.0) < 0.0 )
-                            v35 = lerp;
+                        lerpRate = 30.0f;
+                        v38 = (float)((float)cgameGlob->frametime * 0.001) * 30.0;
+                        if ((float)(v38 - 1.0) < 0.0)
+                            v37 = v38;
                         else
-                            v35 = 1.0f;
-                        if ( (float)(0.0 - lerp) < 0.0 )
-                            v34 = v35;
+                            v37 = 1.0f;
+                        if ((float)(0.0 - v38) < 0.0)
+                            v36 = v37;
                         else
-                            v34 = 0.0f;
-                        v33 = v34;
-                        cent->pose.vehicle.wheelHeight[j] = (float)((float)(v46 - cent->pose.vehicle.wheelHeight[j]) * v34)
-                                                                                            + cent->pose.vehicle.wheelHeight[j];
+                            v36 = 0.0f;
+                        lerp = v36;
+                        cent->pose.vehicle.wheelHeight[j] = (float)((float)(newWheelHeight - cent->pose.vehicle.wheelHeight[j]) * v36)
+                            + cent->pose.vehicle.wheelHeight[j];
                     }
-                    rotation = v172->nitrousVehParams.m_susp_min_height;
-                    v31 = cent->pose.vehicle.wheelHeight[j];
-                    if ( (float)(rotation - v31) < 0.0 )
-                        v6 = v31;
+                    m_susp_min_height = info->nitrousVehParams.m_susp_min_height;
+                    v33 = cent->pose.vehicle.wheelHeight[j];
+                    if ((float)(m_susp_min_height - v33) < 0.0)
+                        v6 = v33;
                     else
-                        v6 = rotation;
-                    v30 = v6;
+                        v6 = m_susp_min_height;
+                    v32 = v6;
                     cent->pose.vehicle.wheelHeight[j] = v6;
-                    m_wheel_pos = wheelRadiusDelta->m_wheel_pos;
-                    cent->pose.vehicle.nitrousWheelRotation[j] = m_wheel_pos * 57.295776;
-                    if ( cent->nitrousVeh->m_vehicle_info->type == 2 || (unsigned int)j > 1 )
+                    rotation = wheel->m_wheel_pos;
+                    cent->pose.vehicle.nitrousWheelRotation[j] = rotation * 57.295776;
+                    if (cent->nitrousVeh->m_vehicle_info->type == 2 || (unsigned int)j > 1)
                     {
                         cent->pose.vehicle.nitrousWheelYaw[j] = 0.0f;
                     }
                     else
                     {
-                        axis_loc_vec3[0] = wheelRadiusDelta->m_b1_wheel_axis_loc.x;
-                        axis_loc_vec3[1] = wheelRadiusDelta->m_b1_wheel_axis_loc.y;
-                        axis_loc_vec3[2] = wheelRadiusDelta->m_b1_wheel_axis_loc.z;
-                        axis_loc.x = wheelRadiusDelta->m_b1_wheel_axis_loc.w;
-                        Phys_NitrousVecToVec3((const phys_vec3 *)axis_loc_vec3, angles_vec3);
-                        vectoangles(angles_vec3, &mn[2]);
-                        cent->pose.vehicle.nitrousWheelYaw[j] = *(float *)&bitmask - 90.0;
+                        axis_loc = wheel->m_b1_wheel_axis_loc;
+                        Phys_NitrousVecToVec3(&axis_loc, axis_loc_vec3);
+                        vectoangles(axis_loc_vec3, angles_vec3);
+                        cent->pose.vehicle.nitrousWheelYaw[j] = angles_vec3[1] - 90.0;
                     }
                 }
             }
-            if ( v172->type == 1 )
+            if (info->type == 1)
             {
-                if ( (_S1_2 & 2) == 0 )
-                {
-                    _S1_2 |= 2u;
-                    dword_F5C5D8 = SL_GetLowercaseString("tag_steering_wheel", 0, SCRIPTINSTANCE_SERVER);
-                }
-                if ( !DObjGetBoneIndex(obj, dword_F5C5D8, &cent->pose.vehicle.wheelBoneIndex[1], -1)
-                    || SLOWORD(ps[26].hud.archival[7].color.rgba) == cent->nextState.number )
+                static int dword_F5C5D8 = SL_GetLowercaseString("tag_steering_wheel", 0, SCRIPTINSTANCE_SERVER);
+                //if ((_S1_2 & 2) == 0)
+                //{
+                //    _S1_2 |= 2u;
+                //    dword_F5C5D8 = SL_GetLowercaseString("tag_steering_wheel", 0, SCRIPTINSTANCE_SERVER);
+                //}
+                if (!DObjGetBoneIndex(obj, dword_F5C5D8, &cent->pose.vehicle.wheelBoneIndex[1], -1)
+                    || cgameGlob->predictedPlayerState.viewlocked_entNum == cent->nextState.number)
                 {
                     cent->pose.vehicle.wheelBoneIndex[1] = -2;
                 }
@@ -748,141 +879,123 @@ void    CG_Vehicle_PreControllers(
                     cent->pose.vehicle.wheelHeight[1] = 0.0f;
                 }
             }
-            if ( cent->nitrousVeh->m_vehicle_info->type == 2 )
-                R_FoliageNotifyVehiclePosition(localClientNum, cent->pose.origin);
+            if (cent->nitrousVeh->m_vehicle_info->type == 2)
+                R_FoliageNotifyVehiclePosition((int)localClientNum, cent->pose.origin);
         }
         else
         {
-            mn[1] = *(float *)&cent->vehicle->vehicle_cache;
-            if ( LODWORD(mn[1]) )
+            vehicle_cache = cent->vehicle->vehicle_cache;
+            if (vehicle_cache)
             {
-                if ( VecNCompareCustomEpsilon((const float *)LODWORD(mn[1]), cent->pose.origin, 0.001, 3)
-                    && VecNCompareCustomEpsilon((const float *)(LODWORD(mn[1]) + 12), cent->pose.angles, 0.001, 3) )
+                if (VecNCompareCustomEpsilon(vehicle_cache->lastOrigin, cent->pose.origin, 0.001, 3)
+                    && VecNCompareCustomEpsilon(vehicle_cache->lastAngles, cent->pose.angles, 0.001, 3))
                 {
-                    LODWORD(mn[0]) = 1;
-                    gunnerViewTags[3] = 0;
-                    while ( (int)gunnerViewTags[3] < i )
+                    bitmask = 1;
+                    i = 0;
+                    while (i < numWheels)
                     {
-                        if ( (LODWORD(mn[0]) & *(unsigned int *)(LODWORD(mn[1]) + 1924)) != 0 )
+                        if ((bitmask & vehicle_cache->wheel_mask) != 0)
                         {
-                            cent->pose.vehicle.wheelHeight[(int)gunnerViewTags[3]] = *(float *)(LODWORD(mn[1])
-                                                                                                                                                                + 4 * (int)gunnerViewTags[3]
-                                                                                                                                                                + 144);
-                            cent->vehicle->wheelSurfType[(int)gunnerViewTags[3]] = (unsigned __int8)((int)((unsigned int)&bg_vehicleInfos[11].rotorTailStartFx[20]
-                                                                                                                                                                                     & *(unsigned int *)(LODWORD(mn[1]) + 4 * (int)gunnerViewTags[3] + 48)) >> 20);
+                            cent->pose.vehicle.wheelHeight[i] = vehicle_cache->hit_fractions[i];
+                            cent->vehicle->wheelSurfType[i] = (unsigned __int8)((int)((unsigned int)&bg_vehicleInfos[11].rotorTailStartFx[20]
+                                & vehicle_cache->hit_sflags[i]) >> 20);
                         }
-                        ++gunnerViewTags[3];
-                        LODWORD(mn[0]) *= 2;
+                        ++i;
+                        bitmask *= 2;
                     }
                 }
                 else
                 {
-                    mx[0] = FLT_MAX;
-                    mx[1] = FLT_MAX;
-                    mx[2] = FLT_MAX;
-                    mtx = (const DObjAnimMat *)LODWORD(-FLT_MAX);
-                    boneIndex = LODWORD(-FLT_MAX);
-                    presence_mask = LODWORD(-FLT_MAX);
-                    wheelPos[2] = 0.0;
-                    LODWORD(mn[0]) = 1;
-                    gunnerViewTags[3] = 0;
-                    while ( (int)gunnerViewTags[3] < i )
+                    mn[0] = FLT_MAX;
+                    mn[1] = FLT_MAX;
+                    mn[2] = FLT_MAX;
+                    mx[0] = -FLT_MAX;
+                    mx[1] = -FLT_MAX;
+                    mx[2] = -FLT_MAX;
+                    presence_mask = 0;
+                    bitmask = 1;
+                    i = 0;
+                    while (i < numWheels)
                     {
-                        if ( DObjGetBoneIndex(
-                                     obj,
-                                     *g_wheelTags[(int)gunnerViewTags[3]],
-                                     &cent->pose.vehicle.wheelBoneIndex[(unsigned int)gunnerViewTags[3]],
-                                     -1) )
+                        if (DObjGetBoneIndex(obj, *g_wheelTags[i], &cent->pose.vehicle.wheelBoneIndex[i], -1))
                         {
-                            LODWORD(wheelPos[2]) |= LODWORD(mn[0]);
-                            LODWORD(wheelPos[1]) = *((unsigned __int8 *)gunnerViewTags[3] + (unsigned int)cent + 144);
-                            LODWORD(wheelPos[0]) = BasePose[LODWORD(wheelPos[1])].quat;
-                            MatrixTransformVector43(
-                                (const float *)(LODWORD(wheelPos[0]) + 16),
-                                (const float (*)[3])boneMtxList,
-                                trace_points[5][1]);
-                            v16 = (float *)&v17[24 * (int)gunnerViewTags[3]];
-                            v15 = axis[1];
-                            *v16 = (float)(40.0 * axis[1][0]) + trace_points[5][1][0];
-                            v16[1] = (float)(40.0 * v15[1]) + trace_points[5][1][1];
-                            v16[2] = (float)(40.0 * v15[2]) + trace_points[5][1][2];
-                            contents_mask = (int)trace_points[(int)gunnerViewTags[3]];
-                            LODWORD(expand_vec[2]) = axis[1];
-                            expand_vec[1] = -axis[3][0];
-                            *(float *)contents_mask = (float)(COERCE_FLOAT(LODWORD(axis[3][0]) ^ _mask__NegFloat_) * axis[1][0])
-                                                                            + trace_points[5][1][0];
-                            *(float *)(contents_mask + 4) = (float)(expand_vec[1] * *(float *)(LODWORD(expand_vec[2]) + 4))
-                                                                                        + trace_points[5][1][1];
-                            *(float *)(contents_mask + 8) = (float)(expand_vec[1] * *(float *)(LODWORD(expand_vec[2]) + 8))
-                                                                                        + trace_points[5][1][2];
-                            Vec3Min((const float *)&v17[24 * (int)gunnerViewTags[3]], mx, mx);
-                            Vec3Min(trace_points[(int)gunnerViewTags[3]][0], mx, mx);
-                            Vec3Max((const float *)&v17[24 * (int)gunnerViewTags[3]], (const float *)&mtx, (float *)&mtx);
-                            Vec3Max(trace_points[(int)gunnerViewTags[3]][0], (const float *)&mtx, (float *)&mtx);
+                            presence_mask |= bitmask;
+                            boneIndex = cent->pose.vehicle.wheelBoneIndex[i];
+                            //mtx = (const DObjAnimMat *)(LODWORD(boneMtxList[0]) + 32 * boneIndex);
+                            mtx = &pose[boneIndex];
+                            MatrixTransformVector43(mtx->trans, axis, wheelPos);
+                            v18 = trace_points[i][0];
+                            v17 = axis[2];
+                            *v18 = (float)(40.0 * axis[2][0]) + wheelPos[0];
+                            v18[1] = (float)(40.0 * v17[1]) + wheelPos[1];
+                            v18[2] = (float)(40.0 * v17[2]) + wheelPos[2];
+                            v16 = trace_points[i][1];
+                            v15 = axis[2];
+                            v14 = -suspTravel;
+                            *v16 = (float)((-(suspTravel)) * axis[2][0]) + wheelPos[0];
+                            v16[1] = (float)(v14 * v15[1]) + wheelPos[1];
+                            v16[2] = (float)(v14 * v15[2]) + wheelPos[2];
+                            Vec3Min(trace_points[i][0], mn, mn);
+                            Vec3Min(trace_points[i][1], mn, mn);
+                            Vec3Max(trace_points[i][0], mx, mx);
+                            Vec3Max(trace_points[i][1], mx, mx);
                         }
-                        ++gunnerViewTags[3];
-                        LODWORD(mn[0]) *= 2;
+                        ++i;
+                        bitmask *= 2;
                     }
-                    LODWORD(expand_vec[0]) = 529;
-                    *(float *)&context.locational = 30.0f;
-                    *(float *)&context.priorityMap = 30.0f;
-                    *(float *)&context.collide_entity_func = 30.0f;
-                    (*(void (__thiscall **)(int, float *, const DObjAnimMat **, int, int *))(*(unsigned int *)(LODWORD(mn[1]) + 204) + 20))(
-                        LODWORD(mn[1]) + 204,
-                        mx,
-                        &mtx,
-                        529,
-                        &context.locational);
-                    col_context_t::col_context_t((col_context_t *)v11);
-                    v11[1] = LODWORD(mn[1]) + 324;
-                    v11[2] = *(unsigned int *)(LODWORD(mn[1]) + 316);
-                    LODWORD(mn[0]) = 1;
-                    gunnerViewTags[3] = 0;
-                    while ( (int)gunnerViewTags[3] < i )
+                    contents_mask = 529;
+                    expand_vec[0] = 30.0f;
+                    expand_vec[1] = 30.0f;
+                    expand_vec[2] = 30.0f;
+                    vehicle_cache->proximity_data.update(mn, mx, 529, expand_vec);
+                    //col_context_t::col_context_t(&context);
+                    context.prims = vehicle_cache->proximity_data.prims;
+                    context.nprims = vehicle_cache->proximity_data.nprims;
+                    bitmask = 1;
+                    i = 0;
+                    while (i < numWheels)
                     {
-                        if ( (LODWORD(mn[0]) & LODWORD(wheelPos[2])) != 0 )
+                        if ((bitmask & presence_mask) != 0)
                         {
-                            if ( *(int *)(LODWORD(mn[1]) + 4 * (int)gunnerViewTags[3] + 24) > 0 )
+                            if (vehicle_cache->hit_indices[i] > 0)
                             {
-                                cgameGlob = *(cg_s **)(LODWORD(mn[1]) + 12 * (int)gunnerViewTags[3] + 72);
-                                v183 = *(cg_s **)(LODWORD(mn[1]) + 12 * (int)gunnerViewTags[3] + 76);
-                                ignoreGunner = *(unsigned int *)(LODWORD(mn[1]) + 12 * (int)gunnerViewTags[3] + 80);
-                                trace.normal.vec.u[2] = *(unsigned int *)(LODWORD(mn[1]) + 4 * (int)gunnerViewTags[3] + 48);
+                                *(_QWORD *)trace.normal.vec.v = *(_QWORD *)&vehicle_cache->hit_normals[i][0];
+                                trace.normal.vec.u[2] = LODWORD(vehicle_cache->hit_normals[i][2]);
+                                trace.sflags = vehicle_cache->hit_sflags[i];
                             }
                             trace_point_vs_env(
-                                (trace_t *)&cgameGlob,
-                                (const float *)&v17[24 * (int)gunnerViewTags[3]],
-                                trace_points[(int)gunnerViewTags[3]][0],
-                                (col_context_t *)v11,
-                                (int *)(LODWORD(mn[1]) + 4 * (int)gunnerViewTags[3] + 24));
-                            if ( *(int *)(LODWORD(mn[1]) + 4 * (int)gunnerViewTags[3] + 24) <= 0 )
+                                &trace,
+                                trace_points[i][0],
+                                trace_points[i][1],
+                                &context,
+                                &vehicle_cache->hit_indices[i]);
+                            if (vehicle_cache->hit_indices[i] <= 0)
                             {
-                                *(float *)(LODWORD(mn[1]) + 4 * (int)gunnerViewTags[3] + 144) = 1.0f;
-                                *(unsigned int *)(LODWORD(mn[1]) + 4 * (int)gunnerViewTags[3] + 48) = 0;
+                                vehicle_cache->hit_fractions[i] = 1.0f;
+                                vehicle_cache->hit_sflags[i] = 0;
                             }
                             else
                             {
-                                *(unsigned int *)(LODWORD(mn[1]) + 4 * (int)gunnerViewTags[3] + 144) = trace.normal.vec.u[1];
-                                v10 = (cg_s **)(LODWORD(mn[1]) + 12 * (int)gunnerViewTags[3] + 72);
-                                *v10 = cgameGlob;
-                                v10[1] = v183;
-                                v10[2] = (cg_s *)ignoreGunner;
-                                *(unsigned int *)(LODWORD(mn[1]) + 4 * (int)gunnerViewTags[3] + 48) = trace.normal.vec.u[2];
-                                *(float *)LODWORD(mn[1]) = cent->pose.origin[0];
-                                *(float *)(LODWORD(mn[1]) + 4) = cent->pose.origin[1];
-                                *(float *)(LODWORD(mn[1]) + 8) = cent->pose.origin[2];
-                                v9 = LODWORD(mn[1]) + 12;
-                                *(float *)(LODWORD(mn[1]) + 12) = cent->pose.angles[0];
-                                *(float *)(v9 + 4) = cent->pose.angles[1];
-                                *(float *)(v9 + 8) = cent->pose.angles[2];
-                                *(float *)(LODWORD(mn[1]) + 1924) = wheelPos[2];
+                                vehicle_cache->hit_fractions[i] = trace.fraction;
+                                v10 = vehicle_cache->hit_normals[i];
+                                *(_QWORD *)v10 = *(_QWORD *)trace.normal.vec.v;
+                                v10[2] = trace.normal.vec.v[2];
+                                vehicle_cache->hit_sflags[i] = trace.sflags;
+                                vehicle_cache->lastOrigin[0] = cent->pose.origin[0];
+                                vehicle_cache->lastOrigin[1] = cent->pose.origin[1];
+                                vehicle_cache->lastOrigin[2] = cent->pose.origin[2];
+                                v9 = vehicle_cache->lastAngles;
+                                vehicle_cache->lastAngles[0] = cent->pose.angles[0];
+                                v9[1] = cent->pose.angles[1];
+                                v9[2] = cent->pose.angles[2];
+                                vehicle_cache->wheel_mask = presence_mask;
                             }
-                            LODWORD(cent->pose.vehicle.wheelHeight[(int)gunnerViewTags[3]]) = trace.normal.vec.u[1];
-                            cent->vehicle->wheelSurfType[(int)gunnerViewTags[3]] = (unsigned __int8)((int)((unsigned int)&bg_vehicleInfos[11].rotorTailStartFx[20]
-                                                                                                                                                                                     & trace.normal.vec.u[2]) >> 20);
+                            cent->pose.vehicle.wheelHeight[i] = trace.fraction;
+                            cent->vehicle->wheelSurfType[i] = (unsigned __int8)((int)((unsigned int)&bg_vehicleInfos[11].rotorTailStartFx[20]
+                                & trace.sflags) >> 20);
                         }
-                        ++gunnerViewTags[3];
-                        LODWORD(mn[0]) *= 2;
+                        ++i;
+                        bitmask *= 2;
                     }
                 }
             }
@@ -890,37 +1003,40 @@ void    CG_Vehicle_PreControllers(
     }
     else
     {
-        for ( gunnerViewTags[3] = 0; (int)gunnerViewTags[3] < 6; ++gunnerViewTags[3] )
-            *((_BYTE *)gunnerViewTags[3] + (unsigned int)cent + 144) = -2;
+        for (i = 0; i < 6; ++i)
+            cent->pose.vehicle.wheelBoneIndex[i] = -2;
     }
 }
 
-void    VEH_UpdateMaterialTime(float a1@<ebp>, centity_s *cent, int dt, float speed)
-{
-    int v4; // [esp-4h] [ebp-2Ch] BYREF
-    float v5; // [esp+10h] [ebp-18h]
-    float v6; // [esp+14h] [ebp-14h]
-    const vehicle_info_t *VehicleInfo; // [esp+18h] [ebp-10h]
-    float deltaTime; // [esp+1Ch] [ebp-Ch]
-    float scrollMultiplier; // [esp+20h] [ebp-8h]
-    float retaddr; // [esp+28h] [ebp+0h]
 
-    deltaTime = a1;
-    scrollMultiplier = retaddr;
-    VehicleInfo = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
-    if ( VehicleInfo->texScroll )
+float aScrollSpeed = 300.0f;
+void    VEH_UpdateMaterialTime(centity_s *cent, int dt, float speed)
+{
+    phys_vec3 v4; // [esp-4h] [ebp-2Ch] OVERLAPPED BYREF
+    float deltaTime; // [esp+10h] [ebp-18h]
+    float scrollMultiplier; // [esp+14h] [ebp-14h]
+    const vehicle_info_t *info; // [esp+18h] [ebp-10h]
+    //_UNKNOWN *v8; // [esp+1Ch] [ebp-Ch]
+    //centity_s *centa; // [esp+20h] [ebp-8h]
+    //centity_s *speeda; // [esp+28h] [ebp+0h]
+    //
+    //v8 = a1;
+    //centa = speeda;
+    info = CG_GetVehicleInfo(cent->nextState.vehicleState.vehicleInfoIndex);
+    if (info->texScroll)
     {
-        v6 = 1.0f;
-        v5 = (float)((float)dt * (float)((float)(speed * 1.0) / 176.0)) * VehicleInfo->texScrollScale;
-        cent->vehicle->materialTime = (float)(v5 * 0.001) + cent->vehicle->materialTime;
-        cent->vehicle->materialTime2 = (float)(v5 * 0.001) + cent->vehicle->materialTime2;
-        if ( cent->destructible )
+        scrollMultiplier = 1.0f;
+        deltaTime = (float)((float)dt * (float)((float)(speed * 1.0) / 176.0)) * info->texScrollScale;
+        cent->vehicle->materialTime = (float)(deltaTime * 0.001) + cent->vehicle->materialTime;
+        cent->vehicle->materialTime2 = (float)(deltaTime * 0.001) + cent->vehicle->materialTime2;
+        if (cent->destructible)
         {
-            if ( cent->nitrousVeh )
+            if (cent->nitrousVeh)
             {
-                v5 = (float)dt * (float)(NitrousVehicle::get_a_velocity(cent->nitrousVeh, (phys_vec3 *)&v4)->z / 176.0);
-                cent->vehicle->materialTime = (float)((float)(v5 * 0.001) * aScrollSpeed) + cent->vehicle->materialTime;
-                cent->vehicle->materialTime2 = cent->vehicle->materialTime2 - (float)((float)(v5 * 0.001) * aScrollSpeed);
+                //deltaTime = (float)dt * (float)(NitrousVehicle::get_a_velocity(cent->nitrousVeh, &v4)->z / 176.0);
+                deltaTime = (float)dt * (float)(cent->nitrousVeh->get_a_velocity(&v4)->z / 176.0);
+                cent->vehicle->materialTime = (float)((float)(deltaTime * 0.001) * aScrollSpeed) + cent->vehicle->materialTime;
+                cent->vehicle->materialTime2 = cent->vehicle->materialTime2 - (float)((float)(deltaTime * 0.001) * aScrollSpeed);
             }
         }
     }
@@ -1147,7 +1263,7 @@ void __cdecl CG_UpdateVehicleSounds(int localClientNum, centity_s *cent)
     if ( cent->nitrousVeh && cent->vehicle && (speedIPS != 0.0 || vehicleOccupied) )
         CG_UpdateSurfaceSounds(localClientNum, cent, info);
     if ( vehicleOccupied )
-        CG_UpdateVehicleEngineSounds((int)&savedregs, localClientNum, cent, info, isLocalPlayersVehicle);
+        CG_UpdateVehicleEngineSounds(localClientNum, cent, info, isLocalPlayersVehicle);
     CG_UpdateBoostSounds(localClientNum, cent, info, isLocalPlayersVehicle);
     CG_UpdateTurretAndOverheatSounds(localClientNum, cent, info, isLocalPlayersVehicle);
     CG_UpdateFireSounds(localClientNum, cent, info, isLocalPlayersVehicle);
@@ -1168,16 +1284,16 @@ void __cdecl CG_UpdateSurfaceSounds(int localClientNum, centity_s *cent, const v
     }
     if ( v4 )
     {
-        CG_UpdateTankSurfaceSounds((unsigned int)&savedregs, localClientNum, cent, info);
+        CG_UpdateTankSurfaceSounds(localClientNum, cent, info);
     }
     else if ( v3 )
     {
-        CG_UpdateWheeledSurfaceSounds((int)&savedregs, localClientNum, cent, info);
+        CG_UpdateWheeledSurfaceSounds(localClientNum, cent, info);
     }
 }
 
+#if 0
 void    CG_UpdateWheeledSurfaceSounds(
-                int a1@<ebp>,
                 int localClientNum,
                 centity_s *cent,
                 const vehicle_info_t *info)
@@ -1235,10 +1351,87 @@ void    CG_UpdateWheeledSurfaceSounds(
         v8 = 0.0f;
     CG_CrossFadeVehicleMaterialEffects(localClientNum, cent, info, 2u, velocity_forward, v8, fadetime);
 }
+#endif
 
+// aislop 
+void CG_UpdateWheeledSurfaceSounds(
+    int localClientNum,
+    centity_s *cent,
+    const vehicle_info_t *info)
+{
+    int velocityForward;
+    float throttle;
+    float speed;
+    float maxSpeed;
+    float speedRatio;
+    float surfaceRatio;
+    float accelRatio;
+    float peelOut;
+
+    // Query sound info (fills throttle)
+    throttle = 0.0f;
+    velocityForward = GetSoundInfoForVehicle(localClientNum, cent, &throttle);
+
+    // ---- surface rolling ratio (speed based) ----
+    speed = fabsf(cent->nitrousVeh->m_forward_vel);
+    maxSpeed = cent->nitrousVeh->get_max_speed(0);
+
+    speedRatio = (speed / maxSpeed) * (float)M_PI_2;
+    speedRatio = sinf(speedRatio);
+
+    if (speedRatio < 0.0f)
+        surfaceRatio = 0.0f;
+    else if (speedRatio > 1.0f)
+        surfaceRatio = 1.0f;
+    else
+        surfaceRatio = speedRatio;
+
+    CG_CrossFadeVehicleMaterialEffects(
+        localClientNum,
+        cent,
+        info,
+        0,
+        velocityForward,
+        surfaceRatio,
+        fadetime
+    );
+
+    // ---- acceleration / throttle ratio ----
+    accelRatio = sinf((float)M_PI_2 * throttle);
+
+    if (accelRatio < 0.0f)
+        accelRatio = 0.0f;
+    else if (accelRatio > 1.0f)
+        accelRatio = 1.0f;
+
+    CG_CrossFadeVehicleMaterialEffects(
+        localClientNum,
+        cent,
+        info,
+        1,
+        velocityForward,
+        accelRatio,
+        fadetime
+    );
+
+    // ---- peel-out / burnout ----
+    peelOut = cent->nitrousVeh->is_peeling_out() ? 1.0f : 0.0f;
+
+    CG_CrossFadeVehicleMaterialEffects(
+        localClientNum,
+        cent,
+        info,
+        2,
+        velocityForward,
+        peelOut,
+        fadetime
+    );
+}
+
+
+#if 0
 // local variable allocation has failed, the output may be wrong!
 void    CG_UpdateTankSurfaceSounds(
-                unsigned int a1@<ebp>,
                 int localClientNum,
                 centity_s *cent,
                 const vehicle_info_t *info)
@@ -1295,10 +1488,10 @@ void    CG_UpdateTankSurfaceSounds(
     float axis[3][3]; // [esp+120h] [ebp-24h] BYREF
     unsigned int retaddr; // [esp+144h] [ebp+0h]
 
-    *(_QWORD *)&axis[2][0] = __PAIR64__(retaddr, a1);
+    //*(_QWORD *)&axis[2][0] = __PAIR64__(retaddr, a1);
     AnglesToAxis(cent->pose.angles, (float (*)[3])&wheelOrigins[5]);
-    LODWORD(wheelOrigins[4]) = axis;
-    LODWORD(wheelOrigins[3]) = cent->pose.origin;
+    //LODWORD(wheelOrigins[4]) = axis;
+    //LODWORD(wheelOrigins[3]) = cent->pose.origin;
     v51[0] = (float)(35.0 * axis[0][0]) + cent->pose.origin[0];
     v51[1] = (float)(35.0 * axis[0][1]) + cent->pose.origin[1];
     v51[2] = (float)(35.0 * axis[0][2]) + cent->pose.origin[2];
@@ -1375,7 +1568,7 @@ void    CG_UpdateTankSurfaceSounds(
         v24 = (float)accum[0][0][97229] * 0.001;
         v23 = v24 * v47;
         if ( cent->nitrousVeh )
-            iType = NitrousVehicle::get_a_velocity(cent->nitrousVeh, &v22)->z;
+            iType = cent->nitrousVeh->get_a_velocity(&v22)->z;
         else
             iType = cent->nextState.lerp.apos.trDelta[2];
         *(float *)&iSide = 48.0 * v24;
@@ -1436,12 +1629,12 @@ void    CG_UpdateTankSurfaceSounds(
                             }
                             if ( wheelIndex >= 0 )
                             {
-                                if ( (_S2_2 & 1) == 0 )
-                                {
-                                    _S2_2 |= 1u;
-                                    clacksCurveSlope = info->clacksCurveMaxOmitted
-                                                                     / (float)(info->clacksCurveDamageEnd - info->clacksCurveDamageStart);
-                                }
+                                static const float clacksCurveSlope = info->clacksCurveMaxOmitted / (float)(info->clacksCurveDamageEnd - info->clacksCurveDamageStart);
+                                //if ( (_S2_2 & 1) == 0 )
+                                //{
+                                //    _S2_2 |= 1u;
+                                //    clacksCurveSlope = info->clacksCurveMaxOmitted / (float)(info->clacksCurveDamageEnd - info->clacksCurveDamageStart);
+                                //}
                                 if ( info->clacksCurveDamageStart < currRightTreadHealthRatio )
                                 {
                                     if ( currRightTreadHealthRatio < info->clacksCurveDamageStart )
@@ -1469,6 +1662,177 @@ void    CG_UpdateTankSurfaceSounds(
         }
     }
 }
+#endif
+
+void CG_UpdateTankSurfaceSounds(
+    int localClientNum,
+    centity_s *cent,
+    const vehicle_info_t *info)
+{
+    float axis[3][3];
+    float wheelOrigins[8];
+    float leftOrigin[3];
+    float rightOrigin[3];
+
+    float speedIPS;
+    float speedRatio;
+    float healthRatio;
+    float damageRatio;
+    float attenuation;
+
+    float currLeftTreadHealthRatio;
+    float currRightTreadHealthRatio;
+
+    float frametimeSeconds;
+    float frameDistInches;
+
+    bool playDamagedSounds;
+    bool playClacks;
+
+    int *accum[1][2];
+    int rateLengths[1];
+
+    phys_vec3 velocity;
+    float verticalVel;
+
+    // --- orientation ---
+    AnglesToAxis(cent->pose.angles, axis);
+
+    // left/right tread origins
+    leftOrigin[0] = cent->pose.origin[0] + 35.0f * axis[0][0];
+    leftOrigin[1] = cent->pose.origin[1] + 35.0f * axis[0][1];
+    leftOrigin[2] = cent->pose.origin[2] + 35.0f * axis[0][2];
+
+    rightOrigin[0] = cent->pose.origin[0] - 35.0f * axis[0][0];
+    rightOrigin[1] = cent->pose.origin[1] - 35.0f * axis[0][1];
+    rightOrigin[2] = cent->pose.origin[2] - 35.0f * axis[0][2];
+
+    // --- speed ---
+    speedIPS = Abs(cent->currentState.pos.trDelta);
+    speedRatio = speedIPS / info->engineSndSpeed;
+    if (speedRatio < 0.0f) speedRatio = 0.0f;
+    else if (speedRatio > 1.0f) speedRatio = 1.0f;
+
+    attenuation = speedRatio;
+
+    // --- health ---
+    currLeftTreadHealthRatio = CG_VehGetHealthPercentageLeftTread(cent);
+    currRightTreadHealthRatio = CG_VehGetHealthPercentageRightTread(cent);
+
+    healthRatio = CG_VehGetHealthPercentageEntity(cent);
+    damageRatio = 1.0f - healthRatio;
+
+    // --- damaged body loop ---
+    if (playBodyDmgLoop)
+    {
+        float vol = attenuation * currRightTreadHealthRatio;
+
+        CG_PlaySound(
+            localClientNum,
+            cent->nextState.number,
+            leftOrigin,
+            0, 0,
+            vol,
+            info->sndNames[11]);
+
+        CG_PlaySound(
+            localClientNum,
+            cent->nextState.number,
+            rightOrigin,
+            0, 0,
+            vol,
+            info->sndNames[12]);
+    }
+
+    // --- tread grind / squeak ---
+    if (playTreadSqueaks)
+    {
+        playDamagedSounds =
+            info->treadDamageLoopHealthRatio > currLeftTreadHealthRatio;
+
+        int leftIndex = playDamagedSounds ? 15 : 13;
+        int rightIndex =
+            (info->treadDamageLoopHealthRatio > currRightTreadHealthRatio) ? 16 : 14;
+
+        float vol = info->treadGrindAttenuation * attenuation;
+
+        CG_PlaySound(
+            localClientNum,
+            cent->nextState.number,
+            leftOrigin,
+            0, 0,
+            vol,
+            info->sndNames[leftIndex]);
+
+        CG_PlaySound(
+            localClientNum,
+            cent->nextState.number,
+            rightOrigin,
+            0, 0,
+            vol,
+            info->sndNames[rightIndex]);
+    }
+
+    // --- clacks ---
+    if (info->sndMaterialNames[0][0] && cent->nitrousVeh)
+    {
+        const cg_s *cgameGlob = CG_GetLocalClientGlobals(localClientNum);
+
+        frametimeSeconds = cgameGlob->frametime * 0.001f;
+        frameDistInches = (float)info->trackLengthInches;
+
+        float frameMove = frametimeSeconds * speedIPS;
+
+        if (cent->nitrousVeh)
+            verticalVel = cent->nitrousVeh->get_a_velocity(&velocity)->z;
+        else
+            verticalVel = cent->nextState.lerp.apos.trDelta[2];
+
+        for (int side = 0; side < 2; ++side)
+        {
+            int *distAccum =
+                side == 0
+                ? &cent->nitrousVeh->m_trackDistAccumLeftInches
+                : &cent->nitrousVeh->m_trackDistAccumRightInches;
+
+            int oldDist = *distAccum;
+            int newDist = oldDist + (int)frameMove;
+
+            if ((newDist / (int)frameDistInches) != (oldDist / (int)frameDistInches))
+            {
+                *distAccum %= (int)frameDistInches;
+
+                if (playTreadClacks)
+                {
+                    // surface selection logic preserved
+                    // sound name composed from material + surface
+                    // randomness preserved
+
+                    if ((float)(rand() % 101) / 100.0f >= damageRatio)
+                    {
+                        const char *surfName =
+                            Com_SurfaceTypeToName(
+                                cent->nitrousVeh->m_wheel_surf_types[0]);
+
+                        const char *alias =
+                            va("%s_%s", info->sndMaterialNames[0], surfName);
+
+                        CG_PlaySound(
+                            localClientNum,
+                            cent->nextState.number,
+                            side == 0 ? leftOrigin : rightOrigin,
+                            0, 0,
+                            1.0f,
+                            alias);
+                    }
+                }
+            }
+
+            *distAccum = newDist;
+        }
+    }
+}
+
 
 void __cdecl CG_UpdateFireSounds(
                 int localClientNum,
@@ -1476,7 +1840,7 @@ void __cdecl CG_UpdateFireSounds(
                 const vehicle_info_t *info,
                 bool isLocalPlayersVehicle)
 {
-    char *v4; // [esp+8h] [ebp-Ch]
+    const char *v4; // [esp+8h] [ebp-Ch]
     float healthRatio; // [esp+10h] [ebp-4h]
 
     if ( playFireSounds )
@@ -1488,7 +1852,7 @@ void __cdecl CG_UpdateFireSounds(
                 v4 = "tank_burning_1p_loop";
             else
                 v4 = "tank_burning_3p_loop";
-            CG_PlaySound(localClientNum, cent->nextState.number, cent->pose.origin, 0, 0, 1.0, v4);
+            CG_PlaySound(localClientNum, cent->nextState.number, cent->pose.origin, 0, 0, 1.0, (char*)v4);
         }
     }
 }
@@ -1506,21 +1870,23 @@ void __cdecl CG_UpdateBoostSounds(
     if ( cent->nitrousVeh )
     {
         wasBoosting = (cent->nitrousVeh->m_sfx_state_flags & 2) != 0;
-        if ( NitrousVehicle::is_boosting(cent->nitrousVeh) && !wasBoosting )
+        //if ( NitrousVehicle::is_boosting(cent->nitrousVeh) && !wasBoosting )
+        if ( cent->nitrousVeh->is_boosting() && !wasBoosting)
         {
             GetSoundOriginForVehicle(cent, soundOrigin);
             sndNameIndex = isLocalPlayersVehicle + 17;
-            CG_PlaySound(localClientNum, cent->nextState.number, soundOrigin, 0, 0, 1.0, info->sndNames[sndNameIndex]);
+            CG_PlaySound(localClientNum, cent->nextState.number, soundOrigin, 0, 0, 1.0, (char*)info->sndNames[sndNameIndex]);
         }
-        if ( NitrousVehicle::is_boosting(cent->nitrousVeh) )
+        //if ( NitrousVehicle::is_boosting(cent->nitrousVeh) )
+        if ( cent->nitrousVeh->is_boosting() )
             cent->nitrousVeh->m_sfx_state_flags |= 2u;
         else
             cent->nitrousVeh->m_sfx_state_flags &= ~2u;
     }
 }
 
+#if 0
 void    CG_UpdateVehicleEngineSounds(
-                int a1@<ebp>,
                 int localClientNum,
                 centity_s *cent,
                 const vehicle_info_t *info,
@@ -1672,6 +2038,145 @@ void    CG_UpdateVehicleEngineSounds(
                     info->sndNames[isLocalPlayersVehicle + 9]);
     SND_SetPlaybackPitch(v13, pitch);
 }
+#endif
+
+void CG_UpdateVehicleEngineSounds(
+    int localClientNum,
+    centity_s *cent,
+    const vehicle_info_t *info,
+    bool isLocalPlayersVehicle)
+{
+    float throttle;
+    float speedIPS;
+    float speedMPH;
+    float speedRatio;
+    float healthRatio;
+    float engineRPMs;
+    float rpm;
+    float rpmScale;
+    float pitch;
+    float idleAtten;
+    float loopVolume;
+    float loadLevel;
+    float noLoadCoef, loadCoef;
+
+    float soundOrigin[3];
+    cgVehicleWheelEffect *wheelEffects;
+
+    // ---- throttle ----
+    throttle = cent->nextState.lerp.u.vehicle.throttle * (1.0f / 32768.0f);
+    if (cent->nitrousVeh)
+        throttle = cent->nitrousVeh->m_throttle;
+
+    // ---- speed ----
+    speedIPS = Abs(cent->currentState.pos.trDelta);//fabsf(cent->currentState.pos.trDelta);
+    speedRatio = speedIPS / info->engineSndSpeed;
+    if (speedRatio < 0.0f) speedRatio = 0.0f;
+    else if (speedRatio > 1.0f) speedRatio = 1.0f;
+
+    speedMPH = speedIPS / 17.6f;
+
+    // ---- health / damage ----
+    healthRatio = CG_VehGetHealthPercentageEntity(cent);
+    engineRPMs = 1.0f - healthRatio;
+
+    wheelEffects = cent->vehicle->wheelEffects;
+
+    // ---- RPM calculation ----
+    if (wheelEffects->surfaceType == -1)
+    {
+        rpm = ((info->gear2MaxRPMs - info->idleRPMs) * throttle)
+            + info->idleRPMs;
+    }
+    else if (cent->nitrousVeh && throttle == 0.0f)
+    {
+        rpm = info->idleRPMs;
+    }
+    else if (speedMPH >= info->gearChangeMPH)
+    {
+        float slope =
+            (info->gear2MaxRPMs - info->gear2MinRPMs) /
+            (info->maxSpeed - info->gearChangeMPH);
+
+        rpm = ((speedMPH - info->gearChangeMPH) * slope)
+            + info->gear2MinRPMs;
+    }
+    else
+    {
+        float slope =
+            (info->gear1MaxRPMs - info->gear1MinRPMs) /
+            info->gearChangeMPH;
+
+        rpm = (speedMPH * slope) + info->gear1MinRPMs;
+    }
+
+    // ---- pitch scaling ----
+    rpmScale = rpm / info->idleRPMs;
+    pitch = rpm / info->engineModLoopNaturalRPMs;
+
+    // ---- sound origin ----
+    GetSoundOriginForVehicle(cent, soundOrigin);
+
+    // ---- idle attenuation ----
+    {
+        float denom = info->idleRPMsMax - info->idleRPMs;
+        if (denom <= 0.0f)
+            denom = 1.0f;
+
+        idleAtten = (rpm - info->idleRPMs) / denom;
+    }
+
+    if (idleAtten < 0.0f) idleAtten = 0.0f;
+    else if (idleAtten > 1.0f) idleAtten = 1.0f;
+
+    loopVolume = cosf(idleAtten * 1.5707964f);
+    if (loopVolume < 0.0f) loopVolume = 0.0f;
+    else if (loopVolume > 1.0f) loopVolume = 1.0f;
+
+    // ---- idle loop ----
+    int handle = CG_PlaySoundWithHandle(
+        localClientNum,
+        cent->nextState.number,
+        soundOrigin,
+        0,
+        0,
+        loopVolume,
+        info->sndNames[isLocalPlayersVehicle]);
+
+    SND_SetPlaybackPitch(handle, rpmScale);
+
+    // ---- load vs no-load blend ----
+    loadLevel = (fabsf(throttle) - speedRatio) + engineRPMs;
+    if (loadLevel < 0.0f) loadLevel = 0.0f;
+    else if (loadLevel > 1.0f) loadLevel = 1.0f;
+
+    SND_EqualPowerFadeCoefs(loadLevel, &noLoadCoef, &loadCoef);
+
+    // ---- no-load loop ----
+    handle = CG_PlaySoundWithHandle(
+        localClientNum,
+        cent->nextState.number,
+        soundOrigin,
+        0,
+        0,
+        noLoadCoef * idleAtten,
+        info->sndNames[isLocalPlayersVehicle + 7]);
+
+    SND_SetPlaybackPitch(handle, pitch);
+
+    // ---- load loop ----
+    handle = CG_PlaySoundWithHandle(
+        localClientNum,
+        cent->nextState.number,
+        soundOrigin,
+        0,
+        0,
+        loadCoef * idleAtten,
+        info->sndNames[isLocalPlayersVehicle + 9]);
+
+    SND_SetPlaybackPitch(handle, pitch);
+}
+
 
 void __cdecl CG_UpdateTurretAndOverheatSounds(
                 int localClientNum,

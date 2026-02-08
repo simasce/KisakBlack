@@ -100,3 +100,6 @@ struct ExtraCamClientStateRestore // sizeof=0x3A0
     ExtraCamClientStateRestore(int localClientNum);
     ~ExtraCamClientStateRestore();
 };
+
+
+extern bool gVehicleRelativeGunnerAngles;

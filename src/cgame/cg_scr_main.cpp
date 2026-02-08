@@ -64,123 +64,128 @@ void NULLSUB()
 
 }
 
+void NULLSUB2(scr_entref_t ref)
+{
+
+}
+
 const BuiltinMethodDef client_methods[111] =
 {
-  { "print", &CScr_Print, 1 },
-  { "delete", &CScrCmd_Delete, 0 },
-  { "forcedelete", &CScrCmd_ForceDelete, 0 },
-  { "earthquake", &CScrCmd_Earthquake, 0 },
-  { "playsound", &CScr_PlaySoundOnEntity, 0 },
-  { "playloopsound", &CScr_PlayLoopSoundOnEntity, 0 },
-  { "stoploopsound", &CScr_StopLoopSoundOnEntity, 0 },
-  { "isplayingloopsound", &CScr_IsPlayingLoopSound, 0 },
-  { "makelight", &CScrCmd_MakeLight, 0 },
-  { "getlightcolor", &CScr_GetLightColor, 0 },
-  { "setlightcolor", &CScr_SetLightColor, 0 },
-  { "getlightintensity", &CScr_GetLightIntensity, 0 },
-  { "setlightintensity", &CScr_SetLightIntensity, 0 },
-  { "getlightradius", &CScr_GetLightRadius, 0 },
-  { "setlightradius", &CScr_SetLightRadius, 0 },
-  { "getlightfovinner", &CScr_GetLightFovInner, 0 },
-  { "getlightfovouter", &CScr_GetLightFovOuter, 0 },
-  { "setlightfovrange", &CScr_SetLightFovRange, 0 },
-  { "getlightexponent", &CScr_GetLightExponent, 0 },
-  { "setlightexponent", &CScr_SetLightExponent, 0 },
-  { "getentnum", &CScrCmd_GetEntNum, 1 },
-  { "getentitynumber", &CScrCmd_GetEntityNumber, 0 },
-  { "setmodel", &CScrCmd_SetModel, 0 },
-  { "attach", &CScr_Attach, 0 },
-  { "linkto", &CScrCmd_LinkTo, 0 },
-  { "unlink", &CScrCmd_Unlink, 0 },
-  { "istouching", &CScrCmd_IsTouching, 0 },
-  { "isalive", &CScrCmd_IsAlive, 0 },
-  { "getspeed", &CScrCmd_GetSpeed, 0 },
-  { "underwater", &CScrCmd_UnderWater, 0 },
-  { "isplayer", &CScrCmd_IsPlayer, 0 },
-  { "islocalplayer", &CScrCmd_IsLocalPlayer, 0 },
-  { "isai", &CScrCmd_IsAI, 0 },
-  { "hasdobj", &CScr_HasDObj, 0 },
-  { "setcompassicon", &CScr_SetCompassIcon, 0 },
-  { "launchragdoll", &CScr_LaunchRagdoll, 0 },
-  { "show", &CScr_Show, 0 },
-  { "hide", &CScr_Hide, 0 },
-  { "getthrottle", &CScrCmd_GetThrottle, 0 },
-  { "getbrake", &CScrCmd_GetBrake, 0 },
-  { "getmaxspeed", &CScrCmd_GetMaxSpeed, 0 },
-  { "getmaxreversespeed", &CScrCmd_GetMaxReverseSpeed, 0 },
-  { "islocalclientdriver", &CScrCmd_IsLocalClientDriver, 0 },
-  { "getlocalclientdriver", &CScrCmd_GetLocalClientDriver, 0 },
-  { "getwheelsurface", &CScrCmd_GetWheelSurface, 0 },
-  { "ispeelingout", &CScrCmd_IsVehiclePeelingOut, 0 },
-  { "iswheelsliding", &CScrCmd_IsWheelSliding, 0 },
-  { "iswheelcolliding", &CScrCmd_IsWheelColliding, 0 },
-  { "getlocalgunnerangles", &CScrCmd_GetLocalGunnerAngles, 0 },
-  { "setstunned", &CScrCmd_SetStunned, 0 },
-  { "isdriving", &CScrCmd_IsDriving, 0 },
-  { "rotatepitch", &CScrCmd_RotatePitch, 0 },
-  { "rotateyaw", &CScrCmd_RotateYaw, 0 },
-  { "rotateroll", &CScrCmd_RotateRoll, 0 },
-  { "rotateto", &CScrCmd_RotateTo, 0 },
-  { "moveto", &CScrCmd_MoveTo, 0 },
-  { "movegravity", &CScrCmd_MoveGravity, 0 },
-  { "movex", &CScrEntCmd_MoveX, 0 },
-  { "movey", &CScrEntCmd_MoveY, 0 },
-  { "movez", &CScrEntCmd_MoveZ, 0 },
-  { "rotatevelocity", &CScrCmd_RotateVelocity, 0 },
-  { "playrumbleonentity", &NULLSUB, 0 },
-  { "playrumblelooponentity", &NULLSUB, 0 },
-  { "stoprumble", &NULLSUB, 0 },
-  { "startpoisoning", &CScr_StartPoisoning, 0 },
-  { "stoppoisoning", &CScr_StopPoisoning, 0 },
-  { "ispoisoned", &CScr_IsPoisoned, 0 },
-  { "issplitscreenhost", &CScrCmd_IsSplitScreenHost, 0 },
-  { "setwatchstyle", &NULLSUB, 0 },
-  { "getcampos", &CScrCmd_GetCamPos, 0 },
-  { "getcamangles", &CScrCmd_GetCamAngles, 0 },
-  { "useanimtree", &CScr_UseAnimTree, 0 },
-  { "hasanimtree", &CScr_HasAnimTree, 0 },
-  { "clearanim", &CScr_ClearAnim, 0 },
-  { "clearanimlimited", &CScr_ClearAnimLimited, 0 },
-  { "setanim", &CScr_SetAnim, 0 },
-  { "setanimlimited", &CScr_SetAnimLimited, 0 },
-  { "setanimrestart", &CScr_SetAnimRestart, 0 },
-  { "setanimlimitedrestart", &CScr_SetAnimLimitedRestart, 0 },
-  { "setflaggedanim", &CScr_SetFlaggedAnim, 0 },
-  { "setflaggedanimlimited", &CScr_SetFlaggedAnimLimited, 0 },
-  { "setflaggedanimrestart", &CScr_SetFlaggedAnimRestart, 0 },
-  { "setflaggedanimlimitedrestart", &CScr_SetFlaggedAnimLimitedRestart, 0 },
-  { "setanimknob", &CScr_SetAnimKnob, 0 },
-  { "setanimknoblimited", &CScr_SetAnimKnobLimited, 0 },
-  { "setanimknobrestart", &CScr_SetAnimKnobRestart, 0 },
-  { "setanimknoblimitedrestart", &CScr_SetAnimKnobLimitedRestart, 0 },
-  { "setanimknoball", &CScr_SetAnimKnobAll, 0 },
-  { "setanimknoballlimited", &CScr_SetAnimKnobAllLimited, 0 },
-  { "setanimknoballrestart", &CScr_SetAnimKnobAllRestart, 0 },
-  { "setanimknoballlimitedrestart", &CScr_SetAnimKnobAllLimitedRestart, 0 },
-  { "setflaggedanimknob", &CScr_SetFlaggedAnimKnob, 0 },
-  { "setflaggedanimknoblimited", &CScr_SetFlaggedAnimKnobLimited, 0 },
-  { "setflaggedanimknobrestart", &CScr_SetFlaggedAnimKnobRestart, 0 },
+  { "print", CScr_Print, 1 },
+  { "delete", CScrCmd_Delete, 0 },
+  { "forcedelete", CScrCmd_ForceDelete, 0 },
+  { "earthquake", CScrCmd_Earthquake, 0 },
+  { "playsound", CScr_PlaySoundOnEntity, 0 },
+  { "playloopsound", CScr_PlayLoopSoundOnEntity, 0 },
+  { "stoploopsound", CScr_StopLoopSoundOnEntity, 0 },
+  { "isplayingloopsound", CScr_IsPlayingLoopSound, 0 },
+  { "makelight", CScrCmd_MakeLight, 0 },
+  { "getlightcolor", CScr_GetLightColor, 0 },
+  { "setlightcolor", CScr_SetLightColor, 0 },
+  { "getlightintensity", CScr_GetLightIntensity, 0 },
+  { "setlightintensity", CScr_SetLightIntensity, 0 },
+  { "getlightradius", CScr_GetLightRadius, 0 },
+  { "setlightradius", CScr_SetLightRadius, 0 },
+  { "getlightfovinner", CScr_GetLightFovInner, 0 },
+  { "getlightfovouter", CScr_GetLightFovOuter, 0 },
+  { "setlightfovrange", CScr_SetLightFovRange, 0 },
+  { "getlightexponent", CScr_GetLightExponent, 0 },
+  { "setlightexponent", CScr_SetLightExponent, 0 },
+  { "getentnum", CScrCmd_GetEntNum, 1 },
+  { "getentitynumber", CScrCmd_GetEntityNumber, 0 },
+  { "setmodel", CScrCmd_SetModel, 0 },
+  { "attach", CScr_Attach, 0 },
+  { "linkto", CScrCmd_LinkTo, 0 },
+  { "unlink", CScrCmd_Unlink, 0 },
+  { "istouching", CScrCmd_IsTouching, 0 },
+  { "isalive", CScrCmd_IsAlive, 0 },
+  { "getspeed", CScrCmd_GetSpeed, 0 },
+  { "underwater", CScrCmd_UnderWater, 0 },
+  { "isplayer", CScrCmd_IsPlayer, 0 },
+  { "islocalplayer", CScrCmd_IsLocalPlayer, 0 },
+  { "isai", CScrCmd_IsAI, 0 },
+  { "hasdobj", CScr_HasDObj, 0 },
+  { "setcompassicon", CScr_SetCompassIcon, 0 },
+  { "launchragdoll", CScr_LaunchRagdoll, 0 },
+  { "show", CScr_Show, 0 },
+  { "hide", CScr_Hide, 0 },
+  { "getthrottle", CScrCmd_GetThrottle, 0 },
+  { "getbrake", CScrCmd_GetBrake, 0 },
+  { "getmaxspeed", CScrCmd_GetMaxSpeed, 0 },
+  { "getmaxreversespeed", CScrCmd_GetMaxReverseSpeed, 0 },
+  { "islocalclientdriver", CScrCmd_IsLocalClientDriver, 0 },
+  { "getlocalclientdriver", CScrCmd_GetLocalClientDriver, 0 },
+  { "getwheelsurface", CScrCmd_GetWheelSurface, 0 },
+  { "ispeelingout", CScrCmd_IsVehiclePeelingOut, 0 },
+  { "iswheelsliding", CScrCmd_IsWheelSliding, 0 },
+  { "iswheelcolliding", CScrCmd_IsWheelColliding, 0 },
+  { "getlocalgunnerangles", CScrCmd_GetLocalGunnerAngles, 0 },
+  { "setstunned", CScrCmd_SetStunned, 0 },
+  { "isdriving", CScrCmd_IsDriving, 0 },
+  { "rotatepitch", CScrCmd_RotatePitch, 0 },
+  { "rotateyaw", CScrCmd_RotateYaw, 0 },
+  { "rotateroll", CScrCmd_RotateRoll, 0 },
+  { "rotateto", CScrCmd_RotateTo, 0 },
+  { "moveto", CScrCmd_MoveTo, 0 },
+  { "movegravity", CScrCmd_MoveGravity, 0 },
+  { "movex", CScrEntCmd_MoveX, 0 },
+  { "movey", CScrEntCmd_MoveY, 0 },
+  { "movez", CScrEntCmd_MoveZ, 0 },
+  { "rotatevelocity", CScrCmd_RotateVelocity, 0 },
+  { "playrumbleonentity", NULLSUB2, 0 },
+  { "playrumblelooponentity", NULLSUB2, 0 },
+  { "stoprumble", NULLSUB2, 0 },
+  { "startpoisoning", CScr_StartPoisoning, 0 },
+  { "stoppoisoning", CScr_StopPoisoning, 0 },
+  { "ispoisoned", CScr_IsPoisoned, 0 },
+  { "issplitscreenhost", CScrCmd_IsSplitScreenHost, 0 },
+  { "setwatchstyle", NULLSUB2, 0 },
+  { "getcampos", CScrCmd_GetCamPos, 0 },
+  { "getcamangles", CScrCmd_GetCamAngles, 0 },
+  { "useanimtree", CScr_UseAnimTree, 0 },
+  { "hasanimtree", CScr_HasAnimTree, 0 },
+  { "clearanim", CScr_ClearAnim, 0 },
+  { "clearanimlimited", CScr_ClearAnimLimited, 0 },
+  { "setanim", CScr_SetAnim, 0 },
+  { "setanimlimited", CScr_SetAnimLimited, 0 },
+  { "setanimrestart", CScr_SetAnimRestart, 0 },
+  { "setanimlimitedrestart", CScr_SetAnimLimitedRestart, 0 },
+  { "setflaggedanim", CScr_SetFlaggedAnim, 0 },
+  { "setflaggedanimlimited", CScr_SetFlaggedAnimLimited, 0 },
+  { "setflaggedanimrestart", CScr_SetFlaggedAnimRestart, 0 },
+  { "setflaggedanimlimitedrestart", CScr_SetFlaggedAnimLimitedRestart, 0 },
+  { "setanimknob", CScr_SetAnimKnob, 0 },
+  { "setanimknoblimited", CScr_SetAnimKnobLimited, 0 },
+  { "setanimknobrestart", CScr_SetAnimKnobRestart, 0 },
+  { "setanimknoblimitedrestart", CScr_SetAnimKnobLimitedRestart, 0 },
+  { "setanimknoball", CScr_SetAnimKnobAll, 0 },
+  { "setanimknoballlimited", CScr_SetAnimKnobAllLimited, 0 },
+  { "setanimknoballrestart", CScr_SetAnimKnobAllRestart, 0 },
+  { "setanimknoballlimitedrestart", CScr_SetAnimKnobAllLimitedRestart, 0 },
+  { "setflaggedanimknob", CScr_SetFlaggedAnimKnob, 0 },
+  { "setflaggedanimknoblimited", CScr_SetFlaggedAnimKnobLimited, 0 },
+  { "setflaggedanimknobrestart", CScr_SetFlaggedAnimKnobRestart, 0 },
   {
     "setflaggedanimknoblimitedrestart",
-    &CScr_SetFlaggedAnimKnobLimitedRestart,
+    CScr_SetFlaggedAnimKnobLimitedRestart,
     0
   },
-  { "setflaggedanimknoball", &CScr_SetFlaggedAnimKnobAll, 0 },
-  { "setflaggedanimknoballrestart", &CScr_SetFlaggedAnimKnobAllRestart, 0 },
-  { "getanimtime", &CScr_GetAnimTime, 0 },
-  { "setanimtime", &CScr_SetAnimTime, 0 },
-  { "getanimcurrframecount", &CScr_GetAnimCurrFrameCount, 0 },
-  { "animgetchildat", &CScr_AnimGetChildAt, 0 },
-  { "animgetnumchildren", &CScr_AnimGetNumChildren, 0 },
-  { "map_material", &CScr_Map_Material, 0 },
-  { "set_filter_pass_material", &CScr_Set_Filter_Pass_Material, 0 },
-  { "set_filter_pass_enabled", &CScr_Set_Filter_Pass_Enabled, 0 },
-  { "set_filter_pass_quads", &CScr_Set_Filter_Pass_Quads, 0 },
-  { "set_filter_pass_constant", &CScr_Set_Filter_Pass_Constant, 0 },
-  { "set_overlay_enabled", &CScr_Set_Overlay_Enabled, 0 },
-  { "set_overlay_material", &CScr_Set_Overlay_Material, 0 },
-  { "set_overlay_constant", &CScr_Set_Overlay_Constant, 0 },
-  { "setinfraredvisionset", &CScr_SetInfraredVisionset, 0 }
+  { "setflaggedanimknoball", CScr_SetFlaggedAnimKnobAll, 0 },
+  { "setflaggedanimknoballrestart", CScr_SetFlaggedAnimKnobAllRestart, 0 },
+  { "getanimtime", CScr_GetAnimTime, 0 },
+  { "setanimtime", CScr_SetAnimTime, 0 },
+  { "getanimcurrframecount", CScr_GetAnimCurrFrameCount, 0 },
+  { "animgetchildat", CScr_AnimGetChildAt, 0 },
+  { "animgetnumchildren", CScr_AnimGetNumChildren, 0 },
+  { "map_material", CScr_Map_Material, 0 },
+  { "set_filter_pass_material", CScr_Set_Filter_Pass_Material, 0 },
+  { "set_filter_pass_enabled", CScr_Set_Filter_Pass_Enabled, 0 },
+  { "set_filter_pass_quads", CScr_Set_Filter_Pass_Quads, 0 },
+  { "set_filter_pass_constant", CScr_Set_Filter_Pass_Constant, 0 },
+  { "set_overlay_enabled", CScr_Set_Overlay_Enabled, 0 },
+  { "set_overlay_material", CScr_Set_Overlay_Material, 0 },
+  { "set_overlay_constant", CScr_Set_Overlay_Constant, 0 },
+  { "setinfraredvisionset", CScr_SetInfraredVisionset, 0 }
 };
 
 
@@ -6096,7 +6101,7 @@ void(__cdecl *__cdecl CScr_GetFunction(const char **pName, int *type))()
     return CScr_GetFunctionProjectSpecific(pName, type);
 }
 
-void __cdecl CScr_Print()
+void __cdecl CScr_Print(scr_entref_t entref)
 {
     print();
 }
@@ -6296,54 +6301,57 @@ void __cdecl CScr_Attach(scr_entref_t entref)
     }
 }
 
+
 unsigned int __cdecl CScr_GetConstServerString(unsigned int index)
 {
-    char *v1; // eax
-    char *v3; // [esp-4h] [ebp-18h]
+    static int currentCacheIndex;
+    static int stringCache[2][2];
+    static unsigned int stringValue[3];
+
+    char *v2; // eax
+    char *v4; // [esp-4h] [ebp-18h]
     int i; // [esp+0h] [ebp-14h]
     char *string; // [esp+4h] [ebp-10h]
     int clientStringId; // [esp+Ch] [ebp-8h]
     unsigned int serverStringId; // [esp+10h] [ebp-4h]
 
     clientStringId = Scr_GetConstString(index, SCRIPTINSTANCE_CLIENT).intValue;
-    for ( i = 0; i < 2; ++i )
+    for (i = 0; i < 2; ++i)
     {
-        if ( `CScr_GetConstServerString'::`2'::stringCache[i][0] == clientStringId )
+        if (stringCache[i][0] == clientStringId)
         {
-            v3 = SL_ConvertToString(stringValue[2 * i], SCRIPTINSTANCE_SERVER);
-            v1 = SL_ConvertToString(`CScr_GetConstServerString'::`2'::stringCache[i][0], SCRIPTINSTANCE_CLIENT);
-            if ( I_stricmp(v1, v3) )
+            v4 = SL_ConvertToString(stringValue[2 * i], SCRIPTINSTANCE_SERVER);
+            v2 = SL_ConvertToString(stringCache[i][0], SCRIPTINSTANCE_CLIENT);
+            if (I_stricmp(v2, v4))
             {
-                if ( !Assert_MyHandler(
-                                "c:\\projects_pc\\cod\\codsrc\\src\\cgame\\../cgame/cg_scr_main.h",
-                                526,
-                                0,
-                                "%s",
-                                "I_stricmp( SL_ConvertToString(stringCache[i][0], SCRIPTINSTANCE_CLIENT), SL_ConvertToString(stringCache["
-                                "i][1], SCRIPTINSTANCE_SERVER) ) == 0") )
+                if (!Assert_MyHandler(
+                    "c:\\projects_pc\\cod\\codsrc\\src\\cgame\\../cgame/cg_scr_main.h",
+                    526,
+                    0,
+                    "%s",
+                    "I_stricmp( SL_ConvertToString(stringCache[i][0], SCRIPTINSTANCE_CLIENT), SL_ConvertToString(stringCache["
+                    "i][1], SCRIPTINSTANCE_SERVER) ) == 0"))
                     __debugbreak();
             }
             return stringValue[2 * i];
         }
     }
-    if ( `CScr_GetConstServerString'::`2'::stringCache[`CScr_GetConstServerString'::`2'::currrentCacheIndex][0] )
+    if (stringCache[currentCacheIndex][0])
     {
-        SL_RemoveRefToString(
-            SCRIPTINSTANCE_CLIENT,
-            `CScr_GetConstServerString'::`2'::stringCache[`CScr_GetConstServerString'::`2'::currrentCacheIndex][0]);
-        SL_RemoveRefToString(SCRIPTINSTANCE_SERVER, stringValue[2 * `CScr_GetConstServerString'::`2'::currrentCacheIndex]);
-        `CScr_GetConstServerString'::`2'::stringCache[`CScr_GetConstServerString'::`2'::currrentCacheIndex][0] = 0;
-        stringValue[2 * `CScr_GetConstServerString'::`2'::currrentCacheIndex] = 0;
+        SL_RemoveRefToString(SCRIPTINSTANCE_CLIENT, stringCache[currentCacheIndex][0]);
+        SL_RemoveRefToString(SCRIPTINSTANCE_SERVER, stringValue[2 * currentCacheIndex]);
+        stringCache[currentCacheIndex][0] = 0;
+        stringValue[2 * currentCacheIndex] = 0;
     }
     string = SL_ConvertToString(clientStringId, SCRIPTINSTANCE_CLIENT);
     serverStringId = SL_FindLowercaseString(string, SCRIPTINSTANCE_SERVER);
-    if ( serverStringId )
+    if (serverStringId)
     {
         SL_AddRefToString(clientStringId, SCRIPTINSTANCE_CLIENT);
         SL_AddRefToString(serverStringId, SCRIPTINSTANCE_SERVER);
-        `CScr_GetConstServerString'::`2'::stringCache[`CScr_GetConstServerString'::`2'::currrentCacheIndex][0] = clientStringId;
-        stringValue[2 * `CScr_GetConstServerString'::`2'::currrentCacheIndex++] = serverStringId;
-        `CScr_GetConstServerString'::`2'::currrentCacheIndex %= 2;
+        stringCache[currentCacheIndex][0] = clientStringId;
+        stringValue[2 * currentCacheIndex++] = serverStringId;
+        currentCacheIndex %= 2;
     }
     return serverStringId;
 }
