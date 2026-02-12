@@ -3,6 +3,8 @@
 #include "ui_server.h"
 #include "ui_main_pc.h"
 #include <qcommon/com_gamemodes.h>
+#include <ui_mp/ui_feeders_mp.h>
+#include "ui_utils.h"
 
 const char *__cdecl UI_FeederCount(int localClientNum, int contextIndex, float feederID, listBoxDef_s *listPtr)
 {
@@ -56,7 +58,7 @@ const char *__cdecl UI_FeederCount(int localClientNum, int contextIndex, float f
             result = *(const char **)sharedUiInfo.gap58;
             break;
         case 9:
-            result = sharedUiInfo.modList[63].modDescr;
+            result = sharedUiInfo.modCount;
             break;
         case 13:
             result = sharedUiInfo.serverStatusInfoScoreBoard.lines[2][5];
@@ -138,16 +140,16 @@ void __cdecl UI_BuildPlayerList(int localClientNum)
     info = CL_GetConfigString(0);
     v1 = Info_ValueForKey(info, "com_maxclients");
     count = atoi(v1);
-    memset((unsigned __int8 *)&sharedUiInfo.teamNames[31][28], 0xFFu, 0x80u);
-    *(unsigned int *)sharedUiInfo.gap58 = 0;
-    for ( n = 0; n < count; ++n )
+    memset(sharedUiInfo.playerClientNums, 0xFFu, sizeof(sharedUiInfo.playerClientNums));
+    sharedUiInfo.playerCount = 0;
+    for (n = 0; n < count; ++n)
     {
-        if ( CL_GetClientName(localClientNum, n, szName, 38, 1) )
+        if (CL_GetClientName(localClientNum, n, szName, 38, 1))
         {
-            sharedUiInfo.playerClientNums[*(unsigned int *)sharedUiInfo.gap58 - 1] = n;
-            I_strncpyz(&sharedUiInfo.gap58[32 * *(unsigned int *)sharedUiInfo.gap58 + 4], szName, 32);
-            I_CleanStr(&sharedUiInfo.gap58[32 * *(unsigned int *)sharedUiInfo.gap58 + 4]);
-            ++*(unsigned int *)sharedUiInfo.gap58;
+            sharedUiInfo.playerClientNums[sharedUiInfo.playerCount] = n;
+            I_strncpyz(sharedUiInfo.playerNames[sharedUiInfo.playerCount], szName, 32);
+            I_CleanStr(sharedUiInfo.playerNames[sharedUiInfo.playerCount]);
+            ++sharedUiInfo.playerCount;
         }
     }
 }
@@ -190,12 +192,12 @@ _CustomClassDescription *__cdecl UI_FeederItemText(
         case 4:
             return (_CustomClassDescription *)UI_SelectedMap(index, &actual);
         case 7:
-            if ( index < ITEMGROUP_SMG || index >= *(int *)sharedUiInfo.gap58 )
+            if (index < 0 || index >= sharedUiInfo.playerCount)
                 return (_CustomClassDescription *)"";
             if ( column )
             {
                 if ( column == 1 )
-                    return (_CustomClassDescription *)&sharedUiInfo.gap58[32 * index + 4];
+                    return (_CustomClassDescription*)sharedUiInfo.playerNames[index];
             }
             else
             {
@@ -2364,15 +2366,15 @@ void __cdecl UI_OverrideCursorPos_Servers(int localClientNum, int contextIndex, 
 
     if ( listPtr->endPos[contextIndex] )
     {
-        if ( *(int *)&sharedUiInfo.gap0[1124] >= 0 )
+        if (sharedUiInfo.serverStatus.currentServer >= 0)
         {
-            maxScroll = Item_ListBox_MaxScroll(localClientNum, contextIndex, item);
+            maxScroll = (int)Item_ListBox_MaxScroll(localClientNum, contextIndex, item);
             if ( listPtr->startPos[contextIndex] > maxScroll )
                 listPtr->startPos[contextIndex] = maxScroll;
             if ( listPtr->cursorPos[contextIndex] >= listPtr->startPos[contextIndex]
                 && listPtr->cursorPos[contextIndex] <= listPtr->endPos[contextIndex] )
             {
-                *(unsigned int *)&sharedUiInfo.gap0[1124] = listPtr->cursorPos[contextIndex];
+                sharedUiInfo.serverStatus.currentServer = listPtr->cursorPos[contextIndex];
             }
         }
     }
@@ -2508,10 +2510,10 @@ void __cdecl UI_FeederSelection(int localClientNum, int contextIndex, float feed
             Dvar_SetInt((dvar_s *)selectedMenuItemIndex, index);
             break;
         case 60:
-            sharedUiInfo.numItemsInSlot = index;
+            sharedUiInfo.sortedItemPivot = index;
             break;
         case 90:
-            sharedUiInfo.numSortedItems = index + 1;
+            sharedUiInfo.clanTagFeature = index + 1;
             break;
         default:
             UI_Project_FeederSelection(localClientNum, contextIndex, feederID, index);

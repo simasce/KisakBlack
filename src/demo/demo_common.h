@@ -883,6 +883,13 @@ struct __declspec(align(8)) demoRecordedFileUploadInfo // sizeof=0x5D8
     // padding byte
     // padding byte
     // padding byte
+
+    ~demoRecordedFileUploadInfo() = default;
+};
+
+struct demoClient_s // sizeof=0x4
+{                                       // XREF: .data:demoClient_s demoClient/r
+    int state;                          // XREF: Demo_SetDemoClientState(int)+6/w
 };
 
 void __cdecl Demo_RegisterDvars();
@@ -999,3 +1006,8 @@ extern const dvar_t *demo_bytesPerSecondMax;
 extern demoMain demo;
 extern ddlState_t g_fileShareRootState;
 extern ddlDef_t *g_fileshareDDL;
+
+extern unsigned __int8 *g_keyframeBuf;
+
+extern entityState_s g_defaultEntityState;
+extern clientState_s g_defaultClientState;

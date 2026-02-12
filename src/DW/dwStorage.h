@@ -1,4 +1,5 @@
 #pragma once
+#include <live/live_storage.h>
 
 enum bdLobbyErrorCode : __int32
 {                                       // XREF: bdLobbyConnection::Status/r

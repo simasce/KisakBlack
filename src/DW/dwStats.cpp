@@ -1,4 +1,5 @@
 #include "dwStats.h"
+#include "dwUtils.h"
 
 void __cdecl dwWriteStats(overlappedTask *const task, bdStatsInfo **statsInfo, unsigned int numStats)
 {

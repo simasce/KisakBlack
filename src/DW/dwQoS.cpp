@@ -1,31 +1,6 @@
 #include "dwQoS.h"
 
-const bdReference<bdCommonAddr> *__thiscall bdReference<bdCommonAddr>::operator=(
-                bdReference<bdCommonAddr> *this,
-                const bdReference<bdCommonAddr> *other)
-{
-    bdCommonAddr *m_ptr; // [esp+10h] [ebp-Ch]
-
-    if ( other != this )
-    {
-        if ( this->m_ptr )
-        {
-            m_ptr = this->m_ptr;
-            InterlockedDecrement(&this->m_ptr->m_refCount);
-            if ( !m_ptr->m_refCount )
-            {
-                if ( this->m_ptr )
-                    ((void (__thiscall *)(bdCommonAddr *, int))this->m_ptr->~bdCommonAddr)(this->m_ptr, 1);
-            }
-        }
-        this->m_ptr = other->m_ptr;
-        if ( this->m_ptr )
-            InterlockedIncrement(&this->m_ptr->m_refCount);
-    }
-    return this;
-}
-
-dwQoSMultiProbeListener *__thiscall dwQoSMultiProbeListener::dwQoSMultiProbeListener(dwQoSMultiProbeListener *this)
+dwQoSMultiProbeListener::dwQoSMultiProbeListener() : bdQoSProbeListener()
 {
     int v3; // [esp+4h] [ebp-18h]
     bdSecurityID *k; // [esp+8h] [ebp-14h]
@@ -34,29 +9,56 @@ dwQoSMultiProbeListener *__thiscall dwQoSMultiProbeListener::dwQoSMultiProbeList
     int v7; // [esp+14h] [ebp-8h]
     bdQoSRemoteAddr *i; // [esp+18h] [ebp-4h]
 
-    bdQoSProbeListener::bdQoSProbeListener(this);
-    this->__vftable = (dwQoSMultiProbeListener_vtbl *)&dwQoSMultiProbeListener::`vftable';
-    v7 = 500;
-    for ( i = this->m_probeAddrs; --v7 >= 0; ++i )
-    {
-        i->m_addr.m_ptr = 0;
-        bdSecurityID::bdSecurityID(&i->m_id);
-        bdSecurityKey::bdSecurityKey(&i->m_key);
-    }
-    v5 = 500;
-    for ( j = this->m_successes; --v5 >= 0; ++j )
-    {
-        j->m_addr.m_ptr = 0;
-        bdAddr::bdAddr(&j->m_realAddr);
-    }
-    v3 = 500;
-    for ( k = this->m_successIDs; --v3 >= 0; ++k )
-        bdSecurityID::bdSecurityID(k);
-    dwQoSMultiProbeListener::clean(this);
-    return this;
+    //bdQoSProbeListener::bdQoSProbeListener(this);
+    //this->__vftable = (dwQoSMultiProbeListener_vtbl *)&dwQoSMultiProbeListener::`vftable';
+    //v7 = 500;
+    //for ( i = this->m_probeAddrs; --v7 >= 0; ++i )
+    //{
+    //    i->m_addr.m_ptr = 0;
+    //    bdSecurityID::bdSecurityID(&i->m_id);
+    //    bdSecurityKey::bdSecurityKey(&i->m_key);
+    //}
+    //v5 = 500;
+    //for ( j = this->m_successes; --v5 >= 0; ++j )
+    //{
+    //    j->m_addr.m_ptr = 0;
+    //    bdAddr::bdAddr(&j->m_realAddr);
+    //}
+    //v3 = 500;
+    //for ( k = this->m_successIDs; --v3 >= 0; ++k )
+    //    bdSecurityID::bdSecurityID(k);
+
+    dwQoSMultiProbeListener::clean();
+    //return this;
 }
 
-void __thiscall dwQoSMultiProbeListener::addProbe(dwQoSMultiProbeListener *this, bdQoSRemoteAddr addr)
+
+//dwQoSMultiProbeListener::~dwQoSMultiProbeListener()
+//{
+//    int v2; // [esp+4h] [ebp-28h]
+//    bdReference<bdCommonAddr> *j; // [esp+8h] [ebp-24h]
+//    int v4; // [esp+18h] [ebp-14h]
+//    bdReference<bdCommonAddr> *i; // [esp+1Ch] [ebp-10h]
+//
+//    v4 = 500;
+//    for (i = (bdReference<bdCommonAddr> *)this->m_successIDs;
+//        --v4 >= 0;
+//        bdReference<bdRemoteTask>::~bdReference<bdRemoteTask>(i))
+//    {
+//        i -= 9;
+//        bdInetAddr::~bdInetAddr((bdInetAddr *)&i[1]);
+//    }
+//    v2 = 500;
+//    for (j = (bdReference<bdCommonAddr> *)this->m_probeSucceeded;
+//        --v2 >= 0;
+//        bdReference<bdRemoteTask>::~bdReference<bdRemoteTask>(j))
+//    {
+//        j -= 7;
+//    }
+//    bdQoSProbeListener::~bdQoSProbeListener(this);
+//}
+
+void __thiscall dwQoSMultiProbeListener::addProbe(bdQoSRemoteAddr addr)
 {
     int v2; // ecx
     bdQoSRemoteAddr *v4; // [esp+10h] [ebp-18h]
@@ -84,7 +86,7 @@ void __thiscall dwQoSMultiProbeListener::addProbe(dwQoSMultiProbeListener *this,
     bdReference<bdRemoteTask>::~bdReference<bdRemoteTask>(&addr.m_addr);
 }
 
-void __thiscall dwQoSMultiProbeListener::onQoSProbeSuccess(dwQoSMultiProbeListener *this, const bdQoSProbeInfo *info)
+void __thiscall dwQoSMultiProbeListener::onQoSProbeSuccess(const bdQoSProbeInfo *info)
 {
     int v2; // ecx
     unsigned int m_numSuccesses; // edx

@@ -1,4 +1,9 @@
 #pragma once
+#include <bgame/bg_public.h>
+#include <ddl/ddl_api.h>
+
+enum taskCompleteResults : __int32;
+
 
 void __cdecl MatchRecorder_ClearDWOverlappedTasks();
 void __cdecl MatchRecord_InitMatchData();

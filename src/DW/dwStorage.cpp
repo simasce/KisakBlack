@@ -2,6 +2,8 @@
 #include <win32/win_shared.h>
 #include <qcommon/common.h>
 #include <ui/ui_main.h>
+#include "dwUtils.h"
+#include "dwUtils_pc.h"
 
 dwFileTask::dwFileTask()
 {
@@ -18,8 +20,8 @@ dwFileTask::dwFileTask()
 
 void __cdecl dwReadFileFailure(TaskRecord *task)
 {
-    unsigned intv1; // eax
-    unsigned intv2; // eax
+    unsigned int v1; // eax
+    unsigned int v2; // eax
     char *v3; // eax
     dwFileTask *fileTask; // [esp+Ch] [ebp-4Ch]
     char errorStr[64]; // [esp+10h] [ebp-48h] BYREF

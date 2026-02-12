@@ -753,3 +753,5 @@ char __cdecl CM_GetHeliHeight(const float *pt, float checkdist, float *result);
 
 
 static const float traceOffsets_0[5][2] = { { 0.0, 0.0 }, { 1.0, 1.0 }, { -1.0, 1.0 }, { 1.0, -1.0 }, { -1.0, -1.0 } };
+
+extern heli_height_lock_patches_t heli_height_lock_patches[32];

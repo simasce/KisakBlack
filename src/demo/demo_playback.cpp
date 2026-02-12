@@ -1,4 +1,62 @@
 #include "demo_playback.h"
+#include "demo_common.h"
+#include <universal/physicalmemory.h>
+#include "demo_ui.h"
+#include <live/live_win.h>
+#include <live/live_fileshare.h>
+#include <cgame_mp/cg_local_mp.h>
+#include <win32/win_shared.h>
+#include "demo_files.h"
+#include <client/client.h>
+#include <gfx_d3d/r_dvars.h>
+#include <client_mp/cl_scrn_mp.h>
+#include <universal/com_memory.h>
+#include <mjpeg/yuv.h>
+#include <win32/win_net.h>
+#include <cgame/cg_draw_names.h>
+#include <qcommon/com_clients.h>
+#include <DW/dwRecordEvent.h>
+#include <cgame_mp/cg_ui_animate_mp.h>
+#include <cgame_mp/cg_newDraw_mp.h>
+#include <client/cl_keys.h>
+#include "demo_recording.h"
+#include <client_mp/cl_cgame_mp.h>
+#include <cgame/cg_camerashake.h>
+#include <gfx_d3d/r_dpvs.h>
+#include <client/cl_console.h>
+#include <ik/ik.h>
+#include <cgame_mp/cg_scr_main_mp.h>
+#include <clientscript/cscr_vm.h>
+#include <cgame_mp/cg_consolecmds_mp.h>
+#include <EffectsCore/fx_marks.h>
+#include "demo_profile.h"
+#include <glass/glass_client.h>
+#include <universal/com_files.h>
+#include <universal/com_files.h>
+#include <client_mp/cl_parse_mp.h>
+#include <universal/q_parse.h>
+#include <server_mp/sv_main_mp.h>
+#include <qcommon/msg.h>
+#include <qcommon/sv_msg_write.h>
+#include <cgame_mp/cg_servercmds_mp.h>
+#include <cgame/cg_main.h>
+#include <cgame_mp/cg_snapshot_mp.h>
+#include <game_mp/g_main_mp.h>
+#include <qcommon/dobj_management.h>
+#include <cgame/cg_scr_main.h>
+#include <universal/com_constantconfigstrings.h>
+#include <qcommon/dvar_cmds.h>
+#include <cgame/cg_drawtools.h>
+#include <ui_mp/ui_main_mp.h>
+#include <physics/rope_gamestate.h>
+#include <ui_mp/ui_gametype_custom_mp.h>
+#include <live/live_counter.h>
+#include <sound/snd_public_async.h>
+#include <win32/win_gamepad.h>
+
+unsigned __int8 *g_JpegBuf;
+char gamerTag_1[32];
+streamingState_s streamingState;
 
 void __cdecl Demo_AllocatePlaybackMemory(unsigned int location)
 {
@@ -15,7 +73,7 @@ void __cdecl Demo_AllocatePlaybackMemory(unsigned int location)
         PMem_EndAlloc("SnapshotDemoPlaybackBuffer", location);
         PMem_BeginAlloc("SnapshotDemoKeyframeBuffer", location, TRACK_MISC);
         g_keyframeBuf = _PMem_AllocNamed(
-                                            (unsigned int)&loc_4FFFFE + 2,
+            0x500000u,
                                             4u,
                                             4,
                                             location,
@@ -24,7 +82,7 @@ void __cdecl Demo_AllocatePlaybackMemory(unsigned int location)
         PMem_EndAlloc("SnapshotDemoKeyframeBuffer", location);
         PMem_BeginAlloc("SnapshotDemoJpegSaveBuffer", location, TRACK_MISC);
         g_JpegBuf = _PMem_AllocNamed(
-                                    (unsigned int)&loc_4FFFFE + 2,
+            0x500000u,
                                     0x10u,
                                     4,
                                     location,
@@ -98,8 +156,9 @@ void __cdecl Demo_Load()
     Demo_Printf(2, v0);
 }
 
-void    Demo_HiResScreenshot(int a1@<esi>, int localClientNum, int tiles)
+void    Demo_HiResScreenshot(int localClientNum, int tiles)
 {
+#if 0 // KISAKTODO: jpeg bits
     const char *v3; // eax
     int j; // [esp+18h] [ebp-250h]
     int row; // [esp+1Ch] [ebp-24Ch]
@@ -184,8 +243,8 @@ void    Demo_HiResScreenshot(int a1@<esi>, int localClientNum, int tiles)
             {
                 demo.playback->screenshotSize = 0;
                 for ( i = 0; i < 2; ++i )
-                    SCR_UpdateScreen(a1);
-                NET_Sleep(0xC8u);
+                    SCR_UpdateScreen();
+                NET_Sleep(200);
                 R_BeginHiResShot(tiles);
                 exif.gpsLat = 34.021542f;
                 exif.gpsLon = -118.44875;
@@ -303,6 +362,7 @@ void    Demo_HiResScreenshot(int a1@<esi>, int localClientNum, int tiles)
             Demo_TagPlayers(localClientNum, &demo.playback->screenshotInfo.screenshotPlayers);
         }
     }
+#endif
 }
 
 void __cdecl Demo_TagPlayers(int localClientNum, demoTagPlayers *players)
@@ -406,9 +466,9 @@ void __cdecl Demo_SaveScreenshotSuccessful(int controllerIndex, unsigned __int64
     int savedregs; // [esp+508h] [ebp+0h] BYREF
 
     numTags = 0;
-    v11 = 40;
-    for ( j = tags; --v11 >= 0; ++j )
-        bdTag::bdTag(j);
+    //v11 = 40;
+    //for ( j = tags; --v11 >= 0; ++j )
+    //    bdTag::bdTag(j);
     metaDataSize = 0;
     LocalClientNum = Com_ControllerIndex_GetLocalClientNum(controllerIndex);
     Demo_Error(LocalClientNum, "", "MENU_DEMO_SCREENSHOT_UPLOAD_SUCCESS");
@@ -447,16 +507,16 @@ void __cdecl Demo_SaveScreenshotSuccessful(int controllerIndex, unsigned __int64
         v5 = Com_ControllerIndex_GetLocalClientNum(controllerIndex);
         Cmd_ExecuteSingleCommand(v5, controllerIndex, v6);
         dwRecordEventFormat(0, 2u, "JPG{id:%lld location:%d}", fileID, 2);
-        v7 = 40;
-        for ( k = (bdTaskResult *)&savedregs; --v7 >= 0; bdTag::~bdTag(k) )
-            k -= 6;
+        //v7 = 40;
+        //for ( k = (bdTaskResult *)&savedregs; --v7 >= 0; bdTag::~bdTag(k) )
+        //    k -= 6;
     }
     else
     {
         Com_PrintError(16, "Could not set meta data for uploaded file ID %llu. This is now an untagged file.\n", fileID);
-        v9 = 40;
-        for ( m = (bdTaskResult *)&savedregs; --v9 >= 0; bdTag::~bdTag(m) )
-            m -= 6;
+        //v9 = 40;
+        //for ( m = (bdTaskResult *)&savedregs; --v9 >= 0; bdTag::~bdTag(m) )
+        //    m -= 6;
     }
 }
 
@@ -904,8 +964,12 @@ int __cdecl Demo_GetKeyFrameForJumpForward(int localClientNum, int currentTime)
     }
     if ( demo.playback->keyFrame[keyframeIndex].keyframeSnapshotTime < currentTime )
         return -1;
+
+    static const int pausedBuffer = 700;
+
     if ( Demo_IsPaused() )
         currentTime += pausedBuffer;
+
     newKeyframeTime = -1;
     newKeyframeIndex = -1;
     for ( i = 0; i < 250; ++i )
@@ -1286,32 +1350,32 @@ void __cdecl Demo_SwitchCameraMode(int localClientNum, unsigned int newCamMode)
 
 void __cdecl Demo_UpdateVisibilityBitsForCameraMode(int localClientNum, int cameraMode)
 {
-    int v2; // eax
-    int v3; // ecx
-    const char *v4; // eax
+    int v3; // eax
+    int v4; // ecx
+    char *v5; // eax
 
-    if ( Demo_IsPlaying() && Demo_IsPlaybackInited() && CG_GetLocalClientGlobals(localClientNum)->nextSnap )
+    if (Demo_IsPlaying() && Demo_IsPlaybackInited() && CG_GetLocalClientGlobals(localClientNum)->nextSnap)
     {
-        if ( cameraMode < 0 )
+        if (cameraMode < 0)
             cameraMode = Demo_GetCurrentCameraMode();
-        if ( cameraMode )
+        if (cameraMode)
         {
-            if ( cameraMode == 1 )
+            if (cameraMode == 1)
             {
-                v2 = dword_98DADAC[2 * localClientNum];
-                dword_98DADA8[2 * localClientNum] |= 0x20000u;
-                dword_98DADAC[2 * localClientNum] = v2;
+                v3 = sharedUiInfo.localVisibilityBits[localClientNum];
+                HIDWORD(sharedUiInfo.visibilityBits[localClientNum]) |= 0x20000u;
+                LODWORD(sharedUiInfo.localVisibilityBits[localClientNum]) = v3;
             }
-            else if ( cameraMode == 2 )
+            else if (cameraMode == 2)
             {
-                v3 = dword_98DADAC[2 * localClientNum];
-                dword_98DADA8[2 * localClientNum] |= 0x40000u;
-                dword_98DADAC[2 * localClientNum] = v3;
+                v4 = sharedUiInfo.localVisibilityBits[localClientNum];
+                HIDWORD(sharedUiInfo.visibilityBits[localClientNum]) |= 0x40000u;
+                LODWORD(sharedUiInfo.localVisibilityBits[localClientNum]) = v4;
             }
             else
             {
-                v4 = va("We are in an unsupported camera mode %d\n", cameraMode);
-                if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\demo\\demo_playback.cpp", 2060, 0, v4) )
+                v5 = va("We are in an unsupported camera mode %d\n", cameraMode);
+                if (!Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\demo\\demo_playback.cpp", 2060, 0, v5))
                     __debugbreak();
             }
         }
@@ -1527,8 +1591,8 @@ void __cdecl Demo_ProcessPlayback()
     {
         MSG_GotoBookmark(&demo.msg, &bookmark);
         Demo_SeekFile(demo.demoFileHandle, bookmarkOffset, 2);
-        //BLOPS_NULLSUB();
-        dword_FB2C3C[4 * localClientNum] = 6;
+        //BG_EvalVehicleName();
+        clientUIActives[localClientNum].connectionState = CA_CONNECTED;
         v0 = Cmd_Argv(1);
         I_strncpyz(cls.servername, v0, 256);
         Demo_ReadGamestate(localClientNum);
@@ -1564,34 +1628,34 @@ void __cdecl Demo_InitPlaybackData(int localClientNum)
 
 void __cdecl Demo_RestorePreDemoSettings()
 {
-    const char *v0; // eax
-    int v1; // eax
-    int v2; // ecx
-    int v3; // edx
-    int v4; // eax
+    char *v1; // eax
+    int v2; // eax
+    int v3; // ecx
+    int v4; // edx
+    int v5; // eax
     int localClientNum; // [esp+4h] [ebp-4h]
 
-    v0 = va("DEMO: Restoring the pre-demo settings\n");
-    Demo_Printf(3, v0);
-    Dvar_SetInt((dvar_s *)demo_client, 0);
-    Dvar_SetInt((dvar_s *)demo_cmdNum, 0);
-    Dvar_SetFloat((dvar_s *)demo_timescale, 1.0);
-    for ( localClientNum = 0; localClientNum < 1; ++localClientNum )
+    v1 = va("DEMO: Restoring the pre-demo settings\n");
+    Demo_Printf(3, v1);
+    Dvar_SetInt(  (dvar_s*)demo_client, 0);
+    Dvar_SetInt(  (dvar_s*)demo_cmdNum, 0);
+    Dvar_SetFloat((dvar_s*)demo_timescale, 1.0);
+    for (localClientNum = 0; localClientNum < 1; ++localClientNum)
     {
-        v1 = dword_98DADAC[2 * localClientNum];
-        dword_98DADA8[2 * localClientNum] &= ~0x80000u;
-        dword_98DADAC[2 * localClientNum] = v1;
-        v2 = dword_98DADAC[2 * localClientNum];
-        dword_98DADA8[2 * localClientNum] &= ~0x100000u;
-        dword_98DADAC[2 * localClientNum] = v2;
-        v3 = dword_98DADAC[2 * localClientNum];
-        dword_98DADA8[2 * localClientNum] &= ~0x20000u;
-        dword_98DADAC[2 * localClientNum] = v3;
-        v4 = dword_98DADAC[2 * localClientNum];
-        dword_98DADA8[2 * localClientNum] &= ~0x40000u;
-        dword_98DADAC[2 * localClientNum] = v4;
+        v2 = sharedUiInfo.localVisibilityBits[localClientNum];
+        HIDWORD(sharedUiInfo.visibilityBits[localClientNum]) &= ~0x80000u;
+        LODWORD(sharedUiInfo.localVisibilityBits[localClientNum]) = v2;
+        v3 = sharedUiInfo.localVisibilityBits[localClientNum];
+        HIDWORD(sharedUiInfo.visibilityBits[localClientNum]) &= ~0x100000u;
+        LODWORD(sharedUiInfo.localVisibilityBits[localClientNum]) = v3;
+        v4 = sharedUiInfo.localVisibilityBits[localClientNum];
+        HIDWORD(sharedUiInfo.visibilityBits[localClientNum]) &= ~0x20000u;
+        LODWORD(sharedUiInfo.localVisibilityBits[localClientNum]) = v4;
+        v5 = sharedUiInfo.localVisibilityBits[localClientNum];
+        HIDWORD(sharedUiInfo.visibilityBits[localClientNum]) &= ~0x40000u;
+        LODWORD(sharedUiInfo.localVisibilityBits[localClientNum]) = v5;
     }
-    Dvar_SetBool((dvar_s *)demo_pause, 0);
+    Dvar_SetBool((dvar_s*)demo_pause, 0);
     Com_SetTimeScale(1.0);
 }
 
@@ -1837,7 +1901,7 @@ void __cdecl Demo_RunFirstFrameEvents(int localClientNum)
             Dvar_SetInt((dvar_s *)r_clipSize, 0);
             Dvar_SetInt((dvar_s *)r_clipCodec, 0);
             Dvar_SetInt((dvar_s *)r_clipFPS, 24);
-            FS_BuildOSPath((char *)fs_homepath->current.integer, "movies", (char *)"", ospath);
+            FS_BuildOSPath((char *)fs_homepath->current.integer, (char*)"movies", (char *)"", ospath);
             FS_CreatePath(ospath);
             v1 = va("movie_start \"%s%s.avi\"\n", ospath, demo.demoName);
             Cbuf_AddText(localClientNum, v1);
@@ -1970,6 +2034,7 @@ bool __cdecl Demo_ShouldFilterServerCommandForMovieCamera(const char *cmd)
     return Com_Parse(&s)->token[0] == 115;
 }
 
+clSnapshot_t newSnap_0;
 void __cdecl Demo_ParseSnapshot(int localClientNum, msg_t *msg)
 {
     const char *v2; // eax
@@ -2124,18 +2189,16 @@ void __cdecl Demo_ReadMatchState(int localClientNum, msg_t *msg, int time)
 {
     clientActive_t *LocalClientGlobals; // [esp+8h] [ebp-8h]
     MatchState *matchState; // [esp+Ch] [ebp-4h]
-    int savedregs; // [esp+10h] [ebp+0h] BYREF
 
     LocalClientGlobals = CL_GetLocalClientGlobals(localClientNum);
     matchState = &LocalClientGlobals->parseMatchStates[LocalClientGlobals->parseMatchStateNum & 0x1F];
     Demo_Printf(9, "DEMO: r Type: MatchState\n");
     MSG_ClearLastReferencedEntity(msg);
-    MSG_ReadDeltaMatchState((int)&savedregs, msg, time, &demo.matchState, matchState);
+    MSG_ReadDeltaMatchState(msg, time, &demo.matchState, matchState);
     if ( Demo_GetClipState() == 2 )
     {
         MSG_ClearLastReferencedEntity(&demo.playback->clipRecordingMsg);
         MSG_WriteDeltaMatchState(
-            (int)&savedregs,
             &g_snapInfo,
             &demo.playback->clipRecordingMsg,
             time,
@@ -2761,7 +2824,6 @@ void __cdecl Demo_DisableSnapshotProcessing()
 }
 
 void    Demo_GenerateUncompressedSnapshot(
-                int a1@<ebp>,
                 int localClientNum,
                 msg_t *msg,
                 int msgSequence,
@@ -2771,7 +2833,7 @@ void    Demo_GenerateUncompressedSnapshot(
                 int snapFlags,
                 bool writeAllPlayerStates)
 {
-    void *v9; // esp
+    //void *v9; // esp
     const char *v10; // eax
     const char *v11; // eax
     const char *v12; // eax
@@ -2796,11 +2858,11 @@ void    Demo_GenerateUncompressedSnapshot(
     playerState_s v31; // [esp-27A8h] [ebp-27B4h] BYREF
     MatchState v32[2]; // [esp-100h] [ebp-10Ch] BYREF
     unsigned int v33[3]; // [esp+0h] [ebp-Ch] BYREF
-    _UNKNOWN *retaddr; // [esp+Ch] [ebp+0h]
-
-    v33[0] = a1;
-    v33[1] = retaddr;
-    v9 = alloca(10496);
+    //_UNKNOWN *retaddr; // [esp+Ch] [ebp+0h]
+    //
+    //v33[0] = a1;
+    //v33[1] = retaddr;
+    //v9 = alloca(10496);
     memset((unsigned __int8 *)v32, 0, 0x80u);
     memcpy((unsigned __int8 *)&v31, (unsigned __int8 *)&g_defaultPlayerState, sizeof(v31));
     memset((unsigned __int8 *)&v30, 0, sizeof(v30));
@@ -2826,7 +2888,7 @@ void    Demo_GenerateUncompressedSnapshot(
     MSG_WriteByte(msg, snapFlags);
     UsedBitCount = MSG_GetUsedBitCount(msg);
     MSG_ClearLastReferencedEntity(msg);
-    MSG_WriteDeltaMatchState((int)v33, &g_snapInfo, msg, svsHeader.time, v32, &demo.matchState);
+    MSG_WriteDeltaMatchState(&g_snapInfo, msg, svsHeader.time, v32, &demo.matchState);
     v23 = MSG_GetUsedBitCount(msg) - UsedBitCount;
     v11 = va("DEMO: UncompressedSnapshot Type: MatchState Size: %d bytes\n", v23 / 8);
     Demo_Printf(9, v11);
@@ -3418,7 +3480,6 @@ void __cdecl Demo_GenerateKeyFrameSnapshot(
                 int snapFlags)
 {
     msg_t msg; // [esp+Ch] [ebp-30h] BYREF
-    int savedregs; // [esp+3Ch] [ebp+0h] BYREF
 
     //PIXBeginNamedEvent(-1, "Keyframe - Generation");
     MSG_Init(&msg, demo.msgBuf1, 49152);
@@ -3428,7 +3489,6 @@ void __cdecl Demo_GenerateKeyFrameSnapshot(
         Demo_WriteClipCommandsInternal(localClientNum, &msg, 0);
     }
     Demo_GenerateUncompressedSnapshot(
-        (int)&savedregs,
         localClientNum,
         &msg,
         msgSequence,
@@ -3461,7 +3521,7 @@ void __cdecl Demo_WriteKeyFrameInformation(int localClientNum)
     //PIXBeginNamedEvent(-1, "Keyframe - Writing");
     LocalClientGlobals = CL_GetLocalClientGlobals(localClientNum);
     clc = CL_GetLocalClientConnection(localClientNum);
-    if ( demo.playback->keyframeMsg.cursize + demo.playback->keyframeBufferIndex > (int)&loc_4FFFFE + 2 )
+    if ( demo.playback->keyframeMsg.cursize + demo.playback->keyframeBufferIndex > 0x500000)
     {
         v1 = va("Resetting demo.playback->keyframeBufferIndex since we ran out of keyframe memory\n");
         Demo_Printf(128, v1);
@@ -3589,7 +3649,6 @@ void __cdecl Demo_WriteUncompressedClipSnapshot(int localClientNum)
     LocalClientGlobals = CL_GetLocalClientGlobals(localClientNum);
     Demo_WriteClipCommands(localClientNum, &demo.playback->clipRecordingMsg, 1);
     Demo_GenerateUncompressedSnapshot(
-        (int)&savedregs,
         localClientNum,
         &demo.playback->clipRecordingMsg,
         LocalClientGlobals->snap.messageNum,
@@ -4454,6 +4513,7 @@ int __cdecl Demo_SendClipToStreamingBuffer(unsigned __int8 *data, int dataSize, 
     }
 }
 
+char gamerTag_2[32];
 void __cdecl Demo_UploadClipSuccess(int controllerIndex, unsigned __int64 fileID)
 {
     int LocalClientNum; // eax
@@ -4483,9 +4543,9 @@ void __cdecl Demo_UploadClipSuccess(int controllerIndex, unsigned __int64 fileID
     v4 = va("Clip: Clip upload success.\n");
     Demo_Printf(1024, v4);
     Demo_SetCmdCompleted();
-    v12 = 40;
-    for ( i = tags; --v12 >= 0; ++i )
-        bdTag::bdTag(i);
+    //v12 = 40;
+    //for ( i = tags; --v12 >= 0; ++i )
+    //    bdTag::bdTag(i);
     numTags = 0;
     metaDataSize = 0;
     ClientName = Live_ControllerIndex_GetClientName(controllerIndex);
@@ -4506,7 +4566,7 @@ void __cdecl Demo_UploadClipSuccess(int controllerIndex, unsigned __int64 fileID
             fileID,
             FILESHARE_LOCATION_USERSTORAGE,
             gamerTag_2,
-            &gamerTag_2[strlen(gamerTag_2) + 1] - (char *)&unk_A7DDAED,
+            &gamerTag_2[strlen(gamerTag_2) + 1] - (char *)&gamerTag_2[0],
             metaData,
             metaDataSize,
             tags,
@@ -4516,16 +4576,16 @@ void __cdecl Demo_UploadClipSuccess(int controllerIndex, unsigned __int64 fileID
         v7 = va("userPublishNews TICKER_CLIPUPLOADED\n");
         v6 = Com_ControllerIndex_GetLocalClientNum(controllerIndex);
         Cmd_ExecuteSingleCommand(v6, controllerIndex, v7);
-        v8 = 40;
-        for ( j = (bdTaskResult *)&savedregs; --v8 >= 0; bdTag::~bdTag(j) )
-            j -= 6;
+        //v8 = 40;
+        //for ( j = (bdTaskResult *)&savedregs; --v8 >= 0; bdTag::~bdTag(j) )
+        //    j -= 6;
     }
     else
     {
         Com_PrintError(16, "Could not set meta data for uploaded file ID %llu. This is now an untagged file.\n", fileID);
-        v10 = 40;
-        for ( k = (bdTaskResult *)&savedregs; --v10 >= 0; bdTag::~bdTag(k) )
-            k -= 6;
+        //v10 = 40;
+        //for ( k = (bdTaskResult *)&savedregs; --v10 >= 0; bdTag::~bdTag(k) )
+        //    k -= 6;
     }
 }
 
@@ -5235,7 +5295,6 @@ void __cdecl Demo_WriteDemoPreviewPoint(int localClientNum, int restorePoint)
     msg_t msg; // [esp+10h] [ebp-64h] BYREF
     clientConnection_t *clc; // [esp+40h] [ebp-34h]
     msg_t previewMsg; // [esp+44h] [ebp-30h] BYREF
-    int savedregs; // [esp+74h] [ebp+0h] BYREF
 
     LocalClientGlobals = CL_GetLocalClientGlobals(localClientNum);
     clc = CL_GetLocalClientConnection(localClientNum);
@@ -5245,7 +5304,6 @@ void __cdecl Demo_WriteDemoPreviewPoint(int localClientNum, int restorePoint)
     demo.playback->forceWriteClipCommands = 1;
     Demo_WriteClipCommandsInternal(localClientNum, &msg, 0);
     Demo_GenerateUncompressedSnapshot(
-        (int)&savedregs,
         localClientNum,
         &msg,
         clc->serverMessageSequence,
@@ -5347,7 +5405,7 @@ void __cdecl Demo_RestoreUIStateAfterPreview(int localClientNum)
 void __cdecl Demo_HandleInput(int localClientNum, int controllerIndex, int key, int pressed)
 {
     const char *v4; // eax
-    unsigned intv5; // eax
+    unsigned int v5; // eax
     const char *v6; // eax
     const char *v7; // eax
     const char *v8; // eax

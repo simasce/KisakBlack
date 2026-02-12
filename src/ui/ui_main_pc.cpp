@@ -157,23 +157,23 @@ int __cdecl UI_GetListIndexFromMapIndex(int testMapIndex)
     int listIndex; // [esp+0h] [ebp-8h]
     int mapIndex; // [esp+4h] [ebp-4h]
 
-    if ( (testMapIndex < 0 || testMapIndex >= sharedUiInfo.joinGameTypes[31].basictraining)
+    if ((testMapIndex < 0 || testMapIndex >= sharedUiInfo.mapCount)
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_main_pc.cpp",
-                    266,
-                    0,
-                    "%s\n\t(testMapIndex) = %i",
-                    "(testMapIndex >= 0 && testMapIndex < sharedUiInfo.mapCount)",
-                    testMapIndex) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_main_pc.cpp",
+            266,
+            0,
+            "%s\n\t(testMapIndex) = %i",
+            "(testMapIndex >= 0 && testMapIndex < sharedUiInfo.mapCount)",
+            testMapIndex))
     {
         __debugbreak();
     }
     listIndex = 0;
-    for ( mapIndex = 0; mapIndex < sharedUiInfo.joinGameTypes[31].basictraining; ++mapIndex )
+    for (mapIndex = 0; mapIndex < sharedUiInfo.mapCount; ++mapIndex)
     {
-        if ( sharedUiInfo.mapList[mapIndex].levelShot )
+        if (sharedUiInfo.mapList[mapIndex].active)
         {
-            if ( mapIndex == testMapIndex )
+            if (mapIndex == testMapIndex)
                 return listIndex;
             ++listIndex;
         }
@@ -189,7 +189,7 @@ int __cdecl UI_MapCountByGameType()
 
     game = ui_netGameType->current.integer;
     c = 0;
-    for ( i = 0; i < sharedUiInfo.joinGameTypes[31].basictraining; ++i )
+    for ( i = 0; i < sharedUiInfo.mapCount; ++i )
     {
         sharedUiInfo.mapList[i].levelShot = 0;
         if ( (*(unsigned int *)sharedUiInfo.contentPackList[19 * i - 2422].mapPackName & (1 << game)) != 0 )
@@ -219,7 +219,7 @@ void __cdecl UI_SelectCurrentMap(int localClientNum)
             v1 = Info_ValueForKey(info, "mapname");
             I_strncpyz(szMap, v1, 64);
             iCount = 0;
-            for ( i = 0; i < sharedUiInfo.joinGameTypes[31].basictraining; ++i )
+            for ( i = 0; i < sharedUiInfo.mapCount; ++i )
             {
                 if ( sharedUiInfo.mapList[i].levelShot )
                 {
@@ -763,7 +763,7 @@ char *__cdecl UI_SelectedMap(int index, int *actual)
 
     c = 0;
     *actual = 0;
-    for ( i = 0; i < sharedUiInfo.joinGameTypes[31].basictraining; ++i )
+    for ( i = 0; i < sharedUiInfo.mapCount; ++i )
     {
         if ( sharedUiInfo.mapList[i].levelShot )
         {
@@ -851,18 +851,18 @@ int __cdecl UI_NetGameType_HandleKey(int flags, int key)
 
 bool __cdecl UI_IsMapActive(int mapIndex)
 {
-    if ( (mapIndex < 0 || mapIndex >= sharedUiInfo.joinGameTypes[31].basictraining)
+    if ((mapIndex < 0 || mapIndex >= sharedUiInfo.mapCount)
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_main_pc.cpp",
-                    238,
-                    0,
-                    "%s\n\t(mapIndex) = %i",
-                    "(mapIndex >= 0 && mapIndex < sharedUiInfo.mapCount)",
-                    mapIndex) )
+            "C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_main_pc.cpp",
+            238,
+            0,
+            "%s\n\t(mapIndex) = %i",
+            "(mapIndex >= 0 && mapIndex < sharedUiInfo.mapCount)",
+            mapIndex))
     {
         __debugbreak();
     }
-    return sharedUiInfo.mapList[mapIndex].levelShot != 0;
+    return sharedUiInfo.mapList[mapIndex].active != 0;
 }
 
 int UI_SelectFirstActiveMap()
@@ -870,7 +870,7 @@ int UI_SelectFirstActiveMap()
     int result; // eax
     int mapIndex; // [esp+4h] [ebp-4h]
 
-    for ( mapIndex = 0; mapIndex < sharedUiInfo.joinGameTypes[31].basictraining; ++mapIndex )
+    for ( mapIndex = 0; mapIndex < sharedUiInfo.mapCount; ++mapIndex )
     {
         if ( sharedUiInfo.mapList[mapIndex].levelShot )
         {
@@ -1208,7 +1208,7 @@ void __cdecl UI_DrawNetSource(
 
 Material *__cdecl UI_GetLevelShot(int index)
 {
-    if ( index < 0 || index >= sharedUiInfo.joinGameTypes[31].basictraining )
+    if ( index < 0 || index >= sharedUiInfo.mapCount )
         index = 0;
     if ( !sharedUiInfo.mapList[index].timeToBeat[31] )
         sharedUiInfo.mapList[index].timeToBeat[31] = (int)Material_RegisterHandle(

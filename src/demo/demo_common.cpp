@@ -16,6 +16,58 @@
 
 #include <cstring>
 #include <new>
+#include <ui_mp/ui_gametype_custom_mp.h>
+#include <live/live_sessions.h>
+#include <game_mp/g_cmds_mp.h>
+#include <client/client.h>
+#include "demo_playback.h"
+#include <cgame_mp/cg_main_mp.h>
+#include <win32/win_shared.h>
+#include "demo_files.h"
+#include <client/cl_console.h>
+#include <sound/snd_public_async.h>
+#include <client_mp/cl_cgame_mp.h>
+#include "demo_ui.h"
+#include <client/cl_keys.h>
+#include <ctime>
+#include <live/live_counter.h>
+#include <game_mp/g_main_mp.h>
+#include <qcommon/com_gamemodes.h>
+#include <mjpeg/mjpeg.h>
+#include "demo_profile.h"
+#include <universal/com_workercmds.h>
+#include <live/live_sessions_win.h>
+
+const char *demo_tags_enum_string_37[8] =
+{
+  "MENU_SEGMENT_TAG_KILL",
+  "MENU_SEGMENT_TAG_DEATH",
+  "MENU_SEGMENT_TAG_KILLSTREAK",
+  "MENU_SEGMENT_TAG_PERK",
+  "MENU_SEGMENT_TAG_WEAPON",
+  "MENU_SEGMENT_TAG_EQUIPMENT",
+  "MENU_SEGMENT_TAG_GRENADE",
+  "MENU_SEGMENT_TAG_MELEE"
+};
+
+const char *demoKeyboardModeNames_69[8] =
+{
+  "none",
+  "segmentName",
+  "clipNameIngame",
+  "clipDescIngame",
+  "screenshotNameIngame",
+  "screenshotDescIngame",
+  "fileshareFileName",
+  "fileshareFileDescription"
+};
+
+int s_demoFileHandle;
+unsigned __int8 *g_keyframeBuf;
+
+demoClient_s demoClient;
+entityState_s g_defaultEntityState;
+clientState_s g_defaultClientState;
 
 const dvar_t *demo_enabled;
 const dvar_t *demo_recordBasicTraining;
@@ -363,9 +415,9 @@ void __cdecl Demo_SetTags(
         __debugbreak();
     }
     *numTags = 0;
-    for ( i = 0; i < sharedUiInfo.joinGameTypes[31].basictraining; ++i )
+    for ( i = 0; i < sharedUiInfo.mapCount; ++i )
     {
-        if ( !I_strcmp(&sharedUiInfo.mapList[i].mapName[28], info->mapName) )
+        if ( !I_strcmp(sharedUiInfo.mapList[i].mapLoadName, info->mapName) )
         {
             Live_FileShare_AddTag(2u, i, numTags, tags, 40);
             break;
@@ -415,9 +467,9 @@ void __cdecl Demo_SetTags(
         __debugbreak();
     }
     *numTags = 0;
-    for ( i = 0; i < sharedUiInfo.joinGameTypes[31].basictraining; ++i )
+    for ( i = 0; i < sharedUiInfo.mapCount; ++i )
     {
-        if ( !I_strcmp(&sharedUiInfo.mapList[i].mapName[28], info->mapName) )
+        if ( !I_strcmp(sharedUiInfo.mapList[i].mapLoadName, info->mapName) )
         {
             Live_FileShare_AddTag(2u, i, numTags, tags, 40);
             break;
@@ -649,8 +701,13 @@ void __cdecl Demo_StreamingSuccessCallback(int controllerIndex, unsigned __int64
             numTags,
             0);
         v5 = 40;
-        for ( k = (bdTaskResult *)&savedregs; --v5 >= 0; bdTag::~bdTag(k) )
-            k -= 6;
+
+        //for ( k = (bdTaskResult *)&savedregs; --v5 >= 0; bdTag::~bdTag(k) )
+        // 
+        //    k -= 6;
+
+        //for (int i = 0; i < 40; i++)
+        //    delete &tags[i];
     }
     else
     {
@@ -2341,7 +2398,7 @@ void    Demo_Screenshot_f()
             demo.playback->screenshotInfo.hour = systemTime.tm_hour;
             demo.playback->screenshotInfo.min = systemTime.tm_min;
             demo.playback->screenshotInfo.createTime = _time64(0);
-            Demo_HiResScreenshot(a1, localClientNum, tiles);
+            Demo_HiResScreenshot(localClientNum, tiles);
         }
         else
         {
@@ -2585,6 +2642,7 @@ void __cdecl Demo_Frame(int msec)
     }
 }
 
+extern jqWorkerCmd Demo_SaveWorkerCmd;
 void __cdecl Demo_End(bool abnormalTermination)
 {
     unsigned __int8 *ActiveMemoryBuffer; // eax
@@ -2618,7 +2676,7 @@ void __cdecl Demo_End(bool abnormalTermination)
                 demo.renderingMovie = 0;
         }
         Demo_SetClipState(0);
-        Dvar_SetStringByName("ui_lobbypopup", "none");
+        Dvar_SetStringByName("ui_lobbypopup", (char*)"none");
         Demo_RestorePreDemoSettings();
         Com_Shutdown("EXE_DEMOFINISHED");
     }
@@ -2697,13 +2755,13 @@ void __cdecl Demo_DownloadFile(
     LiveStorage_FileShare_ReadFile(controllerIndex, &fileInfo);
 }
 
-void __thiscall demoRecordedFileUploadInfo::~demoRecordedFileUploadInfo(demoRecordedFileUploadInfo *this)
-{
-    int v1; // [esp+4h] [ebp-8h]
-    int *i; // [esp+8h] [ebp-4h]
-
-    v1 = 40;
-    for ( i = &this->numTags; --v1 >= 0; bdTag::~bdTag((bdTaskResult *)i) )
-        i -= 6;
-}
-
+//void __thiscall demoRecordedFileUploadInfo::~demoRecordedFileUploadInfo(demoRecordedFileUploadInfo *this)
+//{
+//    int v1; // [esp+4h] [ebp-8h]
+//    int *i; // [esp+8h] [ebp-4h]
+//
+//    v1 = 40;
+//    for ( i = &this->numTags; --v1 >= 0; bdTag::~bdTag((bdTaskResult *)i) )
+//        i -= 6;
+//}
+//

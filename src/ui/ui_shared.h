@@ -427,6 +427,44 @@ struct pendingServerStatus_t // sizeof=0x8C4
     pendingServer_t server[16];         // XREF: UI_FeederCount(int,int,float,listBoxDef_s *):$LN18_16/r
 };
 
+struct pinglist_t // sizeof=0x44
+{                                       // XREF: serverStatus_s/r
+    char adrstr[64];
+    int start;
+};
+
+struct serverStatus_s // sizeof=0x14180
+{                                       // XREF: $A48C1D473939E002B61DABFCB910C7B1/r
+                                        // serverStatus_t/r
+    pinglist_t pingList[16];
+    int numqueriedservers;
+    int currentping;
+    int nextpingtime;
+    int maxservers;
+    int refreshtime;
+    int numServers;
+    int sortKey;
+    int sortDir;
+    int lastCount;
+    int refreshActive;
+    int currentServer;
+    int displayServers[20000];
+    int numDisplayServers;
+    int serverCount;
+    int numPlayersOnServers;
+    int nextDisplayRefresh;
+    int nextSortTime;
+    Material *currentServerPreview;
+    int motdLen;
+    int motdWidth;
+    int motdPaintX;
+    int motdPaintX2;
+    int motdOffset;
+    int motdTime;
+    char motd[1024];
+    unsigned __int8 displayServersFriendNameInd[100];
+};
+
 struct sharedUiInfo_t // sizeof=0x261D0
 {                                       // XREF: .data:sharedUiInfo_t sharedUiInfo/r
     CachedAssets_t assets;              // XREF: UI_FillRectPhysical(float,float,float,float,float const * const)+3/r
@@ -499,15 +537,19 @@ struct sharedUiInfo_t // sizeof=0x261D0
     union //$A48C1D473939E002B61DABFCB910C7B1 // sizeof=0x1566C
     {                                       // XREF: UI_FeederCount(int,int,float,listBoxDef_s *)+E8/r
                                             // UI_FeederCount(int,int,float,listBoxDef_s *):loc_72DF42/r ...
-        char serverStatus[82460];
-        struct
-        {
-            char serverStatusAddress[64];
-            char serverStatusSecurityID[8];
-            serverStatusInfo_s serverStatusInfo;
-        };
+        //char serverStatus[82460];
+        serverStatus_s serverStatus;
+        char cuckery[82460]; // dont ask
+
         //$D349527935E9920CD1D59819DFE4C1D2 __s1;
     };
+
+    //struct
+    //{
+        char serverStatusAddress[64];
+        char serverStatusSecurityID[8];
+        serverStatusInfo_s serverStatusInfo;
+    //};
                                         // XREF: UI_FeederCount(int,int,float,listBoxDef_s *)+E8/r
                                         // UI_FeederCount(int,int,float,listBoxDef_s *):loc_72DF42/r ...
     serverStatusInfo_s serverStatusInfoScoreBoard;

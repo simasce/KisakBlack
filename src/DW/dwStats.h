@@ -1,4 +1,6 @@
 #pragma once
+#include <win32/win_tasks.h>
+#include <live/live_win.h>
 
 void __cdecl dwWriteStats(overlappedTask *const task, bdStatsInfo **statsInfo, unsigned int numStats);
 taskCompleteResults __cdecl dwWriteStatsComplete(overlappedTask *const task);

@@ -1,6 +1,7 @@
 #pragma once
 #include "demo_common.h"
 #include "../../tl/jobqueue/jobqueue_all.h"
+#include <qcommon/sv_msg_write_mp.h>
 
 struct uploadSendInfo // sizeof=0x8
 {                                       // XREF: uploadStreamData_t/r
@@ -131,3 +132,7 @@ void __cdecl Demo_WriteInfoData(int handle, demoMetaInfo *info);
 void __cdecl Demo_InfoPlayerConnected(int clientNum);
 void __cdecl Demo_InfoPlayerDisconnected(int clientNum);
 void __cdecl Demo_AddBookmark(int type, int time, int clientNum1, int clientNum2);
+
+
+extern SnapshotInfo_s g_snapInfo;
+extern int g_democlientindex;

@@ -1,4 +1,16 @@
 #include "dwUtils_pc.h"
+#include <live/live_steam.h>
+#include <universal/q_shared.h>
+#include <qcommon/net_chan_mp.h>
+#include "dwMessaging.h"
+#include <qcommon/common.h>
+#include <client_mp/cl_main_mp.h>
+#include <cgame_mp/cg_main_mp.h>
+#include <qcommon/com_clients.h>
+
+unsigned __int64 g_bdUserID;
+
+const dvar_t *cl_senddwchallenge;
 
 // LWSS: I have modified this crap function a bit
 void __cdecl bdGetRandomUChar8(BYTE *pbBuffer, DWORD dwLen)
@@ -32,7 +44,7 @@ char __cdecl dwGetOnlineUserID(int controllerIndex, unsigned __int64 *userID)
 
 char __cdecl dwGetOnlineUserName(int controllerIndex, char *buf, unsigned int bufsize)
 {
-    char *ClientPersonaName; // eax
+    const char *ClientPersonaName; // eax
 
     memset((unsigned __int8 *)buf, 0, bufsize);
     ClientPersonaName = LiveSteam_GetClientPersonaName(1);
@@ -73,7 +85,7 @@ unsigned int __cdecl SV_SendClientChallenge(unsigned int nonce, unsigned int cha
     retval = 0;
     MSG_Init(&challengemessage, buff, 13);
     Instance = bdSingleton<bdTrulyRandomImpl>::getInstance();
-    randNum = bdTrulyRandomImpl::getRandomUInt(Instance);
+    randNum = Instance->getRandomUInt();//bdTrulyRandomImpl::getRandomUInt(Instance);
     Com_DPrintf(
         15,
         "Client bdID:\t%llu\nClient challenge:\t%u\nServer challenge:\t%u\nClient nonce:\t%u\n",

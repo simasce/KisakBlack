@@ -24,6 +24,14 @@
 #include <DW/dwUtils_pc.h>
 #include <DW/MatchMakingInfo_win32.h>
 #include <live/live_win.h>
+#include <live/live_sessions_win.h>
+
+const dvar_t *cl_quickmatch_resultspercent;
+const dvar_t *cl_quickmatch_pingweight;
+const dvar_t *cl_quickmatch_fullnessweight;
+const dvar_t *cl_wager_firstplaylist;
+const dvar_t *cl_wager_lastplaylist;
+const dvar_t *cl_wager_maxping;
 
 struct  //$A3082F8D06891D11850E9B8F334529D3 // sizeof=0x28
 {                                       // XREF: .data:rconGlob/r
@@ -2189,92 +2197,6 @@ char *__cdecl CL_LongNameForShortName(const char *shortname)
             return s_cityNames[i].longname;
     }
     return 0;
-}
-
-const bdReference<bdCommonAddr> *__thiscall bdReference<bdCommonAddr>::operator=(
-                bdReference<bdCommonAddr> *this,
-                const bdReference<bdCommonAddr> *other)
-{
-    bdCommonAddr *m_ptr; // [esp+10h] [ebp-Ch]
-
-    if ( other != this )
-    {
-        if ( this->m_ptr )
-        {
-            m_ptr = this->m_ptr;
-            InterlockedDecrement(&this->m_ptr->m_refCount);
-            if ( !m_ptr->m_refCount )
-            {
-                if ( this->m_ptr )
-                    ((void (__thiscall *)(bdCommonAddr *, int))this->m_ptr->~bdCommonAddr)(this->m_ptr, 1);
-            }
-        }
-        this->m_ptr = other->m_ptr;
-        if ( this->m_ptr )
-            InterlockedIncrement(&this->m_ptr->m_refCount);
-    }
-    return this;
-}
-
-void __thiscall bdReference<bdRemoteTask>::~bdReference<bdRemoteTask>(bdReference<bdCommonAddr> *this)
-{
-    bdCommonAddr *m_ptr; // [esp+8h] [ebp-Ch]
-
-    if ( this->m_ptr )
-    {
-        m_ptr = this->m_ptr;
-        InterlockedDecrement(&this->m_ptr->m_refCount);
-        if ( !m_ptr->m_refCount )
-        {
-            if ( this->m_ptr )
-                ((void (__thiscall *)(bdCommonAddr *, int))this->m_ptr->~bdCommonAddr)(this->m_ptr, 1);
-            this->m_ptr = 0;
-        }
-    }
-}
-
-void __thiscall dwQoSMultiProbeListener::~dwQoSMultiProbeListener(dwQoSMultiProbeListener *this)
-{
-    int v2; // [esp+4h] [ebp-28h]
-    bdReference<bdCommonAddr> *j; // [esp+8h] [ebp-24h]
-    int v4; // [esp+18h] [ebp-14h]
-    bdReference<bdCommonAddr> *i; // [esp+1Ch] [ebp-10h]
-
-    v4 = 500;
-    for ( i = (bdReference<bdCommonAddr> *)this->m_successIDs;
-                --v4 >= 0;
-                bdReference<bdRemoteTask>::~bdReference<bdRemoteTask>(i) )
-    {
-        i -= 9;
-        bdInetAddr::~bdInetAddr((bdInetAddr *)&i[1]);
-    }
-    v2 = 500;
-    for ( j = (bdReference<bdCommonAddr> *)this->m_probeSucceeded;
-                --v2 >= 0;
-                bdReference<bdRemoteTask>::~bdReference<bdRemoteTask>(j) )
-    {
-        j -= 7;
-    }
-    bdQoSProbeListener::~bdQoSProbeListener(this);
-}
-
-void __thiscall bdReference<bdCommonAddr>::operator=(bdReference<bdRemoteTask> *this, bdRemoteTask *p)
-{
-    bdRemoteTask *m_ptr; // [esp+10h] [ebp-Ch]
-
-    if ( this->m_ptr )
-    {
-        m_ptr = this->m_ptr;
-        InterlockedDecrement(&this->m_ptr->m_refCount);
-        if ( !m_ptr->m_refCount )
-        {
-            if ( this->m_ptr )
-                ((void (__thiscall *)(bdRemoteTask *, int))this->m_ptr->~bdRemoteTask)(this->m_ptr, 1);
-        }
-    }
-    this->m_ptr = p;
-    if ( this->m_ptr )
-        InterlockedIncrement(&this->m_ptr->m_refCount);
 }
 
 void __cdecl CL_PC_SignIn()

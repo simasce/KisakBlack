@@ -3998,12 +3998,12 @@ void __cdecl BG_UnlockableItemsInit()
 
 void __cdecl BG_UnlockablesPurchaseClanTagFeatureCmd()
 {
-    BG_UnlockablesPurchaseClanTagFeature(0, sharedUiInfo.numSortedItems);
+    BG_UnlockablesPurchaseClanTagFeature(0, sharedUiInfo.clanTagFeature);
 }
 
 void __cdecl BG_UnlockablesPurchaseCurrentItemAttachmentCmd()
 {
-    BG_UnlockablesPurchaseItemAttachment(0, sharedUiInfo.modIndex, (eAttachment)SLODWORD(sharedUiInfo.itemColor[3]));
+    BG_UnlockablesPurchaseItemAttachment(0, sharedUiInfo.itemIndex, (eAttachment)sharedUiInfo.attachmentNum);
 }
 
 void __cdecl BG_UnlockablesPurchaseItemAttachmentPointCmd()
@@ -4038,8 +4038,8 @@ void __cdecl BG_UnlockablesPurchaseCurrentItemCmd()
 {
     int ItemCost; // eax
 
-    ItemCost = BG_UnlockablesGetItemCost(sharedUiInfo.modIndex);
-    BG_UnlockablesPurchaseItem(0, sharedUiInfo.modIndex, ItemCost);
+    ItemCost = BG_UnlockablesGetItemCost(sharedUiInfo.itemIndex);
+    BG_UnlockablesPurchaseItem(0, sharedUiInfo.itemIndex, ItemCost);
 }
 
 void __cdecl BG_UnlockablesPurchaseItemCmd()
@@ -4075,7 +4075,7 @@ void __cdecl BG_UnlockablesPurchaseItemCmd()
 
 void __cdecl BG_UnlockablesSellCurrentItemCmd()
 {
-    BG_UnlockablesSellItem(0, sharedUiInfo.modIndex);
+    BG_UnlockablesSellItem(0, sharedUiInfo.itemIndex);
 }
 
 void __cdecl BG_UnlockablesPurchaseWeaponOptionCmd()
@@ -4095,7 +4095,7 @@ void __cdecl BG_UnlockablesPurchaseWeaponOptionCmd()
         }
         else
         {
-            BG_UnlockablesPurchaseItemOption(0, sharedUiInfo.modIndex, optionNum);
+            BG_UnlockablesPurchaseItemOption(0, sharedUiInfo.itemIndex, optionNum);
         }
     }
     else
@@ -4167,9 +4167,9 @@ void __cdecl BG_UnlockablesPurchaseCurrentItemOptionCmd()
     int optionNum; // [esp+0h] [ebp-4h]
 
     optionNum = BG_GetWeaponOptionNumFromIndexAndGroup(
-                                sharedUiInfo.numItemsInSlot,
+                                sharedUiInfo.sortedItemPivot,
                                 (eWeaponOptionGroup)ui_currentWeaponOptionGroup->current.integer);
-    BG_UnlockablesPurchaseItemOption(0, sharedUiInfo.modIndex, optionNum);
+    BG_UnlockablesPurchaseItemOption(0, sharedUiInfo.itemIndex, optionNum);
 }
 
 void __cdecl BG_UnlockablesEquipClassCmd()
@@ -4448,7 +4448,7 @@ void __cdecl BG_UnlockablesEquipClassCurrentAttachmentCmd()
     if ( Cmd_Argc() >= 2 )
     {
         customClassName = Cmd_Argv(1);
-        itemInfo = BG_UnlockablesGetItemInfo(sharedUiInfo.modIndex);
+        itemInfo = BG_UnlockablesGetItemInfo(sharedUiInfo.itemIndex);
         if ( !itemInfo
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_unlockable_items.cpp",
@@ -4459,9 +4459,9 @@ void __cdecl BG_UnlockablesEquipClassCurrentAttachmentCmd()
         {
             __debugbreak();
         }
-        if ( itemInfo && SLODWORD(sharedUiInfo.itemColor[3]) < itemInfo->numAttachments[0] )
+        if ( itemInfo && sharedUiInfo.attachmentNum < itemInfo->numAttachments[0] )
         {
-            attachmentRef = BG_UnlockablesGetItemAttachmentRef(sharedUiInfo.modIndex, SLODWORD(sharedUiInfo.itemColor[3]));
+            attachmentRef = BG_UnlockablesGetItemAttachmentRef(sharedUiInfo.itemIndex, sharedUiInfo.attachmentNum);
             if ( (!attachmentRef || !*attachmentRef)
                 && !Assert_MyHandler(
                             "C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_unlockable_items.cpp",
@@ -4486,7 +4486,7 @@ void __cdecl BG_UnlockablesEquipClassCurrentAttachmentCmd()
             {
                 if ( *itemInfo->name )
                 {
-                    ItemAttachment = BG_UnlockablesGetItemAttachment(sharedUiInfo.modIndex, SLODWORD(sharedUiInfo.itemColor[3]));
+                    ItemAttachment = BG_UnlockablesGetItemAttachment(sharedUiInfo.itemIndex, sharedUiInfo.attachmentNum);
                     AttachmentPointIndexFromAttachment = BG_GetAttachmentPointIndexFromAttachment(ItemAttachment);
                     AttachmentPointName = BG_GetAttachmentPointName(AttachmentPointIndexFromAttachment);
                     BG_UnlockablesEquipClassAttachment(0, customClassName, itemInfo->name, attachmentRef, AttachmentPointName);
@@ -4513,7 +4513,7 @@ void __cdecl BG_UnlockablesEquipClassCurrentOptionCmd()
     {
         customClassName = Cmd_Argv(1);
         optionName = Cmd_Argv(2);
-        itemInfo = BG_UnlockablesGetItemInfo(sharedUiInfo.modIndex);
+        itemInfo = BG_UnlockablesGetItemInfo(sharedUiInfo.itemIndex);
         if ( !itemInfo
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_unlockable_items.cpp",
@@ -4525,18 +4525,18 @@ void __cdecl BG_UnlockablesEquipClassCurrentOptionCmd()
             __debugbreak();
         }
         optionNum = BG_GetWeaponOptionNumFromIndexAndGroup(
-                                    sharedUiInfo.numItemsInSlot,
+                                    sharedUiInfo.sortedItemPivot,
                                     (eWeaponOptionGroup)ui_currentWeaponOptionGroup->current.integer);
         if ( itemInfo
-            && BG_UnlockablesIsItemPurchased(0, sharedUiInfo.modIndex)
-            && BG_UnlockablesIsItemOptionPurchased(0, sharedUiInfo.modIndex, optionNum) )
+            && BG_UnlockablesIsItemPurchased(0, sharedUiInfo.itemIndex)
+            && BG_UnlockablesIsItemOptionPurchased(0, sharedUiInfo.itemIndex, optionNum) )
         {
             loadoutName = BG_UnlockablesGetLoadoutName(itemInfo->loadoutSlot);
             if ( loadoutName )
             {
-                BG_UnlockablesEquipClassToSlot(0, customClassName, sharedUiInfo.modIndex, loadoutName);
+                BG_UnlockablesEquipClassToSlot(0, customClassName, sharedUiInfo.itemIndex, loadoutName);
                 v0 = va("%s%s", loadoutName, optionName);
-                BG_UnlockablesEquipClassToSlot(0, customClassName, sharedUiInfo.numItemsInSlot, v0);
+                BG_UnlockablesEquipClassToSlot(0, customClassName, sharedUiInfo.sortedItemPivot, v0);
             }
         }
     }
@@ -4561,7 +4561,7 @@ void __cdecl BG_UnlockablesToggleWeaponOptionCmd()
     {
         customClassName = Cmd_Argv(1);
         optionName = Cmd_Argv(2);
-        itemInfo = BG_UnlockablesGetItemInfo(sharedUiInfo.modIndex);
+        itemInfo = BG_UnlockablesGetItemInfo(sharedUiInfo.itemIndex);
         if ( !itemInfo
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_unlockable_items.cpp",
@@ -4576,13 +4576,13 @@ void __cdecl BG_UnlockablesToggleWeaponOptionCmd()
                                     0,
                                     (eWeaponOptionGroup)ui_currentWeaponOptionGroup->current.integer);
         if ( itemInfo
-            && BG_UnlockablesIsItemPurchased(0, sharedUiInfo.modIndex)
-            && BG_UnlockablesIsItemOptionPurchased(0, sharedUiInfo.modIndex, optionNum) )
+            && BG_UnlockablesIsItemPurchased(0, sharedUiInfo.itemIndex)
+            && BG_UnlockablesIsItemOptionPurchased(0, sharedUiInfo.itemIndex, optionNum) )
         {
             loadoutName = BG_UnlockablesGetLoadoutName(itemInfo->loadoutSlot);
             if ( loadoutName )
             {
-                BG_UnlockablesEquipClassToSlot(0, customClassName, sharedUiInfo.modIndex, loadoutName);
+                BG_UnlockablesEquipClassToSlot(0, customClassName, sharedUiInfo.itemIndex, loadoutName);
                 v0 = va("%s%s", loadoutName, optionName);
                 isEquipped = BG_UnlockablesGetEquippedItemInSlot(0, customClassName, v0);
                 v1 = va("%s%s", loadoutName, optionName);
@@ -4615,8 +4615,8 @@ void __cdecl BG_UnlockablesEquipClassCurrentItemCmdInternal(bool isGlobal)
         customClassName = 0;
         if ( !isGlobal )
             customClassName = Cmd_Argv(1);
-        itemIndex = sharedUiInfo.modIndex;
-        if ( sharedUiInfo.modIndex == -1
+        itemIndex = sharedUiInfo.itemIndex;
+        if ( sharedUiInfo.itemIndex == -1
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_unlockable_items.cpp",
                         3420,
@@ -4923,7 +4923,7 @@ void __cdecl BG_UnlockablesPurchaseCurrentProItemCmd()
     int ItemCost; // eax
     int proItemIndex; // [esp+0h] [ebp-4h]
 
-    proItemIndex = BG_UnlockablesGetProItem(sharedUiInfo.modIndex);
+    proItemIndex = BG_UnlockablesGetProItem(sharedUiInfo.itemIndex);
     if ( proItemIndex != -1 )
     {
         ItemCost = BG_UnlockablesGetItemCost(proItemIndex);
@@ -5292,7 +5292,7 @@ void __cdecl OpenAttachmentMenuForCurrentItemCmd()
         {
             __debugbreak();
         }
-        if ( sharedUiInfo.modIndex == -1
+        if ( sharedUiInfo.itemIndex == -1
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_unlockable_items.cpp",
                         4290,
@@ -5302,7 +5302,7 @@ void __cdecl OpenAttachmentMenuForCurrentItemCmd()
         {
             __debugbreak();
         }
-        if ( menuName && sharedUiInfo.modIndex != -1 && BG_UnlockablesIsItemPurchased(0, sharedUiInfo.modIndex) )
+        if ( menuName && sharedUiInfo.itemIndex != -1 && BG_UnlockablesIsItemPurchased(0, sharedUiInfo.itemIndex) )
         {
             uiInfo = UI_GetInfo(0);
             if ( !uiInfo
@@ -5315,7 +5315,7 @@ void __cdecl OpenAttachmentMenuForCurrentItemCmd()
             {
                 __debugbreak();
             }
-            numAttachments = BG_UnlockablesGetNumItemAttachments(sharedUiInfo.modIndex);
+            numAttachments = BG_UnlockablesGetNumItemAttachments(sharedUiInfo.itemIndex);
             if ( !numAttachments
                 && !Assert_MyHandler(
                             "C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_unlockable_items.cpp",
@@ -5328,7 +5328,7 @@ void __cdecl OpenAttachmentMenuForCurrentItemCmd()
             }
             if ( numAttachments == 1 )
             {
-                ItemName = BG_UnlockablesGetItemName(sharedUiInfo.modIndex);
+                ItemName = BG_UnlockablesGetItemName(sharedUiInfo.itemIndex);
                 if ( equipIfNone )
                 {
                     v2 = va("equipclassattachment ( dvarString( ui_custom_name ) ) %s none", ItemName);
@@ -5443,7 +5443,7 @@ void __cdecl BG_UnlockablesEquipItemInSlotSortedCmdInternal(bool isGlobalItem)
     }
     if ( groupItemCount <= 39 )
     {
-        selectedItemAttribute = BG_UnlockablesGetItemInfo(sharedUiInfo.modIndex)->count;
+        selectedItemAttribute = BG_UnlockablesGetItemInfo(sharedUiInfo.itemIndex)->count;
         for ( currSlot = 0; currSlot < groupItemCount; ++currSlot )
         {
             v1 = va("%s%d", groupName, currSlot + 1);
@@ -5480,7 +5480,7 @@ void __cdecl BG_UnlockablesEquipItemInSlotSortedCmdInternal(bool isGlobalItem)
         }
         for ( currSlot = 0; currSlot < groupItemCount; ++currSlot )
         {
-            if ( sharedUiInfo.modIndex == itemIndices[currSlot] )
+            if ( sharedUiInfo.itemIndex == itemIndices[currSlot] )
             {
                 for ( shiftIndex = currSlot; shiftIndex <= totalItemsEquipped - 2; ++shiftIndex )
                 {
@@ -5492,12 +5492,12 @@ void __cdecl BG_UnlockablesEquipItemInSlotSortedCmdInternal(bool isGlobalItem)
                 return;
             }
         }
-        if ( BG_UnlockablesIsItemPurchased(controllerIndex, sharedUiInfo.modIndex) && totalItemsEquipped < groupItemCount )
+        if ( BG_UnlockablesIsItemPurchased(controllerIndex, sharedUiInfo.itemIndex) && totalItemsEquipped < groupItemCount )
         {
             if ( !totalItemsEquipped )
             {
                 v11 = va("%s1", groupName);
-                BG_UnlockablesEquipClassToSlot(controllerIndex, customClassName, sharedUiInfo.modIndex, v11);
+                BG_UnlockablesEquipClassToSlot(controllerIndex, customClassName, sharedUiInfo.itemIndex, v11);
                 return;
             }
             for ( currSlot = 0; currSlot < totalItemsEquipped; ++currSlot )
@@ -5512,7 +5512,7 @@ void __cdecl BG_UnlockablesEquipItemInSlotSortedCmdInternal(bool isGlobalItem)
                     }
                     if ( selectedItemAttribute == itemAttribute[currSlot] )
                     {
-                        if ( sharedUiInfo.modIndex >= itemIndices[currSlot] )
+                        if ( sharedUiInfo.itemIndex >= itemIndices[currSlot] )
                         {
                             v17 = va("%s%d", groupName, currSlot + 1);
                             v14 = va("%s%d", groupName, currSlot + 1);
@@ -5524,12 +5524,12 @@ void __cdecl BG_UnlockablesEquipItemInSlotSortedCmdInternal(bool isGlobalItem)
                         {
                             v13 = va("%s%d", groupName, currSlot + 1);
                         }
-                        BG_UnlockablesEquipClassToSlot(controllerIndex, customClassName, sharedUiInfo.modIndex, v13);
+                        BG_UnlockablesEquipClassToSlot(controllerIndex, customClassName, sharedUiInfo.itemIndex, v13);
                         return;
                     }
 LABEL_51:
                     v16 = va("%s%d", groupName, currSlot + 1);
-                    BG_UnlockablesEquipClassToSlot(controllerIndex, customClassName, sharedUiInfo.modIndex, v16);
+                    BG_UnlockablesEquipClassToSlot(controllerIndex, customClassName, sharedUiInfo.itemIndex, v16);
                     return;
                 }
             }
@@ -5651,7 +5651,7 @@ void __cdecl BG_UnlockablesSetCurrentItemIndexCmd()
     if ( Cmd_Argc() >= 2 )
     {
         v0 = Cmd_Argv(1);
-        sharedUiInfo.modIndex = atoi(v0);
+        sharedUiInfo.itemIndex = atoi(v0);
     }
     else
     {

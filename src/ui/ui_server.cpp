@@ -172,7 +172,7 @@ void __cdecl UI_BuildServerDisplayList(int localClientNum, uiInfo_s *uiInfo, int
                         if ( (*(_BYTE *)ui_browserGameMode->current.integer == 48
                              || (v13 = Info_ValueForKey(info, "gametype"), !I_stricmp(ui_browserGameMode->current.string, v13)))
                             && (ui_browserMap->current.integer <= 0
-                             || ui_browserMap->current.integer >= sharedUiInfo.joinGameTypes[31].basictraining + 1
+                             || ui_browserMap->current.integer >= sharedUiInfo.mapCount + 1
                              || (v14 = Info_ValueForKey(info, "mapname"),
                                      !I_stricmp(
                                             &sharedUiInfo.joinGameTypes[29].gameTypeNameCaps[304 * ui_browserMap->current.integer],
@@ -439,34 +439,34 @@ void __cdecl UI_InsertServerIntoDisplayList(int num, int position, int nameNum)
 
 void __cdecl UI_BuildServerStatus(int localClientNum, uiInfo_s *uiInfo, int force)
 {
-    if ( !uiInfo->nextFindPlayerRefresh )
+    if (!uiInfo->nextFindPlayerRefresh)
     {
-        if ( force )
+        if (force)
         {
             Menu_SetFeederSelection(localClientNum, &uiInfo->uiDC, 0, 13, 0, 0);
-            sharedUiInfo.serverStatusInfoScoreBoard.lines[2][5] = 0;
+            sharedUiInfo.serverStatusInfo.numLines = 0;// serverStatusInfo.numLines = 0 (0x244D8)
             LAN_GetServerStatus(0, 0, 0);
         }
-        else if ( !*(unsigned int *)sharedUiInfo.pendingServerStatus.server[1].adrstr
-                     || *(int *)sharedUiInfo.pendingServerStatus.server[1].adrstr > uiInfo->uiDC.realTime )
+        else if (!sharedUiInfo.nextServerStatusRefresh || sharedUiInfo.nextServerStatusRefresh > uiInfo->uiDC.realTime)
         {
             return;
         }
         UI_UpdateDisplayServers(localClientNum, uiInfo);
-        if ( *(int *)&sharedUiInfo.gap0[1124] >= 0
-            && *(int *)&sharedUiInfo.gap0[1124] <= *(int *)&sharedUiInfo.gap0[81128]
-            && *(unsigned int *)&sharedUiInfo.gap0[81128] )
+        if (sharedUiInfo.serverStatus.currentServer >= 0
+            && sharedUiInfo.serverStatus.currentServer <= sharedUiInfo.serverStatus.numDisplayServers
+            && sharedUiInfo.serverStatus.numDisplayServers)
         {
-            if ( UI_GetServerStatusInfo(
-                         (char *)&sharedUiInfo.serverStatusInfo.lines[2][4],
-                         (serverStatusInfo_s *)&sharedUiInfo.serverStatusInfo.lines[2][6]) )
+            if (UI_GetServerStatusInfo(
+                //sharedUiInfo.serverStatusSecurityID,// .serverStatusAddress (0x23030) LWSS: i have no clue why `StatusSecurityID` is here, maybe a bug? Weird
+                sharedUiInfo.serverStatusAddress,
+                &sharedUiInfo.serverStatusInfo))  // .serverStatusInfo (0x23038)
             {
-                *(unsigned int *)sharedUiInfo.pendingServerStatus.server[1].adrstr = 0;
-                UI_GetServerStatusInfo(&sharedUiInfo.serverStatus[82456], 0);
+                sharedUiInfo.nextServerStatusRefresh = 0;
+                UI_GetServerStatusInfo(sharedUiInfo.serverStatusAddress, 0);
             }
             else
             {
-                *(unsigned int *)sharedUiInfo.pendingServerStatus.server[1].adrstr = uiInfo->uiDC.realTime + 500;
+                sharedUiInfo.nextServerStatusRefresh = uiInfo->uiDC.realTime + 500;
             }
         }
     }

@@ -133,7 +133,7 @@ double __cdecl LiveCombatRecord_GetSortedItemData(int index, bool forFriend, sor
     double result; // st7
     sortedItemsData_t *v4; // [esp+4h] [ebp-8h]
 
-    if ( index >= 0 && index < sharedUiInfo.sortedItemPivot )
+    if ( index >= 0 && index < sharedUiInfo.clanTagFeature )
     {
         if ( (unsigned int)param <= SORT_KEY )
         {
@@ -186,7 +186,7 @@ int __cdecl LiveCombatRecord_GetSortedItemPositionByItemIndex(int itemIndex, boo
         v3 = s_otherPlayerSortedItemList;
     else
         v3 = s_sortedItemList;
-    for ( currPos = 0; currPos < sharedUiInfo.sortedItemPivot; ++currPos )
+    for ( currPos = 0; currPos < sharedUiInfo.clanTagFeature; ++currPos )
     {
         if ( v3[currPos].itemIndex == itemIndex )
             return currPos;
@@ -489,8 +489,8 @@ void __cdecl LiveCombatRecord_BuildSortedItemListByStats(
                     ++index;
                     ++itemNumber;
                 }
-                sharedUiInfo.optionIndex = 2;
-                sharedUiInfo.sortedItemPivot = index;
+                sharedUiInfo.sortedItemPivot = 2;
+                sharedUiInfo.clanTagFeature = index;
                 break;
             case RECENT_PERFORMANCE:
                 itemNumbera = 0;
@@ -516,7 +516,7 @@ void __cdecl LiveCombatRecord_BuildSortedItemListByStats(
                 sortedItemList[10].itemIndex = index;
                 sortedItemList[10].param1 = minScore;
                 sortedItemList[10].param2 = maxScore;
-                sharedUiInfo.sortedItemPivot = 11;
+                sharedUiInfo.clanTagFeature = 11;
                 break;
             case FAVORITE_WEAPON:
             case TIME_SPENT_USING_ITEM:
@@ -560,7 +560,7 @@ void __cdecl LiveCombatRecord_BuildSortedItemListByStats(
                     v5->param2 = v4->param2;
                     v5->param3 = v4->param3;
                 }
-                sharedUiInfo.sortedItemPivot = 9;
+                sharedUiInfo.clanTagFeature = 9;
                 if ( criterion == FAVORITE_WEAPON )
                 {
                     if ( sortedItemList[1].sortKey > sortedItemList->sortKey )
@@ -590,7 +590,7 @@ void __cdecl LiveCombatRecord_BuildSortedItemListByStats(
                         ++index;
                         ++itemNumberd;
                     }
-                    sharedUiInfo.sortedItemPivot = 11;
+                    sharedUiInfo.clanTagFeature = 11;
                 }
                 break;
             case WEAPON_STATS:
@@ -614,8 +614,8 @@ void __cdecl LiveCombatRecord_BuildSortedItemListByStats(
                     }
                     ++itemNumberb;
                 }
-                sharedUiInfo.optionIndex = 2;
-                sharedUiInfo.sortedItemPivot = index;
+                sharedUiInfo.sortedItemPivot = 2;
+                sharedUiInfo.clanTagFeature = index;
                 qsort(
                     s_sortedItemList,
                     index,
@@ -623,7 +623,7 @@ void __cdecl LiveCombatRecord_BuildSortedItemListByStats(
                     (int (__cdecl *)(const void *, const void *))LiveCombatRecord_CompareItemsByStats);
                 qsort(
                     s_otherPlayerSortedItemList,
-                    sharedUiInfo.sortedItemPivot,
+                    sharedUiInfo.clanTagFeature,
                     0x14u,
                     (int (__cdecl *)(const void *, const void *))LiveCombatRecord_CompareItemsByStats);
                 break;
@@ -634,7 +634,7 @@ void __cdecl LiveCombatRecord_BuildSortedItemListByStats(
                     if ( forOtherPlayer || comparisonModeOn )
                         LiveCombatRecord_BuildSortedItem(controllerIndex, criterion, 1, index, 0, param, divisionParam);
                 }
-                sharedUiInfo.sortedItemPivot = 19;
+                sharedUiInfo.clanTagFeature = 19;
                 break;
             case MATCH_TYPES:
                 itemNumbere = 0;
@@ -699,7 +699,7 @@ void __cdecl LiveCombatRecord_BuildSortedItemListByStats(
                     v11->param2 = v10->param2;
                     v11->param3 = v10->param3;
                 }
-                sharedUiInfo.sortedItemPivot = 6;
+                sharedUiInfo.clanTagFeature = 6;
                 break;
             case MATCH_PERFORMANCE:
                 for ( itemNumberg = 0; itemNumberg < 16; ++itemNumberg )
@@ -711,7 +711,7 @@ void __cdecl LiveCombatRecord_BuildSortedItemListByStats(
                         itemNumberg,
                         param,
                         divisionParam);
-                sharedUiInfo.sortedItemPivot = 160;
+                sharedUiInfo.clanTagFeature = 160;
                 break;
             case RECENT_EARNINGS:
                 for ( itemNumberh = 0; itemNumberh < 10; ++itemNumberh )
@@ -735,7 +735,7 @@ void __cdecl LiveCombatRecord_BuildSortedItemListByStats(
                 }
                 sortedItemList[10].param1 = minEarnings;
                 sortedItemList[10].param2 = maxEarnings;
-                sharedUiInfo.sortedItemPivot = 11;
+                sharedUiInfo.clanTagFeature = 11;
                 break;
             default:
                 return;

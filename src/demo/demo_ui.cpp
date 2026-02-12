@@ -4,6 +4,15 @@
 #include <ui/ui_main.h>
 #include <qcommon/com_clients.h>
 #include <client/cl_keys.h>
+#include <live/live_fileshare.h>
+#include "demo_playback.h"
+#include <client/client.h>
+#include <win32/win_shared.h>
+#include <client_mp/cl_cgame_mp.h>
+
+
+const char *demo_transition_enum_string_40[2] = { "MENU_DEMO_TRANSITION_CUT", "MENU_DEMO_TRANSITION_FADE" };
+
 
 const char *__cdecl Demo_GetKeyboardTitle()
 {
@@ -429,7 +438,7 @@ clipSegment *__cdecl Demo_GetSegmentInformation(int index, const char *s)
 char __cdecl Demo_IsPauseMenuOpen(int localClientNum)
 {
     int menuCount; // [esp+0h] [ebp-30h]
-    char *ingameMenuNames[11]; // [esp+4h] [ebp-2Ch]
+    const char *ingameMenuNames[11]; // [esp+4h] [ebp-2Ch]
 
     ingameMenuNames[0] = "demo_ingame";
     ingameMenuNames[1] = "demo_manage_segments";

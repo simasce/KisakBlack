@@ -66,7 +66,7 @@ int __cdecl UI_Project_FeederCount(int localClientNum, int contextIndex, float f
     switch ( (int)feederID )
     {
         case 1:
-            result = sharedUiInfo.joinGameTypes[31].basictraining;
+            result = sharedUiInfo.mapCount;
             break;
         case 34:
             result = 0;
@@ -83,15 +83,15 @@ int __cdecl UI_Project_FeederCount(int localClientNum, int contextIndex, float f
             result = UI_FeederCount_GameVariants(contextIndex, feederID);
             break;
         case 38:
-            result = sharedUiInfo.customGameTypes[31].splitscreen;
+            result = sharedUiInfo.numCustomMatchGameTypes;
             break;
         case 48:
             if ( Com_GameMode_IsGameMode(GAMEMODE_BASIC_TRAINING) )
                 goto LABEL_11;
             if ( Com_GameMode_IsGameMode(GAMEMODE_FIRST_PRIVATE_ONLINE_GAMEMODE) )
-                result = sharedUiInfo.customGameTypes[31].splitscreen + 1;
+                result = sharedUiInfo.numCustomMatchGameTypes + 1;
             else
-                result = sharedUiInfo.customGameTypes[31].splitscreen;
+                result = sharedUiInfo.numCustomMatchGameTypes;
             break;
         case 49:
         case 58:
@@ -103,11 +103,11 @@ int __cdecl UI_Project_FeederCount(int localClientNum, int contextIndex, float f
                             377,
                             0,
                             "%s",
-                            "listPtr->cursorPos[contextIndex] < sharedUiInfo.numItemsInSlot") )
+                            "listPtr->cursorPos[contextIndex] < sharedUiInfo.sortedItemPivot") )
             {
                 __debugbreak();
             }
-            sharedUiInfo.modIndex = BG_UnlockablesGetItemIndexInSlot(listPtr->cursorPos[contextIndex]);
+            sharedUiInfo.itemIndex = BG_UnlockablesGetItemIndexInSlot(listPtr->cursorPos[contextIndex]);
             sharedUiInfo.itemIndex = listPtr->cursorPos[contextIndex];
             result = sharedUiInfo.numAttachments;
             break;
@@ -117,10 +117,10 @@ int __cdecl UI_Project_FeederCount(int localClientNum, int contextIndex, float f
             result = friendCount;
             break;
         case 57:
-            if ( sharedUiInfo.modIndex == -1 )
+            if ( sharedUiInfo.itemIndex == -1 )
                 goto LABEL_55;
             sharedUiInfo.attachmentNum = BG_UnlockablesGetNumItemAttachmentsWithAttachPoint(
-                                                                         sharedUiInfo.modIndex,
+                                                                         sharedUiInfo.itemIndex,
                                                                          attachmentFilter->current.integer);
             if ( sharedUiInfo.attachmentNum == 1 )
                 result = 1;
@@ -208,7 +208,7 @@ int __cdecl UI_Project_FeederCount(int localClientNum, int contextIndex, float f
 LABEL_11:
                 result = UI_GetBasicTrainingGameTypeCount();
             else
-                result = sharedUiInfo.customGameTypes[31].splitscreen;
+                result = sharedUiInfo.numCustomMatchGameTypes;
             break;
         case 107:
             result = (int)((float)((float)CG_GetMatchScoreboardClientCount(localClientNum, TEAM_FREE) * 0.5)
@@ -235,7 +235,7 @@ int __cdecl UI_GetBasicTrainingGameTypeCount()
     int count; // [esp+4h] [ebp-4h]
 
     count = 0;
-    for ( index = 0; index < sharedUiInfo.customGameTypes[31].splitscreen; ++index )
+    for ( index = 0; index < sharedUiInfo.numCustomMatchGameTypes; ++index )
     {
         if ( sharedUiInfo.gameTypeMapCount[29 * index - 901] )
             ++count;
@@ -296,13 +296,13 @@ char *__cdecl UI_FeederItemText_Maps(int controllerIndex, itemDef_s *item, int i
     {
         if ( column == 1 )
         {
-            if ( index < 0 || index >= sharedUiInfo.joinGameTypes[31].basictraining )
+            if ( index < 0 || index >= sharedUiInfo.mapCount )
             {
                 return (char *)"";
             }
             else
             {
-                v5 = va("%s_CAPS", &sharedUiInfo.joinGameTypes[32].gameType[304 * index]);
+                v5 = va("%s_CAPS", sharedUiInfo.mapList[index].mapName);
                 return UI_SafeTranslateString(v5);
             }
         }
@@ -326,7 +326,7 @@ char *__cdecl UI_FeederItemText_Maps(int controllerIndex, itemDef_s *item, int i
 
 char *__cdecl UI_FeederItemText_CustomGametypes(int index)
 {
-    if ( index < 0 || index >= sharedUiInfo.customGameTypes[31].splitscreen )
+    if ( index < 0 || index >= sharedUiInfo.numCustomMatchGameTypes )
         return (char *)"";
     else
         return UI_SafeTranslateString((const char *)&sharedUiInfo.gameTypeMapCount[29 * index - 926]);
@@ -358,7 +358,7 @@ const char *__cdecl UI_FeederItemText_GametypesBase(
             if ( xblive_basictraining->current.enabled )
             {
                 indexa = UI_GetBasicTrainingGametypeIdForNum(index);
-                if ( indexa >= 0 && indexa < sharedUiInfo.customGameTypes[31].splitscreen )
+                if ( indexa >= 0 && indexa < sharedUiInfo.numCustomMatchGameTypes )
                     result = UI_SafeTranslateString((const char *)&sharedUiInfo.gameTypeMapCount[29 * indexa - 926]);
                 else
                     result = "";
@@ -408,7 +408,7 @@ int __cdecl UI_GetBasicTrainingGametypeIdForNum(int num)
     int count; // [esp+4h] [ebp-4h]
 
     count = 0;
-    for ( index = 0; index < sharedUiInfo.customGameTypes[31].splitscreen; ++index )
+    for ( index = 0; index < sharedUiInfo.numCustomMatchGameTypes; ++index )
     {
         if ( sharedUiInfo.gameTypeMapCount[29 * index - 901] )
         {
@@ -434,7 +434,7 @@ char *__cdecl UI_FeederItemText_GametypesInGame(
     if ( xblive_basictraining->current.enabled )
     {
         index = UI_GetBasicTrainingGametypeIdForNum(index);
-        if ( index < 0 || index >= sharedUiInfo.customGameTypes[31].splitscreen )
+        if ( index < 0 || index >= sharedUiInfo.numCustomMatchGameTypes )
             return (char *)"";
         if ( column )
         {
@@ -504,7 +504,7 @@ char *__cdecl UI_FeederItemText_WeaponOptions(
         listPtr->cursorPos[contextIndex] = numWeaponOptions - 1;
         UI_FeederSelection(localClientNum, contextIndex, feederID, numWeaponOptions - 1);
     }
-    itemIndex = sharedUiInfo.modIndex;
+    itemIndex = sharedUiInfo.itemIndex;
     weaponOption = BG_GetWeaponOptionNumFromIndexAndGroup(index, currentWeaponGroup);
     cost = BG_GetWeaponOptionCost(weaponOption);
     WeaponOptionNumFromIndexAndGroup = BG_GetWeaponOptionNumFromIndexAndGroup(
@@ -667,15 +667,15 @@ char *__cdecl UI_FeederItemText_Attachments(
     isCurrentItemEquipped = 0;
     isSelectedItem = 0;
     isItemGreyedOut = 0;
-    itemIndex = sharedUiInfo.modIndex;
+    itemIndex = sharedUiInfo.itemIndex;
     if ( sharedUiInfo.attachmentNum == 1 )
         attachmentNum = BG_UnlockablesGetItemAttachmentNumWithAttachPoint(
-                                            sharedUiInfo.modIndex,
+                                            sharedUiInfo.itemIndex,
                                             index,
                                             attachmentFilter->current.integer);
     else
         attachmentNum = BG_UnlockablesGetItemAttachmentNumWithAttachPoint(
-                                            sharedUiInfo.modIndex,
+                                            sharedUiInfo.itemIndex,
                                             index + 1,
                                             attachmentFilter->current.integer);
     ItemAttachment = BG_UnlockablesGetItemAttachment(itemIndex, attachmentNum);
@@ -721,7 +721,7 @@ char *__cdecl UI_FeederItemText_Attachments(
         cost = 0;
     if ( listPtr->cursorPos[contextIndex] == index )
     {
-        LODWORD(sharedUiInfo.itemColor[3]) = attachmentNum;
+        sharedUiInfo.attachmentNum = attachmentNum;
         if ( Window_HasFocus(contextIndex, &item->window) )
             isSelectedItem = 1;
     }
@@ -1333,7 +1333,7 @@ char *__cdecl UI_FeederItemText_ItemInSlot(
     isSelectedItem = 0;
     if ( listPtr->cursorPos[contextIndex] == index && !item->animInfo->animating )
     {
-        sharedUiInfo.modIndex = itemIndex;
+        sharedUiInfo.itemIndex = itemIndex;
         sharedUiInfo.itemIndex = index;
         isSelectedItem = Window_HasFocus(contextIndex, &item->window);
     }
@@ -1384,7 +1384,7 @@ char *__cdecl UI_FeederItemText_CustomPerksInSlot(
     isSelectedItem = 0;
     if ( Item_GetListBoxDef(item)->cursorPos[contextIndex] == index )
     {
-        sharedUiInfo.modIndex = itemIndex;
+        sharedUiInfo.itemIndex = itemIndex;
         sharedUiInfo.itemIndex = index;
         isSelectedItem = Window_HasFocus(contextIndex, &item->window);
     }
@@ -1434,7 +1434,7 @@ char *__cdecl UI_FeederItemText_ChallengesKillstreaks(
     }
     itemIndex = BG_UnlockablesGetItemIndexInSlot(index);
     if ( listPtr->cursorPos[contextIndex] == index )
-        sharedUiInfo.modIndex = itemIndex;
+        sharedUiInfo.itemIndex = itemIndex;
     if ( itemIndex == -1 )
         return (char *)"";
     if ( !column )
@@ -1502,7 +1502,7 @@ char *__cdecl UI_FeederItemText_SortedItems(
     if ( BG_UnlockablesIsItemPurchased(controllerIndex, itemIndex) || Dvar_GetInt(ui_items_no_cost) )
         cost = 0;
     if ( listPtr->cursorPos[contextIndex] == index )
-        sharedUiInfo.modIndex = itemIndex;
+        sharedUiInfo.itemIndex = itemIndex;
     v31 = 0;
     i = 0;
     Int = 0;
@@ -1652,7 +1652,7 @@ const char *__cdecl UI_FeederItemText_CustomKillstreaks(
     isSelectedItem = 0;
     if ( listPtr->cursorPos[contextIndex] == index )
     {
-        sharedUiInfo.modIndex = itemIndex;
+        sharedUiInfo.itemIndex = itemIndex;
         isSelectedItem = Window_HasFocus(contextIndex, &item->window);
     }
     UI_FeederItemText_CommonListColorHandler(controllerIndex, isSelectedItem, isGrey, 0);
@@ -2590,7 +2590,7 @@ char __cdecl UI_FeederItemColor_WeaponOptions(
     currentWeaponGroup = WEAPONOPTION_GROUP_FIRST;
     if ( ui_currentWeaponOptionGroup )
         currentWeaponGroup = ui_currentWeaponOptionGroup->current.integer;
-    itemIndex = sharedUiInfo.modIndex;
+    itemIndex = sharedUiInfo.itemIndex;
     weaponOption = BG_GetWeaponOptionNumFromIndexAndGroup(index, currentWeaponGroup);
     cost = BG_GetWeaponOptionCost(weaponOption);
     WeaponOptionNumFromIndexAndGroup = BG_GetWeaponOptionNumFromIndexAndGroup(
@@ -3263,10 +3263,10 @@ char *__cdecl UI_GetMapLoadNameForCurrentIndex(int index)
     int count; // [esp+4h] [ebp-4h]
 
     count = 0;
-    for ( i = 0; i < sharedUiInfo.joinGameTypes[31].basictraining; ++i )
+    for ( i = 0; i < sharedUiInfo.mapCount; ++i )
     {
         if ( index == count )
-            return &sharedUiInfo.mapList[i].mapName[28];
+            return sharedUiInfo.mapList[i].mapLoadName;
         ++count;
     }
     Com_Printf(
@@ -3282,8 +3282,8 @@ void __cdecl UI_OverrideCursorPos_Maps(int contextIndex, listBoxDef_s *listPtr)
     const char *MapLoadNameForCurrentIndex; // [esp-4h] [ebp-8h]
     int mapCount; // [esp+0h] [ebp-4h]
 
-    mapCount = sharedUiInfo.joinGameTypes[31].basictraining;
-    if ( listPtr->cursorPos[contextIndex] >= sharedUiInfo.joinGameTypes[31].basictraining )
+    mapCount = sharedUiInfo.mapCount;
+    if ( listPtr->cursorPos[contextIndex] >= sharedUiInfo.mapCount )
         listPtr->cursorPos[contextIndex] = 0;
     if ( mapCount )
     {
@@ -3316,9 +3316,9 @@ void __cdecl UI_OverrideCursorPos_CustomGametypes(int contextIndex, listBoxDef_s
     int typeCount; // [esp+4h] [ebp-8h]
     int typeCursorPos; // [esp+8h] [ebp-4h]
 
-    typeCount = sharedUiInfo.gameTypes[31].basictraining + sharedUiInfo.customGameTypes[31].splitscreen;
+    typeCount = sharedUiInfo.gameTypes[31].basictraining + sharedUiInfo.numCustomMatchGameTypes;
     typeCursorPos = listPtr->cursorPos[contextIndex];
-    if ( typeCursorPos >= sharedUiInfo.gameTypes[31].basictraining + sharedUiInfo.customGameTypes[31].splitscreen )
+    if ( typeCursorPos >= sharedUiInfo.gameTypes[31].basictraining + sharedUiInfo.numCustomMatchGameTypes )
     {
         if ( xblive_basictraining->current.enabled )
             listPtr->cursorPos[contextIndex] = typeCursorPos;
@@ -3351,7 +3351,7 @@ int __cdecl UI_GetBasicTrainingGametypeNumFromId(int id)
     int count; // [esp+4h] [ebp-4h]
 
     count = 0;
-    for ( index = 0; index < sharedUiInfo.customGameTypes[31].splitscreen; ++index )
+    for ( index = 0; index < sharedUiInfo.numCustomMatchGameTypes; ++index )
     {
         if ( sharedUiInfo.gameTypeMapCount[29 * index - 901] )
         {
@@ -3367,9 +3367,9 @@ int __cdecl UI_CustomGametypes_GetSelectedGameTypeIndex()
 {
     int i; // [esp+4h] [ebp-4h]
 
-    for ( i = 0; i < sharedUiInfo.customGameTypes[31].splitscreen; ++i )
+    for ( i = 0; i < sharedUiInfo.numCustomMatchGameTypes; ++i )
     {
-        if ( !I_stricmp(ui_gametype->current.string, &sharedUiInfo.customGameTypes[32].gameType[116 * i]) )
+        if ( !I_stricmp(ui_gametype->current.string, sharedUiInfo.customMatchGameTypes[i].gameType) )
             return i;
     }
     return 0;
@@ -3378,7 +3378,7 @@ int __cdecl UI_CustomGametypes_GetSelectedGameTypeIndex()
 bool __cdecl UI_CustomGametypes_IsInvalidCursorPos(int cursorPos)
 {
     return cursorPos < 0
-            || cursorPos >= sharedUiInfo.customGameTypes[31].splitscreen
+            || cursorPos >= sharedUiInfo.numCustomMatchGameTypes
             || I_strcmp(ui_gametype->current.string, &sharedUiInfo.customGameTypes[32].gameType[116 * cursorPos]) != 0;
 }
 
@@ -3573,13 +3573,13 @@ void __cdecl UI_FeederSelection_Maps(int contextIndex, float feederID, int index
     char *mapLoadName; // [esp+0h] [ebp-4h]
 
     mapLoadName = UI_GetMapLoadNameForCurrentIndex(index);
-    if ( index >= 0 && index < sharedUiInfo.joinGameTypes[31].basictraining )
+    if ( index >= 0 && index < sharedUiInfo.mapCount )
         Dvar_SetStringByName("ui_preview", mapLoadName);
 }
 
 void __cdecl UI_FeederSelection_CustomGametypes(int contextIndex, float feederID, int index)
 {
-    if ( index >= 0 && index < sharedUiInfo.customGameTypes[31].splitscreen )
+    if ( index >= 0 && index < sharedUiInfo.numCustomMatchGameTypes )
         Dvar_SetStringByName("ui_gametype", &sharedUiInfo.customGameTypes[32].gameType[116 * index]);
 }
 
@@ -3640,12 +3640,12 @@ void __cdecl UI_Project_FeederSelection(int localClientNum, int contextIndex, fl
         case 'C':
         case 'a':
         case 'd':
-            sharedUiInfo.modIndex = BG_UnlockablesGetItemIndexInSlot(index);
+            sharedUiInfo.itemIndex = BG_UnlockablesGetItemIndexInSlot(index);
             sharedUiInfo.itemIndex = index;
             break;
         case '9':
-            LODWORD(sharedUiInfo.itemColor[3]) = BG_UnlockablesGetItemAttachmentNumWithAttachPoint(
-                                                                                         sharedUiInfo.modIndex,
+            sharedUiInfo.attachmentNum = BG_UnlockablesGetItemAttachmentNumWithAttachPoint(
+                                                                                         sharedUiInfo.itemIndex,
                                                                                          index,
                                                                                          attachmentFilter->current.integer);
             break;
@@ -3653,7 +3653,7 @@ void __cdecl UI_Project_FeederSelection(int localClientNum, int contextIndex, fl
             ItemIndexInSlot = 0;
             if ( index )
                 ItemIndexInSlot = BG_UnlockablesGetItemIndexInSlot(index - 1);
-            sharedUiInfo.modIndex = ItemIndexInSlot;
+            sharedUiInfo.itemIndex = ItemIndexInSlot;
             UI_Gametype_Custom_ResolveNumKillsConflicts();
             break;
         case 'G':

@@ -3860,9 +3860,9 @@ void __cdecl UI_ValidatePrivateMatchGametype_f()
 {
     int i; // [esp+0h] [ebp-4h]
 
-    for ( i = 0; i < sharedUiInfo.customGameTypes[31].splitscreen; ++i )
+    for ( i = 0; i < sharedUiInfo.numCustomMatchGameTypes; ++i )
     {
-        if ( !I_strcmp(ui_gametype->current.string, &sharedUiInfo.customGameTypes[32].gameType[116 * i]) )
+        if ( !I_strcmp(ui_gametype->current.string, sharedUiInfo.customMatchGameTypes[i].gameType) )
             return;
     }
     Dvar_SetString((dvar_s *)ui_gametype, (const char *)&sharedUiInfo.numCustomMatchGameTypes);

@@ -1528,8 +1528,8 @@ void __cdecl UI_DrawAttributeBar(
         selectingWeapon = I_stricmp(v6, "select_weapon") == 0;
         if ( selectingWeapon )
         {
-            currentWeaponIndex = sharedUiInfo.modIndex;
-            ItemRef = BG_UnlockablesGetItemRef(sharedUiInfo.modIndex);
+            currentWeaponIndex = sharedUiInfo.itemIndex;
+            ItemRef = BG_UnlockablesGetItemRef(sharedUiInfo.itemIndex);
         }
         else
         {
@@ -1557,7 +1557,7 @@ void __cdecl UI_DrawAttributeBar(
         }
         if ( !selectingWeapon && selectingAttachments )
         {
-            v14 = BG_UnlockablesGetItemAttachmentRef(currentWeaponIndex, SLODWORD(sharedUiInfo.itemColor[3]));
+            v14 = BG_UnlockablesGetItemAttachmentRef(currentWeaponIndex, sharedUiInfo.attachmentNum);
             v15 = StringTable_Lookup(attributesTable, 1, v14, 9, currentWeaponRef, attributeColumn);
             attachmentEffectOnAttribute = (float)atoi(v15) / 10.0;
         }
@@ -2775,9 +2775,9 @@ char *__cdecl UI_GetMapDisplayNameCaps(const char *pszMap)
 {
     int i; // [esp+0h] [ebp-4h]
 
-    for ( i = 0; i < sharedUiInfo.joinGameTypes[31].basictraining; ++i )
+    for ( i = 0; i < sharedUiInfo.mapCount; ++i )
     {
-        if ( !I_stricmp(pszMap, &sharedUiInfo.mapList[i].mapName[28]) )
+        if ( !I_stricmp(pszMap, sharedUiInfo.mapList[i].mapLoadName) )
             return UI_SafeTranslateString(&sharedUiInfo.mapList[i].mapLoadName[20]);
     }
     return (char *)pszMap;

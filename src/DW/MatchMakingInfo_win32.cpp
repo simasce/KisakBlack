@@ -24,35 +24,40 @@ MatchMakingInfo::MatchMakingInfo() : bdMatchMakingInfo()
     this->m_memberLICENSE = 0;
     this->m_pingedtime = 0;
     this->m_active = 0;
-    *(unsigned int *)this->m_membersecKey = 0;
-    *(unsigned int *)&this->m_membersecKey[4] = 0;
-    *(unsigned int *)&this->m_membersecKey[8] = 0;
-    *(unsigned int *)&this->m_membersecKey[12] = 0;
-    this->m_membersecKey[16] = 0;
+    //*(unsigned int *)this->m_membersecKey = 0;
+    //*(unsigned int *)&this->m_membersecKey[4] = 0;
+    //*(unsigned int *)&this->m_membersecKey[8] = 0;
+    //*(unsigned int *)&this->m_membersecKey[12] = 0;
+    //this->m_membersecKey[16] = 0;
+    memset(this->m_membersecKey, 0, sizeof(this->m_membersecKey));
     memset((unsigned __int8 *)this->m_memberservername, 0, sizeof(this->m_memberservername));
-    *(unsigned int *)this->m_membermapname = 0;
-    *(unsigned int *)&this->m_membermapname[4] = 0;
-    *(unsigned int *)&this->m_membermapname[8] = 0;
-    *(unsigned int *)&this->m_membermapname[12] = 0;
-    *(unsigned int *)&this->m_membermapname[16] = 0;
-    *(unsigned int *)&this->m_membermapname[20] = 0;
-    *(unsigned int *)&this->m_membermapname[24] = 0;
-    *(unsigned int *)&this->m_membermapname[28] = 0;
-    this->m_membermapname[32] = 0;
-    *(unsigned int *)this->m_membermod = 0;
-    *(unsigned int *)&this->m_membermod[4] = 0;
-    *(unsigned int *)&this->m_membermod[8] = 0;
-    *(unsigned int *)&this->m_membermod[12] = 0;
-    *(unsigned int *)&this->m_membermod[16] = 0;
-    *(unsigned int *)&this->m_membermod[20] = 0;
-    *(unsigned int *)&this->m_membermod[24] = 0;
-    *(unsigned int *)&this->m_membermod[28] = 0;
-    this->m_membermod[32] = 0;
+    //*(unsigned int *)this->m_membermapname = 0;
+    //*(unsigned int *)&this->m_membermapname[4] = 0;
+    //*(unsigned int *)&this->m_membermapname[8] = 0;
+    //*(unsigned int *)&this->m_membermapname[12] = 0;
+    //*(unsigned int *)&this->m_membermapname[16] = 0;
+    //*(unsigned int *)&this->m_membermapname[20] = 0;
+    //*(unsigned int *)&this->m_membermapname[24] = 0;
+    //*(unsigned int *)&this->m_membermapname[28] = 0;
+    //this->m_membermapname[32] = 0;
+    memset(this->m_membermapname, 0, sizeof(this->m_membermapname));
+    memset(this->m_membermod, 0, sizeof(this->m_membermod));
+
+    //*(unsigned int *)this->m_membermod = 0;
+    //*(unsigned int *)&this->m_membermod[4] = 0;
+    //*(unsigned int *)&this->m_membermod[8] = 0;
+    //*(unsigned int *)&this->m_membermod[12] = 0;
+    //*(unsigned int *)&this->m_membermod[16] = 0;
+    //*(unsigned int *)&this->m_membermod[20] = 0;
+    //*(unsigned int *)&this->m_membermod[24] = 0;
+    //*(unsigned int *)&this->m_membermod[28] = 0;
+    //this->m_membermod[32] = 0;
     //return this;
 }
 
-void __thiscall MatchMakingInfo::serialize(bdByteBuffer *buffer)
+void MatchMakingInfo::serialize(bdByteBuffer *buffer)
 {
+#ifdef KISAK_DW_STUBS
     bdMatchMakingInfo::serialize(this, buffer);
     bdByteBuffer::writeInt32(buffer, this->m_memberNETCODE_VERSION);
     bdByteBuffer::writeBlob(buffer, this->m_membersecKey, 0x10u);
@@ -75,10 +80,12 @@ void __thiscall MatchMakingInfo::serialize(bdByteBuffer *buffer)
     bdByteBuffer::writeString(buffer, this->m_membermod, 0x20u);
     bdByteBuffer::writeUInt64(buffer, this->m_memberaddressport);
     bdByteBuffer::writeUInt32(buffer, this->m_memberDDL_VERSION);
+#endif
 }
 
-bool __thiscall MatchMakingInfo::deserialize(MatchMakingInfo *this, bdReference<bdByteBuffer> buffer)
+bool __thiscall MatchMakingInfo::deserialize(bdReference<bdByteBuffer> buffer)
 {
+#ifdef KISAK_DW_STUBS
     bdReference<bdCommonAddr> v3; // [esp-4h] [ebp-DCh] BYREF
     bool v4; // [esp+0h] [ebp-D8h]
     bool v5; // [esp+4h] [ebp-D4h]
@@ -188,31 +195,34 @@ bool __thiscall MatchMakingInfo::deserialize(MatchMakingInfo *this, bdReference<
     v51 = v4;
     bdReference<bdRemoteTask>::~bdReference<bdRemoteTask>((bdReference<bdCommonAddr> *)&buffer);
     return v51;
+#else
+    return false;
+#endif
 }
 
-unsigned int __thiscall MatchMakingInfo::sizeOf(MatchMakingInfo *this)
+unsigned int __thiscall MatchMakingInfo::sizeOf()
 {
     return 552;
 }
 
-char __thiscall MatchMakingInfo::setSessionKey(MatchMakingInfo *this, const bdSecurityKey *secKey)
+char __thiscall MatchMakingInfo::setSessionKey(const bdSecurityKey *secKey)
 {
     *(bdSecurityKey *)this->m_membersecKey = *secKey;
     return 1;
 }
 
-char __thiscall MatchMakingInfo::getSessionKey(MatchMakingInfo *this, bdSecurityKey *secKey)
+char __thiscall MatchMakingInfo::getSessionKey(bdSecurityKey *secKey)
 {
     *secKey = *(bdSecurityKey *)this->m_membersecKey;
     return 1;
 }
 
 bool __thiscall MatchMakingInfo::doUpdate(
-                MatchMakingInfo *this,
                 int msec,
                 unsigned int updateIntervalMsec,
                 unsigned int forceUpdateIntervalMsec)
 {
+#ifdef KISAK_DW_STUBS
     const char *MapName; // eax
     const char *v5; // eax
     const char *HostName; // eax
@@ -260,5 +270,8 @@ bool __thiscall MatchMakingInfo::doUpdate(
     if ( allowUpdate )
         timeSinceUpdate = 0;
     return allowUpdate;
+#else
+    return false;
+#endif
 }
 

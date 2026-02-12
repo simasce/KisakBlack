@@ -614,10 +614,10 @@ char *__cdecl Live_FileShare_GetLocalizedGameTypeFromIndex(int index, bool upper
 
 char *__cdecl Live_FileShare_GetLocalizedMapNameFromIndex(int index)
 {
-    if ( index < 0 || index >= sharedUiInfo.joinGameTypes[31].basictraining )
+    if ( index < 0 || index >= sharedUiInfo.mapCount )
         return (char *)"";
     else
-        return UI_SafeTranslateString(&sharedUiInfo.joinGameTypes[32].gameType[304 * index]);
+        return UI_SafeTranslateString(sharedUiInfo.mapList[index].mapName);
 }
 
 int __cdecl Live_FileShare_GetGameTypeCount()
@@ -832,8 +832,8 @@ const char *__cdecl Live_FileShare_GetSelectedImage(bdFileMetaData *descriptors,
         return "";
     }
     Live_FileShare_GetTag(descriptors, index, 2u, &map);
-    if ( map < sharedUiInfo.joinGameTypes[31].basictraining )
-        return va("menu_%s_map_select_final", &sharedUiInfo.mapList[map].mapName[28]);
+    if ( map < sharedUiInfo.mapCount )
+        return va("menu_%s_map_select_final", sharedUiInfo.mapList[map].mapLoadName);
     Com_PrintError(16, "File share map tag value out of bounds.\n");
     return "";
 }
@@ -852,7 +852,7 @@ char *__cdecl Live_FileShare_LocalizedGameTypeAndMap(int gameTypeIndex, int mapI
     if ( gameTypeIndex < 0
         || gameTypeIndex >= Live_FileShare_GetGameTypeCount()
         || mapIndex < 0
-        || mapIndex >= sharedUiInfo.joinGameTypes[31].basictraining )
+        || mapIndex >= sharedUiInfo.mapCount )
     {
         Com_PrintError(16, "File share game type or map name tag value out of bounds.\n");
         return (char *)"";
@@ -860,7 +860,7 @@ char *__cdecl Live_FileShare_LocalizedGameTypeAndMap(int gameTypeIndex, int mapI
     else
     {
         gameTypeAndMap[0] = Live_FileShare_GetLocalizedGameTypeFromIndex(gameTypeIndex, 1);
-        v2 = va("%s_CAPS", &sharedUiInfo.joinGameTypes[32].gameType[304 * mapIndex]);
+        v2 = va("%s_CAPS", sharedUiInfo.mapList[mapIndex].mapName);
         gameTypeAndMap[1] = UI_SafeTranslateString(v2);
         v3 = UI_SafeTranslateString("MENU_FILESHARE_GAMEONMAP");
         return UI_ReplaceConversionStrings(v3, 2, gameTypeAndMap);
@@ -1471,9 +1471,9 @@ char __cdecl Live_FileShare_GetMap(
 
     if ( Live_FileShare_GetTag(descriptors, index, 2u, &tagValue) )
     {
-        if ( tagValue < sharedUiInfo.joinGameTypes[31].basictraining )
+        if ( tagValue < sharedUiInfo.mapCount )
         {
-            *stringResult = va("%s", &sharedUiInfo.mapList[tagValue].mapName[28]);
+            *stringResult = va("%s", sharedUiInfo.mapList[tagValue].mapLoadName);
             return 1;
         }
         Com_PrintError(16, "Fileshare: Value not in sharedUiInfo bounds.\n");
@@ -1493,9 +1493,9 @@ char __cdecl Live_FileShare_GetMapName(
 
     if ( Live_FileShare_GetTag(descriptors, index, 2u, &tagValue) )
     {
-        if ( tagValue < sharedUiInfo.joinGameTypes[31].basictraining )
+        if ( tagValue < sharedUiInfo.mapCount )
         {
-            *stringResult = va("@%s_CAPS", &sharedUiInfo.joinGameTypes[32].gameType[304 * tagValue]);
+            *stringResult = va("@%s_CAPS", sharedUiInfo.mapList[tagValue].mapName);
             return 1;
         }
         Com_PrintError(16, "Fileshare: Value not in sharedUiInfo bounds.\n");
@@ -3055,7 +3055,7 @@ void __cdecl Live_FileShare_ClearSearchState()
                     Dvar_SetInt((dvar_s *)s_fsSearchRowValueDvars[2], 0);
                     Live_FileShare_SetSpinnerDvars(
                         0,
-                        sharedUiInfo.joinGameTypes[31].basictraining,
+                        sharedUiInfo.mapCount,
                         (dvar_s *)s_fsSearchRowValueDvars[2],
                         (dvar_s *)s_fsSearchRowTextDvars[2]);
                     break;
@@ -3982,12 +3982,12 @@ void __cdecl Live_FileShare_SetSearchRowOffset(int row, int offset)
         case 2:
             value = Live_FileShare_SetSpinnerDvars(
                                 offset,
-                                sharedUiInfo.joinGameTypes[31].basictraining,
+                                sharedUiInfo.mapCount,
                                 (dvar_s *)s_fsSearchRowValueDvars[2],
                                 (dvar_s *)s_fsSearchRowTextDvars[2]);
             if ( value )
             {
-                if ( value <= 0 || value > sharedUiInfo.joinGameTypes[31].basictraining )
+                if ( value <= 0 || value > sharedUiInfo.mapCount )
                 {
                     Com_PrintError(16, "Fileshare: Value not in sharedUiInfo bounds.\n");
                 }

@@ -1,6 +1,14 @@
 #pragma once
 #include <DemonWare/bdLobbyService.h>
 
+enum sv_dedicatedauthState : __int32
+{
+    SV_DWNOTAUTHORIZED = 0x0,
+    SV_DWAUTHORIZING   = 0x1,
+    SV_DWAUTHORIZED    = 0x2,
+    SV_DWAUTHORIZEFAIL = 0x3,
+};
+
 enum DWOnlineStatus : __int32
 {                                       // XREF: ?Live_Frame_MP@@YA_NHH@Z/r
                                         // ?Live_Frame_MP@@YA_NHH@Z/r ...

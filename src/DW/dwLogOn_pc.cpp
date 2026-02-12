@@ -1,4 +1,9 @@
 #include "dwLogOn_pc.h"
+#include <universal/dvar.h>
+#include <universal/assertive.h>
+#include <qcommon/common.h>
+
+sv_dedicatedauthState g_svdedicatedauthstate;
 
 bool __cdecl SV_IsConnectedToDW()
 {

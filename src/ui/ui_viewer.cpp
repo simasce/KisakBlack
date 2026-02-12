@@ -639,16 +639,16 @@ void __thiscall UIViewer::Update(UIViewer *this, float deltaTime)
                 UIViewer::AddPlayerToScene(this, &playerParams, &weaponParam, 0);
                 break;
             case MODE_EDIT_PLAYER_HEAD:
-                playerParams.headIndex = sharedUiInfo.modIndex;
+                playerParams.headIndex = sharedUiInfo.itemIndex;
                 UIViewer::AddPlayerToScene(this, &playerParams, &weaponParam, 0);
                 break;
             case MODE_EDIT_PLAYER_BODY:
-                playerParams.bodyIndex = BG_UnlockablesGetAssociatedBody(sharedUiInfo.modIndex);
+                playerParams.bodyIndex = BG_UnlockablesGetAssociatedBody(sharedUiInfo.itemIndex);
                 UIViewer::AddPlayerToScene(this, &playerParams, &weaponParam, 0);
                 break;
             case MODE_EDIT_PLAYER_FACE_PATTERN:
-                v7 = BG_UnlockablesIsItemClassified(sharedUiInfo.modIndex)
-                    || BG_UnlockablesIsItemLocked(this->controllerIndex, sharedUiInfo.modIndex);
+                v7 = BG_UnlockablesIsItemClassified(sharedUiInfo.itemIndex)
+                    || BG_UnlockablesIsItemLocked(this->controllerIndex, sharedUiInfo.itemIndex);
                 isLocked = v7;
                 playerParams.facePatternIndex = !v7 ? sharedUiInfo.itemIndex : 0;
                 UIViewer::AddPlayerToScene(this, &playerParams, &weaponParam, v7);
@@ -675,9 +675,9 @@ void __thiscall UIViewer::Update(UIViewer *this, float deltaTime)
                 weapParams.currentAttachmentPoint = -1;
                 String = Dvar_GetString("selected_loadout_slot");
                 weapParams.weaponSlot = I_strcmp(String, "primary") != 0;
-                weapParams.weaponIndex = sharedUiInfo.modIndex;
+                weapParams.weaponIndex = sharedUiInfo.itemIndex;
                 memset(&weapParams.attachTopIndex, 0, 20);
-                if ( BG_UnlockablesIsItemClassified(sharedUiInfo.modIndex) )
+                if ( BG_UnlockablesIsItemClassified(sharedUiInfo.itemIndex) )
                 {
                     UIViewer::State::Invalidate(&this->prevState);
                     UIViewer::FreeDobjs(this);
@@ -688,7 +688,7 @@ void __thiscall UIViewer::Update(UIViewer *this, float deltaTime)
                 }
                 break;
             case MODE_EDIT_CAMO:
-                weaponParam.weaponOptions.i = sharedUiInfo.numItemsInSlot & 0x3F | weaponParam.weaponOptions.i & 0xFFFFFFC0;
+                weaponParam.weaponOptions.i = sharedUiInfo.sortedItemPivot & 0x3F | weaponParam.weaponOptions.i & 0xFFFFFFC0;
                 UIViewer::AddWeaponToScene(this, &weaponParam, &weaponParam);
                 break;
             case MODE_EDIT_ATTACHMENT_TOP:
@@ -696,18 +696,18 @@ void __thiscall UIViewer::Update(UIViewer *this, float deltaTime)
             case MODE_EDIT_ATTACHMENT_TRIGGER:
             case MODE_EDIT_ATTACHMENT_MUZZLE:
                 memcpy(&baseWeaponParam, &weaponParam, sizeof(baseWeaponParam));
-                UIViewer::SetAttachmentIndex(this, &weaponParam, SLODWORD(sharedUiInfo.itemColor[3]));
+                UIViewer::SetAttachmentIndex(this, &weaponParam, sharedUiInfo.attachmentNum);
                 UIViewer::ClearAttachmentIndex(this, &baseWeaponParam);
-                weaponParam.currentAttachmentPoint = LODWORD(sharedUiInfo.itemColor[3]);
+                weaponParam.currentAttachmentPoint = sharedUiInfo.attachmentNum;
                 UIViewer::AddWeaponToScene(this, &weaponParam, &baseWeaponParam);
                 break;
             case MODE_EDIT_TAG:
-                weaponParam.weaponOptions.i = ((sharedUiInfo.numItemsInSlot & 1) << 20)
+                weaponParam.weaponOptions.i = ((sharedUiInfo.sortedItemPivot & 1) << 20)
                                                                         | weaponParam.weaponOptions.i & 0xFFEFFFFF;
                 UIViewer::AddWeaponToScene(this, &weaponParam, &weaponParam);
                 break;
             case MODE_EDIT_EMBLEM:
-                weaponParam.weaponOptions.i = ((sharedUiInfo.numItemsInSlot & 1) << 19)
+                weaponParam.weaponOptions.i = ((sharedUiInfo.sortedItemPivot & 1) << 19)
                                                                         | weaponParam.weaponOptions.i & 0xFFF7FFFF;
                 UIViewer::AddWeaponToScene(this, &weaponParam, &weaponParam);
                 break;
@@ -1495,10 +1495,10 @@ eAttachmentPoint __cdecl GetCurrentAttachPoint()
     int attachmentNum; // [esp+4h] [ebp-8h]
 
     attachmentNum = BG_UnlockablesGetItemAttachmentNumWithAttachPoint(
-                                        sharedUiInfo.modIndex,
-                                        SLODWORD(sharedUiInfo.itemColor[3]),
+                                        sharedUiInfo.itemIndex,
+                                        sharedUiInfo.attachmentNum,
                                         0);
-    attachment = BG_UnlockablesGetItemAttachment(sharedUiInfo.modIndex, attachmentNum);
+    attachment = BG_UnlockablesGetItemAttachment(sharedUiInfo.itemIndex, attachmentNum);
     return BG_GetAttachmentPointIndexFromAttachment(attachment);
 }
 

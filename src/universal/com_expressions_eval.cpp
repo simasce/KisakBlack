@@ -1758,8 +1758,8 @@ void __cdecl GetCurrentClanTagFeature(int localClientNum, itemDef_s *item, Opera
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    index = sharedUiInfo.numSortedItems;
-    if ( sharedUiInfo.numSortedItems == -1
+    index = sharedUiInfo.clanTagFeature;
+    if ( sharedUiInfo.clanTagFeature == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     1801,
@@ -2506,7 +2506,7 @@ void __cdecl GetCurrentItemOption(int localClientNum, itemDef_s *item, OperandSt
     result.dataType = VAL_INT;
     OptionFromIndexAndGroupDvar = GetOptionFromIndexAndGroupDvar();
     result.internals.intVal = BG_GetWeaponOptionNumFromIndexAndGroup(
-                                                            sharedUiInfo.numItemsInSlot,
+                                                            sharedUiInfo.sortedItemPivot,
                                                             OptionFromIndexAndGroupDvar);
     if ( uiscript_debug && uiscript_debug->current.integer )
         Expression_TraceInternal("GetCurrentItemOption() = %s\n", result.internals.string);
@@ -3053,7 +3053,7 @@ void __cdecl IsWagerServer(int localClientNum, itemDef_s *item, OperandStack *da
 
     LAN_GetServerInfo(
         ui_netSource->current.integer,
-        *(unsigned int *)&sharedUiInfo.gap0[4 * *(unsigned int *)&sharedUiInfo.gap0[1124] + 1128],
+        sharedUiInfo.serverStatus.displayServers[sharedUiInfo.serverStatus.currentServer],
         buff,
         1024);
     result.dataType = VAL_INT;
@@ -3070,7 +3070,7 @@ void __cdecl GetContextHeight(int localClientNum, itemDef_s *item, OperandStack 
 
     LAN_GetServerInfo(
         ui_netSource->current.integer,
-        *(unsigned int *)&sharedUiInfo.gap0[4 * *(unsigned int *)&sharedUiInfo.gap0[1124] + 1128],
+        sharedUiInfo.serverStatus.displayServers[sharedUiInfo.serverStatus.currentServer],
         buff,
         1024);
     result.dataType = VAL_INT;
@@ -4598,8 +4598,8 @@ void __cdecl IsCurrentSortedItemEquipped(int localClientNum, itemDef_s *item, Op
 
     result.dataType = VAL_INT;
     controllerIndex = Com_LocalClient_GetControllerIndex(localClientNum);
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5016,
@@ -4659,8 +4659,8 @@ void __cdecl IsCurrentItemEquippedInAnyCustomClass(int localClientNum, itemDef_s
 
     result.dataType = VAL_INT;
     controllerIndex = Com_LocalClient_GetControllerIndex(localClientNum);
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5065,
@@ -4718,8 +4718,8 @@ void __cdecl IsCurrentItemPurchased(int localClientNum, itemDef_s *item, Operand
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5122,
@@ -4860,8 +4860,8 @@ void __cdecl IsCurrentItemAttachmentPurchased(int localClientNum, itemDef_s *ite
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5248,
@@ -4871,7 +4871,7 @@ void __cdecl IsCurrentItemAttachmentPurchased(int localClientNum, itemDef_s *ite
     {
         __debugbreak();
     }
-    v4 = LODWORD(sharedUiInfo.itemColor[3]);
+    v4 = sharedUiInfo.attachmentNum;
     ControllerIndex = Com_LocalClient_GetControllerIndex(localClientNum);
     result.internals.intVal = BG_UnlockablesIsItemAttachmentPurchased(ControllerIndex, index, v4);
     if ( uiscript_debug && uiscript_debug->current.integer )
@@ -4888,8 +4888,8 @@ void __cdecl IsCurrentItemOptionPurchased(int localClientNum, itemDef_s *item, O
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5265,
@@ -4901,7 +4901,7 @@ void __cdecl IsCurrentItemOptionPurchased(int localClientNum, itemDef_s *item, O
     }
     OptionFromIndexAndGroupDvar = GetOptionFromIndexAndGroupDvar();
     WeaponOptionNumFromIndexAndGroup = BG_GetWeaponOptionNumFromIndexAndGroup(
-                                                                             sharedUiInfo.numItemsInSlot,
+                                                                             sharedUiInfo.sortedItemPivot,
                                                                              OptionFromIndexAndGroupDvar);
     ControllerIndex = Com_LocalClient_GetControllerIndex(localClientNum);
     result.internals.intVal = BG_UnlockablesIsItemOptionPurchased(
@@ -4940,8 +4940,8 @@ void __cdecl IsItemOptionPurchasedByName(int localClientNum, itemDef_s *item, Op
 
     result.dataType = VAL_INT;
     GetOperand(dataStack, &source);
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5302,
@@ -4997,8 +4997,8 @@ void __cdecl GetCurrentItemCost(int localClientNum, itemDef_s *item, OperandStac
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5356,
@@ -5020,8 +5020,8 @@ void __cdecl GetCurrentItemSellPrice(int localClientNum, itemDef_s *item, Operan
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5373,
@@ -5043,8 +5043,8 @@ void __cdecl IsCurrentItemClassified(int localClientNum, itemDef_s *item, Operan
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    index = sharedUiInfo.modIndex;
-    result.internals.intVal = BG_UnlockablesIsItemClassified(sharedUiInfo.modIndex);
+    index = sharedUiInfo.itemIndex;
+    result.internals.intVal = BG_UnlockablesIsItemClassified(sharedUiInfo.itemIndex);
     if ( Dvar_GetInt(ui_useCustomClassInfo) )
         result.internals.intVal = 0;
     if ( uiscript_debug && uiscript_debug->current.integer )
@@ -5067,11 +5067,11 @@ void __cdecl GetCurrentItemClassifiedHintText(int localClientNum, itemDef_s *ite
     result.dataType = VAL_STRING;
     result.internals.intVal = (int)"";
     StringTable_GetAsset("mp/attributesTable.csv", (XAssetHeader *)&attributesTable);
-    purchasesNeeded = BG_UnlockablesGetNumPurchasesBeforeDeclassified(sharedUiInfo.modIndex);
+    purchasesNeeded = BG_UnlockablesGetNumPurchasesBeforeDeclassified(sharedUiInfo.itemIndex);
     memset(convArgs.args, 0, sizeof(convArgs.args));
     convArgs.argCount = 2;
     convArgs.args[0] = va("%i", purchasesNeeded);
-    ItemGroup = BG_UnlockablesGetItemGroup(sharedUiInfo.modIndex);
+    ItemGroup = BG_UnlockablesGetItemGroup(sharedUiInfo.itemIndex);
     v4 = StringTable_Lookup(attributesTable, 0, ItemGroup, 2, "name", 1);
     v5 = va("%s%s", v4, "_LOWER");
     convArgs.args[1] = UI_SafeTranslateString(v5);
@@ -5090,8 +5090,8 @@ void __cdecl GetCurrentItemAttachmentCost(int localClientNum, itemDef_s *item, O
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5441,
@@ -5101,7 +5101,7 @@ void __cdecl GetCurrentItemAttachmentCost(int localClientNum, itemDef_s *item, O
     {
         __debugbreak();
     }
-    result.internals.intVal = BG_UnlockablesGetItemAttachmentCost(index, SLODWORD(sharedUiInfo.itemColor[3]));
+    result.internals.intVal = BG_UnlockablesGetItemAttachmentCost(index, sharedUiInfo.attachmentNum);
     if ( uiscript_debug && uiscript_debug->current.integer )
         Expression_TraceInternal("GetCurrentItemAttachmentCost() = %i\n", result.internals.intVal);
     AddOperandToStack(dataStack, &result);
@@ -5113,8 +5113,8 @@ void __cdecl GetCurrentItemName(int localClientNum, itemDef_s *item, OperandStac
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_STRING;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5458,
@@ -5136,8 +5136,8 @@ void __cdecl GetCurrentItemIndex(int localClientNum, itemDef_s *item, OperandSta
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5475,
@@ -5159,8 +5159,8 @@ void __cdecl GetCurrentItemAttachmentName(int localClientNum, itemDef_s *item, O
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_STRING;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5493,
@@ -5170,7 +5170,7 @@ void __cdecl GetCurrentItemAttachmentName(int localClientNum, itemDef_s *item, O
     {
         __debugbreak();
     }
-    result.internals.intVal = (int)BG_UnlockablesGetItemAttachmentDisplayName(index, SLODWORD(sharedUiInfo.itemColor[3]));
+    result.internals.intVal = (int)BG_UnlockablesGetItemAttachmentDisplayName(index, sharedUiInfo.attachmentNum);
     if ( uiscript_debug && uiscript_debug->current.integer )
         Expression_TraceInternal("GetCurrentItemAttachmentName() = %s\n", result.internals.string);
     AddOperandToStack(dataStack, &result);
@@ -5182,8 +5182,8 @@ void __cdecl GetCurrentItemAttachmentDesc(int localClientNum, itemDef_s *item, O
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_STRING;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5511,
@@ -5193,7 +5193,7 @@ void __cdecl GetCurrentItemAttachmentDesc(int localClientNum, itemDef_s *item, O
     {
         __debugbreak();
     }
-    result.internals.intVal = (int)BG_UnlockablesGetItemAttachmentDesc(index, SLODWORD(sharedUiInfo.itemColor[3]));
+    result.internals.intVal = (int)BG_UnlockablesGetItemAttachmentDesc(index, sharedUiInfo.attachmentNum);
     if ( uiscript_debug && uiscript_debug->current.integer )
         Expression_TraceInternal("GetCurrentItemAttachmentDesc() = %s\n", result.internals.string);
     AddOperandToStack(dataStack, &result);
@@ -5205,8 +5205,8 @@ void __cdecl GetCurrentItemAttachmentNum(int localClientNum, itemDef_s *item, Op
     int attachmentNum; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    attachmentNum = LODWORD(sharedUiInfo.itemColor[3]);
-    if ( LODWORD(sharedUiInfo.itemColor[3]) == -1
+    attachmentNum = sharedUiInfo.attachmentNum;
+    if ( sharedUiInfo.attachmentNum == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5529,
@@ -5228,7 +5228,7 @@ void __cdecl GetCurrentItemAttachmentPoint(int localClientNum, itemDef_s *item, 
     Operand result; // [esp+0h] [ebp-8h] BYREF
 
     result.dataType = VAL_INT;
-    ItemAttachment = BG_UnlockablesGetItemAttachment(sharedUiInfo.modIndex, SLODWORD(sharedUiInfo.itemColor[3]));
+    ItemAttachment = BG_UnlockablesGetItemAttachment(sharedUiInfo.itemIndex, sharedUiInfo.attachmentNum);
     result.internals.intVal = BG_GetAttachmentPointIndexFromAttachment(ItemAttachment);
     if ( uiscript_debug && uiscript_debug->current.integer )
         Expression_TraceInternal("GetCurrentItemAttachmentPoint() = %d\n", result.internals.intVal);
@@ -5241,8 +5241,8 @@ void __cdecl GetCurrentItemNumAttachments(int localClientNum, itemDef_s *item, O
     int index; // [esp+8h] [ebp-4h]
 
     result.dataType = VAL_INT;
-    index = sharedUiInfo.modIndex;
-    if ( sharedUiInfo.modIndex == -1
+    index = sharedUiInfo.itemIndex;
+    if ( sharedUiInfo.itemIndex == -1
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
                     5561,
@@ -7117,12 +7117,12 @@ void __cdecl GetSortedStatsForFriendOrSelf(int localClientNum, itemDef_s *item, 
         getAbsoluteIndex = list.operands[2].internals.intVal;
         param = list.operands[3].internals.intVal;
         forFriend = list.operands[0].internals.intVal != 0;
-        if ( list.operands[2].internals.intVal && index >= 0 && index < sharedUiInfo.sortedItemPivot )
+        if ( list.operands[2].internals.intVal && index >= 0 && index < sharedUiInfo.clanTagFeature )
         {
             if ( LiveCombatRecord_GetSortedItemData(index, forFriend, SORT_KEY) == 2147483600.0 )
             {
                 while ( LiveCombatRecord_GetSortedItemData(index, forFriend, SORT_KEY) == 2147483600.0
-                         && index < sharedUiInfo.sortedItemPivot )
+                         && index < sharedUiInfo.clanTagFeature )
                     ++index;
             }
             itemIndex = (int)LiveCombatRecord_GetSortedItemData(index, forFriend, ITEM_INDEX);
@@ -7130,11 +7130,11 @@ void __cdecl GetSortedStatsForFriendOrSelf(int localClientNum, itemDef_s *item, 
         }
         if ( !getAbsoluteIndex )
         {
-            currIndex = sharedUiInfo.optionIndex + index - 3;
-            if ( sharedUiInfo.optionIndex + index == 2 )
+            currIndex = sharedUiInfo.sortedItemPivot + index - 3;
+            if ( sharedUiInfo.sortedItemPivot + index == 2 )
                 currIndex = 0;
-            if ( currIndex >= sharedUiInfo.sortedItemPivot )
-                currIndex = sharedUiInfo.sortedItemPivot - 1;
+            if ( currIndex >= sharedUiInfo.clanTagFeature )
+                currIndex = sharedUiInfo.clanTagFeature - 1;
             itemIndex = (int)LiveCombatRecord_GetSortedItemData(currIndex, forFriend, ITEM_INDEX);
         }
         switch ( param )
@@ -7266,9 +7266,9 @@ void __cdecl ChangeSortedStatsPivot(int localClientNum, itemDef_s *item, Operand
     result.dataType = VAL_INT;
     result.internals.intVal = 1;
     changeValue = GetSourceInt(&source).intVal;
-    newPivot = changeValue + sharedUiInfo.optionIndex;
-    if ( changeValue + sharedUiInfo.optionIndex > 2 || newPivot < sharedUiInfo.sortedItemPivot - 2 )
-        sharedUiInfo.optionIndex = newPivot;
+    newPivot = changeValue + sharedUiInfo.sortedItemPivot;
+    if ( changeValue + sharedUiInfo.sortedItemPivot > 2 || newPivot < sharedUiInfo.clanTagFeature - 2 )
+        sharedUiInfo.sortedItemPivot = newPivot;
     AddOperandToStack(dataStack, &result);
 }
 
@@ -7282,8 +7282,8 @@ void __cdecl CanScrollUpOrDown(int localClientNum, itemDef_s *item, OperandStack
     result.dataType = VAL_INT;
     result.internals.intVal = 0;
     wantToScrollUp = GetSourceInt(&source).intVal;
-    result.internals.intVal = (!wantToScrollUp || sharedUiInfo.optionIndex > 2)
-                                                 && (wantToScrollUp || sharedUiInfo.optionIndex < sharedUiInfo.sortedItemPivot - 3);
+    result.internals.intVal = (!wantToScrollUp || sharedUiInfo.sortedItemPivot > 2)
+                                                 && (wantToScrollUp || sharedUiInfo.sortedItemPivot < sharedUiInfo.clanTagFeature - 3);
     AddOperandToStack(dataStack, &result);
 }
 
@@ -7302,10 +7302,10 @@ void __cdecl GetCurrentScrollBarPosition(int localClientNum, itemDef_s *item, Op
     result.dataType = VAL_FLOAT;
     currPos = Dvar_GetInt("ui_combatCurrScrollBarPos");
     if ( (float)(totalHeightOfScrollBar
-                         - (float)((float)currPos * (float)(totalHeightOfScrollBar / (float)(sharedUiInfo.sortedItemPivot - 5)))) < 0.0 )
+                         - (float)((float)currPos * (float)(totalHeightOfScrollBar / (float)(sharedUiInfo.clanTagFeature - 5)))) < 0.0 )
         v3.floatVal = totalHeightOfScrollBar;
     else
-        v3.floatVal = (float)currPos * (float)(totalHeightOfScrollBar / (float)(sharedUiInfo.sortedItemPivot - 5));
+        v3.floatVal = (float)currPos * (float)(totalHeightOfScrollBar / (float)(sharedUiInfo.clanTagFeature - 5));
     result.internals = v3;
     AddOperandToStack(dataStack, &result);
 }
@@ -7357,10 +7357,10 @@ void __cdecl GetCombatRecordInfoBarWidth(int localClientNum, itemDef_s *item, Op
         }
         else
         {
-            currIndex = sharedUiInfo.optionIndex + infoBarNumber - 3;
-            if ( sharedUiInfo.optionIndex + infoBarNumber == 2 )
+            currIndex = sharedUiInfo.sortedItemPivot + infoBarNumber - 3;
+            if ( sharedUiInfo.sortedItemPivot + infoBarNumber == 2 )
                 currIndex = 0;
-            if ( currIndex >= sharedUiInfo.sortedItemPivot )
+            if ( currIndex >= sharedUiInfo.clanTagFeature )
                 --currIndex;
             if ( infoBarForOtherPlayer )
             {
@@ -7530,10 +7530,10 @@ void __cdecl GetCombatRecordInfoBarText(int localClientNum, itemDef_s *item, Ope
     infoBarNumber = GetSourceInt(&list.operands[1]).intVal;
     forFriend = Dvar_GetBool("ui_showFriendsCombatRecord");
     currentWeaponStatView = Dvar_GetInt("ui_combatCurrViewNum");
-    currIndex = sharedUiInfo.optionIndex + infoBarNumber - 3;
-    if ( sharedUiInfo.optionIndex + infoBarNumber == 2 )
+    currIndex = sharedUiInfo.sortedItemPivot + infoBarNumber - 3;
+    if ( sharedUiInfo.sortedItemPivot + infoBarNumber == 2 )
         currIndex = 0;
-    if ( currIndex >= sharedUiInfo.sortedItemPivot )
+    if ( currIndex >= sharedUiInfo.clanTagFeature )
         --currIndex;
     if ( comparisonMode )
     {
@@ -11003,7 +11003,7 @@ void __cdecl ServerSort(int localClientNum, itemDef_s *item, OperandStack *dataS
     Operand result; // [esp+0h] [ebp-8h] BYREF
 
     result.dataType = VAL_INT;
-    result.internals.intVal = *(unsigned int *)&sharedUiInfo.gap0[1108];
+    result.internals.intVal = sharedUiInfo.serverStatus.sortKey;
     AddOperandToStack(dataStack, &result);
 }
 
@@ -11012,55 +11012,55 @@ void __cdecl ServerSortDirection(int localClientNum, itemDef_s *item, OperandSta
     Operand result; // [esp+0h] [ebp-8h] BYREF
 
     result.dataType = VAL_INT;
-    result.internals.intVal = *(unsigned int *)&sharedUiInfo.gap0[1112];
+    result.internals.intVal = sharedUiInfo.serverStatus.sortDir;
     AddOperandToStack(dataStack, &result);
 }
 
 void __cdecl GetServerCounts(int localClientNum, itemDef_s *item, OperandStack *dataStack)
 {
-    char *v3; // eax
-    int v4; // [esp-8h] [ebp-18h]
+    char *v4; // eax
+    int numDisplayServers; // [esp-8h] [ebp-18h]
     Operand result; // [esp+4h] [ebp-Ch] BYREF
     int count; // [esp+Ch] [ebp-4h]
 
     count = 0;
-    if ( !ui_netSource
+    if (!ui_netSource
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
-                    11947,
-                    0,
-                    "%s",
-                    "ui_netSource") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\com_expressions_eval.cpp",
+            11947,
+            0,
+            "%s",
+            "ui_netSource"))
     {
         __debugbreak();
     }
-    switch ( ui_netSource->current.integer )
+    switch (ui_netSource->current.integer)
     {
-        case 0:
-            count = cls.numunrankedservers;
-            break;
-        case 1:
-            count = cls.numrankedservers;
-            break;
-        case 2:
-            count = cls.numwagerservers;
-            break;
-        case 3:
-            count = cls.numfavoriteservers;
-            break;
-        case 4:
-            count = cls.numfriendsservers;
-            break;
-        case 5:
-            count = *(unsigned int *)&sharedUiInfo.gap0[81128];
-            break;
-        default:
-            break;
+    case 0:
+        count = cls.numunrankedservers;
+        break;
+    case 1:
+        count = cls.numrankedservers;
+        break;
+    case 2:
+        count = cls.numwagerservers;
+        break;
+    case 3:
+        count = cls.numfavoriteservers;
+        break;
+    case 4:
+        count = cls.numfriendsservers;
+        break;
+    case 5:
+        count = sharedUiInfo.serverStatus.numDisplayServers;
+        break;
+    default:
+        break;
     }
     result.dataType = VAL_STRING;
-    v4 = *(unsigned int *)&sharedUiInfo.gap0[81128];
-    v3 = UI_SafeTranslateString("MENU_SERVER_CAPS");
-    result.internals.intVal = (int)va("%s %d(%d)", v3, v4, count);
+    numDisplayServers = sharedUiInfo.serverStatus.numDisplayServers;
+    v4 = UI_SafeTranslateString("MENU_SERVER_CAPS");
+    result.internals.intVal = va("%s %d(%d)", v4, numDisplayServers, count);
     AddOperandToStack(dataStack, &result);
 }
 

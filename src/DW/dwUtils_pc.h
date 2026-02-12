@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include <DemonWare/bdCore/bdSingleton.h>
+#include <universal/dvar.h>
 
 void __cdecl bdGetRandomUChar8(BYTE *pbBuffer, DWORD dwLen);
 
@@ -32,3 +33,7 @@ unsigned int __cdecl SV_SendClientChallenge(unsigned int nonce, unsigned int cha
 void __cdecl CL_HandleSVDWChallenge(unsigned int nonce, unsigned int serverchallenge, unsigned int clientchallenge);
 unsigned int __cdecl Com_GametypeToInt(const char *gametype);
 void __cdecl Com_IntToGametype(char *gametype_out, unsigned int gametype_in);
+
+extern unsigned __int64 g_bdUserID;
+
+extern const dvar_t *cl_senddwchallenge;

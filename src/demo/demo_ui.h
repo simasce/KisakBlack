@@ -1,4 +1,8 @@
 #pragma once
+#include "demo_common.h"
+#include <client/screen_placement.h>
+
+struct Material;
 
 const char *__cdecl Demo_GetKeyboardTitle();
 const char *__cdecl Demo_GetKeyboardDefaultText();

@@ -1,4 +1,5 @@
 #include "dwTasks.h"
+#include "dwUtils.h"
 
 void __cdecl dwClearTask()
 {
@@ -15,7 +16,8 @@ int __cdecl dwGetTaskStatus(overlappedTask *const task)
         __debugbreak();
     if ( task && task->overlappedIO.m_ptr )
     {
-        taskStatus = bdRemoteTask::getStatus(task->overlappedIO.m_ptr);
+        //taskStatus = bdRemoteTask::getStatus(task->overlappedIO.m_ptr);
+        taskStatus = task->overlappedIO.m_ptr->getStatus();
         return dwTaskStatusConvert(taskStatus, BD_NO_ERROR);
     }
     return status;

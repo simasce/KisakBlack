@@ -1,4 +1,31 @@
 #pragma once
+#include "demo_common.h"
+
+#include <qcommon/msg_mp.h>
+
+struct demoTagPlayers;
+struct playerState_s;
+
+struct __declspec(align(4)) streamingState_s // sizeof=0x1C
+{                                       // XREF: .data:streamingState/r
+    unsigned __int8 *buffer;            // XREF: Demo_SetupClipStreamingState(void)+2E/w
+                                        // Demo_SetupClipStreamingState(void)+6F/w ...
+    int bufferSize;                     // XREF: Demo_SetupClipStreamingState(void)+3F/w
+                                        // Demo_SetupClipStreamingState(void)+8D/w ...
+    int phase;                          // XREF: Demo_MoveToNextPhase(void)+4/r
+                                        // Demo_MoveToNextPhase(void):$LN7_165/w ...
+    int segmentNo;                      // XREF: Demo_MoveToNextPhase(void)+37/r
+                                        // Demo_MoveToNextPhase(void):$LN3_240/r ...
+    int byteOffset;                     // XREF: Demo_SetupClipStreamingState(void):def_9C63CB/w
+                                        // Demo_SendClipToStreamingBuffer(void *,uint,uint)+32/w ...
+    int totalDuration;                  // XREF: Demo_SetupClipStreamingState(void)+A4/r
+                                        // Demo_SetupClipStreamingState(void)+B0/w ...
+    bool isEnteringState;               // XREF: Demo_MoveToNextPhase(void):def_9C6315/w
+                                        // Demo_SetupClipStreamingState(void)+205/w ...
+    // padding byte
+    // padding byte
+    // padding byte
+};
 
 void __cdecl Demo_AllocatePlaybackMemory(unsigned int location);
 void __cdecl Demo_DeallocatePlaybackMemory();

@@ -1,5 +1,39 @@
 #include "MatchRecorder.h"
 #include <win32/win_tasks.h>
+#include <live/live_combatrecord.h>
+#include <universal/mem_largelocal.h>
+#include <live/live_stats.h>
+#include <bgame/bg_unlockable_items.h>
+#include <game_mp/g_main_mp.h>
+#include <DemonWare/bdLobbyService.h>
+#include "dwUtils.h"
+#include <ui/ui_playlists.h>
+#include <live/live_fileshare.h>
+#include <live/live_win.h>
+#include <client_mp/sv_client_mp.h>
+#include <server/sv_live_stats.h>
+#include "dwUtils_pc.h"
+#include <server_mp/sv_main_mp.h>
+#include <game/g_weapon.h>
+#include <bgame/bg_weapons_def.h>
+#include "dwRecordEvent.h"
+#include <qcommon/com_gamemodes.h>
+
+overlappedTask overlappedTasks_0[32];
+char s_matchRecorderBuffer[66560];
+ddlDef_t *g_matchRecorderDDL;
+unsigned __int8 s_itemIndexes[85];
+
+ddlState_t g_RootState;
+ddlState_t g_HeaderState;
+ddlState_t g_playerBufferState;
+ddlState_t g_lifeBufState;
+ddlState_t g_UploadBandwitdh;
+ddlState_t g_ConnectionID;
+ddlState_t g_TimePlayedTotal;
+ddlState_t g_Rank;
+ddlState_t g_LastConsoleSave;
+ddlState_t g_ConsoleInfo;
 
 void __cdecl MatchRecorder_ClearDWOverlappedTasks()
 {
@@ -76,7 +110,7 @@ int __cdecl MatchRecord_InitMatchDataInternal(char *inputBuffer, int buffSize)
         {
             if ( BG_UnlockablesIsItemValidNotNull(i) )
             {
-                loadoutSlot = BG_UnlockablesGetItemLoadoutSlot(i);
+                loadoutSlot = (loadoutSlot_t)BG_UnlockablesGetItemLoadoutSlot(i);
                 if ( loadoutSlot == LOADOUTSLOT_FIRST
                     || loadoutSlot == LOADOUTSLOT_SECONDARY_WEAPON
                     || loadoutSlot == LOADOUTSLOT_GLOBAL_ITEMS_START
@@ -214,14 +248,16 @@ void __cdecl GenerateRecordedMatchData(int controllerIndex, char **matchRecordBu
     int bufferSize; // [esp+8h] [ebp-14h]
     char (*tempBuffer)[66560]; // [esp+Ch] [ebp-10h]
     bdLobbyService *lobby; // [esp+10h] [ebp-Ch]
-    LargeLocal tempBuffer_large_local; // [esp+14h] [ebp-8h] BYREF
 
     if ( g_matchRecorderDDL )
     {
         *matchRecordBuffer = 0;
         *matchRecordBufferSize = 0;
-        LargeLocal::LargeLocal(&tempBuffer_large_local, 66560);
-        tempBuffer = (char (*)[66560])LargeLocal::GetBuf(&tempBuffer_large_local);
+
+        LargeLocal tempBuffer_large_local(66560); // [esp+14h] [ebp-8h] BYREF
+
+        //LargeLocal::LargeLocal(&tempBuffer_large_local, 66560);
+        tempBuffer = (char (*)[66560])tempBuffer_large_local.GetBuf();// LargeLocal::GetBuf(&tempBuffer_large_local);
         Com_Printf(16, "Generating COD7 match data.\n");
         lobby = dwGetLobby(controllerIndex);
         GenerateBinaryMatchSummary(lobby->m_titleID);
@@ -253,7 +289,7 @@ void __cdecl GenerateRecordedMatchData(int controllerIndex, char **matchRecordBu
             Com_PrintError(16, "Content Server already in use - cannot upload match data\n");
         }
         ClearTeamScores();
-        LargeLocal::~LargeLocal(&tempBuffer_large_local);
+        //LargeLocal::~LargeLocal(&tempBuffer_large_local);
     }
 }
 
@@ -592,7 +628,6 @@ void __cdecl MatchRecord_GenerateHeatMapData(
     int i; // [esp+44h] [ebp-28h]
     float xScale; // [esp+48h] [ebp-24h]
     float yScale; // [esp+4Ch] [ebp-20h]
-    LargeLocal heatMap_large_local; // [esp+50h] [ebp-1Ch] BYREF
     float maxKills; // [esp+58h] [ebp-14h]
     int newY; // [esp+5Ch] [ebp-10h]
     int arrayIndex; // [esp+60h] [ebp-Ch]
@@ -601,8 +636,10 @@ void __cdecl MatchRecord_GenerateHeatMapData(
 
     if ( g_matchRecorderDDL )
     {
-        LargeLocal::LargeLocal(&heatMap_large_local, 0x10000);
-        heatMap = (unsigned __int8 (*)[65536])LargeLocal::GetBuf(&heatMap_large_local);
+        LargeLocal heatMap_large_local(0x10000); // [esp+50h] [ebp-1Ch] BYREF
+
+        //LargeLocal::LargeLocal(&heatMap_large_local, 0x10000);
+        heatMap = (unsigned __int8 (*)[65536])heatMap_large_local.GetBuf();// LargeLocal::GetBuf(&heatMap_large_local);
         memset((unsigned __int8 *)heatMap, 0, sizeof(unsigned __int8[65536]));
         if ( buffSize < height * width
             && !Assert_MyHandler(
@@ -668,7 +705,7 @@ void __cdecl MatchRecord_GenerateHeatMapData(
             }
         }
         MatchRecorderDDLSetInt(&g_RootState, "heatMapDataGenerated", 1u);
-        LargeLocal::~LargeLocal(&heatMap_large_local);
+        //LargeLocal::~LargeLocal(&heatMap_large_local);
     }
 }
 
@@ -694,11 +731,11 @@ unsigned __int8 __cdecl MatchRecord_BlurHeatMap(
     int xPos; // [esp+34h] [ebp-18h]
     int yPos; // [esp+38h] [ebp-14h]
     unsigned __int8 *tempHeatMap; // [esp+3Ch] [ebp-10h]
-    LargeLocal tempHeatMap_large_local; // [esp+40h] [ebp-Ch] BYREF
     unsigned __int8 maxVal; // [esp+4Bh] [ebp-1h]
 
-    LargeLocal::LargeLocal(&tempHeatMap_large_local, 0x10000);
-    tempHeatMap = LargeLocal::GetBuf(&tempHeatMap_large_local);
+    LargeLocal tempHeatMap_large_local(0x10000); // [esp+40h] [ebp-Ch] BYREF
+    //LargeLocal::LargeLocal(&tempHeatMap_large_local, 0x10000);
+    tempHeatMap = tempHeatMap_large_local.GetBuf();// LargeLocal::GetBuf(&tempHeatMap_large_local);
     maxVal = 0;
     memset(tempHeatMap, 0, 0x10000u);
     for ( yPos = 0; yPos < height; ++yPos )
@@ -744,7 +781,7 @@ unsigned __int8 __cdecl MatchRecord_BlurHeatMap(
     }
     memcpy(buffer, tempHeatMap, bufferSize);
     v9 = maxVal;
-    LargeLocal::~LargeLocal(&tempHeatMap_large_local);
+    //LargeLocal::~LargeLocal(&tempHeatMap_large_local);
     return v9;
 }
 
@@ -1191,7 +1228,7 @@ void __cdecl GetWorldLocation(
     float outTemp_4; // [esp+28h] [ebp-8h]
     float outTemp_8; // [esp+2Ch] [ebp-4h]
 
-    outTemp_4 = (float)((float)((float)((float)((float)(COERCE_FLOAT(LODWORD(level.compassNorth[1]) ^ _mask__NegFloat_)
+    outTemp_4 = (float)((float)((float)((float)((float)((-(level.compassNorth[1]))
                                                                                                         * (float)(yPos - level.compassMapUpperLeft[1]))
                                                                                         - (float)(level.compassNorth[0]
                                                                                                         * (float)(xPos - level.compassMapUpperLeft[0])))

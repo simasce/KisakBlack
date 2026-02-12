@@ -868,9 +868,9 @@ char *__cdecl UI_GetMapDisplayName(const char *pszMap)
 {
     int i; // [esp+0h] [ebp-4h]
 
-    for ( i = 0; i < sharedUiInfo.joinGameTypes[31].basictraining; ++i )
+    for ( i = 0; i < sharedUiInfo.mapCount; ++i )
     {
-        if ( !I_stricmp(pszMap, &sharedUiInfo.mapList[i].mapName[28]) )
+        if ( !I_stricmp(pszMap, sharedUiInfo.mapList[i].mapLoadName) )
             return UI_SafeTranslateString(&sharedUiInfo.joinGameTypes[32].gameType[304 * i]);
     }
     return (char *)pszMap;
@@ -885,10 +885,10 @@ char *__cdecl UI_GetMapDisplayNameFromPartialLoadNameMatch(const char *mapName, 
     {
         __debugbreak();
     }
-    for ( i = 0; i < sharedUiInfo.joinGameTypes[31].basictraining; ++i )
+    for ( i = 0; i < sharedUiInfo.mapCount; ++i )
     {
-        *mapLoadNameLen = strlen(&sharedUiInfo.mapList[i].mapName[28]);
-        if ( !I_strnicmp(mapName, &sharedUiInfo.mapList[i].mapName[28], *mapLoadNameLen) )
+        *mapLoadNameLen = strlen(sharedUiInfo.mapList[i].mapLoadName);
+        if ( !I_strnicmp(mapName, sharedUiInfo.mapList[i].mapLoadName, *mapLoadNameLen) )
             return UI_SafeTranslateString(&sharedUiInfo.joinGameTypes[32].gameType[304 * i]);
     }
     return 0;
@@ -1422,7 +1422,7 @@ void __cdecl UI_RunMenuScript(int localClientNum, int contextIndex, __int64 args
                                                                     "C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_main.cpp",
                                                                     1719,
                                                                     0,
-                                                                    "sharedUiInfo.modIndex doesn't index MAX_MODS\n\t%i not in [0, %i)",
+                                                                    "sharedUiInfo.itemIndex doesn't index MAX_MODS\n\t%i not in [0, %i)",
                                                                     sharedUiInfo.modCount,
                                                                     64) )
                                                     {
@@ -1474,7 +1474,7 @@ void __cdecl UI_RunMenuScript(int localClientNum, int contextIndex, __int64 args
                                     }
                                 }
                                 else if ( ui_currentNetMap->current.integer >= 0
-                                             && ui_currentNetMap->current.integer < sharedUiInfo.joinGameTypes[31].basictraining )
+                                             && ui_currentNetMap->current.integer < sharedUiInfo.mapCount )
                                 {
                                     v7 = va("callvote map %s\n", &sharedUiInfo.mapList[ui_currentNetMap->current.integer].mapName[28]);
                                     Cbuf_AddText(localClientNum, v7);

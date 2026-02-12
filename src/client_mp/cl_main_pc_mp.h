@@ -1,6 +1,23 @@
 #pragma once
 #include "cl_main_mp.h"
 
+struct serverStatusInfoResponse_s // sizeof=0x402C
+{                                       // XREF: .data:serverStatusInfoResponse_s * cl_serverStatusScoreBoardList/r
+                                        // .data:serverStatusInfoResponse_s * cl_serverStatusList/r ...
+    char string[16384];
+    netadr_t address;                   // XREF: CL_ServerStatus(char *,char *,int)+39/w
+                                        // CL_ServerStatusScoreBoard(char *,char *,int)+39/w
+    int time;
+    int startTime;                      // XREF: CL_GetServerStatus(bdSecurityID *)+C6/r
+                                        // CL_GetServerStatus(bdSecurityID *)+E0/r ...
+    int pending;
+    int print;
+    int retrieved;                      // XREF: CL_GetServerStatus(bdSecurityID *)+73/r
+                                        // CL_GetServerStatusScoreBoard(bdSecurityID *)+73/r ...
+    bdSecurityID secId;                 // XREF: CL_GetServerStatus(bdSecurityID *)+27/o
+                                        // CL_GetServerStatusScoreBoard(bdSecurityID *)+27/o ...
+};
+
 netadr_t *__cdecl CL_GetLastRconAddress();
 void __cdecl CL_SetServerInfo(serverInfo_t *server, char *info, __int16 ping);
 void __cdecl CL_ServerInfoPacket(bdSecurityID *secID, msg_t *msg, int time);
@@ -77,10 +94,11 @@ void __cdecl CL_QuickMatch_Frame();
 bool __cdecl CL_QuickMatch_ShouldChooseSession();
 char *__cdecl CL_LongNameForShortName(const char *shortname);
 
-const bdReference<bdCommonAddr> *__thiscall bdReference<bdCommonAddr>::operator=(
-                bdReference<bdCommonAddr> *this,
-                const bdReference<bdCommonAddr> *other);
-void __thiscall bdReference<bdRemoteTask>::~bdReference<bdRemoteTask>(bdReference<bdCommonAddr> *this);
-void __thiscall dwQoSMultiProbeListener::~dwQoSMultiProbeListener(dwQoSMultiProbeListener *this);
-void __thiscall bdReference<bdCommonAddr>::operator=(bdReference<bdRemoteTask> *this, bdRemoteTask *p);
 void __cdecl CL_PC_SignIn();
+
+extern const dvar_t *cl_quickmatch_resultspercent;
+extern const dvar_t *cl_quickmatch_pingweight;
+extern const dvar_t *cl_quickmatch_fullnessweight;
+extern const dvar_t *cl_wager_firstplaylist;
+extern const dvar_t *cl_wager_lastplaylist;
+extern const dvar_t *cl_wager_maxping;
