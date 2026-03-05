@@ -1,5 +1,6 @@
 #pragma once
 #include "live_storage.h"
+#include <DemonWare/bdLobbyService.h>
 
 struct bdCounterValue : bdTaskResult // sizeof=0x10
 {                                       // XREF: .data:s_serverCounters/r

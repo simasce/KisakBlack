@@ -22,22 +22,33 @@ struct broad_phase_environment_info // sizeof=0x24
 {
     struct avl_tree_accessor
     {
-        using key_type = unsigned int;
+        using key_type = bpei_database_id;
         using node_type = broad_phase_environment_info;
 
         static bool less(const key_type &key, const node_type *node)
         {
-            return key < node->m_gjk_geom_id;
+            if (key.m_id1 < node->m_database_id.m_id1)
+                return true;
+            if (key.m_id1 > node->m_database_id.m_id1)
+                return false;
+
+            return key.m_id2 < node->m_database_id.m_id2;
         }
 
         static bool less(const node_type *node, const key_type &key)
         {
-            return node->m_gjk_geom_id < key;
+            if (node->m_database_id.m_id1 < key.m_id1)
+                return true;
+            if (node->m_database_id.m_id1 > key.m_id1)
+                return false;
+
+            return node->m_database_id.m_id2 < key.m_id2;
         }
 
         static bool equals(const node_type *node, const key_type &key)
         {
-            return node->m_gjk_geom_id == key;
+            return node->m_database_id.m_id1 == key.m_id1 &&
+                node->m_database_id.m_id2 == key.m_id2;
         }
     };
 
@@ -274,13 +285,13 @@ struct colgeom_visitor_inlined_t : colgeom_visitor_t // sizeof=0x6B8
         this->nprims = 0;
         this->overflow = 0;
 
-        this->m_mn.vec.v[0] = 9.9999997e37; // cool float constant, man
-        this->m_mn.vec.v[1] = 9.9999997e37;
-        this->m_mn.vec.v[2] = 9.9999997e37;
+        this->m_mn.vec.v[0] = 9.9999997e37f; // cool float constant, man
+        this->m_mn.vec.v[1] = 9.9999997e37f;
+        this->m_mn.vec.v[2] = 9.9999997e37f;
 
-        this->m_mx.vec.v[0] = -9.9999997e37;
-        this->m_mx.vec.v[1] = -9.9999997e37;
-        this->m_mx.vec.v[2] = -9.9999997e37;
+        this->m_mx.vec.v[0] = -9.9999997e37f;
+        this->m_mx.vec.v[1] = -9.9999997e37f;
+        this->m_mx.vec.v[2] = -9.9999997e37f;
     }
 
     void intersect_box(float *mn, float *mx, int mask);

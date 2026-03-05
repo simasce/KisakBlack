@@ -1,34 +1,7 @@
 #pragma once
 
 #include <DemonWare/bdCore/bdReference/bdReferencable.h>
-
-enum bdBitBufferDataType : __int32
-{                                       // XREF: ?writeDataType@bdByteBuffer@@IAE_NW4bdBitBufferDataType@@@Z/r
-                                        // ?readDataType@bdByteBuffer@@IAE_NW4bdBitBufferDataType@@@Z/r ...
-    BD_BB_NO_TYPE                    = 0x0,
-    BD_BB_BOOL_TYPE                  = 0x1,
-    BD_BB_SIGNED_CHAR8_TYPE          = 0x2,
-    BD_BB_UNSIGNED_CHAR8_TYPE        = 0x3,
-    BD_BB_WCHAR16_TYPE               = 0x4,
-    BD_BB_SIGNED_INTEGER16_TYPE      = 0x5,
-    BD_BB_UNSIGNED_INTEGER16_TYPE    = 0x6,
-    BD_BB_SIGNED_INTEGER32_TYPE      = 0x7,
-    BD_BB_UNSIGNED_INTEGER32_TYPE    = 0x8,
-    BD_BB_SIGNED_INTEGER64_TYPE      = 0x9,
-    BD_BB_UNSIGNED_INTEGER64_TYPE    = 0xA,
-    BD_BB_RANGED_SIGNED_INTEGER32_TYPE = 0xB,
-    BD_BB_RANGED_UNSIGNED_INTEGER32_TYPE = 0xC,
-    BD_BB_FLOAT32_TYPE               = 0xD,
-    BD_BB_FLOAT64_TYPE               = 0xE,
-    BD_BB_RANGED_FLOAT32_TYPE        = 0xF,
-    BD_BB_SIGNED_CHAR8_STRING_TYPE   = 0x10,
-    BD_BB_UNSIGNED_CHAR8_STRING_TYPE = 0x11,
-    BD_BB_MBSTRING_TYPE              = 0x12,
-    BD_BB_BLOB_TYPE                  = 0x13,
-    BD_BB_NAN_TYPE                   = 0x14,
-    BD_BB_FULL_TYPE                  = 0x15,
-    BD_BB_MAX_TYPE                   = 0x20,
-};
+#include "bdBitBuffer.h"
 
 struct __declspec(align(2)) bdByteBuffer : bdReferencable // sizeof=0x1C
 {                                       // XREF: bdTaskByteBuffer/r

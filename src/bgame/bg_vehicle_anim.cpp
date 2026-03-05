@@ -7,6 +7,7 @@
 #include <universal/com_math_anglevectors.h>
 #include <universal/com_math.h>
 #include "bg_misc.h"
+#include <xanim/xanim.h>
 
 vehAnimClient_t clVehAnimClients[1];
 vehAnimClient_t svVehAnimClients[32];

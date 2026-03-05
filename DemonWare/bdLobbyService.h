@@ -54,7 +54,7 @@ struct bdLobbyConnection : bdReferencable // sizeof=0x408
     bdQueue<bdPendingBufferTransfer> m_outgoingBuffers;
     bdStreamSocket m_socket;
     bdLobbyConnection::Status m_status;
-    bdLobbyConnectionListener *m_connectionListener;
+    struct bdLobbyConnectionListener *m_connectionListener;
     bdCypher3Des m_cypher;
     unsigned __int8 m_sessionKey[24];
     unsigned int m_messageCount;

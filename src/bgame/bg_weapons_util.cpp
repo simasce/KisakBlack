@@ -8,16 +8,15 @@
 // (aislop used to decipher std:: aids)
 struct compare_weapon_component_sort
 {
-    bool operator()(const WeaponComponent *a,
-        const WeaponComponent *b) const
+    bool operator()(const WeaponComponent &a, const WeaponComponent &b) const
     {
         // Primary sort: type (descending)
-        if (a->type != b->type)
-            return a->type > b->type;
+        if (a.type != b.type)
+            return a.type > b.type;
 
         // Secondary sort: attachment point (only for attachments)
-        if (a->type == WEAPON_COMPONENT_ATTACHMENT)
-            return a->attachmentPoint < b->attachmentPoint;
+        if (a.type == WEAPON_COMPONENT_ATTACHMENT)
+            return a.attachmentPoint < b.attachmentPoint;
 
         return false;
     }
@@ -31,8 +30,8 @@ void __cdecl BG_WeaponComponentListSort(const char *originalName, WeaponComponen
     //    44 * componentList->numComponents / 44,
     //    0);
     std::sort(
-        componentList->components,
-        componentList->components + componentList->numComponents,
+        &componentList->components[0],
+        &componentList->components[componentList->numComponents],
         compare_weapon_component_sort());
     BG_WeaponComponentListToName(componentList, outputName, 64);
     if ( I_strcmp(originalName, outputName) )

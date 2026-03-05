@@ -71,6 +71,7 @@ struct entity_bpi_header // sizeof=0x8
 
 void create_entity_bpi(gjk_physics_collision_visitor *collision_visitor, int mask);
 
+struct generic_avl_map_node_t;
 generic_avl_map_node_t *__cdecl generic_avl_map_add(
     phys_inplace_avl_tree<unsigned int, generic_avl_map_node_t, generic_avl_map_node_t> *gam,
     void *data,

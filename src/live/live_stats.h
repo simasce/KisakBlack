@@ -5,6 +5,7 @@
 #include <bgame/bg_weapons_attachment.h>
 #include <universal/dvar.h>
 #include <client/cl_milestone.h>
+#include "live_storage.h"
 
 enum sortedChallengeParams_t : __int32
 {                                       // XREF: ?LiveStats_GetChallengeInfoParam@@YA_NW4sortedChallengeParams_t@@IPAPBDPAHH@Z/r

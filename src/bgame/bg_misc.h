@@ -9,6 +9,9 @@ struct playerState_s;
 struct entityState_s;
 struct trajectory_t;
 struct PlayerHeldWeapon;
+struct XAnim_s;
+struct hudelem_s;
+union hudelem_color_t;
 
 enum entity_event_t : __int32
 {

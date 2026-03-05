@@ -2,10 +2,11 @@
 #include <qcommon/cmd.h>
 #include <client/screen_placement.h>
 #include "ui_shared.h"
-
+#include <universal/dvar.h>
 
 struct Font_s;
 struct UiContext;
+struct uiInfo_s;
 struct UILocalVarContext;
 
 uiInfo_s *__cdecl UI_UIContext_GetInfo(int contextIndex);

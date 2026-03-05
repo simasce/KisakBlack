@@ -389,7 +389,7 @@ void __thiscall phys_heap_gjk_cache_system_avl_tree::update_cache()
             //phys_inplace_avl_tree<phys_gjk_geom_id_pair_key,phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal,phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal::avl_tree_accessor>::remove(
             //    &this->m_search_tree,
             //    &gjk_ci->m_key);
-            this->m_search_tree.remove(&gjk_ci->m_key);
+            this->m_search_tree.remove(gjk_ci->m_key);
             //phys_simple_allocator<phys_heap_gjk_cache_system_avl_tree::phys_gjk_cache_info_internal>::free(
             //    &this->m_list_phys_gjk_cache_info_internal,
             //    gjk_ci);
@@ -3716,7 +3716,7 @@ void __thiscall bpei_database_t::purge_database()
     {
         next_bpei = bpei->m_next_bpei;
 
-        this->m_bpei_map.remove(&bpei->m_database_id);
+        this->m_bpei_map.remove(bpei->m_database_id);
         //phys_inplace_avl_tree<bpei_database_id,broad_phase_environment_info,broad_phase_environment_info::avl_tree_accessor>::remove(
         //    &this->m_bpei_map,
         //    &bpei->m_database_id);
@@ -3726,11 +3726,11 @@ void __thiscall bpei_database_t::purge_database()
     this->m_bpei_list = 0;
 }
 
-bool __thiscall gjk_collision_visitor::is_query()
-{
-    return false;
-}
-
+//bool __thiscall gjk_collision_visitor::is_query()
+//{
+//    return false;
+//}
+//
 
 bool is_walkable(
     const cbrush_t *brush,
@@ -3855,57 +3855,53 @@ bool is_walkable(
     float v7; // [esp-Ch] [ebp-7Ch]
     float v8; // [esp-8h] [ebp-78h]
     float v9; // [esp-4h] [ebp-74h]
-    float walk_normal; // [esp+0h] [ebp-70h]
-    float plane_dist; // [esp+4h] [ebp-6Ch] BYREF
-    float hit_point_dist; // [esp+8h] [ebp-68h]
-    float nnormal; // [esp+Ch] [ebp-64h]
+    float nnormal; // [esp+0h] [ebp-70h]
+    phys_vec3 normal; // [esp+4h] [ebp-6Ch] BYREF
     float triNormalScaledByAreaX2[3]; // [esp+20h] [ebp-50h] BYREF
     float v0_v2[3]; // [esp+2Ch] [ebp-44h] BYREF
     float v0_v1[3]; // [esp+38h] [ebp-38h] BYREF
     const float *v2; // [esp+44h] [ebp-2Ch]
-    const float *v18; // [esp+48h] [ebp-28h]
-    const float *v1; // [esp+4Ch] [ebp-24h]
-    unsigned __int16 *v0; // [esp+50h] [ebp-20h]
-    int indices; // [esp+54h] [ebp-1Ch]
-    int triIndex; // [esp+58h] [ebp-18h]
-    float furthest_dist; // [esp+5Ch] [ebp-14h]
-    float furthest_walk_normal; // [esp+60h] [ebp-10h]
-    //float dd; // [esp+64h] [ebp-Ch]
+    const float *v1; // [esp+48h] [ebp-28h]
+    const float *v0; // [esp+4Ch] [ebp-24h]
+    unsigned __int16 *indices; // [esp+50h] [ebp-20h]
+    int triIndex; // [esp+54h] [ebp-1Ch]
+    int i; // [esp+58h] [ebp-18h]
+    float furthest_walk_normal; // [esp+5Ch] [ebp-14h]
+    float furthest_dist; // [esp+60h] [ebp-10h]
+    //_UNKNOWN *v23; // [esp+64h] [ebp-Ch]
     //const CollisionPartition *partitiona; // [esp+68h] [ebp-8h]
-    //const phys_vec3 *hit_point_loca; // [esp+70h] [ebp+0h]
-
-    //dd = a1;
-    //partitiona = (const CollisionPartition *)hit_point_loca;
-
-    furthest_walk_normal = -100000.0f;
-    furthest_dist = 0.0f;
-    for (triIndex = 0; triIndex < partition->triCount; ++triIndex)
+    //const phys_vec3 *up_loca; // [esp+70h] [ebp+0h]
+    //
+    //v23 = a1;
+    //partitiona = (const CollisionPartition *)up_loca;
+    furthest_dist = -100000.0f;
+    furthest_walk_normal = 0.0f;
+    for (i = 0; i < partition->triCount; ++i)
     {
-        indices = triIndex + partition->firstTri;
-        v0 = &cm.triIndices[3 * indices];
-        v1 = cm.verts[*v0];
-        v18 = cm.verts[v0[1]];
-        v2 = cm.verts[v0[2]];
-        v0_v1[0] = *v1 - *v18;
-        v0_v1[1] = v1[1] - v18[1];
-        v0_v1[2] = v1[2] - v18[2];
-        v0_v2[0] = *v1 - *v2;
-        v0_v2[1] = v1[1] - v2[1];
-        v0_v2[2] = v1[2] - v2[2];
+        triIndex = i + partition->firstTri;
+        indices = &cm.triIndices[3 * triIndex];
+        v0 = cm.verts[*indices];
+        v1 = cm.verts[indices[1]];
+        v2 = cm.verts[indices[2]];
+        v0_v1[0] = *v0 - *v1;
+        v0_v1[1] = v0[1] - v1[1];
+        v0_v1[2] = v0[2] - v1[2];
+        v0_v2[0] = *v0 - *v2;
+        v0_v2[1] = v0[1] - v2[1];
+        v0_v2[2] = v0[2] - v2[2];
         Vec3Cross(v0_v2, v0_v1, triNormalScaledByAreaX2);
-        Phys_Vec3ToNitrousVec(triNormalScaledByAreaX2, (phys_vec3 *)&plane_dist);
-        walk_normal = Abs(&plane_dist);
-        if (walk_normal > 0.000099999997)
+        Phys_Vec3ToNitrousVec(triNormalScaledByAreaX2, &normal);
+        nnormal = Abs(&normal.x);
+        if (nnormal > 0.000099999997)
         {
-            v9 = (float)((float)((float)(hit_point_loc->x * plane_dist) + (float)(hit_point_loc->y * hit_point_dist))
-                + (float)(hit_point_loc->z * nnormal))
-                / walk_normal;
-            v8 = (float)((float)((float)(*v1 * triNormalScaledByAreaX2[0]) + (float)(v1[1] * triNormalScaledByAreaX2[1]))
-                + (float)(v1[2] * triNormalScaledByAreaX2[2]))
-                / walk_normal;
-            v7 = (float)((float)((float)(plane_dist * up_loc->x) + (float)(hit_point_dist * up_loc->y))
-                + (float)(nnormal * up_loc->z))
-                / walk_normal;
+            v9 = (float)((float)((float)(hit_point_loc->x * normal.x) + (float)(hit_point_loc->y * normal.y))
+                + (float)(hit_point_loc->z * normal.z))
+                / nnormal;
+            v8 = (float)((float)((float)(*v0 * triNormalScaledByAreaX2[0]) + (float)(v0[1] * triNormalScaledByAreaX2[1]))
+                + (float)(v0[2] * triNormalScaledByAreaX2[2]))
+                / nnormal;
+            v7 = (float)((float)((float)(normal.x * up_loc->x) + (float)(normal.y * up_loc->y)) + (float)(normal.z * up_loc->z))
+                / nnormal;
             v6 = v9 >= (float)(0.99900001 * v8) || (float)(0.99900001 * v9) >= v8;
             if (v6 && v7 >= 0.69999999)
             {
@@ -3913,10 +3909,10 @@ bool is_walkable(
             }
             else
             {
-                if ((float)(v9 - v8) > furthest_walk_normal)
+                if ((float)(v9 - v8) > furthest_dist)
                 {
-                    furthest_walk_normal = v9 - v8;
-                    furthest_dist = v7;
+                    furthest_dist = v9 - v8;
+                    furthest_walk_normal = v7;
                 }
                 v5 = 0;
             }
@@ -3924,7 +3920,7 @@ bool is_walkable(
                 return 1;
         }
     }
-    return furthest_dist >= 0.69999999;
+    return furthest_walk_normal >= 0.69999999;
 }
 
 bool is_walkable(const gjk_trace_output_t *gto)

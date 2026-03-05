@@ -134,6 +134,7 @@
     <ClCompile Include="DemonWare\bdCore\bdContainers\bdByteBuffer.cpp" />
     <ClCompile Include="DemonWare\bdCore\bdCrypto\bdCypher3Des.cpp" />
     <ClCompile Include="DemonWare\bdCore\bdMemory\bdMemory.cpp" />
+    <ClCompile Include="DemonWare\bdCore\bdSocket\bdAddr.cpp" />
     <ClCompile Include="DemonWare\bdCore\bdThread\bdMutex.cpp" />
     <ClCompile Include="DemonWare\bdCore\bdUtilities\bdBytePacker.cpp" />
     <ClCompile Include="DemonWare\bdPlatform\bdPlatformLog\bdPlatformLog.cpp" />

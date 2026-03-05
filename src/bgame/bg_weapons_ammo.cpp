@@ -8,6 +8,7 @@
 #include "bg_mantle.h"
 #include "bg_misc.h"
 #include "bg_pmove.h"
+#include <flame/flame_system.h>
 
 unsigned int bg_numWeapClips;
 unsigned int bg_numAmmoTypes;

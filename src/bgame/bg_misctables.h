@@ -1,5 +1,7 @@
 #pragma once
 
+#include <universal/q_shared.h>
+
 int __cdecl VEH_ParseSpecificField(unsigned __int8 *pStruct, const char *pValue, const int fieldType, const int fieldOffset);
 
 extern const char *s_vehicleCameraModes[6];

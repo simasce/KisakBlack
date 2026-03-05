@@ -1,12 +1,14 @@
 #pragma once
 #include <DemonWare/bdCore/bdReference/bdReferencable.h>
-
+#include <DemonWare//bdCore/bdContainers/bdArray.h>
 #include <cstdint>
 #include <DemonWare/bdCore/bdUtilities/bdBytePacker.h>
-#include <winsock2.h>   // inet_addr, inet_ntoa
+//#include <winsock2.h>   // inet_addr, inet_ntoa
 #include <DW/dwUtils.h>
 #include <DW/dwNet.h>
 #include <DemonWare/bdCore/bdCrypto/bdHashTiger192.h>
+#include <DW/dwUtils.h>
+#include <server_mp/sv_main_mp.h>
 
 
 // Bro forward your ports!!! Your NAT is strict!! We can't even match!
@@ -61,23 +63,7 @@ public:
         inUn.m_iaddr = inet_addr(cp);
     }
 
-    int toString(char *const dst, unsigned int size) const
-    {
-        if (!dst || size == 0)
-            return 0;
-
-        in_addr addr;
-        addr.s_addr = inUn.m_iaddr;
-
-        const char *src = inet_ntoa(addr);
-        if (!src)
-            return 0;
-
-        bdStrlcpy(dst, (char*)src, size);
-
-        // Decompiled code calls strlen and returns its result
-        return static_cast<int>(std::strlen(dst));
-    }
+    int toString(char *const dst, unsigned int size) const;
 
     /* =========================
        Operators
@@ -449,16 +435,7 @@ struct __declspec(align(4)) bdAddr
     // String Conversion
     // ---------------------------------------------------------
 
-    inline unsigned int toString(char *const dst, unsigned int capacity)
-    {
-        //unsigned int written = bdInetAddr::toString(&m_address, dst, capacity);
-        unsigned int written = m_address.toString(dst, capacity);
-
-        unsigned int remaining = (written <= capacity) ? (capacity - written) : 0;
-
-        return written +
-            bdSnprintf(&dst[written], remaining, ":%u", m_port);
-    }
+    unsigned int toString(char *const dst, unsigned int capacity);
 
     // ---------------------------------------------------------
     // Comparison
@@ -543,47 +520,7 @@ struct __declspec(align(4)) bdCommonAddr : bdReferencable
     // Hash
     // ---------------------------------------------------------
 
-    inline void calculateHash()
-    {
-        bdAddr effective;
-
-        if (m_localAddrs.m_size > 0)
-            effective = m_localAddrs.m_data[0];
-        else
-            effective = bdAddr();
-
-        //if (bdInetAddr::isValid(&m_publicAddr.m_address))
-        if (m_publicAddr.m_address.isValid())
-            effective = m_publicAddr;
-
-        unsigned char buffer[6];
-        unsigned int offset = 0;
-
-        //if (!bdAddr::serialize(&effective, buffer, 6u, 0, &offset))
-        if (!effective.serialize(buffer, 6u, 0, &offset))
-        {
-            m_hash = 0;
-            return;
-        }
-
-        bdHashTiger192 hash;
-        unsigned char digest[24];
-        unsigned int digestSize = 24;
-
-        if (!hash.hash(buffer, 6u, digest, &digestSize))
-        {
-            m_hash = 0;
-            return;
-        }
-
-        unsigned char hashBytes[4];
-        offset = 0;
-
-        if (bdBytePacker::removeBuffer(digest, 24u, 0, &offset, hashBytes, 4u))
-            m_hash = *reinterpret_cast<unsigned int *>(hashBytes);
-        else
-            m_hash = 0;
-    }
+    void calculateHash();
 
     inline unsigned int getHash() const
     {
@@ -706,6 +643,44 @@ struct __declspec(align(4)) bdCommonAddr : bdReferencable
     }
 };
 
+struct bdSecurityKey // sizeof=0x10
+{                                                                             // XREF: .data:g_secKey/r
+    unsigned __int8 ab[16];                         // XREF: dwCreateSession(overlappedTask * const,MatchMakingInfo * const)+139/r
+
+    bdSecurityKey(const struct bdSecurityKey *src)
+    {
+        memcpy(this->ab, src->ab, sizeof(bdSecurityKey));
+    }
+    bdSecurityKey()
+    {
+        memset(this->ab, 1u, sizeof(bdSecurityKey));
+    }
+};
+
+struct bdSecurityID // sizeof=0x8
+{                                                                             // XREF: bdQoSProbe::bdQoSProbeEntryWrapper/r
+    unsigned __int8 ab[8];                            // XREF: PM_Weapon_FireWeapon+17D/o
+
+    bdSecurityID(const struct bdSecurityID *src)
+    {
+        memcpy(this->ab, src->ab, sizeof(bdSecurityID));
+    }
+
+    bdSecurityID()
+    {
+        memset(this->ab, 1u, sizeof(bdSecurityID));
+    }
+
+    bool operator==(const bdSecurityID &other) const
+    {
+        return memcmp(this->ab, other.ab, sizeof(bdSecurityID)) == 0;
+    }
+
+    bool operator!=(const bdSecurityID &other) const
+    {
+        return !(*this == other);
+    }
+};
 
 struct bdEndpoint // sizeof=0xC
 {                                       // XREF: bdAddrHandle/r

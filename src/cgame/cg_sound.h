@@ -55,7 +55,8 @@ inline void CG_PlaySound(int localClientNum,
     float attenuation,
     const char *name)
 {
-    CG_PlaySound(entitynum,
+    CG_PlaySound(localClientNum,
+        entitynum,
         origin,
         fadeMs,
         doNotify,

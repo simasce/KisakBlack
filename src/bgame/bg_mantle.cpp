@@ -982,9 +982,9 @@ char    Mantle_FindMantleSurface(pmove_t *pm, pml_t *pml, trace_t *trace, float 
         //*(unsigned int *)mantleDir = trace->normal.vec.u[0] ^ _mask__NegFloat_;
         //*((unsigned int *)mantleDir + 1) = trace->normal.vec.u[1] ^ _mask__NegFloat_;
         //*((unsigned int *)mantleDir + 2) = trace->normal.vec.u[2] ^ _mask__NegFloat_;
-        mantleDir[0] = -trace->normal.vec.u[0];
-        mantleDir[1] = -trace->normal.vec.u[1];
-        mantleDir[2] = -trace->normal.vec.u[2];
+        mantleDir[0] = -trace->normal.vec.v[0];
+        mantleDir[1] = -trace->normal.vec.v[1];
+        mantleDir[2] = -trace->normal.vec.v[2];
         mantleDir[2] = 0.0f;
         v8 = Vec3Normalize(mantleDir);
         if ( v8 >= 0.000099999997 )

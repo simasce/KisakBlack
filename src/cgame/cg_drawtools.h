@@ -3,6 +3,8 @@
 #include <gfx_d3d/r_material.h>
 #include <gfx_d3d/r_font.h>
 
+struct DObjAnimMat;
+
 double __cdecl CG_GetPicWidth(Material *mat);
 const Material *__cdecl Material_FromHandle(Material *handle);
 void __cdecl CG_DrawRotatedPicPhysicalW(

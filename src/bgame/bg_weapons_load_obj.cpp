@@ -12,6 +12,7 @@
 #include <universal/surfaceflags.h>
 #include <game/g_weapon_load_obj.h>
 #include "bg_weapons_def.h"
+#include <database/db_registry.h>
 
 const char *szWeapOverlayReticleNames[2] =
 { "none", "crosshair" };

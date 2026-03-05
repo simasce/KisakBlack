@@ -11,6 +11,7 @@ struct XAnim_s;
 struct GfxScaledPlacement;
 struct refdef_s;
 struct ViewModelInfo;
+struct cg_s;
 
 struct AnimRateOffset // sizeof=0x8
 {                                       // XREF: .data:g_animRateOffsets/r

@@ -4,6 +4,14 @@
 #include "rigid_body.h"
 
 struct centity_s;
+struct gentity_s;
+struct cbrush_t;
+struct trace_t;
+struct DynEntityDef;
+struct gjk_query_input;
+struct gjk_query_output;
+struct gjk_entity_info_t;
+struct gjk_trace_output_t;
 
 struct phys_auto_activate_callback // sizeof=0x4
 {                                       // XREF: destructible_ent_aa/r

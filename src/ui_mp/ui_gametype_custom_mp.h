@@ -3,6 +3,8 @@
 #include <universal/dvar.h>
 #include <universal/memfile.h>
 
+#include "ui_gametype_variants_mp.h"
+
 struct UIGametypeFileHeader // sizeof=0xC8
 {                                       // XREF: ?UI_Gametype_ReadFromMemFile@@YA_NAAUMemoryFile@@@Z/r
                                         // ?UI_Gametype_UploadToFileShare_f@@YAXXZ/r

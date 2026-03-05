@@ -9,6 +9,7 @@
 #include <live/live_counter.h>
 #include "bg_weapons_def.h"
 #include <ui_mp/ui_gametype_variants_mp.h>
+#include <client_mp/cl_main_mp.h>
 
 const char *connectionString_4[11] =
 {

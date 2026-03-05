@@ -22,6 +22,7 @@
 #include <universal/com_files.h>
 #include <qcommon/threads.h>
 #include <game/g_vehicle_path.h>
+#include <xanim/xanim.h>
 
 bool render_waist_foot_line;
 

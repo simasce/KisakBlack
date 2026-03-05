@@ -1,8 +1,6 @@
 #pragma once
 #include "r_utils.h"
-#include "r_rendercmds.h"
 #include "r_pointlights.h"
-#include "r_primarylights.h"
 
 enum GfxSortedHistoryAdd : __int32
 {                                       // XREF: R_SortedHistoryEntry/r

@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef KISAK_DW
-#include <live/live_storage.h>
-#include <demo/demo_common.h>
-
 enum bdLobbyErrorCode : __int32
 {                                       // XREF: bdLobbyConnection::Status/r
                                         // bdConnection::Status/r ...
@@ -337,6 +333,9 @@ enum bdLobbyErrorCode : __int32
     // XREF: .rdata:lobbyErrorCodeLookup/s
 };
 
+#include <live/live_storage.h>
+#include <demo/demo_common.h>
+
 struct bdFileData : bdTaskResult // sizeof=0xC
 {                                       // XREF: dwFileTask/r
     void *m_fileData;
@@ -398,6 +397,8 @@ struct __declspec(align(4)) dwFileTask // sizeof=0xE0
     // padding byte
 };
 //dwFileTask *__thiscall dwFileTask::dwFileTask(dwFileTask *this);
+
+#ifdef KISAK_DW
 
 struct TaskRecord;
 

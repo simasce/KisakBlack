@@ -11,19 +11,6 @@ struct ForceBoundsInfo // sizeof=0x40
     float windForceBounds[2][2];
 };
 
-struct __declspec(align(4)) DrawStateWorkerSharedBuffer // sizeof=0x1390
-{                                       // XREF: .data:DrawStateWorkerSharedBuffer g_drawStateWorkerSharedBuffer/r
-    unsigned __int16 visibleDynSModelList[2048];
-    PerFrameFoliageInfo frameInfo;      // XREF: R_DynSModelBuildClientView(DynSModelClient const *,DynSModelClientView *,DynSModelGfxState *)+62/o
-                                        // _dynamic_initializer_for__g_drawStateWorkerSharedBuffer__+4/o
-    ForceBoundsInfo forceBounds;        // XREF: R_DynSModelBuildClientView(DynSModelClient const *,DynSModelClientView *,DynSModelGfxState *)+69/o
-    bool inUse;                         // XREF: R_DynSModelWaitWorker(void)+22/w
-                                        // R_DynSModelBuildClientView(DynSModelClient const *,DynSModelClientView *,DynSModelGfxState *)+2A/r ...
-    // padding byte
-    // padding byte
-    // padding byte
-};
-
 struct ActiveModelNode // sizeof=0x8
 {                                       // XREF: ModelHashTable<ActiveModelNode,63,128>/r
                                         // ?R_FoliageNotifyBurn@@YAXQAMMPAHH_N@Z/r ...
@@ -60,6 +47,19 @@ struct PerFrameFoliageInfo // sizeof=0x34C
     unsigned int numGrassInstantForces;
     unsigned int numGrassPersistantForces;
     unsigned int numGrassWindForces;
+};
+
+struct __declspec(align(4)) DrawStateWorkerSharedBuffer // sizeof=0x1390
+{                                       // XREF: .data:DrawStateWorkerSharedBuffer g_drawStateWorkerSharedBuffer/r
+    unsigned __int16 visibleDynSModelList[2048];
+    PerFrameFoliageInfo frameInfo;      // XREF: R_DynSModelBuildClientView(DynSModelClient const *,DynSModelClientView *,DynSModelGfxState *)+62/o
+    // _dynamic_initializer_for__g_drawStateWorkerSharedBuffer__+4/o
+    ForceBoundsInfo forceBounds;        // XREF: R_DynSModelBuildClientView(DynSModelClient const *,DynSModelClientView *,DynSModelGfxState *)+69/o
+    bool inUse;                         // XREF: R_DynSModelWaitWorker(void)+22/w
+    // R_DynSModelBuildClientView(DynSModelClient const *,DynSModelClientView *,DynSModelGfxState *)+2A/r ...
+    // padding byte
+    // padding byte
+    // padding byte
 };
 
 struct FoliageShaderConstantBlock // sizeof=0x40
@@ -129,13 +129,6 @@ struct FoliageShakeParams // sizeof=0x14
     float strength;
     float frequency;
     float locForwardExtension;
-};
-
-struct ForceBoundsInfo // sizeof=0x40
-{                                       // XREF: DrawStateWorkerSharedBuffer/r
-    float persistForceBounds[2][3];
-    float instantForceBounds[2][3];
-    float windForceBounds[2][2];
 };
 
 struct DynSModelDrawStateCmd // sizeof=0x24

@@ -3531,6 +3531,9 @@
     <ClCompile Include="src\libs\libvpx\src\vpx_image.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DemonWare\bdCore\bdSocket\bdAddr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\libs\libtomcrypt-1.17\src\headers\tomcrypt.h">

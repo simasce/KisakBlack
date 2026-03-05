@@ -6,6 +6,7 @@
 #include "g_scr_main_mp.h"
 #include <bgame/bg_public.h>
 #include <client_mp/g_client_mp.h>
+#include <universal/q_parse.h>
 
 struct TIMED_RADIUS_DAMAGE // sizeof=0x2C
 {                                       // XREF: .data:TIMED_RADIUS_DAMAGE * g_timed_radius_damage/r

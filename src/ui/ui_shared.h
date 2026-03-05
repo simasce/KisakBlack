@@ -1,7 +1,7 @@
 #pragma once
 #include <gfx_d3d/r_font.h>
 #include <universal/com_expressions.h>
-#include <database/db_registry.h>
+#include <database/database.h>
 
 enum language_t : __int32
 {                                       // XREF: Item_ListBox_PaintTextElem/r
@@ -66,6 +66,8 @@ inline itemGroup_t operator++(itemGroup_t &t, int)
     return old;
 }
 
+struct ScreenPlacement;
+struct ScreenPlacementStack;
 
 enum UILocalVarType : __int32
 {                                                                             // XREF: UILocalVar/r

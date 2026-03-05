@@ -4,7 +4,7 @@
 
 namespace bdPlatformTiming
 {
-    inline LARGE_INTEGER __cdecl bdPlatformTiming::getHiResTimeStamp()
+    inline LARGE_INTEGER __cdecl getHiResTimeStamp()
     {
         LARGE_INTEGER PerformanceCount; // [esp+0h] [ebp-8h] BYREF
 

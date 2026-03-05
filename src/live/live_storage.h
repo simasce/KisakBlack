@@ -7,6 +7,8 @@
 #include <DemonWare/bdCore/bdTiming/bdStopwatch.h>
 #include <DemonWare/bdCore/bdContainers/bdBitBuffer.h>
 
+#include <demo/demo_common.h>
+
 enum fileShareLocation : __int32
 {                                                                             // XREF: fileShareWriteFileInfo/r
     FILESHARE_LOCATION_INVALID = 0x0,
@@ -52,15 +54,15 @@ struct bdStats
     enum bdWriteType : __int32
     {                                       // XREF: bdStatsInfo/r
         STAT_WRITE_REPLACE = 0x0,
-        STAT_WRITE_ADD     = 0x1,
-        STAT_WRITE_MAX     = 0x2,
-        STAT_WRITE_MIN     = 0x3,
+        STAT_WRITE_ADD = 0x1,
+        STAT_WRITE_MAX = 0x2,
+        STAT_WRITE_MIN = 0x3,
         STAT_WRITE_REPLACE_WHEN_RATING_INCREASE = 0x4,
         STAT_WRITE_ADD_WHEN_RATING_INCREASE = 0x5,
         STAT_WRITE_MAX_WHEN_RATING_INCREASE = 0x6,
         STAT_WRITE_MIN_WHEN_RATING_INCREASE = 0x7,
     };
-}
+};
 
 struct bdTaskResultProcessor // sizeof=0x4
 {                                       // XREF: bdPagingToken/r

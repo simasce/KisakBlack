@@ -21,54 +21,12 @@ struct FxCurve // sizeof=0xC
     float keys[1];
 };
 
-struct FxTrailVertex // sizeof=0x14
-{                                       // XREF: FxEditorTrailDef/r
-    float pos[2];
-    float normal[2];
-    float texCoord;
-};
-
 struct FxEditorTrailDef // sizeof=0x608
 {                                       // XREF: FxEditorElemDef/r
     FxTrailVertex verts[64];
     int vertCount;
     unsigned __int16 inds[128];
     int indCount;
-};
-
-struct FxFloatRange // sizeof=0x8
-{                                       // XREF: FxElemDef/r
-                                        // FxElemDef/r ...
-    float base;
-    float amplitude;
-};
-
-struct FxSpawnDefLooping // sizeof=0x8
-{                                       // XREF: FxSpawnDef/r
-                                        // FxEditorElemDef/r
-    int intervalMsec;
-    int count;
-};
-
-struct FxIntRange // sizeof=0x8
-{                                       // XREF: FxSpawnDefOneShot/r
-                                        // FxElemDefUnion/r ...
-    int base;                           // XREF: FX_DrawElem_Cloud_Main+12/w
-                                        // FX_DrawElem_Cloud_Main+42/r ...
-    int amplitude;                      // XREF: FX_DrawElem_Cloud_Main+21/w
-                                        // FX_DrawElem_Cloud_Main+24/r ...
-};
-
-struct FxSpawnDefOneShot // sizeof=0x8
-{                                       // XREF: FxSpawnDef/r
-                                        // FxEditorElemDef/r
-    FxIntRange count;
-};
-
-union FxSpawnDef // sizeof=0x8
-{                                       // XREF: FxElemDef/r
-    FxSpawnDefLooping looping;
-    FxSpawnDefOneShot oneShot;
 };
 
 struct FxEditorElemDef // sizeof=0x974
