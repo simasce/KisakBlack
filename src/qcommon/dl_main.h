@@ -13,7 +13,7 @@ typedef int _HTAlertOpcode;
 // HACK END
 
 int __cdecl DL_VPrintf(const char *fmt, char *argptr);
-int __cdecl terminate_handler(_HTRequest *request, struct _HTResponse *response, void *param, int status);
+int __cdecl terminate_handler_WINDOWSNAMINGCLASH(_HTRequest *request, struct _HTResponse *response, void *param, int status);
 int __cdecl HTAlertCallback_progress(_HTRequest *request, _HTAlertOpcode op);
 int __cdecl HTAlertCallback_confirm(_HTRequest *request, _HTAlertOpcode op, int msgnum);
 int __cdecl HTAlertCallback_prompt(_HTRequest *request, _HTAlertOpcode op, int msgnum);

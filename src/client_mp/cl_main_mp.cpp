@@ -1391,6 +1391,7 @@ void __cdecl CL_Disconnect(unsigned int localClientNum, bool deactivateClient)
             CL_WritePacket(localClientNum);
         }
         wasConnected = connstate >= CA_CONNECTING;
+#ifdef KISAK_DW
         if ( connstate >= CA_CONNECTING && clc )
         {
             dwCloseConnection(&clc->serverAddress);
@@ -1404,6 +1405,7 @@ void __cdecl CL_Disconnect(unsigned int localClientNum, bool deactivateClient)
             dwSetSessionID(&sessID);
             //bdTaskResult::~bdTaskResult(&sessID);
         }
+#endif
         if ( clc )
         {
             clc->clientChallenge = 0;
@@ -1861,52 +1863,45 @@ void __cdecl CL_BeginDownload(const char *localName, const char *remoteName)
 
 void __cdecl CL_NextDownload(int localClientNum)
 {
-    char *v1; // eax
-    char *v2; // eax
     char *localName; // [esp+24h] [ebp-Ch]
     char *s; // [esp+28h] [ebp-8h]
     char *sa; // [esp+28h] [ebp-8h]
+    char *sb; // [esp+28h] [ebp-8h]
+    unsigned __int8 *sc; // [esp+28h] [ebp-8h]
     char *remoteName; // [esp+2Ch] [ebp-4h]
 
     CL_GetLocalClientConnection(localClientNum);
-    if ( !cls.downloadList[0] )
-        goto LABEL_12;
-    if ( com_sv_running->current.enabled
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\client_mp\\cl_main_mp.cpp",
-                    4110,
-                    0,
-                    "%s",
-                    "!com_sv_running->current.enabled") )
-    {
-        __debugbreak();
-    }
+    if (!cls.downloadList[0])
+        goto LABEL_11;
+    //if (com_sv_running->current.enabled)
+    //    MyAssertHandler(".\\client_mp\\cl_main_mp.cpp", 2721, 0, "%s", "!com_sv_running->current.enabled");
+    iassert(!com_sv_running->current.enabled);
     s = cls.downloadList;
-    if ( cls.downloadList[0] == 64 )
+    if (cls.downloadList[0] == '@')
         s = &cls.downloadList[1];
     remoteName = s;
-    v1 = strchr(s, 0x40u);
-    if ( v1 )
+    sa = strchr(s, '@');
+    if (sa)
     {
-        *v1 = 0;
-        localName = v1 + 1;
-        strchr(v1 + 1, 0x40u);
-        if ( v2 )
+        *sa = 0;
+        localName = sa + 1;
+        sb = strchr(sa + 1, '@');
+        if (sb)
         {
-            *v2 = 0;
-            sa = v2 + 1;
+            *sb = 0;
+            sc = (unsigned __int8 *)(sb + 1);
         }
         else
         {
-            sa = &localName[strlen(localName)];
+            sc = (unsigned __int8 *)&localName[strlen(localName)];
         }
         CL_BeginDownload(localName, remoteName);
         cls.downloadRestart = 1;
-        memmove((unsigned __int8 *)cls.downloadList, sa, strlen((const char *)sa) + 1);
+        memmove((unsigned __int8 *)cls.downloadList, sc, strlen((const char *)sc) + 1);
     }
     else
     {
-LABEL_12:
+    LABEL_11:
         CL_DownloadsComplete(localClientNum);
     }
 }
@@ -1965,9 +1960,11 @@ void __cdecl CL_CheckForResend(int localClientNum)
     const char *v4; // eax
     __int64 Uid; // rax
     const char *v6; // eax
-    bdTrulyRandomImpl *Instance; // eax
     unsigned int RandomUInt; // eax
+#ifdef KISAK_DW
+    bdTrulyRandomImpl *Instance; // eax
     bdTrulyRandomImpl *v9; // eax
+#endif
     unsigned int v10; // eax
     netsrc_t v11; // eax
     netadr_t v12; // [esp-18h] [ebp-D68h]
@@ -2004,11 +2001,14 @@ void __cdecl CL_CheckForResend(int localClientNum)
             ++clc->connectPacketCount;
             if ( connstate == CA_CONNECTING )
             {
+#ifdef KISAK_DW
                 if ( dwGetAddrHandleConnectionTaskStatus(clc->serverAddress.addrHandleIndex) )
+#endif
                 {
                     if (net_lanauthorize->current.enabled || !Sys_IsLANAddress(clc->serverAddress))
                     {
                         //BLOPS_NULLSUB();
+                        // IN COD4: CL_RequestAuthorization(localClientNum);
                     }
                     strcpy(pkt, "getchallenge");
                     pktlen = &pkt[strlen(pkt) + 1] - &pkt[1];
@@ -4736,7 +4736,11 @@ int __cdecl CL_UpdateDirtyPings(int localClientNum, unsigned int source)
         }
     }
     while ( sentCount < cl_maxppf->current.integer && cls.lastServerPinged != firstPingedIndex );
-    if ( sentCount || (int)Sys_Milliseconds() < latestPingedTime + 2000 || dwIsPagedFindInProgress() )
+    if ( sentCount || (int)Sys_Milliseconds() < latestPingedTime + 2000 
+#ifdef KISAK_DW
+        || dwIsPagedFindInProgress() 
+#endif
+        )
         return 1;
     return status;
 }

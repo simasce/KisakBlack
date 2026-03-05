@@ -2,6 +2,8 @@
 #include <qcommon/msg_mp.h>
 
 struct clSnapshot_t;
+struct clientActive_t;
+struct clientState_s;
 
 void __cdecl SHOWNET(msg_t *msg, char *s);
 void __cdecl CL_SavePredictedOriginForServerTime(

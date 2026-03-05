@@ -2,6 +2,9 @@
 #include <bgame/bg_public.h>
 #include <sound/snd.h>
 
+struct DObjAnimMat;
+struct DObjTrace_s;
+
 void __cdecl G_SafeDObjFree(unsigned int handle, int unusedLocalClientNum);
 void __cdecl G_ClearCachedModels();
 int __cdecl G_FindConfigstringIndex(char *name, int start, int max, int create, const char *errormsg);

@@ -1314,8 +1314,10 @@ void __cdecl SV_DropClient(client_t *drop, const char *reason, bool tellThem, bo
         {
             __debugbreak();
         }
+#ifdef KISAK_LIVE
         if (onlinegame->current.enabled && com_sv_running->current.enabled)
             MatchRecordPlayerDetails(&level.clients[clientNum], reason);
+#endif
         LiveSteam_Server_ClientSteamDisconnect(drop->steamID);
         SV_FreeClient(drop);
         Com_DPrintf(15, "Going to CS_ZOMBIE from %i for %s due to %s\n", dropState, droppedClientName, reason);
@@ -2440,10 +2442,10 @@ char __cdecl SV_ValidateName(client_t *newcl, const char *name)
     v4 = strstr(nameLower, tempLower);
     if ( v4 )
         return 0;
-    strstr(nameLower, "unknown soldier");
+    v5 = strstr(nameLower, "unknown soldier");
     if ( v5 )
         return 0;
-    strstr(nameLower, "democlient");
+    v6 = strstr(nameLower, "democlient");
     if ( v6 )
         return 0;
     for ( i = 0; i < com_maxclients->current.integer; ++i )

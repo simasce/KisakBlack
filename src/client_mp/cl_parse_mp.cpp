@@ -21,6 +21,7 @@
 #include <client/cl_parse.h>
 #include <bgame/bg_misc.h>
 #include "cl_input_mp.h"
+#include <database/db_registry.h>
 
 const char *svc_strings[256] =
 {

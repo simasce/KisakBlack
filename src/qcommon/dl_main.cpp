@@ -13,7 +13,7 @@ int __cdecl DL_VPrintf(const char *fmt, char *argptr)
     return &msg[strlen(msg) + 1] - &msg[1];
 }
 
-int __cdecl terminate_handler(_HTRequest *request, struct _HTResponse *response, void *param, int status)
+int __cdecl terminate_handler_WINDOWSNAMINGCLASH(_HTRequest *request, struct _HTResponse *response, void *param, int status)
 {
 #if 0
     terminate_status = status;
@@ -99,7 +99,7 @@ void __cdecl DL_InitDownload()
         HTAlert_setInteractive(1);
         HTPrint_setCallback((int)DL_VPrintf);
         HTTrace_setCallback((int)DL_VPrintf);
-        HTNet_addAfter(terminate_handler, 0, 0, (void *)1, 0xFFFF);
+        HTNet_addAfter(terminate_handler_WINDOWSNAMINGCLASH, 0, 0, (void *)1, 0xFFFF);
         HTAlert_add((int)HTAlertCallback_progress, 0xFFFF);
         HTAlert_add((int)HTAlertCallback_confirm, 0x20000);
         HTAlert_add((int)HTAlertCallback_prompt, 1835008);

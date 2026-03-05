@@ -70,6 +70,7 @@ struct kbutton_t // sizeof=0x18
 enum StanceState : __int32;
 
 struct usercmd_s;
+struct clientActive_t;
 
 
 

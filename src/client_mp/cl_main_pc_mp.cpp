@@ -181,6 +181,7 @@ void __cdecl CL_SetServerInfo(serverInfo_t *server, char *info, __int16 ping)
 
 void __cdecl CL_ServerInfoPacket(bdSecurityID *secID, msg_t *msg, int time)
 {
+#if 0 // KISAKTODO
     char *v3; // eax
     int v4; // [esp+0h] [ebp-424h]
     int prot; // [esp+4h] [ebp-420h]
@@ -228,6 +229,7 @@ void __cdecl CL_ServerInfoPacket(bdSecurityID *secID, msg_t *msg, int time)
             Com_DPrintf(14, "Different protocol info packet: %s\n", infoString);
         }
     }
+#endif
 }
 
 void __cdecl CL_Connect(serverInfo_t *server)
@@ -237,11 +239,14 @@ void __cdecl CL_Connect(serverInfo_t *server)
     char *v3; // eax
     clientUIActive_t *clUI; // [esp+Ch] [ebp-18h]
     clientConnection_t *clc; // [esp+10h] [ebp-14h]
-    bdSessionID sessionID; // [esp+14h] [ebp-10h] BYREF
 
+#ifdef KISAK_DW
+    bdSessionID sessionID; // [esp+14h] [ebp-10h] BYREF
     //bdSessionID::bdSessionID(&sessionID);
     sessionID.m_sessionID = server->xnkid;
     dwSetSessionID(&sessionID);
+#endif
+
     clUI = CL_GetLocalClientUIGlobals(0);
     CL_GetLocalClientGlobals(0);
     clc = CL_GetLocalClientConnection(0);
@@ -266,8 +271,10 @@ void __cdecl CL_Connect(serverInfo_t *server)
     Cmd_ExecuteSingleCommand(0, 0, (char*)"fileShareAbortOperation");
     CL_Disconnect(0, 1);
     Con_Close(0);
+#ifdef KISAK_DW
     dwRegisterSecIDAndKey(&server->xnkid, &server->xnkey);
     dwCommonAddrToNetadr(&server->adr, (bool *)server, (bdCommonAddr *)&server->xnkid);
+#endif
     I_strncpyz(cls.servername, server->hostName, 256);
     clc->serverAddress = server->adr;
     if ( !clc->serverAddress.port )
@@ -374,7 +381,11 @@ void __cdecl CL_Connect_f()
                 v1);
             if ( NET_IsLocalAddress(clc->serverAddress) || CL_LocalClient_GetActiveCount() )
             {
-                if ( Sys_IsLANAddress(clc->serverAddress) || dwGetLogOnStatus(0) == 4 )
+                if ( Sys_IsLANAddress(clc->serverAddress) 
+#ifdef KISAK_DW
+                    || dwGetLogOnStatus(0) == 4 
+#endif
+                    )
                 {
                     if ( NET_IsLocalAddress(clc->serverAddress) )
                         CL_SetLocalClientConnectionState(0, CA_CHALLENGING);
@@ -464,6 +475,7 @@ int __cdecl CL_RawPingSetupBuffer(
 
 void __cdecl CL_RawPingServer(serverInfo_t *server, unsigned __int8 opcode)
 {
+#if 0 // KISAKTODO
     netadr_t privserveraddr; // [esp+0h] [ebp-30h] BYREF
     unsigned __int8 sendBuf[12]; // [esp+10h] [ebp-20h] BYREF
     netadr_t pubserveraddr; // [esp+1Ch] [ebp-14h] BYREF
@@ -475,6 +487,7 @@ void __cdecl CL_RawPingServer(serverInfo_t *server, unsigned __int8 opcode)
     dwRawSendTo(&pubserveraddr, sendBuf, 9u);
     if ( !NET_CompareAdr(privserveraddr, pubserveraddr) )
         dwRawSendTo(&privserveraddr, sendBuf, 9u);
+#endif
 }
 
 void __cdecl CL_ServersResponsePacket(MatchMakingInfo *mminfo, int numResults, bool geo)
@@ -603,6 +616,7 @@ void __cdecl CL_ServersResponsePacket(MatchMakingInfo *mminfo, int numResults, b
 
 void __cdecl CL_FindServers_f()
 {
+#if 0 // KISAKTODO
     const char *v0; // eax
     unsigned int servertype; // [esp+14h] [ebp-14h]
     int i; // [esp+18h] [ebp-10h]
@@ -666,6 +680,7 @@ void __cdecl CL_FindServers_f()
             Com_Printf(0, "usage: findservers [unranked|ranked|wager|favourites|friends|recent]\n");
         }
     }
+#endif
 }
 
 void __cdecl CL_RconInit()
@@ -900,6 +915,7 @@ serverStatusInfoResponse_s *__cdecl CL_GetServerStatusScoreBoard(bdSecurityID *s
 
 int __cdecl CL_ServerStatus(char *serversecurityID, char *serverStatusString, int maxLen)
 {
+#if 0 // KISAKTODO
     bdSecurityID *p_secId; // edx
     bdSecurityID secId; // [esp+0h] [ebp-18h] BYREF
     serverStatusInfoResponse_s *serverStatus; // [esp+Ch] [ebp-Ch]
@@ -966,10 +982,14 @@ int __cdecl CL_ServerStatus(char *serversecurityID, char *serverStatusString, in
         }
         return 0;
     }
+#else
+    return 0;
+#endif
 }
 
 int __cdecl CL_ServerStatusScoreBoard(char *serversecurityID, char *serverStatusString, int maxLen)
 {
+#if 0 // KISAKTODO
     bdSecurityID *p_secId; // edx
     bdSecurityID secId; // [esp+0h] [ebp-18h] BYREF
     serverStatusInfoResponse_s *serverStatus; // [esp+Ch] [ebp-Ch]
@@ -1036,6 +1056,9 @@ int __cdecl CL_ServerStatusScoreBoard(char *serversecurityID, char *serverStatus
         }
         return 0;
     }
+#else
+    return 0;
+#endif
 }
 
 void __cdecl CL_ServerStatusScoreBoardResponse(msg_t *msg, bdSecurityID *secID)
@@ -1300,11 +1323,14 @@ void __cdecl CL_PC_RequireLiveSignin()
 
 void __cdecl CL_LanSessions_f()
 {
+#if KISAK_DW
     dwStartLanDiscovery();
+#endif
 }
 
 void __cdecl CL_LanConnect_f()
 {
+#if KISAK_DW
     const char *v0; // eax
     unsigned int serverInfoIdx; // [esp+3Ch] [ebp-198h]
     bdReference<bdCommonAddr> hostAddr; // [esp+40h] [ebp-194h] BYREF
@@ -1348,6 +1374,7 @@ void __cdecl CL_LanConnect_f()
         Com_Printf(0, "lanconnect [idx]: ot of range server info index. use lansessions to obtain all lan sessions.\n");
         //bdReference<bdRemoteTask>::~bdReference<bdRemoteTask>(&hostAddr);
     }
+#endif
 }
 
 void __cdecl CL_Prestige_f()

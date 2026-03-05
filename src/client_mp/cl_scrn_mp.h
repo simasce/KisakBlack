@@ -2,6 +2,8 @@
 
 enum DemoType : __int32;
 
+struct windowDef_t;
+
 void __cdecl SCR_DrawSmallStringExt(int x, int y, char *string, const float *setColor);
 void __cdecl SCR_Init();
 void __cdecl CL_DrawScreen(int localClientNum);
