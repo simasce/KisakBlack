@@ -1,5 +1,6 @@
 #pragma once
 #include <database/db_registry.h>
+#include <bgame/bg_weapons_attachment.h>
 
 enum milestoneTableColumns_t : __int32
 {                                       // XREF: ?GetStatsMilestoneData@@YAPBDW4milestoneTableColumns_t@@PBD01010@Z/r

@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <gfx_d3d/r_init.h>
+#include <client_mp/cl_main_mp.h>
 
 ScreenPlacement scrPlaceView[1];
 ScreenPlacement scrPlaceFull;

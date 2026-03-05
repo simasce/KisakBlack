@@ -1,27 +1,26 @@
-#include "cl_console.h"
 #include <qcommon/common.h>
+#include "screen_placement.h"
+#include "cl_console.h"
+
 #include "cl_main.h"
-#include <client_mp/client_mp.h>
-#include <qcommon/cmd.h>
-#include <client_mp/cl_cgame_mp.h>
+#include "client.h"
 #include <cgame_mp/cg_newDraw_mp.h>
-#include "cl_keys.h"
-#include <win32/win_common.h>
+#include <client_mp/cl_cgame_mp.h>
 #include "con_channels.h"
-#include <ui/ui_main.h>
 #include <stringed/stringed_hooks.h>
 #include <win32/win_net.h>
-#include <cgame_mp/cg_main_mp.h>
 #include <gfx_d3d/r_rendercmds.h>
-#include <sound/snd_public_async.h>
-#include <qcommon/threads.h>
+#include <cgame/cg_sound.h>
 #include <universal/com_buildinfo.h>
+#include <qcommon/threads.h>
+#include <sound/snd_public_async.h>
 #include <universal/com_files.h>
 #include <client_mp/cl_scrn_mp.h>
 #include <cgame_mp/cg_consolecmds_mp.h>
-#include <cgame/cg_sound.h>
 #include <server_mp/sv_main_pc_mp.h>
-#include "client.h"
+#include "cl_keys.h"
+
+
 
 Console con;
 ConDrawInputGlob conDrawInputGlob;
@@ -86,8 +85,6 @@ const dvar_t *con_restricted_access;
 const dvar_t *con_matchPrefixOnly;
 
 field_t historyEditLines[32];
-
-int g_restricted_count;
 
 void __cdecl Con_ToggleConsole()
 {
@@ -382,8 +379,6 @@ void __cdecl Con_CheckResize()
         con.visiblePixelWidth = 0;
     }
 }
-
-const dvar_t *con_inputBoxColor;
 
 void __cdecl Con_OneTimeInit()
 {

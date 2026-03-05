@@ -1,3 +1,7 @@
+#include <qcommon/common.h>
+#include "screen_placement.h"
+#include "cl_console.h"
+
 #include "con_channels.h"
 #include <universal/q_shared.h>
 #include <bgame/bg_animation.h>

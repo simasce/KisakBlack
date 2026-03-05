@@ -38,7 +38,9 @@ void __cdecl CL_RunNetworkFrame(int localClientNum)
             }
         }
         Live_Frame();
+#ifdef KISAK_DW
         dwUpdateLanSession();
+#endif
     }
     else
     {

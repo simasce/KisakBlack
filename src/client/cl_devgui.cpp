@@ -73,7 +73,7 @@ void __cdecl CL_CreateDevGui()
     Cbuf_InsertText(0, "exec devgui_art");
 }
 
-void __stdcall CL_RegisterDevGuiDvars()
+void CL_RegisterDevGuiDvars()
 {
     clGuiGlob.mapEnumDvar[0] = _Dvar_RegisterEnum("mapEnum0", emptyEnumList, 0, 0x840u, "");
     clGuiGlob.mapEnumDvar[1] = _Dvar_RegisterEnum("mapEnum1", emptyEnumList, 0, 0x840u, "");

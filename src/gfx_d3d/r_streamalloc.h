@@ -1,5 +1,6 @@
 #pragma once
 #include "r_material.h"
+#include <win32/win_common.h>
 
 struct StreamAllocGlob // sizeof=0x109
 {                                       // XREF: .data:s_allocGlob/r

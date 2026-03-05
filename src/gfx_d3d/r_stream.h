@@ -146,6 +146,8 @@ struct StreamCombineCmd // sizeof=0x4
     StreamFrontendGlob *frontend;       // XREF: R_StreamUpdate_End(void)+3F/w
 };
 
+struct DObj;
+
 bool __cdecl R_StreamIsEnabled();
 void __cdecl R_StreamPushDisable();
 void __cdecl R_StreamPopDisable();
