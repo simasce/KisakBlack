@@ -1,3 +1,4 @@
+#include <Windows.h>
 #include "devgui_input.h"
 #include "devgui.h"
 #include <qcommon/cmd.h>

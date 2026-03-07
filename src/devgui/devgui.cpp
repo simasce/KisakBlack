@@ -30,9 +30,6 @@ const dvar_t *devgui_colorGraphKnotNormal;
 const dvar_t *devgui_colorGraphKnotSelected;
 const dvar_t *devgui_colorGraphKnotEditing;
 const dvar_t *devgui_zoomEnabled;
-const dvar_t *devgui_colorBgnd;
-const dvar_t *devgui_colorBgnd;
-const dvar_t *devgui_colorBgnd;
 
 void __cdecl DevGui_AddDvar(const char *path, const dvar_s *dvar)
 {
@@ -1163,20 +1160,17 @@ void __cdecl DevGui_DrawSingleSlider(
 void __cdecl DevGui_DrawDvarValue(int x, int y, const dvar_s *dvar)
 {
     const char *v3; // eax
-    float v4; // xmm0_8
-    float v5; // xmm0_8
-    float value; // xmm0_8
-    long double v7; // [esp+30h] [ebp-7Ch]
-    double v8; // [esp+30h] [ebp-7Ch]
-    long double v9; // [esp+38h] [ebp-74h]
-    double v10; // [esp+38h] [ebp-74h]
-    double v11; // [esp+40h] [ebp-6Ch]
-    float v12; // [esp+48h] [ebp-64h]
-    float v13; // [esp+4Ch] [ebp-60h]
-    float v14; // [esp+50h] [ebp-5Ch]
-    const char *v15; // [esp+54h] [ebp-58h]
+    float v4; // xmm0_4
+    float v5; // xmm0_4
+    float v6; // xmm0_4
+    double v7; // [esp+30h] [ebp-7Ch]
+    double v8; // [esp+38h] [ebp-74h]
+    double v9; // [esp+40h] [ebp-6Ch]
+    float v10; // [esp+48h] [ebp-64h]
+    float v11; // [esp+4Ch] [ebp-60h]
+    float v12; // [esp+50h] [ebp-5Ch]
+    const char *v13; // [esp+54h] [ebp-58h]
     double G; // [esp+64h] [ebp-48h]
-    double Ga; // [esp+64h] [ebp-48h]
     double X; // [esp+6Ch] [ebp-40h]
     int r; // [esp+78h] [ebp-34h]
     double Y; // [esp+7Ch] [ebp-30h]
@@ -1187,122 +1181,94 @@ void __cdecl DevGui_DrawDvarValue(int x, int y, const dvar_s *dvar)
     double Z; // [esp+9Ch] [ebp-10h]
     char *text; // [esp+A8h] [ebp-4h]
 
-    if ( dvar->type )
+    if (dvar->type)
     {
-        switch ( dvar->type )
+        switch (dvar->type)
         {
-            case DVAR_TYPE_ENUM:
-                v3 = Dvar_DisplayableLatchedValue(dvar);
-                text = va("%i: %s", dvar->latched.integer, v3);
-                break;
-            case DVAR_TYPE_LINEAR_COLOR_RGB:
-                if ( dvar->latched.vector[2] <= 0.0031308001 )
-                {
-                    v14 = dvar->latched.vector[2] * 12.92;
-                }
-                else
-                {
-                    v4 = dvar->latched.vector[2];
-                    //__libm_sse2_pow(v7, v9);
-                    //*(float *)&v4 = v4;
-                    v4 = pow(v4, 0.4166666567325592);
-                    v14 = (float)(v4 * 1.0549999) - 0.055;
-                }
-                if ( dvar->latched.vector[1] <= 0.0031308001 )
-                {
-                    v13 = dvar->latched.vector[1] * 12.92;
-                }
-                else
-                {
-                    v5 = dvar->latched.vector[1];
-                    v5 = pow(v5, 0.4166666567325592);
-                    //__libm_sse2_pow(v7, v9);
-                    //*(float *)&v5 = v5;
-                    v13 = (float)(v5 * 1.0549999) - 0.055;
-                }
-                if ( dvar->latched.value <= 0.0031308001 )
-                {
-                    v12 = dvar->latched.value * 12.92;
-                }
-                else
-                {
-                    value = dvar->latched.value;
-                    //__libm_sse2_pow(v7, v9);
-                    //*(float *)&value = value;
-                    value = pow(value, 0.4166666567325592);
-                    v12 = (float)(value * 1.0549999) - 0.055;
-                }
-                text = va(
-                                 "sRGB: %g %g %g Linear: %g %g %g",
-                                 v12,
-                                 v13,
-                                 v14,
-                                 dvar->latched.value,
-                                 dvar->latched.vector[1],
-                                 dvar->latched.vector[2]);
-                break;
-            case DVAR_TYPE_COLOR_XYZ:
-                X = dvar->latched.value / 100.0;
-                Y = dvar->latched.vector[1] / 100.0;
-                Z = dvar->latched.vector[2] / 100.0;
-                R = X * 3.241 + Y * -1.5374 + Z * -0.4986;
-                G = X * -0.9692 + Y * 1.876 + Z * 0.0416;
-                B = X * 0.0556 + Y * -0.204 + Z * 1.057;
-                if ( R <= 0.0031308 )
-                {
-                    v11 = R * 12.92;
-                }
-                else
-                {
-                    //__libm_sse2_pow(v7, v9);  
-                    R = pow(R, 0.4166666666666667);
-                    v11 = (R - 0.055) * 1.055;
-                }
-                if ( G <= 0.0031308 )
-                {
-                    v10 = G * 12.92;
-                }
-                else
-                {
-                    //__libm_sse2_pow(v7, v9);
-                    G = pow(G, 0.4166666666666667);
-                    v10 = (G - 0.055) * 1.055;
-                }
-                Ga = v10;
-                if ( B <= 0.0031308 )
-                {
-                    v8 = B * 12.92;
-                }
-                else
-                {
-                    //__libm_sse2_pow(v7, v10);
-                    B = pow(v7, v10);
-                    v8 = (B - 0.055) * 1.055;
-                }
-                r = (int)floor(v11 * 255.0 + 0.5);
-                g = (int)floor(Ga * 255.0 + 0.5);
-                b = (int)floor(v8 * 255.0 + 0.5);
-                text = va(
-                                 "XYZ:%f %f %f sRGB: %d %d %d",
-                                 dvar->latched.value,
-                                 dvar->latched.vector[1],
-                                 dvar->latched.vector[2],
-                                 r,
-                                 g,
-                                 b);
-                break;
-            default:
-                text = (char *)Dvar_DisplayableLatchedValue(dvar);
-                break;
+        case DVAR_TYPE_ENUM:
+            v3 = Dvar_DisplayableLatchedValue(dvar);
+            text = va("%i: %s", dvar->latched.integer, v3);
+            break;
+        case DVAR_TYPE_LINEAR_COLOR_RGB:
+            if (dvar->latched.vector[2] <= 0.0031308001)
+            {
+                v12 = dvar->latched.vector[2] * 12.92;
+            }
+            else
+            {
+                v4 = pow(dvar->latched.vector[2], 0.4166666567325592);
+                v12 = (float)(v4 * 1.0549999) - 0.055;
+            }
+            if (dvar->latched.vector[1] <= 0.0031308001)
+            {
+                v11 = dvar->latched.vector[1] * 12.92;
+            }
+            else
+            {
+                v5 = pow(dvar->latched.vector[1], 0.4166666567325592);
+                v11 = (float)(v5 * 1.0549999) - 0.055;
+            }
+            if (dvar->latched.value <= 0.0031308001)
+            {
+                v10 = dvar->latched.value * 12.92;
+            }
+            else
+            {
+                v6 = pow(dvar->latched.value, 0.4166666567325592);
+                v10 = (float)(v6 * 1.0549999) - 0.055;
+            }
+            text = va(
+                "sRGB: %g %g %g Linear: %g %g %g",
+                v10,
+                v11,
+                v12,
+                dvar->latched.value,
+                dvar->latched.vector[1],
+                dvar->latched.vector[2]);
+            break;
+        case DVAR_TYPE_COLOR_XYZ:
+            X = dvar->latched.value / 100.0;
+            Y = dvar->latched.vector[1] / 100.0;
+            Z = dvar->latched.vector[2] / 100.0;
+            R = X * 3.241 + Y * -1.5374 + Z * -0.4986;
+            G = X * -0.9692 + Y * 1.876 + Z * 0.0416;
+            B = X * 0.0556 + Y * -0.204 + Z * 1.057;
+            if (R <= 0.0031308)
+                v9 = R * 12.92;
+            else
+                v9 = (pow(R, 0.4166666666666667) - 0.055) * 1.055;
+            if (G <= 0.0031308)
+                v8 = G * 12.92;
+            else
+                v8 = (pow(G, 0.4166666666666667) - 0.055) * 1.055;
+            if (B <= 0.0031308)
+                v7 = B * 12.92;
+            else
+                v7 = (pow(B, 0.4166666666666667) - 0.055) * 1.055;
+            r = (int)floor(v9 * 255.0 + 0.5);
+            g = (int)floor(v8 * 255.0 + 0.5);
+            b = (int)floor(v7 * 255.0 + 0.5);
+            text = va(
+                "XYZ:%f %f %f sRGB: %d %d %d",
+                dvar->latched.value,
+                dvar->latched.vector[1],
+                dvar->latched.vector[2],
+                r,
+                g,
+                b);
+            break;
+        default:
+            text = (char *)Dvar_DisplayableLatchedValue(dvar);
+            break;
         }
     }
     else
     {
-        if ( dvar->latched.enabled )
-            v15 = "On";
+        if (dvar->latched.enabled)
+            v13 = "On";
         else
-            v15 = "Off";
-        text = (char *)v15;
+            v13 = "Off";
+        text = (char *)v13;
     }
     DevGui_DrawFont(x, y, (const unsigned __int8 *)&devgui_colorText->current, text, 1.0, 1.0);
 }
