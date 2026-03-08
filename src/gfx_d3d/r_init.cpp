@@ -785,7 +785,7 @@ const char *__cdecl R_ClosestRefreshRateForMode(unsigned int width, unsigned int
         comparison = (const char *)(dx.displayModes[mid].Width - width);
         if ( !comparison )
         {
-            comparison = &dx.resolutionNameTable[4 * mid - 1023][-height];
+            comparison = &dx.resolutionNameTable[4 * mid - 1023][-(int)height];
             if ( !comparison )
             {
                 comparison = &dx.resolutionNameTable[4 * mid - 1022][-refreshRate];

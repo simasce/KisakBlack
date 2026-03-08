@@ -11,6 +11,7 @@
 #include "r_add_staticmodel.h"
 #include "r_pretess.h"
 #include "r_light.h"
+#include "r_primarylights.h"
 
 void __cdecl R_AddSpotShadowEntCmd(const GfxSpotShadowEntCmd *data)
 {

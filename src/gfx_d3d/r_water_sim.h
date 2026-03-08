@@ -132,18 +132,7 @@ struct tile_t // sizeof=0xBC
     fifo_t<tilemesh_t,4> meshes;
 };
 
-struct ComWaterCell // sizeof=0x8
-{                                       // XREF: R_WaterSimulationFillTile/r
-                                        // R_WaterSimulationFillTile/r
-    __int16 waterheight;                // XREF: R_WaterSimulationFillTile+69/w
-                                        // R_WaterSimulationFillTile+290/w ...
-    char flooroffset;                   // XREF: R_WaterSimulationFillTile+6D/w
-                                        // R_WaterSimulationFillTile+2E4/w ...
-    unsigned __int8 shoredist;          // XREF: R_WaterSimulationFillTile+60/w
-                                        // R_WaterSimulationFillTile+337/w ...
-    unsigned __int8 color[4];           // XREF: R_WaterSimulationFillTile+50/w
-                                        // R_WaterSimulationFillTile+54/w ...
-};
+struct ComWaterCell;
 
 struct debugpoint_t // sizeof=0xC
 {                                       // XREF: fifo_t<debugpoint_t,16>/r

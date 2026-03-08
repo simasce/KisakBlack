@@ -4,6 +4,7 @@
 #include "r_drawsurf.h"
 #include "r_model_lighting.h"
 #include <universal/com_workercmds.h>
+#include "r_primarylights.h"
 
 const unsigned __int16 templateIndices_high[24] =
 {

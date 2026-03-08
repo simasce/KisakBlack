@@ -233,6 +233,7 @@ struct GfxWorldVertexLayerData // sizeof=0x8
 };
 
 union GfxTexture;
+struct GfxReflectionProbe;
 struct GfxWorldDraw // sizeof=0xC0
 {                                       // XREF: GfxWorld/r
     unsigned int reflectionProbeCount;  // XREF: R_GetReflectionProbePosition(uint,float * const)+7/r

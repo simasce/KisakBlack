@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <DynEntity/DynEntity_load_obj.h>
 #include <DynEntity/DynEntity_client.h>
+#include "r_rendercmds.h"
 
 jqWorkerCmd r_stream_sortWorkerCmd;
 jqWorkerCmd r_stream_updateWorkerCmd;

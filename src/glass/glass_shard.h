@@ -4,6 +4,9 @@
 #include <gfx_d3d/r_material.h>
 #include <gfx_d3d/fxprimitives.h>
 #include <gfx_d3d/r_dpvs.h>
+#include <gfx_d3d/r_model_lighting.h>
+
+struct GfxPackedVertex;
 
 struct ray2_t // sizeof=0x14
 {                                       // XREF: GlassShard::Outline::Vertex/r

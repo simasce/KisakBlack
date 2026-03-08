@@ -2,7 +2,6 @@
 #include <jpeg/jpeglib.h>
 #include <universal/com_memory.h>
 #include <qcommon/common.h>
-#include <jpeg/jinclude.h>
 #include <universal/com_files.h>
 
 int hackSize;

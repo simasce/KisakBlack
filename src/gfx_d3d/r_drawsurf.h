@@ -4,6 +4,7 @@
 
 struct GfxPackedVertex;
 struct GfxWorldVertex;
+struct r_double_index_t;
 
 void __cdecl R_SortDrawSurfs(GfxDrawSurf *drawSurfList, int surfCount);
 void __cdecl R_ReverseSortDrawSurfs(GfxDrawSurf *drawSurfList, int surfCount);

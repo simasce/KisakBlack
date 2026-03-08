@@ -24,10 +24,6 @@ cmd_function_s RB_Stats_f_VAR;
 cmd_function_s R_StaticModelCacheStats_f_VAR;
 cmd_function_s R_StaticModelCacheFlush_f_VAR;
 
-static void BLOPS_NULLSUB()
-{
-}
-
 void __cdecl R_RegisterCmds()
 {
     Cmd_AddCommandInternal("screenshot", R_Cmd_Screenshot, &R_Cmd_Screenshot_VAR);

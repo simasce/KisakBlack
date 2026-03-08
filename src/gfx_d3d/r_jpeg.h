@@ -1,7 +1,18 @@
 #pragma once
 
+#define XMD_H 1
+#define HAVE_BOOLEAN 1
+
+#define EXTERN(type) extern type
+#define JPP(arglist) arglist
+
+#include <Windows.h>
+#include <cstdio>
+#include <cstdint>
 #include <mjpeg/mjpeg.h>
 #include <jpeg/jpeglib.h>
+
+#include <d3d9.h>
 
 void __cdecl R_SaveJpg(
                 char *filename,

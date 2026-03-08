@@ -83,9 +83,9 @@ void __cdecl R_BuildQuadStampCodeMeshVerts(
         v30.array[1] = (int)(float)((float)((-((*viewAxis)[1])) * 127.0) + 127.5);
         v30.array[2] = (int)(float)((float)((-((*viewAxis)[2])) * 127.0) + 127.5);
         v30.array[3] = 63;
-        v29.array[0] = (int)(float)((float)((-*(unsigned int *)left) * 127.0) + 127.5);
-        v29.array[1] = (int)(float)((float)((-*((unsigned int *)left + 1)) * 127.0) + 127.5);
-        v29.array[2] = (int)(float)((float)((-*((unsigned int *)left + 2)) * 127.0) + 127.5);
+        v29.array[0] = (int)(float)((float)((-*(int *)left) * 127.0) + 127.5);
+        v29.array[1] = (int)(float)((float)((-*((int *)left + 1)) * 127.0) + 127.5);
+        v29.array[2] = (int)(float)((float)((-*((int *)left + 2)) * 127.0) + 127.5);
         v29.array[3] = 63;
         verts = R_GetCodeMeshVerts(baseVertex);
         verts->xyz[0] = *origin + leftUp[0];

@@ -1,5 +1,6 @@
 #pragma once
-#include <d3d9caps.h>
+#include <d3d9.h>
+
 
 enum DxCapsResponse : __int32
 {                                       // XREF: DxCapsCheckBits/r

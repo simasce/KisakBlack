@@ -702,8 +702,6 @@ void __cdecl RB_SplitScreenTexCoords(float x, float y, float w, float h, float *
 
 void R_ResolveIntZ_PC()
 {
-    BOOL v0; // ecx
-    bool v1; // al
     NVDX_ObjectHandle__ *v2; // ecx
     float dummy[3]; // [esp+4h] [ebp-10h] BYREF
     NvAPI_Status status; // [esp+10h] [ebp-4h]
@@ -713,11 +711,11 @@ void R_ResolveIntZ_PC()
     if (dx.nvInitialized)
     {
         if (!dx.nvDepthBufferHandle || !dx.nvFloatZBufferHandle)
-            R_GetIntZHandles((NVDX_ObjectHandle__ *)v0);
+            R_GetIntZHandles();
 
         if (NvAPI_D3D9_StretchRect(dx.device, (NVDX_ObjectHandle)dx.nvDepthBufferHandle, 0, (NVDX_ObjectHandle)dx.nvFloatZBufferHandle, 0, D3DTEXF_POINT))
         {
-            R_GetIntZHandles(v2);
+            R_GetIntZHandles();
             status = NvAPI_D3D9_StretchRect(
                 dx.device,
                 (NVDX_ObjectHandle)dx.nvDepthBufferHandle,
@@ -742,25 +740,19 @@ void R_ResolveIntZ_PC()
     }
 }
 
-NVDX_ObjectHandle__ * R_GetIntZHandles(NVDX_ObjectHandle__ *h)
+void R_GetIntZHandles()
 {
-    NVDX_ObjectHandle__ *result; // eax
+    NVDX_ObjectHandle__ *h; // [esp+0h] [ebp-4h] BYREF
 
-    result = (NVDX_ObjectHandle__ *)NvAPI_D3D9_GetCurrentZBufferHandle(dx.device, &h);
-    if ( !result )
+    if (!NvAPI_D3D9_GetCurrentZBufferHandle(dx.device, &h))
     {
         dx.nvDepthBufferHandle = h;
-        //result = (NVDX_ObjectHandle__ *)((int (__cdecl *)(unsigned int, unsigned int))NvAPI_D3D9_GetTextureHandle)(
-        //                                                                    (GfxTexture)stru_B50E8BC.image->texture.basemap,
-        //                                                                    &h);
-        NvAPI_D3D9_GetTextureHandle(gfxRenderTargets[7].image->texture.map, &h);
-        if ( !result )
+
+        if (!NvAPI_D3D9_GetTextureHandle(gfxRenderTargets[7].image->texture.map, &h))
         {
-            result = h;
             dx.nvFloatZBufferHandle = h;
         }
     }
-    return result;
 }
 
 void __cdecl R_Resolve(GfxCmdBufContext context, GfxImage *image)

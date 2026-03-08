@@ -1,6 +1,7 @@
 #include "r_dpvs_sceneent.h"
 #include <universal/com_workercmds.h>
 #include "r_dpvs_entity.h"
+#include "r_scene.h"
 
 #if 0
 void    R_AddCellSceneEntSurfacesInFrustumCmd(GfxWorldDpvsPlanes *data)

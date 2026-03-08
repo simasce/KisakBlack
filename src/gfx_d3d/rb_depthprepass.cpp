@@ -26,7 +26,7 @@ void    R_DepthPrepass(
             viewInfo,
             &state,
             viewInfo,
-            0,
+            (GfxDrawSurfListInfo *)0,
             &viewInfo->cullViewInfo.viewParms,
             cmdBuf,
             0);

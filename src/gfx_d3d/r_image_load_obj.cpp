@@ -670,13 +670,13 @@ struct __declspec(align(4))// $3429FE2B485ED1F097C487ED1F67B3DD // sizeof=0x10
 } callbackParams;
 void __cdecl readCallback()
 {
-    callbackParams.ret = Image_LoadFromFileWithReader(
+    callbackParams.ret = _Image_LoadFromFileWithReader(
                                                  callbackParams.image,
                                                  callbackParams.loadHighmip,
                                                  callbackParams.OpenFileRead);
 }
 
-char __cdecl Image_LoadFromFileWithReader(
+char __cdecl _Image_LoadFromFileWithReader(
                 GfxImage *image,
                 bool loadHighmip,
                 int (__cdecl *OpenFileRead)(const char *, int *))
@@ -849,7 +849,7 @@ char __cdecl Image_LoadFromFileWithReader(
                 int (__cdecl *OpenFileRead)(const char *, int *))
 {
     if ( Sys_IsRenderThread() )
-        return Image_LoadFromFileWithReader(image, loadHighmip, OpenFileRead);
+        return _Image_LoadFromFileWithReader(image, loadHighmip, OpenFileRead);
     callbackParams.image = image;
     callbackParams.loadHighmip = loadHighmip;
     callbackParams.OpenFileRead = OpenFileRead;

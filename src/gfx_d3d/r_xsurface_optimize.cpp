@@ -2,6 +2,8 @@
 #include <qcommon/threads.h>
 #include "rb_resource.h"
 #include <xanim/xmodel_utils.h>
+#include "r_buffers.h"
+#include "r_init.h"
 
 void __cdecl XModelOptimizeCallback(XModel *data)
 {

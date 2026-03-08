@@ -7,7 +7,7 @@
 #include <gfx_d3d/r_gfx.h>
 
 void __cdecl R_ModelList_f();
-bool __cdecl R_ModelSort(XModel **model1, XModel **model2);
+bool __cdecl R_ModelSort(const XModel *model1, const XModel *model2);
 void __cdecl R_GetModelList(XAssetHeader header, XAssetHeader *data);
 XModel *__cdecl R_RegisterModel(char *name);
 unsigned __int8 *__cdecl Hunk_AllocXModelPrecache(unsigned int size);

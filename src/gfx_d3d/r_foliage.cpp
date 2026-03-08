@@ -916,7 +916,7 @@ void __cdecl R_DynSModelBuildClientView(
                 DynSModelClientView *view,
                 DynSModelGfxState *dynData)
 {
-    int v4; // eax
+    DWORD v4; // eax
     unsigned int v5; // [esp+8h] [ebp-218h]
     DynSModelDrawStateCmd cmd; // [esp+30h] [ebp-1F0h] BYREF
     unsigned int bitIndex; // [esp+54h] [ebp-1CCh]
@@ -1138,10 +1138,9 @@ void __cdecl R_DynSModelBuildClientView(
         {
             while ( 1 )
             {
-                //if ( !_BitScanReverse((unsigned int *)&v4, visBits) )
-                //    v4 = `CountLeadingZeros'::`2'::notFound;
-                //indexLow = v4 ^ 0x1F;
-                indexLow = 31u - __builtin_clz(visBits); // trash
+                if (!_BitScanReverse(&v4, visBits))
+                    v4 = 63;// `CountLeadingZeros'::`2': : notFound;
+                indexLow = v4 ^ 0x1F;
                 if (indexLow >= 32 )
                     break;
                 bitIndex = 31 - indexLow;

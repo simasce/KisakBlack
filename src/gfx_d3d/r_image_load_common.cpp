@@ -4,6 +4,7 @@
 #include "r_singlethreaded_device_pc.h"
 #include "r_dvars.h"
 #include "rb_logfile.h"
+#include <qcommon/common.h>
 
 void __cdecl Image_TrackFullscreenTexture(
                 GfxImage *image,
@@ -684,7 +685,7 @@ void __cdecl Image_Upload3D_CopyData_PC(
     //             &lockedBox,
     //             0,
     //             0);
-    image->texture.volmap->LockBox(mipLevel, &lockedBox, 0, 0);
+    hr = image->texture.volmap->LockBox(mipLevel, &lockedBox, 0, 0);
     if ( semaphore )
         R_ReleaseDXDeviceOwnership();
     if ( hr < 0 )

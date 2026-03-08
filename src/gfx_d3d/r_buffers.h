@@ -1,6 +1,7 @@
 #pragma once
 
 #include <d3d9.h>
+#include <universal/com_pack.h>
 
 struct GfxDynamicIndices // sizeof=0xC
 {                                       // XREF: GfxBuffers/r

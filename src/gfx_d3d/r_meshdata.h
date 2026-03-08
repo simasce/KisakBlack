@@ -3,6 +3,8 @@
 #include "r_buffers.h"
 #include "rb_state.h"
 
+struct r_double_index_t;
+
 struct GfxMeshData // sizeof=0x24
 {                                       // XREF: .data:GfxMeshData * g_codeMesh/r
                                         // GfxQuadMeshData/r ...

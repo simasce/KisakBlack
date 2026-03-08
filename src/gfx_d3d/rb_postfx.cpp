@@ -1661,6 +1661,7 @@ void __cdecl RB_PoisonFX(const GfxViewInfo *viewInfo)
 #include "rb_shade.h"
 #include "r_state_utils.h"
 #include "rb_imagefilter.h"
+#include "r_image.h"
 
 void RB_PoisonFX(const GfxViewInfo *viewInfo)
 {

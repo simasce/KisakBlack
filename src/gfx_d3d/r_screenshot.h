@@ -27,15 +27,7 @@ inline CubemapShot &operator++(CubemapShot &e, int i)
     ++e;
     return e;
 }
-struct SFilterProgress // sizeof=0x18
-{                                       // XREF: CCubeMapProcessor/r
-    int m_CurrentFace;
-    int m_CurrentRow;
-    int m_CurrentMipLevel;
-    int m_StartFace;
-    int m_EndFace;
-    float m_FractionCompleted;
-};
+struct SFilterProgress;
 
 struct DiskGfxReflectionProbeVolumeData // sizeof=0x60
 {                                       // XREF: DiskGfxReflectionProbe/r

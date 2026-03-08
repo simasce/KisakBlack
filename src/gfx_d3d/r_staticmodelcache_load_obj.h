@@ -19,7 +19,7 @@ unsigned __int8 __cdecl R_AssignSModelCacheIndex(
                 char smcAllocBits,
                 unsigned int maxEntryCount,
                 unsigned int *smcUseCount);
-bool __cdecl R_CompareSModelStats_Score(GfxSModelSurfStats *s0, GfxSModelSurfStats *s1);
+bool __cdecl R_CompareSModelStats_Score(GfxSModelSurfStats &s0, GfxSModelSurfStats &s1);
 unsigned int __cdecl R_GetEntryCount(GfxSModelSurfStats *stats);
 unsigned int __cdecl R_OptimalSModelResourceStats(GfxWorld *world, GfxSModelSurfStats *stats, unsigned int statLimit);
 unsigned int __cdecl R_AddSModelListStats(
@@ -36,4 +36,4 @@ unsigned int __cdecl R_MaxModelsInDistRange(
                 const float *maxs,
                 float distMin,
                 float distMax);
-bool __cdecl R_CompareSModels_Model(const GfxStaticModelDrawInst *s0, const GfxStaticModelDrawInst *s1);
+bool R_CompareSModels_Model(const GfxStaticModelDrawInst *s0, const GfxStaticModelDrawInst *s1);

@@ -18,6 +18,7 @@
 #include <cgame/cg_drawtools.h>
 #include "r_material_consts.h"
 #include "r_state.h"
+#include "r_image.h"
 
 MaterialTypeInfo g_materialTypeInfo[5] =
 {
@@ -1014,141 +1015,6 @@ ScriptableConstant g_scriptableConstantArray[13] =
 };
 
 
-const bool g_useTechnique[130] =
-{
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  false,
-  false,
-  false,
-  false,
-  true,
-  false,
-  true,
-  true,
-  true
-};
-
-
 
 struct //$54435CF730F84DB67694F69169881761 // sizeof=0x2CE28
 {                                       // XREF: .data:mtlLoadGlob/r
@@ -1197,9 +1063,9 @@ bool gIsPIMPEnabled;
 bool gIsSW2Material;
 bool gCheckedForPimp;
 
-bool __cdecl Material_CachedShaderTextLess(const GfxCachedShaderText *cached0, const GfxCachedShaderText *cached1)
+bool __cdecl Material_CachedShaderTextLess(const GfxCachedShaderText &cached0, const GfxCachedShaderText &cached1)
 {
-    return I_stricmp(cached0->name, cached1->name) < 0;
+    return I_stricmp(cached0.name, cached1.name) < 0;
 }
 
 void __cdecl Material_FreeAll()
@@ -3137,7 +3003,8 @@ bool __cdecl Material_IncludeShader(GfxAssembledShaderText *prog, char *includeN
     unsigned int fileSize; // [esp+48h] [ebp-8h] BYREF
     bool hasLibPrefix; // [esp+4Fh] [ebp-1h]
 
-    hasLibPrefix = strnicmp(includeName, "lib/", 4u) == 0;
+    //hasLibPrefix = strnicmp(includeName, "lib/", 4u) == 0;
+    hasLibPrefix = _strnicmp(includeName, "lib/", 4u) == 0;
     if ( isInLibDir && !hasLibPrefix )
     {
         Com_sprintf(extendedName, 0x40u, "lib/%s", includeName);
@@ -7023,7 +6890,7 @@ MaterialTechniqueSet *__cdecl Material_RegisterLayeredTechniqueSet(const Materia
                     __debugbreak();
             }
         }
-        v7 = truncate_cast<unsigned char>(worldVertFormat);
+        v7 = truncate_cast<unsigned char>((int)worldVertFormat);
         techSet->worldVertFormat = v7;
     }
     else
@@ -7558,7 +7425,8 @@ void __cdecl Material_PreLoadAllShaderText()
     //    (signed int)(12 * mtlLoadGlob.cachedShaderCount) / 12,
     //    Material_CachedShaderTextLess);
 
-    std::sort(&mtlLoadGlob.cachedShaderText[0], &mtlLoadGlob.cachedShaderText[mtlLoadGlob.cachedShaderCount], Material_CachedShaderTextLess);
+    std::sort(mtlLoadGlob.cachedShaderText, mtlLoadGlob.cachedShaderText + mtlLoadGlob.cachedShaderCount, Material_CachedShaderTextLess);
+
     FS_FreeFileList(shaderListLib1);
     FS_FreeFileList(shaderListLib2);
     FS_FreeFileList(shaderListLib3);
@@ -7665,7 +7533,7 @@ void __cdecl Material_SortInternal(Material **sortedMaterials, unsigned int mate
     //    (int)(4 * materialCount) >> 2,
     //    (bool (__cdecl *)(const GfxStaticModelDrawInst *, const GfxStaticModelDrawInst *))Material_Compare);
 
-    std::sort(&sortedMaterials[0], &sortedMaterials[materialCount], Material_Compare);
+    std::sort(sortedMaterials, sortedMaterials + materialCount, Material_Compare);
 
     for ( sortedIndex = 0; sortedIndex < materialCount; ++sortedIndex )
     {

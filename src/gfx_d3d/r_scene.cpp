@@ -51,6 +51,7 @@
 #include "r_workercmds_common.h"
 #include "r_draw_shadowablelight.h"
 #include <DynEntity/DynEntity_client.h>
+#include "r_primarylights.h"
 
 GfxScene scene;
 GfxViewParms lockPvsViewParms;
@@ -392,7 +393,7 @@ void __cdecl R_AddDObjToScene(
             if ( sceneEntIndexa < 0x400 )
             {
                 sceneEnt = &scene.sceneDObj[sceneEntIndexa];
-                sceneEnt->obj = obj;
+                sceneEnt->obj = (DObj*)obj;
                 sceneEnt->entnum = entnum;
                 scene.dpvs.sceneDObjIndex[entnum] = sceneEntIndexa;
                 sceneEnt->info.pose = (cpose_t*)pose;
@@ -1392,6 +1393,7 @@ void R_AddXModelSurfacesCamera(
                     R_WarnOncePerFrame(R_WARN_MAX_SCENE_DRAWSURFS, "R_AddXModelSurfacesCamera");
                     break;
                 }
+
                 if (skinnedCachedOffset == -2)
                 {
                     surfType = SF_BEGIN_XMODEL;
@@ -1411,31 +1413,50 @@ void R_AddXModelSurfacesCamera(
                 customIndex = isShadowReceiver != 0;
                 if (gfxEntIndex && frontEndDataOut->gfxEnts[gfxEntIndex].destructibleBurnAmount > 0.0)
                     customIndex |= 2u;
+
                 //HIDWORD(v14) = HIDWORD((*material)->info.drawSurf.packed);
                 //*(_DWORD *)&drawSurf.fields = (*material)->info.drawSurf.fields;
                 //HIDWORD(drawSurf.packed) = HIDWORD(v14);
                 //LODWORD(v14) = drawSurf.fields;
-                v14 = drawSurf.packed;
-                v15 = (unsigned __int64)((unsigned int)((v14 >> 58) & 0x3F) - depthHack) << 58;
-                *(_DWORD *)&drawSurf.fields |= v15;
-                HIDWORD(drawSurf.packed) = HIDWORD(v15) | HIDWORD(drawSurf.packed) & 0x3FFFFFF;
-                HIDWORD(drawSurf.packed) = ((surfType & 0xF) << 19) | HIDWORD(drawSurf.packed) & 0xFF87FFFF;
-                *(_DWORD *)&drawSurf.fields = (unsigned __int16)surfId | *(_DWORD *)&drawSurf.fields & 0xFFFF0000;
-                v16 = (unsigned __int64)(reflectionProbeIndex & 7) << 25;
-                *(_DWORD *)&drawSurf.fields = v16 | *(_DWORD *)&drawSurf.fields & 0xF1FFFFFF;
-                HIDWORD(drawSurf.packed) |= HIDWORD(v16);
-                v17 = (unsigned __int64)(customIndex & 0x1F) << 20;
-                *(_DWORD *)&drawSurf.fields = v17 | *(_DWORD *)&drawSurf.fields & 0xFE0FFFFF;
-                HIDWORD(drawSurf.packed) |= HIDWORD(v17);
-                HIDWORD(drawSurf.packed) = (primaryLightIndex << 11) | HIDWORD(drawSurf.packed) & 0xFFF807FF;
-                R_XModelDrawSurfEncodeShaderConstantSet(&drawSurf, constantSetIndex);
-                v18 = (unsigned __int64)(visLightsMask & 1) << 29;
-                *(_DWORD *)&drawSurf.fields = v18 | *(_DWORD *)&drawSurf.fields & 0xDFFFFFFF;
-                HIDWORD(drawSurf.packed) |= HIDWORD(v18);
-                v19 = (unsigned __int64)((visLightsMask & 2) != 0) << 30;
-                *(_DWORD *)&drawSurf.fields = v19 | *(_DWORD *)&drawSurf.fields & 0xBFFFFFFF;
-                HIDWORD(drawSurf.packed) |= HIDWORD(v19);
-                drawSurfs[region]->fields = drawSurf.fields;
+                //v14 = drawSurf.packed;
+                //v15 = (unsigned __int64)((unsigned int)((v14 >> 58) & 0x3F) - depthHack) << 58;
+                //*(_DWORD *)&drawSurf.fields |= v15;
+                //HIDWORD(drawSurf.packed) = HIDWORD(v15) | HIDWORD(drawSurf.packed) & 0x3FFFFFF;
+                //HIDWORD(drawSurf.packed) = ((surfType & 0xF) << 19) | HIDWORD(drawSurf.packed) & 0xFF87FFFF;
+                //*(_DWORD *)&drawSurf.fields = (unsigned __int16)surfId | *(_DWORD *)&drawSurf.fields & 0xFFFF0000;
+                //v16 = (unsigned __int64)(reflectionProbeIndex & 7) << 25;
+                //*(_DWORD *)&drawSurf.fields = v16 | *(_DWORD *)&drawSurf.fields & 0xF1FFFFFF;
+                //HIDWORD(drawSurf.packed) |= HIDWORD(v16);
+                //v17 = (unsigned __int64)(customIndex & 0x1F) << 20;
+                //*(_DWORD *)&drawSurf.fields = v17 | *(_DWORD *)&drawSurf.fields & 0xFE0FFFFF;
+                //HIDWORD(drawSurf.packed) |= HIDWORD(v17);
+                //HIDWORD(drawSurf.packed) = (primaryLightIndex << 11) | HIDWORD(drawSurf.packed) & 0xFFF807FF;
+                //R_XModelDrawSurfEncodeShaderConstantSet(&drawSurf, constantSetIndex);
+                //v18 = (unsigned __int64)(visLightsMask & 1) << 29;
+                //*(_DWORD *)&drawSurf.fields = v18 | *(_DWORD *)&drawSurf.fields & 0xDFFFFFFF;
+                //HIDWORD(drawSurf.packed) |= HIDWORD(v18);
+                //v19 = (unsigned __int64)((visLightsMask & 2) != 0) << 30;
+                //*(_DWORD *)&drawSurf.fields = v19 | *(_DWORD *)&drawSurf.fields & 0xBFFFFFFF;
+                //HIDWORD(drawSurf.packed) |= HIDWORD(v19);
+                //drawSurfs[region]->fields = drawSurf.fields;
+
+                // (aislopped)
+                drawSurfs[region]->packed = (*material)->info.drawSurf.packed;
+
+                drawSurfs[region]->fields.objectId = surfId;
+                drawSurfs[region]->fields.reflectionProbeIndex = reflectionProbeIndex & 7;
+                drawSurfs[region]->fields.customIndex = customIndex & 0x1F;
+                drawSurfs[region]->fields.primaryLightIndex = primaryLightIndex;
+                drawSurfs[region]->fields.surfType = surfType;
+
+                drawSurfs[region]->fields.primarySortKey -= depthHack;
+
+                R_XModelDrawSurfEncodeShaderConstantSet(drawSurfs[region], constantSetIndex);
+
+                drawSurfs[region]->fields.glightRender = (visLightsMask & 1) != 0;
+                drawSurfs[region]->fields.dlightRender = (visLightsMask & 2) != 0;
+
+
                 ++drawSurfs[region];
                 if (r_showTriCounts->current.enabled)
                 {
@@ -2242,8 +2263,8 @@ void    R_SetHDRControlConstants(GfxCmdBufInput *input, const GfxViewInfo *viewI
     float v28; // [esp+58h] [ebp-144h]
     float v29; // [esp+58h] [ebp-144h]
     float v30; // [esp+60h] [ebp-13Ch]
-    float vx[2]; // [esp+64h] [ebp-138h]
-    float bpwpscale; // [esp+6Ch] [ebp-130h]
+    float vx[3]; // [esp+64h] [ebp-138h]
+    //float bpwpscale; // [esp+6Ch] [ebp-130h]
     float rangeC[4]; // [esp+70h] [ebp-12Ch]
     float rangeB[4]; // [esp+80h] [ebp-11Ch]
     float rangeA[4]; // [esp+90h] [ebp-10Ch]
@@ -2375,7 +2396,7 @@ void    R_SetHDRControlConstants(GfxCmdBufInput *input, const GfxViewInfo *viewI
     R_SetInputCodeConstant(input, 0x81u, x, *(float *)&i, bloomS, 0.0);
     R_SetInputCodeConstant(input, 0x82u, rangeB[1], rangeB[2], rangeB[3], 0.0);
     R_SetInputCodeConstant(input, 0x83u, rangeC[1], rangeC[2], rangeC[3], 0.0);
-    R_SetInputCodeConstant(input, 0x84u, vx[0], vx[1], bpwpscale, 0.0);
+    R_SetInputCodeConstant(input, 0x84u, vx[0], vx[1], vx[2], 0.0);
 #if 0
     v5 = (float)(r_waterWaveAngle->current.value * 0.017453292);
     __libm_sse2_cos(v13);

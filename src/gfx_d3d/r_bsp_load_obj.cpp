@@ -1409,12 +1409,15 @@ void __cdecl R_LoadLightGridPoints_Version15(unsigned int bspVersion)
                 s_world.lightGrid.rowAxis = 1;
                 s_world.lightGrid.colAxis = 0;
             }
+
             //std::_Sort<AnnotatedLightGridPoint *,int,bool (__cdecl *)(AnnotatedLightGridPoint const &,AnnotatedLightGridPoint const &)>(
             //    points,
             //    &points[entryCount],
             //    (int)(10 * entryCount) / 10,
             //    R_AnnotatedLightGridPointSortsBefore);
-            std::sort(&points[0], &points[entryCount], R_AnnotatedLightGridPointSortsBefore);
+
+            std::sort(points, points + entryCount, R_AnnotatedLightGridPointSortsBefore);
+
             for ( entryIndex = 0; entryIndex < entryCount; ++entryIndex )
             {
                 if ( points[entryIndex].entry.needsTrace )
@@ -1480,16 +1483,16 @@ int R_InitEmptyLightGrid()
     return result;
 }
 
-bool __cdecl R_AnnotatedLightGridPointSortsBefore(const AnnotatedLightGridPoint *p0, const AnnotatedLightGridPoint *p1)
+bool __cdecl R_AnnotatedLightGridPointSortsBefore(const AnnotatedLightGridPoint &p0, const AnnotatedLightGridPoint &p1)
 {
-    if ( p0->pos[s_world.lightGrid.rowAxis] < (int)p1->pos[s_world.lightGrid.rowAxis] )
+    if ( p0.pos[s_world.lightGrid.rowAxis] < (int)p1.pos[s_world.lightGrid.rowAxis] )
         return 1;
-    if ( p0->pos[s_world.lightGrid.rowAxis] > (int)p1->pos[s_world.lightGrid.rowAxis] )
+    if ( p0.pos[s_world.lightGrid.rowAxis] > (int)p1.pos[s_world.lightGrid.rowAxis] )
         return 0;
-    if ( p0->pos[s_world.lightGrid.colAxis] < (int)p1->pos[s_world.lightGrid.colAxis] )
+    if ( p0.pos[s_world.lightGrid.colAxis] < (int)p1.pos[s_world.lightGrid.colAxis] )
         return 1;
-    if ( p0->pos[s_world.lightGrid.colAxis] <= (int)p1->pos[s_world.lightGrid.colAxis] )
-        return p0->pos[2] < (int)p1->pos[2];
+    if ( p0.pos[s_world.lightGrid.colAxis] <= (int)p1.pos[s_world.lightGrid.colAxis] )
+        return p0.pos[2] < (int)p1.pos[2];
     return 0;
 }
 
@@ -2597,7 +2600,9 @@ signed int R_SortSurfaces()
     //    &s_world.dpvs.surfaces[surfaceCount],
     //    80 * surfaceCount / 80,
     //    (unsigned __int8 (*)(void))R_CompareSurfaces);
-    std::sort(&s_world.dpvs.surfaces[0], &s_world.dpvs.surfaces[surfaceCount], R_CompareSurfaces);
+
+    std::sort(s_world.dpvs.surfaces, s_world.dpvs.surfaces + surfaceCount, R_CompareSurfaces);
+
     for ( surfIndexa = 0; surfIndexa < surfaceCount; ++surfIndexa )
     {
         origSurfIndex = s_world.dpvs.surfaces[surfIndexa].tris.vertexCount;
@@ -2652,7 +2657,7 @@ signed int R_SortSurfaces()
     return result;
 }
 
-bool __cdecl R_CompareSurfaces(const GfxSurface *surf0, const GfxSurface *surf1)
+bool __cdeclR_CompareSurfaces(const GfxSurface &surf0, const GfxSurface &surf1)
 {
     int v3; // [esp+0h] [ebp-ACh]
     int v4; // [esp+4h] [ebp-A8h]
@@ -2680,8 +2685,8 @@ bool __cdecl R_CompareSurfaces(const GfxSurface *surf0, const GfxSurface *surf1)
     MaterialTechniqueSet *techSet_4; // [esp+A4h] [ebp-8h]
     int comparison; // [esp+A8h] [ebp-4h]
 
-    material = surf0->material;
-    material_4 = surf1->material;
+    material = surf0.material;
+    material_4 = surf1.material;
     techSet = Material_GetTechniqueSet(material);
     techSet_4 = Material_GetTechniqueSet(material_4);
     if ( (!techSet || !techSet_4)
@@ -2713,9 +2718,9 @@ bool __cdecl R_CompareSurfaces(const GfxSurface *surf0, const GfxSurface *surf1)
     primarySortKey_4 = (material_4->info.drawSurf.packed >> 58) & 0x3F;
     if ( primarySortKey != primarySortKey_4 )
         return primarySortKey - primarySortKey_4 < 0;
-    Com_GetPrimaryLight(surf0->primaryLightIndex);
-    Com_GetPrimaryLight(surf1->primaryLightIndex);
-    comparison = surf0->primaryLightIndex - surf1->primaryLightIndex;
+    Com_GetPrimaryLight(surf0.primaryLightIndex);
+    Com_GetPrimaryLight(surf1.primaryLightIndex);
+    comparison = surf0.primaryLightIndex - surf1.primaryLightIndex;
     if ( comparison )
         return comparison < 0;
     materialSortedIndex = (material->info.drawSurf.packed >> 31) & 0xFFF;
@@ -2732,20 +2737,20 @@ bool __cdecl R_CompareSurfaces(const GfxSurface *surf0, const GfxSurface *surf1)
         {
             __debugbreak();
         }
-        reflectionProbeIndex = surf0->reflectionProbeIndex;
-        reflectionProbeIndex_4 = surf1->reflectionProbeIndex;
+        reflectionProbeIndex = surf0.reflectionProbeIndex;
+        reflectionProbeIndex_4 = surf1.reflectionProbeIndex;
         if ( reflectionProbeIndex == reflectionProbeIndex_4 )
         {
-            lightmapIndex = surf0->lightmapIndex;
-            lightmapIndex_4 = surf1->lightmapIndex;
+            lightmapIndex = surf0.lightmapIndex;
+            lightmapIndex_4 = surf1.lightmapIndex;
             if ( lightmapIndex == lightmapIndex_4 )
             {
-                firstVertex = surf0->tris.firstVertex;
-                firstVertex_4 = surf1->tris.firstVertex;
+                firstVertex = surf0.tris.firstVertex;
+                firstVertex_4 = surf1.tris.firstVertex;
                 if ( firstVertex == firstVertex_4 )
                 {
-                    surfIndex = surf0->tris.vertexCount;
-                    surfIndex_4 = surf1->tris.vertexCount;
+                    surfIndex = surf0.tris.vertexCount;
+                    surfIndex_4 = surf1.tris.vertexCount;
                     if ( surfIndex == surfIndex_4
                         && !Assert_MyHandler(
                                     "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_bsp_load_obj.cpp",
@@ -2775,7 +2780,7 @@ bool __cdecl R_CompareSurfaces(const GfxSurface *surf0, const GfxSurface *surf1)
     }
     else
     {
-        if ( surf0->tris.firstVertex == surf1->tris.firstVertex
+        if ( surf0.tris.firstVertex == surf1.tris.firstVertex
             && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_bsp_load_obj.cpp",
                         3036,
@@ -3904,7 +3909,7 @@ int R_PostLoadEntities()
     //    &smodelCombinedInsts[s_world.dpvs.smodelCount],
     //    (signed int)(120 * s_world.dpvs.smodelCount) / 120,
     //    (bool (__cdecl *)(const GfxStaticModelCombinedInst *, const GfxStaticModelCombinedInst *))R_StaticModelCompare);
-    std::sort(&smodelCombinedInsts[0], &smodelCombinedInsts[s_world.dpvs.smodelCount], R_StaticModelCompare);
+    std::sort(smodelCombinedInsts, smodelCombinedInsts + s_world.dpvs.smodelCount, R_StaticModelCompare);
     for ( smodelIndexa = 0; smodelIndexa < s_world.dpvs.smodelCount; ++smodelIndexa )
     {
         memcpy(
@@ -3964,8 +3969,8 @@ int R_PostLoadEntities()
 }
 
 bool __cdecl R_StaticModelCompare(
-                const GfxStaticModelCombinedInst *smodelInst0,
-                const GfxStaticModelCombinedInst *smodelInst1)
+                const GfxStaticModelCombinedInst &smodelInst0,
+                const GfxStaticModelCombinedInst &smodelInst1)
 {
     const ComPrimaryLight *primaryLight; // [esp+0h] [ebp-Ch]
     int comparison; // [esp+8h] [ebp-4h]
@@ -3973,19 +3978,19 @@ bool __cdecl R_StaticModelCompare(
     int comparisonb; // [esp+8h] [ebp-4h]
     int comparisonc; // [esp+8h] [ebp-4h]
 
-    comparison = smodelInst0->isDynamicModel - smodelInst1->isDynamicModel;
+    comparison = smodelInst0.isDynamicModel - smodelInst1.isDynamicModel;
     if ( comparison )
         return comparison > 0;
-    primaryLight = Com_GetPrimaryLight(smodelInst0->smodelDrawInst.primaryLightIndex);
-    comparisona = primaryLight->type - Com_GetPrimaryLight(smodelInst1->smodelDrawInst.primaryLightIndex)->type;
+    primaryLight = Com_GetPrimaryLight(smodelInst0.smodelDrawInst.primaryLightIndex);
+    comparisona = primaryLight->type - Com_GetPrimaryLight(smodelInst1.smodelDrawInst.primaryLightIndex)->type;
     if ( comparisona )
         return comparisona < 0;
-    comparisonb = smodelInst0->smodelDrawInst.primaryLightIndex - smodelInst1->smodelDrawInst.primaryLightIndex;
+    comparisonb = smodelInst0.smodelDrawInst.primaryLightIndex - smodelInst1.smodelDrawInst.primaryLightIndex;
     if ( comparisonb )
         return comparisonb < 0;
-    comparisonc = smodelInst0->smodelDrawInst.model - smodelInst1->smodelDrawInst.model;
+    comparisonc = smodelInst0.smodelDrawInst.model - smodelInst1.smodelDrawInst.model;
     if ( !comparisonc )
-        comparisonc = smodelInst0->smodelDrawInst.reflectionProbeIndex - smodelInst1->smodelDrawInst.reflectionProbeIndex;
+        comparisonc = smodelInst0.smodelDrawInst.reflectionProbeIndex - smodelInst1.smodelDrawInst.reflectionProbeIndex;
     return comparisonc < 0;
 }
 
@@ -5615,7 +5620,7 @@ unsigned __int8 *R_AllocShadowGeometryHeaderMemory()
 
 GfxShadowGeometry *R_InitShadowGeometryArrays()
 {
-    GfxShadowGeometry *result; // eax
+    GfxShadowGeometry *result = NULL; // eax
     GfxStaticModelDrawInst *smodelDrawInst; // [esp+0h] [ebp-10h]
     unsigned int primaryLightIndex; // [esp+4h] [ebp-Ch]
     GfxShadowGeometry *shadowGeom; // [esp+8h] [ebp-8h]

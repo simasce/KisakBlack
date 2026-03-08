@@ -4,6 +4,7 @@
 #include <universal/q_shared.h>
 
 struct GfxWorld;
+struct XModel;
 
 enum stream_status : __int32
 {                                       // XREF: pendingRequest/r

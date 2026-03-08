@@ -5,6 +5,7 @@
 #include <xanim/xmodel_utils.h>
 #include "r_init.h"
 #include "r_bsp.h"
+#include "r_reflection_probe.h"
 
 int __cdecl R_CellForPoint(const float *origin)
 {

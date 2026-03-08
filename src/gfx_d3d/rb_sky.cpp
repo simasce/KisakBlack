@@ -291,6 +291,7 @@ void __cdecl RB_DrawSun(unsigned int localClientNum)
         RB_EndTessSurface();
     //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_16:
+    ;
         //D3DPERF_EndEvent();
 }
 
@@ -648,6 +649,7 @@ void __cdecl RB_DrawSunPostEffects(unsigned int localClientNum, float sunVisibil
     }
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
 LABEL_18:
+    ;
         //D3DPERF_EndEvent();
 }
 

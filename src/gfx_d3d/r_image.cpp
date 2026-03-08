@@ -11,8 +11,11 @@
 #include <database/db_file_load.h>
 #include <qcommon/com_profilemapload.h>
 #include "r_texturemem.h"
+#include "r_init.h"
 
 #include <algorithm>
+#include "rb_state.h"
+#include <qcommon/common.h>
 
 const char *g_imageProgNames[29] =
 {
@@ -667,12 +670,16 @@ LABEL_8:
             picmip->platform[1] = 2;
             if ( picmipUsed >= 0 )
             {
-                if ( picmipUsed > 3 )
-                    LOBYTE(picmipUsed) = 3;
+                if (picmipUsed > 3)
+                {
+                    //LOBYTE(picmipUsed) = 3;
+                    (picmipUsed) = 3;
+                }
             }
             else
             {
-                LOBYTE(picmipUsed) = 0;
+                //LOBYTE(picmipUsed) = 0;
+                (picmipUsed) = 0;
             }
             picmip->platform[0] = picmipUsed;
             break;
@@ -695,7 +702,8 @@ void __cdecl R_DelayLoadImage(XAssetHeader header)
 
     if ( HIBYTE(header.xmodelPieces->numpieces) )
     {
-        HIBYTE(header.xmodelPieces->numpieces) = 0;
+        //HIBYTE(header.xmodelPieces->numpieces) = 0;
+        (header.xmodelPieces->numpieces) = 0;
         externalDataSize = header.xmodelPieces[1].name;
         header.xmodelPieces[1].name = 0;
         header.xmodelPieces[1].numpieces = 0;
@@ -826,8 +834,11 @@ void __cdecl Load_Texture(GfxTexture *remoteLoadDef, GfxImage *image)
         else if ( image->category == 5 )
         {
             image->delayLoadPixels = 0;
-            if ( (int)image->width >> r_picmip_water->current.integer < 4 )
-                LOWORD(v7) = 4;
+            if ((int)image->width >> r_picmip_water->current.integer < 4)
+            {
+                //LOWORD(v7) = 4;
+                (v7) = 4;
+            }
             else
                 v7 = (int)image->width >> r_picmip_water->current.integer;
             if ( (int)image->height >> r_picmip_water->current.integer < 4 )

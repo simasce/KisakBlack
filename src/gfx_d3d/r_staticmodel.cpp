@@ -1,5 +1,6 @@
 #include "r_staticmodel.h"
 #include "r_bsp.h"
+#include "r_init.h"
 
 int __cdecl R_StaticModelGetMemoryUsage(XModel *model, int *modelCount)
 {

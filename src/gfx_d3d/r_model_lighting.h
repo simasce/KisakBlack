@@ -27,11 +27,7 @@ struct GfxFindLightForBox // sizeof=0x1C
     float halfSize[3];                  // XREF: R_AllocModelLighting_Box(GfxViewInfo const *,float const * const,float,float const * const,float const * const,bool,ushort *,GfxLightingInfo *)+6D/w
 };
 
-enum GfxModelLightExtrapolation : __int32
-{                                       // XREF: CalcLightingCmd/r
-    GFX_MODELLIGHT_EXTRAPOLATE  = 0x0,
-    GFX_MODELLIGHT_SHOW_MISSING = 0x1,
-};
+enum GfxModelLightExtrapolation : __int32;
 
 struct CalcLightingCmd // sizeof=0x2C
 {                                       // XREF: R_AllocModelLighting/r

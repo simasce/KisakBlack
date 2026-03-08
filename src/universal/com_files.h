@@ -2,6 +2,7 @@
 
 #include <stdio.h> // FILE?
 #include <win32/win_common.h>
+#include <universal/dvar.h>
 
 enum FS_SERVER_COMPARE_RESULT : __int32
 {                                       // XREF: ?FS_CompareWithServerFiles@@YA?AW4FS_SERVER_COMPARE_RESULT@@PADHH@Z/r

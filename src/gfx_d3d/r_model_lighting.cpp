@@ -8,6 +8,7 @@
 #include "r_warn.h"
 #include <universal/com_memory.h>
 #include "r_image_load_common.h"
+#include "r_primarylights.h"
 
 struct $ACD36BF6C142509D89D5FAE1478EBC2D // sizeof=0x64
 {                                       // XREF: .data:modelLightGlob/r
@@ -642,6 +643,7 @@ void __cdecl R_SetAllStaticModelLighting()
     }
     //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_20:
+    ;
         //D3DPERF_EndEvent();
 }
 

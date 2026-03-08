@@ -254,7 +254,7 @@ unsigned int __cdecl colorRound8Bit(unsigned int a, unsigned int b);
 void R_LoadLightGridRowData();
 void __cdecl R_LoadLightGridPoints_Version15(unsigned int bspVersion);
 int R_InitEmptyLightGrid();
-bool __cdecl R_AnnotatedLightGridPointSortsBefore(const AnnotatedLightGridPoint *p0, const AnnotatedLightGridPoint *p1);
+bool __cdecl R_AnnotatedLightGridPointSortsBefore(const AnnotatedLightGridPoint &p0, const AnnotatedLightGridPoint &p1);
 char __cdecl R_EncodeLightGrid_Version15(const AnnotatedLightGridPoint *pointsArray, unsigned int pointsArrayCount);
 char __cdecl R_CompressLightGridRow_Version15(
                 const AnnotatedLightGridPoint *pointsArray,
@@ -297,7 +297,7 @@ int R_LoadExposureVolumes();
 unsigned __int8 *R_LoadWorldLodData();
 void __cdecl R_LoadMaterials(GfxBspLoad *load);
 signed int R_SortSurfaces();
-bool __cdecl R_CompareSurfaces(const GfxSurface *surf0, const GfxSurface *surf1);
+bool __cdecl R_CompareSurfaces(const GfxSurface &surf0, const GfxSurface &surf1);
 unsigned int R_CalculateVertexStream2Usage();
 Stream2Usage *__cdecl FindExistingUsage(Stream2Usage *list, int firstVertex);
 Stream2Usage *__cdecl InsertNewUsage(Stream2Usage **list, const Stream2Usage *copy);
@@ -330,8 +330,8 @@ void __cdecl R_LoadPrimaryLights(unsigned int bspVersion);
 void R_LoadLightRegions();
 int R_PostLoadEntities();
 bool __cdecl R_StaticModelCompare(
-                const GfxStaticModelCombinedInst *smodelInst0,
-                const GfxStaticModelCombinedInst *smodelInst1);
+                const GfxStaticModelCombinedInst &smodelInst0,
+                const GfxStaticModelCombinedInst &smodelInst1);
 void __cdecl R_AabbTreeFixAABBSizes_r(GfxAabbTree *tree);
 void __cdecl R_FixupGfxAabbTrees(GfxCell *cell);
 int __cdecl R_AabbTreeChildrenCount_r(GfxAabbTree *tree);

@@ -1,6 +1,7 @@
 #include "r_texturemem.h"
 #include <universal/assertive.h>
 #include "r_init.h"
+#include <qcommon/common.h>
 
 DDraw ddraw;
 

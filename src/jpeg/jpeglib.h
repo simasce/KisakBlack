@@ -900,7 +900,7 @@ typedef JMETHOD(boolean, jpeg_marker_parser_method, (j_decompress_ptr cinfo));
 //EXTERN(struct jpeg_error_mgr *) jpeg_std_error
 //	JPP((struct jpeg_error_mgr * err));
 // LWSS EDIT
-struct jpeg_error_mgr *jpeg_std_error(struct jpeg_error_mgr *err, void (*exit)(), void(__cdecl *printf)(char *))
+struct jpeg_error_mgr *jpeg_std_error(struct jpeg_error_mgr *err, void (*exit)(), void(__cdecl *printf)(char *));
 
 /* Initialization of JPEG compression objects.
  * jpeg_create_compress() and jpeg_create_decompress() are the exported
@@ -909,14 +909,10 @@ struct jpeg_error_mgr *jpeg_std_error(struct jpeg_error_mgr *err, void (*exit)()
  * passed for version mismatch checking.
  * NB: you must set up the error-manager BEFORE calling jpeg_create_xxx.
  */
-#define jpeg_create_compress(cinfo) \
-    jpeg_CreateCompress((cinfo), JPEG_LIB_VERSION, \
-			(size_t) sizeof(struct jpeg_compress_struct))
-#define jpeg_create_decompress(cinfo) \
-    jpeg_CreateDecompress((cinfo), JPEG_LIB_VERSION, \
-			  (size_t) sizeof(struct jpeg_decompress_struct))
-EXTERN(void) jpeg_CreateCompress JPP((j_compress_ptr cinfo,
-				      int version, size_t structsize));
+#define jpeg_create_compress(cinfo) jpeg_CreateCompress((cinfo), JPEG_LIB_VERSION, (size_t) sizeof(struct jpeg_compress_struct))
+#define jpeg_create_decompress(cinfo) jpeg_CreateDecompress((cinfo), JPEG_LIB_VERSION, (size_t) sizeof(struct jpeg_decompress_struct))
+
+EXTERN(void) jpeg_CreateCompress JPP((j_compress_ptr cinfo,int version, size_t structsize));
 EXTERN(void) jpeg_CreateDecompress JPP((j_decompress_ptr cinfo,
 					int version, size_t structsize));
 /* Destruction of JPEG compression objects */
@@ -1115,6 +1111,20 @@ struct jpeg_color_quantizer { long dummy; };
  // LWSS ADD 
 struct jpeg_alloc *jpeg_get_jpeg_alloc();
 void __cdecl jpeg_set_jpeg_alloc(void *(__cdecl *malloc_fn_ptr)(unsigned int), void(__cdecl *free_fn_ptr)(void *));
+// LWSS END
+
+
+// LWSS ADD - move this here
+typedef struct {
+    struct jpeg_destination_mgr pub; /* public fields */
+
+    FILE *outfile;		/* target stream */
+    //JOCTET *buffer;		/* start of buffer */
+    int size;
+} my_destination_mgr;
+
+void __cdecl jpeg_memory_src(j_decompress_ptr cinfo, const unsigned __int8 *pubData, int iBytes);
+
 // LWSS END
 
 #endif /* JPEGLIB_H */

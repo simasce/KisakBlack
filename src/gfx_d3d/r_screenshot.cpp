@@ -1,3 +1,5 @@
+#include <CubeMapGenLib/CCubeMapProcessor.h>
+
 #include "r_screenshot.h"
 #include "r_init.h"
 #include <universal/com_memory.h>
@@ -13,7 +15,6 @@
 #include "r_state.h"
 #include "r_singlethreaded_device_pc.h"
 #include "rb_backend.h"
-#include <CubeMapGenLib/CCubeMapProcessor.h>
 
 const float cubemapShotAxis[7][3][3] =
 {
@@ -1235,9 +1236,9 @@ void __cdecl R_CreateReflectionRawDataFromCubemapShot(DiskGfxReflectionProbe *pr
     int i; // [esp+50h] [ebp-2774h]
     unsigned __int8 *pixels; // [esp+64h] [ebp-2760h]
     int size; // [esp+70h] [ebp-2754h]
-    float outColor; // [esp+80h] [ebp-2744h] BYREF
-    float v17; // [esp+84h] [ebp-2740h]
-    float v18; // [esp+88h] [ebp-273Ch]
+    float outColor[3]; // [esp+80h] [ebp-2744h] BYREF
+    //float v17; // [esp+84h] [ebp-2740h]
+    //float v18; // [esp+88h] [ebp-273Ch]
     CCubeMapProcessor v19; // [esp+8Ch] [ebp-2738h] BYREF
     int v20; // [esp+27C0h] [ebp-4h]
 
@@ -1256,24 +1257,24 @@ void __cdecl R_CreateReflectionRawDataFromCubemapShot(DiskGfxReflectionProbe *pr
     R_CubemapShotFlipVertical(cubeShotGlob.pixelsHDR[4], size);
     R_CubemapShotRotateAntiClockwise(cubeShotGlob.pixelsHDR[5], cubeShotGlob.pixelsHDRcorrected[5], size);
     R_CubemapShotFlipVertical(cubeShotGlob.pixelsHDR[5], size);
-    R_GetAverageSecondaryLightingAtPoint(probeRawData->origin, &outColor);
-    if ( outColor <= 0.0 )
+    R_GetAverageSecondaryLightingAtPoint(probeRawData->origin, outColor);
+    if ( outColor[0] <= 0.0 )
         v6 = 0.0f;
     else
-        v6 = 1.0 / outColor;
-    outColor = v6;
-    if ( v17 <= 0.0 )
+        v6 = 1.0 / outColor[0];
+    outColor[0] = v6;
+    if (outColor[1] <= 0.0 )
         v5 = 0.0f;
     else
-        v5 = 1.0 / v17;
-    v17 = v5;
-    if ( v18 <= 0.0 )
+        v5 = 1.0 / outColor[1];
+    outColor[1] = v5;
+    if (outColor[2] <= 0.0 )
         v4 = 0.0f;
     else
-        v4 = 1.0 / v18;
-    v18 = v4;
+        v4 = 1.0 / outColor[2];
+    outColor[2] = v4;
     for ( i = 0; i < 6; ++i )
-        R_CubemapFaceNormalize(cubeShotGlob.pixelsHDR[i], size, &outColor);
+        R_CubemapFaceNormalize(cubeShotGlob.pixelsHDR[i], size, outColor);
     //CCubeMapProcessor::CCubeMapProcessor(&v19);
     //CCubeMapProcessor::Init(&v19, size, downSampleRes, 16, 4);
     v19.Init(size, downSampleRes, 16, 4);

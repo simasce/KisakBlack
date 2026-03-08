@@ -4,6 +4,7 @@
 
 struct Material;
 struct PhysGeomList;
+struct cpose_t;
 
 int __cdecl XModelNumBones(const cpose_t *pose);
 const char *__cdecl XModelGetName(const XModel *model);

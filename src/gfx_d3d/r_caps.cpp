@@ -1,6 +1,5 @@
 #include "r_caps.h"
 #include <qcommon/common.h>
-#include <d3d9types.h>
 
 const DxCapsCheckBits s_capsCheckBits[33] =
 {

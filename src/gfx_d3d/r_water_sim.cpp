@@ -16,7 +16,6 @@ int explodesize = 3;
 float explodeheight = 3.0;
 int debrissize = 1;
 float debrisheight = 1.0;
-float max_plop_size = 5.0;
 
 int water_rand_seed = 3;
 

@@ -10,6 +10,8 @@
 #include <universal/com_workercmds.h>
 #include <EffectsCore/fx_marks.h>
 #include "r_model_pose.h"
+#include "r_buffers.h"
+#include "r_rendercmds.h"
 
 r_SkinConditions g_skinErrorFlags;
 
@@ -503,7 +505,7 @@ int    R_PreSkinXSurface(
     GfxModelRigidSurface *rigidSurf; // [esp+B8h] [ebp-18h]
     unsigned int boneOffset; // [esp+BCh] [ebp-14h]
     const DObjAnimMat *boneMatrix; // [esp+C0h] [ebp-10h]
-    GfxModelRigidSurface *rigidSurf; // [esp+C4h] [ebp-Ch]
+    //GfxModelRigidSurface *rigidSurf; // [esp+C4h] [ebp-Ch]
     //void *v19; // [esp+C8h] [ebp-8h]
     //void *retaddr; // [esp+D0h] [ebp+0h]
 

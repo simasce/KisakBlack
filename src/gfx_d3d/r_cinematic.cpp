@@ -11,6 +11,7 @@
 #include <sound/snd_public_async.h>
 #include <win32/win_shared.h>
 #include <win32/win_net.h>
+#include "rb_state.h"
 
 struct CinematicGlob // sizeof=0x980
 {                                       // XREF: .data:cinematicGlob/r
@@ -1175,43 +1176,21 @@ void __cdecl CinematicHunk_Open(CinematicHunk *hunk, char *memory, int size)
 void __cdecl R_Cinematic_HunksAllocate(int activeTexture, char playbackFlags)
 {
     char *residentBufferBase; // [esp+8h] [ebp-1Ch]
-    char *newResidentBufferSize; // [esp+14h] [ebp-10h]
+    int newResidentBufferSize; // [esp+14h] [ebp-10h]
     int newBinkBufferSize; // [esp+18h] [ebp-Ch]
     char *binkBufferBase; // [esp+1Ch] [ebp-8h]
 
-    newBinkBufferSize = (int)&cls.unrankedServers[3021].gameType[11];
-    if ( (int)&cls.unrankedServers[3021].gameType[11] <= 0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_cinematic.cpp",
-                    696,
-                    0,
-                    "%s\n\t(newBinkBufferSize) = %i",
-                    "(newBinkBufferSize > 0)",
-                    &cls.unrankedServers[3021].gameType[11]) )
-    {
-        __debugbreak();
-    }
+    newBinkBufferSize = 0x1800000;
     newResidentBufferSize = 0;
-    if ( (playbackFlags & 8) != 0 )
+    if ((playbackFlags & 8) != 0)
     {
-        newResidentBufferSize = &cls.rankedServers[18838].game[27];
-        if ( (int)&cls.rankedServers[18838].game[27] <= 0
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_cinematic.cpp",
-                        702,
-                        0,
-                        "%s\n\t(newResidentBufferSize) = %i",
-                        "(newResidentBufferSize > 0)",
-                        newResidentBufferSize) )
-        {
-            __debugbreak();
-        }
-        newBinkBufferSize = 1572864;
+        newResidentBufferSize = 0x1680000;
+        newBinkBufferSize = 0x180000;
     }
     binkBufferBase = (char *)CinematicHunk_Alloc(&cinematicGlob.masterHunk, newBinkBufferSize);
-    residentBufferBase = (char *)CinematicHunk_Alloc(&cinematicGlob.masterHunk, (int)newResidentBufferSize);
+    residentBufferBase = (char *)CinematicHunk_Alloc(&cinematicGlob.masterHunk, newResidentBufferSize);
     CinematicHunk_Open(&cinematicGlob.binkHunk, binkBufferBase, newBinkBufferSize);
-    CinematicHunk_Open(&cinematicGlob.residentHunk, residentBufferBase, (int)newResidentBufferSize);
+    CinematicHunk_Open(&cinematicGlob.residentHunk, residentBufferBase, newResidentBufferSize);
 }
 
 int __cdecl CinematicHunk_Alloc(CinematicHunk *hunk, int size)

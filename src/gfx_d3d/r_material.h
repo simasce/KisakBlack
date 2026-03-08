@@ -473,7 +473,7 @@ inline Material *Material_RegisterHandle(const char *name, int imgTrack)
 void __cdecl R_MaterialList_f();
 void __cdecl R_GetMaterialList(XAssetHeader header, char *data);
 int __cdecl R_GetMaterialMemory(Material *material);
-bool __cdecl R_MaterialCompare(const MaterialMemory *material0, const MaterialMemory *material1);
+bool __cdecl R_MaterialCompare(const MaterialMemory &material0, const MaterialMemory &material1);
 void __cdecl R_MaterialEdit_f();
 void __cdecl R_MaterialParameterEdit_f();
 void __cdecl R_MaterialParameterTweak_f();

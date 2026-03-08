@@ -4,6 +4,7 @@
 struct GfxViewInfo;
 struct DObj;
 struct GfxLight;
+struct GfxDrawSurfListInfo;
 
 struct BspSpotLightCallback // sizeof=0x4
 {                                       // XREF: R_GetBspSpotLightSurfs/r

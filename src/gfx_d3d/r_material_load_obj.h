@@ -396,7 +396,7 @@ struct MaterialString // sizeof=0x8
     unsigned int hash;                  // XREF: Material_RegisterString+35/r
 };
 
-bool __cdecl Material_CachedShaderTextLess(const GfxCachedShaderText *cached0, const GfxCachedShaderText *cached1);
+bool __cdecl Material_CachedShaderTextLess(const GfxCachedShaderText &cached0, const GfxCachedShaderText &cached1);
 void __cdecl Material_FreeAll();
 void Material_FreeAllLiterals();
 void Material_FreeAllStrings();

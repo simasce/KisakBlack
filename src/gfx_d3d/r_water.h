@@ -1,7 +1,10 @@
 #pragma once
 #include <universal/fft.h>
 
+#include <d3d9.h>
+
 struct water_t;
+union GfxColor;
 
 struct WaterGlob // sizeof=0x9000
 {                                       // XREF: .data:waterGlob/r

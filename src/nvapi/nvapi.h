@@ -2912,7 +2912,7 @@ typedef struct
 
 
 //! \ingroup driverapi
-__nvapi_deprecated_function("Do not use this function - it is deprecated in release 290. Instead, use NvAPI_SYS_GetDriverAndBranchVersion.")
+//__nvapi_deprecated_function("Do not use this function - it is deprecated in release 290. Instead, use NvAPI_SYS_GetDriverAndBranchVersion.") // LWSS: we dont care if it's deprecated
 NVAPI_INTERFACE NvAPI_GetDisplayDriverVersion(NvDisplayHandle hNvDisplay, NV_DISPLAY_DRIVER_VERSION *pVersion);
 
 

@@ -28,10 +28,10 @@ static char sgCopyrightString[] = "\r\n\r\n(C) 2004 ATI Research, Inc.\r\n\r\n";
    typedef char bool8;
    typedef char char8;
 
-   typedef char    int8;
-   typedef short   int16;
-   typedef int     int32;
-   typedef __int64 int64;
+   typedef signed char    int8;
+   typedef signed short   int16;
+   typedef signed int     int32;
+   typedef signed __int64 int64;
 
    typedef float       float32;
    typedef double      float64;

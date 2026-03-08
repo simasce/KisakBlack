@@ -1,5 +1,7 @@
 #pragma once
 
+#include "r_gfx.h"
+
 enum GfxDisplayGamma : __int32
 {                                       // XREF: GfxGamutInfo/r
     GAMMA_SMPTE240M = 0x0,
@@ -103,21 +105,6 @@ struct GfxExposureHeader // sizeof=0x10
     unsigned int date;
     unsigned int typeVersion;
     unsigned int numberSize;
-};
-
-struct GfxExposureValue // sizeof=0xB0
-{                                       // XREF: refdef_s/r
-    float blackPoint[4];                // XREF: R_UpdateExposureValue+A9/r
-    float whitePoint[4];                // XREF: R_DefaultExposureValue(int)+78/w
-    float linearStart[4];               // XREF: R_DefaultExposureValue(int)+DC/w
-    float linearEnd[4];                 // XREF: R_DefaultExposureValue(int)+140/w
-    float remapStart[4];                // XREF: R_DefaultExposureValue(int)+1A4/w
-    float remapEnd[4];                  // XREF: R_DefaultExposureValue(int)+208/w
-    float scurveStart[4];               // XREF: R_DefaultExposureValue(int)+26C/w
-    float scurveEnd[4];                 // XREF: R_DefaultExposureValue(int)+2D0/w
-    float bloomCurveLDR[4];             // XREF: R_DefaultExposureValue(int)+334/w
-    float bloomCurveHDR[4];             // XREF: R_DefaultExposureValue(int)+398/w
-    float bloomScale[4];                // XREF: R_DefaultExposureValue(int)+3FC/w
 };
 
 struct GfxExposureSettings // sizeof=0xB010

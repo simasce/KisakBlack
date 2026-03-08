@@ -16,6 +16,8 @@
 #include "rb_state.h"
 #include <universal/com_files.h>
 #include <algorithm>
+#include <qcommon/common.h>
+#include "r_rendercmds.h"
 
 const stream_source_info_t s_streamSourceInfo[18][10] =
 {
@@ -1211,7 +1213,7 @@ void __cdecl R_MaterialList_f()
     //    (int)(8 * inData) >> 3,
     //    (bool (__cdecl *)(const MaterialMemory *, const MaterialMemory *))R_MaterialCompare);
 
-    std::sort(v6, &v6[inData], R_MaterialCompare);
+    std::sort(v6, v6 + inData, R_MaterialCompare);
 
     Com_Printf(8, "geo KB     name\n");
     for ( i = 0; i < inData; ++i )
@@ -1277,9 +1279,9 @@ int __cdecl R_GetMaterialMemory(Material *material)
     return 0;
 }
 
-bool __cdecl R_MaterialCompare(const MaterialMemory *material0, const MaterialMemory *material1)
+bool __cdecl R_MaterialCompare(const MaterialMemory &material0, const MaterialMemory &material1)
 {
-    return material0->memory < material1->memory;
+    return material0.memory < material1.memory;
 }
 
 void __cdecl R_MaterialEdit_f()
@@ -1588,10 +1590,11 @@ void __cdecl R_MaterialParameterTweak_f()
                 v2->current = *(DvarValue *)cte->literal;
                 v2->latched = *(DvarValue *)cte->literal;
                 v2->reset = *(DvarValue *)cte->literal;
-                *(float *)&dvarDomain_4 = max;
+                //*(float *)&dvarDomain_4 = max;
                 v2->domain.value.min = min;
-                *(_QWORD *)&v2->domain.value.max = dvarDomain_4;
-                *((unsigned int *)&v2->domain.vector + 3) = dvarDomain_12;
+                v2->domain.value.max = max;
+                //*(_QWORD *)&v2->domain.value.max = dvarDomain_4;
+                //*((unsigned int *)&v2->domain.vector + 3) = dvarDomain_12;
                 sprintf(desc, "%s . %s parameter tweak", Current_Edit_Material->info.name, param);
                 hack->description = desc;
                 MaterialParameterConstantEntry = cte;

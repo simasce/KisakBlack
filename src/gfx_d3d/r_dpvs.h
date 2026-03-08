@@ -157,15 +157,7 @@ struct DpvsGlob // sizeof=0xC320
 
 struct GfxViewInfo;
 struct GfxWorldDraw;
-struct GfxLightingInfo // sizeof=0x8
-{                                       // XREF: .data:lightingInfo/r
-                                        // .data:lightingInfo_0/r ...
-    unsigned __int8 primaryLightIndex;
-    unsigned __int8 reflectionProbeIndex;
-    // padding byte
-    // padding byte
-    unsigned int lightingHandle;
-};
+struct GfxLightingInfo;
 struct BModelDrawInfo;
 
 union GfxEntCellRefInfo // sizeof=0x4

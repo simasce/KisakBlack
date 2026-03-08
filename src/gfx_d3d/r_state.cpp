@@ -11,6 +11,8 @@
 #include "r_foliage.h"
 #include "rb_pixelcost.h"
 #include "rb_shade.h"
+#include "r_reflection_probe.h"
+
 
 const GfxViewportBehavior s_viewportBehaviorForRenderTarget[44] =
 {

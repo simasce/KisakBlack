@@ -12,6 +12,8 @@
 #include <universal/com_math_anglevectors.h>
 #include <xanim/xmodel_utils.h>
 #include <EffectsCore/fx_marks.h>
+#include <xanim/xanim.h>
+#include "r_scene.h"
 
 void    R_BoxSurfaces(
                 const float *mins,

@@ -27,6 +27,7 @@
 #include <universal/com_workercmds.h>
 #include <universal/mem_largelocal.h>
 #include <universal/com_convexhull.h>
+#include "r_primarylights.h"
 
 
 
@@ -2349,7 +2350,8 @@ void __cdecl R_FilterXModelIntoScene(
         }
         else
         {
-            LOWORD(gfxEntIndex) = 0;
+            //LOWORD(gfxEntIndex) = 0;
+            (gfxEntIndex) = 0;
         }
         sceneEntIndex = R_AllocSceneModel();
         if ( sceneEntIndex < 0x400 )
@@ -4223,9 +4225,9 @@ void __cdecl R_SetupWorldSurfacesDpvs(const GfxViewParms *viewParms, unsigned in
     float *v12; // [esp+E0h] [ebp-238h]
     float hull[4][3]; // [esp+100h] [ebp-218h] BYREF
     float v14[3]; // [esp+130h] [ebp-1E8h] BYREF
-    float cross; // [esp+13Ch] [ebp-1DCh] BYREF
-    float v16; // [esp+140h] [ebp-1D8h]
-    float v17; // [esp+144h] [ebp-1D4h]
+    float cross[3]; // [esp+13Ch] [ebp-1DCh] BYREF
+    //float v16; // [esp+140h] [ebp-1D8h]
+    //float v17; // [esp+144h] [ebp-1D4h]
     float v18; // [esp+148h] [ebp-1D0h]
     float v19[3]; // [esp+14Ch] [ebp-1CCh] BYREF
     int j; // [esp+158h] [ebp-1C0h]
@@ -4521,20 +4523,20 @@ void __cdecl R_SetupWorldSurfacesDpvs(const GfxViewParms *viewParms, unsigned in
                     v14[0] = points[v3][0] - *v7;
                     v14[1] = points[v3][1] - v7[1];
                     v14[2] = points[v3][2] - v7[2];
-                    Vec3Cross(v14, v19, &cross);
-                    Vec3NormalizeFast(&cross);
-                    v18 = (float)((float)(cross * points[j][0]) + (float)(v16 * points[j][1])) + (float)(v17 * points[j][2]);
+                    Vec3Cross(v14, v19, cross);
+                    Vec3NormalizeFast(cross);
+                    v18 = (float)((float)(cross[0] * points[j][0]) + (float)(cross[1] * points[j][1])) + (float)(cross[2] * points[j][2]);
                     if ( neg )
                     {
-                        cross = -cross;
-                        v16 = -v16;
-                        v17 = -v17;
+                        cross[0] = -cross[0];
+                        cross[1] = -cross[1];
+                        cross[2] = -cross[2];
                         v18 = -v18;
                     }
                     v6 = (float *)out;
-                    (*out)[0] = cross;
-                    v6[1] = v16;
-                    v6[2] = v17;
+                    (*out)[0] = cross[0];
+                    v6[1] = cross[1];
+                    v6[2] = cross[2];
                     v6[3] = v18;
                     ++out;
                     if ( (float)((float)((float)((*out)[-4] * insideViewPos[0]) + (float)((*out)[-3] * insideViewPos[1]))

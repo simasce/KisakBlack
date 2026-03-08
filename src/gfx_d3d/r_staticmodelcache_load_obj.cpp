@@ -34,7 +34,7 @@ void __cdecl R_AssignSModelCacheResources(GfxWorld *world)
     //    &stats[v7],
     //    (int)(16 * v7) >> 4,
     //    (bool (__cdecl *)(GfxSModelSurfStats *, GfxSModelSurfStats *))R_CompareSModelStats_Score);
-    std::sort(&stats[0], &stats[v7], R_CompareSModelStats_Score);
+    std::sort(stats, stats + v7, R_CompareSModelStats_Score);
     for ( i = 0; i < v7; ++i )
     {
         model = stats[i].model;
@@ -63,9 +63,9 @@ unsigned __int8 __cdecl R_AssignSModelCacheIndex(
     return leastUsedCache;
 }
 
-bool __cdecl R_CompareSModelStats_Score(GfxSModelSurfStats *s0, GfxSModelSurfStats *s1)
+bool __cdecl R_CompareSModelStats_Score(GfxSModelSurfStats &s0, GfxSModelSurfStats &s1)
 {
-    return s1->useCount << s0->smcAllocBits < s0->useCount << s1->smcAllocBits;
+    return s1.useCount << s0.smcAllocBits < s0.useCount << s1.smcAllocBits;
 }
 
 unsigned int __cdecl R_GetEntryCount(GfxSModelSurfStats *stats)
@@ -104,7 +104,8 @@ unsigned int __cdecl R_OptimalSModelResourceStats(GfxWorld *world, GfxSModelSurf
     //    &drawInstArray[world->dpvs.smodelCount],
     //    (signed int)(4 * world->dpvs.smodelCount) >> 2,
     //    (bool (__cdecl *)(const GfxStaticModelDrawInst *, const GfxStaticModelDrawInst *))R_CompareSModels_Model);
-    std::sort(&drawInstArray[0], &drawInstArray[world->dpvs.smodelCount], R_CompareSModels_Model);
+    std::sort(drawInstArray, drawInstArray + world->dpvs.smodelCount, R_CompareSModels_Model);
+
     statCount = 0;
     for ( smodelItera = 0; smodelItera != world->dpvs.smodelCount; smodelItera = smodelIterNext )
     {
@@ -274,8 +275,7 @@ unsigned int __cdecl R_MaxModelsInDistRange(
     return maxModelsInRange;
 }
 
-bool __cdecl R_CompareSModels_Model(const GfxStaticModelDrawInst *s0, const GfxStaticModelDrawInst *s1)
+bool R_CompareSModels_Model(const GfxStaticModelDrawInst *s0, const GfxStaticModelDrawInst *s1)
 {
     return s0->model < s1->model;
 }
-

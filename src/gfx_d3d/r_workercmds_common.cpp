@@ -69,6 +69,7 @@ void __cdecl R_ProcessCmd_UpdateFxRemaining(FxCmd *cmd)
     R_DrawEffects(cmd);
     //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_11:
+    ;
         //D3DPERF_EndEvent();
 }
 

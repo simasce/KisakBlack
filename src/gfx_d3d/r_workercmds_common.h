@@ -1,8 +1,8 @@
 #pragma once
+#include "fxprimitives.h"
 
 struct FxCmd // sizeof=0x34
 {                                       // XREF: ?CG_DrawActiveFrame@@YAHHHW4DemoType@@W4CubemapShot@@HH@Z/r
-                                        // ?CG_DrawExtraCamFrame@@YAHHHW4DemoType@@W4CubemapShot@@HH@Z/r ...
     FxSystem *system;
     int localClientNum;                 // XREF: R_GenerateSortedDrawSurfs+1316/w
     volatile int *spawnLock;

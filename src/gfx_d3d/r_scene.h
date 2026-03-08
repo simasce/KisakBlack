@@ -80,7 +80,7 @@ struct __declspec(align(4)) GfxSceneEntity // sizeof=0x84
     GfxSceneEntityCull cull;
     unsigned __int16 gfxEntIndex;
     unsigned __int16 entnum;
-    const DObj *obj;
+    DObj *obj;
     GfxSceneEntityInfo info;
     float lightingOriginToleranceSq;
     unsigned __int16 gfxEntIndex2;

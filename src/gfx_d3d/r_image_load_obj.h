@@ -36,7 +36,7 @@ char __cdecl Image_LoadToBuffer(GfxImage *image, bool loadHighmip, unsigned __in
 unsigned __int8 __cdecl Image_GetPcStreamedMips(GfxImageFileHeader *fileHeader);
 void __cdecl Image_PrintTruncatedFileError(const char *filepath);
 void __cdecl readCallback();
-char __cdecl Image_LoadFromFileWithReader(
+char __cdecl _Image_LoadFromFileWithReader(
                 GfxImage *image,
                 bool loadHighmip,
                 int (__cdecl *OpenFileRead)(const char *, int *));

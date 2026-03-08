@@ -1,6 +1,7 @@
 #pragma once
 #include "rb_tess.h"
 #include "r_state_utils.h"
+#include "r_material_load_obj.h"
 
 void __cdecl R_PixStartNamedRenderTarget(unsigned __int8 renderTargetId);
 void R_PixEndNamedRenderTarget();
