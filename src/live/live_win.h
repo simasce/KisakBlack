@@ -1,6 +1,7 @@
 #pragma once
 #include "live_storage.h"
 #include <DW/MatchMakingInfo_win32.h>
+#include <universal/UserInfo.h>
 
 enum EUserTier : __int32
 {                                       // XREF: XenonUserData/r
@@ -59,28 +60,6 @@ struct XenonUserData // sizeof=0x50
     // padding byte
     EUserTier tier;
     __int64 totalGamesPlayed;
-};
-
-struct bdProfileInfo : bdTaskResult // sizeof=0x10
-{                                       // XREF: PrivateProfileInfo/r
-                                        // PublicProfileInfo/r
-    // padding byte
-    // padding byte
-    // padding byte
-    // padding byte
-    unsigned __int64 m_entityID;        // XREF: PCache_GetPublicProfilesCompleted+27C/r
-                                        // Live_SetPrivateProfile(void)+52/w ...
-};
-
-struct __declspec(align(4)) PrivateProfileInfo : bdProfileInfo // sizeof=0x260
-{                                       // XREF: .data:s_profileInfo/r
-    unsigned __int8 m_memberfavsblob[253];
-                                        // XREF: Live_GetPrivateProfileComplete(TaskRecord *)+8/o
-                                        // CL_SetFavourites_f(void)+8/o ...
-    unsigned __int8 m_memberuids[337];  // XREF: Live_GetPrivateProfileComplete(TaskRecord *)+3/o
-                                        // CL_SetFavourites_f(void)+3/o ...
-    // padding byte
-    // padding byte
 };
 
 struct dwQoSMultiProbeListener;

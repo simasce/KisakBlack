@@ -1208,6 +1208,21 @@ unsigned int __cdecl LB_CalcPlayerIndex(int localControllerIndex, Leaderboard *l
 #endif
 }
 
+int __cdecl LB_CompareXUserStatsRowRanks(_QWORD *r1, _QWORD *r2)
+{
+    if (!r1 && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\live\\live_leaderboard.cpp", 762, 0, "%s", "r1"))
+        __debugbreak();
+    if (!r2 && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\live\\live_leaderboard.cpp", 763, 0, "%s", "r2"))
+        __debugbreak();
+    if (!r1[4])
+        return r2[4] != 0;
+    if (!r2[4])
+        return -1;
+    if (r1[4] >= r2[4])
+        return r1[4] > r2[4];
+    return -1;
+}
+
 void __cdecl LB_SortXUserStatsByRank(Leaderboard *lb)
 {
     int count; // [esp+10h] [ebp-4h]
@@ -1220,21 +1235,6 @@ void __cdecl LB_SortXUserStatsByRank(Leaderboard *lb)
     for ( count = 0; count < lb->numResults && lb->userStats.m_leaderBoardEntries[count].m_rank; ++count )
         ;
     lb->numResults = count;
-}
-
-int __cdecl LB_CompareXUserStatsRowRanks(_QWORD *r1, _QWORD *r2)
-{
-    if ( !r1 && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\live\\live_leaderboard.cpp", 762, 0, "%s", "r1") )
-        __debugbreak();
-    if ( !r2 && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\live\\live_leaderboard.cpp", 763, 0, "%s", "r2") )
-        __debugbreak();
-    if ( !r1[4] )
-        return r2[4] != 0;
-    if ( !r2[4] )
-        return -1;
-    if ( r1[4] >= r2[4] )
-        return r1[4] > r2[4];
-    return -1;
 }
 
 bool __cdecl LB_MakeRow(

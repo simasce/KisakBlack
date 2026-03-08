@@ -389,7 +389,7 @@ persistentStats *__cdecl LiveStorage_GetPersStatsBuffer(
                 statsLocation playerStatsLocation,
                 bool verifyLocation)
 {
-    persistentStats *stats; // [esp+4h] [ebp-4h]
+    persistentStats *stats = NULL; // [esp+4h] [ebp-4h]
 
     if ( playerStatsLocation >= STATS_LOCATION_COUNT
         && !Assert_MyHandler(

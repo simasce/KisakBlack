@@ -21,6 +21,11 @@ char outputString[128];
 unsigned __int64 friendXuid[5];
 bool indexOfXuidAddedToTicker[5];
 
+cmd_function_s LiveNews_PublishNews_f_VAR;
+cmd_function_s LiveNews_GetOwnNews_f_VAR;
+
+const dvar_t *friendsNewsLastFetchTime;
+
 char __cdecl LiveNews_NeedToGetFriendNews()
 {
     unsigned int v0; // eax
@@ -658,11 +663,6 @@ void __cdecl LiveNews_GetOwnNews_f()
 {
     LiveNews_GetOwnNews(0);
 }
-
-cmd_function_s LiveNews_PublishNews_f_VAR;
-cmd_function_s LiveNews_GetOwnNews_f_VAR;
-
-const dvar_t *friendsNewsLastFetchTime;
 
 void __cdecl LiveNews_Init()
 {

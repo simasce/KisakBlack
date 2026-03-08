@@ -140,7 +140,7 @@ return 0;
 #endif
 }
 
-extern dvar_t *dw_popup; // KISAKTODO: remove later
+extern const dvar_t *dw_popup; // KISAKTODO: remove later
 void __cdecl Live_UpdateUiPopup(const char *popupname, bool reset)
 {
     int v2; // eax

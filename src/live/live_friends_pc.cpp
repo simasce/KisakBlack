@@ -41,7 +41,7 @@ static unsigned __int64 __cdecl _GetFriendXuid(int index)
     steamFriends = (ISteamFriends *)SteamFriends();
     if (steamFriends)
     {
-        if (index >= steamFriends->GetFriendCount(steamFriends, 4)
+        if (index >= steamFriends->GetFriendCount(4)
             && !Assert_MyHandler(
                 "C:\\projects_pc\\cod\\codsrc\\src\\live\\live_friends_pc.cpp",
                 37,
@@ -51,18 +51,20 @@ static unsigned __int64 __cdecl _GetFriendXuid(int index)
         {
             __debugbreak();
         }
-        steamFriends->GetFriendByIndex(steamFriends, &steamID, index, 4);
-        if (!CSteamID::IsValid(&steamID)
-            && !Assert_MyHandler(
-                "C:\\projects_pc\\cod\\codsrc\\src\\live\\live_friends_pc.cpp",
-                39,
-                0,
-                "%s",
-                "steamID.IsValid()"))
-        {
-            __debugbreak();
-        }
-        return steamID.m_steamid.m_unAll64Bits;
+        steamID = steamFriends->GetFriendByIndex(index, 4);
+        //if (!CSteamID::IsValid(&steamID)
+        //    && !Assert_MyHandler(
+        //        "C:\\projects_pc\\cod\\codsrc\\src\\live\\live_friends_pc.cpp",
+        //        39,
+        //        0,
+        //        "%s",
+        //        "steamID.IsValid()"))
+        //{
+        //    __debugbreak();
+        //}
+        iassert(steamID.IsValid());
+        //return steamID.m_steamid.m_unAll64Bits;
+        return steamID.ConvertToUint64();
     }
     return xuid;
 }
@@ -82,7 +84,7 @@ static void __cdecl _GetFriendPersonaName(int index, char *buf, int size)
     }
     if (steamFriends)
     {
-        if (index >= steamFriends->GetFriendCount(steamFriends, 4)
+        if (index >= steamFriends->GetFriendCount(4)
             && !Assert_MyHandler(
                 "C:\\projects_pc\\cod\\codsrc\\src\\live\\live_friends_pc.cpp",
                 53,
@@ -92,11 +94,13 @@ static void __cdecl _GetFriendPersonaName(int index, char *buf, int size)
         {
             __debugbreak();
         }
-        steamFriends->GetFriendByIndex(steamFriends, &steamID, index, 4);
-        s = (const char *)((int(__thiscall *)(ISteamFriends *, _DWORD, _DWORD))steamFriends->GetFriendPersonaName)(
-            steamFriends,
-            *(_DWORD *)&steamID.m_steamid.m_comp,
-            *((_DWORD *)&steamID.m_steamid.m_comp + 1));
+        steamID = steamFriends->GetFriendByIndex(index, 4);
+        //s = (const char *)((int(__thiscall *)(ISteamFriends *, _DWORD, _DWORD))steamFriends->GetFriendPersonaName)(
+        //    steamFriends,
+        //    *(_DWORD *)&steamID.m_steamid.m_comp,
+        //    *((_DWORD *)&steamID.m_steamid.m_comp + 1));
+
+        s = steamFriends->GetFriendPersonaName(steamID);
         Com_sprintf(buf, size, "%.16s", s);
     }
     else
@@ -104,6 +108,8 @@ static void __cdecl _GetFriendPersonaName(int index, char *buf, int size)
         *buf = 0;
     }
 }
+
+int __cdecl _GetSortedFriendIndex(int index);
 
 unsigned __int64 __cdecl LiveSteam_GetFriendXuid(int index)
 {
@@ -204,16 +210,14 @@ char __cdecl _GetFriendPersonaNameByXuid(unsigned __int64 xuid, char *buf, int s
     {
         __debugbreak();
     }
-    if (steamFriends
-        && ((int(__thiscall *)(ISteamFriends *, _DWORD, _DWORD))steamFriends->GetFriendRelationship)(
-            steamFriends,
-            xuid,
-            HIDWORD(xuid)))
+    //if (steamFriends && ((int(__thiscall *)(ISteamFriends *, _DWORD, _DWORD))steamFriends->GetFriendRelationship)(steamFriends, xuid, HIDWORD(xuid)))
+    if (steamFriends && steamFriends->GetFriendRelationship(xuid))
     {
-        s = (const char *)((int(__thiscall *)(ISteamFriends *, _DWORD, _DWORD))steamFriends->GetFriendPersonaName)(
-            steamFriends,
-            xuid,
-            HIDWORD(xuid));
+        //s = (const char *)((int(__thiscall *)(ISteamFriends *, _DWORD, _DWORD))steamFriends->GetFriendPersonaName)(
+        //    steamFriends,
+        //    xuid,
+        //    HIDWORD(xuid));
+        s = steamFriends->GetFriendPersonaName(xuid);
         Com_sprintf(buf, size, "%.16s", s);
         return 1;
     }

@@ -3,6 +3,8 @@
 #include <steam/steam_api.h>
 #include <steam/isteamgameserver.h>
 
+#include <qcommon/net_chan_mp.h>
+
 struct LiveSteamServer // sizeof=0x88
 {
     unsigned int currentMapDlcAppID;

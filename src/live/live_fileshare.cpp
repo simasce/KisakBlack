@@ -154,7 +154,6 @@ const dvar_t *fsIsSelectedFileDescriptionModified;
 const dvar_t *fsSelectedFileTagIndex;
 const dvar_t *fshSelectLastSlotRow;
 const dvar_t *fshSelectFirstSlotRow;
-const dvar_t *fshLiveBlurb;
 const dvar_t *fshDebugFileList;
 const dvar_t *fsRecents;
 const dvar_t *fsRecentsCount;
@@ -282,6 +281,7 @@ char __cdecl Live_FileShare_WritePublicMetaDataLength(char *buffer, unsigned int
 
 char __cdecl Live_FileShare_PublicMetaDataToTags(bdFileMetaData *descriptor)
 {
+#ifdef KISAK_LIVE_SERVICE
     unsigned int Int; // eax
     unsigned int v2; // edx
     unsigned int Int64; // eax
@@ -399,6 +399,9 @@ char __cdecl Live_FileShare_PublicMetaDataToTags(bdFileMetaData *descriptor)
         Com_PrintError(16, "Could not set 'name' in the file share ddl.\n");
         return 0;
     }
+#else
+return 0;
+#endif
 }
 
 char __cdecl Live_FileShare_WritePublicMetaDataTags(char *buffer, bdTag *tags, int numTags)
@@ -874,6 +877,7 @@ void __cdecl Live_FileShare_InitRatingHistory()
 
 void __cdecl Live_FileShare_SaveRating(int controllerIndex, unsigned __int64 fileID, unsigned __int8 rating)
 {
+#ifdef KISAK_LIVE_SERVICE
     int Xuid; // eax
     int v4; // ecx
     int v5; // edx
@@ -886,6 +890,7 @@ void __cdecl Live_FileShare_SaveRating(int controllerIndex, unsigned __int64 fil
     *(unsigned int *)(v4 + 172783212) = v5;
     if ( ++dword_A4C8928 == 200 )
         dword_A4C8928 = 0;
+#endif
 }
 
 char __cdecl Live_FileShare_IsRated(int controllerIndex, unsigned __int64 fileID, unsigned __int8 *rating)
@@ -1107,6 +1112,7 @@ char *__cdecl Live_FileShare_PrivateSlotsText(
                 int column,
                 Material **handle)
 {
+#ifdef KISAK_LIVE_SERVIC
     char *result; // eax
     Material *v6; // eax
     char *SelectedImage; // eax
@@ -1223,6 +1229,9 @@ LABEL_40:
             break;
     }
     return result;
+#else
+return NULL;
+#endif
 }
 
 const char *__cdecl Live_FileShare_PrivateSlotsIngameText(
@@ -2449,6 +2458,7 @@ char __cdecl Live_FileShare_GetItemInfo(
                 const char **stringResult,
                 float *floatResult)
 {
+#ifdef KISAK_LIVE_SERVICE
     bool v6; // al
     char v8; // [esp+6h] [ebp-85Eh]
     char v9; // [esp+9h] [ebp-85Bh]
@@ -2562,6 +2572,9 @@ LABEL_25:
                  stringResult);
     ////bdFileMetaData::~bdFileMetaData(&descriptor);
     return v8;
+#else
+    return 0;
+#endif
 }
 
 bool __cdecl Live_FileShare_AreInfoParamsValid(
@@ -4542,7 +4555,7 @@ void Live_FileShare_UserTagRight_f(const StringTable *table)
     fileShareTable = table;
     if ( Key_IsDown(0, 201) )
     {
-        Live_FileShare_UserTagLeft_f(v1);
+        Live_FileShare_UserTagLeft_f(fileShareTable);
     }
     else
     {

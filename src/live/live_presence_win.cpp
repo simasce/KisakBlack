@@ -63,6 +63,7 @@ int __cdecl Live_GetMapCount()
 
 void __cdecl Live_SetPlaylistVersion(int controllerIndex)
 {
+#ifdef KISAK_LIVE
     int playlistVersion; // [esp+0h] [ebp-4h]
 
     if ( dw_loggedin && dw_loggedin->current.enabled )
@@ -75,10 +76,12 @@ void __cdecl Live_SetPlaylistVersion(int controllerIndex)
             g_matchmakingInfo->m_dirty = 1;
         }
     }
+#endif
 }
 
 void __cdecl Live_SetPlaylistNum(int controllerIndex, int playlistNum)
 {
+#ifdef KISAK_LIVE
     int PlaylistIdForNum; // eax
 
     if ( dw_loggedin && dw_loggedin->current.enabled )
@@ -97,6 +100,7 @@ void __cdecl Live_SetPlaylistNum(int controllerIndex, int playlistNum)
             g_matchmakingInfo->m_dirty = 1;
         }
     }
+#endif
 }
 
 int __cdecl Live_GetMapIndex()

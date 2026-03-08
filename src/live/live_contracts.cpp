@@ -17,7 +17,6 @@ const char *CONTRACT_STAT_TIME_PLAYED = "startingTime";
 const char *CONTRACT_STAT_NUM_PURCHASED = "CONTRACTS_PURCHASED";
 const char *CONTRACT_STAT_CP_SPENT = "CONTRACTS_CP_SPENT";
 const char *CONTRACT_STAT_TIMES_PURCHASED = "timesPurchased";
-const char *CONTRACT_STAT_LAST_TIME_DEACTIVATED = "lastTimeDeactivated";
 
 const char *validExpirationTypes[1] =
 { "playtime" };
@@ -1232,7 +1231,6 @@ bool __cdecl LiveContracts_IsContractLocked(int controllerIndex, int contractInd
     return UnlockLevel > LiveStats_GetRank(controllerIndex) + 1;
 }
 
-const char *CONTRACT_STAT_TIMES_PURCHASED = "timesPurchased";
 unsigned int __cdecl LiveContracts_GetTimesPurchased(int controllerIndex, int contractIndex)
 {
     persistentStats *statBuffer; // [esp+0h] [ebp-4h]

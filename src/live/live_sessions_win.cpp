@@ -870,6 +870,7 @@ int __cdecl Session_EveryoneLeaveSessionComplete(int slot)
 
 void __cdecl Live_FinishOngoingSessionJoinTasksForXUID(unsigned __int64 player)
 {
+#ifdef KISAK_LIVE_SERVICE
     unsigned int v1; // edx
     int Xuid; // [esp+Ch] [ebp-18h]
     int type; // [esp+14h] [ebp-10h]
@@ -908,6 +909,7 @@ void __cdecl Live_FinishOngoingSessionJoinTasksForXUID(unsigned __int64 player)
             }
         }
     }
+#endif
 }
 
 void __cdecl Live_CheckOngoingSessionTasks()

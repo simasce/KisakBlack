@@ -91,7 +91,6 @@ ddlDef_t *g_statsDDL;
 const dvar_t *ui_challengeSort;
 const dvar_t *debugStats;
 const dvar_t *ui_numPersonalBests;
-const dvar_t *ui_challengeSort;
 const dvar_t *recordPointsSpent;
 const dvar_t *ui_challengeGameMode;
 
@@ -4476,6 +4475,7 @@ bool __cdecl LiveStats_GetBasicTrainingState(unsigned __int8 *buffer)
 
 void __cdecl LiveStats_GetNemesisXuid(int controllerIndex, unsigned __int64 *nemesisXuid)
 {
+#ifdef KISAK_LIVE_SERVICE
     const ddlState_t *RootDDLState; // eax
     int v3; // edx
     ddlState_t ddlState; // [esp+0h] [ebp-10h] BYREF
@@ -4484,6 +4484,7 @@ void __cdecl LiveStats_GetNemesisXuid(int controllerIndex, unsigned __int64 *nem
     DDL_MoveTo(RootDDLState, &ddlState, 2, "AfterActionReportStats", "nemesisXuid");
     *(unsigned int *)nemesisXuid = LiveStats_GetDInt64Stat(controllerIndex, &ddlState);
     *((unsigned int *)nemesisXuid + 1) = v3;
+#endif
 }
 
 bool __cdecl LiveStats_PrestigeLeaderboardsEnabled(int controllerIndex)

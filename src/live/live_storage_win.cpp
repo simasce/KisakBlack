@@ -3068,7 +3068,7 @@ char __cdecl Live_CACValidate_DispatchMessage(
             MSG_ReadData(&buf, &v9[1], 4);
             if ( *(unsigned int *)&v9[1] > messageSize )
             {
-                Com_PrintError(0, "blobsize %u exceeds message size %u!\n, blobsize, messagesize", v4, v5);
+                //Com_PrintError(0, "blobsize %u exceeds message size %u!\n, blobsize, messagesize", v4, v5);
                 return 1;
             }
             if ( *(unsigned int *)&v9[1] >= 0x9CE8u )
@@ -3376,18 +3376,3 @@ void __cdecl LiveStorage_DeleteGlobalStatsNotFound()
     LiveStats_ResetStats(0, 0);
     LiveStats_ResetBasicTrainingStats(0);
 }
-
-void __cdecl ResetCreateAClassNames(int controllerIndex)
-{
-    SetDvarFromLocString_0(controllerIndex, "customclass1",   (char*)"CLASS_SLOT1_CAPS");
-    SetDvarFromLocString_0(controllerIndex, "customclass2",   (char*)"CLASS_SLOT2_CAPS");
-    SetDvarFromLocString_0(controllerIndex, "customclass3",   (char*)"CLASS_SLOT3_CAPS");
-    SetDvarFromLocString_0(controllerIndex, "customclass4",   (char*)"CLASS_SLOT4_CAPS");
-    SetDvarFromLocString_0(controllerIndex, "customclass5",   (char*)"CLASS_SLOT5_CAPS");
-    SetDvarFromLocString_0(controllerIndex, "prestigeclass1", (char*)"CLASS_PRESTIGE1_CAPS");
-    SetDvarFromLocString_0(controllerIndex, "prestigeclass2", (char*)"CLASS_PRESTIGE2_CAPS");
-    SetDvarFromLocString_0(controllerIndex, "prestigeclass3", (char*)"CLASS_PRESTIGE3_CAPS");
-    SetDvarFromLocString_0(controllerIndex, "prestigeclass4", (char*)"CLASS_PRESTIGE4_CAPS");
-    SetDvarFromLocString_0(controllerIndex, "prestigeclass5", (char*)"CLASS_PRESTIGE5_CAPS");
-}
-

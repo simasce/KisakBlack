@@ -24,6 +24,7 @@
 #include <DW/dwUtils.h>
 #include <client/splitscreen.h>
 #include <server_mp/sv_main_mp.h>
+#include <gfx_d3d/r_rendercmds.h>
 
 const char *bot_difficulties[5] = { "easy", "normal", "hard", "fu", NULL };
 
@@ -1298,6 +1299,7 @@ taskCompleteResults __cdecl Live_UpdatePerformanceValuesComplete(int slot)
 
 void Live_UpdateAveragePerformance()
 {
+#ifdef KISAK_LIVE_SERVICE
     int avgPerformance; // [esp+0h] [ebp-4h]
 
     if (g_matchmakingInfo->m_active)
@@ -1310,6 +1312,7 @@ void Live_UpdateAveragePerformance()
             g_matchmakingInfo->m_memberSKILL = avgPerformance;
         }
     }
+#endif
 }
 
 int __cdecl Live_GetAveragePerformance()
@@ -2570,6 +2573,8 @@ int __cdecl Live_GetInvitesCount()
             ++count;
     }
     return count;
+#else
+    return 0;
 #endif
 }
 
@@ -2589,6 +2594,8 @@ int __cdecl Live_GetInviteFriend(int index)
             ++inviteIndex;
         }
     }
+    return 0;
+#else
     return 0;
 #endif
 }

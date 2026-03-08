@@ -1,5 +1,10 @@
 #pragma once
 #include <demo/demo_common.h>
+#include "live_storage.h"
+
+struct listBoxDef_s;
+struct itemDef_s;
+
 
 struct fshSearchPage_t // sizeof=0x5240
 {                                       // XREF: fshSearch_t/r
@@ -42,6 +47,9 @@ struct fshSearchBookFiles_t // sizeof=0x5470
                                         // Live_FileShareSearch_LoadBook+123/o ...
     bdVoteRankStatsInfo ratings[100];   // XREF: Live_FileShareSearch_LoadBook+11C/o
                                         // Live_FileShareSearch_LoadRatings+49/o ...
+
+    fshSearchBookFiles_t();
+    ~fshSearchBookFiles_t();
 };
 
 struct __declspec(align(8)) fshSearchContext_t // sizeof=0x3E0
@@ -69,6 +77,8 @@ struct __declspec(align(8)) fshSearchContext_t // sizeof=0x3E0
     // padding byte
     // padding byte
     // padding byte
+
+    ~fshSearchContext_t();
 };
 
 struct fshSearch_t // sizeof=0x14F18
@@ -86,8 +96,11 @@ struct fshSearch_t // sizeof=0x14F18
     fshSearchContext_t context;         // XREF: Live_FileShareSearch_SetIndexOverride(int,int)+1E/r
                                         // Live_FileShareSearch_SetIndexOverride(int,int)+27/w ...
 
-    fshSearch_t() = default;
-    ~fshSearch_t() = default;
+    fshSearch_t();
+    ~fshSearch_t();
+
+    //fshSearch_t *__thiscall fshSearch_t::fshSearch_t(fshSearch_t *this);
+    //void __thiscall fshSearch_t::~fshSearch_t(fshSearch_t *this);
 };
 
 void __cdecl Live_FileShareSearch_LoadSummary(int controllerIndex, int itemIndex);
@@ -159,8 +172,5 @@ char __cdecl Live_FileShareSearch_FeederColor(
                 int index,
                 int column,
                 DvarValue *color);
-fshSearch_t *__thiscall fshSearch_t::fshSearch_t(fshSearch_t *this);
-fshSearchBookFiles_t *__thiscall fshSearchBookFiles_t::fshSearchBookFiles_t(fshSearchBookFiles_t *this);
-void __thiscall fshSearch_t::~fshSearch_t(fshSearch_t *this);
-void __thiscall fshSearchBookFiles_t::~fshSearchBookFiles_t(fshSearchBookFiles_t *this);
-void __thiscall fshSearchContext_t::~fshSearchContext_t(fshSearchContext_t *this);
+
+

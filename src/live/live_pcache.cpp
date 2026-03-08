@@ -10,6 +10,8 @@
 #include <demo/demo_ui.h>
 #include <client_mp/cl_cgame_mp.h>
 #include <client/client.h>
+#include <database/db_registry.h>
+#include <cgame_mp/cg_local_mp.h>
 
 FastCriticalSection s_lock;
 

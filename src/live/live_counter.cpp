@@ -19,6 +19,12 @@ const TaskDefinition task_downloadAllCounters[1] =
   }
 };
 
+cmd_function_s LiveCounter_IncrementCounter_f_VAR;
+cmd_function_s LiveCounter_Dump_f_VAR;
+
+const dvar_t *counterUploadInterval;
+const dvar_t *counterDownloadInterval;
+
 bool s_countersInit;
 bool s_countersReadyForUpload;
 int s_nextCounterUploadTime;
@@ -362,12 +368,6 @@ void __cdecl LiveCounter_Update(int controllerIndex)
     }
 #endif
 }
-
-cmd_function_s LiveCounter_IncrementCounter_f_VAR;
-cmd_function_s LiveCounter_Dump_f_VAR;
-
-const dvar_t *counterUploadInterval;
-const dvar_t *counterDownloadInterval;
 
 void __cdecl LiveCounter_Init()
 {
