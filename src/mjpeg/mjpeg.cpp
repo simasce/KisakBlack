@@ -66,7 +66,7 @@ void __stdcall    mjpeg_thread(void *context)
         fpsms = 1000.0 / (float)mjpeg_fps;
         for ( frames = 0; frames < 0x2000 && !mjpeg_quit_encoder; ++frames )
         {
-            //diff = (double)(*(_QWORD *)&tlPcGetTick() - tick) / tlPcTicksPerMS;
+            //diff = (double)(tlPcGetTick().QuadPart - tick) / tlPcTicksPerMS;
             diff = (double)(tlPcGetTick().QuadPart - tick) / tlPcTicksPerMS;
             if ( fpsms <= diff )
                 Com_PrintWarning(16, "WARNING: Movie encoding took to %g ms limit is %g ms\n", diff, fpsms);

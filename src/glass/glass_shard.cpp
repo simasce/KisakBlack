@@ -1871,10 +1871,10 @@ char __thiscall GlassShard::Triangles::Triangulate()
     if ( !GlassShard::Triangles::AddTri(hullVtxIndex[0], hullVtxIndex[1], hullVtxIndex[2]) )
     {
 LABEL_14:
-        *timer_8 += *(_QWORD *)&tlPcGetTick() - timer.QuadPart;
+        *timer_8 += tlPcGetTick().QuadPart - timer.QuadPart;
         return 0;
     }
-    *timer_8 += *(_QWORD *)&tlPcGetTick() - timer.QuadPart;
+    *timer_8 += tlPcGetTick().QuadPart - timer.QuadPart;
     return 1;
 }
 
@@ -2150,7 +2150,7 @@ int __thiscall GlassShard::Shatter(GlassShard **newShards, int maxNewShards)
             GlassShard::splitFailCount[7],
             GlassShard::splitFailCount[5]);
     }
-    *timer_8 += *(_QWORD *)&tlPcGetTick() - timer.QuadPart;
+    *timer_8 += tlPcGetTick().QuadPart - timer.QuadPart;
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
         //D3DPERF_EndEvent();
     return numNewShards;
@@ -3523,7 +3523,7 @@ int __thiscall GlassShard::Split(
             if ( !found )
             {
                 ++GlassShard::splitFailCount[1];
-                *timer.counter += *(_QWORD *)&tlPcGetTick() - timer.start;
+                *timer.counter += tlPcGetTick().QuadPart - timer.start;
                 return 0;
             }
         }
@@ -3551,20 +3551,20 @@ int __thiscall GlassShard::Split(
         if ( otherOutline.CloseOutline() )
         {
             inited = GlassShard::InitSplitShards(&newOutline, &otherOutline, newShards, minShardSize);
-            *timer.counter += *(_QWORD *)&tlPcGetTick() - timer.start;
+            *timer.counter += tlPcGetTick().QuadPart - timer.start;
             return inited;
         }
         else
         {
 LABEL_36:
-            *timer.counter += *(_QWORD *)&tlPcGetTick() - timer.start;
+            *timer.counter += tlPcGetTick().QuadPart - timer.start;
             return 0;
         }
     }
     else
     {
         ++GlassShard::splitFailCount[0];
-        *timer.counter += *(_QWORD *)&tlPcGetTick() - timer.start;
+        *timer.counter += tlPcGetTick().QuadPart - timer.start;
         return 0;
     }
 }
@@ -3644,12 +3644,12 @@ int __thiscall GlassShard::Chip(
         }
         outline2.CloseOutline();
         inited = GlassShard::InitSplitShards(&outline1, &outline2, newShards, minShardSize);
-        *timer.counter += *(_QWORD *)&tlPcGetTick() - timer.start;
+        *timer.counter += tlPcGetTick().QuadPart - timer.start;
         return inited;
     }
     else
     {
-        *timer.counter += *(_QWORD *)&tlPcGetTick() - timer.start;
+        *timer.counter += tlPcGetTick().QuadPart - timer.start;
         return 0;
     }
 }

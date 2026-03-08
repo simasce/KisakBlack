@@ -1623,7 +1623,7 @@ void __cdecl jqWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool BreakWhe
             }
             else
             {
-                v9 = *(_QWORD *)&tlPcGetTick() - __PAIR64__(HighPart, LowPart);
+                v9 = tlPcGetTick().QuadPart - __PAIR64__(HighPart, LowPart);
                 v10 = __CFADD__((_DWORD)v9, v4->WorkTime);
                 LODWORD(v4->WorkTime) += v9;
                 doHighPriority = 1;

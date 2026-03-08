@@ -4919,7 +4919,7 @@ void __cdecl Phys_RunToTime(int timeNow)
     }
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
         //D3DPERF_EndEvent();
-    proftimer_physics_frame_advance.value += *(_QWORD *)&tlPcGetTick() - proftimer_physics_frame_advance.stamp;
+    proftimer_physics_frame_advance.value += tlPcGetTick().QuadPart - proftimer_physics_frame_advance.stamp;
     //PIXBeginNamedEvent(-1, "Ragdoll_Update/XDoll_Update");
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
         //D3DPERF_EndEvent();

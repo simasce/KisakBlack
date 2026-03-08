@@ -11,6 +11,7 @@
 #include <tl/tl_system.h>
 #include <client/cl_debugdata.h>
 #include <gfx_d3d/r_model_lod.h>
+#include <gfx_d3d/r_primarylights.h>
 
 // KISAKTODO: uses too much aislop to get rid of the horrible STL iterators and such (should be done manually with another pass)
 
@@ -1352,7 +1353,7 @@ Allocator::Memory **__thiscall GlassRenderer::AllocateShardMemory(
                 GlassShard *shard)
 {
     //return Allocator::Allocate(&this->shardMemoryAllocator, size, shard);
-    shardMemoryAllocator.Allocate(size, shard);
+    return shardMemoryAllocator.Allocate(size, shard);
 }
 
 void __thiscall GlassRenderer::FreeShardMemory(unsigned int *ptr)
@@ -2095,6 +2096,15 @@ void __cdecl GlassShard::Defrag(void *ptr)
     GlassShard::Defrag(ptr);
 }
 
+void __cdecl Sys_WaitInterlockedCompareExchange(volatile unsigned int *destination, int value, int comperand)
+{
+    do
+    {
+        while (*destination != comperand)
+            ;
+    } while (_InterlockedCompareExchange(destination, value, comperand) != comperand);
+}
+
 void GlassRenderer::DoMaintenance()
 {
     // Acquire renderer lock
@@ -2174,16 +2184,6 @@ void GlassRenderer::DoMaintenance()
 
     // Release renderer lock
     rendererLock.lock = 0;
-}
-
-void __cdecl Sys_WaitInterlockedCompareExchange(volatile unsigned int *destination, int value, int comperand)
-{
-    do
-    {
-        while ( *destination != comperand )
-            ;
-    }
-    while ( _InterlockedCompareExchange(destination, value, comperand) != comperand );
 }
 
 void __cdecl GlassRenderer::CrashGlassCmd()
@@ -3032,7 +3032,8 @@ void __thiscall ShardGroup::GenerateVerts(bool firstView, unsigned int localClie
                     v4 = i->mesh.numVertsLow;
                 vertsIndex += v4;
             }
-            *timer.counter += *(_QWORD *)&tlPcGetTick() - timer.start;
+            //*timer.counter += tlPcGetTick().QuadPart - timer.start;
+            *timer.counter += tlPcGetTick().QuadPart - timer.start;
             //if ( g_DXDeviceThread == GetCurrentThreadId() )
                 //D3DPERF_EndEvent();
         }

@@ -59,13 +59,13 @@ struct SmallAllocatorTemplate//<GlassPhysics * *> // sizeof=0x4
     };
 };
 
-// KISAKTODO: this is trash and probably needs a rewrite so T* is the 1st <>, and then rewrite the instances to remove the *
 template <typename T>
-struct FixedSizeAllocator//<GlassPhysics *> // sizeof=0x40
+struct FixedSizeAllocator
 {
     void *memory;
-    std::list<T *> used;
-    std::list<T *> free;
+
+    std::list<T> used;
+    std::list<T> free;
 
     unsigned int maxUsed;
 
@@ -84,16 +84,16 @@ struct FixedSizeAllocator//<GlassPhysics *> // sizeof=0x40
 
         for (unsigned int i = 0; i < numObjects; ++i)
         {
-            free.push_back(&array[i]);
+            free.push_back(array[i]);
         }
     }
 
-    T *Allocate()
+    T Allocate()
     {
         if (free.empty())
             __debugbreak(); // out-of-memory
 
-        T *obj = free.front();
+        T obj = free.front();
         free.pop_front();
 
         used.push_back(obj);
@@ -104,7 +104,7 @@ struct FixedSizeAllocator//<GlassPhysics *> // sizeof=0x40
         return obj;
     }
 
-    void Free(T *obj)
+    void Free(T obj)
     {
         used.remove(obj);
         free.push_back(obj);
@@ -114,7 +114,7 @@ struct FixedSizeAllocator//<GlassPhysics *> // sizeof=0x40
     {
         while (!used.empty())
         {
-            T *obj = used.front();
+            T obj = used.front();
             used.pop_front();
             free.push_back(obj);
         }

@@ -696,7 +696,8 @@ char __thiscall GlassClient::PreShatter()
                     {
                         //GlassClient::Outlines::Outlines((GlassClient::Outlines *)buffer, baseShard, newShards, numNewShards);
                         new (buffer) GlassClient::Outlines(baseShard, newShards, numNewShards);
-                        this->outlines = v3;
+                        //this->outlines = v3;
+                        this->outlines = (GlassClient::Outlines*)buffer;
                     }
                     //GlassShard::Remove(baseShard, (GlassShard::RemoveReason)8, 0);
                     baseShard->Remove((GlassShard::RemoveReason)8, 0);

@@ -8,6 +8,8 @@
 #include <game_mp/g_spawn_mp.h>
 #include <clientscript/scr_const.h>
 #include <server/sv_game.h>
+#include <physics/phys_main.h>
+#include <flame/flame_system.h>
 
 GlassesServer svGlasses;
 
@@ -481,6 +483,7 @@ void __cdecl GlassSv_Damage(unsigned int glassId, int damage, int mod, float *po
     }
     //if ( g_DXDeviceThread == GetCurrentThreadId() )
 LABEL_32:
+    ;
         //D3DPERF_EndEvent();
 }
 
@@ -609,124 +612,120 @@ void __cdecl GlassSv_PredictTouch(gentity_s *other)
 {
     scr_vehicle_s *scr_vehicle; // ecx
     actor_s *actor; // edx
-    float v3; // [esp+6Ch] [ebp-10B0h] BYREF
-    float v4; // [esp+70h] [ebp-10ACh]
-    float v5; // [esp+74h] [ebp-10A8h]
-    float out[5]; // [esp+78h] [ebp-10A4h] BYREF
-    float v7; // [esp+8Ch] [ebp-1090h]
-    float v8; // [esp+90h] [ebp-108Ch]
-    float v9; // [esp+94h] [ebp-1088h]
-    float v10; // [esp+98h] [ebp-1084h]
-    float v11; // [esp+A4h] [ebp-1078h]
-    float v12; // [esp+A8h] [ebp-1074h] BYREF
-    float v13; // [esp+ACh] [ebp-1070h]
-    float v14; // [esp+B0h] [ebp-106Ch]
-    const Glass *v15; // [esp+B4h] [ebp-1068h]
-    float v16; // [esp+B8h] [ebp-1064h]
-    float v17; // [esp+BCh] [ebp-1060h]
-    float v18; // [esp+C0h] [ebp-105Ch]
-    float v19; // [esp+C4h] [ebp-1058h]
-    float v20; // [esp+C8h] [ebp-1054h]
-    float v21; // [esp+CCh] [ebp-1050h]
+    float v4; // [esp+6Ch] [ebp-10B0h] BYREF
+    float v5; // [esp+70h] [ebp-10ACh]
+    float v6; // [esp+74h] [ebp-10A8h]
+    float out[3][4]; // [esp+78h] [ebp-10A4h] BYREF
+    float v8; // [esp+A8h] [ebp-1074h] BYREF
+    float v9; // [esp+ACh] [ebp-1070h]
+    float v10; // [esp+B0h] [ebp-106Ch]
+    const Glass *v11; // [esp+B4h] [ebp-1068h]
+    float v12; // [esp+B8h] [ebp-1064h]
+    float v13; // [esp+BCh] [ebp-1060h]
+    float v14; // [esp+C0h] [ebp-105Ch]
+    float v15; // [esp+C4h] [ebp-1058h]
+    float v16; // [esp+C8h] [ebp-1054h]
+    float v17; // [esp+CCh] [ebp-1050h]
     unsigned int i; // [esp+D0h] [ebp-104Ch]
     float avel[3]; // [esp+D4h] [ebp-1048h] BYREF
     float mins; // [esp+E0h] [ebp-103Ch] BYREF
-    float v25; // [esp+E4h] [ebp-1038h]
-    float v26; // [esp+E8h] [ebp-1034h]
+    float v21; // [esp+E4h] [ebp-1038h]
+    float v22; // [esp+E8h] [ebp-1034h]
     float maxs; // [esp+ECh] [ebp-1030h] BYREF
-    float v28; // [esp+F0h] [ebp-102Ch]
-    float v29; // [esp+F4h] [ebp-1028h]
+    float v24; // [esp+F0h] [ebp-102Ch]
+    float v25; // [esp+F4h] [ebp-1028h]
     float tvel; // [esp+F8h] [ebp-1024h] BYREF
-    float v31; // [esp+FCh] [ebp-1020h]
-    float v32; // [esp+100h] [ebp-101Ch]
-    float v33; // [esp+108h] [ebp-1014h]
-    float v34; // [esp+10Ch] [ebp-1010h]
-    float v35; // [esp+110h] [ebp-100Ch]
+    float v27; // [esp+FCh] [ebp-1020h]
+    float v28; // [esp+100h] [ebp-101Ch]
+    float v29; // [esp+108h] [ebp-1014h]
+    float v30; // [esp+10Ch] [ebp-1010h]
+    float v31; // [esp+110h] [ebp-100Ch]
     const Glass *glasses[1025]; // [esp+114h] [ebp-1008h] BYREF
-    unsigned int v37; // [esp+1118h] [ebp-4h]
+    unsigned int v33; // [esp+1118h] [ebp-4h]
 
-    if ( !other && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_server.cpp", 768, 0, "%s", "other") )
+    if (!other && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_server.cpp", 768, 0, "%s", "other"))
         __debugbreak();
-    if ( svGlasses.numGlasses )
+    if (svGlasses.numGlasses)
     {
-        if ( other->physObjId )
+        if (other->physObjId)
         {
             Phys_ObjGetVelocities(other->physObjId, &tvel, avel);
         }
-        else if ( other->scr_vehicle )
+        else if (other->scr_vehicle)
         {
             scr_vehicle = other->scr_vehicle;
             tvel = scr_vehicle->phys.vel[0];
-            v31 = scr_vehicle->phys.vel[1];
-            v32 = scr_vehicle->phys.vel[2];
+            v27 = scr_vehicle->phys.vel[1];
+            v28 = scr_vehicle->phys.vel[2];
         }
         else
         {
-            if ( !other->actor || !Flame_GetLocalClientSourceRange() )
+            if (!other->actor || !Flame_GetLocalClientSourceRange())
                 return;
             actor = other->actor;
             tvel = actor->Physics.vVelocity[0];
-            v31 = actor->Physics.vVelocity[1];
-            v32 = actor->Physics.vVelocity[2];
+            v27 = actor->Physics.vVelocity[1];
+            v28 = actor->Physics.vVelocity[2];
         }
         //PIXBeginNamedEvent(-1, "GlassSv_PredictTouch");
         maxs = other->r.absmax[0];
-        v28 = other->r.absmax[1];
-        v29 = other->r.absmax[2];
+        v24 = other->r.absmax[1];
+        v25 = other->r.absmax[2];
         mins = other->r.absmin[0];
-        v25 = other->r.absmin[1];
-        v26 = other->r.absmin[2];
-        v33 = PREDICT_TIME * tvel;
-        v34 = PREDICT_TIME * v31;
-        v35 = PREDICT_TIME * v32;
+        v21 = other->r.absmin[1];
+        v22 = other->r.absmin[2];
+        v29 = PREDICT_TIME * tvel;
+        v30 = PREDICT_TIME * v27;
+        v31 = PREDICT_TIME * v28;
         mins = mins + (float)(PREDICT_TIME * tvel);
-        v25 = v25 + (float)(PREDICT_TIME * v31);
-        v26 = v26 + (float)(PREDICT_TIME * v32);
+        v21 = v21 + (float)(PREDICT_TIME * v27);
+        v22 = v22 + (float)(PREDICT_TIME * v28);
         maxs = maxs + (float)(PREDICT_TIME * tvel);
-        v28 = v28 + (float)(PREDICT_TIME * v31);
-        v29 = v29 + (float)(PREDICT_TIME * v32);
-        v37 = GlassSv_AreaGlasses(&mins, &maxs, glasses, 0x400u);
-        for ( i = 0; i < v37; ++i )
+        v24 = v24 + (float)(PREDICT_TIME * v27);
+        v25 = v25 + (float)(PREDICT_TIME * v28);
+        v33 = GlassSv_AreaGlasses(&mins, &maxs, glasses, 0x400u);
+        for (i = 0; i < v33; ++i)
         {
-            v15 = glasses[i];
-            v12 = v15->absmin[0];
-            v13 = v15->absmin[1];
-            v14 = v15->absmin[2];
-            v3 = v15->absmax[0];
-            v4 = v15->absmax[1];
-            v5 = v15->absmax[2];
-            ExpandBoundsToWidth(&v12, &v3);
-            v12 = v12 - v33;
-            v13 = v13 - v34;
-            v14 = v14 - v35;
-            v3 = v3 - v33;
-            v4 = v4 - v34;
-            v5 = v5 - v35;
-            if ( SV_EntityContact(&v12, &v3, other) )
+            v11 = glasses[i];
+            v8 = v11->absmin[0];
+            v9 = v11->absmin[1];
+            v10 = v11->absmin[2];
+            v4 = v11->absmax[0];
+            v5 = v11->absmax[1];
+            v6 = v11->absmax[2];
+            ExpandBoundsToWidth(&v8, &v4);
+            v8 = v8 - v29;
+            v9 = v9 - v30;
+            v10 = v10 - v31;
+            v4 = v4 - v29;
+            v5 = v5 - v30;
+            v6 = v6 - v31;
+            if (SV_EntityContact(&v8, &v4, other))
             {
-                MatrixInverseOrthogonal43(v15->outlineAxis, (float (*)[3])out);
-                v16 = other->r.currentOrigin[0];
-                v17 = other->r.currentOrigin[1];
-                v18 = other->r.currentOrigin[2];
-                v19 = (float)(tvel * out[0]) + 0.0;
-                v20 = (float)(tvel * out[1]) + 0.0;
-                v21 = (float)(tvel * out[2]) + 0.0;
-                v19 = (float)(v31 * out[3]) + v19;
-                v20 = (float)(v31 * out[4]) + v20;
-                v21 = (float)(v31 * v7) + v21;
-                v19 = (float)(v32 * v8) + v19;
-                v20 = (float)(v32 * v9) + v20;
-                v21 = (float)(v32 * v10) + v21;
-                if ( (float)((float)((float)(v18 * v10) + (float)((float)(v17 * v7) + (float)((float)(v16 * out[2]) + v11)))
-                                     * v21) < 0.0
-                    && fabs(v21) > 100.0 )
+                MatrixInverseOrthogonal43(v11->outlineAxis, (float (*)[3])out);
+                v12 = other->r.currentOrigin[0];
+                v13 = other->r.currentOrigin[1];
+                v14 = other->r.currentOrigin[2];
+                v15 = (float)(tvel * out[0][0]) + 0.0;
+                v16 = (float)(tvel * out[0][1]) + 0.0;
+                v17 = (float)(tvel * out[0][2]) + 0.0;
+                v15 = (float)(v27 * out[0][3]) + v15;
+                v16 = (float)(v27 * out[1][0]) + v16;
+                v17 = (float)(v27 * out[1][1]) + v17;
+                v15 = (float)(v28 * out[1][2]) + v15;
+                v16 = (float)(v28 * out[1][3]) + v16;
+                v17 = (float)(v28 * out[2][0]) + v17;
+                if ((float)((float)((float)(v14 * out[2][0])
+                    + (float)((float)(v13 * out[1][1]) + (float)((float)(v12 * out[0][2]) + out[2][3])))
+                    * v17) < 0.0
+                    && (fabs(v17)) > 100.0)
                 {
-                    GlassSv_Touch((unsigned int)v15->index, other);
+                    GlassSv_Touch(v11->index, other);
                 }
             }
         }
-        //if ( g_DXDeviceThread == GetCurrentThreadId() )
-            //D3DPERF_EndEvent();
+        //if (g_DXDeviceThread == GetCurrentThreadId())
+        //    D3DPERF_EndEvent();
     }
 }
 
@@ -818,7 +817,8 @@ void __thiscall GlassesServer::WriteSnapshotToClient(msg_t *msg, int sinceTime)
         }
         MSG_WriteShort(msg, 30154);
         //if ( g_DXDeviceThread == GetCurrentThreadId() )
-LABEL_30:
+    LABEL_30:
+        ;
             //D3DPERF_EndEvent();
     }
 }

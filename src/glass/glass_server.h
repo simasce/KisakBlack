@@ -1,6 +1,13 @@
 #pragma once
 #include "glass.h"
 
+struct gentity_s;
+struct moveclip_t;
+struct movectrace_tlip_t;
+struct pointtrace_t;
+struct msg_t;
+struct trace_t;
+
 struct GlassServer // sizeof=0x2C
 {                                       // XREF: GlassesServer/r
     GlassState state;
@@ -40,12 +47,6 @@ struct GlassesServer // sizeof=0xABF8
     void __thiscall ResetAll();
     void __thiscall WriteSnapshotToClient(msg_t *msg, int sinceTime);
 };
-
-struct gentity_s;
-struct moveclip_t;
-struct movectrace_tlip_t;
-struct pointtrace_t;
-struct msg_t;
 
 void __cdecl GlassSv_Init();
 void __cdecl GlassSv_Shutdown();

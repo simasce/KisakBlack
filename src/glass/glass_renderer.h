@@ -74,79 +74,8 @@ struct GlassRenderer // sizeof=0x4DF8
         static void *operator new(size_t size);
         static void operator delete(void *ptr);
 
-        inline void InsertReverse(GlassShard *shard)
-        {
-            const float shardArea = shard->outline.Area();
-
-            if (empty())
-            {
-                push_back(shard);
-                return;
-            }
-
-            //const float backArea = GlassShard::Outline::Area(&back()->outline);
-            const float backArea = back()->outline.Area();
-
-            if (shardArea >= backArea)
-            {
-                for (auto it = begin(); it != end(); ++it)
-                {
-                    //const float curArea = GlassShard::Outline::Area(&(*it)->outline);
-                    const float curArea = (*it)->outline.Area();
-
-                    if (shardArea > curArea)
-                    {
-                        insert(it, shard);
-                        return;
-                    }
-                }
-
-
-                // Larger than everything
-                push_back(shard);
-            }
-            else
-            {
-                // Smaller than the smallest element
-                push_front(shard);
-            }
-        }
-
-        inline void Insert(GlassShard *shard)
-        {
-            const float shardArea = shard->outline.Area();
-
-            if (empty())
-            {
-                push_back(shard);
-                return;
-            }
-
-            const float backArea = back()->outline.Area();
-
-            if (shardArea <= backArea)
-            {
-                for (auto it = begin(); it != end(); ++it)
-                {
-                    //const float curArea = GlassShard::Outline::Area(&(*it)->outline);
-                    const float curArea = (*it)->outline.Area();
-
-                    if (curArea > shardArea)
-                    {
-                        insert(it, shard);
-                        return;
-                    }
-                }
-
-                // Smaller than everything
-                push_back(shard);
-            }
-            else
-            {
-                // Larger than the largest element
-                push_front(shard);
-            }
-        }
+        void InsertReverse(GlassShard *shard);
+        void Insert(GlassShard *shard);
     };
 
     const dvar_s *cullShards;

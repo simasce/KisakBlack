@@ -94,7 +94,7 @@ void __cdecl Sys_WaitWorkerCmdInternal(jqWorkerCmd *name)
     startTime = tlPcGetTick().QuadPart;
     jqSafeFlush(&name->module->Group, 0);
     if ( Sys_IsMainThread() )
-        gMainWaitWorker += *(_QWORD *)&tlPcGetTick() - startTime;
+        gMainWaitWorker += tlPcGetTick().QuadPart - startTime;
 }
 
 void __cdecl Sys_AssistAndWaitWorkerCmdInternal(jqWorkerCmd *name)
