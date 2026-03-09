@@ -2,6 +2,8 @@
 #include <cgame/cg_drawtools.h>
 #include <universal/com_math_anglevectors.h>
 #include <physics/physics_system.h>
+#include <game/g_scr_vehicle.h>
+#include <physics/phys_main.h>
 
 void    path_constraint_update(rigid_body_constraint_custom_path *vpc, gentity_s *veh)
 {

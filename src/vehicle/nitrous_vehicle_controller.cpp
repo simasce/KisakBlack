@@ -7,6 +7,8 @@
 #include <cgame/cg_main.h>
 #include <cgame/cg_drawtools.h>
 #include <physics/phys_assert.h>
+#include <physics/phys_main.h>
+#include <cgame_mp/cg_local_mp.h>
 
 float hand_brake_apply_delta = 30.0;
 float steer_velocity = 400.0;

@@ -31,6 +31,7 @@
 #include <client/cl_debugdata.h>
 #include <cgame/cg_drawtools.h>
 #include <xanim/xanim_clientnotify.h>
+#include <cgame_mp/cg_local_mp.h>
 
 float S_HEAVY_TILT_FAKEY = 0.40000001;
 float S_HEAVY_TANK_ACCEL = 15.0;
@@ -3480,14 +3481,6 @@ void    phys_multiply_mat(phys_mat44 *dest, const phys_mat44 *left, const phys_m
 //    m->fix_w_column();
 //}
 
-void __thiscall phys_mat44::fix_w_column()
-{
-    this->x.w = 0.0f;
-    this->y.w = 0.0f;
-    this->z.w = 0.0f;
-    this->w.w = 1.0f;
-}
-
 void __cdecl Phys_NitrousMat44ToVec33(const phys_mat44 *inMat, float (*outAxis)[3])
 {
     (*outAxis)[0] = inMat->x.x;
@@ -3934,16 +3927,4 @@ void __cdecl Vehicle_Launch(int localClientNum, centity_s *cent, float *hitp, co
 //        phys_mat44::operator=(mat, &PHYS_IDENTITY_MATRIX_44);
 //    }
 //}
-
-phys_mat44::phys_mat44(
-                const phys_vec3 *x_,
-                const phys_vec3 *y_,
-                const phys_vec3 *z_,
-                const phys_vec3 *w_)
-{
-    this->x = *x_;
-    this->y = *y_;
-    this->z = *z_;
-    this->w = *w_;
-}
 
