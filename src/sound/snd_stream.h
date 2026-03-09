@@ -7,7 +7,7 @@
 struct snd_buffer // sizeof=0x118
 {
     char *data;
-    int reference_count;
+    volatile unsigned int reference_count;
     char filename[260];
     unsigned int offset_in_file;
     unsigned int data_size;
@@ -42,17 +42,6 @@ struct __declspec(align(8)) snd_pack_file // sizeof=0x140
     // padding byte
     // padding byte
     // padding byte
-};
-
-struct snd_buffer // sizeof=0x118
-{
-    char *data;
-    //int reference_count;
-    volatile unsigned int reference_count;
-    char filename[260];
-    unsigned int offset_in_file;
-    unsigned int data_size;
-    unsigned int file_size;
 };
 
 struct __declspec(align(8)) snd_stream // sizeof=0x190

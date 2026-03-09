@@ -1,5 +1,12 @@
 #pragma once
 
+struct snd_group;
+struct snd_curve;
+struct snd_pan;
+struct snd_snapshot_group;
+struct snd_alias_t;
+
+
 enum snd_csv_entry_type : __int32
 {                                       // XREF: snd_csv_entry_t/r
     SND_CSV_STRING = 0x0,            // XREF: .rdata:snd_csv_entry_t const * const SND_ALIAS_STRINGS_FIELDS/s

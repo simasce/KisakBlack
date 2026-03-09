@@ -2369,7 +2369,7 @@ void __thiscall SDXA2SourceEffect::Process(
             this->tempb);
 }
 
-void __stdcall SDXA2SourceEffect::SetParameters(const void *pParams, unsigned int cbParams)
+void SDXA2SourceEffect::SetParameters(const void *pParams, unsigned int cbParams)
 {
     if ( cbParams != 64
         && !Assert_MyHandler(
@@ -2413,7 +2413,7 @@ void __thiscall SDXA2MasterNoVoiceBusEffect::Process(
     }
 }
 
-void __stdcall SDXA2MasterNoVoiceBusEffect::SetParameters(
+void SDXA2MasterNoVoiceBusEffect::SetParameters(
                 const void *pParams,
                 unsigned int cbParams)
 {
@@ -2495,7 +2495,7 @@ void __thiscall SDXA2MasterBusEffect::Process(
     }
 }
 
-void __stdcall SDXA2MasterBusEffect::SetParameters(const void *pParams, unsigned int cbParams)
+void SDXA2MasterBusEffect::SetParameters(const void *pParams, unsigned int cbParams)
 {
     if ( cbParams != 96
         && !Assert_MyHandler(
@@ -2559,7 +2559,7 @@ void __thiscall SDXA2RadverbEffect::Process(
     memcpy((unsigned __int8 *)data, (unsigned __int8 *)this->temp, frameCount * 4 * channelCount);
 }
 
-void __stdcall SDXA2RadverbEffect::SetParameters(const void *pParams, unsigned int cbParams)
+void SDXA2RadverbEffect::SetParameters(const void *pParams, unsigned int cbParams)
 {
     if ( cbParams != 100
         && !Assert_MyHandler(

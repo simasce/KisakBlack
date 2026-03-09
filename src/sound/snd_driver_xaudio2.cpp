@@ -24,7 +24,6 @@ const char *sd_xa2_device_guids_value_list[16];
 int sd_xa2_device_indices[16];
 _GUID sd_deviceGUIDs[16];
 char sd_xa2_device_guids[16][256];
-const char *sd_xa2_devices_value_list[16];
 
 const int sd_max_num_devices = 16;
 
@@ -1110,7 +1109,7 @@ void SND_ShutdownMasterVoice()
     g_sd.xa2->StopEngine();
     //((void (__stdcall *)(IXAudio2 *, void *))g_sd.xa2->StopEngine)(g_sd.xa2, this);
 
-    for ( i = 0; i < 0x4A; i = ia + 1 )
+    for ( i = 0; i < 0x4A; i = i + 1 )
         SND_StopVoice(i);
 
     g_sd.radverbBus->DestroyVoice();

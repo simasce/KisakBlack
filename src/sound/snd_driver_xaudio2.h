@@ -29,6 +29,8 @@ struct $adpcmwaveformat_tag$_extraBytes_28 // sizeof=0x32
                                         // iSND_CreateVoice+107/w ...
 };
 
+void __cdecl iSND_ReleaseStreamBuffer(unsigned int streamVoice, unsigned int bufferIndex);
+
 struct StreamVoice : IXAudio2VoiceCallback // sizeof=0x50
 {                                       // XREF: SoundState/r
     XAUDIO2_BUFFER buffers[2];
@@ -176,8 +178,8 @@ char __cdecl SD_XAudio2CheckDevice(
                 unsigned int deviceIndex);
 void SD_SwitchDevice();
 void SND_InitMasterVoice();
-void SD_Shutdown(void *thisp);
-void SND_ShutdownMasterVoice(void *thisp);
+void SD_Shutdown();
+void SND_ShutdownMasterVoice();
 void __cdecl SD_PreUpdate();
 void __cdecl SD_PauseVoice(int voiceIndex);
 void __cdecl SD_UnpauseVoice(int voiceIndex);

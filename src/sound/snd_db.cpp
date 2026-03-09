@@ -52,10 +52,6 @@ const char *MOVE_TYPES[9] =
   NULL
 };
 
-const char *LOAD_TYPES[5] =
-{ "unknown", "loaded", "streamed", "primed", NULL };
-
-
 
 
 const char *CURVES[33];

@@ -196,27 +196,21 @@ struct snd_alias_list_t // sizeof=0x14
 
 union SndEntHandle // sizeof=0x4
 {                                                                             // XREF: CG_EntityEvent(int,centity_s *,int)+3E5C/w
-                                                                                // CG_EntityEvent(int,centity_s *,int)+3E69/r ...
-        //SndEntHandle::<unnamed_type_field> field;
-        struct // sizeof=0x4
-        {                                                                             // XREF: SndEntHandle/r
-                unsigned __int32 entIndex : 12;
-                unsigned __int32 useCount : 7;
-                unsigned __int32 localClientNum : 2;
-                unsigned __int32 isStationary : 1;
-                unsigned __int32 isInKillCam : 1;
-                unsigned __int32 team : 3;
-                unsigned __int32 tag : 6;
-        } field;
-        int handle;
+    //SndEntHandle::<unnamed_type_field> field;
+    struct // sizeof=0x4
+    {                                                                             // XREF: SndEntHandle/r
+            unsigned __int32 entIndex : 12;
+            unsigned __int32 useCount : 7;
+            unsigned __int32 localClientNum : 2;
+            unsigned __int32 isStationary : 1;
+            unsigned __int32 isInKillCam : 1;
+            unsigned __int32 team : 3;
+            unsigned __int32 tag : 6;
+    } field;
+    int handle;
 
-        SndEntHandle(int init)
-        {
-            handle = init;
-        }
-        SndEntHandle()
-        {
-        }
+    constexpr SndEntHandle() : handle(0) {}
+    constexpr SndEntHandle(int init) : handle(init) {}
 };
 
 struct __declspec(align(4)) snd_occlusion_start_cache // sizeof=0x14
@@ -793,29 +787,30 @@ struct snd_set_context // sizeof=0x8
 
 union snd_command_context // sizeof=0x40
 {                                                                             // XREF: .rdata:00D146D9/o
-                                                                                // .rdata:00D146DD/o ...
-        snd_alias_name_context alias_name;
-        snd_play_context play;
-        snd_stop_alias_context stop_alias;
-        snd_stop_ent_context stop_ent;
-        snd_cinematic_start_context notify_cinematic_start;
-        snd_disconnect_listener_context disconnect_listener;
-        snd_set_listener_context set_listener;
-        snd_stop_sounds_context stop_sounds;
-        snd_set_environment_effects_context set_environment_effects;
-        snd_deactivate_environment_effects_context deactivate_environment_effects;
-        snd_set_playback_attenuation_context set_playback_attenuation;
-        snd_set_playback_attenuation_rate_context set_playback_attenuation_rate;
-        snd_set_playback_pitch_context set_playback_pitch;
-        snd_set_playback_pitch_rate_context set_playback_pitch_rate;
-        snd_stop_playback_context stop_playback;
-        snd_snapshot_context snapshot;
-        snd_set_ent_state_context set_ent_state;
-        snd_set_game_state_context set_game_state;
-        snd_loop_at loop_at;
-        snd_line_at line_at;
-        snd_set_context set_context;
-        snd_script_timescale script_timescale;
+    snd_alias_name_context alias_name;
+    snd_play_context play;
+    snd_stop_alias_context stop_alias;
+    snd_stop_ent_context stop_ent;
+    snd_cinematic_start_context notify_cinematic_start;
+    snd_disconnect_listener_context disconnect_listener;
+    snd_set_listener_context set_listener;
+    snd_stop_sounds_context stop_sounds;
+    snd_set_environment_effects_context set_environment_effects;
+    snd_deactivate_environment_effects_context deactivate_environment_effects;
+    snd_set_playback_attenuation_context set_playback_attenuation;
+    snd_set_playback_attenuation_rate_context set_playback_attenuation_rate;
+    snd_set_playback_pitch_context set_playback_pitch;
+    snd_set_playback_pitch_rate_context set_playback_pitch_rate;
+    snd_stop_playback_context stop_playback;
+    snd_snapshot_context snapshot;
+    snd_set_ent_state_context set_ent_state;
+    snd_set_game_state_context set_game_state;
+    snd_loop_at loop_at;
+    snd_line_at line_at;
+    snd_set_context set_context;
+    snd_script_timescale script_timescale;
+
+    snd_command_context() { memset(this, 0, sizeof(*this)); }
 };
 
 struct snd_command // sizeof=0x4C
@@ -869,11 +864,13 @@ struct snd_length // sizeof=0x8
 
 union snd_notify_context // sizeof=0x10
 {                                                                             // XREF: snd_notify/r
-        snd_ent_update ent_update;
-        snd_subtitle subtitle;
-        snd_length length;
-        snd_playback_free playback_free;
-        snd_playback_update playback_update;
+    snd_ent_update ent_update;
+    snd_subtitle subtitle;
+    snd_length length;
+    snd_playback_free playback_free;
+    snd_playback_update playback_update;
+
+    snd_notify_context() { memset(this, 0, sizeof(*this)); }
 };
 
 struct snd_notify // sizeof=0x14

@@ -23,6 +23,7 @@
 #include "snd_db.h"
 #include "snd_stream.h"
 #include "snd_local.h"
+#include <database/db_registry.h>
 
 snd_local_t g_snd;
 
@@ -983,9 +984,9 @@ void __cdecl SND_UpdateVoicePosition(snd_voice_t *voice, const float *startPosit
     float v3; // [esp+4Ch] [ebp-CCh]
     float v4; // [esp+5Ch] [ebp-BCh]
     float v5; // [esp+6Ch] [ebp-ACh]
-    float origin; // [esp+F4h] [ebp-24h] BYREF
-    float v7; // [esp+F8h] [ebp-20h]
-    float v8; // [esp+FCh] [ebp-1Ch]
+    float origin[3]; // [esp+F4h] [ebp-24h] BYREF
+    //float v7; // [esp+F8h] [ebp-20h]
+    //float v8; // [esp+FCh] [ebp-1Ch]
     float offset[3]; // [esp+100h] [ebp-18h]
     float entityOrigin[3]; // [esp+10Ch] [ebp-Ch] BYREF
 
@@ -1093,11 +1094,11 @@ void __cdecl SND_UpdateVoicePosition(snd_voice_t *voice, const float *startPosit
         }
         if ( voice->positionUpdated )
         {
-            if ( !SND_GetEntState(voice->sndEnt, &origin, voice->velocity, voice->orientation) )
+            if ( !SND_GetEntState(voice->sndEnt, origin, voice->velocity, voice->orientation) )
                 return;
-            if ( ((LODWORD(origin) & 0x7F800000) == 0x7F800000
-                 || (LODWORD(v7) & 0x7F800000) == 0x7F800000
-                 || (LODWORD(v8) & 0x7F800000) == 0x7F800000)
+            if ( ((LODWORD(origin[0]) & 0x7F800000) == 0x7F800000
+                 || (LODWORD(origin[1]) & 0x7F800000) == 0x7F800000
+                 || (LODWORD(origin[2]) & 0x7F800000) == 0x7F800000)
                 && !Assert_MyHandler(
                             "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp",
                             650,
@@ -1155,9 +1156,9 @@ void __cdecl SND_UpdateVoicePosition(snd_voice_t *voice, const float *startPosit
             {
                 __debugbreak();
             }
-            voice->position[0] = origin;
-            voice->position[1] = v7;
-            voice->position[2] = v8;
+            voice->position[0] = origin[0];
+            voice->position[1] = origin[1];
+            voice->position[2] = origin[2];
             v5 = voice->offset[0];
             voice->position[0] = (float)(v5 * voice->orientation[0][0]) + voice->position[0];
             voice->position[1] = (float)(v5 * voice->orientation[0][1]) + voice->position[1];
@@ -2797,8 +2798,6 @@ unsigned int SND_InitGroups()
 
 void __cdecl SND_Shutdown()
 {
-    void *v0; // ecx
-
     if ( g_snd.init )
     {
         SND_DebugFini();
@@ -2809,7 +2808,7 @@ void __cdecl SND_Shutdown()
         }
         SND_ShutdownVoices();
         SND_UpdateWait();
-        SD_Shutdown(v0);
+        SD_Shutdown();
         SND_LosOcclusionFini();
         memset((unsigned __int8 *)&g_snd, 0, sizeof(g_snd));
         Sleep(0x3E8u);

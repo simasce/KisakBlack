@@ -27,6 +27,8 @@ struct snd_overlay_info // sizeof=0xF0
     __int64 played;
 };
 
+struct snd_listener;
+
 void __cdecl SND_DebugInit();
 void __cdecl SND_DebugFini();
 void __cdecl SND_DebugDrawWorldSounds(int debugDrawStyle);
