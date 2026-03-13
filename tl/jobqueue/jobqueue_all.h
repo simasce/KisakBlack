@@ -97,6 +97,13 @@ struct tlSharedAtomicMutex // sizeof=0x10
                                         // _dynamic_initializer_for__jqPool__+11/w ...
     tlSharedAtomicMutex *ThisPtr;       // XREF: jqInit(void)+27/w
 
+    tlSharedAtomicMutex()
+    {
+        ThreadId = 0;
+        LockCount = 0;
+        ThisPtr = this;
+    }
+
     void Lock();
     void Unlock();
 };
@@ -327,7 +334,6 @@ struct jqQueue // sizeof=0x60
                                         // jqStart(void)+2D0/w ...
     unsigned int ProcessorsMask;        // XREF: jqStart(void)+2E5/w
                                         // jqStart(void)+31C/w
-
     ~jqQueue();
 };
 

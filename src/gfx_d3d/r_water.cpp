@@ -5,13 +5,19 @@
 #include "r_image.h"
 #include "r_dvars.h"
 #include <universal/com_workercmds.h>
+#include "r_workercmds.h"
 
 WaterGlob waterGlob;
 volatile unsigned int g_waterLock;
 WaterGlobStatic waterGlobStatic;
 
 volatile unsigned int r_waterLimit = 1;
-jqModule r_waterModule;
+jqModule r_waterModule =
+{
+    .Name = "r_water",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_waterCallback,
+};
 jqWorkerCmd r_waterWorkerCmd = { &r_waterModule, 4u, 0, 0, &r_waterLimit, NULL, 0u };
 
 void __cdecl R_UploadWaterTextureInternal(water_t **data)

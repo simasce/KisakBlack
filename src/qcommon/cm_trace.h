@@ -158,6 +158,11 @@ struct trace_t // sizeof=0x38
     // Phys_FindAndRenderBulletMesh(float const * const,float const * const,int,bool)+334/r ...
     int hitPartition;                                     // XREF: Mount_CheckLedge+10/w
     // BG_CheckProne(playerState_s const *,int,float const * const,float,float,float,float *,float *,bool,bool,bool,uchar,proneCheckType_t,float)+10/w ...
+
+    trace_t()
+    {
+        memset(this, 0, sizeof(trace_t)); // Blops added this, might help
+    }
 };
 
 struct cbrushside_t // sizeof=0xC

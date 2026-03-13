@@ -701,6 +701,11 @@ struct phys_simple_allocator//<phys_heap_gjk_cache_system_avl_tree::phys_gjk_cac
 {                                                                             // XREF: phys_heap_gjk_cache_system_avl_tree/r
         int m_count;
 
+        phys_simple_allocator()
+        {
+            m_count = 0;
+        }
+
         T *allocate()
         {
                 char *slot; // [esp+18h] [ebp-4h]
@@ -821,6 +826,7 @@ public:
     {
         m_slot_array = (T*)&m_buffer;
         m_alloc_count = 0;
+        memset(m_buffer, 0, sizeof(m_buffer)); // lwss add
     }
 
     T *operator[](int i)
@@ -895,6 +901,11 @@ public:
     {
         //phys_free_list<broad_phase_collision_pair>::T_internal_base *m_ptr;
         T_internal_base *m_ptr;
+
+        iterator()
+        {
+            m_ptr = NULL;
+        }
     };
 
     struct __declspec(align(16)) T_internal : T_internal_base
@@ -912,6 +923,15 @@ public:
     int m_ptr_list_count;
 
 public:
+
+    phys_free_list()
+    {
+        m_dummy_head.m_next_T_internal = (phys_free_list<T>::T_internal_base *)this;
+        m_dummy_head.m_prev_T_internal = (phys_free_list<T>::T_internal_base *)this;
+        m_list_count = 0;
+        m_list_count_high_water = 0;
+        m_ptr_list_count = 0;
+    }
 
     void debug_add(T_internal *T_i)
     {
@@ -1106,7 +1126,12 @@ struct phys_inplace_avl_tree
         int  m_child; // -1 = left, +1 = right
     };
 
-    T2 *m_tree_root = nullptr;
+    T2 *m_tree_root;
+
+    phys_inplace_avl_tree()
+    {
+        m_tree_root = NULL;
+    }
 
     /* ------------------------------------------------------------ */
     /* rotations                                                    */
@@ -1814,7 +1839,7 @@ static const phys_vec3 PHYS_ZERO_VEC = { 0.0f, 0.0f, 0.0f, 0.0f };
 static const phys_mat44 PHYS_IDENTITY_MATRIX(&PHYS_X_VEC, &PHYS_Y_VEC, &PHYS_Z_VEC, &PHYS_ZERO_VEC);
 
 static const float PHYS_PI = 3.1415927f;
-static const float PHYS_PI_TIMES_2 = 6.2831855f;
-static const float PHYS_PI_OVER_2 = 1.5707964f;
+static const float PHYS_PI_TIMES_2 = 3.1415927 * 2.0;// 6.2831855f;
+static const float PHYS_PI_OVER_2 = 3.1415927 / 2.0;// 1.5707964f;
 
 #define PHYS_ALIGNOF(type) alignof(type)

@@ -8,7 +8,7 @@ struct bitarray // sizeof=0x10
 {                                                                             // ...
     bitarray()
     {
-        for (int j = 0; j < 2; ++j)
+        for (int j = 0; j < ((BIT_COUNT + 31) / 32); ++j)
             this->array[j] = 0;
     }
     bitarray(unsigned int first, ...)
@@ -19,7 +19,7 @@ struct bitarray // sizeof=0x10
         va_list va; // [esp+1Ch] [ebp+10h] BYREF
 
         va_start(va, first);
-        for (i = 0; i < 2; ++i)
+        for (i = 0; i < ((BIT_COUNT + 31) / 32); ++i)
             this->array[i] = 0;
         setBit(first);
         va_copy(argList, va);

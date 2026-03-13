@@ -28,7 +28,13 @@ uploadStreamData_t s_uploadStreamData;
 uploadStreamHistory_t s_uploadStreamUsage;
 
 volatile unsigned int Demo_SaveLimit;
-jqModule Demo_SaveModule;
+jqModule Demo_SaveModule =
+{
+    .Name = "Demo_Save",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = Demo_SaveCallback,
+    //.Group = 0
+};
 jqWorkerCmd Demo_SaveWorkerCmd = { &Demo_SaveModule, 12u, 0, 0, &Demo_SaveLimit, NULL, 0u };
 
 int g_democlientindex;

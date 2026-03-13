@@ -49,6 +49,14 @@ struct Ui3dStatus // sizeof=0x14
     // padding byte
     float blurRadius;                   // XREF: R_UI3D_SetBlurRadius(float)+8/w
                                         // R_UI3D_OnetimeInit(ushort,ushort,bool,int,bool)+94/w ...
+
+    Ui3dStatus()
+    {
+        initialized = 0;
+        rendering = 0;
+        width = 0;
+        height = 0;
+    }
 };
 
 GfxUI3DStack *__cdecl R_GetUI3DStack();

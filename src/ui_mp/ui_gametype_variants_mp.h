@@ -43,8 +43,8 @@ struct GVConditional // sizeof=0x4
 
 struct __declspec(align(4)) GVEvent // sizeof=0xC
 {
-    char *m_name;
-    char *m_scriptName;
+    const char *m_name;
+    const char *m_scriptName;
     unsigned __int8 m_targetMask;
     unsigned __int8 m_condMask;
     // padding byte
@@ -79,8 +79,8 @@ struct GVValue // sizeof=0x8
 
 struct GVAction // sizeof=0x14
 {                                       // XREF: .data:stru_98A5D98/r
-    char *m_name;
-    char *m_scriptName;
+    const char *m_name;
+    const char *m_scriptName;
     unsigned __int8 m_parameterType;
     // padding byte
     // padding byte
@@ -89,8 +89,8 @@ struct GVAction // sizeof=0x14
     int m_parametersSize;
 
     GVAction(
-        char *name,
-        char *scriptName,
+        const char *name,
+        const char *scriptName,
         unsigned __int8 parameterType,
         GVValue *parameters,
         int parametersSize);

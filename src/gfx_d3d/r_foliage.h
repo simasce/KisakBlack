@@ -40,13 +40,19 @@ struct GrassForce // sizeof=0x18
 
 struct PerFrameFoliageInfo // sizeof=0x34C
 {                                       // XREF: DrawStateWorkerSharedBuffer/r
-                                        // ClientFoliageInfo/r
     GrassForce grassInstantForces[16];
     GrassForce grassPersistantForces[8];
     GrassWindForce grassWindForces[16];
     unsigned int numGrassInstantForces;
     unsigned int numGrassPersistantForces;
     unsigned int numGrassWindForces;
+
+    PerFrameFoliageInfo()
+    {
+        numGrassInstantForces = 0;
+        numGrassPersistantForces = 0;
+        numGrassWindForces = 0;
+    }
 };
 
 struct __declspec(align(4)) DrawStateWorkerSharedBuffer // sizeof=0x1390

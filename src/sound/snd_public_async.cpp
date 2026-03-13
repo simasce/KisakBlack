@@ -13,7 +13,16 @@
 #include <Windows.h>
 #include "snd_local.h"
 
-jqWorkerCmd updatesound_workerWorkerCmd;
+volatile unsigned int updatesound_workerLimit = 1;
+jqModule updatesound_workerModule =
+{
+    .Name = "updatesound_worker",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))updatesound_workerCallback,
+};
+jqWorkerCmd updatesound_workerWorkerCmd = { &updatesound_workerModule, 4u, 0, 0, &updatesound_workerLimit, NULL, 0u };
+
+
 
 volatile unsigned int entryCount;
 

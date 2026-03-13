@@ -4,6 +4,7 @@
 #include "phys_task_manager.h"
 #include "phys_assert.h"
 
+// no workercmd
 jqModule phys_jq_constraint_solverModule=
 {
   "phys_jq_constraint_solver",

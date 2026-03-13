@@ -24,8 +24,18 @@ phys_simple_allocator<gjk_cylinder_t> cylinder_pool;
 phys_simple_allocator<gjk_polygon_cylinder_t> polygon_cylinder_pool;
 
 gjk_unique_id_database_t g_gjk_unique_id_database;
-const phys_vec3 g_phys_vec3_box_sgn[8];
 
+const phys_vec3 g_phys_vec3_box_sgn[8] =
+{
+    {  1.0f,  1.0f,  1.0f },
+    {  1.0f,  1.0f, -1.0f },
+    {  1.0f, -1.0f,  1.0f },
+    {  1.0f, -1.0f, -1.0f },
+    { -1.0f,  1.0f,  1.0f },
+    { -1.0f,  1.0f, -1.0f },
+    { -1.0f, -1.0f,  1.0f },
+    { -1.0f, -1.0f, -1.0f }
+};
 const char *g_contact_manifold_error_msg = "contact_manifold memory overflow: INCREASE phys_contact_manifold_process::ALLOCATOR_MEMORY_SIZE";
 
 create_gjk_geom_collision_visitor g_empty_collision_visitor;

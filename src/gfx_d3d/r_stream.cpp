@@ -25,13 +25,76 @@
 #include <DynEntity/DynEntity_client.h>
 #include "r_rendercmds.h"
 
-jqWorkerCmd r_stream_sortWorkerCmd;
-jqWorkerCmd r_stream_updateWorkerCmd;
-jqWorkerCmd r_stream_combineWorkerCmd;
-jqModule r_stream_combineModule;
-jqModule r_stream_updateModule;
-jqModule r_stream_update_staticmodelsModule;
-jqModule r_stream_update_staticsurfacesModule;
+volatile unsigned int r_stream_sortLimit = 1;
+jqModule r_stream_sortModule =
+{
+    .Name = "r_stream_sort",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_stream_sortCallback,
+};
+jqWorkerCmd r_stream_sortWorkerCmd = { &r_stream_sortModule, 8u, 0, 0, &r_stream_sortLimit, NULL, 0u };
+
+
+volatile unsigned int r_stream_updateLimit = 1;
+jqModule r_stream_updateModule =
+{
+    .Name = "r_stream_update",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_stream_updateCallback,
+};
+jqWorkerCmd r_stream_updateWorkerCmd = { &r_stream_updateModule, 28u, 0, 0, &r_stream_updateLimit, NULL, 0u };
+
+
+volatile unsigned int r_stream_combineLimit = 1;
+jqModule r_stream_combineModule =
+{
+    .Name = "r_stream_combine",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_stream_combineCallback,
+};
+jqWorkerCmd r_stream_combineWorkerCmd = { &r_stream_combineModule, 4u, 0, 0, &r_stream_combineLimit, NULL, 0u };
+
+
+volatile unsigned int r_stream_update_staticmodelsLimit = 1;
+jqModule r_stream_update_staticmodelsModule =
+{
+    .Name = "r_stream_update_staticmodels",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = r_stream_update_staticmodelsCallback,
+};
+jqWorkerCmd r_stream_update_staticmodelsWorkerCmd=
+{
+  &r_stream_update_staticmodelsModule,
+  28u,
+  0,
+  0,
+  &r_stream_update_staticmodelsLimit,
+  NULL,
+  0u
+};
+
+
+
+volatile unsigned int r_stream_update_staticsurfacesLimit = 1;
+jqModule r_stream_update_staticsurfacesModule =
+{
+    .Name = "r_stream_update_staticsurfaces",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_stream_update_staticsurfacesCallback,
+
+};
+jqWorkerCmd r_stream_update_staticsurfacesWorkerCmd =
+{
+  &r_stream_update_staticsurfacesModule,
+  28u,
+  0,
+  0,
+  &r_stream_update_staticsurfacesLimit,
+  NULL,
+  0u
+};
+
+
 
 Material *s_preventMaterials[32];
 

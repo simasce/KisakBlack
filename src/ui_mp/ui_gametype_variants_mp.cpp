@@ -17,23 +17,345 @@ const dvar_t *ui_gv_rulecount;
 const dvar_t *ui_gv_reloadSpeedModifier;
 const dvar_s *custom_class_mode;
 
-GVValue gvCondOpValues[6];
-GVValue classParamValues[10];
+GVValue gvCondOpValues[6] =
+{
+    { "CUSTOM_EQUAL_TO",                 "==" },
+    { "CUSTOM_NOT_EQUAL_TO",             "!=" },
+    { "CUSTOM_LESS_THAN",                "<"  },
+    { "CUSTOM_LESS_THAN_OR_EQUAL_TO",    "<=" },
+    { "CUSTOM_GREATER_THAN",             ">"  },
+    { "CUSTOM_GREATER_THAN_OR_EQUAL_TO", ">=" }
+};
+
+GVValue classParamValues[10] =
+{
+    { "", "" },
+    { "", "" },
+    { "", "" },
+    { "", "" },
+    { "", "" },
+    { "", "" },
+    { "", "" },
+    { "", "" },
+    { "", "" },
+    { "", "" }
+};
+
 _CustomClassData g_customGameModeClasses[10];
 
 GVGlob gvGlob;
 
-GVConditionalLhs gvCondLhsValues[9];
+GVValue gvCondRoundsPlayedRhsValues[10] =
+{
+    { "1",  "1"  },
+    { "2",  "2"  },
+    { "3",  "3"  },
+    { "4",  "4"  },
+    { "5",  "5"  },
+    { "6",  "6"  },
+    { "7",  "7"  },
+    { "8",  "8"  },
+    { "9",  "9"  },
+    { "10", "10" }
+};
 
-GVEvent gvEvents[10];
+GVValue gvCondPlayersLeftRhsValues[12] =
+{
+    { "1",  "1"  },
+    { "2",  "2"  },
+    { "3",  "3"  },
+    { "4",  "4"  },
+    { "5",  "5"  },
+    { "6",  "6"  },
+    { "7",  "7"  },
+    { "8",  "8"  },
+    { "9",  "9"  },
+    { "10", "10" },
+    { "11", "11" },
+    { "12", "12" }
+};
+
+GVValue gvPlaceValues[3] =
+{
+    { "CUSTOM_FIRST_PLACE", "first"  },
+    { "CUSTOM_TOP_THREE",   "top3"   },
+    { "CUSTOM_LAST_PLACE",  "last"   }
+};
+
+GVValue gvCondHitByRhsValues[4] =
+{
+    { "CUSTOM_HIT_BY_KNIFE", "knife" },
+    { "CUSTOM_HEADSHOT",     "headshot" },
+    { "CUSTOM_EXPLOSION",    "explosion" },
+    { "CUSTOM_BULLET",       "bullet" }
+};
+
+GVConditionalLhs gvCondLhsValues[9] =
+{
+    {
+        "CUSTOM_PLAYERS_LEFT",
+        "PlayersLeft",
+        GV_COND_MASK_GENERAL,
+        { gvCondPlayersLeftRhsValues, 12, GVTYPE_INT }
+    },
+    {
+        "CUSTOM_ROUNDS_PLAYED",
+        "RoundsPlayed",
+        GV_COND_MASK_GENERAL,
+        { gvCondRoundsPlayedRhsValues, 10, GVTYPE_INT }
+    },
+    {
+        "CUSTOM_HIT_BY",
+        "HitBy",
+        GV_COND_MASK_HIT_BY,
+        { gvCondHitByRhsValues, 4, GVTYPE_STRING }
+    },
+    {
+        "CUSTOM_PLAYERS_CLASS",
+        "PlayersClass",
+        GV_COND_MASK_PLAYER_CLASS,
+        { classParamValues, 10, GVTYPE_STRING }
+    },
+    {
+        "CUSTOM_VICTIMS_CLASS",
+        "VictimsClass",
+        GV_COND_MASK_ATTACK_CLASS,
+        { classParamValues, 10, GVTYPE_STRING }
+    },
+    {
+        "CUSTOM_ATTACKERS_CLASS",
+        "AttackersClass",
+        GV_COND_MASK_ATTACK_CLASS,
+        { classParamValues, 10, GVTYPE_STRING }
+    },
+    {
+        "CUSTOM_PLAYERS_PLACE",
+        "PlayersPlace",
+        GV_COND_MASK_PLAYER,
+        { gvPlaceValues, 3, GVTYPE_STRING }
+    },
+    {
+        "CUSTOM_VICTIMS_PLACE",
+        "VictimsPlace",
+        GV_COND_MASK_ATTACK,
+        { gvPlaceValues, 3, GVTYPE_STRING }
+    },
+    {
+        "CUSTOM_ATTACKERS_PLACE",
+        "AttackersPlace",
+        GV_COND_MASK_ATTACK,
+        { gvPlaceValues, 3, GVTYPE_STRING }
+    }
+};
+
+GVEvent gvEvents[10] =
+{
+    { "CUSTOM_ROUND_BEGIN",         "OnRoundBegin",              1,  1  },
+    { "CUSTOM_ROUND_END",           "OnRoundEnd",                1,  1  },
+    { "CUSTOM_PLAYER_HIT",          "OnPlayerTakeDamage",       19, 27 },
+    { "CUSTOM_PLAYER_KILLED",       "OnKill",                   51, 25 },
+    { "CUSTOM_PLAYER_ELIMINATED",   "OnPlayerElimination",      13, 25 },
+    { "CUSTOM_PLAYER_SPAWN",        "OnPlayerSpawn",            13, 37 },
+    { "CUSTOM_PLAYER_TEAM_CHANGE",  "OnPlayerTeamChange",       13, 37 },
+    { "CUSTOM_PLAYER_CLASS_CHANGE", "OnPlayerClassChange",      13, 37 },
+    { "CUSTOM_PLAYER_KS_EARNED",    "OnPlayerKillstreakEarned", 13, 37 },
+    { "CUSTOM_PLAYER_KS_ACTIVATED", "OnPlayerKillstreakActivated", 13, 37 }
+};
+
 int gvEventCount;
 
-GVAction gvActions[25];
+GVValue healthRegenParamValues[6] =
+{
+    { "CUSTOM_NONE",      "0.0"  },
+    { "CUSTOM_VERY_SLOW", "0.01" },
+    { "CUSTOM_SLOW",      "0.05" },
+    { "CUSTOM_NORMAL",    "0.1"  },
+    { "CUSTOM_FAST",      "0.2"  },
+    { "CUSTOM_VERY_FAST", "0.4"  }
+};
+
+GVValue livesParamValues[10] =
+{
+    { "1",  "1"  },
+    { "2",  "2"  },
+    { "3",  "3"  },
+    { "4",  "4"  },
+    { "5",  "5"  },
+    { "6",  "6"  },
+    { "7",  "7"  },
+    { "8",  "8"  },
+    { "9",  "9"  },
+    { "10", "10" }
+};
+
+GVValue maxHealthParamValues[17] =
+{
+    { "1",     "1"     },
+    { "25",    "25"    },
+    { "50",    "50"    },
+    { "75",    "75"    },
+    { "100",   "100"   },
+    { "125",   "125"   },
+    { "150",   "150"   },
+    { "175",   "175"   },
+    { "200",   "200"   },
+    { "225",   "225"   },
+    { "250",   "250"   },
+    { "275",   "275"   },
+    { "300",   "300"   },
+    { "400",   "400"   },
+    { "500",   "500"   },
+    { "750",   "750"   },
+    { "1000",  "1000"  }
+};
+
+GVValue moveSpeedParamValues[11] =
+{
+    { "0.1",  "0.1"  },
+    { "0.25", "0.25" },
+    { "0.5",  "0.5"  },
+    { "0.75", "0.75" },
+    { "0.9",  "0.9"  },
+    { "1.0",  "1.0"  },
+    { "1.1",  "1.1"  },
+    { "1.25", "1.25" },
+    { "1.5",  "1.5"  },
+    { "1.75", "1.75" },
+    { "2.0",  "2.0"  }
+};
+
+GVValue radarParamValues[2] =
+{
+    { "CUSTOM_ENABLE",  "enable"  },
+    { "CUSTOM_DISABLE", "disable" }
+};
+
+GVValue reloadParamValues[12] =
+{
+    { "0.1",  "0.1"  },
+    { "0.25", "0.25" },
+    { "0.5",  "0.5"  },
+    { "0.75", "0.75" },
+    { "0.9",  "0.9"  },
+    { "1.0",  "1.0"  },
+    { "1.1",  "1.1"  },
+    { "1.25", "1.25" },
+    { "1.5",  "1.5"  },
+    { "1.75", "1.75" },
+    { "2.0",  "2.0"  },
+    { "4.0",  "4.0"  }
+};
+
+GVValue scoreParamValues[25] =
+{
+    { "1",    "1"    },
+    { "5",    "5"    },
+    { "10",   "10"   },
+    { "15",   "15"   },
+    { "20",   "20"   },
+    { "25",   "25"   },
+    { "30",   "30"   },
+    { "35",   "35"   },
+    { "40",   "40"   },
+    { "45",   "45"   },
+    { "50",   "50"   },
+    { "100",  "100"  },
+    { "150",  "150"  },
+    { "200",  "200"  },
+    { "250",  "250"  },
+    { "300",  "300"  },
+    { "350",  "350"  },
+    { "400",  "400"  },
+    { "450",  "450"  },
+    { "500",  "500"  },
+    { "600",  "600"  },
+    { "700",  "700"  },
+    { "800",  "800"  },
+    { "900",  "900"  },
+    { "1000", "1000" }
+};
+
+GVValue teamParamValues[3] =
+{
+    { "CUSTOM_TOGGLE", "toggle" },
+    { "CUSTOM_TEAM_A", "allies" },
+    { "CUSTOM_TEAM_B", "axis"   }
+};
+
+GVValue ammoParamValues[6] =
+{
+    { "1", "1" },
+    { "2", "2" },
+    { "3", "3" },
+    { "4", "4" },
+    { "5", "5" },
+    { "6", "6" }
+};
+
+GVValue damageModParamValues[8] =
+{
+    { "0.25", "0.25" },
+    { "0.5",  "0.5"  },
+    { "0.75", "0.75" },
+    { "1.0",  "1.0"  },
+    { "1.25", "1.25" },
+    { "1.5",  "1.5"  },
+    { "1.75", "1.75" },
+    { "2.0",  "2.0"  }
+};
+
+GVAction gvActions[25] =
+{
+    GVAction("CUSTOM_GIVE_AMMO",         "GiveAmmo",           1, ammoParamValues,        6),
+    GVAction("CUSTOM_REMOVE_AMMO",       "RemoveAmmo",         1, ammoParamValues,        6),
+    GVAction("CUSTOM_GIVE_SCORE",        "GiveScore",          1, scoreParamValues,       25),
+    GVAction("CUSTOM_REMOVE_SCORE",      "RemoveScore",        1, scoreParamValues,       25),
+    GVAction("CUSTOM_ENABLE_UAV",        "EnableUAV",          0, nullptr,                0),
+    GVAction("CUSTOM_SET_HEADER",        "SetHeader",          4, nullptr,                0),
+    GVAction("CUSTOM_SET_SUBHEADER",     "SetSubHeader",       4, nullptr,                0),
+    GVAction("CUSTOM_ANNOUNCEMENT",      "DisplayMessage",     4, nullptr,                0),
+    GVAction("CUSTOM_SET_HEALTH_REGEN",  "SetHealthRegen",     1, healthRegenParamValues, 6),
+    GVAction("CUSTOM_CHANGE_CLASS",      "ChangeClass",        5, classParamValues,       10),
+    GVAction("CUSTOM_CHANGE_TEAM",       "ChangeTeam",         3, teamParamValues,        3),
+    GVAction("CUSTOM_GIVE_HEALTH",       "GiveHealth",         1, maxHealthParamValues,   17),
+    GVAction("CUSTOM_REMOVE_HEALTH",     "RemoveHealth",       1, maxHealthParamValues,   17),
+    GVAction("CUSTOM_GIVE_LIVES",        "GiveLives",          1, livesParamValues,       10),
+    GVAction("CUSTOM_REMOVE_LIVES",      "RemoveLives",        1, livesParamValues,       10),
+    GVAction("CUSTOM_SET_DAMAGE_MOD",    "SetDamageModifier",  1, damageModParamValues,   8),
+    GVAction("CUSTOM_GIVE_INVULN",       "GiveInvuln",         0, nullptr,                0),
+    GVAction("CUSTOM_REMOVE_INVULN",     "RemoveInvuln",       0, nullptr,                0),
+    GVAction("CUSTOM_GIVE_PERK",         "GivePerk",           6, nullptr,                0),
+    GVAction("CUSTOM_REMOVE_PERK",       "RemovePerk",         6, nullptr,                0),
+    GVAction("CUSTOM_GIVE_KILLSTREAK",   "GiveKillstreak",     7, nullptr,                0),
+    GVAction("CUSTOM_REMOVE_KILLSTREAK", "RemoveKillstreak",   7, nullptr,                0),
+    GVAction("CUSTOM_SCALE_SPEED",       "ScaleMoveSpeed",     2, moveSpeedParamValues,   11),
+    GVAction("CUSTOM_SHOW_ON_RADAR",     "ShowOnRadar",        3, radarParamValues,       2),
+    GVAction("CUSTOM_SCALE_RELOAD_SPEED","ScaleReloadSpeed",   2, reloadParamValues,      12)
+};
 int gvActionCount;
 
-GVTarget gvTargets[19];
-
-GVValue teamParamValues[3];
+GVTarget gvTargets[19] =
+{
+    { (char *)"CUSTOM_EVERYONE",                   (char *)"Everyone",                        1  },
+    { (char *)"CUSTOM_PLAYERS_REMAINING",         (char *)"PlayersLeft",                     1  },
+    { (char *)"CUSTOM_PLAYERS_ELIMINATED",        (char *)"PlayersEliminated",               1  },
+    { (char *)"CUSTOM_ATTACKER",                   (char *)"Attacker",                        2  },
+    { (char *)"CUSTOM_VICTIM",                     (char *)"Victim",                          2  },
+    { (char *)"CUSTOM_PLAYER",                     (char *)"Player",                          4  },
+    { (char *)"CUSTOM_PLAYERS_TEAM",               (char *)"PlayersTeam",                     8  },
+    { (char *)"CUSTOM_OTHER_TEAM",                 (char *)"OtherTeam",                        8  },
+    { (char *)"CUSTOM_ATTACKERS_TEAM",             (char *)"AttackersTeam",                   16 },
+    { (char *)"CUSTOM_VICTIMS_TEAM",              (char *)"VictimsTeam",                     16 },
+    { (char *)"CUSTOM_PLAYERS_LEFT_PLAYERS_TEAM", (char *)"PlayersLeftOnPlayersTeam",        8  },
+    { (char *)"CUSTOM_PLAYERS_LEFT_OTHER_TEAM",   (char *)"PlayersLeftOnOtherTeam",          8  },
+    { (char *)"CUSTOM_PLAYERS_ELIM_PLAYERS_TEAM", (char *)"PlayersEliminatedOnPlayersTeam",  8  },
+    { (char *)"CUSTOM_PLAYERS_ELIM_OTHER_TEAM",   (char *)"PlayersEliminatedOnOtherTeam",    8  },
+    { (char *)"CUSTOM_PLAYERS_LEFT_VICTIMS_TEAM", (char *)"PlayersLeftOnVictimsTeam",       16 },
+    { (char *)"CUSTOM_PLAYERS_LEFT_ATTACKERS_TEAM",(char *)"PlayersLeftOnAttackersTeam",     16 },
+    { (char *)"CUSTOM_PLAYERS_ELIM_VICTIMS_TEAM", (char *)"PlayersEliminatedOnVictimsTeam", 16 },
+    { (char *)"CUSTOM_PLAYERS_ELIM_ATTACKERS_TEAM",(char *)"PlayersEliminatedOnAttackersTeam",16 },
+    { (char *)"CUSTOM_ASSISTING_PLAYERS",         (char *)"AssistingPlayers",               32 }
+};
 
 int s_popupStackSize;
 bool s_isFeederSelectionFromPopupStart;
@@ -1679,8 +2001,8 @@ GVGlob::GVGlob()
 }
 
 GVAction::GVAction(
-                char *name,
-                char *scriptName,
+                const char *name,
+                const char *scriptName,
                 unsigned __int8 parameterType,
                 GVValue *parameters,
                 int parametersSize)

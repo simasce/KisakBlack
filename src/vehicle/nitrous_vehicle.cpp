@@ -60,7 +60,7 @@ float timeCap = 0.80000001;
 float errorAReductionRate = 2.0;
 float errorReductionRate = 4.0;
 
-phys_vec3 gWheelAxisLoc;
+phys_vec3 gWheelAxisLoc = { 0.0f, 1.0f, 0.0f };
 
 // *WARNING* One or more selections were skipped as they could not be interpreted as c data
 

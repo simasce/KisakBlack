@@ -28,12 +28,14 @@ tlAtomicMutex g_prolog_task_mutex = { 0uLL, 0, &g_prolog_task_mutex };
 int g_bpb_cluster_sort_axis = -1;
 unsigned volatile int g_thread_id;
 
+// these dont seem to have the workerCmd aspect
 jqModule bp_env_jq_module1Module =
 {
   "bp_env_jq_module1",
   JQ_WORKER_GENERIC,
   &bp_env_jq_batch_function1
 };
+
 jqModule bp_env_jq_module2Module =
 {
   "bp_env_jq_module2",

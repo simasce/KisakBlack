@@ -19,79 +19,165 @@
 #include <EffectsCore/fx_marks.h>
 #include "r_staticmodelcache.h"
 
-jqModule fx_update_spotModule;
-jqModule fx_updateModule;
-jqModule fx_update_remainingModule;
-jqModule r_dpvs_staticModule;
-jqModule r_dpvs_sceneentModule;
-jqModule r_dpvs_dynmodelModule;
-jqModule r_dpvs_dynbrushModule;
-jqModule r_dpvs_entityModule;
-jqModule r_add_sceneentModule;
-jqModule r_spot_shadow_entModule;
-jqModule dobj_skelModule;
-jqModule dobj_skinModule;
-jqModule fx_drawModule;
-jqModule fx_marks_drawModule;
-jqModule r_model_skinModule;
-//jqModule nuge_physicsModule;
-jqModule r_skin_cached_staticmodelModule;
-
-jqModule r_water_simModule;
-volatile unsigned int r_water_simLimit;
-jqWorkerCmd r_water_simWorkerCmd = { &r_water_simModule, 84u, 0, 0, &r_water_simLimit, NULL, 0u };
-
 // probably decl'd with a macro here, but ya'know
 
 volatile unsigned int fx_update_spotLimit = 1;
+jqModule fx_update_spotModule =
+{
+  .Name = "fx_update_spot",
+  .Type = JQ_WORKER_GENERIC,
+  .Code = (int(__cdecl *)(jqBatch *))fx_update_spotCallback,
+};
 jqWorkerCmd fx_update_spotWorkerCmd = { &fx_update_spotModule, 52u, 0, 0, &fx_update_spotLimit, NULL, 0u };
 
+
 volatile unsigned int fx_updateLimit = 1;
+jqModule fx_updateModule =
+{
+    .Name = "fx_update",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))fx_updateCallback,
+};
 jqWorkerCmd fx_updateWorkerCmd = { &fx_updateModule, 52u, 0, 0, &fx_updateLimit, NULL, 0u };
 
+
 volatile unsigned int fx_update_remainingLimit = 1;
+jqModule fx_update_remainingModule =
+{
+    .Name = "fx_update_remaining",
+    .Type = JQ_WORKER_GENERIC, 
+    .Code = (int(__cdecl *)(jqBatch *))fx_update_remainingCallback, 
+};
 jqWorkerCmd fx_update_remainingWorkerCmd = { &fx_update_remainingModule, 52u, 0, 0, &fx_update_remainingLimit, NULL, 0u };
 
+
 volatile unsigned int r_dpvs_staticLimit = 1;
+jqModule r_dpvs_staticModule =
+{
+    .Name = "r_dpvs_static",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_dpvs_staticCallback,
+};
 jqWorkerCmd r_dpvs_staticWorkerCmd = { &r_dpvs_staticModule, 12u, 0, 0, &r_dpvs_staticLimit, NULL, 0u };
 
+
 volatile unsigned int r_dpvs_sceneentLimit = 1;
+jqModule r_dpvs_sceneentModule =
+{
+    .Name = "r_dpvs_sceneent",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = r_dpvs_sceneentCallback,
+};
 jqWorkerCmd r_dpvs_sceneentWorkerCmd = { &r_dpvs_sceneentModule, 12u, 0, 0, &r_dpvs_sceneentLimit, NULL, 0u };
 
+
 volatile unsigned int r_dpvs_dynmodelLimit = 1;
+jqModule r_dpvs_dynmodelModule =
+{
+    .Name = "r_dpvs_dynmodel",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_dpvs_dynmodelCallback,
+};
 jqWorkerCmd r_dpvs_dynmodelWorkerCmd = { &r_dpvs_dynmodelModule, 12u, 0, 0, &r_dpvs_dynmodelLimit, NULL, 0u };
 
+
+
 volatile unsigned int r_dpvs_dynbrushLimit = 1;
+jqModule r_dpvs_dynbrushModule =
+{
+    .Name = "r_dpvs_dynbrush",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_dpvs_dynbrushCallback,
+};
 jqWorkerCmd r_dpvs_dynbrushWorkerCmd = { &r_dpvs_dynbrushModule, 12u, 0, 0, &r_dpvs_dynbrushLimit, NULL, 0u };
 
+
+
 volatile unsigned int r_dpvs_entityLimit = 1;
+jqModule r_dpvs_entityModule =
+{
+    .Name = "r_dpvs_entity",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_dpvs_entityCallback,
+};
 jqWorkerCmd r_dpvs_entityWorkerCmd = { &r_dpvs_entityModule, 16u, 0, 0, &r_dpvs_entityLimit, NULL, 0u };
 
+
 volatile unsigned int r_add_sceneentLimit = 1;
+jqModule r_add_sceneentModule =
+{
+    .Name = "r_add_sceneent",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = r_add_sceneentCallback,
+};
 jqWorkerCmd r_add_sceneentWorkerCmd = { &r_add_sceneentModule, 4u, 0, 0, &r_add_sceneentLimit, NULL, 0u };
 
+
 volatile unsigned int r_spot_shadow_entLimit = 1;
+jqModule r_spot_shadow_entModule =
+{
+    .Name = "r_spot_shadow_ent",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_spot_shadow_entCallback,
+};
 jqWorkerCmd r_spot_shadow_entWorkerCmd = { &r_spot_shadow_entModule, 8u, 0, 0, &r_spot_shadow_entLimit, NULL, 0u };
 
 volatile unsigned int dobj_skelLimit = 1;
+jqModule dobj_skelModule =
+{
+    .Name = "dobj_skel",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = dobj_skelCallback,
+    //.Group = 0;
+};
 jqWorkerCmd dobj_skelWorkerCmd = { &dobj_skelModule, 4u, 0, 0, &dobj_skelLimit, NULL, 0u };
 
+
 volatile unsigned int dobj_skinLimit = 1;
-jqWorkerCmd dobj_skinWorkerCmd = { &dobj_skinModule, 4u, 0, 0, &dobj_skinLimit, NULL, 0u }; 
+jqModule dobj_skinModule =
+{
+    .Name = "dobj_skin",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))dobj_skinCallback,
+    //.Group = 0,
+};
+jqWorkerCmd dobj_skinWorkerCmd = { &dobj_skinModule, 4u, 0, 0, &dobj_skinLimit, NULL, 0u };
 
 volatile unsigned int fx_drawLimit = 1;
+jqModule fx_drawModule =
+{
+    .Name = "fx_draw",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))fx_drawCallback
+};
 jqWorkerCmd fx_drawWorkerCmd = { &fx_drawModule, 80u, 0, 0, &fx_drawLimit, NULL, 0u };
 
 volatile unsigned int fx_marks_drawLimit = 1;
+jqModule fx_marks_drawModule =
+{
+    .Name = "fx_marks_draw",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))fx_marks_drawCallback
+};
 jqWorkerCmd fx_marks_drawWorkerCmd = { &fx_marks_drawModule, 52u, 0, 0, &fx_marks_drawLimit, NULL, 0u };
 
+
 volatile unsigned int r_model_skinLimit;
+jqModule r_model_skinModule =
+{
+    .Name = "r_model_skin",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = r_model_skinCallback,
+};
 jqWorkerCmd r_model_skinWorkerCmd = { &r_model_skinModule, 48u, 0, 0, &r_model_skinLimit, NULL, 0u };
 
-//volatile unsigned int nuge_physicsLimit= 1;
-//jqWorkerCmd nuge_physicsWorkerCmd = { &nuge_physicsModule, 124u, 0, 0, &nuge_physicsLimit, NULL, 0u };
-
 volatile unsigned int r_skin_cached_staticmodelLimit = 1;
+jqModule r_skin_cached_staticmodelModule =
+{
+    .Name = "r_skin_cached_staticmodel",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_skin_cached_staticmodelCallback,
+};
 jqWorkerCmd r_skin_cached_staticmodelWorkerCmd =
 {
   &r_skin_cached_staticmodelModule,
@@ -103,8 +189,23 @@ jqWorkerCmd r_skin_cached_staticmodelWorkerCmd =
   0u
 };
 
+volatile unsigned int r_water_simLimit;
+jqModule r_water_simModule =
+{
+    .Name = "r_water_sim",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))r_water_simCallback,
+};
+jqWorkerCmd r_water_simWorkerCmd = { &r_water_simModule, 84u, 0, 0, &r_water_simLimit, NULL, 0u };
+
+
 volatile unsigned int fx_update_remaining_ppuLimit = 1;
-jqModule fx_update_remaining_ppuModule;
+jqModule fx_update_remaining_ppuModule =
+{
+    .Name = "fx_update_remaining_ppu",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))fx_update_remaining_ppuCallback,
+};
 jqWorkerCmd fx_update_remaining_ppuWorkerCmd =
 {
   &fx_update_remaining_ppuModule,
@@ -116,13 +217,15 @@ jqWorkerCmd fx_update_remaining_ppuWorkerCmd =
   0u
 };
 
-
 volatile unsigned int r_model_lightingLimit = 1;
-jqModule r_model_lightingModule;
+jqModule r_model_lightingModule =
+{
+    .Name = "r_model_lighting",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = r_model_lightingCallback,
+};
 jqWorkerCmd r_model_lightingWorkerCmd =
 { &r_model_lightingModule, 44u, 0, 0, &r_model_lightingLimit, NULL, 0u };
-
-
 
 
 int __cdecl r_dpvs_entityCallback(jqBatch *batch)

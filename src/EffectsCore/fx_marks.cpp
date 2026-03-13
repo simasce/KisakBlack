@@ -22,7 +22,12 @@
 #include <gfx_d3d/r_scene.h>
 
 volatile unsigned int fx_add_markLimit = 1;
-jqModule fx_add_markModule;
+jqModule fx_add_markModule =
+{
+    .Name = "jx_add_mark",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = fx_add_markCallback
+};
 jqWorkerCmd fx_add_markWorkerCmd = { &fx_add_markModule, 44u, 0, 0, &fx_add_markLimit, NULL, 0u };
 
 FxMarkPoint g_fxMarkPoints[3060];

@@ -22,6 +22,14 @@ struct __declspec(align(4)) ExtraCamConfig // sizeof=0x10
     // padding byte
     // padding byte
     // padding byte
+
+    ExtraCamConfig()
+    {
+        renderTargetWidth = 0;
+        renderTargetHeight = 0;
+        aspectRatio = 0.0f;
+        initialized = 0;
+    }
 };
 
 struct XGlobals // sizeof=0x28

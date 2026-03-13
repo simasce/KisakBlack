@@ -6,6 +6,7 @@
 phys_collision_pair *g_list_pcp_iterator;
 contact_point_info *g_list_output_cpi;
 
+// no workerCmd ?
 jqModule phys_gjk_collide_jqModule =
 {
   "phys_gjk_collide_jq",

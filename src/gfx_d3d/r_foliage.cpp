@@ -26,7 +26,12 @@ const float MAX_SQUASH_AMOUNT = 0.5f;
 const float COLOR_MULTIPLIER_AT_FULLSQUASH = 0.3f;
 
 volatile unsigned int dyn_smodel_drawstateLimit = 1;
-jqModule dyn_smodel_drawstateModule;
+jqModule dyn_smodel_drawstateModule =
+{
+    .Name = "dyn_smodel_drawstate",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))dyn_smodel_drawstateCallback
+};
 jqWorkerCmd dyn_smodel_drawstateWorkerCmd = { &dyn_smodel_drawstateModule, 36u, 0, 0, &dyn_smodel_drawstateLimit, NULL, 0u };
 
 DrawStateWorkerSharedBuffer g_drawStateWorkerSharedBuffer;

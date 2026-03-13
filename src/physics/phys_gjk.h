@@ -699,6 +699,13 @@ struct __declspec(align(4)) gjkcc_info_database_t // sizeof=0x10
     // padding byte
     // padding byte
 
+    gjkcc_info_database_t(unsigned int token, int gcci_count, bool is_server_thread)
+    {
+        m_token = token;
+        m_gcci_count = gcci_count;
+        m_is_server_thread = is_server_thread;
+    }
+
     gjkcc_info *__thiscall gjkcc_info_find_or_create(
         unsigned int gjkcc_id,
         bool is_server_thread,

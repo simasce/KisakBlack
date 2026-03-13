@@ -102,7 +102,13 @@ volatile unsigned int cineThreadBlock;
 int r_cinematic_disabled;
 
 volatile unsigned int _UpdateFrameLimit = 1;
-jqModule _UpdateFrameModule;
+jqModule _UpdateFrameModule =
+{
+    .Name = "_UpdateFrame",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))_UpdateFrameCallback,
+    //.Group = 0
+};
 jqWorkerCmd _UpdateFrameWorkerCmd = { &_UpdateFrameModule, 4u, 0, 0, &_UpdateFrameLimit, NULL, 0u };
 
 void __cdecl R_CinematicInitSound(const _GUID *guid)

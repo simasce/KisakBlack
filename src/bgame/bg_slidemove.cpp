@@ -22,8 +22,8 @@ phys_vec3 PT_AC_EPS_VEC = { PT_AC_EPS , PT_AC_EPS , PT_AC_EPS };
 
 
 phys_simple_allocator<gjkcc_info> g_gjkcc_info_allocator;
-gjkcc_info_database_t g_gjkcc_info_client_database;
-gjkcc_info_database_t g_gjkcc_info_server_database;
+gjkcc_info_database_t g_gjkcc_info_client_database(0, 0, false);
+gjkcc_info_database_t g_gjkcc_info_server_database(0, 0, true);
 
 gjk_polygon_cylinder_t *__cdecl create_gjkcc_gjk_geom(
                 float (*mins)[3],

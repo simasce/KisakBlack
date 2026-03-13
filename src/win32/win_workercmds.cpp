@@ -4,10 +4,28 @@
 #include <universal/q_shared.h>
 #include <qcommon/threads.h>
 
+int __cdecl SetupWorkerThread(jqBatch *batch)
+{
+    Sys_InitThread(batch->ParamData[0] + 2);
+    return 0;
+}
+
 volatile unsigned int nuge_physicsLimit = 1;
-jqModule nuge_physicsModule;
+jqModule nuge_physicsModule =
+{
+    .Name = "nuge_physics",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = (int(__cdecl *)(jqBatch *))nuge_physicsCallback,
+};
 jqWorkerCmd nuge_physicsWorkerCmd = { &nuge_physicsModule, 124u, 0, 0, &nuge_physicsLimit, NULL, 0u };
-jqModule setup_worker_threadsModule;
+
+// no workerCmd
+jqModule setup_worker_threadsModule =
+{
+    .Name = "setup_worker_threads",
+    .Type = JQ_WORKER_GENERIC,
+    .Code = SetupWorkerThread,
+};
 
 int __cdecl nuge_physicsCallback(jqBatch *batch)
 {
