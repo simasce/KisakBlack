@@ -19,6 +19,7 @@ bool s_dontUnlockControllers;
 static int g_doLiveFrameHack;
 void __cdecl CL_RunNetworkFrame(int localClientNum)
 {
+#ifdef KISAK_LIVE
     int i; // [esp+0h] [ebp-Ch]
     int firstSignedInController; // [esp+4h] [ebp-8h]
 
@@ -47,6 +48,7 @@ void __cdecl CL_RunNetworkFrame(int localClientNum)
         g_doLiveFrameHack = 1;
     }
     Live_CheckOngoingTasks();
+#endif
 }
 
 char __cdecl CL_AnyLocalClientsRunning()

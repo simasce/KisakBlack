@@ -1913,6 +1913,7 @@ void __cdecl Com_Init_Try_Block_Function(char *commandLine)
         {
             CL_Init(localClientNum);
         }
+        Com_LocalClient_SetPrimary(0, 1);
     }
     else
     {
@@ -2765,14 +2766,19 @@ void __cdecl Com_Frame()
     }
 
     Sys_EnterCriticalSection(CRITSECT_COM_ERROR);
-    if ( com_errorEntered )
-        Com_ErrorCleanup();
-    Sys_LeaveCriticalSection(CRITSECT_COM_ERROR);
-
-    if (!IsDedicatedServer())
+    if (com_errorEntered)
     {
-        CL_InitRenderer();
-        Com_StartHunkUsers();
+        Com_ErrorCleanup();
+        Sys_LeaveCriticalSection(CRITSECT_COM_ERROR);
+        if (!IsDedicatedServer())
+        {
+            CL_InitRenderer();
+            Com_StartHunkUsers();
+        }
+    }
+    else
+    {
+        Sys_LeaveCriticalSection(CRITSECT_COM_ERROR);
     }
 }
 

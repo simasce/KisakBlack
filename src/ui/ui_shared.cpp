@@ -8106,133 +8106,124 @@ char    Menu_Paint(
                 const ScreenPlacement *UI3DOverrideId)
 {
     const char *v7; // eax
-    float v8; // [esp+3Ch] [ebp-1B0h]
-    const rectDef_s *Rect; // [esp+54h] [ebp-198h]
-    const rectDef_s *v10; // [esp+54h] [ebp-198h]
+    float alpha; // [esp+3Ch] [ebp-1B0h]
+    const rectDef_s *rect; // [esp+54h] [ebp-198h]
+    const rectDef_s *recta; // [esp+54h] [ebp-198h]
     int i; // [esp+90h] [ebp-15Ch]
-    int j; // [esp+90h] [ebp-15Ch]
-    int k; // [esp+90h] [ebp-15Ch]
-    bool v14; // [esp+97h] [ebp-155h]
-    GfxUI3DStack *v16; // [esp+B8h] [ebp-134h]
+    int ia; // [esp+90h] [ebp-15Ch]
+    int ib; // [esp+90h] [ebp-15Ch]
+    bool anyItemVisible; // [esp+97h] [ebp-155h]
+    ScopedUI3DStack windowIdStack; // [esp+B8h] [ebp-134h]
     GfxUI3DStack *UI3DStack; // [esp+BCh] [ebp-130h]
-    ScopedUI3DStack windowIdStack; // [esp+C4h] [ebp-128h]
-    const ScreenPlacement *v20; // [esp+C8h] [ebp-124h]
-    const ScreenPlacement *scrPlace; // [esp+CCh] [ebp-120h]
-    int v22; // [esp+D0h] [ebp-11Ch] BYREF
-    itemDef_s dummyDef; // [esp+DCh] [ebp-110h] BYREF
-    UIAnimInfo *retaddr; // [esp+1ECh] [ebp+0h]
+    const ScreenPlacement *scrPlace; // [esp+C0h] [ebp-12Ch]
+    int ui3dWindow; // [esp+C8h] [ebp-124h]
+    int ui3dWindowId; // [esp+CCh] [ebp-120h]
+    itemDef_s dummyDef; // [esp+D0h] [ebp-11Ch] BYREF
+    //_UNKNOWN *v23[2]; // [esp+1E0h] [ebp-Ch] BYREF
+    //ScreenPlacementStack *scrPlaceViewStacka; // [esp+1ECh] [ebp+0h]
+    //
+    //v23[0] = a1;
+    //v23[1] = scrPlaceViewStacka;
+    dummyDef.parent = menu;
 
-    //dummyDef.onEvent = a1;
-    //dummyDef.animInfo = retaddr;
-    dummyDef.enableDvar = (const char *)menu;
-    if ( !menu && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_shared.cpp", 10478, 0, "%s", "menu") )
-        __debugbreak();
-    if ( menu->ui3dWindowId < 0 )
-        scrPlace = (const ScreenPlacement *)-1;
+    iassert(menu);
+
+    if (menu->ui3dWindowId < 0)
+        ui3dWindowId = -1;
     else
-        scrPlace = (const ScreenPlacement *)menu->ui3dWindowId;
-    v20 = scrPlace;
-    if ( scrPlace == (const ScreenPlacement *)-1 && (int)UI3DOverrideId >= 0 )
-        v20 = UI3DOverrideId;
-    if ( (int)v20 < 0 )
-        windowIdStack.mStack = (GfxUI3DStack *)&scrPlaceView[dc->contextIndex];
+        ui3dWindowId = menu->ui3dWindowId;
+    ui3dWindow = ui3dWindowId;
+    if (ui3dWindowId == -1 && (int)UI3DOverrideId >= 0)
+        ui3dWindow = (int)UI3DOverrideId;
+    if (ui3dWindow < 0)
+        scrPlace = &scrPlaceView[dc->contextIndex];
     else
-        windowIdStack.mStack = (GfxUI3DStack *)R_UI3D_ScrPlaceFromTextureWindow((unsigned int)v20);
-    ScopedScrPlaceViewStack scopedScrPlaceStack((ScreenPlacementStack *)windowIdStack.mStack, NULL); // [esp+C0h] [ebp-12Ch]
-    //scopedScrPlaceStack.mStack = (ScreenPlacementStack *)windowIdStack.mStack;
+        scrPlace = R_UI3D_ScrPlaceFromTextureWindow(ui3dWindow);
     UI3DStack = R_GetUI3DStack();
-    v16 = UI3DStack;
-    R_UI3DStack_Push(UI3DStack, (int)v20);
-    if ( scrPlaceViewStack
-        && scrPlaceViewStack->contextIndex != dc->contextIndex
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\ui\\ui_shared.cpp",
-                    10492,
-                    0,
-                    "%s",
-                    "(scrPlaceViewStack==0) || scrPlaceViewStack->contextIndex == dc->contextIndex") )
-    {
-        __debugbreak();
-    }
-    ScopedScrPlaceViewStack v15(scrPlaceViewStack, scopedScrPlaceStack.mStack->stack); // [esp+B4h] [ebp-138h] BYREF
-    //ScopedScrPlaceViewStack::ScopedScrPlaceViewStack(&v15, scrPlaceViewStack, scopedScrPlaceStack.mStack->stack);
+    windowIdStack.mStack = UI3DStack;
+    R_UI3DStack_Push(UI3DStack, ui3dWindow);
 
-    if ( *(_BYTE *)ui_showMenuOnly->current.integer
+    iassert((scrPlaceViewStack == 0) || scrPlaceViewStack->contextIndex == dc->contextIndex);
+
+    ScopedScrPlaceViewStack scopedScrPlaceStack(scrPlaceViewStack, scrPlace); // [esp+B4h] [ebp-138h] BYREF
+    //ScopedScrPlaceViewStack::ScopedScrPlaceViewStack(&scopedScrPlaceStack, scrPlaceViewStack, scrPlace);
+    if (*(_BYTE *)ui_showMenuOnly->current.integer
         && menu->window.name
-        && I_stricmp(menu->window.name, ui_showMenuOnly->current.string) )
+        && I_stricmp(menu->window.name, ui_showMenuOnly->current.string))
     {
         goto LABEL_20;
     }
     //PIXBeginNamedEvent(-1, "Menu_IsVisible");
-    if ( !Menu_IsVisible(localClientNum, dc, menu) )
+    if (!Menu_IsVisible(localClientNum, dc, menu))
     {
-        //if ( GetCurrentThreadId() == g_DXDeviceThread )
-            //D3DPERF_EndEvent();
-LABEL_20:
-        //ScopedScrPlaceViewStack::~ScopedScrPlaceViewStack(&v15);
-        R_UI3DStack_Pop(v16);
+        //if (GetCurrentThreadId() == g_DXDeviceThread)
+        //    D3DPERF_EndEvent();
+    LABEL_20:
+        //ScopedScrPlaceViewStack::~ScopedScrPlaceViewStack(&scopedScrPlaceStack);
+        R_UI3DStack_Pop(windowIdStack.mStack);
         return 0;
     }
-    //if ( g_DXDeviceThread == GetCurrentThreadId() )
-        //D3DPERF_EndEvent();
+    //if (g_DXDeviceThread == GetCurrentThreadId())
+    //    D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "Menu_AnyItemsVisible");
-    v14 = 0;
-    for ( i = 0; i < menu->itemCount && !v14; ++i )
+    anyItemVisible = 0;
+    for (i = 0; i < menu->itemCount && !anyItemVisible; ++i)
     {
-        v14 = (menu->items[i]->window.staticFlags & 0x100000) == 0;
-        if ( menu->items[i]->animInfo && menu->items[i]->animInfo->animating )
-            v14 = 1;
-        if ( menu->items[i]->window.foreColor[3] > 0.000001 )
-            v14 = 1;
+        anyItemVisible = (menu->items[i]->window.staticFlags & 0x100000) == 0;
+        if (menu->items[i]->animInfo && menu->items[i]->animInfo->animating)
+            anyItemVisible = 1;
+        if (menu->items[i]->window.foreColor[3] > 0.000001)
+            anyItemVisible = 1;
     }
-    if ( menu->itemCount > 0 && !v14 )
+    if (menu->itemCount > 0 && !anyItemVisible)
     {
-        //if ( GetCurrentThreadId() == g_DXDeviceThread )
-            //D3DPERF_EndEvent();
+        //if (GetCurrentThreadId() == g_DXDeviceThread)
+        //    D3DPERF_EndEvent();
         goto LABEL_20;
     }
-    //if ( g_DXDeviceThread == GetCurrentThreadId() )
-        //D3DPERF_EndEvent();
-    if ( menu->soundName && !CL_IsLocalClientInGame(localClientNum) )
+    //if (g_DXDeviceThread == GetCurrentThreadId())
+    //    D3DPERF_EndEvent();
+    if (menu->soundName && !CL_IsLocalClientInGame(localClientNum))
         UI_PlaySound(dc->contextIndex, (char *)menu->soundName);
-    if ( menu->blurRadius != 0.0 && !zombietron->current.enabled )
-        dc->blurRadiusOut = sqrtf((float)(menu->blurRadius * menu->blurRadius) + (float)(dc->blurRadiusOut
-                                                                                                                                                                     * dc->blurRadiusOut));
+
+    if (menu->blurRadius != 0.0 && !zombietron->current.enabled)
+        dc->blurRadiusOut = sqrtf((float)(menu->blurRadius * menu->blurRadius) + (float)(dc->blurRadiusOut * dc->blurRadiusOut));
+
     //PIXBeginNamedEvent(-1, "Item_UpdateAnimation");
-    for ( j = 0; j < menu->itemCount; ++j )
+    for (ia = 0; ia < menu->itemCount; ++ia)
     {
-        if ( menu->items[j]->animInfo && menu->items[j]->animInfo->animating )
-            Item_UpdateAnimation(localClientNum, dc, menu->items[j]);
+        if (menu->items[ia]->animInfo && menu->items[ia]->animInfo->animating)
+            Item_UpdateAnimation(localClientNum, dc, menu->items[ia]);
     }
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //D3DPERF_EndEvent();
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
     Menu_PerformTransitionEffects(localClientNum, dc, menu);
     //PIXBeginNamedEvent(-1, "Menu_UpdatePosition");
-    if ( menu->rectXExp.filename )
-        menu->window.rect.x = GetExpressionFloat(localClientNum, (itemDef_s *)&v22, &menu->rectXExp);
-    if ( menu->rectYExp.filename )
-        menu->window.rect.y = GetExpressionFloat(localClientNum, (itemDef_s *)&v22, &menu->rectYExp);
+    if (menu->rectXExp.filename)
+        menu->window.rect.x = GetExpressionFloat(localClientNum, &dummyDef, &menu->rectXExp);
+    if (menu->rectYExp.filename)
+        menu->window.rect.y = GetExpressionFloat(localClientNum, &dummyDef, &menu->rectYExp);
     Menu_UpdatePosition(dc->contextIndex, menu);
-    //if ( g_DXDeviceThread == GetCurrentThreadId() )
-        //D3DPERF_EndEvent();
-    if ( menu->fullScreen )
+    //if (g_DXDeviceThread == GetCurrentThreadId())
+    //    D3DPERF_EndEvent();
+    if (menu->fullScreen)
     {
-        if ( menu->window.background )
+        if (menu->window.background)
         {
             //PIXBeginNamedEvent(-1, "UI_DrawHandlePic");
-            Rect = Window_GetRect(&menu->window);
+            rect = Window_GetRect(&menu->window);
             UI_DrawHandlePic(
                 &scrPlaceView[dc->contextIndex],
                 0.0,
                 0.0,
                 640.0,
                 480.0,
-                Rect->horzAlign,
-                Rect->vertAlign,
+                rect->horzAlign,
+                rect->vertAlign,
                 0,
                 menu->window.background);
-            //if ( g_DXDeviceThread == GetCurrentThreadId() )
-                //D3DPERF_EndEvent();
+            //if (g_DXDeviceThread == GetCurrentThreadId())
+            //    D3DPERF_EndEvent();
         }
     }
     //PIXBeginNamedEvent(-1, "Window_Paint");
@@ -8246,51 +8237,51 @@ LABEL_20:
         (float)menu->fadeCycle,
         -1,
         0);
-    //if ( g_DXDeviceThread == GetCurrentThreadId() )
-        //D3DPERF_EndEvent();
-    v7 = va("Item_Paint (%d)", menu->itemCount);
+    //if (g_DXDeviceThread == GetCurrentThreadId())
+    //    D3DPERF_EndEvent();
+    //v7 = va("Item_Paint (%d)", menu->itemCount);
     //PIXBeginNamedEvent(-1, v7);
-    for ( k = 0; k < menu->itemCount; ++k )
+    for (ib = 0; ib < menu->itemCount; ++ib)
     {
-        if ( (Window_GetDynamicFlags(dc->contextIndex, &menu->window) & 0x82000) != 0 || menu->fadeTimeCounter == -3 )
+        if ((Window_GetDynamicFlags(dc->contextIndex, &menu->window) & 0x82000) != 0 || menu->fadeTimeCounter == -3)
         {
-            if ( menu->fadeTimeCounter == -3 )
+            if (menu->fadeTimeCounter == -3)
                 break;
-            v8 = menu->items[k]->window.foreColor[3];
-            menu->items[k]->window.foreColor[3] = v8 * menu->window.foreColor[3];
-            menu->items[k]->window.borderColor[3] = menu->items[k]->window.borderColor[3] * menu->window.foreColor[3];
-            menu->items[k]->window.backColor[3] = menu->items[k]->window.backColor[3] * menu->window.foreColor[3];
-            Item_Paint(localClientNum, dc, menu->items[k]);
-            menu->items[k]->window.foreColor[3] = v8;
+            alpha = menu->items[ib]->window.foreColor[3];
+            menu->items[ib]->window.foreColor[3] = alpha * menu->window.foreColor[3];
+            menu->items[ib]->window.borderColor[3] = menu->items[ib]->window.borderColor[3] * menu->window.foreColor[3];
+            menu->items[ib]->window.backColor[3] = menu->items[ib]->window.backColor[3] * menu->window.foreColor[3];
+            Item_Paint(localClientNum, dc, menu->items[ib]);
+            menu->items[ib]->window.foreColor[3] = alpha;
         }
         else
         {
-            Item_Paint(localClientNum, dc, menu->items[k]);
+            Item_Paint(localClientNum, dc, menu->items[ib]);
         }
     }
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //D3DPERF_EndEvent();
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
     menu->window.rect.x = menu->initialRectInfo.x;
     menu->window.rect.y = menu->initialRectInfo.y;
     //PIXBeginNamedEvent(-1, "g_debugMode");
-    if ( g_debugMode )
+    if (g_debugMode)
     {
-        v10 = Window_GetRect(&menu->window);
+        recta = Window_GetRect(&menu->window);
         UI_DrawRect(
             &scrPlaceView[dc->contextIndex],
-            v10->x,
-            v10->y,
-            v10->w,
-            v10->h,
-            v10->horzAlign,
-            v10->vertAlign,
+            recta->x,
+            recta->y,
+            recta->w,
+            recta->h,
+            recta->horzAlign,
+            recta->vertAlign,
             1.0,
             colorMagenta);
     }
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //D3DPERF_EndEvent();
-    //ScopedScrPlaceViewStack::~ScopedScrPlaceViewStack(&v15);
-    R_UI3DStack_Pop(v16);
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
+    //ScopedScrPlaceViewStack::~ScopedScrPlaceViewStack(&scopedScrPlaceStack);
+    R_UI3DStack_Pop(windowIdStack.mStack);
     return 1;
 }
 

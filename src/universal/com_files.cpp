@@ -1229,13 +1229,12 @@ unsigned int __cdecl FS_WriteToDemo(char *buffer, unsigned int len, int h)
 
 void FS_Printf(int h, char *fmt, ...)
 {
-    char string; // [esp+14h] [ebp-1008h] BYREF
-    _BYTE v3[3]; // [esp+15h] [ebp-1007h] BYREF
+    char string[4100]; // [esp+14h] [ebp-1008h] BYREF
     va_list va; // [esp+102Ch] [ebp+10h] BYREF
 
     va_start(va, fmt);
-    _vsnprintf(&string, 0x1000u, fmt, va);
-    FS_Write(&string, &v3[strlen(&string)] - v3, h);
+    _vsnprintf(string, 0x1000u, fmt, va);
+    FS_Write(string, &string[strlen(string) + 1] - &string[1], h);
 }
 
 int __cdecl FS_Seek(int f, int offset, int origin)

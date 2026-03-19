@@ -2,6 +2,8 @@
 #include <universal/dvar.h>
 #include <qcommon/graph.h>
 
+#include <cstdint>
+
 enum DevGuiTokenResult : __int32
 {                                                                             // XREF: DevGui_ConstructPath_r/r
                                                                                 // DevGui_IsValidPath/r ...
@@ -76,8 +78,8 @@ struct devguiGlob_t // sizeof=0x14050
 void __cdecl DevGui_AddDvar(const char *path, const dvar_s *dvar);
 devguiGlob_t *__cdecl DevGui_GetMenu(unsigned __int16 handle);
 unsigned __int16 __cdecl DevGui_ConstructPath_r(unsigned __int16 parent, const char *path);
-unsigned __int16 __cdecl DevGui_RegisterMenu(unsigned __int16 parentHandle, const char *label);
-int __cdecl DevGui_CreateMenu();
+unsigned __int16 __cdecl DevGui_RegisterMenu(unsigned __int16 parentHandle, const char *label, __int16 sortKey);
+int __cdecl DevGui_CreateMenu(uint16_t parentHandle, const char *label, __int16 sortKey);
 unsigned __int16 __cdecl DevGui_GetMenuHandle(DevMenuItem *menu);
 int __cdecl DevGui_CompareMenus(const DevMenuItem *menu0, const DevMenuItem *menu1);
 unsigned __int16 __cdecl DevGui_FindMenu(unsigned __int16 parentHandle, const char *label);

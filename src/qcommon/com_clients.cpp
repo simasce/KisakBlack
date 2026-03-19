@@ -4,6 +4,7 @@
 #include <universal/com_memory.h>
 #include <client/cl_main.h>
 #include <client_mp/cl_main_mp.h>
+#include <cgame_mp/cg_local_mp.h>
 
 ClientGameState clientGameStates[1];
 
@@ -301,51 +302,33 @@ int __cdecl Com_LocalClients_GetPrimary()
 {
     int i; // [esp+0h] [ebp-4h]
 
-    for ( i = 0; i < 1; ++i )
+    for ( i = 0; i < MAX_LOCAL_CLIENTS; ++i )
     {
         if ( Com_LocalClient_IsPrimary(i) )
             return i;
     }
+
     if ( !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
                     261,
                     0,
-                    "%s\n\t%s",
+                    "%s\n\tCom_LocalClient_IsPrimarys",
                     "0",
                     "Someone asked for the primary client and it was not set\n") )
         __debugbreak();
+
     return -1;
 }
 
 bool __cdecl Com_LocalClient_IsPrimary(int localClientNum)
 {
-    if ( localClientNum
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
-                    267,
-                    0,
-                    "localClientNum doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
-                    localClientNum,
-                    1) )
-    {
-        __debugbreak();
-    }
+    bcassert(localClientNum, MAX_LOCAL_CLIENTS);
     return (clientGameStates[localClientNum].flags & 2) != 0;
 }
 
 bool __cdecl Com_LocalClient_IsBeingUsed(int localClientNum)
 {
-    if ( localClientNum
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\com_clients.cpp",
-                    273,
-                    0,
-                    "localClientNum doesn't index MAX_LOCAL_CLIENTS\n\t%i not in [0, %i)",
-                    localClientNum,
-                    1) )
-    {
-        __debugbreak();
-    }
+    bcassert(localClientNum, MAX_LOCAL_CLIENTS);
     return (clientGameStates[localClientNum].flags & 1) != 0;
 }
 

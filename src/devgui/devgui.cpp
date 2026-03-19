@@ -99,29 +99,83 @@ unsigned __int16 __cdecl DevGui_ConstructPath_r(unsigned __int16 parent, const c
         {
             __debugbreak();
         }
-        parent = DevGui_RegisterMenu(parent, label);
+        parent = DevGui_RegisterMenu(parent, label, sortKey);
     }
     while ( tokResult != DEVGUI_TOKEN_LAST );
     return parent;
 }
 
-unsigned __int16 __cdecl DevGui_RegisterMenu(unsigned __int16 parentHandle, const char *label)
+unsigned __int16 __cdecl DevGui_RegisterMenu(unsigned __int16 parentHandle, const char *label, __int16 sortKey)
 {
-    unsigned __int16 childHandle; // [esp+0h] [ebp-4h]
+    uint16_t childHandle; // [esp+0h] [ebp-4h]
 
     childHandle = DevGui_FindMenu(parentHandle, label);
-    if ( !childHandle )
-        return DevGui_CreateMenu();
+    if (!childHandle)
+        return DevGui_CreateMenu(parentHandle, label, sortKey);
     return childHandle;
 }
 
-int __cdecl DevGui_CreateMenu()
+int __cdecl DevGui_CreateMenu(uint16_t parentHandle, const char *label, __int16 sortKey)
 {
-    if (!IsDedicatedServer())
+    if (IsDedicatedServer())
     {
-        // KISAKTODO: devgui 
+        return 0;
     }
-    return 0;
+
+    char v5; // [esp+3h] [ebp-25h]
+    DevMenuItem *v6; // [esp+8h] [ebp-20h]
+    unsigned __int16 handle; // [esp+10h] [ebp-18h]
+    unsigned __int16 *prevNext; // [esp+14h] [ebp-14h]
+    DevMenuItem *menu; // [esp+18h] [ebp-10h]
+    unsigned __int16 prev; // [esp+1Ch] [ebp-Ch]
+    devguiGlob_t *nextMenu; // [esp+20h] [ebp-8h]
+    devguiGlob_t *parentMenu; // [esp+24h] [ebp-4h]
+
+    menu = devguiGlob.nextFreeMenu;
+    if (!devguiGlob.nextFreeMenu)
+        Com_Error(ERR_DROP, "Too many devgui entries (more than %i)", 2048);
+    devguiGlob.nextFreeMenu = *(DevMenuItem **)menu->label;
+    handle = DevGui_GetMenuHandle(menu);
+    v6 = menu;
+    do
+    {
+        v5 = *label;
+        v6->label[0] = *label++;
+        v6 = (DevMenuItem *)((char *)v6 + 1);
+    } while (v5);
+    menu->childType = 0;
+    menu->childMenuMemory = 0;
+    menu->sortKey = sortKey;
+    menu->parent = parentHandle;
+    menu->child.menu = 0;
+    if (parentHandle)
+        parentMenu = DevGui_GetMenu(parentHandle);
+    else
+        parentMenu = (devguiGlob_t *)&devguiGlob.topmostMenu;
+    prev = 0;
+    for (prevNext = (unsigned __int16 *)&parentMenu->menus[0].child; *prevNext; prevNext = &nextMenu->menus[0].nextSibling)
+    {
+        nextMenu = DevGui_GetMenu(*prevNext);
+        if (!DevGui_CompareMenus(nextMenu->menus, menu)
+            && !Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\devgui\\devgui.cpp",
+                350,
+                0,
+                "%s",
+                "DevGui_CompareMenus( nextMenu, menu ) != 0"))
+        {
+            __debugbreak();
+        }
+        if (DevGui_CompareMenus(nextMenu->menus, menu) > 0)
+            break;
+        prev = *prevNext;
+    }
+    menu->nextSibling = *prevNext;
+    menu->prevSibling = prev;
+    *prevNext = handle;
+    if (menu->nextSibling)
+        DevGui_GetMenu(menu->nextSibling)->menus[0].prevSibling = handle;
+    return handle;
 }
 
 unsigned __int16 __cdecl DevGui_GetMenuHandle(DevMenuItem *menu)
@@ -373,7 +427,27 @@ void __cdecl DevGui_AddGraph(const char *path, DevGraph *graph)
     if (IsDedicatedServer())
         return;
 
-    // KISAKTODO: devgui
+    if (DevGui_IsValidPath(path))
+    {
+        uint16_t handle; // [esp+0h] [ebp-8h]
+        devguiGlob_t *menu; // [esp+4h] [ebp-4h]
+
+        handle = DevGui_ConstructPath_r(0, path);
+        menu = DevGui_GetMenu(handle);
+
+        iassert(menu);
+
+        if (!menu->menus[0].childType && !menu->menus[0].child.menu
+            || menu->menus[0].childType == 3 && menu->menus[0].child.graph == graph)
+        {
+            menu->menus[0].childType = 3;
+            menu->menus[0].child.command = (const char *)graph;
+        }
+        else
+        {
+            Com_Printf(11, "Path '%s' can't be added for this graph because it is already used for something else.\n", path);
+        }
+    }
 }
 
 void __cdecl DevGui_RemoveMenu(const char *path)

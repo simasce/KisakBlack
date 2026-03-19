@@ -5543,7 +5543,7 @@ void __cdecl RB_RenderCommandFrame(const GfxBackEndData *data)
 
 bool __cdecl RB_BackendTimeout(int gpuIndex)
 {
-    return !R_HW_IsFencePending((IDirect3DQuery9 *const *)(4 * gpuIndex + 176501900));
+    return !R_HW_IsFencePending(&dx.swapFence[gpuIndex]);
 }
 
 void __cdecl RB_InitBackendGlobalStructs()

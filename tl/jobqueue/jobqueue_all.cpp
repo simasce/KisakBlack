@@ -1737,15 +1737,14 @@ void __cdecl jqWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool BreakWhe
 
 void __cdecl jqTempWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool (__cdecl *callback)(void *), void *context)
 {
-#if 0
   jqWorker *v4; // ebx
-  int v5; // esi
+  //int v5; // esi
   jqModule *Module; // ecx
-  int v7; // eax
-  int v8; // esi
-  int *v9; // eax
-  int v10; // edi
-  unsigned int *v11; // eax
+  //int v7; // eax
+  jqAtomicQueue<jqBatch,32> *p_queue; // esi
+  jqAtomicQueue<jqBatch, 32>::NodeType **FreeListPtr; // eax
+  jqAtomicQueue<jqBatch,32>::NodeType *freeList; // edi
+  jqAtomicQueue<jqBatch, 32>::NodeType *block; // eax
   unsigned int *v12; // ecx
   int v13; // edi
   int v14; // eax
@@ -1754,17 +1753,18 @@ void __cdecl jqTempWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool (__c
   jqBatch CurBatch; // [esp+Ch] [ebp-94h] BYREF
   int v18; // [esp+88h] [ebp-18h] BYREF
   int Target; // [esp+8Ch] [ebp-14h] BYREF
-  int v20; // [esp+90h] [ebp-10h]
+  //int v20; // [esp+90h] [ebp-10h]
   int ret; // [esp+94h] [ebp-Ch]
   int numJobs; // [esp+98h] [ebp-8h]
   bool doHighPriority; // [esp+9Fh] [ebp-1h] BYREF
 
   v4 = Worker;
-  v5 = *((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index);
-  v20 = v5;
-  *(unsigned int *)(v5 + 8312) = Worker;
+  //v5 = *((unsigned int *)NtCurrentTeb()->ThreadLocalStoragePointer + _tls_index);
+  //v20 = v5;
+  jqCurWorker = Worker;
   doHighPriority = 1;
   memset(&CurBatch, 0, 28);
+
   for ( ; !callback(context); doHighPriority = 1 )
   {
     numJobs = jqGetQueuedBatchCount(0);
@@ -1773,70 +1773,97 @@ void __cdecl jqTempWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool (__c
       do
       {
         Module = CurBatch.Module;
-        *(unsigned int *)(v5 + 8316) = &CurBatch;
-        v7 = Module->Code(&CurBatch);
-        ret = v7;
-        *(unsigned int *)(v5 + 8316) = 0;
-        if ( !v7 )
+        jqCurBatch = &CurBatch;
+        ret = Module->Code(&CurBatch);
+        jqCurBatch = 0;
+        if ( !ret)
           goto LABEL_15;
-        _InterlockedExchangeAdd(&jqPool.ThisPtr->QueuedBatchCount, 1u);
-        _InterlockedExchangeAdd(&CurBatch.Module->Group.QueuedBatchCount, 1u);
-        _InterlockedExchangeAdd((volatile signed __int32 *)(**(unsigned int **)(v5 + 8308) + 88), 1u);
+        _InterlockedExchangeAdd(&jqPool.group.QueuedBatchCount, 1u);
+        _InterlockedExchangeAdd(&CurBatch.GroupID->QueuedBatchCount, 1u);
+        _InterlockedExchangeAdd(&jqCurQueue->QueuedBatchCount, 1u);
         if ( CurBatch.GroupID )
           _InterlockedExchangeAdd(&CurBatch.GroupID->QueuedBatchCount, 1u);
-        v8 = *(unsigned int *)(v5 + 8308) + 8;
-        tlSharedAtomicMutex::Lock((tlSharedAtomicMutex *)(v8 + 24));
-        v9 = *(int **)v8;
-        v10 = **(unsigned int **)v8;
-        if ( !v10 )
+        p_queue = &jqCurQueue->Queue;
+        //tlSharedAtomicMutex::Lock((tlSharedAtomicMutex *)(p_queue + 24));
+        p_queue->FreeLock.Lock();
+
+        FreeListPtr = p_queue->FreeListPtr;
+        freeList = *p_queue->FreeListPtr;
+
+        if ( !freeList )
         {
-          v11 = tlMemAlloc(0x1008u, 4u, 0);
-          v12 = v11;
-          v13 = 31;
-          do
-          {
-            --v13;
-            *v12 = v12 + 32;
-            v12 += 32;
-          }
-          while ( v13 );
-          v11[992] = 0;
-          v11[1024] = v11;
-          v11[1025] = *(unsigned int *)(v8 + 8);
-          *(unsigned int *)(v8 + 8) = v11 + 1024;
-          **(unsigned int **)v8 = v11;
-          v9 = *(int **)v8;
-          v10 = **(unsigned int **)v8;
+
+          block = (jqAtomicQueue<jqBatch, 32>::NodeType *)tlMemAlloc(sizeof(jqAtomicQueue<jqBatch, 32>::NodeType) * 32 + 8, 4u, 0);
+          static_assert(sizeof(jqAtomicQueue<jqBatch, 32>::NodeType) * 32 + 8 == 0x1008);
+
+          //v12 = block;
+          //v13 = 31;
+          //do
+          //{
+          //  --v13;
+          //  *v12 = v12 + 32;
+          //  v12 += 32;
+          //}
+          //while ( v13 );
+
+          for (int jk = 0; jk < 31; jk++)
+              block[jk].Next = &block[jk + 1];
+
+          block[31].Next = 0;
+          block[32].Next = block;
+          block[32].Data.p3x_info = p_queue->NodeBlockListHead;
+
+          //*(unsigned int *)(p_queue + 8) = block + 1024;
+          p_queue->NodeBlockListHead = (jqAtomicQueue<jqBatch,32>::NodeBlockEntry *)&block[32];
+
+          //**(unsigned int **)p_queue = block;
+          *p_queue->FreeListPtr = block;
+
+
+          FreeListPtr = p_queue->FreeListPtr;
+          freeList = *p_queue->FreeListPtr;
         }
-        *v9 = *(unsigned int *)v10;
-        v14 = *(unsigned int *)(v8 + 36);
-        v15 = (*(unsigned int *)(v14 + 8))-- == 1;
-        if ( v15 )
-        {
-          Target = 0;
-          InterlockedExchange(&Target, 0);
-          v16 = *(unsigned int **)(v8 + 36);
-          *v16 = 0;
-          v16[1] = 0;
-        }
-        memcpy((unsigned __int8 *)(v10 + 4), (unsigned __int8 *)&CurBatch, 0x7Cu);
-        *(unsigned int *)v10 = 0;
-        tlAtomicMutex::Lock((tlAtomicMutex *)(v8 + 56));
-        **(unsigned int **)(*(unsigned int *)(v8 + 72) + 16) = v10;
-        *(unsigned int *)(*(unsigned int *)(v8 + 72) + 16) = v10;
-        v15 = (*(unsigned int *)(v8 + 64))-- == 1;
-        if ( v15 )
-        {
-          v18 = 0;
-          InterlockedExchange(&v18, 0);
-          *(unsigned int *)(v8 + 56) = 0;
-          *(unsigned int *)(v8 + 60) = 0;
-        }
-        v5 = v20;
+
+        *FreeListPtr = freeList->Next;
+
+        //v14 = *(unsigned int *)(p_queue + 36);
+        p_queue->FreeLock.Unlock();
+        //v15 = (*(unsigned int *)(v14 + 8))-- == 1;
+        //if ( v15 )
+        //{
+        //  Target = 0;
+        //  InterlockedExchange(&Target, 0);
+        //  v16 = *(unsigned int **)(p_queue + 36);
+        //  *v16 = 0;
+        //  v16[1] = 0;
+        //}
+        memcpy((unsigned __int8 *)&freeList->Data, (unsigned __int8 *)&CurBatch, sizeof(freeList->Data));
+        freeList->Next = 0;
+        //*(unsigned int *)v10 = 0;
+        //tlAtomicMutex::Lock((tlAtomicMutex *)(p_queue + 56));
+
+        p_queue->TailLock.Lock();
+
+        p_queue->ThisPtr->Tail->Next = freeList;
+        p_queue->ThisPtr->Tail = freeList;
+
+        p_queue->TailLock.Unlock();
+
+        //v15 = (*(unsigned int *)(p_queue + 64))-- == 1;
+        //if ( v15 )
+        //{
+        //  v18 = 0;
+        //  InterlockedExchange(&v18, 0);
+        //  *(unsigned int *)(p_queue + 56) = 0;
+        //  *(unsigned int *)(p_queue + 60) = 0;
+        //}
+        // 
+        //v5 = v20;
+
         if ( ret == 2 )
 LABEL_15:
           doHighPriority = 1;
-        _InterlockedExchangeAdd(&jqPool.ThisPtr->ExecutingBatchCount, 0xFFFFFFFF);
+        _InterlockedExchangeAdd(&jqPool.group.ExecutingBatchCount, 0xFFFFFFFF);
         _InterlockedExchangeAdd(&CurBatch.Module->Group.ExecutingBatchCount, 0xFFFFFFFF);
         if ( CurBatch.GroupID )
           _InterlockedExchangeAdd(&CurBatch.GroupID->ExecutingBatchCount, 0xFFFFFFFF);
@@ -1852,128 +1879,7 @@ LABEL_15:
     }
   }
 LABEL_24:
-  *(unsigned int *)(v5 + 8312) = 0;
-#else // aislop
-jqBatch CurBatch;
-bool DoHighPriority;
-int Ret;
-int NumJobs;
-
-jqCurWorker = Worker;
-
-while (!callback(context))
-{
-    NumJobs = jqGetQueuedBatchCount(GroupID);
-    DoHighPriority = true;
-
-    while (jqPopNextBatch(Worker, &DoHighPriority, GroupID, &CurBatch))
-    {
-        jqCurBatch = &CurBatch;
-
-        Ret = CurBatch.Module->Code(&CurBatch);
-
-        jqCurBatch = nullptr;
-
-        if (!Ret)
-        {
-            DoHighPriority = true;
-        }
-        else
-        {
-            _InterlockedExchangeAdd(
-                (volatile long *)&jqPool.ThisPtr->group.QueuedBatchCount, 1);
-
-            _InterlockedExchangeAdd(
-                (volatile long *)&CurBatch.Module->Group.QueuedBatchCount, 1);
-
-            _InterlockedExchangeAdd(
-                (volatile long *)&jqCurQueue->QueuedBatchCount, 1);
-
-            if (CurBatch.GroupID)
-            {
-                _InterlockedExchangeAdd(
-                    (volatile long *)&CurBatch.GroupID->QueuedBatchCount, 1);
-            }
-        }
-
-        //
-        // Return batch to atomic queue free list
-        //
-
-        jqAtomicQueue<jqBatch, 32> *Queue = &jqCurQueue->Queue;
-
-        //tlSharedAtomicMutex::Lock(&Queue->FreeLock);
-        Queue->FreeLock.Lock();
-
-        jqAtomicQueue<jqBatch, 32>::NodeType *Node = Queue->_FreeList;
-
-        if (!Node)
-        {
-            // Allocate block of SIZE nodes
-            jqAtomicQueue<jqBatch, 32>::NodeType *Block =
-                (jqAtomicQueue<jqBatch, 32>::NodeType *)
-                tlMemAlloc(sizeof(jqAtomicQueue<jqBatch, 32>::NodeType) * 32, 8, 0);
-
-            for (int i = 0; i < 31; ++i)
-                Block[i].Next = &Block[i + 1];
-
-            Block[31].Next = nullptr;
-
-            Node = Block;
-
-            jqAtomicQueue<jqBatch, 32>::NodeBlockEntry *Entry =
-                (jqAtomicQueue<jqBatch, 32>::NodeBlockEntry *)
-                tlMemAlloc(sizeof(jqAtomicQueue<jqBatch, 32>::NodeBlockEntry), 8, 0);
-
-            Entry->Addr = Block;
-            Entry->Next = Queue->NodeBlockListHead;
-            Queue->NodeBlockListHead = Entry;
-        }
-
-        Queue->_FreeList = Node->Next;
-
-        //tlSharedAtomicMutex::Unlock(&Queue->FreeLock);
-        Queue->FreeLock.Unlock();
-
-        Node->Data = CurBatch;
-        Node->Next = nullptr;
-
-        //
-        // Enqueue at tail
-        //
-
-        //tlAtomicMutex::Lock(&Queue->TailLock);
-        Queue->TailLock.Lock();
-
-        Queue->Tail->Next = Node;
-        Queue->Tail = Node;
-
-        //tlAtomicMutex::Unlock(&Queue->TailLock);
-        Queue->TailLock.Unlock();
-
-        //
-        // Update executing counters
-        //
-
-        _InterlockedExchangeAdd(
-            (volatile long *)&jqPool.ThisPtr->group.ExecutingBatchCount, -1);
-
-        _InterlockedExchangeAdd(
-            (volatile long *)&CurBatch.Module->Group.ExecutingBatchCount, -1);
-
-        if (CurBatch.GroupID)
-        {
-            _InterlockedExchangeAdd(
-                (volatile long *)&CurBatch.GroupID->ExecutingBatchCount, -1);
-        }
-
-        if (!Ret || --NumJobs <= 0)
-            break;
-    }
-}
-
-jqCurWorker = nullptr;
-#endif
+  jqCurWorker = 0;
 }
 
 unsigned int __stdcall jqWorkerThread(jqWorker *_this)

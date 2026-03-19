@@ -299,7 +299,7 @@ void __cdecl Con_ClearNotify(int localClientNum)
     unsigned int gameWindowIndex; // [esp+0h] [ebp-4h]
 
     for ( gameWindowIndex = 0; gameWindowIndex < 3; ++gameWindowIndex )
-        Con_ClearMessageWindow((MessageWindow *)(16036 * localClientNum + 52 * gameWindowIndex + 16407100));
+        Con_ClearMessageWindow(&con.messageBuffer[localClientNum].gamemsgWindows[gameWindowIndex]);
 }
 
 void __cdecl Con_ClearMessageWindow(MessageWindow *msgwnd)
