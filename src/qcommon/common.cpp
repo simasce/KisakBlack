@@ -1139,10 +1139,10 @@ void __cdecl CL_ConvertRegKeytoDWKey(char *key, unsigned int size)
     int i; // [esp+0h] [ebp-4h]
 
     memcpy((unsigned __int8 *)cl_cdkey_dw, (unsigned __int8 *)key, size);
-    for ( i = 4; i < 24; i += 5 )
+    for (i = 4; i < 24; i += 5)
     {
-        memcpy((unsigned __int8 *)(i + 14723605), (unsigned __int8 *)&cl_cdkey_dw[i], 25 - i);
-        cl_cdkey_dw[i] = 45;
+        memcpy((unsigned __int8 *)&cl_cdkey_dw[i + 1], (unsigned __int8 *)&cl_cdkey_dw[i], 25 - i);
+        cl_cdkey_dw[i] = '-';
     }
 }
 

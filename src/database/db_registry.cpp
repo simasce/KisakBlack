@@ -4599,7 +4599,7 @@ void DB_FreeUnusedResources()
     DB_DisableInUseCache();
     for ( i = 0; i < 0x8000; ++i )
     {
-        v7 = (_WORD *)(2 * i + 48223608);
+        v7 = &db_hashTable[i];
         while ( *v7 )
         {
             j = (unsigned __int16)*v7;

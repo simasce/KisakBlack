@@ -102,7 +102,7 @@ void __thiscall dwQoSMultiProbeListener::onQoSProbeSuccess(const bdQoSProbeInfo 
                 this->m_probeSucceeded[i] = 1;
                 bdQoSProbeInfo::operator=(&this->m_successes[this->m_numSuccesses], info);
                 *(unsigned int *)&qos_data[i][0] = *(unsigned int *)info->m_data;
-                this->m_successes[this->m_numSuccesses].m_data = (unsigned __int8 *)(4 * i + 53925536);
+                this->m_successes[this->m_numSuccesses].m_data = (unsigned __int8 *)(4 * i + 53925536); // big num!
                 v2 = *(unsigned int *)&this->m_probeAddrs[i].m_id.ab[4];
                 m_numSuccesses = this->m_numSuccesses;
                 *(unsigned int *)this->m_successIDs[m_numSuccesses].ab = *(unsigned int *)this->m_probeAddrs[i].m_id.ab;

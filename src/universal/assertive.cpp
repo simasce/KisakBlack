@@ -552,7 +552,7 @@ LABEL_13:
     if ( (unsigned __int8 *)(i + 1) == lineBufferEndPos )
         goto LABEL_13;
     lineBuffer[i] = 0;
-    if ( *(_BYTE *)(i + 161261593) == 13 )
+    if (lineBuffer[i + 1] == 13)
         lineBufferStartPos = i + 2;
     else
         lineBufferStartPos = i + 1;

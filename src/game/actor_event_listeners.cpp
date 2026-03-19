@@ -95,7 +95,7 @@ int __cdecl Actor_EventListener_Next(int index, ai_event_t event, int teamFlags)
 
     for ( i = index + 1; i < g_listenerCount; ++i )
     {
-        if ( Com_BitCheckAssert((const unsigned int *)(8 * i + 168248900), event, 0xFFFFFFF) )
+        if (Com_BitCheckAssert(&array[2 * i], event, 0xFFFFFFF))
         {
             sentient = g_entities[g_AIEVlisteners[i].entIndex].sentient;
             if ( !sentient || (teamFlags & (1 << sentient->eTeam)) != 0 )

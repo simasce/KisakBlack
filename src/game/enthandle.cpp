@@ -41,7 +41,7 @@ void __cdecl EntHandle::Shutdown()
         {
             if ( g_entHandleInfoArray[i].handle )
             {
-                Com_Printf(1, "%p\n", (const void *)(8 * i + 63688520));
+                Com_Printf(1, "%p\n", &g_entHandleInfoArray[i]);
                 ++usedEntHandle;
             }
         }

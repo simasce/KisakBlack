@@ -48,7 +48,7 @@ void __cdecl AddIP(char *str)
         }
         ++numIPFilters;
     }
-    if ( !StringToFilter(str, (ipFilter_s *)(8 * i + 66282240)) )
+    if (!StringToFilter(str, &ipFilters[i]))
         ipFilters[i].compare = -1;
     UpdateIPBans();
 }
