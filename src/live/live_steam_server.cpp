@@ -215,6 +215,7 @@ void __thiscall LiveSteamServer::OnGSClientApprove(GSClientApprove_t *pGSClientA
 
 void __cdecl KickClientFromSteamGameServer(CSteamID clientID, EDenyReason reason)
 {
+#if 0
     char *v2; // eax
     const char *v3; // eax
     const char *v4; // eax
@@ -270,6 +271,7 @@ void __cdecl KickClientFromSteamGameServer(CSteamID clientID, EDenyReason reason
             }
         }
     }
+#endif
 }
 
 void __thiscall LiveSteamServer::OnGSClientDeny(GSClientDeny_t *pGSClientDeny)
@@ -302,6 +304,7 @@ void __thiscall LiveSteamServer::OnGSClientKick(GSClientKick_t *pGSClientKick)
 
 void __cdecl LiveSteam_Server_Init()
 {
+#if 0
     LiveSteamServer *v0; // [esp+0h] [ebp-18h]
     void (__thiscall ***v1)(unsigned int, unsigned int); // [esp+4h] [ebp-14h]
     LiveSteamServer *v2; // [esp+8h] [ebp-10h]
@@ -325,10 +328,12 @@ void __cdecl LiveSteam_Server_Init()
 
         g_liveSteamServer = new LiveSteamServer();
     }
+#endif
 }
 
 void __cdecl LiveSteam_Server_Shutdown()
 {
+#if 0
     ISteamGameServer *v0; // [esp+4h] [ebp-10h]
     ISteamMasterServerUpdater *v1; // [esp+8h] [ebp-Ch]
     LiveSteamServer *v2; // [esp+10h] [ebp-4h]
@@ -349,6 +354,7 @@ void __cdecl LiveSteam_Server_Shutdown()
         }
         g_liveSteamServer = 0;
     }
+#endif
 }
 
 void __cdecl LiveSteam_Server_Frame()
@@ -371,6 +377,7 @@ void __cdecl LiveSteam_Server_ClientSteamAuthentication(
                 void *authBlob,
                 unsigned int authBlobSize)
 {
+#if 0
     int v4; // [esp+0h] [ebp-18h]
     unsigned int clientIP; // [esp+8h] [ebp-10h]
     CSteamID steamID; // [esp+Ch] [ebp-Ch] BYREF
@@ -422,10 +429,12 @@ void __cdecl LiveSteam_Server_ClientSteamAuthentication(
                 netAddr.port);
         }
     }
+#endif
 }
 
 void __cdecl LiveSteam_Server_ClientSteamDisconnect(unsigned __int64 clientSteamID)
 {
+#if 0
     int v1; // eax
     CSteamID clientID; // [esp+4h] [ebp-8h] BYREF
 
@@ -445,5 +454,6 @@ void __cdecl LiveSteam_Server_ClientSteamDisconnect(unsigned __int64 clientSteam
             SteamGameServer()->SendUserDisconnect(clientID);
         }
     }
+#endif
 }
 

@@ -42,6 +42,7 @@ CSteamAchievements::~CSteamAchievements()
 
 bool CSteamAchievements::RequestStats()
 {
+#if 0
     ISteamUserStats *v2; // eax
     ISteamUser *v3; // [esp+4h] [ebp-8h]
 
@@ -52,6 +53,9 @@ bool CSteamAchievements::RequestStats()
         return 0;
     v2 = SteamUserStats();
     return (v2->RequestCurrentStats)();
+#else
+    return 0;
+#endif
 }
 
 void CSteamAchievements::SetAchievement(const char *ID)

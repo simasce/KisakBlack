@@ -915,12 +915,8 @@ void __cdecl SV_AllocateClientMemory(HunkUser *hunk, int maxLocalClients, int ma
     memset((unsigned __int8 *)svs.cachedSnapshotClients, 0, 10112 * svs.numCachedSnapshotClients);
     svs.archivedSnapshotFrames = (archivedSnapshot_s *)Hunk_UserAlloc(hunk, 9600, 4, "svs.archivedSnapshotFrames");
     memset((unsigned __int8 *)svs.archivedSnapshotFrames, 0, 0x2580u);
-    svs.archivedSnapshotBuffer = (unsigned __int8 *)Hunk_UserAlloc(
-                                                                                                        hunk,
-                                                                                                        0x1000000,
-                                                                                                        4,
-                                                                                                        "svs.archivedSnapshotBuffer");
-    memset(svs.archivedSnapshotBuffer, 0, (unsigned int)&cls.rankedServers[711].game[35]);
+    svs.archivedSnapshotBuffer = (unsigned __int8 *)Hunk_UserAlloc(hunk, 0x1000000, 4, "svs.archivedSnapshotBuffer");
+    memset(svs.archivedSnapshotBuffer, 0, 0x1000000);
     sv_ikBuf = (unsigned __int8 *)Hunk_UserAlloc(hunk, 32 * ikStateSize, 16, "sv_ikStatesArray");
     memset(sv_ikBuf, 0, 32 * ikStateSize);
     IK_AllocateLocalClientMemory(sv_ikBuf, -1);

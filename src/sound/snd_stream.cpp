@@ -95,7 +95,8 @@ void __cdecl Snd_StreamInit()
             261);
         *(_DWORD *)g_snd_streams->filename = 0;
     }
-    for ( i = 0; i < 0xA; ++i )
+
+    for ( i = 0; i < 10; ++i )
     {
         p_mutex = &g_snd_streams[i].mutex;
         g_snd_streams[i].mutex.ThisPtr = p_mutex;
@@ -103,8 +104,10 @@ void __cdecl Snd_StreamInit()
         p_mutex->LockCount = 0;
         Snd_StreamReset(&g_snd_streams[i]);
     }
-    for ( j = 0; j < 0x14; ++j )
+
+    for ( j = 0; j < 20; ++j )
         Snd_StreamBufferInit(&g_snd_buffers[j], &g_snd_stream_buffer[536576 * j]);
+
     g_snd_stream_time = 0;
     memset((unsigned __int8 *)g_snd_stream_files, 0, sizeof(g_snd_stream_files));
     memset((unsigned __int8 *)g_snd_pack_files, 0, sizeof(g_snd_pack_files));

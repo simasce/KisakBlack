@@ -186,6 +186,7 @@ LABEL_8:
 
 void __cdecl LiveSteam_ShowStore()
 {
+#if 0
     ISteamUtils *v0; // eax
     int v1; // eax
     ISteamFriends *steamFriends; // [esp+4h] [ebp-4h]
@@ -200,6 +201,7 @@ void __cdecl LiveSteam_ShowStore()
             steamFriends->ActivateGameOverlayToStore(SteamUtils()->GetAppID());
         }
     }
+#endif
 }
 
 void __cdecl LiveSteam_PopOverlayForSteamID(unsigned __int64 steamID)
@@ -397,6 +399,7 @@ char __cdecl LiveSteam_AuthGetRequestedTicket(void *ticketBuf, unsigned int tick
 
 int __cdecl LiveSteam_Client_ConnectToSteamServer(unsigned __int64 serverID, void *authBlob, unsigned int bufferSize)
 {
+#if 0
     int v4; // [esp-14h] [ebp-24h] BYREF
     ISteamUser *v5; // [esp+4h] [ebp-Ch]
     int *v6; // [esp+8h] [ebp-8h]
@@ -406,12 +409,17 @@ int __cdecl LiveSteam_Client_ConnectToSteamServer(unsigned __int64 serverID, voi
     v6 = &v4;
     //return (v5->InitiateGameConnection)(v5, authBlob, bufferSize, serverID, HIDWORD(serverID), 0, 0, 1);
     return SteamUser()->InitiateGameConnection(authBlob, bufferSize, serverID, 0, 0, true);
+#else
+    return 0;
+#endif
 }
 
 void LiveSteam_Client_SteamDisconnect()
 {
+#if 0
     //SteamUser(this);
     //(*(void (__thiscall **)(unsigned int, unsigned int, unsigned int))(MEMORY[0] + 16))(0, 0, 0);
     SteamUser()->TerminateGameConnection(0, 0);
+#endif
 }
 
