@@ -231,26 +231,9 @@ void __cdecl SV_GetConfigstring(unsigned int index, char *buffer, int bufferSize
 
 unsigned int __cdecl SV_GetConfigstringConst(unsigned int index)
 {
-    if ( index >= 0xCBC
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_init_mp.cpp",
-                    260,
-                    0,
-                    "%s",
-                    "(unsigned)index < MAX_CONFIGSTRINGS") )
-    {
-        __debugbreak();
-    }
-    if ( !sv.configstrings[index]
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_init_mp.cpp",
-                    262,
-                    0,
-                    "%s",
-                    "sv.configstrings[index]") )
-    {
-        __debugbreak();
-    }
+    iassert((unsigned)index < MAX_CONFIGSTRINGS);
+    iassert(sv.configstrings[index]);
+
     return sv.configstrings[index];
 }
 

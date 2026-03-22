@@ -54,6 +54,14 @@
 #include <game/g_player_corpse.h>
 #include <game/g_weapon.h>
 #include <client/cl_debugdata.h>
+#include <game/g_svcmds.h>
+#include <ui_mp/ui_gametype_custom_mp.h>
+#include <qcommon/cm_world.h>
+#include <bgame/bg_vehicle_anim.h>
+#include <sound/snd_bank.h>
+#include "g_cmds_mp.h"
+#include <game/actor_spawner.h>
+#include "pregame.h"
 
 const char *g_entcountNames[8] =
 {
@@ -307,6 +315,7 @@ const dvar_t *g_turretServerPitchMin;
 const dvar_t *g_turretServerPitchMax;
 const dvar_t *g_turretBipodOffset;
 
+bgsAnim_s level_bgsAnim;
 level_locals_t level;
 
 int g_timed_radius_damage_count;
@@ -314,6 +323,7 @@ TIMED_RADIUS_DAMAGE g_timed_radius_damage[512];
 
 gentity_s g_entities[MAX_GENTITIES];
 sentient_s g_sentients[48];
+actor_s g_actors[16];
 gclient_s g_clients[32];
 
 playerState_s g_defaultPlayerState;
@@ -593,7 +603,7 @@ void __cdecl G_FreeEntities(bool clearTargets)
     Path_CheckUserCountLeaks();
 }
 
-unsigned __int8 *__cdecl Hunk_AllocXAnimServer(unsigned int size)
+void *__cdecl Hunk_AllocXAnimServer(unsigned int size)
 {
     return Hunk_AllocLow(size, "Hunk_AllocXAnimServer", 13);
 }
@@ -706,6 +716,282 @@ void __cdecl    G_InitGame(int levelTime, int randomSeed, int restart, int regis
     if ( !Dvar_GetBool("sv_cheats") && !restart )
         Dvar_SetCheatState();
     GScr_LoadConsts();
+
+    // === IDA OMITTED BELOW THIS === 
+    // (to get around it, I undefined the code and just created a new function where it was stopping)
+    G_SetupWeaponDef();
+    G_ProcessIPBans();
+    UI_Gametype_CustomGameModeDataToDvars();
+
+    level_bgs.animData = &level_bgsAnim;
+    level_bgs.GetXModel = SV_XModelGet;
+    level_bgs.CreateDObj = G_CreateDObj;
+    level_bgs.AttachWeapon = G_AttachWeapon;
+    level_bgs.GetDObj = G_GetDObj;
+    level_bgs.SafeDObjFree = G_SafeDObjFree;
+    level_bgs.AllocXAnim = Hunk_AllocXAnimServer;
+    level_bgs.anim_user = 1;
+    level_bgs.Rand = G_rand;
+    level_bgs.Random = G_random;
+    level_bgsAnim.done_notify = scr_const.done;
+
+    G_InitDestructibles();
+    CM_LinkWorld();
+
+    level.time = levelTime;
+    level.startTime = levelTime;
+
+    G_srand(randomSeed);
+
+    if (*(_BYTE *)g_log->current.integer)
+    {
+        if (g_logSync->current.enabled)
+            FS_FOpenFileByMode((char *)g_log->current.integer, &level.logFile, FS_APPEND_SYNC);
+        else
+            FS_FOpenFileByMode((char *)g_log->current.integer, &level.logFile, FS_APPEND);
+        if (level.logFile)
+        {
+            char serverinfo[1024];
+            SV_GetServerinfo(serverinfo, sizeof(serverinfo));
+            G_LogPrintf("------------------------------------------------------------\n");
+            G_LogPrintf("InitGame: %s\n", serverinfo);
+            G_LogPrintf(
+                "InitGame: %s\\g_logTimeStampInSeconds\\%d\n",
+                serverinfo,
+                g_logTimeStampInSeconds->current.color[0] != 0);
+        }
+        else
+        {
+            Com_PrintWarning(15, "WARNING: Couldn't open logfile: %s\n", g_log->current.string);
+        }
+    }
+    else
+    {
+        Com_Printf(15, "Not logging to disk.\n");
+    }
+
+    for (int i = 0; i < 1; i++)
+    {
+        level.openScriptIOFileHandles[i] = 0;
+        level.openScriptIOFileBuffers[i] = 0;
+        memset(&level.currentScriptIOLineMark[i], 0, sizeof(level.currentScriptIOLineMark[i]));
+    }
+
+    Mantle_CreateAnims(Hunk_AllocXAnimServer);
+    level.actorCorpseCount = ai_corpseCount->current.integer;
+    if ((level.actorCorpseCount < 1 || level.actorCorpseCount > 8)
+        && !Assert_MyHandler(
+            "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_main_mp.cpp",
+            2159,
+            1,
+            "%s",
+            "level.actorCorpseCount >= 1 && level.actorCorpseCount <= MAX_ACTOR_CORPSES"))
+    {
+        __debugbreak();
+    }
+
+    Dog_CreateAnims(Hunk_AllocXAnimServer);
+    SpawnSystem_Init();
+
+    VehAnim_Init();
+
+    if (restart)
+        ; //BG_EvalVehicleName();
+    else
+        G_ParseScrVehicleInfo();
+
+    iassert(bgs == 0);
+    bgs = &level_bgs;
+
+    if (!restart)
+    {
+        memset(&bgs->animData->animScriptData, 0, sizeof(animScriptData_t)/*0x8D388u*/);
+        static_assert(sizeof(animScriptData_t) == 0x8D388);
+
+        bgs->animData->animScriptData.soundAlias = SND_FindAlias;
+        bgs->animData->animScriptData.playSoundAlias = G_AnimScriptSound;
+        //*(_DWORD *)(a1 - 2076) = Dvar_GetString("mapname");
+
+        {
+            //PIXBeginNamedEvent(-1, "GScr_LoadScripts");
+            if (!G_ExitAfterToolComplete())
+                DB_SyncXAssets();
+
+            GScr_LoadScripts(SCRIPTINSTANCE_SERVER);
+            //PIXEndNamedEvent();
+        }
+        
+        // IDA being annoying here too
+        const char *mapname = Dvar_GetString("mapname");
+        BG_LoadAnim(mapname);
+        BG_PostLoadAnim(mapname);
+        G_LoadAnimTreeInstances();
+    }
+
+    char buffer[1024];
+    SV_GetConfigstring(0x15u, buffer, 1024);
+    Info_SetValueForKey(buffer, "winner", "0");
+    SV_SetConfigstring(21, buffer);
+
+    memset(g_entities, 0, sizeof(g_entities));
+    level.gentities = g_entities;
+    g_entities[1023].flags |= 0x4000000u;
+    level.maxclients = com_maxclients->current.integer;
+    memset(g_clients, 0, sizeof(g_clients));
+    level.clients = g_clients;
+    memset(g_timed_radius_damage, 0, sizeof(g_timed_radius_damage));
+
+    Path_Init(restart);
+
+    level.sentients = g_sentients;
+    level.actors = g_actors;
+    G_InitSentients();
+    G_InitActors();
+
+    for (int i = 0; i < level.maxclients; ++i)
+        g_entities[i].client = &level.clients[i];
+
+    level.num_entities = 44;
+    level.firstFreeEnt = 0;
+    level.lastFreeEnt = 0;
+    SV_LocateGameData(level.gentities, level.num_entities, 760, &level.clients->ps, 10720);
+
+    G_ParseHitLocDmgTable();
+    BG_LoadPenetrationDepthTable();
+    G_InitVehiclePaths();
+    G_InitScrVehicles();
+    G_InitTurrets();
+    GlassSv_Init();
+    DynEntSv_InitEntities();
+    Path_PreSpawnInitPaths();
+
+    if (!restart)
+        G_DropPathnodesToFloor();
+
+    G_SpawnEntitiesFromString();
+    G_setfog((char*)"0");
+
+    if (!restart && !IsFastFileLoad())
+    {
+        G_DropPathnodesToFloor();
+    }
+
+    G_SetupVehiclePaths();
+    G_SetupScrVehicles();
+    G_InitObjectives();
+    Missile_InitAttractors();
+    Path_PreSpawnInitPaths();
+
+    if (!restart)
+        G_DropPathnodesToFloor();
+
+    G_UpdateTrackExtraNodes();
+
+    if (!restart && !IsFastFileLoad())
+    {
+        G_DropPathnodesToFloor();
+    }
+
+    G_DropActorSpawnersToFloor();
+    Scr_FreeEntityList(SCRIPTINSTANCE_SERVER);
+    Com_Printf(15, "-----------------------------------\n");
+    G_InitTargets();
+    Scr_InitSystem(SCRIPTINSTANCE_SERVER, 1);
+    Scr_SetLoading(1, SCRIPTINSTANCE_SERVER);
+    Scr_AllocGameVariable(SCRIPTINSTANCE_SERVER);
+
+    //PIXBeginNamedEvent(-1, "Load Scripts");
+    if (g_loadScripts && g_loadScripts->current.enabled)
+    {
+        {
+            //PIXBeginNamedEvent(-1, "Load Structs");
+            G_LoadStructs();
+            //*(_DWORD *)(a1 - 2096) = GetCurrentThreadId();
+            //*(_DWORD *)(a1 - 2092) = 0;
+            //if (*(_QWORD *)(a1 - 2096) == g_DXDeviceThread)
+            //    D3DPERF_EndEvent();
+        }
+        
+        if (!r_reflectionProbeGenerate->current.enabled)
+        {
+            Path_InitPaths();
+            Actor_FinishSpawningAll();
+            Path_AutoDisconnectPaths();
+        }
+
+        {
+            //PIXBeginNamedEvent(-1, "Load Game");
+            if (Pregame_ShouldLoadPregame())
+            {
+                Pregame_StartPregame();
+                Scr_LoadPreGame();
+            }
+            else
+            {
+                Scr_LoadGameType();
+            }
+            //*(_DWORD *)(a1 - 2104) = GetCurrentThreadId();
+            //*(_DWORD *)(a1 - 2100) = 0;
+            //if (*(_QWORD *)(a1 - 2104) == g_DXDeviceThread)
+            //    D3DPERF_EndEvent();
+        }
+
+        {
+            //PIXBeginNamedEvent(-1, "Load Level");
+            Scr_LoadLevel();
+            //*(_DWORD *)(a1 - 2112) = GetCurrentThreadId();
+            //*(_DWORD *)(a1 - 2108) = 0;
+            //if (*(_QWORD *)(a1 - 2112) == g_DXDeviceThread)
+            //    D3DPERF_EndEvent();
+        }
+
+        {
+            //PIXBeginNamedEvent(-1, "Startup Gametype");
+            Scr_StartupGameType();
+            //*(_DWORD *)(a1 - 2120) = GetCurrentThreadId();
+            //*(_DWORD *)(a1 - 2116) = 0;
+            //if (*(_QWORD *)(a1 - 2120) == g_DXDeviceThread)
+            //    D3DPERF_EndEvent();
+        }
+    }
+    //*(_DWORD *)(a1 - 2128) = GetCurrentThreadId();
+    //*(_DWORD *)(a1 - 2124) = 0;
+    //if (*(_QWORD *)(a1 - 2128) == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
+    
+    for (int i = 0; i < 4; i++)
+    {
+        g_scr_data.playerCorpseInfo[i].entnum = -1;
+    }
+
+    if (IsFastFileLoad())
+    {
+        G_PrintAllFastFileErrors();
+    }
+
+    iassert(bgs == &level_bgs);
+    bgs = NULL;
+
+    g_timed_radius_damage_count = 0;
+    level.initializing = 0;
+    SaveRegisteredWeapons();
+    SaveRegisteredItems();
+
+    if (!restart)
+        RadiantRemoteInit();
+
+    RunSavedRadiantCmds();
+
+    //result = GetCurrentThreadId();
+    //*(_DWORD *)(a1 - 2140) = result;
+    //*(_DWORD *)(a1 - 2136) = 0;
+    //if (*(_DWORD *)(a1 - 2140) == (_DWORD)g_DXDeviceThread)
+    //{
+    //    result = *(_DWORD *)(a1 - 2136);
+    //    if (result == HIDWORD(g_DXDeviceThread))
+    //        return D3DPERF_EndEvent();
+    //}
+    //return result;
 }
 
 void G_RegisterDvars()
@@ -1787,12 +2073,14 @@ void G_RegisterDvars()
         "Offset bipod mount position on gun by this distance");
 }
 
+//void(__cdecl *CreateDObj)(struct DObjModel_s *, unsigned __int16, XAnimTree_s *, int, int, clientInfo_t *);
 void __cdecl G_CreateDObj(
                 DObjModel_s *dobjModels,
                 unsigned __int16 numModels,
                 XAnimTree_s *tree,
-                unsigned int handle,
-                int unusedLocalClientNum)
+                int handle,
+                int unusedLocalClientNum,
+                clientInfo_t *__formal)
 {
     if ( unusedLocalClientNum != -1
         && !Assert_MyHandler(

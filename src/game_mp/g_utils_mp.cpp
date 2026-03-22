@@ -172,49 +172,33 @@ int __cdecl G_ModelIndex(char *name)
     unsigned int s; // [esp+4h] [ebp-8h]
     int i; // [esp+8h] [ebp-4h]
 
-    if ( !name && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_utils_mp.cpp", 209, 0, "%s", "name") )
-        __debugbreak();
-    if ( !*name )
+    iassert(name);
+
+    if (!name[0])
         return 0;
+
     nameString = SL_FindLowercaseString(name, SCRIPTINSTANCE_SERVER);
-    for ( i = 1; i < 512; ++i )
+
+    for ( i = 1; i < MAX_MODELS; ++i )
     {
         s = SV_GetConfigstringConst(i + 1568);
         if ( s == scr_const._ )
             break;
         if ( s == nameString )
         {
-            if ( !cached_models[i]
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_utils_mp.cpp",
-                            227,
-                            0,
-                            "%s",
-                            "cached_models[i]") )
-            {
-                __debugbreak();
-            }
+            iassert(cached_models[i]);
             return i;
         }
     }
     if ( !level.initializing )
     {
-        v2 = va("model '%s' not precached", name);
-        Scr_Error(v2, 0);
+        Scr_Error(va("model '%s' not precached", name), 0);
     }
-    if ( (unsigned int)i >= 0x200
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_utils_mp.cpp",
-                    239,
-                    0,
-                    "i doesn't index MAX_MODELS\n\t%i not in [0, %i)",
-                    i,
-                    512) )
-    {
-        __debugbreak();
-    }
-    if ( i == 512 )
+    bcassert(i, MAX_MODELS);
+
+    if ( i == MAX_MODELS)
         Com_Error(ERR_DROP, "G_ModelIndex: overflow");
+
     cached_models[i] = SV_XModelGet(name);
     SV_SetConfigstring(i + 1568, name);
     return i;
@@ -2123,7 +2107,7 @@ void __cdecl G_srand(unsigned int seed)
     holdrand = seed;
 }
 
-unsigned int __cdecl G_rand()
+int __cdecl G_rand()
 {
     holdrand = 214013 * holdrand + 2531011;
     return holdrand >> 17;
@@ -2139,7 +2123,7 @@ int __cdecl G_irand(int min, int max)
     return ((G_rand() * (__int64)(max - min)) >> 15) + min;
 }
 
-double __cdecl G_random()
+float __cdecl G_random()
 {
     return (double)G_rand() / 32768.0;
 }

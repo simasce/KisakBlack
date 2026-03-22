@@ -363,7 +363,7 @@ clientState_s *__cdecl G_GetClientState(unsigned int clientNum);
 gclient_s *__cdecl G_GetPlayerState(unsigned int clientNum);
 int __cdecl G_GetClientSize();
 void __cdecl G_FreeEntities(bool clearTargets);
-unsigned __int8 *__cdecl Hunk_AllocXAnimServer(unsigned int size);
+void *__cdecl Hunk_AllocXAnimServer(unsigned int size);
 bool __cdecl G_ExitAfterConnectPaths();
 bool __cdecl G_ExitAfterToolComplete();
 bool __cdecl G_ExitOnComError(int code);
@@ -373,11 +373,12 @@ void G_FreeAnimTreeInstances();
 void __cdecl    G_InitGame(int levelTime, int randomSeed, int restart, int registerDvars);
 void G_RegisterDvars();
 void __cdecl G_CreateDObj(
-                DObjModel_s *dobjModels,
-                unsigned __int16 numModels,
-                XAnimTree_s *tree,
-                unsigned int handle,
-                int unusedLocalClientNum);
+    DObjModel_s *dobjModels,
+    unsigned __int16 numModels,
+    XAnimTree_s *tree,
+    int handle,
+    int unusedLocalClientNum,
+    clientInfo_t *__formal);
 DObj *__cdecl G_GetDObj(unsigned int handle, int unusedLocalClientNum);
 void __cdecl G_SafeDObjFree(unsigned int handle, int unusedLocalClientNum);
 XAnim_s *G_LoadAnimTreeInstances();

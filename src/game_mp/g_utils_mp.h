@@ -2,6 +2,8 @@
 #include <bgame/bg_public.h>
 #include <sound/snd.h>
 
+#define MAX_MODELS 512
+
 struct DObjAnimMat;
 struct DObjTrace_s;
 
@@ -89,8 +91,8 @@ void __cdecl G_SetAngle(gentity_s *ent, const float *angle);
 void __cdecl G_SetConstString(unsigned __int16 *to, char *from);
 const char *__cdecl G_GetEntityTypeName(const gentity_s *ent);
 void __cdecl G_srand(unsigned int seed);
-unsigned int __cdecl G_rand();
+int __cdecl G_rand();
 double __cdecl G_flrand(float min, float max);
 int __cdecl G_irand(int min, int max);
-double __cdecl G_random();
+float __cdecl G_random();
 double __cdecl G_crandom();

@@ -196,11 +196,13 @@ void __cdecl Sys_SetBlockSystemHotkeys(int block)
 {
     HINSTANCE__ *module; // [esp+0h] [ebp-4h]
 
+#ifdef KISAK_PURE // LWSS: This hook lags the entire systemwide keyboard for Windows whenever the application is paused/debugging. HORRIBLE
     if ( !g_wv.sysMsgTime )
     {
         module = GetModuleHandleA(0);
         g_wv.sysMsgTime = (unsigned int)SetWindowsHookExA(13, (HOOKPROC)LowLevelKeyboardProc, module, 0);
     }
+#endif
     g_blockHook = block;
 }
 
