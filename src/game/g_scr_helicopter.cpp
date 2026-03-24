@@ -6,6 +6,7 @@
 #include <qcommon/dobj_management.h>
 #include <bgame/bg_weapons_def.h>
 
+// Looks congruent to retail blops mp latest
 const BuiltinMethodDef s_methods[27] =
 {
   { "freehelicopter", &CMD_Heli_FreeHelicopter, 0 },
@@ -135,7 +136,7 @@ void (__cdecl *__cdecl Helicopter_GetMethod(const char **pName))(scr_entref_t)
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for ( i = 0; i < 0x1B; ++i )
+    for ( i = 0; i < ARRAY_COUNT(s_methods); ++i )
     {
         if ( !strcmp(*pName, s_methods[i].actionString) )
         {

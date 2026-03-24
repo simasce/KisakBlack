@@ -1966,8 +1966,8 @@ void __cdecl PmoveSingle(pmove_t *pm)
         default:
 LABEL_151:
             if ( pm->ps->weaponstate == 35 && (pm->ps->eFlags & 0x300) != 0 )
-                ps->weaponstate = 36;
-            if ( pm->ps->weaponstate == 36
+                ps->weaponstate = WEAPON_DEPLOYED;
+            if ( pm->ps->weaponstate == WEAPON_DEPLOYED
                 && (pm->ps->weapFlags & 0x1000) == 0
                 && (BG_GetAmmoInClip(pm->ps, pm->ps->weapon) <= 0 || (pm->ps->eFlags & 0x300) == 0) )
             {

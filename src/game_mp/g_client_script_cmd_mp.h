@@ -23,6 +23,12 @@ void __cdecl PlayerCmd_setPlayerRenderOptions(scr_entref_t entref);
 void __cdecl PlayerCmd_NextPlayerRenderOption(scr_entref_t entref);
 void __cdecl PlayerCmd_SetHighlighted(scr_entref_t entref);
 void __cdecl PlayerCmd_IsThrowingGrenade(scr_entref_t entref);
+// LWSS ADD
+void PlayerCmd_IsFiring(scr_entref_t entref);
+void PlayerCmd_IsInMoveMode(scr_entref_t entref);
+void PlayerCmd_IsMeleeing(scr_entref_t entref);
+void PlayerCmd_IsSwitchingWeapons(scr_entref_t entref);
+// LWSS END
 void __cdecl PlayerCmd_takeWeapon(scr_entref_t entref);
 void __cdecl PlayerCmd_takeAllWeapons(scr_entref_t entref);
 void __cdecl PlayerCmd_getCurrentWeapon(scr_entref_t entref);
@@ -81,6 +87,13 @@ bool __cdecl IsBulletImpactMOD(meansOfDeath_t mod);
 void __cdecl ForceGrenadeThrow(playerState_s *ps);
 void __cdecl ApplyKnockBack(gentity_s *pSelf, int damage, float *localdir, char dflags, bool allow_in_air);
 void __cdecl PlayerCmd_Suicide(scr_entref_t entref);
+// LWSS ADD
+void PlayerCmd_BotPressAttackButton(scr_entref_t entref);
+void PlayerCmd_GetLookaheadDist(scr_entref_t entref);
+void PlayerCmd_GetLookaheadDir(scr_entref_t entref);
+void PlayerCmd_GetThreat(scr_entref_t entref);
+void PlayerCmd_HasScriptGoal(scr_entref_t entref);
+// LWSS END
 void __cdecl PlayerCmd_IsSplitscreen(scr_entref_t entref);
 void __cdecl PlayerCmd_IsPlayerOnSameMachine(scr_entref_t entref);
 void __cdecl PlayerCmd_IsInVehicle(scr_entref_t entref);
@@ -110,6 +123,10 @@ void __cdecl PlayerCmd_PlayClientAirstrike(scr_entref_t entref);
 void __cdecl PlayerCmd_PlayClientNapalm(scr_entref_t entref);
 void __cdecl PlayerCmd_IsTalking(scr_entref_t entref);
 void __cdecl PlayerCmd_FreezeControls(scr_entref_t entref);
+// LWSS ADD
+void PlayerCmd_FreezeControlsAllowLook(scr_entref_t entref);
+void PlayerCmd_AreControlsFrozen(scr_entref_t entref);
+// LWSS END
 void __cdecl PlayerCmd_DisableUsability(scr_entref_t entref);
 void __cdecl PlayerCmd_EnableUsability(scr_entref_t entref);
 void __cdecl PlayerCmd_DisableWeapons(scr_entref_t entref);
@@ -173,4 +190,5 @@ void __cdecl PlayerCmd_LinkGuidedMissileCamera(scr_entref_t entref);
 void __cdecl PlayerCmd_UnlinkGuidedMissileCamera(scr_entref_t entref);
 void __cdecl PlayerCmd_isCarryingTurret(scr_entref_t entref);
 void __cdecl PlayerCmd_CanPlayerPlaceTurret(scr_entref_t entref);
+void PlayerCmd_SetTurrentHint(scr_entref_t entref); // LWSS ADD
 void (__cdecl *__cdecl Player_GetMethod(const char **pName))(scr_entref_t);

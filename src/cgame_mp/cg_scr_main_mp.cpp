@@ -32,7 +32,7 @@ unsigned __int16 *footTags[4] =
     &scr_const.j_palm_ri
 };
 
-BuiltinFunctionDef client_project_functions[26] =
+BuiltinFunctionDef client_project_functions[] =
 {
   { "getgridfrompos", &CScr_GetGridFromPos, 0 },
   { "compassscale", &CScr_CompassScale, 0 },
@@ -59,9 +59,16 @@ BuiltinFunctionDef client_project_functions[26] =
   { "setextracamstatic", &CScr_SetExtraCamStatic, 0 },
   { "setextracamorigin", &CScr_SetExtraCamOrigin, 0 },
   { "setextracamangles", &CScr_SetExtraCamAngles, 0 },
-  { "iscameraspiketoggled", &CScr_IsCameraSpikeToggled, 0 }
+  { "iscameraspiketoggled", &CScr_IsCameraSpikeToggled, 0 },
+  // LWSS ADD FROM BLOPS MP RETAIL (LATEST)
+  { "setclientvolumetricfog", &CScr_SetClientVolumetricFog, 0 },
+  { "switchtoservervolumetricfog", &CScr_SwitchToServerVolumetricFog, 0 },
+  { "switchtoclientvolumetricfog", &CScr_SwitchToClientVolumetricFog, 0 },
+  { "isinhelicopter", &CScr_IsInHelicopter, 0 },
+  // LWSS END
 };
 
+// LWSS: Looks congruent to retail blops MP
 const BuiltinMethodDef client_project_methods[29] =
 {
   { "gettagorigin", &CScr_GetTagOrigin, 0 },
@@ -1117,6 +1124,25 @@ void CScr_IsCameraSpikeToggled()
     }
 }
 
+// LWSS ADD
+void CScr_SetClientVolumetricFog()
+{
+    iassert(0); // KISAKTODO :)
+}
+void CScr_SwitchToServerVolumetricFog()
+{
+    iassert(0); // KISAKTODO :)
+}
+void CScr_SwitchToClientVolumetricFog()
+{
+    iassert(0); // KISAKTODO :)
+}
+void CScr_IsInHelicopter()
+{
+    iassert(0); // KISAKTODO :)
+}
+// LWSS END
+
 void CScr_GetGridFromPos()
 {
     VariableUnion v0; // eax
@@ -1199,7 +1225,7 @@ void(__cdecl *__cdecl CScr_GetFunctionProjectSpecific(const char **pName, int *t
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for (i = 0; i < 26; ++i)
+    for (i = 0; i < ARRAY_COUNT(client_project_functions); ++i)
     {
         if (!strcmp(*pName, client_project_functions[i].actionString))
         {

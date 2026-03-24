@@ -39,7 +39,7 @@ static void __cdecl METHOD_NULLSUB(scr_entref_t entref)
 }
 
 
-const BuiltinMethodDef methods_2[77] =
+const BuiltinMethodDef methods_2[] =
 {
   { "startcoverarrival", &ActorCmd_StartCoverArrival, 0 },
   { "starttraversearrival", &ActorCmd_StartTraverseArrival, 0 },
@@ -81,6 +81,10 @@ const BuiltinMethodDef methods_2[77] =
   { "isdeflected", &ActorCmd_IsDeflected, 0 },
   { "animcustom", &ScrCmd_animcustom, 0 },
   { "canattackenemynode", &ScrCmd_CanAttackEnemyNode, 0 },
+  // LWSS ADD FROM LATEST BLOPS MP RETAIL
+  { "getpathlength", &ScrCmd_GetPathLength, 0 },
+  { "calcpathlength", &ScrCmd_CalcPathLength, 0 },
+  // LWSS END
   { "getnegotiationstartnode", &ScrCmd_GetNegotiationStartNode, 0 },
   { "getnegotiationendnode", &ScrCmd_GetNegotiationEndNode, 0 },
   { "checkprone", &ActorCmd_CheckProne, 0 },
@@ -492,7 +496,7 @@ void(__cdecl *__cdecl Actor_GetMethod(const char **pName))(scr_entref_t)
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for (i = 0; i < 0x4D; ++i)
+    for (i = 0; i < ARRAY_COUNT(methods_2); ++i)
     {
         if (!strcmp(*pName, methods_2[i].actionString))
         {
@@ -1656,6 +1660,40 @@ void __cdecl ScrCmd_CanAttackEnemyNode(scr_entref_t entref)
         Scr_AddInt(0, SCRIPTINSTANCE_SERVER);
     }
 }
+
+// LWSS ADD
+void ScrCmd_GetPathLength(scr_entref_t entref)
+{
+    actor_s *self;
+    self = Actor_Get(entref);
+
+    if (Actor_HasPath(self))
+    {
+        Scr_AddInt(self->Path.wPathLen, SCRIPTINSTANCE_SERVER);
+    }
+    else
+    {
+        Scr_AddInt(0, SCRIPTINSTANCE_SERVER);
+    }
+}
+void ScrCmd_CalcPathLength(scr_entref_t entref)
+{
+    actor_s *self;
+    self = Actor_Get(entref);
+
+    float goalpos[3];
+    Scr_GetVector(0, goalpos, SCRIPTINSTANCE_SERVER);
+    Actor_FindPath(self, goalpos, true, true);
+    if (Actor_HasPath(self))
+    {
+        Scr_AddInt(self->Path.wPathLen, SCRIPTINSTANCE_SERVER);
+    }
+    else
+    {
+        Scr_AddInt(0, SCRIPTINSTANCE_SERVER);
+    }
+}
+// LWSS END
 
 void __cdecl ScrCmd_GetNegotiationStartNode(scr_entref_t entref)
 {

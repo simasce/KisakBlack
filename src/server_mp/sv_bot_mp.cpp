@@ -244,16 +244,7 @@ void __cdecl Bot_ClearThreat(bot_info_t *botInfo)
 
 void __cdecl SV_BotPressUseButton(const client_t *bot, int msec)
 {
-    if ( !bot->bIsTestClient
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_bot_mp.cpp",
-                    2842,
-                    0,
-                    "%s",
-                    "bot->bIsTestClient") )
-    {
-        __debugbreak();
-    }
+    iassert(bot->bIsTestClient);
     botInfos[bot->gentity->s.number].useButtonEndTime = msec + svs.time;
 }
 

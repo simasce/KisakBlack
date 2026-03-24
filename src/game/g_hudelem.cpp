@@ -179,6 +179,7 @@ const game_hudelem_field_t fields_0[28] =
   { NULL, 0, 0, F_INT, 0, 0, NULL, NULL }
 };
 
+// Looks congruent to retail blops mp latest
 const BuiltinMethodDef methods_0[26] =
 {
   { "settext", &HECmd_SetText, 0 },
@@ -2530,7 +2531,7 @@ void (__cdecl *__cdecl HudElem_GetMethod(const char **pName))(scr_entref_t)
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for ( i = 0; i < 0x1A; ++i )
+    for ( i = 0; i < ARRAY_COUNT(methods_0); ++i )
     {
         if ( !strcmp(*pName, methods_0[i].actionString) )
         {

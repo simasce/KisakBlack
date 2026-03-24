@@ -36,7 +36,8 @@ unsigned int defineStringsOffset;
 
 char debugString[16];
 
-const char *globalFilename;
+const char *globalFilename = "mp/playeranim.script";
+
 animStringItem_t weaponStrings[2048];
 
 thread_local bgs_t *bgs; // tls+8

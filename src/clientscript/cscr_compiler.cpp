@@ -23,10 +23,14 @@ void (__cdecl *__cdecl GetFunction(scriptInstance_t inst, const char **pName, in
 
 void (__cdecl *__cdecl GetMethod(scriptInstance_t inst, const char **pName, int *type))(scr_entref_t)
 {
+    void (__cdecl *method)(scr_entref_t);
+
     if ( inst )
-        return CScr_GetMethod(pName, type);
+        method = CScr_GetMethod(pName, type);
     else
-        return Scr_GetMethod(pName, type);
+        method = Scr_GetMethod(pName, type);
+
+    return method;
 }
 
 int __cdecl GetExpressionCount(sval_u exprlist)
@@ -197,7 +201,7 @@ void __cdecl ScriptCompile(
 
 void __cdecl LinkThread(scriptInstance_t inst, unsigned int threadCountId, VariableValue *pos, bool allowFarCall)
 {
-    VariableValue v4; // [esp+18h] [ebp-24h]
+    VariableValue count; // [esp+18h] [ebp-24h]
     unsigned int valueId; // [esp+20h] [ebp-1Ch]
     unsigned int countId; // [esp+24h] [ebp-18h]
     unsigned int type; // [esp+28h] [ebp-14h]
@@ -207,8 +211,8 @@ void __cdecl LinkThread(scriptInstance_t inst, unsigned int threadCountId, Varia
     countId = FindVariable(inst, threadCountId, 0);
     if (countId)
     {
-        v4 = Scr_EvalVariable(inst, countId);
-        if (v4.type != 6
+        count = Scr_EvalVariable(inst, countId);
+        if (count.type != 6
             && !Assert_MyHandler(
                 "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_compiler.cpp",
                 2135,
@@ -218,7 +222,7 @@ void __cdecl LinkThread(scriptInstance_t inst, unsigned int threadCountId, Varia
         {
             __debugbreak();
         }
-        for (i = 0; i < v4.u.intValue; ++i)
+        for (i = 0; i < count.u.intValue; ++i)
         {
             valueId = FindVariable(inst, threadCountId, i + 1);
             if (!valueId

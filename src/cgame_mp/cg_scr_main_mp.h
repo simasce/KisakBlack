@@ -45,6 +45,12 @@ void CScr_SetExtraCamStatic();
 void CScr_SetExtraCamOrigin();
 void CScr_SetExtraCamAngles();
 void CScr_IsCameraSpikeToggled();
+// LWSS ADD
+void CScr_SetClientVolumetricFog();
+void CScr_SwitchToServerVolumetricFog();
+void CScr_SwitchToClientVolumetricFog();
+void CScr_IsInHelicopter();
+// LWSS END
 void CScr_GetGridFromPos();
 void CScr_CompassScale();
 void CScr_ResetCompassScale();

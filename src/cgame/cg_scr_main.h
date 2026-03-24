@@ -331,6 +331,7 @@ unsigned int __cdecl CScr_GetConstServerString(unsigned int index);
 void __cdecl CScrCmd_GetSpeed(scr_entref_t entref);
 char __cdecl CG_IsLocalPlayer(int entnumber);
 void __cdecl CScrCmd_GetEntNum(scr_entref_t entref);
+void __cdecl CScrCmd_GetStance(scr_entref_t entref); // LWSS ADD
 void __cdecl CScrCmd_GetEntityNumber(scr_entref_t entref);
 void __cdecl CScrCmd_Earthquake(scr_entref_t entref);
 void __cdecl CScrCmd_MakeLight(scr_entref_t entref);

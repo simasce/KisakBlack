@@ -290,7 +290,7 @@ int *__cdecl BG_GetWeaponState(playerState_s *ps, bool leftGun)
     if ( leftGun )
         return &ps->weaponstateLeft;
     else
-        return &ps->weaponstate;
+        return (int*)&ps->weaponstate;
 }
 
 bool __cdecl BG_IsAimDownSightWeapon(unsigned int weaponIndex)
@@ -1157,7 +1157,7 @@ void __cdecl PM_Weapon_Idle(playerState_s *ps)
         Com_Printf(19, "end weapon (idle)\n");
     ps->weaponTime = 0;
     ps->weaponDelay = 0;
-    ps->weaponstate = 0;
+    ps->weaponstate = WEAPON_READY;
     ps->weaponTimeLeft = 0;
     ps->weaponDelayLeft = 0;
     ps->weaponstateLeft = 0;
@@ -1226,7 +1226,7 @@ void __cdecl PM_Weapon(pmove_t *pm, pml_t *pml)
                     else
                     {
                         ps->weaponTime = ps->weaponstate != 39 ? 0 : 0x3E8;
-                        ps->weaponstate = 38;
+                        ps->weaponstate = WEAPON_SWIM_IN;
                         ps->weaponDelay = 0;
                         ps->weapFlags |= 0x2000u;
                         PM_ExitAimDownSight(ps);
@@ -1237,7 +1237,7 @@ void __cdecl PM_Weapon(pmove_t *pm, pml_t *pml)
             }
             else if ( ps->weaponstate == 38 )
             {
-                ps->weaponstate = 39;
+                ps->weaponstate = WEAPON_SWIM_OUT;
                 ps->weaponTime = 1000;
             }
             PM_UpdateAimDownSightLerp(pm, pml);
@@ -1565,7 +1565,7 @@ int __cdecl PM_Weapon_CheckForRechamber(playerState_s *ps, int delayedAction)
                     PM_StartWeaponAnim(ps, 6, 0);
                 else
                     PM_StartWeaponAnim(ps, 9, 0);
-                ps->weaponstate = 7;
+                ps->weaponstate = WEAPON_RECHAMBERING;
                 ps->weaponTime = weapDef->iRechamberTime;
                 if ( weapDef->iRechamberBoltTime && weapDef->iRechamberBoltTime < weapDef->iRechamberTime )
                     ps->weaponDelay = weapDef->iRechamberBoltTime;
@@ -1602,7 +1602,7 @@ void __cdecl BG_PlayerWeaponSetNeedsRechamber(playerState_s *ps, unsigned int we
 void __cdecl PM_Weapon_FinishRechamber(playerState_s *ps)
 {
     PM_ContinueWeaponAnim(ps, 0, 0);
-    ps->weaponstate = 0;
+    ps->weaponstate = WEAPON_READY;
 }
 
 void __cdecl PM_ContinueWeaponAnim(playerState_s *ps, int anim, int leftAnim)
@@ -1689,11 +1689,11 @@ void __cdecl PM_Weapon_FinishWeaponChange(pmove_t *pm, int previousWeaponState)
     ps->adsZoomLatchTime = 0;
     if ( (ps->weapFlags & 0x20000) != 0 )
     {
-        ps->weaponstate = 20;
+        ps->weaponstate = WEAPON_OFFHAND_INIT;
     }
     else if ( oldweapon == newweapon )
     {
-        ps->weaponstate = 0;
+        ps->weaponstate = WEAPON_READY;
         ps->weaponstateLeft = 0;
         PM_StartWeaponAnim(ps, 0, 0);
         if ( weapDef->bDualWield )
@@ -1745,7 +1745,7 @@ void __cdecl PM_Weapon_FinishWeaponChange(pmove_t *pm, int previousWeaponState)
         }
         if ( weapDef->bNoDropsOrRaises )
         {
-            ps->weaponstate = anim;
+            ps->weaponstate = (weaponstate_t)anim;
             ps->weaponTime = weapontime;
             ps->aimSpreadScale = aimspread;
             PM_SetProneMovementOverride(ps);
@@ -1816,7 +1816,7 @@ void __cdecl PM_Weapon_BeginWeaponRaise(
     {
         __debugbreak();
     }
-    ps->weaponstate = (altSwitch != 0) + 1;
+    ps->weaponstate = (weaponstate_t)((altSwitch != 0) + 1);
     ps->weaponTime = time;
     ps->aimSpreadScale = aim;
     PM_SetProneMovementOverride(ps);
@@ -1895,7 +1895,7 @@ void __cdecl PM_Weapon_FinishWeaponRaise(playerState_s *ps)
     {
         __debugbreak();
     }
-    ps->weaponstate = 0;
+    ps->weaponstate = WEAPON_READY;
     ps->weaponstateLeft = 0;
     PM_StartWeaponAnim(ps, 0, 0);
     PM_StartWeaponAnim(ps, 0, 1);
@@ -1928,20 +1928,20 @@ void __cdecl PM_Weapon_FinishReloadStart(pmove_t *pm, int delayedAction)
     if ( !ps->weaponTime )
     {
         if ( weapDef->bSegmentedReload && pm->cmd.button_bits.testBit(0) )
-            ps->weaponstate = 13;
-        if ( ps->weaponstate == 13 && BG_GetAmmoInClipForWeaponDef(ps, weapVarDef) || !PM_Weapon_AllowReload(ps) )
+            ps->weaponstate = WEAPON_RELOAD_START_INTERUPT;
+        if ( ps->weaponstate == WEAPON_RELOAD_START_INTERUPT && BG_GetAmmoInClipForWeaponDef(ps, weapVarDef) || !PM_Weapon_AllowReload(ps) )
         {
             BG_PlayerWeaponSetNeedsRechamber(ps, ps->weapon, 0);
             if ( weapDef->iReloadEndTime )
             {
-                ps->weaponstate = 14;
+                ps->weaponstate = WEAPON_RELOAD_END;
                 PM_StartWeaponAnim(ps, 18, 0);
                 ps->weaponTime = weapDef->iReloadEndTime;
                 PM_AddEvent(ps, 0x15u);
             }
             else
             {
-                ps->weaponstate = 0;
+                ps->weaponstate = WEAPON_READY;
                 PM_StartWeaponAnim(ps, 0, 0);
                 if ( weapDef->bDualWield )
                     PM_StartWeaponAnim(ps, 0, 1);
@@ -2316,7 +2316,7 @@ void __cdecl PM_Weapon_FinishReloadEnd(playerState_s *ps)
     {
         __debugbreak();
     }
-    ps->weaponstate = 0;
+    ps->weaponstate = WEAPON_READY;
     PM_StartWeaponAnim(ps, 0, 0);
 }
 
@@ -3036,7 +3036,7 @@ void __cdecl PM_BeginWeaponChange(pmove_t *pm, unsigned int newweapon, bool quic
                 ps->grenadeTimeLeft = 0;
                 if ( (ps->weapFlags & 0x20000) != 0 && BG_GetWeaponDef(ps->offHandIndex)->rotateType == WEAPROTATE_BLADE_ROTATE )
                 {
-                    ps->weaponstate = 4;
+                    ps->weaponstate = WEAPON_DROPPING_QUICK;
                     ps->weaponTime = 0;
                 }
                 else
@@ -3086,15 +3086,15 @@ void __cdecl PM_BeginWeaponChange(pmove_t *pm, unsigned int newweapon, bool quic
                     }
                     if ( altswitch )
                     {
-                        ps->weaponstate = 5;
+                        ps->weaponstate = WEAPON_DROPPING_ALTSWITCH;
                     }
                     else if ( quick )
                     {
-                        ps->weaponstate = 4;
+                        ps->weaponstate = WEAPON_DROPPING_QUICK;
                     }
                     else
                     {
-                        ps->weaponstate = 3;
+                        ps->weaponstate = WEAPON_DROPPING;
                     }
                     ps->weaponstateLeft = ps->weaponstate;
                     PM_SetProneMovementOverride(ps);
@@ -3137,7 +3137,7 @@ void __cdecl PM_BeginWeaponChange(pmove_t *pm, unsigned int newweapon, bool quic
                 if ( G_IsServerGameSystem(ps->clientNum) )
                     Com_Printf(19, "end weapon (begin weapon change)\n");
                 ps->weaponTime = 0;
-                ps->weaponstate = quick + 3;
+                ps->weaponstate = (weaponstate_t)(quick + 3);
                 ps->weapFlags &= ~2u;
                 ps->grenadeTimeLeft = 0;
                 PM_SetProneMovementOverride(ps);
@@ -3189,7 +3189,7 @@ int __cdecl PM_Weapon_ShouldBeFiring(pmove_t *pm, int delayedAction, bool testOn
         {
             if ( ps->weaponstate == 6 && !Mantle_IsWeaponEquipped(ps) )
                 PM_ContinueWeaponAnim(ps, 0, 0);
-            ps->weaponstate = 0;
+            ps->weaponstate = WEAPON_READY;
         }
     }
     return 0;
@@ -3538,7 +3538,7 @@ void __cdecl PM_Weapon_Jam(playerState_s *ps)
 {
     if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_weapons.cpp", 3277, 0, "%s", "ps") )
         __debugbreak();
-    ps->weaponstate = 46;
+    ps->weaponstate = WEAPON_JAMMED;
     ps->weaponTime = 2000;
     ps->weaponDelay = 2000;
     PM_StartWeaponAnim(ps, 53, 0);
@@ -3712,7 +3712,7 @@ void __cdecl PM_Weapon_MeleeEnd(playerState_s *ps)
     }
     else
     {
-        ps->weaponstate = 19;
+        ps->weaponstate = WEAPON_MELEE_END;
         ps->weaponTime = weapDef->quickRaiseTime;
         ps->weaponDelay = 0;
         if ( ps->waterlevel < 3 )
@@ -3734,7 +3734,7 @@ void __cdecl PM_Weapon_MeleeFire(playerState_s *ps)
     if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_weapons.cpp", 3738, 0, "%s", "ps") )
         __debugbreak();
     PM_Weapon_GetMeleeWeapDef(ps);
-    ps->weaponstate = 18;
+    ps->weaponstate = WEAPON_MELEE_FIRE;
     PM_AddEvent(ps, 0x24u);
     PM_SetProneMovementOverride(ps);
 }
@@ -3843,7 +3843,7 @@ void __cdecl PM_Weapon_MeleeInit(pmove_t *pm)
     {
         BG_AnimScriptEvent(pm, ANIM_ET_MELEEATTACK, 0, 1);
     }
-    ps->weaponstate = 17;
+    ps->weaponstate = WEAPON_MELEE_INIT;
     PM_AddEvent(ps, 0x23u);
     PM_SetProneMovementOverride(ps);
 }
@@ -3869,7 +3869,7 @@ void __cdecl PM_Weapon_OffHandPrepare(pmove_t *pm)
     if ( ps->waterlevel < 3 && !ps->weapon )
     {
         WeaponDef = BG_GetWeaponDef(ps->offHandIndex);
-        ps->weaponstate = 21;
+        ps->weaponstate = WEAPON_OFFHAND_PREPARE;
         ps->weaponTime = WeaponDef->iHoldFireTime;
         ps->weaponDelay = 0;
         ps->weapFlags |= 2u;
@@ -3904,7 +3904,7 @@ void __cdecl PM_Weapon_OffHandHold(playerState_s *ps)
     {
         __debugbreak();
     }
-    ps->weaponstate = 23;
+    ps->weaponstate = WEAPON_OFFHAND_START;
     ps->weaponTime = 0;
     ps->weaponDelay = 0;
     ps->weapFlags |= 2u;
@@ -3963,7 +3963,7 @@ LABEL_27:
             ps->smokeColorIndex = 51;
         if ( ps->smokeColorIndex != 55 && weapDef->offhandClass == OFFHAND_CLASS_SMOKE_GRENADE )
             Cbuf_AddText(pm->localClientNum, "-smoke\n");
-        ps->weaponstate = 22;
+        ps->weaponstate = WEAPON_OFFHAND_HOLD;
         ps->weaponTime = weapDef->iFireTime;
         ps->weaponDelay = weapDef->iFireDelay;
         ps->weapFlags |= 2u;
@@ -4006,13 +4006,13 @@ void __cdecl PM_Weapon_OffHand(pmove_t *pm)
             else
                 PM_AddEvent(ps, 0x10u);
         }
-        ps->weaponstate = 24;
+        ps->weaponstate = WEAPON_OFFHAND;
         ps->weapFlags |= 2u;
     }
     else
     {
         BG_AddPredictableEventToPlayerstate(0x59u, ps->offHandIndex, ps);
-        ps->weaponstate = 38;
+        ps->weaponstate = WEAPON_SWIM_IN;
         ps->weapFlags &= ~2u;
         ps->weapFlags |= 0x2000u;
         ps->pm_flags &= ~0x200u;
@@ -4049,7 +4049,7 @@ void __cdecl PM_Weapon_OffHandEnd(playerState_s *ps)
     }
     ps->throwBackGrenadeTimeLeft = 0;
     ps->throwBackGrenadeOwner = 1023;
-    ps->weaponstate = 25;
+    ps->weaponstate = WEAPON_OFFHAND_END;
     ps->weapFlags &= ~2u;
     ps->pm_flags &= ~0x200u;
 }
@@ -4194,7 +4194,7 @@ void __cdecl PM_Weapon_OffHandInit(playerState_s *ps)
     }
     if ( ps->waterlevel < 3 )
     {
-        ps->weaponstate = 20;
+        ps->weaponstate = WEAPON_OFFHAND_INIT;
         ps->weaponDelay = 0;
         ps->weapFlags &= ~2u;
         if ( ps->weapon )
@@ -4257,7 +4257,7 @@ char __cdecl PM_UpdateGrenadeThrow(playerState_s *ps, pml_t *pml)
         ps->grenadeTimeLeft -= pml->msec;
     if ( ps->waterlevel >= 3 && (ps->weapFlags & 2) != 0 && ps->weaponstate == 23 )
     {
-        ps->weaponstate = 22;
+        ps->weaponstate = WEAPON_OFFHAND_HOLD;
         PM_WeaponUseAmmo(ps, weapIndex, 1);
         return 0;
     }
@@ -4346,7 +4346,7 @@ void __cdecl PM_Weapon_CheckForDetonation(pmove_t *pm)
         {
             if ( pm->cmd.button_bits.testBit(0) )
             {
-                ps->weaponstate = 26;
+                ps->weaponstate = WEAPON_DETONATING;
                 ps->weaponTime = weapDef->iDetonateTime;
                 ps->weaponDelay = weapDef->iDetonateDelay;
                 PM_StartWeaponAnim(ps, 40, 0);
@@ -4478,7 +4478,7 @@ void __cdecl PM_Weapon_FinishNightVisionWear(playerState_s *ps)
     }
     if ( !ps->weaponTime )
     {
-        ps->weaponstate = 0;
+        ps->weaponstate = WEAPON_READY;
         PM_StartWeaponAnim(ps, 0, 0);
     }
 }
@@ -4499,7 +4499,7 @@ void __cdecl PM_Weapon_FinishNightVisionRemove(playerState_s *ps)
     }
     if ( !ps->weaponTime )
     {
-        ps->weaponstate = 0;
+        ps->weaponstate = WEAPON_READY;
         PM_StartWeaponAnim(ps, 0, 0);
     }
 }
@@ -4515,7 +4515,7 @@ void __cdecl PM_WeaponSwimIn(playerState_s *ps)
 
 void __cdecl PM_WeaponSwimOut(playerState_s *ps)
 {
-    ps->weaponstate = 1;
+    ps->weaponstate = WEAPON_RAISING;
     PM_AddEvent(ps, 0x18u);
     PM_StartWeaponAnim(ps, 13, 0);
 }
@@ -4524,7 +4524,7 @@ void __cdecl Sprint_State_Loop(playerState_s *ps)
 {
     if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_weapons.cpp", 4670, 0, "%s", "ps") )
         __debugbreak();
-    ps->weaponstate = 28;
+    ps->weaponstate = WEAPON_SPRINT_LOOP;
     ps->weaponTime = 0;
     ps->weaponDelay = 0;
     if ( PM_WeaponClipEmpty(ps) )
@@ -4543,7 +4543,7 @@ void __cdecl ContinuousFire_State_Loop(playerState_s *ps)
 {
     if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_weapons.cpp", 4737, 0, "%s", "ps") )
         __debugbreak();
-    ps->weaponstate = 31;
+    ps->weaponstate = WEAPON_CONT_FIRE_LOOP;
     ps->weaponTime = 0;
     ps->weaponDelay = 0;
     PM_StartWeaponAnim(ps, 37, 0);
@@ -4554,7 +4554,7 @@ void __cdecl Dtp_State_Out(playerState_s *ps)
     const WeaponDef *WeaponDef; // eax
 
     WeaponDef = BG_GetWeaponDef(ps->weapon);
-    ps->weaponstate = 42;
+    ps->weaponstate = WEAPON_DTP_OUT;
     ps->weaponstateLeft = 42;
     ps->weaponTime = WeaponDef->dtpOutTime;
     ps->weaponDelay = 0;
@@ -4573,7 +4573,7 @@ void __cdecl Dtp_State_Out(playerState_s *ps)
 void __cdecl Dtp_State_Loop(playerState_s *ps)
 {
     BG_GetWeaponDef(ps->weapon);
-    ps->weaponstate = 41;
+    ps->weaponstate = WEAPON_DTP_LOOP;
     ps->weaponstateLeft = 41;
     ps->weaponTime = 0;
     ps->weaponDelay = 0;
@@ -4643,7 +4643,7 @@ void __cdecl Sprint_State_Raise(playerState_s *ps)
     if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_weapons.cpp", 4648, 0, "%s", "ps") )
         __debugbreak();
     WeaponDef = BG_GetWeaponDef(ps->weapon);
-    ps->weaponstate = 27;
+    ps->weaponstate = WEAPON_SPRINT_RAISE;
     ps->weaponTime = WeaponDef->sprintInTime;
     ps->weaponDelay = 0;
     if ( PM_WeaponClipEmpty(ps) )
@@ -4665,7 +4665,7 @@ void __cdecl Sprint_State_Drop(playerState_s *ps)
     if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_weapons.cpp", 4692, 0, "%s", "ps") )
         __debugbreak();
     weapDef = BG_GetWeaponDef(ps->weapon);
-    ps->weaponstate = 29;
+    ps->weaponstate = WEAPON_SPRINT_DROP;
     ps->weaponTime = weapDef->sprintOutTime;
     if ( (ps->perks[1] & 0x4000) != 0 )
         ps->weaponTime = (int)(float)((float)weapDef->sprintOutTime * perk_sprintRecoveryMultiplier->current.value);
@@ -4739,7 +4739,7 @@ void __cdecl ContinuousFire_State_In(playerState_s *ps)
     if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_weapons.cpp", 4724, 0, "%s", "ps") )
         __debugbreak();
     WeaponDef = BG_GetWeaponDef(ps->weapon);
-    ps->weaponstate = 30;
+    ps->weaponstate = WEAPON_CONT_FIRE_IN;
     ps->weaponTime = WeaponDef->contFireInTime;
     ps->weaponDelay = 0;
     PM_StartWeaponAnim(ps, 36, 0);
@@ -4752,7 +4752,7 @@ void __cdecl ContinuousFire_State_Out(playerState_s *ps)
     if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_weapons.cpp", 4750, 0, "%s", "ps") )
         __debugbreak();
     WeaponDef = BG_GetWeaponDef(ps->weapon);
-    ps->weaponstate = 32;
+    ps->weaponstate = WEAPON_CONT_FIRE_OUT;
     ps->weaponTime = WeaponDef->contFireOutTime;
     ps->weaponDelay = 0;
     PM_StartWeaponAnim(ps, 38, 0);
@@ -4797,7 +4797,7 @@ void __cdecl Dtp_State_In(playerState_s *ps)
     const WeaponDef *WeaponDef; // eax
 
     WeaponDef = BG_GetWeaponDef(ps->weapon);
-    ps->weaponstate = 40;
+    ps->weaponstate = WEAPON_DTP_IN;
     ps->weaponstateLeft = 40;
     ps->weaponTime = WeaponDef->dtpInTime;
     ps->weaponDelay = 0;
@@ -4853,7 +4853,7 @@ void __cdecl Slide_State_In(playerState_s *ps)
     const WeaponDef *WeaponDef; // eax
 
     WeaponDef = BG_GetWeaponDef(ps->weapon);
-    ps->weaponstate = 43;
+    ps->weaponstate = WEAPON_SLIDE_IN;
     ps->weaponTime = WeaponDef->slideInTime;
     ps->weaponDelay = 0;
     PM_ContinueWeaponAnim(ps, 51, 0);
@@ -4909,7 +4909,7 @@ void __cdecl Deploy_State_Deploy(playerState_s *ps)
     if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_weapons.cpp", 4871, 0, "%s", "ps") )
         __debugbreak();
     WeaponDef = BG_GetWeaponDef(ps->weapon);
-    ps->weaponstate = 35;
+    ps->weaponstate = WEAPON_DEPLOYING;
     ps->weaponTime = WeaponDef->deployTime;
     ps->weaponDelay = 0;
     PM_StartWeaponAnim(ps, 43, 0);
@@ -4922,7 +4922,7 @@ void __cdecl Deploy_State_Breakdown(playerState_s *ps)
     if ( !ps && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_weapons.cpp", 4886, 0, "%s", "ps") )
         __debugbreak();
     WeaponDef = BG_GetWeaponDef(ps->weapon);
-    ps->weaponstate = 37;
+    ps->weaponstate = WEAPON_BREAKING_DOWN;
     ps->weaponTime = WeaponDef->breakdownTime;
     ps->weaponDelay = 0;
     PM_StartWeaponAnim(ps, 44, 0);

@@ -1442,6 +1442,40 @@ void GScr_GetTime()
     Scr_AddInt(level.time, SCRIPTINSTANCE_SERVER);
 }
 
+// LWSS ADD
+void GScr_GetCorpseArray()
+{
+    // REBUILT FROM IDA RETAIL MP BLOPS (LATEST)
+    int i;
+    gentity_s *ent;
+    short eType;
+
+    if (Scr_GetNumParam(SCRIPTINSTANCE_SERVER))
+        Scr_Error("cannot call getcorpsearray with parameters", 0);
+
+    Scr_MakeArray(SCRIPTINSTANCE_SERVER);
+
+    i = 0;
+    if (level.num_entities > 0)
+    {
+        do
+        {
+            ent = &level.gentities[i];
+            if (ent->r.linked)
+            {
+                eType = ent->s.eType;
+                if (eType == ET_PLAYER_CORPSE || eType == ET_ACTOR_CORPSE)
+                {
+                    Scr_AddEntity(ent, SCRIPTINSTANCE_SERVER);
+                    Scr_AddArray(SCRIPTINSTANCE_SERVER);
+                }
+            }
+            ++i;
+        } while (i < level.num_entities);
+    }
+}
+// LWSS END
+
 void GScr_GetAttachmentIndex()
 {
     eAttachment attachmentIndex; // [esp+0h] [ebp-8h]
@@ -2466,6 +2500,17 @@ void __cdecl ScrCmd_SetVisibleToAll(scr_entref_t entref)
     GetEntity(entref)->r.clientMask[0] = 0;
 }
 
+// LWSS ADD
+void ScrCmd_OverrideLightingOrigin(scr_entref_t entref)
+{
+    // LWSS: I think this is a new flag that needs impl elsewhere (this is useless to do without that) KISAKTODO
+    //gentity_s *pSelf;
+    //
+    //pSelf = GetEntity(entref);
+    //pSelf->s.lerp.eFlags |= 0x8000000;
+}
+// LWSS END
+
 void __cdecl ScrCmd_SetForceNoCull(scr_entref_t entref)
 {
     gentity_s *Entity; // edx
@@ -3034,6 +3079,13 @@ void __cdecl ScrCmd_IsTouching(scr_entref_t entref)
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
         //D3DPERF_EndEvent();
 }
+
+// LWSS ADD
+void ScrCmd_IsTouchingVolume(scr_entref_t entref)
+{
+    iassert(0); // KISAKTODO :)
+}
+// LWSS END
 
 void __cdecl ScrCmd_IsTouchingSwept(scr_entref_t entref)
 {
@@ -4485,6 +4537,44 @@ void __cdecl GScr_ConnectPaths(scr_entref_t entref)
     }
     Path_ConnectPathsForEntity(ent);
 }
+
+// LWSS ADD
+void __cdecl ScrCmd_SetStance(scr_entref_t entref)
+{
+    gentity_s *ent;
+    unsigned short stance;
+
+    ent = GetEntity(entref);
+    stance = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).intValue;
+
+    if (!ent->client)
+    {
+        Scr_Error("SetStance is only defined for players.", SCRIPTINSTANCE_SERVER);
+        return;
+    }
+
+    if (stance == scr_const.stand)
+    {
+        ent->client->ps.pm_flags &= ~3;
+        ent->client->ps.viewHeightTarget = 60;
+        G_AddEvent(ent, 8, SCRIPTINSTANCE_SERVER);
+    }
+    else if (stance == scr_const.crouch)
+    {
+        ent->client->ps.pm_flags = (ent->client->ps.pm_flags & ~3) | 2;
+        ent->client->ps.viewHeightTarget = 40;
+        G_AddEvent(ent, 9, SCRIPTINSTANCE_SERVER);
+    }
+    else if (stance == scr_const.prone)
+    {
+        if (!(ent->client->ps.pm_flags & 1))
+            ent->client->ps.proneDirection = ent->client->ps.viewHeightCurrent;
+        ent->client->ps.pm_flags = (ent->client->ps.pm_flags & ~3) | 1;
+        ent->client->ps.viewHeightTarget = 11;
+        G_AddEvent(ent, 10, SCRIPTINSTANCE_SERVER);
+    }
+}
+// LWSS END
 
 void __cdecl ScrCmd_GetStance(scr_entref_t entref)
 {
@@ -6548,6 +6638,13 @@ $LN11_33:
     }
 }
 
+// LWSS ADD
+void Scr_PlayerBulletTrace()
+{
+    iassert(0); // KISAKTODO :)
+}
+// LWSS END
+
 void Scr_PlayerPhysicsTrace()
 {
     col_context_t context; // [esp+8h] [ebp-88h] BYREF
@@ -7454,6 +7551,30 @@ void __cdecl GScr_StartTanning(scr_entref_t entref)
         ent->s.lerp.eFlags2 |= 0x200000u;
 }
 
+// LWSS ADD
+void __cdecl GScr_SetWaterDrops(scr_entref_t entref)
+{
+    gentity_s *pSelf;
+    int count;
+    const char *cmd;
+
+    count = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    if (count < 0)
+        Scr_ParamError(1, "Count must be either zero, or a positive number", SCRIPTINSTANCE_SERVER);
+
+    pSelf = GetEntity(entref);
+
+    if (!pSelf->r.linked || !pSelf->client)
+    {
+        Scr_Error("setwaterdrops() called on an invalid client entity.\n", SCRIPTINSTANCE_SERVER);
+        return;
+    }
+
+    cmd = va("%c %i", '0', count); // KISAKTODO: I am confused how this command relates to water drops
+    SV_GameSendServerCommand(pSelf->s.number, SV_CMD_RELIABLE, cmd);
+}
+
+// LWSS END
 void __cdecl GScr_StopBurning(scr_entref_t entref)
 {
     gentity_s *ent; // [esp+8h] [ebp-4h]
@@ -15828,7 +15949,7 @@ void GScr_SetPlayerStatsForMatchRecording()
     //return result;
 }
 
-BuiltinFunctionDef functions[383] =
+BuiltinFunctionDef functions[] =
 {
   { "createprintchannel", GScr_CreatePrintChannel, 1 },
   { "setprintchannel", GScr_printChannelSet, 1 },
@@ -15891,6 +16012,10 @@ BuiltinFunctionDef functions[383] =
   { "getnotetracktimes", GScr_GetNotetrackTimes, 0 },
   { "getbrushmodelcenter", GScr_GetBrushModelCenter, 0 },
   { "getattachmentindex", GScr_GetAttachmentIndex, 0 },
+  // LWSS ADD FROM RETAIL BLOPS MP (LATEST FILES FROM STEAM REFERENCE NEWER FUNCTIONS THAT WERE ADDED LATER)
+  { "getcorpsearray", GScr_GetCorpseArray, 0 },
+  // LWSS END
+
   { "objective_add", Scr_Objective_Add, 0 },
   { "objective_delete", Scr_Objective_Delete, 0 },
   { "objective_state", Scr_Objective_State, 0 },
@@ -15914,6 +16039,9 @@ BuiltinFunctionDef functions[383] =
   { "sighttracepassed", Scr_SightTracePassed, 0 },
   { "physicstrace", Scr_PhysicsTrace, 0 },
   { "playerphysicstrace", Scr_PlayerPhysicsTrace, 0 },
+  // LWSS ADD FROM RETAIL BLOPS MP (LATEST FILES FROM STEAM REFERENCE NEWER FUNCTIONS THAT WERE ADDED LATER)
+  { "playerbullettrace", Scr_PlayerBulletTrace, 0 },
+  // LWSS END
   { "getmovedelta", GScr_GetMoveDelta, 0 },
   { "getangledelta", GScr_GetAngleDelta, 0 },
   { "getnorthyaw", GScr_GetNorthYaw, 0 },
@@ -16216,7 +16344,11 @@ BuiltinFunctionDef functions[383] =
   { "ispregamegamestarted", GScr_IsPregameGameStarted, 0 },
   { "pregamestartgame", GScr_PregameStartGame, 0 },
   { "resetpregamedata", GScr_ResetPregameData, 0 },
-  { "sethostmigrationstatus", FUNCTION_NULLSUB, 0 }
+  { "sethostmigrationstatus", FUNCTION_NULLSUB, 0 },
+  // LWSS ADD FROM RETAIL BLOPS MP (LATEST FILES FROM STEAM REFERENCE NEWER FUNCTIONS THAT WERE ADDED LATER)
+  { "starthostmigration", FUNCTION_NULLSUB, 0 }, // (Stubbing these out because who cares)
+  { "reportfilm", FUNCTION_NULLSUB, 0 },
+  // LWSS END
 };
 
 
@@ -16225,7 +16357,7 @@ void (__cdecl *__cdecl Scr_GetFunction(const char **pName, int *type))()
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for (i = 0; i < 0x17F; ++i)
+    for (i = 0; i < ARRAY_COUNT(functions); ++i)
     {
         if (!strcmp(*pName, functions[i].actionString))
         {
@@ -16236,6 +16368,30 @@ void (__cdecl *__cdecl Scr_GetFunction(const char **pName, int *type))()
     }
     return 0;
 }
+
+// LWSS ADD
+void __cdecl GScr_GetClientFlag(scr_entref_t entref)
+{
+    const char *v1; // eax
+    gentity_s *pSelf; // [esp+0h] [ebp-8h]
+    int flag; // [esp+4h] [ebp-4h]
+
+    pSelf = GetEntity(entref);
+    flag = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+
+    if ((unsigned int)flag < 0x10)
+    {
+        if (pSelf->client)
+            Scr_AddInt((pSelf->client->ps.eFlags2 >> flag) & 1, SCRIPTINSTANCE_SERVER);
+        else
+            Scr_AddInt((pSelf->s.lerp.eFlags2 >> flag) & 1, SCRIPTINSTANCE_SERVER);
+    }
+    else
+    {
+        Scr_ParamError(0, va("SetClientFlag: Index %i out of range (0 - %i)\n", flag, 15), SCRIPTINSTANCE_SERVER);
+    }
+}
+// LWSS END
 
 void __cdecl GScr_SetClientFlag(scr_entref_t entref)
 {
@@ -16314,6 +16470,24 @@ void __cdecl GScr_IsMissileInsideHeightLock(scr_entref_t entref)
     }
     Scr_AddInt(0, SCRIPTINSTANCE_SERVER);
 }
+
+// LWSS ADD
+void GScr_GetGroundEnt(scr_entref_t entref)
+{
+    gentity_s *pSelf;
+    int groundEntityNum;
+
+    pSelf = GetEntity(entref);
+
+    if (pSelf->client)
+        groundEntityNum = pSelf->client->ps.groundEntityNum;
+    else
+        groundEntityNum = pSelf->s.groundEntityNum;
+
+    if (groundEntityNum < 1023)
+        Scr_AddEntity(&level.gentities[groundEntityNum], SCRIPTINSTANCE_SERVER);
+}
+// LWSS END
 
 void __cdecl GScr_IsOnGround(scr_entref_t entref)
 {
@@ -16559,33 +16733,30 @@ void __cdecl GScr_UseAnimTree(scr_entref_t entref)
 void (__cdecl *__cdecl Scr_GetMethod(const char **pName, int *type))(scr_entref_t)
 {
     void (__cdecl *method)(scr_entref_t); // [esp+0h] [ebp-4h]
-    void (__cdecl *methoda)(scr_entref_t); // [esp+0h] [ebp-4h]
-    void (__cdecl *methodb)(scr_entref_t); // [esp+0h] [ebp-4h]
-    void (__cdecl *methodc)(scr_entref_t); // [esp+0h] [ebp-4h]
-    void (__cdecl *methodd)(scr_entref_t); // [esp+0h] [ebp-4h]
-    void (__cdecl *methode)(scr_entref_t); // [esp+0h] [ebp-4h]
 
     *type = 0;
     method = Player_GetMethod(pName);
     if ( method )
         return method;
-    methoda = ScriptEnt_GetMethod(pName);
-    if ( methoda )
-        return methoda;
-    methodb = ScriptVehicle_GetMethod(pName);
-    if ( methodb )
-        return methodb;
-    methodc = HudElem_GetMethod(pName);
-    if ( methodc )
-        return methodc;
-    methodd = Helicopter_GetMethod(pName);
-    if ( methodd )
-        return methodd;
-    methode = Actor_GetMethod(pName);
-    if ( methode )
-        return methode;
-    else
-        return BuiltIn_GetMethod(pName, type);
+    method = ScriptEnt_GetMethod(pName);
+    if (method)
+        return method;
+    method = ScriptVehicle_GetMethod(pName);
+    if (method)
+        return method;
+    method = HudElem_GetMethod(pName);
+    if (method)
+        return method;
+    method = Helicopter_GetMethod(pName);
+    if (method)
+        return method;
+    method = Actor_GetMethod(pName);
+    if (method)
+        return method;
+
+    method = BuiltIn_GetMethod(pName, type);
+
+    return method;
 }
 
 static void METHOD_NULLSUB(scr_entref_t ref)
@@ -16593,7 +16764,7 @@ static void METHOD_NULLSUB(scr_entref_t ref)
 
 }
 
-BuiltinMethodDef methods_3[234] =
+BuiltinMethodDef methods_3[] =
 {
   { "attach", ScrCmd_attach, 0 },
   { "detach", ScrCmd_detach, 0 },
@@ -16614,6 +16785,9 @@ BuiltinMethodDef methods_3[234] =
   { "setinvisibletoall", ScrCmd_SetInvisibleToAll, 0 },
   { "setvisibletoteam", ScrCmd_SetVisibleToTeam, 0 },
   { "setforcenocull", ScrCmd_SetForceNoCull, 0 },
+  // LWSS ADD FROM LATEST BLOPS RETAIL MP
+  { "overridelightingorigin", ScrCmd_OverrideLightingOrigin, 0 },
+  // LWSS END
   { "islinkedto", ScrCmd_IsLinkedTo, 0 },
   { "linkto", ScrCmd_LinkTo, 0 },
   { "playerlinktodelta", ScrCmd_PlayerLinkToDelta, 0 },
@@ -16632,6 +16806,9 @@ BuiltinMethodDef methods_3[234] =
   { "setstablemissile", Scr_SetStableMissile, 0 },
   { "istouching", ScrCmd_IsTouching, 0 },
   { "istouchingswept", ScrCmd_IsTouchingSwept, 0 },
+  // LWSS ADD FROM LATEST BLOPS RETAIL MP
+  { "istouchingvolume", ScrCmd_IsTouchingVolume, 0 },
+  // LWSS END
   { "playsound", ScrCmd_PlaySound, 0 },
   { "playsoundontag", ScrCmd_PlaySoundOnTag, 0 },
   { "playsoundasmaster", ScrCmd_PlaySound, 0 },
@@ -16677,6 +16854,9 @@ BuiltinMethodDef methods_3[234] =
   { "disconnectpaths", GScr_DisconnectPaths, 0 },
   { "connectpaths", GScr_ConnectPaths, 0 },
   { "getstance", ScrCmd_GetStance, 0 },
+  // LWSS ADD FROM LATEST BLOPS RETAIL MP
+  { "setstance", ScrCmd_SetStance, 0 },
+  // LWSS END
   { "setcursorhint", GScr_SetCursorHint, 0 },
   { "setrevivehintstring", GScr_SetReviveHintString, 0 },
   { "sethintstring", GScr_SetHintString, 0 },
@@ -16699,6 +16879,9 @@ BuiltinMethodDef methods_3[234] =
   { "depthofplayerinwater", GScr_DepthOfPlayerInWater, 0 },
   { "starttanning", GScr_StartTanning, 0 },
   { "stopburning", GScr_StopBurning, 0 },
+  // LWSS ADD FROM LATEST BLOPS RETAIL MP
+  { "setwaterdrops", GScr_SetWaterDrops, 0 },
+  // LWSS END
   { "restoredefaultdroppitch", GScr_RestoreDefaultDropPitch, 0 },
   { "clearcenterpopups", GScr_clearCenterPopups, 0 },
   { "clearpopups", GScr_clearPopups, 0 },
@@ -16742,6 +16925,9 @@ BuiltinMethodDef methods_3[234] =
   { "setcameraspikeactive", GScr_SetCameraSpikeActive, 0 },
   { "ismissileinsideheightlock", GScr_IsMissileInsideHeightLock, 0 },
   { "isonground", GScr_IsOnGround, 0 },
+  // LWSS ADD FROM LATEST BLOPS RETAIL MP
+  { "getgroundent", GScr_GetGroundEnt, 0 },
+  // LWSS END
   { "setanim", GScr_SetAnim, 0 },
   { "useanimtree", GScr_UseAnimTree, 0 },
   { "ismartyrdomgrenade", GScr_IsMartyrdomGrenade, 0 },
@@ -16810,6 +16996,9 @@ BuiltinMethodDef methods_3[234] =
   { "launch", GScr_Launch, 0 },
   { "makegrenadedud", GScr_MakeGrenadeDud, 0 },
   { "setclientflag", GScr_SetClientFlag, 0 },
+  // LWSS ADD FROM LATEST BLOPS RETAIL MP
+  { "getclientflag", GScr_GetClientFlag, 0 },
+  // LWSS END
   { "clearclientflag", GScr_ClearClientFlag, 0 },
   { "fakefire", GScr_FakeFire, 0 },
   { "makeusable", ScrCmd_MakeUsable, 0 },
@@ -16841,7 +17030,7 @@ void (__cdecl *__cdecl BuiltIn_GetMethod(const char **pName, int *type))(scr_ent
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for ( i = 0; i < 0xEA; ++i )
+    for ( i = 0; i < ARRAY_COUNT(methods_3); ++i )
     {
         if ( !strcmp(*pName, methods_3[i].actionString) )
         {

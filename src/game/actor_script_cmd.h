@@ -75,6 +75,8 @@ void __cdecl ActorCmd_GetGroundEntType(scr_entref_t entref);
 void __cdecl ActorCmd_IsDeflected(scr_entref_t entref);
 void __cdecl ScrCmd_animcustom(scr_entref_t entref);
 void __cdecl ScrCmd_CanAttackEnemyNode(scr_entref_t entref);
+void ScrCmd_GetPathLength(scr_entref_t entref); // LWSS ADD
+void ScrCmd_CalcPathLength(scr_entref_t entref); // LWSS ADD
 void __cdecl ScrCmd_GetNegotiationStartNode(scr_entref_t entref);
 void __cdecl ScrCmd_GetNegotiationEndNode(scr_entref_t entref);
 void __cdecl ActorCmd_CheckProne(scr_entref_t entref);

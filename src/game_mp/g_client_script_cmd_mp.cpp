@@ -48,7 +48,8 @@ static void __cdecl METHOD_NULLSUB(scr_entref_t entref)
 
 }
 
-const BuiltinMethodDef methods[154] =
+// BE FUCKING MINDFUL OF WHITESPACE IN THE STRING (UNLIKE ME)
+const BuiltinMethodDef methods[] =
 {
   { "giveweapon", &PlayerCmd_giveWeapon, 0 },
   { "setblockweaponpickup", &PlayerCmd_setBlockWeaponPickup, 0 },
@@ -59,7 +60,15 @@ const BuiltinMethodDef methods[154] =
   { "sethighlighted", &PlayerCmd_SetHighlighted, 0 },
   { "takeweapon", &PlayerCmd_takeWeapon, 0 },
   { "isthrowinggrenade", &PlayerCmd_IsThrowingGrenade, 0 },
+  // LWSS ADD FROM LATEST RETAIL MP BLOPS
+  { "isfiring", &PlayerCmd_IsFiring, 0 },
+  { "ismeleeing", &PlayerCmd_IsMeleeing, 0 },
+  { "isswitchingweapons", &PlayerCmd_IsSwitchingWeapons, 0 },
+  // LWSS END
   { "takeallweapons", &PlayerCmd_takeAllWeapons, 0 },
+  // LWSS ADD FROM LATEST RETAIL MP BLOPS
+  { "isinmovemode", &PlayerCmd_IsInMoveMode, 0 },
+  // LWSS END
   { "getcurrentweapon", &PlayerCmd_getCurrentWeapon, 0 },
   { "getcurrentoffhand", &PlayerCmd_getCurrentOffhand, 0 },
   { "hasweapon", &PlayerCmd_hasWeapon, 0 },
@@ -146,6 +155,10 @@ const BuiltinMethodDef methods[154] =
   { "closemenu", &PlayerCmd_CloseMenu, 0 },
   { "closeingamemenu", &PlayerCmd_CloseInGameMenu, 0 },
   { "freezecontrols", &PlayerCmd_FreezeControls, 0 },
+  // LWSS ADD FROM LATEST RETAIL MP BLOPS
+  { "freezecontrolsallowlook", &PlayerCmd_FreezeControlsAllowLook, 0 },
+  { "arecontrolsfrozen", &PlayerCmd_AreControlsFrozen, 0 },
+  // LWSS END
   { "disableusability", &PlayerCmd_DisableUsability, 0 },
   { "enableusability", &PlayerCmd_EnableUsability, 0 },
   { "disableweapons", &PlayerCmd_DisableWeapons, 0 },
@@ -184,6 +197,9 @@ const BuiltinMethodDef methods[154] =
   { "stopcarryturret", &PlayerCmd_StopCarryTurret, 0 },
   { "iscarryingturret", &PlayerCmd_isCarryingTurret, 0 },
   { "canplayerplaceturret", &PlayerCmd_CanPlayerPlaceTurret, 0 },
+  // LWSS ADD FROM LATEST RETAIL MP BLOPS
+  { "setturrethint", &PlayerCmd_SetTurrentHint, 0 },
+  // LWSS END
   { "linkguidedmissilecamera", &PlayerCmd_LinkGuidedMissileCamera, 0 },
   { "unlinkguidedmissilecamera", &PlayerCmd_UnlinkGuidedMissileCamera, 0 },
   { "playlocalsound", &ScrCmd_PlayLocalSound, 0 },
@@ -218,6 +234,13 @@ const BuiltinMethodDef methods[154] =
   { "clearscriptenemy", &PlayerCmd_BotClearScriptEnemy, 0 },
   { "setattacker", &PlayerCmd_BotSetAttacker, 0 },
   { "pressusebutton", &PlayerCmd_BotPressUseButton, 0 },
+  // LWSS ADD FROM LATEST RETAIL MP BLOPS
+  { "pressattackbutton", &PlayerCmd_BotPressAttackButton, 0 },
+  { "getlookaheaddist", &PlayerCmd_GetLookaheadDist, 0 },
+  { "getlookaheaddir", &PlayerCmd_GetLookaheadDir, 0 },
+  { "getthreat", &PlayerCmd_GetThreat, 0 },
+  { "hasscriptgoal", &PlayerCmd_HasScriptGoal, 0 },
+  // LWSS END
   { "issplitscreen", &PlayerCmd_IsSplitscreen, 0 },
   { "isplayeronsamemachine", &PlayerCmd_IsPlayerOnSameMachine, 0 }
 };
@@ -1313,10 +1336,119 @@ void __cdecl PlayerCmd_SetHighlighted(scr_entref_t entref)
         Scr_Error("SetHighlighted takes 1 argument: <true/false>", 0);
 }
 
+// LWSS ADD
+void PlayerCmd_IsFiring(scr_entref_t entref)
+{
+    gentity_s *pSelf; // [esp+4h] [ebp-8h]
+
+    if (entref.classnum)
+    {
+        Scr_ObjectError("not an entity", SCRIPTINSTANCE_SERVER);
+        pSelf = 0;
+    }
+    else
+    {
+        iassert(entref.entnum < MAX_GENTITIES);
+        pSelf = &g_entities[entref.entnum];
+        if (!pSelf->client)
+        {
+            Scr_ObjectError(va("entity %i is not a player", entref.entnum), SCRIPTINSTANCE_SERVER);
+        }
+    }
+
+    iassert(pSelf);
+    iassert(pSelf->client);
+
+    weaponstate_t weapState = pSelf->client->ps.weaponstate;
+
+    if (weapState == WEAPON_FIRING
+        || weapState == WEAPON_RECHAMBERING
+        || weapState == WEAPON_RELOADING_RIGHT
+        || weapState == WEAPON_CONT_FIRE_OUT
+        || weapState == WEAPON_MELEE_FIRE
+        || weapState == WEAPON_MELEE_END
+        || weapState == WEAPON_OFFHAND_INIT)
+    {
+        return Scr_AddInt(1, SCRIPTINSTANCE_SERVER);
+    }
+    else
+    {
+        return Scr_AddInt(0, SCRIPTINSTANCE_SERVER);
+    }
+}
+
+void PlayerCmd_IsInMoveMode(scr_entref_t entref)
+{
+    iassert(0); // KISAKTODO
+}
+
+void PlayerCmd_IsMeleeing(scr_entref_t entref)
+{
+    gentity_s *pSelf; // [esp+4h] [ebp-8h]
+
+    if (entref.classnum)
+    {
+        Scr_ObjectError("not an entity", SCRIPTINSTANCE_SERVER);
+        pSelf = 0;
+    }
+    else
+    {
+        iassert(entref.entnum < MAX_GENTITIES);
+        pSelf = &g_entities[entref.entnum];
+        if (!pSelf->client)
+        {
+            Scr_ObjectError(va("entity %i is not a player", entref.entnum), SCRIPTINSTANCE_SERVER);
+        }
+    }
+
+    iassert(pSelf);
+    iassert(pSelf->client);
+
+    weaponstate_t weapState = pSelf->client->ps.weaponstate;
+
+    if (weapState == WEAPON_MELEE_FIRE || weapState == WEAPON_MELEE_END || weapState == WEAPON_OFFHAND_INIT)
+        return Scr_AddInt(1, SCRIPTINSTANCE_SERVER);
+    else
+        return Scr_AddInt(0, SCRIPTINSTANCE_SERVER);
+}
+
+void PlayerCmd_IsSwitchingWeapons(scr_entref_t entref)
+{
+    gentity_s *pSelf; // [esp+4h] [ebp-8h]
+
+    if (entref.classnum)
+    {
+        Scr_ObjectError("not an entity", SCRIPTINSTANCE_SERVER);
+        pSelf = 0;
+    }
+    else
+    {
+        iassert(entref.entnum < MAX_GENTITIES);
+        pSelf = &g_entities[entref.entnum];
+        if (!pSelf->client)
+        {
+            Scr_ObjectError(va("entity %i is not a player", entref.entnum), SCRIPTINSTANCE_SERVER);
+        }
+    }
+
+    iassert(pSelf);
+    iassert(pSelf->client);
+
+    weaponstate_t weapState = pSelf->client->ps.weaponstate;
+
+    if (weapState == WEAPON_RAISING 
+        || weapState == WEAPON_RAISING_ALTSWITCH 
+        || weapState == WEAPON_DROPPING 
+        || weapState == WEAPON_DROPPING_QUICK
+        || weapState == WEAPON_DROPPING_ALTSWITCH)
+        return Scr_AddInt(1, SCRIPTINSTANCE_SERVER);
+    else
+        return Scr_AddInt(0, SCRIPTINSTANCE_SERVER);
+}
+// LWSS END
+
 void __cdecl PlayerCmd_IsThrowingGrenade(scr_entref_t entref)
 {
-    const char *v1; // eax
-    bool v2; // [esp+0h] [ebp-Ch]
     gentity_s *pSelf; // [esp+4h] [ebp-8h]
 
     if ( entref.classnum )
@@ -1326,45 +1458,18 @@ void __cdecl PlayerCmd_IsThrowingGrenade(scr_entref_t entref)
     }
     else
     {
-        if ( entref.entnum >= 0x400u
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_client_script_cmd_mp.cpp",
-                        653,
-                        0,
-                        "%s",
-                        "entref.entnum < MAX_GENTITIES") )
-        {
-            __debugbreak();
-        }
+        iassert(entref.entnum < MAX_GENTITIES);
         pSelf = &g_entities[entref.entnum];
         if ( !pSelf->client )
         {
-            v1 = va("entity %i is not a player", entref.entnum);
-            Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
+            Scr_ObjectError(va("entity %i is not a player", entref.entnum), SCRIPTINSTANCE_SERVER);
         }
     }
-    if ( !pSelf
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_client_script_cmd_mp.cpp",
-                    654,
-                    0,
-                    "%s",
-                    "pSelf") )
-    {
-        __debugbreak();
-    }
-    if ( !pSelf->client
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_client_script_cmd_mp.cpp",
-                    655,
-                    0,
-                    "%s",
-                    "pSelf->client") )
-    {
-        __debugbreak();
-    }
-    v2 = pSelf->client->ps.weaponstate >= 20 && pSelf->client->ps.weaponstate <= 25;
-    Scr_AddBool(v2, SCRIPTINSTANCE_SERVER);
+
+    iassert(pSelf);
+    iassert(pSelf->client);
+
+    Scr_AddBool(pSelf->client->ps.weaponstate >= WEAPON_OFFHAND_INIT && pSelf->client->ps.weaponstate <= WEAPON_OFFHAND_END, SCRIPTINSTANCE_SERVER);
 }
 
 void __cdecl PlayerCmd_takeWeapon(scr_entref_t entref)
@@ -3243,7 +3348,7 @@ void __cdecl PlayerCmd_setSpawnWeapon(scr_entref_t entref)
     if ( BG_IsWeaponValid(&pSelf->client->ps, iWeaponIndex) )
     {
         AssignToSmallerType<unsigned short>(&pSelf->client->ps.weapon, iWeaponIndex);
-        pSelf->client->ps.weaponstate = 0;
+        pSelf->client->ps.weaponstate = WEAPON_READY;
         BG_PlayerSetEverHadWeapon(&pSelf->client->ps, iWeaponIndex, 1);
         G_SelectWeaponIndex(entref.entnum, iWeaponIndex);
     }
@@ -3951,7 +4056,7 @@ void __cdecl PlayerCmd_finishPlayerDamage(scr_entref_t entref)
                     turret = &g_entities[pSelf->client->ps.viewlocked_entNum];
                     if ( turret->s.eType == 11 )
                         G_ClientStopUsingTurret(turret);
-                    pSelf->client->ps.weaponstate = 0;
+                    pSelf->client->ps.weaponstate = WEAPON_READY;
                 }
                 ForceGrenadeThrow(&pSelf->client->ps);
                 Scr_PlayerLastStand(pSelf, inflictor, attacker, damage, mod, iWeapon, localdir, hitLoc, psTimeOffset);
@@ -4023,9 +4128,9 @@ void __cdecl ForceGrenadeThrow(playerState_s *ps)
     const WeaponDef *weapDef; // [esp+0h] [ebp-4h]
 
     weapDef = BG_GetWeaponDef(ps->offHandIndex);
-    if ( ps->weaponstate == 20 || ps->weaponstate == 21 || ps->weaponstate == 23 )
+    if ( ps->weaponstate == WEAPON_OFFHAND_INIT || ps->weaponstate == WEAPON_OFFHAND_PREPARE || ps->weaponstate == WEAPON_OFFHAND_START)
     {
-        ps->weaponstate = 22;
+        ps->weaponstate = WEAPON_OFFHAND_HOLD;
         ps->weaponTime = weapDef->iFireTime;
         ps->weaponDelay = weapDef->iFireDelay;
         ps->weapFlags |= 2u;
@@ -4119,6 +4224,55 @@ void __cdecl PlayerCmd_Suicide(scr_entref_t entref)
     pSelf->client->ps.stats[0] = 0;
     player_die(pSelf, pSelf, pSelf, 100000, 0xDu, 0, 0, HITLOC_NONE, 0);
 }
+
+// LWSS ADD
+void PlayerCmd_BotPressAttackButton(scr_entref_t entref)
+{
+    iassert(0);
+}
+void PlayerCmd_GetLookaheadDist(scr_entref_t entref)
+{
+    iassert(0);
+}
+void PlayerCmd_GetLookaheadDir(scr_entref_t entref)
+{
+    iassert(0);
+}
+void PlayerCmd_GetThreat(scr_entref_t entref)
+{
+    iassert(0);
+}
+void PlayerCmd_HasScriptGoal(scr_entref_t entref)
+{
+    iassert(0); // KISAKTODO: requires another function
+    //gentity_s *pSelf;
+    //client_t *cl;
+    //const char *error;
+    //
+    //pSelf = GetEntity(entref);
+    //
+    //if (!pSelf->client)
+    //{
+    //    error = va("entity %i is not a player", entref.entnum);
+    //    Scr_Error(error, SCRIPTINSTANCE_SERVER);
+    //    return;
+    //}
+    //
+    //cl = &svs.clients[pSelf->s.number];
+    //
+    //if (cl->bIsTestClient)
+    //{
+    //    Scr_AddInt(SV_BotHasScriptGoal(cl), SCRIPTINSTANCE_SERVER);
+    //}
+    //else
+    //{
+    //    error = va(
+    //        "Illegal call to HasScriptGoal(). Player '%s' is not a bot.",
+    //        pSelf->client->sess.playerName);
+    //    Scr_Error(error, SCRIPTINSTANCE_SERVER);
+    //}
+}
+// LWSS END 
 
 void __cdecl PlayerCmd_IsSplitscreen(scr_entref_t entref)
 {
@@ -5486,6 +5640,62 @@ void __cdecl PlayerCmd_IsTalking(scr_entref_t entref)
     else
         Scr_AddInt(1, SCRIPTINSTANCE_SERVER);
 }
+
+// LWSS ADD
+void PlayerCmd_FreezeControlsAllowLook(scr_entref_t entref)
+{
+    gentity_s *pSelf; // [esp+0h] [ebp-4h]
+
+    if (entref.classnum)
+    {
+        Scr_ObjectError("not an entity", SCRIPTINSTANCE_SERVER);
+        pSelf = 0;
+    }
+    else
+    {
+        iassert(entref.entnum < MAX_GENTITIES);
+
+        pSelf = &g_entities[entref.entnum];
+        if (!pSelf->client)
+        {
+            Scr_ObjectError(va("entity %i is not a player", entref.entnum), SCRIPTINSTANCE_SERVER);
+        }
+    }
+    if (Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue)
+        pSelf->client->flags |= 16u;
+    else
+        pSelf->client->flags &= ~16u;
+}
+
+void PlayerCmd_AreControlsFrozen(scr_entref_t entref)
+{
+    gentity_s *pSelf; // [esp+0h] [ebp-4h]
+
+    if (entref.classnum)
+    {
+        Scr_ObjectError("not an entity", SCRIPTINSTANCE_SERVER);
+        pSelf = 0;
+    }
+    else
+    {
+        iassert(entref.entnum < MAX_GENTITIES);
+
+        pSelf = &g_entities[entref.entnum];
+        if (!pSelf->client)
+        {
+            Scr_ObjectError(va("entity %i is not a player", entref.entnum), SCRIPTINSTANCE_SERVER);
+        }
+    }
+
+    iassert(pSelf);
+    iassert(pSelf->client);
+
+    if (pSelf->client->flags & 4)
+        Scr_AddInt(1, SCRIPTINSTANCE_SERVER);
+    else
+        Scr_AddInt(0, SCRIPTINSTANCE_SERVER);
+}
+// LWSS END
 
 void __cdecl PlayerCmd_FreezeControls(scr_entref_t entref)
 {
@@ -7873,6 +8083,13 @@ void __cdecl PlayerCmd_isCarryingTurret(scr_entref_t entref)
     pSelf->client->ps.bCarryingTurret = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue != 0;
 }
 
+// LWSS ADD
+void PlayerCmd_SetTurrentHint(scr_entref_t entref)
+{
+    iassert(0);
+}
+// LWSS END
+
 void __cdecl PlayerCmd_CanPlayerPlaceTurret(scr_entref_t entref)
 {
     const char *v1; // eax
@@ -7929,7 +8146,7 @@ void (__cdecl *__cdecl Player_GetMethod(const char **pName))(scr_entref_t)
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for ( i = 0; i < 0x9A; ++i )
+    for ( i = 0; i < ARRAY_COUNT(methods); ++i )
     {
         if ( !strcmp(*pName, methods[i].actionString) )
         {

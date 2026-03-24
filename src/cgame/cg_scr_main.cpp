@@ -69,7 +69,7 @@ void NULLSUB2(scr_entref_t ref)
 
 }
 
-const BuiltinMethodDef client_methods[111] =
+const BuiltinMethodDef client_methods[] =
 {
   { "print", CScr_Print, 1 },
   { "delete", CScrCmd_Delete, 0 },
@@ -91,6 +91,9 @@ const BuiltinMethodDef client_methods[111] =
   { "setlightfovrange", CScr_SetLightFovRange, 0 },
   { "getlightexponent", CScr_GetLightExponent, 0 },
   { "setlightexponent", CScr_SetLightExponent, 0 },
+  // LWSS ADD FROM BLOPS MP (LATEST)
+  { "getstance", CScrCmd_GetStance, 0 },
+  // LWSS END
   { "getentnum", CScrCmd_GetEntNum, 1 },
   { "getentitynumber", CScrCmd_GetEntityNumber, 0 },
   { "setmodel", CScrCmd_SetModel, 0 },
@@ -6499,6 +6502,27 @@ char __cdecl CG_IsLocalPlayer(int entnumber)
     return 0;
 }
 
+// LWSS ADD
+void CScrCmd_GetStance(scr_entref_t entref)
+{
+    int i = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+
+    if (i)
+    {
+        Scr_Error(SCRIPTINSTANCE_CLIENT, "Trying to get a local client index for a client '%d' that is not a local client.", i);
+    }
+
+    int pm_flags = CG_GetPredictedPlayerState(i)->pm_flags;
+
+    if (pm_flags & 1)
+        Scr_AddConstString(cscr_const.prone, SCRIPTINSTANCE_CLIENT);
+    if(pm_flags & 2)
+        Scr_AddConstString(cscr_const.crouch, SCRIPTINSTANCE_CLIENT);
+
+    Scr_AddConstString(cscr_const.stand, SCRIPTINSTANCE_CLIENT);
+}
+// LWSS END
+
 void __cdecl CScrCmd_GetEntNum(scr_entref_t entref)
 {
     Scr_AddInt(entref.entnum, SCRIPTINSTANCE_CLIENT);
@@ -10086,7 +10110,7 @@ void (__cdecl *__cdecl CScr_GetMethod(const char **pName, int *type))(scr_entref
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for ( i = 0; i < 0x6F; ++i )
+    for ( i = 0; i < ARRAY_COUNT(client_methods); ++i )
     {
         if ( !strcmp(*pName, client_methods[i].actionString) )
         {

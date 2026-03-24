@@ -614,7 +614,8 @@ struct playerState_s // sizeof=0x26A4
         // padding byte
         // padding byte
         unsigned int meleeWeapon;
-        int weaponstate;
+        //int weaponstate;
+        weaponstate_t weaponstate;
         int weaponstateLeft;
         unsigned int weaponShotCount;
         unsigned int weaponShotCountLeft;

@@ -52,7 +52,7 @@ void __cdecl METHODS_NULLSUB(scr_entref_t entref)
 
 }
 
-
+// Looks congruent to retail blops mp latest
 const BuiltinMethodDef s_methods_0[89] =
 {
   { "attachpath", CMD_VEH_AttachPath, 0 },
@@ -8703,7 +8703,7 @@ void (__cdecl *__cdecl ScriptVehicle_GetMethod(const char **pName))(scr_entref_t
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for ( i = 0; i < 0x59; ++i )
+    for ( i = 0; i < ARRAY_COUNT(s_methods_0); ++i )
     {
         if ( !strcmp(*pName, s_methods_0[i].actionString) )
         {

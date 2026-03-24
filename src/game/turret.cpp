@@ -141,7 +141,7 @@ void __cdecl turret_think_client(gentity_s *self)
     }
     else if ( self->classname == scr_const.deployed_turret )
     {
-        owner->client->ps.weaponstate = 36;
+        owner->client->ps.weaponstate = WEAPON_DEPLOYED;
         owner->client->ps.eFlags &= 0xFFFFFCFF;
     }
     else

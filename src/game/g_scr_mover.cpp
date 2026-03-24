@@ -1428,6 +1428,7 @@ void __cdecl ScriptEntCmd_NotSolid(scr_entref_t entref)
     }
 }
 
+// Looks congruent to retail blops MP latest
 const BuiltinMethodDef methods_1[18] =
 {
   { "moveto", &ScriptEntCmd_MoveTo, 0 },
@@ -1454,7 +1455,7 @@ void (__cdecl *__cdecl ScriptEnt_GetMethod(const char **pName))(scr_entref_t)
 {
     unsigned int i; // [esp+18h] [ebp-4h]
 
-    for ( i = 0; i < 0x12; ++i )
+    for ( i = 0; i < ARRAY_COUNT(methods_1); ++i )
     {
         if ( !strcmp(*pName, methods_1[i].actionString) )
         {
