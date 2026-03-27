@@ -205,7 +205,7 @@ void __cdecl ClientScr_SetSessionTeam(gclient_s *pSelf, const client_fields_s *_
 
     if ( !pSelf && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game\\g_client_fields.cpp", 38, 0, "%s", "pSelf") )
         __debugbreak();
-    newTeam = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    newTeam = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( newTeam == scr_const.axis )
     {
         pSelf->sess.cs.team = TEAM_AXIS;
@@ -243,7 +243,7 @@ void __cdecl ClientScr_SetFFATeam(gclient_s *pSelf, const client_fields_s *__for
 
     if ( !pSelf && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game\\g_client_fields.cpp", 70, 0, "%s", "pSelf") )
         __debugbreak();
-    newTeam = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    newTeam = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( newTeam == scr_const.axis )
     {
         pSelf->sess.cs.ffaTeam = TEAM_FFA_AXIS;
@@ -381,7 +381,7 @@ void __cdecl ClientScr_SetSessionState(gclient_s *pSelf, const client_fields_s *
     {
         __debugbreak();
     }
-    newState = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    newState = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( newState == scr_const.playing )
     {
         pSelf->sess.sessionState = SESS_STATE_PLAYING;
@@ -463,7 +463,7 @@ void __cdecl ClientScr_SetMaxHealth(gclient_s *pSelf, const client_fields_s *__f
     {
         __debugbreak();
     }
-    pSelf->sess.maxHealth = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    pSelf->sess.maxHealth = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( pSelf->sess.maxHealth < 1 )
         pSelf->sess.maxHealth = 1;
     if ( pSelf->ps.stats[0] > pSelf->sess.maxHealth )
@@ -479,7 +479,7 @@ void __cdecl ClientScr_SetScore(gclient_s *pSelf, const client_fields_s *__forma
     VariableUnion v3; // [esp+8h] [ebp-8h]
     int score; // [esp+Ch] [ebp-4h]
 
-    score = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    score = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( !pSelf
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game\\g_client_fields.cpp", 306, 0, "%s", "pSelf") )
     {
@@ -526,7 +526,7 @@ VariableUnion __cdecl ClientScr_SetColumnValue(gclient_s *pSelf, scoreboardColum
     int columnIndex; // [esp+0h] [ebp-8h]
     int value; // [esp+4h] [ebp-4h]
 
-    value = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    value = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     pSelf->sess.scoreboardColumnCache[columnType] = value;
     if ( columnType == SB_TYPE_X2SCORE )
         value /= 10;
@@ -641,7 +641,7 @@ void __cdecl ClientScr_SetSpectatorClient(gclient_s *pSelf, const client_fields_
     {
         __debugbreak();
     }
-    iNewSpectatorClient = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    iNewSpectatorClient = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( iNewSpectatorClient < -1 || iNewSpectatorClient >= 32 )
         Scr_Error("spectatorclient can only be set to -1, or a valid client number", 0);
     pSelf->sess.forceSpectatorClient = iNewSpectatorClient;
@@ -656,7 +656,7 @@ void __cdecl ClientScr_SetKillCamEntity(gclient_s *pSelf, const client_fields_s 
     {
         __debugbreak();
     }
-    iNewKillCamEntity = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    iNewKillCamEntity = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( iNewKillCamEntity < -1 || iNewKillCamEntity >= 1024 )
         Scr_Error("killcamentity can only be set to -1, or a valid entity number", 0);
     pSelf->sess.killCamEntity = iNewKillCamEntity;
@@ -671,7 +671,7 @@ void __cdecl ClientScr_SetKillCamTargetEntity(gclient_s *pSelf, const client_fie
     {
         __debugbreak();
     }
-    iNewKillCamEntity = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    iNewKillCamEntity = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( iNewKillCamEntity < -1 || iNewKillCamEntity >= 1024 )
         Scr_Error("killcamentity can only be set to -1, or a valid entity number", 0);
     pSelf->sess.killCamTargetEntity = iNewKillCamEntity;
@@ -806,7 +806,7 @@ void __cdecl ClientScr_SetHeadIconTeam(gclient_s *pSelf, const client_fields_s *
         __debugbreak();
     }
     pEnt = &g_entities[pSelf - level.clients];
-    sTeam = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    sTeam = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( sTeam == scr_const.none )
     {
         pEnt->s.faction.iHeadIconTeam = 0;
@@ -890,7 +890,7 @@ void __cdecl ClientScr_SetPSOffsetTime(gclient_s *pSelf, const client_fields_s *
     {
         __debugbreak();
     }
-    pSelf->sess.psOffsetTime = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    pSelf->sess.psOffsetTime = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
 }
 
 void __cdecl ClientScr_GetEntityFromIndex(gclient_s *pSelf, const client_fields_s *pField)

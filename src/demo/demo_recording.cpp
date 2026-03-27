@@ -951,160 +951,160 @@ void __cdecl Demo_WritePlayerStates(msg_t *msg)
 
 void __cdecl Demo_WritePacketEntities(msg_t *msg)
 {
-    const char *v1; // eax
-    const char *v2; // eax
-    const char *v3; // eax
-    const char *v4; // eax
-    const char *v5; // eax
-    int v6; // eax
-    const char *v7; // eax
-    int v8; // eax
+    char *v2; // eax
+    char *v3; // eax
+    char *v4; // eax
+    char *v5; // eax
+    char *v6; // eax
+    int v7; // eax
+    char *v8; // eax
+    int v9; // eax
     int j; // [esp+1Ch] [ebp-1044h]
     int i; // [esp+20h] [ebp-1040h]
     DeltaFlags flags; // [esp+24h] [ebp-103Ch]
-    int v12; // [esp+28h] [ebp-1038h]
-    int v13; // [esp+2Ch] [ebp-1034h]
-    int v14; // [esp+30h] [ebp-1030h]
+    int v13; // [esp+28h] [ebp-1038h]
+    int v14; // [esp+2Ch] [ebp-1034h]
+    int v15; // [esp+30h] [ebp-1030h]
     entityState_s *to; // [esp+34h] [ebp-102Ch]
-    int v16; // [esp+38h] [ebp-1028h]
+    int v17; // [esp+38h] [ebp-1028h]
     int number; // [esp+40h] [ebp-1020h]
     archivedEntity_s *from; // [esp+44h] [ebp-101Ch]
     int eFlags; // [esp+48h] [ebp-1018h]
-    int v20[1024]; // [esp+50h] [ebp-1010h]
+    int v21[1024]; // [esp+50h] [ebp-1010h]
     int value; // [esp+1050h] [ebp-10h]
     int UsedBitCount; // [esp+1054h] [ebp-Ch]
-    int v23; // [esp+1058h] [ebp-8h]
-    entityState_s *v24; // [esp+105Ch] [ebp-4h]
+    int v24; // [esp+1058h] [ebp-8h]
+    entityState_s *v25; // [esp+105Ch] [ebp-4h]
 
     value = 0;
-    v23 = 0;
-    v14 = 0;
+    v24 = 0;
+    v15 = 0;
     //PIXBeginNamedEvent(-16711681, "Demo Recording - Writing EntityStates");
-    for ( i = 0; i < sv.bpsWindow[10]; ++i )
+    for (i = 0; i < sv.num_entities; ++i)
     {
-        v24 = (entityState_s *)(sv.bpsWindow[8] + i * sv.bpsWindow[9]);
-        if ( LOBYTE(v24[1].number)
-            && (*(unsigned int *)&v24[1].lerp.pos.trType || (v24[1].number & 0x10000) == 0)
-            && (v24->number >= 32 || !Demo_IsPlayerSpectating(v24->number) && !Demo_IsPlayerDead(v24->number)) )
+        v25 = (entityState_s *)((char *)&sv.gentities->s + i * sv.gentitySize);
+        if (LOBYTE(v25[1].number)
+            && (*(_DWORD *)&v25[1].lerp.pos.trType || (v25[1].number & 0x10000) == 0)
+            && (v25->number >= 32 || !Demo_IsPlayerSpectating(v25->number) && !Demo_IsPlayerDead(v25->number)))
         {
-            v20[value++] = i;
+            v21[value++] = i;
         }
     }
     UsedBitCount = MSG_GetUsedBitCount(msg);
     MSG_ClearLastReferencedEntity(msg);
     MSG_WriteBits(msg, value, 0xBu);
-    while ( v23 < demo.prevNumEntities || v14 < value )
+    while (v24 < demo.prevNumEntities || v15 < value)
     {
-        v24 = (entityState_s *)(sv.bpsWindow[8] + v20[v14] * sv.bpsWindow[9]);
-        if ( v14 < value )
-            number = v24->number;
+        v25 = (entityState_s *)((char *)&sv.gentities->s + v21[v15] * sv.gentitySize);
+        if (v15 < value)
+            number = v25->number;
         else
             number = 9999;
-        if ( v23 < demo.prevNumEntities )
-            v13 = demo.ent[v23].number;
+        if (v24 < demo.prevNumEntities)
+            v14 = demo.ent[v24].number;
         else
-            v13 = 9999;
-        if ( v13 == number )
+            v14 = 9999;
+        if (v14 == number)
         {
-            from = (archivedEntity_s *)&demo.ent[v23];
-            to = v24;
+            from = (archivedEntity_s *)&demo.ent[v24];
+            to = v25;
             flags = DELTA_FLAGS_NONE;
-            v16 = demo.entClientMask[v23][0];
-            eFlags = v24[1].lerp.eFlags;
-            v1 = va("EntityState: OldNum = NewNum = %d\n", v13);
-            Demo_Printf(32, v1);
+            v17 = demo.entClientMask[v24][0];
+            eFlags = v25[1].lerp.eFlags;
+            v2 = va("EntityState: OldNum = NewNum = %d\n", v14);
+            Demo_Printf(32, v2);
         }
-        else if ( number >= v13 )
+        else if (number >= v14)
         {
-            from = (archivedEntity_s *)&demo.ent[v23];
+            from = (archivedEntity_s *)&demo.ent[v24];
             to = 0;
             flags = DELTA_FLAGS_FORCE;
-            v16 = demo.entClientMask[v23][0];
+            v17 = demo.entClientMask[v24][0];
             eFlags = 0;
-            v3 = va("EntityState: NewNum (%d) > OldNum (%d). Entity is removed\n", number, v13);
-            Demo_Printf(32, v3);
+            v4 = va("EntityState: NewNum (%d) > OldNum (%d). Entity is removed\n", number, v14);
+            Demo_Printf(32, v4);
         }
         else
         {
             from = &svsHeader.svEntities[number].baseline;
-            to = v24;
-            if ( number != v24->number
+            to = v25;
+            if (number != v25->number
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\demo\\demo_recording.cpp",
-                            1503,
-                            0,
-                            "%s",
-                            "newEntNum == newEnt->number") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\demo\\demo_recording.cpp",
+                    1503,
+                    0,
+                    "%s",
+                    "newEntNum == newEnt->number"))
             {
                 __debugbreak();
             }
             g_snapInfo.fromBaseline = 1;
             flags = DELTA_FLAGS_FORCE;
-            v16 = 0;
-            eFlags = v24[1].lerp.eFlags;
-            v2 = va("EntityState: NewNum (%d) < OldNum (%d). Writing with baselines\n", number, v13);
-            Demo_Printf(32, v2);
+            v17 = 0;
+            eFlags = v25[1].lerp.eFlags;
+            v3 = va("EntityState: NewNum (%d) < OldNum (%d). Writing with baselines\n", number, v14);
+            Demo_Printf(32, v3);
         }
-        if ( to && v16 != eFlags )
+        if (to && v17 != eFlags)
             flags = DELTA_FLAGS_FORCE;
-        v12 = MSG_GetUsedBitCount(msg);
+        v13 = MSG_GetUsedBitCount(msg);
         MSG_WriteEntity(&g_snapInfo, msg, svsHeader.time, &from->s, to, flags);
         g_snapInfo.fromBaseline = 0;
-        if ( MSG_GetUsedBitCount(msg) != v12 )
+        if (MSG_GetUsedBitCount(msg) != v13)
         {
-            if ( to )
+            if (to)
             {
-                if ( v16 == eFlags )
+                if (v17 == eFlags)
                 {
                     MSG_WriteBit0(msg);
-                    v5 = va("OldClientMask: (%d) == NewClientMask: (%d). So, writing clientMask bit 0.\n", v16, eFlags);
+                    v6 = va("OldClientMask: (%d) == NewClientMask: (%d). So, writing clientMask bit 0.\n", v17, eFlags);
                 }
                 else
                 {
                     MSG_WriteBit1(msg);
                     MSG_WriteBits(msg, eFlags, 0x20u);
-                    v5 = va("Writing ClientMask (%d) for entity %d\n", eFlags, number);
+                    v6 = va("Writing ClientMask (%d) for entity %d\n", eFlags, number);
                 }
-                Demo_Printf(32, v5);
+                Demo_Printf(32, v6);
             }
             else
             {
                 MSG_WriteBit0(msg);
-                demo.entClientMask[v23][0] = 0;
-                demo.entClientMask[v23][1] = 0;
-                v4 = va("Entity %d is removed. So, writing clientMask bit 0.\n", v13);
-                Demo_Printf(32, v4);
+                demo.entClientMask[v24][0] = 0;
+                demo.entClientMask[v24][1] = 0;
+                v5 = va("Entity %d is removed. So, writing clientMask bit 0.\n", v14);
+                Demo_Printf(32, v5);
             }
         }
-        if ( v13 == number )
+        if (v14 == number)
         {
-            ++v23;
-            ++v14;
+            ++v24;
+            ++v15;
         }
-        else if ( number >= v13 )
+        else if (number >= v14)
         {
-            ++v23;
+            ++v24;
         }
         else
         {
-            ++v14;
+            ++v15;
         }
     }
     MSG_WriteEntityIndex(&g_snapInfo, msg, 1023, 10);
-    for ( j = 0; j < value; ++j )
+    for (j = 0; j < value; ++j)
     {
-        v24 = (entityState_s *)(sv.bpsWindow[8] + v20[j] * sv.bpsWindow[9]);
-        memcpy(&demo.ent[j], v24, sizeof(demo.ent[j]));
-        demo.entClientMask[j][0] = v24[1].lerp.eFlags;
+        v25 = (entityState_s *)((char *)&sv.gentities->s + v21[j] * sv.gentitySize);
+        memcpy(&demo.ent[j], v25, sizeof(demo.ent[j]));
+        demo.entClientMask[j][0] = v25[1].lerp.eFlags;
     }
-    v6 = MSG_GetUsedBitCount(msg);
-    v7 = va("DEMO: w Type: PacketEntities NumEntities: %d FirstEntity: 0 Size: %d bits\n", value, v6 - UsedBitCount);
-    Demo_Printf(33, v7);
-    v8 = MSG_GetUsedBitCount(msg);
-    Demo_RecordProfileData(4, (v8 - UsedBitCount) / 8);
+    v7 = MSG_GetUsedBitCount(msg);
+    v8 = va("DEMO: w Type: PacketEntities NumEntities: %d FirstEntity: 0 Size: %d bits\n", value, v7 - UsedBitCount);
+    Demo_Printf(33, v8);
+    v9 = MSG_GetUsedBitCount(msg);
+    Demo_RecordProfileData(4, (v9 - UsedBitCount) / 8);
     demo.prevNumEntities = value;
-    //if ( g_DXDeviceThread == GetCurrentThreadId() )
-        //D3DPERF_EndEvent();
+    //if (g_DXDeviceThread == GetCurrentThreadId())
+    //    D3DPERF_EndEvent();
 }
 
 void __cdecl Demo_WritePacketClients(msg_t *msg)

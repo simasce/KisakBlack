@@ -649,7 +649,7 @@ unsigned int __cdecl G_FindStruct(SpawnVar *spawnVar, int gameId)
     if ( gameId > 0 )
         structId = gameId;
     if ( Scr_GetType(0, SCRIPTINSTANCE_SERVER) )
-        structId = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).stringValue;
+        structId = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
     Scr_ClearOutParams(SCRIPTINSTANCE_SERVER);
     return structId;
 }
@@ -778,7 +778,7 @@ unsigned int __cdecl CG_FindStruct(SpawnVar *spawnVar, int gameId)
     if ( gameId > 0 )
         structId = gameId;
     if ( Scr_GetType(0, SCRIPTINSTANCE_CLIENT) )
-        structId = Scr_GetObject(0, SCRIPTINSTANCE_CLIENT).stringValue;
+        structId = Scr_GetObject(0, SCRIPTINSTANCE_CLIENT);
     Scr_ClearOutParams(SCRIPTINSTANCE_CLIENT);
     return structId;
 }

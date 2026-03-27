@@ -307,29 +307,29 @@ void __cdecl SV_GetUserinfo(int index, char *buffer, int bufferSize)
 
 void __cdecl SV_CreateBaseline()
 {
-    float *v0; // [esp+8h] [ebp-1Ch]
-    float *v1; // [esp+10h] [ebp-14h]
+    float *absmax; // [esp+8h] [ebp-1Ch]
+    float *absmin; // [esp+10h] [ebp-14h]
     gentity_s *svent; // [esp+1Ch] [ebp-8h]
     int entnum; // [esp+20h] [ebp-4h]
 
-    for ( entnum = 1; entnum < sv.bpsWindow[10]; ++entnum )
+    for (entnum = 1; entnum < sv.num_entities; ++entnum)
     {
-        svent = (gentity_s *)(sv.bpsWindow[8] + entnum * sv.bpsWindow[9]);
-        if ( svent->r.linked && svent->s.eType != 14 && svent->s.eType != 17 )
+        svent = (gentity_s *)((char *)sv.gentities + entnum * sv.gentitySize);
+        if (svent->r.linked && svent->s.eType != 14 && svent->s.eType != 17)
         {
             svent->s.number = entnum;
-            memcpy(&sv.svEntities[entnum].baseline.s.lerp.apos.trBase[1], svent, 0xE0u);
-            sv.svEntities[entnum].clusternums[7] = svent->r.svFlags;
-            sv.svEntities[entnum].clusternums[8] = svent->r.clientMask[0];
-            v1 = (float *)&sv.svEntities[entnum].clusternums[9];
-            *v1 = svent->r.absmin[0];
-            v1[1] = svent->r.absmin[1];
-            v1[2] = svent->r.absmin[2];
-            v0 = (float *)&sv.svEntities[entnum].clusternums[12];
-            *v0 = svent->r.absmax[0];
-            v0[1] = svent->r.absmax[1];
-            v0[2] = svent->r.absmax[2];
-            if ( svent->s.clientNum >= 0x20u )
+            memcpy(&sv.svEntities[entnum].baseline, svent, 0xE0u);
+            sv.svEntities[entnum].baseline.r.svFlags = svent->r.svFlags;
+            sv.svEntities[entnum].baseline.r.clientMask[0] = svent->r.clientMask[0];
+            absmin = sv.svEntities[entnum].baseline.r.absmin;
+            *absmin = svent->r.absmin[0];
+            absmin[1] = svent->r.absmin[1];
+            absmin[2] = svent->r.absmin[2];
+            absmax = sv.svEntities[entnum].baseline.r.absmax;
+            *absmax = svent->r.absmax[0];
+            absmax[1] = svent->r.absmax[1];
+            absmax[2] = svent->r.absmax[2];
+            if (svent->s.clientNum >= 0x20u)
                 svent->s.clientNum = 32;
         }
     }
@@ -463,7 +463,7 @@ void __cdecl SV_ClearServer()
     if ( sv.emptyConfigString )
         SL_RemoveRefToString(SCRIPTINSTANCE_SERVER, sv.emptyConfigString);
     G_ClearCachedModels();
-    Com_Memset((unsigned int *)&sv, 0, 377548);
+    Com_Memset(&sv, 0, sizeof(server_t));
     com_inServerFrame = 0;
 }
 
@@ -620,7 +620,7 @@ void __cdecl    SV_SpawnServer(int controllerIndex, char *server, int mapIsPrelo
     }
 
     Dvar_ClearModified(com_maxclients);
-    I_strncpyz((char *)&sv.killServer, sv_gametype->current.string, 64);
+    I_strncpyz(sv.gametype, sv_gametype->current.string, 64);
     v5 = Sys_MillisecondsRaw();
     G_srand(v5);
     v6 = G_rand() << 16;

@@ -286,7 +286,7 @@ void __cdecl PlayerCmd_setBlockWeaponPickup(scr_entref_t entref)
     ps = &pSelf->client->ps;
     weaponName = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
     weaponIndex = G_GetWeaponIndexForName(weaponName);
-    blockWeaponPickup = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 0;
+    blockWeaponPickup = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 0;
     if ( !BG_PlayerWeaponSetBlockPickupWeapon(ps, weaponIndex, blockWeaponPickup) )
     {
         v2 = va("Cannot set blocked weapon pickup, player does not have %s", weaponName);
@@ -366,7 +366,7 @@ void __cdecl PlayerCmd_giveWeapon(scr_entref_t entref)
     else
     {
         weapDef = BG_GetWeaponDef(weaponIndex);
-        weaponModel = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        weaponModel = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         if ( (unsigned int)weaponModel < 0x100 )
         {
             if ( !weapDef->gunXModel[weaponModel] )
@@ -377,7 +377,7 @@ void __cdecl PlayerCmd_giveWeapon(scr_entref_t entref)
             (weaponModel) = 0;
         }
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2 )
-            weaponOptions.i = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).stringValue;
+            weaponOptions.i = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     }
     if ( G_GivePlayerWeapon(&pSelf->client->ps, weaponIndex, weaponModel, weaponOptions) )
     {
@@ -840,20 +840,20 @@ void __cdecl PlayerCmd_calcWeaponOptions(scr_entref_t entref)
     weaponOptions.i = (((unsigned __int8)pSelf->s.number + 1) & 0x1F) << 21;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 2 )
     {
-        v2.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v2.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         if ( !BG_UnlockablesGetCustomClassNameForInt((customClass_t)v2.intValue) )
             return;
         ops[0] = "cacLoadouts";
-        v3.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v3.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         CustomClassNameForInt = BG_UnlockablesGetCustomClassNameForInt((customClass_t)v3.intValue);
         ops[1] = va("%s", CustomClassNameForInt);
         ops[2] = 0;
         if ( UI_Gametype_IsUsingCustom() && Dvar_GetInt(custom_class_mode) )
         {
-            v5.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+            v5.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             ops[1] = va("%d", v5.intValue + 1);
         }
-        v6.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        v6.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         primary = v6.intValue == 0;
         if ( v6.intValue )
             v12 = "secondarycamo";
@@ -907,17 +907,17 @@ void __cdecl PlayerCmd_calcWeaponOptions(scr_entref_t entref)
     }
     else
     {
-        weaponOptions.i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue & 0x3F | weaponOptions.i & 0xFFFFFFC0;
-        weaponOptions.i = ((Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).stringValue & 0xF) << 6) | weaponOptions.i & 0xFFFFFC3F;
+        weaponOptions.i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER) & 0x3F | weaponOptions.i & 0xFFFFFFC0;
+        weaponOptions.i = ((Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) & 0xF) << 6) | weaponOptions.i & 0xFFFFFC3F;
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2 )
         {
-            weaponOptions.i = ((Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).stringValue & 0x3F) << 10)
+            weaponOptions.i = ((Scr_GetInt(2u, SCRIPTINSTANCE_SERVER) & 0x3F) << 10)
                                             | weaponOptions.i & 0xFFFF03FF;
             if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 3 )
             {
-                weaponOptions.i = ((Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).stringValue & 1) << 20) | weaponOptions.i & 0xFFEFFFFF;
+                weaponOptions.i = ((Scr_GetInt(3u, SCRIPTINSTANCE_SERVER) & 1) << 20) | weaponOptions.i & 0xFFEFFFFF;
                 if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 4 )
-                    weaponOptions.i = ((Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).stringValue & 1) << 19)
+                    weaponOptions.i = ((Scr_GetInt(4u, SCRIPTINSTANCE_SERVER) & 1) << 19)
                                                     | weaponOptions.i & 0xFFF7FFFF;
             }
         }
@@ -1012,11 +1012,11 @@ void __cdecl PlayerCmd_calcPlayerOptions(scr_entref_t entref)
     weaponOptions.i = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        v2.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v2.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         if ( !BG_UnlockablesGetCustomClassNameForInt((customClass_t)v2.intValue) )
             return;
         ops[0] = "cacLoadouts";
-        v3.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v3.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         CustomClassNameForInt = BG_UnlockablesGetCustomClassNameForInt((customClass_t)v3.intValue);
         ops[1] = va("%s", CustomClassNameForInt);
         ops[2] = 0;
@@ -1024,7 +1024,7 @@ void __cdecl PlayerCmd_calcPlayerOptions(scr_entref_t entref)
         {
             if ( Dvar_GetInt(custom_class_mode) )
             {
-                v5.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+                v5.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
                 ops[1] = va("%d", v5.intValue + 1);
             }
         }
@@ -1041,7 +1041,7 @@ void __cdecl PlayerCmd_calcPlayerOptions(scr_entref_t entref)
     }
     else
     {
-        weaponOptions.i = (Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue << 26) | weaponOptions.i & 0x3FFFFFF;
+        weaponOptions.i = (Scr_GetInt(0, SCRIPTINSTANCE_SERVER) << 26) | weaponOptions.i & 0x3FFFFFF;
     }
     Scr_AddInt(weaponOptions.i, SCRIPTINSTANCE_SERVER);
 }
@@ -1085,7 +1085,7 @@ void __cdecl PlayerCmd_setPlayerRenderOptions(scr_entref_t entref)
     {
         __debugbreak();
     }
-    pSelf->client->ps.renderOptions.i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
+    pSelf->client->ps.renderOptions.i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
 }
 
 void __cdecl PlayerCmd_NextPlayerRenderOption(scr_entref_t entref)
@@ -1192,7 +1192,7 @@ void __cdecl PlayerCmd_NextPlayerRenderOption(scr_entref_t entref)
                                         for ( j = 0; j < 64; ++j )
                                         {
                                             v11 = (unsigned __int8)HIBYTE(p_renderOptions->i) >> 2;
-                                            p_renderOptions->i = (((v11 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 1 ? -1 : 1))
+                                            p_renderOptions->i = (((v11 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 1 ? -1 : 1))
                                                                                      & 0x3F) << 26)
                                                                                  | p_renderOptions->i & 0x3FFFFFF;
                                             if ( CG_IsValidRenderOption((renderOptions_s)p_renderOptions->i) )
@@ -1206,7 +1206,7 @@ void __cdecl PlayerCmd_NextPlayerRenderOption(scr_entref_t entref)
                                     for ( k = 0; k < 64; ++k )
                                     {
                                         v12 = (p_options->i >> 20) & 1;
-                                        p_options->i = ((((_BYTE)v12 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 1 ? -1 : 1)) & 1) << 20)
+                                        p_options->i = ((((_BYTE)v12 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 1 ? -1 : 1)) & 1) << 20)
                                                                  | p_options->i & 0xFFEFFFFF;
                                         if ( CG_IsValidRenderOption((renderOptions_s)p_options->i) )
                                             break;
@@ -1221,7 +1221,7 @@ void __cdecl PlayerCmd_NextPlayerRenderOption(scr_entref_t entref)
                                 for ( m = 0; m < 64; ++m )
                                 {
                                     v13 = (v23->i >> 19) & 1;
-                                    v23->i = ((((_BYTE)v13 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 1 ? -1 : 1)) & 1) << 19)
+                                    v23->i = ((((_BYTE)v13 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 1 ? -1 : 1)) & 1) << 19)
                                                  | v23->i & 0xFFF7FFFF;
                                     if ( CG_IsValidRenderOption((renderOptions_s)v23->i) )
                                         break;
@@ -1236,7 +1236,7 @@ void __cdecl PlayerCmd_NextPlayerRenderOption(scr_entref_t entref)
                             for ( n = 0; n < 64; ++n )
                             {
                                 v14 = HIWORD(v25->i) & 7;
-                                v25->i = ((((_BYTE)v14 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 1 ? -1 : 1)) & 7) << 16)
+                                v25->i = ((((_BYTE)v14 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 1 ? -1 : 1)) & 7) << 16)
                                              | v25->i & 0xFFF8FFFF;
                                 if ( CG_IsValidRenderOption((renderOptions_s)v25->i) )
                                     break;
@@ -1249,7 +1249,7 @@ void __cdecl PlayerCmd_NextPlayerRenderOption(scr_entref_t entref)
                         for ( ii = 0; ii < 64; ++ii )
                         {
                             v15 = (unsigned __int8)HIBYTE(LOWORD(v27->i)) >> 2;
-                            v27->i = (((v15 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 1 ? -1 : 1)) & 0x3F) << 10)
+                            v27->i = (((v15 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 1 ? -1 : 1)) & 0x3F) << 10)
                                          | v27->i & 0xFFFF03FF;
                             if ( CG_IsValidRenderOption((renderOptions_s)v27->i) )
                                 break;
@@ -1262,7 +1262,7 @@ void __cdecl PlayerCmd_NextPlayerRenderOption(scr_entref_t entref)
                     for ( jj = 0; jj < 64; ++jj )
                     {
                         v16 = (v29->i >> 6) & 0xF;
-                        v29->i = ((((_BYTE)v16 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 1 ? -1 : 1)) & 0xF) << 6)
+                        v29->i = ((((_BYTE)v16 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 1 ? -1 : 1)) & 0xF) << 6)
                                      | v29->i & 0xFFFFFC3F;
                         if ( CG_IsValidRenderOption((renderOptions_s)v29->i) )
                             break;
@@ -1275,7 +1275,7 @@ void __cdecl PlayerCmd_NextPlayerRenderOption(scr_entref_t entref)
                 for ( i = 0; i < 64; ++i )
                 {
                     v17 = renderOptions->i & 0x3F;
-                    renderOptions->i = ((_BYTE)v17 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 1 ? -1 : 1)) & 0x3F
+                    renderOptions->i = ((_BYTE)v17 + (Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 1 ? -1 : 1)) & 0x3F
                                                      | renderOptions->i & 0xFFFFFFC0;
                     if ( CG_IsValidRenderOption((renderOptions_s)renderOptions->i) )
                         break;
@@ -2403,7 +2403,7 @@ void __cdecl PlayerCmd_CameraActivate(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    flags = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue != 0;
+    flags = Scr_GetInt(0, SCRIPTINSTANCE_SERVER) != 0;
     v2 = va("%c %i", 41, flags);
     SV_GameSendServerCommand(pSelf->s.clientNum, SV_CMD_RELIABLE, v2);
 }
@@ -3397,7 +3397,7 @@ void __cdecl PlayerCmd_dropItem(scr_entref_t entref)
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) <= 1 )
             dropTag = scr_const.tag_weapon_right;
         else
-            dropTag = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER).stringValue;
+            dropTag = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER);
         PlayerWeaponModel = BG_GetPlayerWeaponModel(&pSelf->client->ps, iWeaponIndex);
         pDroppedItem = Drop_Weapon(pSelf, iWeaponIndex, PlayerWeaponModel, dropTag);
         GScr_AddEntity(pDroppedItem);
@@ -3834,7 +3834,7 @@ void __cdecl PlayerCmd_finishPlayerDamage(scr_entref_t entref)
         }
     }
     tempBulletHitEntity = 0;
-    damage = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+    damage = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     if ( damage > 0 )
     {
         pm = &g_pmove[pSelf->client->ps.clientNum];
@@ -3844,7 +3844,7 @@ void __cdecl PlayerCmd_finishPlayerDamage(scr_entref_t entref)
                 inflictor = Scr_GetEntity(0);
             if ( Scr_GetType(1u, SCRIPTINSTANCE_SERVER) && Scr_GetPointerType(1u, SCRIPTINSTANCE_SERVER) == 19 )
                 attacker = Scr_GetEntity(1u);
-            dflags = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+            dflags = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
             mod = (meansOfDeath_t)G_MeansOfDeathFromScriptParam(4u);
             if ( pSelf->client->lastStand
                 && mod != MOD_MELEE
@@ -3865,9 +3865,9 @@ void __cdecl PlayerCmd_finishPlayerDamage(scr_entref_t entref)
                 Scr_GetVector(7u, vDir, SCRIPTINSTANCE_SERVER);
                 dir = vDir;
             }
-            floatValue = (unsigned __int16)Scr_GetConstString(8u, SCRIPTINSTANCE_SERVER).floatValue;
+            floatValue = (unsigned __int16)Scr_GetConstString(8u, SCRIPTINSTANCE_SERVER);
             hitLoc = (hitLocation_t)G_GetHitLocationIndexFromString(floatValue);
-            psTimeOffset = Scr_GetInt(9u, SCRIPTINSTANCE_SERVER).intValue;
+            psTimeOffset = Scr_GetInt(9u, SCRIPTINSTANCE_SERVER);
             v4 = Scr_GetString(0xAu, SCRIPTINSTANCE_SERVER);
             iSurfType = Com_SurfaceTypeFromName(v4);
             if ( iSurfType == -1 )
@@ -4664,7 +4664,7 @@ void __cdecl PlayerCmd_SetWeaponAmmoClip(scr_entref_t entref)
         }
     }
     weapName = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-    ammoCount = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    ammoCount = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     weapIndex = G_GetWeaponIndexForName(weapName);
     if ( weapIndex )
     {
@@ -4748,7 +4748,7 @@ void __cdecl PlayerCmd_SetWeaponAmmoStock(scr_entref_t entref)
         }
     }
     weapName = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-    newAmmoCnt = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    newAmmoCnt = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     weapIdx = G_GetWeaponIndexForName(weapName);
     ps = &pSelf->client->ps;
     if ( weapIdx )
@@ -5096,7 +5096,7 @@ void __cdecl PlayerCmd_setEnterTime(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    pSelf->client->sess.enterTime = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    pSelf->client->sess.enterTime = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
 }
 
 void __cdecl BodyEnd(gentity_s *ent)
@@ -5145,7 +5145,7 @@ void __cdecl PlayerCmd_ClonePlayer(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    deathAnimDuration = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    deathAnimDuration = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     client = pSelf->client;
     if ( !client
         && !Assert_MyHandler(
@@ -5381,7 +5381,7 @@ void __cdecl PlayerCmd_SetClientUIVisibilityFlag(scr_entref_t entref)
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 2 )
     {
         flagName = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-        value = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        value = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         if ( I_stricmp("hud_visible", flagName) )
         {
             if ( I_stricmp("g_compassShowEnemies", flagName) )
@@ -5522,12 +5522,12 @@ void __cdecl PlayerCmd_PlayClientAirstrike(scr_entref_t entref)
         }
     }
     Scr_GetVector(0, position, SCRIPTINSTANCE_SERVER);
-    yaw = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).stringValue;
+    yaw = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     teamName = Scr_GetString(2u, SCRIPTINSTANCE_SERVER);
     team = Scr_GetString(3u, SCRIPTINSTANCE_SERVER);
-    owner = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).stringValue;
+    owner = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER);
     exitType = Scr_GetString(5u, SCRIPTINSTANCE_SERVER);
-    height = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER).intValue;
+    height = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER);
     v2 = va(
                  "%c %f %f %f %i %c %c %c %i %c %i %i",
                  82,
@@ -5581,12 +5581,12 @@ void __cdecl PlayerCmd_PlayClientNapalm(scr_entref_t entref)
         }
     }
     Scr_GetVector(0, position, SCRIPTINSTANCE_SERVER);
-    yaw = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).stringValue;
+    yaw = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     teamName = Scr_GetString(2u, SCRIPTINSTANCE_SERVER);
     team = Scr_GetString(3u, SCRIPTINSTANCE_SERVER);
-    owner = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).stringValue;
+    owner = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER);
     exitType = Scr_GetString(5u, SCRIPTINSTANCE_SERVER);
-    height = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER).intValue;
+    height = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER);
     v2 = va(
                  "%c %f %f %f %i %c %c %c %i %c %i %i",
                  82,
@@ -5661,7 +5661,7 @@ void PlayerCmd_FreezeControlsAllowLook(scr_entref_t entref)
             Scr_ObjectError(va("entity %i is not a player", entref.entnum), SCRIPTINSTANCE_SERVER);
         }
     }
-    if (Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue)
+    if (Scr_GetInt(0, SCRIPTINSTANCE_SERVER))
         pSelf->client->flags |= 16u;
     else
         pSelf->client->flags &= ~16u;
@@ -5726,7 +5726,7 @@ void __cdecl PlayerCmd_FreezeControls(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         pSelf->client->flags |= 4u;
     else
         pSelf->client->flags &= ~4u;
@@ -6274,7 +6274,7 @@ void __cdecl PlayerCmd_AllowADS(scr_entref_t entref)
     }
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+        if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         {
             pSelf->client->ps.weapFlags &= ~0x20u;
         }
@@ -6319,7 +6319,7 @@ void __cdecl PlayerCmd_AllowJump(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         pSelf->client->ps.pm_flags &= ~0x80000u;
     else
         pSelf->client->ps.pm_flags |= 0x80000u;
@@ -6354,7 +6354,7 @@ void __cdecl PlayerCmd_AllowSprint(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         pSelf->client->ps.pm_flags &= ~0x40000u;
     else
         pSelf->client->ps.pm_flags |= 0x40000u;
@@ -6507,7 +6507,7 @@ void __cdecl PlayerCmd_SetSpreadOverride(scr_entref_t entref)
     }
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        value = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        value = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         if ( value > 0 )
         {
             if ( value < 64 )
@@ -6598,7 +6598,7 @@ void __cdecl PlayerCmd_AllowSpectateTeam(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    teamString = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    teamString = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     teamBit = 0;
     if ( teamString == scr_const.axis )
     {
@@ -6627,7 +6627,7 @@ void __cdecl PlayerCmd_AllowSpectateTeam(scr_entref_t entref)
             "team must be \"axis\", \"allies\", \"none\", \"localplayers\", or \"freelook\"",
             SCRIPTINSTANCE_SERVER);
     }
-    if ( Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) )
         pSelf->client->sess.noSpectate &= ~teamBit;
     else
         pSelf->client->sess.noSpectate |= teamBit;
@@ -7021,7 +7021,7 @@ void __cdecl PlayerCmd_SetActionSlot(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    slot = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    slot = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( slot >= 1 && slot <= 4 )
     {
         slota = slot - 1;
@@ -7530,13 +7530,13 @@ void __cdecl PlayerCmd_SetRank(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    rank = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    rank = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)rank < 0x100 )
     {
         pSelf->client->sess.cs.rank = rank;
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) >= 2 )
         {
-            prestige = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+            prestige = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
             if ( (unsigned int)prestige < 0x100 )
             {
                 pSelf->client->sess.cs.prestige = prestige;
@@ -7628,7 +7628,7 @@ void __cdecl PlayerCmd_ClientSysSetState(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)i <= 8 )
     {
         SV_GetConfigstring(i + 1538, szConfigString, 1024);
@@ -7820,7 +7820,7 @@ void __cdecl PlayerCmd_WeaponLockTargetTooClose(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         pSelf->client->ps.weapLockFlags |= 0x10u;
     else
         pSelf->client->ps.weapLockFlags &= ~0x10u;
@@ -7855,7 +7855,7 @@ void __cdecl PlayerCmd_WeaponLockNoClearance(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         pSelf->client->ps.weapLockFlags |= 0x20u;
     else
         pSelf->client->ps.weapLockFlags &= ~0x20u;
@@ -8080,7 +8080,7 @@ void __cdecl PlayerCmd_isCarryingTurret(scr_entref_t entref)
             Scr_ObjectError(v1, SCRIPTINSTANCE_SERVER);
         }
     }
-    pSelf->client->ps.bCarryingTurret = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue != 0;
+    pSelf->client->ps.bCarryingTurret = Scr_GetInt(0, SCRIPTINSTANCE_SERVER) != 0;
 }
 
 // LWSS ADD

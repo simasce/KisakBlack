@@ -5,6 +5,7 @@
 #include <server_mp/sv_main_mp.h>
 #include <xanim/xmodel_utils.h>
 #include "cm_tracebox.h"
+#include <server/sv_game.h>
 
 cm_world_t cm_world;
 
@@ -49,118 +50,97 @@ void __cdecl CM_UnlinkEntity(svEntity_s *ent)
     unsigned __int16 parentNodeIndexa; // [esp+18h] [ebp-4h]
 
     nodeIndex = ent->worldSector;
-    if ( ent->worldSector )
+    if (ent->worldSector)
     {
         node = &cm_world.sectors[nodeIndex];
         ent->worldSector = 0;
-        if ( !node->contents.entities
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_world.cpp",
-                        370,
-                        0,
-                        "%s",
-                        "node->contents.entities") )
-        {
-            __debugbreak();
-        }
-        if ( &sv.configstrings[180 * node->contents.entities + 3081] == (unsigned __int16 *)ent )
+        iassert(node->contents.entities);
+
+        if (&sv.svEntities[node->contents.entities - 1] == ent)
         {
             node->contents.entities = ent->nextEntityInWorldSector;
         }
         else
         {
-            for ( scan = (svEntity_s *)&sv.configstrings[180 * node->contents.entities + 3081];
-                        &sv.configstrings[180 * scan->nextEntityInWorldSector + 3081] != (unsigned __int16 *)ent;
-                        scan = (svEntity_s *)&sv.configstrings[180 * scan->nextEntityInWorldSector + 3081] )
+            for (scan = &sv.svEntities[node->contents.entities - 1];
+                &sv.svEntities[scan->nextEntityInWorldSector - 1] != ent;
+                scan = &sv.svEntities[scan->nextEntityInWorldSector - 1])
             {
-                if ( !scan->nextEntityInWorldSector
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_world.cpp",
-                                385,
-                                0,
-                                "%s",
-                                "scan->nextEntityInWorldSector") )
-                {
-                    __debugbreak();
-                }
+                iassert(scan->nextEntityInWorldSector);
             }
             scan->nextEntityInWorldSector = ent->nextEntityInWorldSector;
         }
-        while ( !node->contents.entities && !node->contents.staticModels && !node->tree.child[0] && !node->tree.child[1] )
+        while (!node->contents.entities && !node->contents.staticModels && !node->tree.child[0] && !node->tree.child[1])
         {
-            if ( node->contents.contentsStaticModels
+            if (node->contents.contentsStaticModels
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_world.cpp",
-                            391,
-                            0,
-                            "%s",
-                            "!node->contents.contentsStaticModels") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_world.cpp",
+                    391,
+                    0,
+                    "%s",
+                    "!node->contents.contentsStaticModels"))
             {
                 __debugbreak();
             }
             node->contents.contentsEntities = 0;
-            if ( !node->tree.u.parent )
+            if (!node->tree.u.parent)
             {
-                if ( nodeIndex != 1
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_world.cpp",
-                                396,
-                                0,
-                                "%s",
-                                "nodeIndex == SECTOR_HEAD") )
-                {
-                    __debugbreak();
-                }
+                iassert(nodeIndex == SECTOR_HEAD);
                 goto LABEL_33;
             }
             parentNodeIndex = node->tree.u.parent;
             node->tree.u.parent = cm_world.freeHead;
             cm_world.freeHead = nodeIndex;
             node = &cm_world.sectors[parentNodeIndex];
-            if ( node->tree.child[0] == nodeIndex )
+            if (node->tree.child[0] == nodeIndex)
             {
                 node->tree.child[0] = 0;
             }
             else
             {
-                if ( node->tree.child[1] != nodeIndex
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_world.cpp",
-                                413,
-                                0,
-                                "%s",
-                                "node->tree.child[1] == nodeIndex") )
-                {
-                    __debugbreak();
-                }
+                iassert(node->tree.child[1] == nodeIndex);
                 node->tree.child[1] = 0;
             }
             nodeIndex = parentNodeIndex;
         }
-        while ( 1 )
+        while (1)
         {
-LABEL_33:
-            contents = cm_world.sectors[node->tree.child[1]].contents.contentsEntities
-                             | cm_world.sectors[node->tree.child[0]].contents.contentsEntities;
-            if ( node->contents.entities )
+        LABEL_33:
+            //contents = cm_world.sectors[node->tree.child[1]].contents.contentsEntities
+            //    | cm_world.sectors[node->tree.child[0]].contents.contentsEntities;
+            //if (node->contents.entities)
+            //{
+            //    for (scana = (svEntity_s *)&sv.configstrings[180 * node->contents.entities + 3081];
+            //        ;
+            //        scana = (svEntity_s *)&sv.configstrings[180 * scana->nextEntityInWorldSector + 3081])
+            //    {
+            //        contents |= scana->linkcontents
+            //            | *(_DWORD *)((char *)&sv.gentities->r.maxs[3] + (scana - sv.svEntities) * sv.gentitySize);
+            //        if (!scana->nextEntityInWorldSector)
+            //            break;
+            //    }
+            //}
+            //node->contents.contentsEntities = contents;
+            //parentNodeIndexa = node->tree.u.parent;
+            //if (!parentNodeIndexa)
+            //    break;
+            //node = &cm_world.sectors[parentNodeIndexa];
+
+            contents = cm_world.sectors[node->tree.child[1]].contents.contentsEntities | cm_world.sectors[node->tree.child[0]].contents.contentsEntities;
+            if (node->contents.entities)
             {
-                for ( scana = (svEntity_s *)&sv.configstrings[180 * node->contents.entities + 3081];
-                            ;
-                            scana = (svEntity_s *)&sv.configstrings[180 * scana->nextEntityInWorldSector + 3081] )
+                scana = &sv.svEntities[node->contents.entities - 1];
+                for (gentity_s *i = SV_GEntityForSvEntity(scana); ; i = SV_GEntityForSvEntity(scana))
                 {
-                    contents |= scana->linkcontents
-                                        | *(unsigned int *)(sv.bpsWindow[8]
-                                                                + ((char *)scana - (char *)sv.svEntities[0].baseline.s.lerp.apos.trBase)
-                                                                / 360
-                                                                * sv.bpsWindow[9]
-                                                                + 264);
-                    if ( !scana->nextEntityInWorldSector )
+                    contents |= i->r.contents;
+                    if (!scana->nextEntityInWorldSector)
                         break;
+                    scana = &sv.svEntities[scana->nextEntityInWorldSector - 1];
                 }
             }
             node->contents.contentsEntities = contents;
             parentNodeIndexa = node->tree.u.parent;
-            if ( !parentNodeIndexa )
+            if (!parentNodeIndexa)
                 break;
             node = &cm_world.sectors[parentNodeIndexa];
         }
@@ -169,7 +149,6 @@ LABEL_33:
 
 void __cdecl CM_LinkEntity(svEntity_s *ent, float *absmin, float *absmax, unsigned int clipHandle)
 {
-    bool v4; // zf
     worldSector_s *node; // [esp+18h] [ebp-30h]
     int contents; // [esp+1Ch] [ebp-2Ch]
     unsigned __int16 nodeIndex; // [esp+20h] [ebp-28h]
@@ -183,17 +162,19 @@ void __cdecl CM_LinkEntity(svEntity_s *ent, float *absmin, float *absmax, unsign
 
     cmod = CM_ClipHandleToModel(clipHandle);
     leaf = &cmod->leaf;
-    contents = *(unsigned int *)(sv.bpsWindow[8]
-                                             + ((char *)ent - (char *)sv.svEntities[0].baseline.s.lerp.apos.trBase) / 360 * sv.bpsWindow[9]
-                                             + 264);
+    //contents = *(unsigned int *)(sv.bpsWindow[8]
+    //                                         + ((char *)ent - (char *)sv.svEntities[0].baseline.s.lerp.apos.trBase) / 360 * sv.bpsWindow[9]
+    //                                         + 264);
+    contents = SV_GEntityForSvEntity(ent)->r.contents;
+
     if ( !contents
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_world.cpp", 622, 0, "%s", "contents") )
     {
         __debugbreak();
     }
-    v4 = *(_QWORD *)&leaf->brushContents == 0;
+
     linkcontents = leaf->terrainContents | leaf->brushContents;
-    if ( v4 )
+    if (leaf->terrainContents == 0 && leaf->brushContents == 0)
     {
         CM_UnlinkEntity(ent);
     }
@@ -260,18 +241,12 @@ LABEL_24:
 
 void __cdecl CM_AddEntityToNode(svEntity_s *ent, unsigned __int16 childNodeIndex)
 {
-    unsigned __int16 *prevEnt; // [esp+0h] [ebp-8h]
-    unsigned int entnum; // [esp+4h] [ebp-4h]
+    unsigned int entnum = ent - sv.svEntities;
 
-    //entnum = ((char *)ent - (char *)sv.svEntities[0].baseline.s.lerp.apos.trBase) / 360;
-    entnum = ent - sv.svEntities;
+    unsigned __int16 *prevEnt = &cm_world.sectors[childNodeIndex].contents.entities;
+    while ((unsigned int)*prevEnt - 1 <= entnum)
+        prevEnt = &sv.svEntities[*prevEnt - 1].nextEntityInWorldSector;
 
-    for (prevEnt = &cm_world.sectors[childNodeIndex].contents.entities;
-        (unsigned int)*prevEnt - 1 <= entnum;
-        prevEnt = &sv.configstrings[180 * *prevEnt + 3082])
-    {
-        ;
-    }
     ent->worldSector = childNodeIndex;
     ent->nextEntityInWorldSector = *prevEnt;
     *prevEnt = entnum + 1;
@@ -300,7 +275,7 @@ void __cdecl CM_SortNode(unsigned __int16 nodeIndex, float *mins, float *maxs)
     entnum = cm_world.sectors[v3].contents.entities;
     while ( entnum )
     {
-        ent = (svEntity_s *)&sv.configstrings[180 * entnum + 3081];
+        ent = &sv.svEntities[entnum - 1];
         if ( ent->linkmin[axis] <= dist )
         {
             if ( dist > ent->linkmax[axis] )
@@ -323,35 +298,12 @@ void __cdecl CM_SortNode(unsigned __int16 nodeIndex, float *mins, float *maxs)
         {
 LABEL_14:
             entnum = ent->nextEntityInWorldSector;
-            if ( !prevEnt
-                && &sv.configstrings[180 * node->contents.entities + 3081] != (unsigned __int16 *)ent
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_world.cpp",
-                            539,
-                            0,
-                            "%s",
-                            "prevEnt || (&sv.svEntities[node->contents.entities - 1] == ent)") )
-            {
-                __debugbreak();
-            }
-            if ( prevEnt
-                && &sv.configstrings[180 * prevEnt->nextEntityInWorldSector + 3081] != (unsigned __int16 *)ent
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\cm_world.cpp",
-                            540,
-                            0,
-                            "%s",
-                            "!prevEnt || (&sv.svEntities[prevEnt->nextEntityInWorldSector - 1] == ent)") )
-            {
-                __debugbreak();
-            }
+            
+            iassert(prevEnt || (&sv.svEntities[node->contents.entities - 1] == ent));
+            iassert(!prevEnt || (&sv.svEntities[prevEnt->nextEntityInWorldSector - 1] == ent));
+
             CM_AddEntityToNode(ent, childNodeIndex);
-            cm_world.sectors[childNodeIndex].contents.contentsEntities |= *(unsigned int *)(sv.bpsWindow[8]
-                                                                                                                                                            + ((char *)ent
-                                                                                                                                                             - (char *)sv.svEntities[0].baseline.s.lerp.apos.trBase)
-                                                                                                                                                            / 360
-                                                                                                                                                            * sv.bpsWindow[9]
-                                                                                                                                                            + 264);
+            cm_world.sectors[childNodeIndex].contents.contentsEntities |= SV_GEntityForSvEntity(ent)->r.contents;
             cm_world.sectors[childNodeIndex].contents.contentsEntities |= ent->linkcontents;
             if ( prevEnt )
                 prevEnt->nextEntityInWorldSector = entnum;
@@ -368,7 +320,7 @@ LABEL_14:
                 goto LABEL_14;
             }
 skipEntity_1:
-            prevEnt = (svEntity_s *)&sv.configstrings[180 * entnum + 3081];
+            prevEnt = &sv.svEntities[entnum - 1];
             entnum = ent->nextEntityInWorldSector;
         }
     }
@@ -638,42 +590,47 @@ int __cdecl CM_AreaEntities(const float *mins, const float *maxs, int *entityLis
 
 void __cdecl CM_AreaEntities_r(unsigned int nodeIndex, areaParms_t *ap)
 {
-    worldSector_s *node; // [esp+8h] [ebp-14h]
-    unsigned int nextNodeIndex; // [esp+Ch] [ebp-10h]
-    gentity_s *gcheck; // [esp+10h] [ebp-Ch]
-    unsigned int entnum; // [esp+14h] [ebp-8h]
+    // kcod4
+    worldSector_s *node; // [esp+0h] [ebp-14h]
+    unsigned int nextNodeIndex; // [esp+4h] [ebp-10h]
+    gentity_s *gcheck; // [esp+8h] [ebp-Ch]
+    unsigned int entnum; // [esp+Ch] [ebp-8h]
+    svEntity_s *svEnt;
 
-    while ( 1 )
+    int n;
+    for (node = &cm_world.sectors[nodeIndex]; (node->contents.contentsEntities & ap->contentmask) != 0; node = &cm_world.sectors[nodeIndex])
     {
-        node = &cm_world.sectors[nodeIndex];
-        if ( (ap->contentmask & node->contents.contentsEntities) == 0 )
-            break;
-        for ( entnum = node->contents.entities; entnum; entnum = sv.configstrings[180 * entnum + 3082] )
+        for (entnum = node->contents.entities; entnum; entnum = svEnt->nextEntityInWorldSector)
         {
-            gcheck = (gentity_s *)(sv.bpsWindow[8] + (int)(360 * (entnum - 1)) / 360 * sv.bpsWindow[9]);
-            if ( (ap->contentmask & gcheck->r.contents) != 0
-                && gcheck->r.absmin[0] <= *ap->maxs
-                && *ap->mins <= gcheck->r.absmax[0]
-                && gcheck->r.absmin[1] <= *((float *)ap->maxs + 1)
-                && *((float *)ap->mins + 1) <= gcheck->r.absmax[1]
-                && gcheck->r.absmin[2] <= *((float *)ap->maxs + 2)
-                && *((float *)ap->mins + 2) <= gcheck->r.absmax[2] )
+            svEnt = &sv.svEntities[entnum - 1];
+            gcheck = SV_GEntityForSvEntity(svEnt);
+
+            if ((ap->contentmask & gcheck->r.contents) != 0
+                && ap->maxs[0] >= gcheck->r.absmin[0]
+                && ap->mins[0] <= gcheck->r.absmax[0]
+                && ap->maxs[1] >= gcheck->r.absmin[1]
+                && ap->mins[1] <= gcheck->r.absmax[1]
+                && ap->maxs[2] >= gcheck->r.absmin[2]
+                && ap->mins[2] <= gcheck->r.absmax[2]
+                )
             {
-                if ( ap->count == ap->maxcount )
+                if (ap->count >= ap->maxcount)
                 {
                     Com_DPrintf(16, "CM_AreaEntities: MAXCOUNT\n");
                     return;
                 }
-                ap->list[ap->count++] = (int)(360 * (entnum - 1)) / 360;
+
+                ap->list[ap->count] = svEnt - sv.svEntities;
+                ap->count++;
             }
         }
-        if ( ap->maxs[node->tree.axis] <= node->tree.dist )
+        if (node->tree.dist >= ap->maxs[node->tree.axis])
         {
-            if ( ap->mins[node->tree.axis] >= node->tree.dist )
+            if (node->tree.dist <= ap->mins[node->tree.axis])
                 return;
             nodeIndex = node->tree.child[1];
         }
-        else if ( node->tree.dist <= ap->mins[node->tree.axis] )
+        else if (node->tree.dist <= ap->mins[node->tree.axis])
         {
             nodeIndex = node->tree.child[0];
         }
@@ -945,7 +902,7 @@ void __cdecl CM_ClipMoveToEntities_r(
             break;
         for ( entnum = node->contents.entities; entnum; entnum = check->nextEntityInWorldSector )
         {
-            check = (svEntity_s *)&sv.configstrings[180 * entnum + 3081];
+            check = &sv.svEntities[entnum - 1];
             if ( (check->linkcontents & clip->contentmask) != 0 )
                 SV_TraceCapsuleToEntity(clip, check, trace);
         }
@@ -1077,7 +1034,7 @@ int __cdecl CM_ClipSightTraceToEntities_r(
                     return 0;
                 for ( entnum = node->contents.entities; entnum; entnum = check->nextEntityInWorldSector )
                 {
-                    check = (svEntity_s *)&sv.configstrings[180 * entnum + 3081];
+                    check = &sv.svEntities[entnum - 1];
                     hitNum = SV_SightTraceCapsuleToEntity(clip, entnum - 1);
                     if ( hitNum )
                         return hitNum;
@@ -1203,14 +1160,14 @@ void __cdecl CM_PointTraceToEntities_r(
         node = &cm_world.sectors[nodeIndex];
         if ( (clip->contentmask & node->contents.contentsEntities) == 0 )
             break;
-        _mm_prefetch((const char *)trace, 1);
+        //_mm_prefetch((const char *)trace, 1);
         for ( entnum = node->contents.entities; entnum; entnum = check->nextEntityInWorldSector )
         {
-            check = (svEntity_s *)&sv.configstrings[180 * entnum + 3081];
+            check = &sv.svEntities[entnum - 1];
             if ( !context->collide_entity_func || context->collide_entity_func(entnum - 1, context) )
             {
-                _mm_prefetch((const char *)(sv.bpsWindow[8] + sv.bpsWindow[9] * (entnum - 1) + 224), 1);
-                _mm_prefetch((const char *)&check->nextEntityInWorldSector, 1);
+                //_mm_prefetch((const char *)(sv.bpsWindow[8] + sv.bpsWindow[9] * (entnum - 1) + 224), 1);
+                //_mm_prefetch((const char *)&check->nextEntityInWorldSector, 1);
                 SV_TracePointToEntity(clip, check, trace);
             }
         }
@@ -1317,7 +1274,7 @@ int __cdecl CM_PointSightTraceToEntities_r(
     }
     for ( entnum = node->contents.entities; entnum; entnum = check->nextEntityInWorldSector )
     {
-        check = (svEntity_s *)&sv.configstrings[180 * entnum + 3081];
+        check = &sv.svEntities[entnum - 1];
         hitNumc = SV_SightTracePointToEntity(clip, entnum - 1);
         if ( hitNumc )
             return hitNumc;

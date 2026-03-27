@@ -404,7 +404,7 @@ void __cdecl G_RegisterMissileDebugDvars()
 
 bool __cdecl collide_missle_entity_filter(int entnum)
 {
-    return *(__int16 *)(sv.bpsWindow[8] + entnum * sv.bpsWindow[9] + 190) != 4;
+    return *(__int16 *)((char *)&sv.gentities->s.eType + entnum * sv.gentitySize) != 4;
 }
 
 void __cdecl G_MissileTrace(
@@ -1038,7 +1038,7 @@ void __cdecl Scr_MissileDeleteAttractor()
     AttractorRepulsor_t *v0; // ecx
     unsigned int attractorIndex; // [esp+0h] [ebp-4h]
 
-    attractorIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
+    attractorIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( attractorIndex >= 0x20 )
         Scr_ParamError(0, "Invalid attractor or repulsor", SCRIPTINSTANCE_SERVER);
     v0 = &attrGlob.attractors[attractorIndex];
@@ -3176,10 +3176,8 @@ void __cdecl createRetrieveableProjectile(
         if ( other->client )
         {
             target_ent = other;
-            if ( other->client->ps.pm_type == 9 )
-                target_ent = (gentity_s *)(sv.bpsWindow[8]
-                                                                 + (int)g_scr_data.actorXAnimTrees[376 * other->client->ps.corpseIndex - 1495]
-                                                                 * sv.bpsWindow[9]);
+            if (other->client->ps.pm_type == 9)
+                target_ent = (gentity_s *)((char *)sv.gentities + *(_DWORD *)&g_scr_data.playerCorpseInfo[1504 * other->client->ps.corpseIndex + 4] * sv.gentitySize);
         }
         else if ( other->actor )
         {

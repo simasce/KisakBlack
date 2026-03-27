@@ -1286,7 +1286,7 @@ void __cdecl ScriptEntCmd_SetCanDamage(scr_entref_t entref)
             }
             pSelf = &g_entities[entref.entnum];
         }
-        pSelf->takedamage = (unsigned __int8)Scr_GetInt(0, SCRIPTINSTANCE_SERVER).floatValue;
+        pSelf->takedamage = (unsigned __int8)Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     }
     else
     {

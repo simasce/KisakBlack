@@ -976,7 +976,7 @@ int __cdecl CScr_GetLocalClientNum(unsigned int index)
     char *error; // [esp+0h] [ebp-8h]
     int localClientNum; // [esp+4h] [ebp-4h]
 
-    localClientNum = Scr_GetInt(index, SCRIPTINSTANCE_CLIENT).intValue;
+    localClientNum = Scr_GetInt(index, SCRIPTINSTANCE_CLIENT);
     if ( localClientNum )
     {
         error = va("Trying to get a local client index for a client '%d' that is not a local client.", localClientNum);
@@ -991,7 +991,7 @@ void CScr_DeleteFakeEnt()
     unsigned int ent; // [esp+Ch] [ebp-4h]
 
     localClientNum = CScr_GetLocalClientNum(0);
-    ent = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).stringValue;
+    ent = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     CScr_FreeFakeEntity(localClientNum, ent);
 }
 
@@ -1032,7 +1032,7 @@ void CScr_SetFakeEntOrg()
     int entNum; // [esp+28h] [ebp-4h]
 
     localClientNum = CScr_GetLocalClientNum(0);
-    entNum = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    entNum = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     if (localClientNum >= 2
         && !Assert_MyHandler(
             "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_scr_main.cpp",
@@ -1086,7 +1086,7 @@ void CScr_StructInfo()
 {
     VariableUnion structId; // [esp+0h] [ebp-4h]
 
-    structId.intValue = Scr_GetObject(0, SCRIPTINSTANCE_CLIENT).intValue;
+    structId.intValue = Scr_GetObject(0, SCRIPTINSTANCE_CLIENT);
     CScr_StructContents(structId.stringValue);
 }
 
@@ -1177,7 +1177,7 @@ void CScr_IsArray()
 
 //void assertCmd()
 //{
-//    if ( !Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue )
+//    if ( !Scr_GetInt(0, SCRIPTINSTANCE_CLIENT) )
 //        Scr_Error(SCRIPTINSTANCE_CLIENT, "assert fail", 1);
 //}
 //
@@ -1186,7 +1186,7 @@ void CScr_IsArray()
 //    char *error; // [esp+0h] [ebp-8h]
 //    char *String; // [esp+4h] [ebp-4h]
 //
-//    if ( !Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue )
+//    if ( !Scr_GetInt(0, SCRIPTINSTANCE_CLIENT) )
 //    {
 //        String = Scr_GetString(1u, SCRIPTINSTANCE_CLIENT);
 //        error = va("assert fail: %s", String);
@@ -1258,7 +1258,7 @@ void CScr_Print3D()
         case 5:
             goto $LN5_23;
         case 6:
-            duration.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_CLIENT).intValue;
+            duration.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_CLIENT);
 $LN5_23:
             scale = Scr_GetFloat(4u, SCRIPTINSTANCE_CLIENT);
 $LN4_25:
@@ -1284,7 +1284,7 @@ void CScr_RandomInt()
     int value; // [esp+0h] [ebp-8h]
     int iMax; // [esp+4h] [ebp-4h]
 
-    iMax = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+    iMax = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
     if ( iMax > 0 )
     {
         value = irand(0, iMax);
@@ -1313,8 +1313,8 @@ void CScr_RandomIntRange()
     int iMax; // [esp+4h] [ebp-8h]
     int iMin; // [esp+8h] [ebp-4h]
 
-    iMin = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
-    iMax = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    iMin = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
+    iMax = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     if ( iMax <= iMin )
     {
         Com_Printf(24, "RandomIntRange parms: %d %d ", iMin, iMax);
@@ -1756,8 +1756,8 @@ void CScr_PlayLoopedFX()
     givenAxisCount = 0;
     cullDist = 0.0f;
     localClientNum = CScr_GetLocalClientNum(0);
-    entId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
-    fxId = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue;
+    entId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
+    fxId = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT);
     NumParam = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
     if (NumParam != 6)
     {
@@ -1826,7 +1826,7 @@ void __cdecl CScr_BulletTracer()
     Scr_GetVector(0, start, SCRIPTINSTANCE_CLIENT);
     Scr_GetVector(1u, end, SCRIPTINSTANCE_CLIENT);
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 3 )
-        force = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue != 0;
+        force = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT) != 0;
     if ( force || (float)(cg_tracerChance->current.value * 32768.0) > (float)rand() )
         CG_SpawnTracer(0, start, end, 0, 0.0, 0.0);
 }
@@ -1842,11 +1842,11 @@ void __cdecl CScr_AnimateUI()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 5 )
     {
-        localClientNum.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        localClientNum.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         menuName = Scr_GetString(1u, SCRIPTINSTANCE_CLIENT);
         itemName = Scr_GetString(2u, SCRIPTINSTANCE_CLIENT);
         newState = Scr_GetString(3u, SCRIPTINSTANCE_CLIENT);
-        milliseconds.intValue = Scr_GetInt(4u, SCRIPTINSTANCE_CLIENT).intValue;
+        milliseconds.intValue = Scr_GetInt(4u, SCRIPTINSTANCE_CLIENT);
         Info = UI_GetInfo(localClientNum.intValue);
         UI_AnimateItem(localClientNum.intValue, &Info->uiDC, menuName, itemName, newState, milliseconds.intValue);
         UI_AnimateItem(
@@ -1888,9 +1888,9 @@ void __cdecl CScr_ShowUI()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 3 )
     {
-        localClientNum = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        localClientNum = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         menuName = Scr_GetString(1u, SCRIPTINSTANCE_CLIENT);
-        if ( Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue )
+        if ( Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT) )
             Menus_ShowByName(&cgDC[localClientNum], menuName);
         else
             Menus_HideByName(&cgDC[localClientNum], menuName);
@@ -1912,7 +1912,7 @@ void __cdecl CScr_GetSystemTime()
 
     useTimeZone = 1;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 1 )
-        useTimeZone = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue == 0;
+        useTimeZone = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT) == 0;
     memset(time, 0, sizeof(time));
     Com_RealTime(&system_time, useTimeZone);
     time[0] = (float)system_time.tm_hour;
@@ -1980,7 +1980,7 @@ void CScr_GetDvar()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_CLIENT) == 6 )
     {
-        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         string = (char *)Dvar_GetVariantString(dvarHash.intValue);
     }
     else
@@ -2106,7 +2106,7 @@ void CScr_GetDvarColorRed()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_CLIENT) == 6 )
     {
-        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         value = Dvar_GetColorRed(dvarHash.intValue);
     }
     else
@@ -2125,7 +2125,7 @@ void CScr_GetDvarColorGreen()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_CLIENT) == 6 )
     {
-        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         value = Dvar_GetColorGreen(dvarHash.intValue);
     }
     else
@@ -2144,7 +2144,7 @@ void CScr_GetDvarColorBlue()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_CLIENT) == 6 )
     {
-        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         value = Dvar_GetColorBlue(dvarHash.intValue);
     }
     else
@@ -2163,7 +2163,7 @@ void CScr_GetDvarColorAlpha()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_CLIENT) == 6 )
     {
-        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         value = Dvar_GetColorAlpha(dvarHash.intValue);
     }
     else
@@ -2183,7 +2183,7 @@ void CScr_GetDvarInt()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_CLIENT) == 6 )
     {
-        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         value = Dvar_GetInt(dvarHash.intValue);
     }
     else
@@ -2204,7 +2204,7 @@ void CScr_GetDvarFloat()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_CLIENT) == 6 )
     {
-        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         value = Dvar_GetFloat(dvarHash.intValue);
     }
     else
@@ -2224,7 +2224,7 @@ void CScr_GetDvarVector()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_CLIENT) == 6 )
     {
-        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        dvarHash.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         dvar = Dvar_FindVar(dvarHash.intValue);
     }
     else
@@ -2293,7 +2293,7 @@ void CScr_SetDvarBool()
     int value; // [esp+4h] [ebp-4h]
 
     dvarName = Scr_GetString(0, SCRIPTINSTANCE_CLIENT);
-    value = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    value = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     Dvar_SetBoolByName(dvarName, value != 0);
 }
 
@@ -2432,7 +2432,7 @@ void CScr_PlayLoopSound()
 
     //PIXBeginNamedEvent(-1, "CScr_PlayLoopSound");
     localClientNum = CScr_GetLocalClientNum(0);
-    entId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    entId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     if (localClientNum >= 2
         && !Assert_MyHandler(
             "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_scr_main.cpp",
@@ -2508,7 +2508,7 @@ void CScr_StopLoopSound()
 
     //PIXBeginNamedEvent(-1, "CScr_StopLoopSound");
     localClientNum = CScr_GetLocalClientNum(0);
-    entId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    entId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     if (localClientNum >= 2
         && !Assert_MyHandler(
             "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_scr_main.cpp",
@@ -2826,7 +2826,7 @@ void CScr_GetAliasName()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 1 )
     {
-        index.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        index.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         v1 = SND_AliasByIndex(index.stringValue);
         value = (char *)SND_GetAliasName(v1);
         Scr_AddString(value, SCRIPTINSTANCE_CLIENT);
@@ -2904,7 +2904,7 @@ void CScr_SoundPlaying()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 1 )
     {
-        playbackId.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        playbackId.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         value = SND_IsPlaying(playbackId.intValue);
         Scr_AddBool(value, SCRIPTINSTANCE_CLIENT);
     }
@@ -2938,7 +2938,7 @@ void CScr_SetSoundVolume()
     }
     else
     {
-        Int = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        Int = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         SND_SetPlaybackAttenuation(Int, x);
         //if (GetCurrentThreadId() == (_DWORD)g_DXDeviceThread && !dword_A8402BC)
         //    goto LABEL_14;
@@ -2969,7 +2969,7 @@ void CScr_SetSoundPitch()
     }
     else
     {
-        Int = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        Int = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         SND_SetPlaybackPitch(Int, x);
         //if (GetCurrentThreadId() == (_DWORD)g_DXDeviceThread && !dword_A8402BC)
         //    goto LABEL_14;
@@ -2990,7 +2990,7 @@ void CScr_SetSoundVolumeRate()
         }
         else
         {
-            v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+            v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
             SND_SetPlaybackAttenuationRate(v0.stringValue, x);
         }
     }
@@ -3014,7 +3014,7 @@ void CScr_SetSoundPitchRate()
         }
         else
         {
-            v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+            v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
             SND_SetPlaybackPitchRate(v0.stringValue, x);
         }
     }
@@ -3039,7 +3039,7 @@ void CScr_GetPlaybackTime()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 1 )
     {
-        playbackId.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        playbackId.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         value = SND_GetPlaybackTime(playbackId.intValue);
         Scr_AddInt(value, SCRIPTINSTANCE_CLIENT);
     }
@@ -3057,7 +3057,7 @@ void CScr_GetKnownLength()
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 1 )
     {
         len = 0;
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         SND_GetKnownLength(v0.intValue, &len);
         Scr_AddInt(len, SCRIPTINSTANCE_CLIENT);
     }
@@ -3157,7 +3157,7 @@ void __cdecl CScr_StopSound()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 1 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         SND_StopPlayback(v0.stringValue);
     }
     else
@@ -3306,7 +3306,7 @@ void CScr_GetArrayKeys()
         error = va("Parameter (%s) must be an array", TypeName);
         Scr_ParamError(0, error, SCRIPTINSTANCE_CLIENT);
     }
-    id.intValue = Scr_GetObject(0, SCRIPTINSTANCE_CLIENT).intValue;
+    id.intValue = Scr_GetObject(0, SCRIPTINSTANCE_CLIENT);
     Scr_AddArrayKeys(id.stringValue, SCRIPTINSTANCE_CLIENT);
 }
 
@@ -3580,7 +3580,7 @@ void CScr_CastInt()
             Scr_AddInt(Float, SCRIPTINSTANCE_CLIENT);
             break;
         case 6:
-            value.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+            value.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
             Scr_AddInt(value.intValue, SCRIPTINSTANCE_CLIENT);
             break;
         default:
@@ -3614,7 +3614,7 @@ void CScr_CastFloat()
             Scr_AddFloat(Float, SCRIPTINSTANCE_CLIENT);
             break;
         case 6:
-            value = (float)Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+            value = (float)Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
             Scr_AddFloat(value, SCRIPTINSTANCE_CLIENT);
             break;
         default:
@@ -3753,7 +3753,7 @@ void CScr_SpawnPlane()
     Scr_GetVector(1u, origin, SCRIPTINSTANCE_CLIENT);
     modelName = Scr_GetString(2u, SCRIPTINSTANCE_CLIENT);
     team = Scr_GetString(3u, SCRIPTINSTANCE_CLIENT);
-    owner = Scr_GetInt(4u, SCRIPTINSTANCE_CLIENT).intValue;
+    owner = Scr_GetInt(4u, SCRIPTINSTANCE_CLIENT);
     compassMaterialName = Scr_GetString(5u, SCRIPTINSTANCE_CLIENT);
     ent = CG_Spawn(localClientNum);
     if ( ent )
@@ -3898,11 +3898,11 @@ void __cdecl CScr_GetSubStr()
     const char *s; // [esp+420h] [ebp-4h]
 
     s = Scr_GetString(0, SCRIPTINSTANCE_CLIENT);
-    start = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    start = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) < 3 )
         v0.intValue = 0x7FFFFFFF;
     else
-        v0.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue;
+        v0.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT);
     end = v0.intValue;
     source = start;
     for ( dest = 0; source < end; ++dest )
@@ -3932,8 +3932,8 @@ void __cdecl CScr_StrTok()
     int delimLen; // [esp+434h] [ebp-8h]
     unsigned int sId; // [esp+438h] [ebp-4h]
 
-    sId = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT).stringValue;
-    delimId = Scr_GetConstString(1u, SCRIPTINSTANCE_CLIENT).stringValue;
+    sId = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT);
+    delimId = Scr_GetConstString(1u, SCRIPTINSTANCE_CLIENT);
     s = SL_ConvertToString(sId, SCRIPTINSTANCE_CLIENT);
     delim = SL_ConvertToString(delimId, SCRIPTINSTANCE_CLIENT);
     SL_AddRefToString(sId, SCRIPTINSTANCE_CLIENT);
@@ -4492,7 +4492,7 @@ void __cdecl CScrCmd_GetWheelSurface(scr_entref_t entref)
     }
     if ( pSelf->nextState.eType != 14 && pSelf->nextState.eType != 16 && pSelf->nextState.eType != 12 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "GetWheelSurface not called on a vehicle.", 0);
-    wheelName = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT).stringValue;
+    wheelName = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT);
     wheel = 0;
     if ( wheelName == cscr_const.front_left )
     {
@@ -4570,7 +4570,7 @@ void __cdecl CScrCmd_IsWheelSliding(scr_entref_t entref)
     }
     if ( pSelf->nextState.eType != 14 && pSelf->nextState.eType != 16 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "IsWheelSliding not called on a wheeled vehicle.", 0);
-    wheelName = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT).stringValue;
+    wheelName = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT);
     wheel = 0;
     if ( wheelName == cscr_const.front_left )
     {
@@ -4642,7 +4642,7 @@ void __cdecl CScrCmd_IsWheelColliding(scr_entref_t entref)
     }
     if ( pSelf->nextState.eType != 14 && pSelf->nextState.eType != 16 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "IsWheelColliding not called on a wheeled vehicle.", 0);
-    wheelName = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT).stringValue;
+    wheelName = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT);
     wheel = 0;
     if ( wheelName == cscr_const.front_left )
     {
@@ -4737,7 +4737,7 @@ void __cdecl CScrCmd_GetLocalGunnerAngles(scr_entref_t entref)
     {
         if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) )
         {
-            gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+            gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
             if ( gunnerIndex < 4 )
             {
                 obj = Com_GetClientDObj(pSelf->nextState.number, 0);
@@ -4807,7 +4807,7 @@ void __cdecl CScrCmd_SetStunned(scr_entref_t entref)
     }
     if ( pSelf->nitrousVeh )
     {
-        v2.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        v2.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         nitrousVeh = pSelf->nitrousVeh;
         if ( v2.intValue )
             nitrousVeh->m_flags |= 0x2000u;
@@ -4910,9 +4910,9 @@ void __cdecl CScr_line()
         case 5:
             goto $LN5_25;
         case 6:
-            duration.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_CLIENT).intValue;
+            duration.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_CLIENT);
 $LN5_25:
-            depthTest = Scr_GetInt(4u, SCRIPTINSTANCE_CLIENT).intValue;
+            depthTest = Scr_GetInt(4u, SCRIPTINSTANCE_CLIENT);
 $LN4_27:
             color[3] = Scr_GetFloat(3u, SCRIPTINSTANCE_CLIENT);
 $LN3_32:
@@ -4972,9 +4972,9 @@ void __cdecl CScr_box()
         case 7:
             goto $LN8_18;
         case 8:
-            duration = Scr_GetInt(7u, SCRIPTINSTANCE_CLIENT).intValue;
+            duration = Scr_GetInt(7u, SCRIPTINSTANCE_CLIENT);
 $LN8_18:
-            depthTest = Scr_GetInt(6u, SCRIPTINSTANCE_CLIENT).intValue;
+            depthTest = Scr_GetInt(6u, SCRIPTINSTANCE_CLIENT);
 $LN7_22:
             color[3] = Scr_GetFloat(5u, SCRIPTINSTANCE_CLIENT);
 $LN6_27:
@@ -5036,7 +5036,7 @@ void __cdecl CScr_debugstar()
             color[1] = rgb[1];
             color[2] = rgb[2];
         }
-        duration.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+        duration.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     }
     Scr_GetVector(0, location, SCRIPTINSTANCE_CLIENT);
 LABEL_8:
@@ -5053,7 +5053,7 @@ void CScr_LocalClientActive()
     unsigned int value; // [esp+0h] [ebp-8h]
     VariableUnion i; // [esp+4h] [ebp-4h]
 
-    i.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+    i.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
     value = (unsigned __int8)CL_LocalClient_IsActive(i.intValue);
     Scr_AddBool(value, SCRIPTINSTANCE_CLIENT);
 }
@@ -5063,7 +5063,7 @@ void __cdecl CScr_IsSplitScreenHost()
     bool value; // [esp+0h] [ebp-8h]
     VariableUnion localClientNum; // [esp+4h] [ebp-4h]
 
-    localClientNum.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+    localClientNum.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
     value = Com_LocalClient_IsPrimary(localClientNum.intValue);
     Scr_AddInt(value, SCRIPTINSTANCE_CLIENT);
 }
@@ -5218,7 +5218,7 @@ void __cdecl CScr_PlayFX()
         Scr_Error(SCRIPTINSTANCE_CLIENT, "Incorrect number of parameters", 0);
     localClientNum = CScr_GetLocalClientNum(0);
     iTime = CG_GetLocalClientGlobals(localClientNum)->time;
-    fxId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    fxId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     if ( fxId <= 0 || fxId >= 196 )
     {
         error = va("CScr_PlayFX: invalid effect id %d", fxId);
@@ -5292,7 +5292,7 @@ void __cdecl CScr_StopFX()
     {
         __debugbreak();
     }
-    fxHandle = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).stringValue;
+    fxHandle = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     FX_ThroughWithEffect(localClientNum, fxHandle, 1);
 }
 
@@ -5317,7 +5317,7 @@ void __cdecl CScr_IsFXPlaying()
     {
         __debugbreak();
     }
-    fxHandle = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).stringValue;
+    fxHandle = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     isDone = FX_IsEffectDone(localClientNum, fxHandle);
     Scr_AddBool(!isDone, SCRIPTINSTANCE_CLIENT);
 }
@@ -5458,7 +5458,7 @@ void __cdecl CScr_GetEntNum()
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) != 2 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "CScr_GetEntNum takes 2 params.", 0);
     localClientNum = CScr_GetLocalClientNum(0);
-    centNum.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    centNum.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     cent = CG_GetEntity(localClientNum, centNum.intValue);
     if ( ((*((unsigned int *)cent + 201) >> 1) & 1) == 0 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "GetEntNum used on nonexistant ent.", 0);
@@ -5607,7 +5607,7 @@ void CScr_BulletTrace()
     //PIXBeginNamedEvent(-1, "CScr_BulletTrace");
     Scr_GetVector(0, vStart, SCRIPTINSTANCE_CLIENT);
     Scr_GetVector(1u, vEnd, SCRIPTINSTANCE_CLIENT);
-    if ( !Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue )
+    if ( !Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT) )
         iClipMask &= 0xFDFF7FFF;
     if ( Scr_GetType(3u, SCRIPTINSTANCE_CLIENT) == 1 && Scr_GetPointerType(3u, SCRIPTINSTANCE_CLIENT) == 19 )
     {
@@ -5620,7 +5620,7 @@ void CScr_BulletTrace()
     }
     bIgnoreWater = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 5 )
-        bIgnoreWater = Scr_GetInt(4u, SCRIPTINSTANCE_CLIENT).intValue;
+        bIgnoreWater = Scr_GetInt(4u, SCRIPTINSTANCE_CLIENT);
     if ( bIgnoreWater )
         iClipMask &= ~0x20u;
     CG_LocationalTrace(&trace, vStart, vEnd, iIgnoreEntNum, iClipMask, 0, 0);
@@ -5789,7 +5789,7 @@ void CScr_CloseFile()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) )
     {
-        filenum = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        filenum = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         if ( (unsigned int)filenum >= 2 )
         {
             Com_Printf(24, "CloseFile failed, invalid file number %i\n", filenum);
@@ -5842,7 +5842,7 @@ void __cdecl CScr_FPrint_internal(bool commaBetweenFields)
 
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) > 1 )
     {
-        filenum = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        filenum = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         if ( (unsigned int)filenum < 2 )
         {
             if ( g_cs_file )
@@ -5893,7 +5893,7 @@ void CScr_FReadLn()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) )
     {
-        filenum = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+        filenum = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
         if ( filenum )
         {
             Com_Printf(24, "freadln failed, invalid file number %i\n", filenum);
@@ -5950,8 +5950,8 @@ void CScr_FGetArg()
 
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) > 1 )
     {
-        filenum = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
-        arg = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+        filenum = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
+        arg = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
         if ( (unsigned int)filenum < 2 )
         {
             if ( arg >= 0 )
@@ -6015,7 +6015,7 @@ void CScr_SetUI3DTextureWindow()
             SCRIPTINSTANCE_CLIENT,
             "Incorrect number of parameters\nUSAGE: ui3dsetwindow(<window id>, <x>, <y>, <width>, <height>)\n",
             0);
-    windowId = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).stringValue;
+    windowId = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
     x = Scr_GetFloat(1u, SCRIPTINSTANCE_CLIENT);
     y = Scr_GetFloat(2u, SCRIPTINSTANCE_CLIENT);
     w = Scr_GetFloat(3u, SCRIPTINSTANCE_CLIENT);
@@ -6042,7 +6042,7 @@ void CScr_GetWeaponModel()
     {
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) >= 2 )
         {
-            weaponModel = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).stringValue;
+            weaponModel = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
             if ( weaponModel < 0x100 )
             {
                 if ( !BG_GetWeaponDef(iWeaponIndex)->worldModel[weaponModel] )
@@ -6054,7 +6054,7 @@ void CScr_GetWeaponModel()
             }
         }
         if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) == 3 )
-            viewmodel = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue;
+            viewmodel = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT);
         WeaponDef = BG_GetWeaponDef(iWeaponIndex);
         if ( viewmodel )
         {
@@ -6311,7 +6311,7 @@ unsigned int __cdecl CScr_GetConstServerString(unsigned int index)
     int clientStringId; // [esp+Ch] [ebp-8h]
     unsigned int serverStringId; // [esp+10h] [ebp-4h]
 
-    clientStringId = Scr_GetConstString(index, SCRIPTINSTANCE_CLIENT).intValue;
+    clientStringId = Scr_GetConstString(index, SCRIPTINSTANCE_CLIENT);
     for (i = 0; i < 2; ++i)
     {
         if (stringCache[i][0] == clientStringId)
@@ -6505,7 +6505,7 @@ char __cdecl CG_IsLocalPlayer(int entnumber)
 // LWSS ADD
 void CScrCmd_GetStance(scr_entref_t entref)
 {
-    int i = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+    int i = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
 
     if (i)
     {
@@ -6612,7 +6612,7 @@ void __cdecl CScrCmd_MakeLight(scr_entref_t entref)
         else
             pFake = CG_GetFakeEntity(entref.client, entref.entnum);
     }
-    primaryLightIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+    primaryLightIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
     light = Com_GetPrimaryLight(primaryLightIndex);
     pSelf->nextState.index.brushmodel = primaryLightIndex;
     if ( pSelf->nextState.index.brushmodel != primaryLightIndex
@@ -7199,7 +7199,7 @@ void __cdecl CScr_SetLightExponent(scr_entref_t entref)
     }
     if ( pSelf->nextState.eType != 10 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "Function can only be called on a 'light' entity", 0);
-    exponent = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+    exponent = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
     if ( (unsigned int)exponent > 0x64 )
         Scr_ParamError(0, "exponent must be in the range from 0 to 100", SCRIPTINSTANCE_CLIENT);
     pSelf->nextState.lerp.u.primaryLight.colorAndExp[3] = exponent;
@@ -8235,7 +8235,7 @@ void __cdecl CScr_UseAnimTree(scr_entref_t entref)
     obj = Com_GetClientDObj(pSelf->nextState.number, pSelf->pose.localClientNum);
     if ( !obj )
     {
-        if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) > 1 && Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue )
+        if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) > 1 && Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT) )
         {
             Scr_AddInt(0, SCRIPTINSTANCE_CLIENT);
             return;
@@ -8449,7 +8449,7 @@ void __cdecl CScr_SetAnimKnobInternal(scr_entref_t entref, char flags, bool bFla
     {
         if ( iNumParams <= 0 )
             Scr_Error(SCRIPTINSTANCE_CLIENT, "Not enough parameters.", 0);
-        notifyName.intValue = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT).intValue;
+        notifyName.intValue = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT);
         iCurrParam = 1;
     }
     if ( iCurrParam >= iNumParams )
@@ -8805,7 +8805,7 @@ void __cdecl CScr_SetAnimInternal(scr_entref_t entref, char flags, bool bFlagged
     {
         if ( iNumParams <= 0 )
             Scr_Error(SCRIPTINSTANCE_CLIENT, "Not enough parameters.", 0);
-        notifyName.intValue = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT).intValue;
+        notifyName.intValue = Scr_GetConstString(0, SCRIPTINSTANCE_CLIENT);
         iCurrParam = 1;
     }
     if ( iCurrParam >= iNumParams )
@@ -8986,7 +8986,7 @@ void __cdecl CScr_AnimGetChildAt(scr_entref_t entref)
     {
         Scr_Error(SCRIPTINSTANCE_CLIENT, "SetAnim*: Can not be called on a player or an actor.", 0);
     }
-    childIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    childIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     pXAnims = XAnimGetAnims(tree);
     numChildren = XAnimGetNumChildren(pXAnims, anim.index);
     if ( childIndex < 0 || childIndex >= numChildren )
@@ -9579,7 +9579,7 @@ void __cdecl CScr_Map_Material(scr_entref_t entref)
     }
     cg = CG_GetLocalClientGlobals(entref.client);
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
-    materialIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+    materialIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
     materialName = Scr_GetString(1u, SCRIPTINSTANCE_CLIENT);
     error = numParams != 2;
     if ( (unsigned int)materialIndex >= 0x40 )
@@ -9627,12 +9627,12 @@ void __cdecl CScr_Set_Filter_Pass_Material(scr_entref_t entref)
     }
     cg = CG_GetLocalClientGlobals(entref.client);
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
-    filterIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
-    passIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
-    materialIndex = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue;
-    targetIndex = Scr_GetInt(3u, SCRIPTINSTANCE_CLIENT).intValue;
-    sampler0Index = Scr_GetInt(4u, SCRIPTINSTANCE_CLIENT).intValue;
-    sampler1Index = Scr_GetInt(5u, SCRIPTINSTANCE_CLIENT).intValue;
+    filterIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
+    passIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
+    materialIndex = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT);
+    targetIndex = Scr_GetInt(3u, SCRIPTINSTANCE_CLIENT);
+    sampler0Index = Scr_GetInt(4u, SCRIPTINSTANCE_CLIENT);
+    sampler1Index = Scr_GetInt(5u, SCRIPTINSTANCE_CLIENT);
     error = numParams != 6;
     if ( (unsigned int)filterIndex > 2 )
         error = 1;
@@ -9705,9 +9705,9 @@ void __cdecl CScr_Set_Filter_Pass_Enabled(scr_entref_t entref)
     }
     cg = CG_GetLocalClientGlobals(entref.client);
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
-    filterIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
-    passIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
-    passEnable = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue;
+    filterIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
+    passIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
+    passEnable = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT);
     error = numParams != 3;
     if ( (unsigned int)filterIndex > 2 )
         error = 1;
@@ -9756,9 +9756,9 @@ void __cdecl CScr_Set_Filter_Pass_Quads(scr_entref_t entref)
     }
     cg = CG_GetLocalClientGlobals(entref.client);
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
-    filterIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
-    passIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
-    passQuads = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue;
+    filterIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
+    passIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
+    passQuads = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT);
     error = numParams != 3;
     if ( (unsigned int)filterIndex > 2 )
         error = 1;
@@ -9810,9 +9810,9 @@ void __cdecl CScr_Set_Filter_Pass_Constant(scr_entref_t entref)
     }
     cg = CG_GetLocalClientGlobals(entref.client);
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
-    filterIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
-    passIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
-    constantIndex = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue;
+    filterIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
+    passIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
+    constantIndex = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT);
     value = Scr_GetFloat(3u, SCRIPTINSTANCE_CLIENT);
     error = numParams != 4;
     if ( (unsigned int)filterIndex > 2 )
@@ -9864,9 +9864,9 @@ void __cdecl CScr_Set_Overlay_Material(scr_entref_t entref)
     }
     cg = CG_GetLocalClientGlobals(entref.client);
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
-    overlayIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
-    materialIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
-    sortIndex = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue;
+    overlayIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
+    materialIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
+    sortIndex = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT);
     error = numParams != 3;
     if ( (unsigned int)overlayIndex > 2 )
         error = 1;
@@ -9929,8 +9929,8 @@ void __cdecl CScr_Set_Overlay_Constant(scr_entref_t entref)
     }
     cg = CG_GetLocalClientGlobals(entref.client);
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
-    overlayIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
-    constantIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    overlayIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
+    constantIndex = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     value = Scr_GetFloat(2u, SCRIPTINSTANCE_CLIENT);
     error = numParams != 3;
     if ( (unsigned int)overlayIndex > 2 )
@@ -10033,8 +10033,8 @@ void __cdecl CScr_Set_Overlay_Enabled(scr_entref_t entref)
     }
     cg = CG_GetLocalClientGlobals(entref.client);
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_CLIENT);
-    overlayIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
-    enable = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    overlayIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
+    enable = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     error = numParams != 2;
     if ( (unsigned int)overlayIndex > 2 )
         error = 1;
@@ -10249,7 +10249,7 @@ VariableUnion __cdecl CG_SpawnStruct(const SpawnVar *spawnVar)
         __debugbreak();
     }
     Scr_AddExecThread(SCRIPTINSTANCE_CLIENT, cg_scr_data.createstruct, 0);
-    structId = Scr_GetObject(0, SCRIPTINSTANCE_CLIENT).stringValue;
+    structId = Scr_GetObject(0, SCRIPTINSTANCE_CLIENT);
     for ( i = 0; i < spawnVar->numSpawnVars; ++i )
     {
         index = CG_SetEntityScriptVariableInternal(spawnVar->spawnVars[i][0], spawnVar->spawnVars[i][1]);
@@ -10385,7 +10385,7 @@ int CG_SpawnNode()
     if ( noteworthy )
     {
         Scr_AddExecThread(SCRIPTINSTANCE_CLIENT, cg_scr_data.createstruct, 0);
-        structId = Scr_GetObject(0, SCRIPTINSTANCE_CLIENT).stringValue;
+        structId = Scr_GetObject(0, SCRIPTINSTANCE_CLIENT);
         for ( ia = 0; ; ++ia )
         {
             result = ia;

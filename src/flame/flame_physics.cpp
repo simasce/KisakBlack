@@ -294,9 +294,9 @@ void __cdecl Flame_Server_Trace(
     unsigned int entnum; // [esp+198h] [ebp-8h]
     svEntity_s *check; // [esp+19Ch] [ebp-4h]
 
-    ////TraceExtents::TraceExtents(&clip.extents);
+    //TraceExtents::TraceExtents(&clip.extents);
     trace_sphere(trace, startPos, endPos, radius_2, context);
-    if ( trace->fraction > 0.0 )
+    if (trace->fraction > 0.0)
     {
         Vec3Min(startPos, endPos, bounds[0]);
         Vec3Max(startPos, endPos, bounds[1]);
@@ -312,47 +312,47 @@ void __cdecl Flame_Server_Trace(
         owner = &g_entities[gen->stream->entityNum];
         ignoreEntParams.ignoreChildren = 0;
         clip.ignoreEntParams = &ignoreEntParams;
-        for ( i = 0; i < entsCount; ++i )
+        for (i = 0; i < entsCount; ++i)
         {
             clip.bLocational = 1;
             entnum = ents[i];
             character_collision = 0;
-            ent = (gentity_s *)(sv.bpsWindow[8] + entnum * sv.bpsWindow[9]);
-            if ( ent )
+            ent = (gentity_s *)((char *)sv.gentities + entnum * sv.gentitySize);
+            if (ent)
                 character_collision = ent->client != 0;
-            if ( character_collision )
+            if (character_collision)
             {
-                if ( *close_characters_count < 16 )
+                if (*close_characters_count < 16)
                 {
                     dist2 = point_aabb_dist2(endPos, ent->r.absmin, ent->r.absmax);
                     size = gen->size.current * gen->stream->flameVars->flameVar_collisionVolumeScale;
-                    if ( (float)(size * size) > dist2 && gen->stream->entityNum != entnum )
+                    if ((float)(size * size) > dist2 && gen->stream->entityNum != entnum)
                     {
                         center[0] = (float)(0.5 * ent->r.absmin[0]) + (float)(0.5 * ent->r.absmax[0]);
                         center[1] = (float)(0.5 * ent->r.absmin[1]) + (float)(0.5 * ent->r.absmax[1]);
                         center[2] = (float)(0.5 * ent->r.absmin[2]) + (float)(0.5 * ent->r.absmax[2]);
-                        if ( !collide_segment(startPos, center, context) )
+                        if (!collide_segment(startPos, center, context))
                             close_characters[(*close_characters_count)++] = entnum;
                     }
                 }
             }
             else
             {
-                check = (svEntity_s *)sv.svEntities[entnum].baseline.s.lerp.apos.trBase;
-                if ( check->linkmax[0] >= bounds[0][0]
-                    && *(float *)&sv.svEntities[entnum + 1].baseline.s.lerp.apos.trTime >= bounds[0][1]
-                    && *(float *)&sv.svEntities[entnum + 1].baseline.s.lerp.apos.trDuration >= bounds[0][2]
-                    && bounds[1][0] >= sv.svEntities[entnum + 1].baseline.s.lerp.pos.trDelta[0]
-                    && bounds[1][1] >= sv.svEntities[entnum + 1].baseline.s.lerp.pos.trDelta[1]
-                    && bounds[1][2] >= sv.svEntities[entnum + 1].baseline.s.lerp.pos.trDelta[2] )
+                check = &sv.svEntities[entnum];
+                if (check->linkmax[0] >= bounds[0][0]
+                    && sv.svEntities[entnum].linkmax[1] >= bounds[0][1]
+                    && sv.svEntities[entnum].linkmax[2] >= bounds[0][2]
+                    && bounds[1][0] >= sv.svEntities[entnum].linkmin[0]
+                    && bounds[1][1] >= sv.svEntities[entnum].linkmin[1]
+                    && bounds[1][2] >= sv.svEntities[entnum].linkmin[2])
                 {
-                    if ( ent->classname == scr_const.trigger_damage )
+                    if (ent->classname == scr_const.trigger_damage)
                     {
                         memcpy(&old_trace, trace, sizeof(old_trace));
                         SV_TracePointToEntity(&clip, check, trace);
-                        if ( old_trace.fraction > trace->fraction )
+                        if (old_trace.fraction > trace->fraction)
                         {
-                            if ( *close_triggers_count < 16 )
+                            if (*close_triggers_count < 16)
                                 close_triggers[(*close_triggers_count)++] = entnum;
                             memcpy(trace, &old_trace, sizeof(trace_t));
                         }
@@ -360,38 +360,38 @@ void __cdecl Flame_Server_Trace(
                     else
                     {
                         SV_TracePointToEntity(&clip, check, trace);
-                        if ( trace->fraction <= 0.0 )
+                        if (trace->fraction <= 0.0)
                             return;
                     }
                 }
             }
         }
-        for ( drawType = 0; drawType < 2; ++drawType )
+        for (drawType = 0; drawType < 2; ++drawType)
         {
             num = dynEntsCount[drawType];
-            for ( j = 0; j < num; ++j )
+            for (j = 0; j < num; ++j)
             {
                 id = (*dynEnts)[drawType][j];
                 colType = (DynEntityCollType)(drawType + 2);
                 coll = &cm.dynEntCollList[drawType + 2][id];
-                if ( bounds[0][2] > coll->linkMaxs[2] )
+                if (bounds[0][2] > coll->linkMaxs[2])
                     break;
-                if ( coll->linkMaxs[0] >= bounds[0][0]
+                if (coll->linkMaxs[0] >= bounds[0][0]
                     && coll->linkMaxs[1] >= bounds[0][1]
                     && coll->linkMaxs[2] >= bounds[0][2]
                     && bounds[1][0] >= coll->linkMins[0]
                     && bounds[1][1] >= coll->linkMins[1]
-                    && bounds[1][2] >= coll->linkMins[2] )
+                    && bounds[1][2] >= coll->linkMins[2])
                 {
                     DynEntSv_PointTrace(id, (DynEntityDrawType)drawType, &clip, trace);
-                    if ( trace->fraction <= 0.0 )
+                    if (trace->fraction <= 0.0)
                         return;
                 }
             }
         }
         memcpy(&trace2, trace, sizeof(trace2));
         GlassSv_PointTrace(&clip, &trace2);
-        if ( trace->fraction > trace2.fraction && trace2.hitType == TRACE_HITTYPE_GLASS )
+        if (trace->fraction > trace2.fraction && trace2.hitType == TRACE_HITTYPE_GLASS)
         {
             Vec3Lerp(clip.extents.start.vec.v, clip.extents.end.vec.v, trace2.fraction, hitPos);
             hitDir[0] = clip.extents.end.vec.v[0] - clip.extents.start.vec.v[0];
@@ -693,12 +693,12 @@ void __cdecl Flame_Impact_Process(bool is_server, flameGeneric_s *gen, trace_t *
         if ( hitEntId == 1022 )
             v13 = 0;
         else
-            v13 = (gentity_s *)(sv.bpsWindow[8] + sv.bpsWindow[9] * hitEntId);
+            v13 = (gentity_s *)((char *)sv.gentities + sv.gentitySize * hitEntId);
         hitEnt = v13;
         if ( hitEntId == 1022 )
             v12 = 0;
         else
-            v12 = (gentity_s *)(sv.bpsWindow[8] + gen->stream->entityNum * sv.bpsWindow[9]);
+            v12 = (gentity_s *)((char *)sv.gentities + gen->stream->entityNum * sv.gentitySize);
         attacker = v12;
         if ( hitEnt )
         {

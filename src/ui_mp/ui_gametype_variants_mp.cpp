@@ -1965,7 +1965,7 @@ void __cdecl Scr_GameVariants_GetRule()
     GVRule *rule; // [esp+0h] [ebp-8h]
     int ruleNum; // [esp+4h] [ebp-4h]
 
-    ruleNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    ruleNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if (ruleNum >= 0 && ruleNum <= gvGlob.ruleCount)
     {
         rule = &gvGlob.rules[ruleNum];

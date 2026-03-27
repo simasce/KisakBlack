@@ -55,7 +55,7 @@ void __cdecl CMD_Heli_SetDamageStage(scr_entref_t entref)
     gentity_s *ent; // [esp+8h] [ebp-4h]
 
     ent = GScr_GetVehicle(entref);
-    v1.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    v1.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     AssignToSmallerType<unsigned char>(&ent->s.un1.scale, v1.intValue);
 }
 
@@ -64,7 +64,7 @@ void __cdecl CMD_Heli_SetHeliHeightLock(scr_entref_t entref)
     gentity_s *ent; // [esp+8h] [ebp-4h]
 
     ent = GScr_GetVehicle(entref);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         ent->scr_vehicle->flags |= 0x200u;
     else
         ent->scr_vehicle->flags &= ~0x200u;

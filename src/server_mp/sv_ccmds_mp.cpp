@@ -73,11 +73,9 @@ void __cdecl SV_MapRestart(int fast_restart)
         if ( !fast_restart && Demo_IsRecording() )
             Demo_End(0);
         SV_SetGametype();
-        I_strncpyz((char *)&sv.killServer, sv_gametype->current.string, 64);
+        I_strncpyz(sv.gametype, sv_gametype->current.string, 64);
         savepersist = G_GetSavePersist();
-        if ( com_maxclients->modified
-            || I_stricmp((const char *)&sv.killServer, sv_gametype->current.string)
-            || !fast_restart )
+        if (com_maxclients->modified || I_stricmp(sv.gametype, sv_gametype->current.string) || !fast_restart)
         {
             G_SetSavePersist(0);
             String = Dvar_GetString("mapname");

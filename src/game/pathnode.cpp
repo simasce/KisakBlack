@@ -828,7 +828,7 @@ void __cdecl Scr_GetNode()
     char *key; // [esp+14h] [ebp-Ch]
     node_field_t *f; // [esp+18h] [ebp-8h]
 
-    name = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    name = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     key = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
     offset = Scr_GetOffset(2u, key, SCRIPTINSTANCE_SERVER);
     if ( offset >= 0 )
@@ -872,7 +872,7 @@ void __cdecl Scr_GetNodeArray()
     char *key; // [esp+10h] [ebp-Ch]
     node_field_t *f; // [esp+14h] [ebp-8h]
 
-    name = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    name = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     key = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
     offset = Scr_GetOffset(2u, key, SCRIPTINSTANCE_SERVER);
     if ( offset < 0 )
@@ -3364,25 +3364,25 @@ void __cdecl Path_DisconnectPath(gentity_s *ent, pathnode_t *node, pathlink_s *l
     unsigned __int16 newInfoIndex; // [esp+4h] [ebp-4h]
 
     newInfoIndex = g_path.pathLinkInfoArray[0].next;
-    if ( !g_path.pathLinkInfoArray[0].next )
+    if (!g_path.pathLinkInfoArray[0].next)
         Com_Error(ERR_DROP, "Max number of disconnected paths exceeded");
-    newInfo = (PathLinkInfo *)(8 * newInfoIndex + 168254208);
-    g_path.pathLinkInfoArray[0].next = g_path.pathLinkInfoArray[newInfoIndex].next;
-    g_path.pathLinkInfoArray[g_path.pathLinkInfoArray[newInfoIndex].next].prev = 0;
+    newInfo = &g_path.pathLinkInfoArray[newInfoIndex];
+    g_path.pathLinkInfoArray[0].next = newInfo->next;
+    g_path.pathLinkInfoArray[newInfo->next].prev = 0;
     newInfo->from = node - gameWorldCurrent->path.nodes;
     newInfo->to = link->nodeNum;
-    if ( ent->disconnectedLinks )
+    if (ent->disconnectedLinks)
     {
-        g_path.pathLinkInfoArray[newInfoIndex].prev = ent->disconnectedLinks;
-        g_path.pathLinkInfoArray[newInfoIndex].next = g_path.pathLinkInfoArray[ent->disconnectedLinks].next;
-        g_path.pathLinkInfoArray[g_path.pathLinkInfoArray[newInfoIndex].next].prev = newInfoIndex;
-        g_path.pathLinkInfoArray[g_path.pathLinkInfoArray[newInfoIndex].prev].next = newInfoIndex;
+        newInfo->prev = ent->disconnectedLinks;
+        newInfo->next = g_path.pathLinkInfoArray[ent->disconnectedLinks].next;
+        g_path.pathLinkInfoArray[newInfo->next].prev = newInfoIndex;
+        g_path.pathLinkInfoArray[newInfo->prev].next = newInfoIndex;
     }
     else
     {
         ent->disconnectedLinks = newInfoIndex;
-        g_path.pathLinkInfoArray[newInfoIndex].next = newInfoIndex;
-        g_path.pathLinkInfoArray[newInfoIndex].prev = newInfoIndex;
+        newInfo->next = newInfoIndex;
+        newInfo->prev = newInfoIndex;
     }
     Path_DisconnectPath_0(node, link);
 }

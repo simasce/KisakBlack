@@ -3448,7 +3448,7 @@ int __fastcall Path_PredictionTraceCheckForEntities(
     clip.passEntityNum[0] = 1023;
     for ( entityIndex = 0; entityIndex < entityCount; ++entityIndex )
     {
-        ent = (gentity_s *)(sv.bpsWindow[8] + entities[entityIndex] * sv.bpsWindow[9]);
+        ent = (gentity_s *)((char *)sv.gentities + entities[entityIndex] * sv.gentitySize);
         if ( ent && ent->actor && ent->actor->Physics.prone )
             stepheight = 10.0f;
         else

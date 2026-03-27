@@ -140,7 +140,7 @@ void CScr_DeleteFX()
     int intFxPtr; // [esp+Ch] [ebp-8h]
 
     localClientNum = CScr_GetLocalClientNum(0);
-    intFxPtr = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    intFxPtr = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     if ( (unsigned int)localClientNum >= 2
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scr_main_mp.cpp",
@@ -188,7 +188,7 @@ void CScr_SpawnFX()
     {
         __debugbreak();
     }
-    fxId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    fxId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     if ( fxId <= 0 || fxId >= 196 )
     {
         error = va("CScr_PlayFX: invalid effect id %d", fxId);
@@ -273,7 +273,7 @@ void CScr_PlayFXOnTag()
     if ( numParams != 4 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "Incorrect number of parameters for playfxontag", 0);
     localClientNum = CScr_GetLocalClientNum(0);
-    fxId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    fxId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     v3 = Scr_GetEntityRef(2, SCRIPTINSTANCE_CLIENT);
     v4 = v3;
     v5 = v3;
@@ -297,7 +297,7 @@ void CScr_PlayFXOnTag()
     {
         __debugbreak();
     }
-    tagName = Scr_GetConstLowercaseString(3u, SCRIPTINSTANCE_CLIENT).stringValue;
+    tagName = Scr_GetConstLowercaseString(3u, SCRIPTINSTANCE_CLIENT);
     name = SL_ConvertToString(tagName, SCRIPTINSTANCE_CLIENT);
     tagName = SL_FindLowercaseString(name, SCRIPTINSTANCE_SERVER);
     effectHandle = CG_PlayBoltedEffect(localClientNum, fxDef, entref.entnum, tagName);
@@ -339,7 +339,7 @@ void CScr_PlayViewmodelFX()
     {
         __debugbreak();
     }
-    fxId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    fxId = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     if ( (unsigned int)fxId > 0xC4
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\cgame_mp\\cg_scr_main_mp.cpp",
@@ -411,7 +411,7 @@ LABEL_17:
         }
     }
     else if ( ((unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) <= 1
-                    || !Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue
+                    || !Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT)
                     || cgameGlob->renderingThirdPerson
                     || (cgameGlob->predictedPlayerState.otherFlags & 2) == 0)
                  && (cgameGlob->predictedPlayerState.otherFlags & 0x1A) != 0 )
@@ -908,7 +908,7 @@ void CScr_SetLocalRadarEnabled()
     {
         localClientNum.intValue = CScr_GetLocalClientNum(0);
         cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
-        if ( Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue )
+        if ( Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT) )
             cgameGlob->hasLocalRadar = 1;
         else
             cgameGlob->hasLocalRadar = 0;
@@ -988,7 +988,7 @@ void CScr_SetExtraCamActive()
         {
             localClientNum.intValue = CScr_GetLocalClientNum(0);
             cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
-            if ( Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue )
+            if ( Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT) )
                 cgameGlob->extraCamActive = 1;
             else
                 cgameGlob->extraCamActive = 0;
@@ -1035,7 +1035,7 @@ void CScr_SetExtraCamStatic()
         {
             localClientNum.intValue = CScr_GetLocalClientNum(0);
             cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
-            if ( Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue )
+            if ( Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT) )
                 cgameGlob->extraCamStatic = 1;
             else
                 cgameGlob->extraCamStatic = 0;
@@ -1166,8 +1166,8 @@ void CScr_CompassScale()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) != 2 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "CScr_CompassScale( <diff> <dur> ) takes 2 parameters", 0);
-    difference.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
-    duration.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+    difference.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
+    duration.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
     Dvar_SetInt((dvar_s *)compassScaleDiff, difference.intValue);
     Dvar_SetInt((dvar_s *)compassScaleDuration, duration.intValue);
 }
@@ -1178,7 +1178,7 @@ void CScr_ResetCompassScale()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) != 1 )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "CScr_ResetCompassScale( <dur> ) takes 1 parameter", 0);
-    duration.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+    duration.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
     Dvar_SetBool((dvar_s *)compassScaleReset, 1);
     Dvar_SetInt((dvar_s *)compassScaleDuration, duration.intValue);
 }
@@ -1303,7 +1303,7 @@ void __cdecl CScr_GetTagOrigin(scr_entref_t entref)
         if ( entref.entnum >= 0x400u )
             CG_GetFakeEntity(entref.client, entref.entnum);
     }
-    v1.intValue = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_CLIENT).intValue;
+    v1.intValue = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_CLIENT);
     name = SL_ConvertToString(v1.stringValue, SCRIPTINSTANCE_CLIENT);
     tagName = SL_FindLowercaseString(name, SCRIPTINSTANCE_SERVER);
     CScr_UpdateTagInternal(pSelf, tagName, &cg_cachedTagMat);
@@ -1385,7 +1385,7 @@ void __cdecl CScr_GetTagAngles(scr_entref_t entref)
         else
             pFake = CG_GetFakeEntity(entref.client, entref.entnum);
     }
-    v1.intValue = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_CLIENT).intValue;
+    v1.intValue = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_CLIENT);
     name = SL_ConvertToString(v1.stringValue, SCRIPTINSTANCE_CLIENT);
     tagName = SL_FindLowercaseString(name, SCRIPTINSTANCE_SERVER);
     CScr_UpdateTagInternal(pSelf, tagName, &cg_cachedTagMat);
@@ -1445,7 +1445,7 @@ void __cdecl CScr_SetEnemyGlobalScrambler(scr_entref_t entref)
     cg_s *cgameGlob; // [esp+0h] [ebp-8h]
 
     cgameGlob = CG_GetLocalClientGlobals(entref.client);
-    cgameGlob->globalScramblerActive = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+    cgameGlob->globalScramblerActive = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
 }
 
 void __cdecl CScr_SetEnemyScramblerAmount(scr_entref_t entref)
@@ -1527,7 +1527,7 @@ void __cdecl CScr_AddFriendlyScrambler(scr_entref_t entref)
 
     scramblerX = Scr_GetFloat(0, SCRIPTINSTANCE_CLIENT);
     scramblerY = Scr_GetFloat(1u, SCRIPTINSTANCE_CLIENT);
-    scramblerHandle.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT).intValue;
+    scramblerHandle.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_CLIENT);
     CG_AddFriendlyScrambler(entref.client, scramblerX, scramblerY, scramblerHandle.intValue);
 }
 
@@ -1535,7 +1535,7 @@ void __cdecl CScr_RemoveFriendlyScrambler(scr_entref_t entref)
 {
     VariableUnion scramblerHandle; // [esp+0h] [ebp-4h]
 
-    scramblerHandle.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue;
+    scramblerHandle.intValue = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
     CG_RemoveFriendlyScrambler(entref.client, scramblerHandle.intValue);
 }
 
@@ -1640,7 +1640,7 @@ void __cdecl CScr_SetFlagAsAway(scr_entref_t entref)
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_CLIENT) >= 2 )
         {
             localClientNum.intValue = CScr_GetLocalClientNum(0);
-            away = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT).intValue;
+            away = Scr_GetInt(1u, SCRIPTINSTANCE_CLIENT);
             cgameGlob = CG_GetLocalClientGlobals(localClientNum.intValue);
             team = (team_t)(pSelf->nextState.faction.iHeadIconTeam & 3);
             if ( team == TEAM_ALLIES )

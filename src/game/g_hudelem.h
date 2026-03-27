@@ -153,7 +153,7 @@ void __cdecl HECmd_SetPlayerNameString(scr_entref_t entref);
 void __cdecl HECmd_SetGameTypeString(scr_entref_t entref);
 void __cdecl HECmd_SetMapNameString(scr_entref_t entref);
 void __cdecl HECmd_SetPulseFX(scr_entref_t entref);
-VariableUnion __cdecl GetIntGTZero(unsigned int index);
+int __cdecl GetIntGTZero(unsigned int index);
 void __cdecl HECmd_SetCOD7DecodeFX(scr_entref_t entref);
 void __cdecl HECmd_SetRedactFX(scr_entref_t entref);
 void __cdecl HECmd_GetTextWidth(scr_entref_t entref);

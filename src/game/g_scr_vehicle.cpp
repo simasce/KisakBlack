@@ -9263,7 +9263,7 @@ void __cdecl CMD_VEH_GetWheelSurface(scr_entref_t entref)
 
     veh = GScr_GetVehicle(entref)->scr_vehicle;
     info = BG_GetVehicleInfo(veh->infoIdx);
-    wheelName = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    wheelName = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     wheel = 0;
     if ( info->type != 2 && info->type && info->type != 1 )
     {
@@ -9374,7 +9374,7 @@ void __cdecl CMD_VEH_UseVehicle(scr_entref_t entref)
         __debugbreak();
     }
     user = Scr_GetEntity(0);
-    seatIndex = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    seatIndex = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if ( user->client )
     {
         if ( (user->client->ps.eFlags & 0x4000) != 0 )
@@ -9503,11 +9503,11 @@ void __cdecl CMD_VEH_SetVehicleLookatText(scr_entref_t entref)
     VariableUnion string0; // [esp+8h] [ebp-8h]
 
     veh = GScr_GetVehicle(entref)->scr_vehicle;
-    string0.intValue = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).intValue;
+    string0.intValue = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     Scr_SetString(&veh->lookAtText0, string0.stringValue, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1 )
     {
-        string1.intValue = Scr_GetConstIString(1u, SCRIPTINSTANCE_SERVER).intValue;
+        string1.intValue = Scr_GetConstIString(1u, SCRIPTINSTANCE_SERVER);
         Scr_SetString(&veh->lookAtText1, string1.stringValue, SCRIPTINSTANCE_SERVER);
     }
 }
@@ -9542,7 +9542,7 @@ void    CMD_VEH_SetGoalPos(scr_entref_t entref)
         veh->manualMode = 1;
     Scr_GetVector(0, veh->goalPosition, SCRIPTINSTANCE_SERVER);
     veh->stopAtGoal = (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1
-        && Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 0;
+        && Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 0;
     if (veh->nitrousVehicle)
     {
         goalSpeed = veh->nitrousVehicle->get_max_speed(true);
@@ -9567,7 +9567,7 @@ void    CMD_VEH_SetGoalPos(scr_entref_t entref)
     veh->stopping = 0;
     usePath = 0;
     if ((unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2)
-        usePath = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        usePath = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     if (usePath)
     {
         if (VP_FindPath(veh->phys.origin, veh->goalPosition, &veh->pathPos))
@@ -9807,7 +9807,7 @@ void __cdecl CMD_VEH_SetPlaneBarrelRoll(scr_entref_t entref)
 
     veh = (VariableUnion *)GScr_GetVehicle(entref)->scr_vehicle;
     Scr_GetNumParam(SCRIPTINSTANCE_SERVER);
-    veh[297].intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    veh[297].intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     veh[293].floatValue = 1.0f;
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) <= 1 )
         veh[295].floatValue = 2.0f;
@@ -10027,7 +10027,7 @@ void __cdecl CMD_VEH_SetGunnerTargetVec(scr_entref_t entref)
     gunnerIndex = 0;
     Scr_GetVector(0, tgtPos, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1 )
-        gunnerIndex = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).stringValue;
+        gunnerIndex = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if ( gunnerIndex >= 4 )
         Scr_Error("Invalid gunner index set in SetGunnerTargetVec", 0);
     targetOrigin = veh->gunnerTargets[gunnerIndex].targetOrigin;
@@ -10048,7 +10048,7 @@ void __cdecl CMD_VEH_GetGunnerTargetVec(scr_entref_t entref)
     int gunnerIndex; // [esp+4h] [ebp-8h]
 
     veh = GScr_GetVehicle(entref)->scr_vehicle;
-    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)gunnerIndex >= 4 )
         Scr_Error("Invalid gunner index set in GetGunnerTargetVec", 0);
     Scr_AddVector(veh->gunnerTargets[gunnerIndex].targetOrigin, SCRIPTINSTANCE_SERVER);
@@ -10074,7 +10074,7 @@ void __cdecl CMD_VEH_SetGunnerTargetEnt(scr_entref_t entref)
     else
         Scr_GetVector(1u, targetOffset, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2 )
-        gunnerIndex = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).stringValue;
+        gunnerIndex = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     if ( gunnerIndex >= 4 )
         Scr_Error("Invalid gunner index set in SetGunnerTargetEnt", 0);
     veh->gunnerTargets[gunnerIndex].valid = 1;
@@ -10103,7 +10103,7 @@ void __cdecl CMD_VEH_ClearGunnerTarget(scr_entref_t entref)
     veh = GScr_GetVehicle(entref)->scr_vehicle;
     gunnerIndex = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
-        gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
+        gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( gunnerIndex >= 4 )
         Scr_Error("Invalid gunner index set in ClearGunnerTarget", 0);
     veh->gunnerTargets[gunnerIndex].valid = 0;
@@ -10126,7 +10126,7 @@ void __cdecl CMD_VEH_SetGunnerTurretOnTargetRange(scr_entref_t entref)
 
     veh = GScr_GetVehicle(entref)->scr_vehicle;
     range = 0.0f;
-    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1 )
         range = Scr_GetFloat(1u, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)gunnerIndex >= 4 )
@@ -10141,7 +10141,7 @@ void __cdecl CMD_VEH_GetGunnerTargetEnt(scr_entref_t entref)
     int gunnerIndex; // [esp+8h] [ebp-8h]
 
     veh = GScr_GetVehicle(entref)->scr_vehicle;
-    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)gunnerIndex >= 4 )
         Scr_Error("Invalid gunner index set in GetGunnerTargetEnt", 0);
     if ( veh->gunnerTargets[gunnerIndex].targetEnt == 1023
@@ -10164,7 +10164,7 @@ void __cdecl CMD_VEH_GetGunnerAnimPitch(scr_entref_t entref)
 
     ent = GScr_GetVehicle(entref);
     info = BG_GetVehicleInfo(ent->scr_vehicle->infoIdx);
-    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)gunnerIndex >= 4 )
         Scr_Error("Invalid gunner index set in GetGunnerAnimPitch", 0);
     pitch = AngleNormalize180(
@@ -10182,7 +10182,7 @@ void __cdecl CMD_VEH_GetGunnerAnimYaw(scr_entref_t entref)
 
     ent = GScr_GetVehicle(entref);
     info = BG_GetVehicleInfo(ent->scr_vehicle->infoIdx);
-    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)gunnerIndex >= 4 )
         Scr_Error("Invalid gunner index set in GetGunnerAnimYaw", 0);
     yaw = AngleNormalize180(
@@ -10363,7 +10363,7 @@ void __cdecl CMD_VEH_FireWeapon(scr_entref_t entref)
         VEH_JoltBody(ent, joltDir, 1.0, 0.0, 0.0);
     }
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
-        boneName = (unsigned __int16)Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER).floatValue;
+        boneName = (unsigned __int16)Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER);
     else
         boneName = 0;
     if ( !Scr_GetNumParam(SCRIPTINSTANCE_SERVER) && info->quadBarrel )
@@ -10575,7 +10575,7 @@ int __cdecl VEH_GetTagBoneIndex(gentity_s *ent, int barrel)
         boneName = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
         if ( *boneName )
         {
-            v2.intValue = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER).intValue;
+            v2.intValue = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER);
             boneIndex = SV_DObjGetBoneIndex(ent, v2.stringValue);
             if ( boneIndex < 0 )
             {
@@ -10615,7 +10615,7 @@ void __cdecl CMD_VEH_FireGunnerWeapon(scr_entref_t entref)
     ent = GScr_GetVehicle(entref);
     gunnerIndex.intValue = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
-        gunnerIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        gunnerIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( gunnerIndex.intValue >= 4u )
         Scr_Error("Invalid gunner index set in FireGunnerWeapon", 0);
     proj = VEH_FireGunnerWeapon(ent, gunnerIndex.intValue, 0);
@@ -10657,7 +10657,7 @@ void __cdecl CMD_VEH_ForceMaterialSpeed(scr_entref_t entref)
     veh = GScr_GetVehicle(entref)->scr_vehicle;
     if ( !veh && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game\\g_scr_vehicle.cpp", 12231, 0, "%s", "veh") )
         __debugbreak();
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
     {
         speed = Scr_GetFloat(1u, SCRIPTINSTANCE_SERVER);
         veh->flags |= 4u;
@@ -10733,7 +10733,7 @@ void __cdecl CMD_VEH_GetSeatOccupant(scr_entref_t entref)
     int seatIndex; // [esp+8h] [ebp-4h]
 
     vehicle = GScr_GetVehicle(entref);
-    seatIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    seatIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     occupant = VEH_GetSeatOccupantEntity(vehicle, seatIndex);
     if ( occupant )
         Scr_AddEntity(occupant, SCRIPTINSTANCE_SERVER);
@@ -10760,10 +10760,10 @@ void __cdecl CMD_VEH_SetSeatOccupied(scr_entref_t entref)
     VehicleSeat *seat; // [esp+Ch] [ebp-4h]
 
     vehicle = GScr_GetVehicle(entref);
-    seatIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    seatIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     occupied = 1;
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1 )
-        occupied = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        occupied = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     seat = VEH_GetSeat(vehicle, seatIndex);
     if ( !seat )
         Scr_Error("Invalid seat specified for vehicle in SetSeatOccupied.", 0);
@@ -10791,7 +10791,7 @@ void __cdecl CMD_VEH_SeatGetWeapon(scr_entref_t entref)
     int seatIndex; // [esp+8h] [ebp-4h]
 
     vehicle = GScr_GetVehicle(entref);
-    seatIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    seatIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     weapon = VEH_GetSeatWeaponIndex(vehicle, seatIndex);
     if ( weapon )
     {
@@ -10813,7 +10813,7 @@ void __cdecl CMD_VEH_GetSeatFiringOrigin(scr_entref_t entref)
     int seatIndex; // [esp+1Ch] [ebp-4h]
 
     vehicle = GScr_GetVehicle(entref);
-    seatIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    seatIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( VEH_GetSeatFiringOriginAngles(vehicle, seatIndex, origin, angles) )
     {
         Scr_AddVector(origin, SCRIPTINSTANCE_SERVER);
@@ -10834,7 +10834,7 @@ void __cdecl CMD_VEH_GetSeatFiringAngles(scr_entref_t entref)
     int seatIndex; // [esp+1Ch] [ebp-4h]
 
     vehicle = GScr_GetVehicle(entref);
-    seatIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    seatIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( VEH_GetSeatFiringOriginAngles(vehicle, seatIndex, origin, angles) )
     {
         Scr_AddVector(angles, SCRIPTINSTANCE_SERVER);
@@ -10852,7 +10852,7 @@ void __cdecl CMD_VEH_IsGunnerFiring(scr_entref_t entref)
     bool firing; // [esp+Bh] [ebp-1h]
 
     vehicle = GScr_GetVehicle(entref);
-    firing = vehicle->scr_vehicle->gunnerTurrets[Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue].fireTime > 0;
+    firing = vehicle->scr_vehicle->gunnerTurrets[Scr_GetInt(0, SCRIPTINSTANCE_SERVER)].fireTime > 0;
     Scr_AddBool(firing, SCRIPTINSTANCE_SERVER);
 }
 
@@ -10863,8 +10863,8 @@ void __cdecl CMD_VEH_DisableGunnerFiring(scr_entref_t entref)
     gentity_s *vehicle; // [esp+4h] [ebp-8h]
 
     vehicle = GScr_GetVehicle(entref);
-    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-    if ( Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue )
+    gunnerIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+    if ( Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) )
         v1 = vehicle->scr_vehicle->gunnerTurrets[gunnerIndex].flags | 8;
     else
         v1 = vehicle->scr_vehicle->gunnerTurrets[gunnerIndex].flags & 0xFFFFFFF7;
@@ -10880,7 +10880,7 @@ void __cdecl CMD_VEH_GetTreadHealth(scr_entref_t entref)
 
     vehicle = GScr_GetVehicle(entref);
     if ( vehicle->destructible
-        && ((leftRightIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue) != 0
+        && ((leftRightIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER)) != 0
             ? (right_tread = scr_const.right_tread)
             : (right_tread = scr_const.left_tread),
                 GetPieceHealth(vehicle->destructible, right_tread, &treadHealth)) )
@@ -10933,14 +10933,14 @@ void __cdecl CMD_VEH_finishVehicleDamage(scr_entref_t entref)
     point = 0;
     isBulletWeapon = 0;
     tempBulletHitEntity = 0;
-    damage = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+    damage = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     if ( damage > 0 )
     {
         if ( Scr_GetType(0, SCRIPTINSTANCE_SERVER) && Scr_GetPointerType(0, SCRIPTINSTANCE_SERVER) == 19 )
             inflictor = Scr_GetEntity(0);
         if ( Scr_GetType(1u, SCRIPTINSTANCE_SERVER) && Scr_GetPointerType(1u, SCRIPTINSTANCE_SERVER) == 19 )
             attacker = Scr_GetEntity(1u);
-        dflags = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+        dflags = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
         mod = (meansOfDeath_t)G_MeansOfDeathFromScriptParam(4u);
         weaponName = Scr_GetString(5u, SCRIPTINSTANCE_SERVER);
         iWeapon = G_GetWeaponIndexForName(weaponName);
@@ -10954,13 +10954,13 @@ void __cdecl CMD_VEH_finishVehicleDamage(scr_entref_t entref)
             Scr_GetVector(7u, vDir, SCRIPTINSTANCE_SERVER);
             dir = vDir;
         }
-        floatValue = (unsigned __int16)Scr_GetConstString(8u, SCRIPTINSTANCE_SERVER).floatValue;
+        floatValue = (unsigned __int16)Scr_GetConstString(8u, SCRIPTINSTANCE_SERVER);
         hitLoc = (hitLocation_t)G_GetHitLocationIndexFromString(floatValue);
-        psTimeOffset = Scr_GetInt(9u, SCRIPTINSTANCE_SERVER).intValue;
-        damageFromUnderneath = Scr_GetInt(0xAu, SCRIPTINSTANCE_SERVER).intValue;
-        modelIndex = Scr_GetInt(0xBu, SCRIPTINSTANCE_SERVER).stringValue;
-        partName = Scr_GetInt(0xCu, SCRIPTINSTANCE_SERVER).stringValue;
-        damageTeamates = Scr_GetInt(0xDu, SCRIPTINSTANCE_SERVER).intValue;
+        psTimeOffset = Scr_GetInt(9u, SCRIPTINSTANCE_SERVER);
+        damageFromUnderneath = Scr_GetInt(0xAu, SCRIPTINSTANCE_SERVER);
+        modelIndex = Scr_GetInt(0xBu, SCRIPTINSTANCE_SERVER);
+        partName = Scr_GetInt(0xCu, SCRIPTINSTANCE_SERVER);
+        damageTeamates = Scr_GetInt(0xDu, SCRIPTINSTANCE_SERVER);
         if ( dir )
             Vec3NormalizeTo(dir, localdir);
         else
@@ -11060,7 +11060,7 @@ void __cdecl CMD_VEH_finishVehicleRadiusDamage(scr_entref_t entref)
     coneDirection = 0;
     point = 0;
     tempBulletHitEntity = 0;
-    damage = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+    damage = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     if ( damage > 0 )
     {
         if ( Scr_GetType(0, SCRIPTINSTANCE_SERVER) && Scr_GetPointerType(0, SCRIPTINSTANCE_SERVER) == 19 )
@@ -11069,7 +11069,7 @@ void __cdecl CMD_VEH_finishVehicleRadiusDamage(scr_entref_t entref)
             attacker = Scr_GetEntity(1u);
         fInnerDamage = Scr_GetFloat(3u, SCRIPTINSTANCE_SERVER);
         fOuterDamage = Scr_GetFloat(4u, SCRIPTINSTANCE_SERVER);
-        dflags = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER).intValue;
+        dflags = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER);
         mod = (meansOfDeath_t)G_MeansOfDeathFromScriptParam(6u);
         weaponName = Scr_GetString(7u, SCRIPTINSTANCE_SERVER);
         iWeapon = G_GetWeaponIndexForName(weaponName);
@@ -11086,7 +11086,7 @@ void __cdecl CMD_VEH_finishVehicleRadiusDamage(scr_entref_t entref)
             Vec3Normalize(vDir);
             coneDirection = vDir;
         }
-        psTimeOffset = Scr_GetInt(0xCu, SCRIPTINSTANCE_SERVER).intValue;
+        psTimeOffset = Scr_GetInt(0xCu, SCRIPTINSTANCE_SERVER);
         damageScale = CanDamage(self, inflictor, vPoint, fConeAngleCos, coneDirection, 8396819);
         if ( damageScale > 0.0 )
         {
@@ -11122,7 +11122,7 @@ void __cdecl CMD_VEH_IsVehicleImmuneToDamage(scr_entref_t entref)
     char dflags; // [esp+Ch] [ebp-4h]
 
     vehicle = GScr_GetVehicle(entref);
-    dflags = (unsigned __int8)Scr_GetInt(0, SCRIPTINSTANCE_SERVER).floatValue;
+    dflags = (unsigned __int8)Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     mod = (meansOfDeath_t)G_MeansOfDeathFromScriptParam(1u);
     String = Scr_GetString(2u, SCRIPTINSTANCE_SERVER);
     iWeapon = G_GetWeaponIndexForName(String);

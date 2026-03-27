@@ -153,7 +153,7 @@ void __cdecl Scr_Target_SetTurretAquire()
     ent = Scr_GetEntity(0);
     targIdx = Target_GetTargetIndex(ent);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1 )
-        ignoreTarg = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 0;
+        ignoreTarg = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 0;
     if ( targIdx != 32 )
     {
         if ( ignoreTarg )
@@ -576,7 +576,7 @@ void __cdecl Scr_Target_SetAttackMode()
         v0 = va("Entity %i is not a target", ent->s.number);
         Scr_Error(v0, 0);
     }
-    modeName = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).stringValue;
+    modeName = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     if ( modeName == scr_const.top )
     {
         targGlob.targets[targIdx].flags |= 1u;
@@ -613,7 +613,7 @@ void __cdecl Scr_Target_SetJavelinOnly()
         v0 = va("Entity %i is not a target", ent->s.number);
         Scr_Error(v0, 0);
     }
-    if ( Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) )
         v1 = targGlob.targets[targIdx].flags | 2;
     else
         v1 = targGlob.targets[targIdx].flags & 0xFFFFFFFD;

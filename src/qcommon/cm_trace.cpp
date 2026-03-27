@@ -3792,7 +3792,7 @@ double __cdecl CM_GetWaterHeight(const float *pos, float z_up, float z_down)
         ////TraceExtents::TraceExtents(&clip.extents);
         memset((unsigned __int8 *)&trace, 0, sizeof(trace));
         trace.fraction = 1.0f;
-        check = (svEntity_s *)sv.svEntities[entnum].baseline.s.lerp.apos.trBase;
+        check = &sv.svEntities[entnum];
         clip.contentmask = -1;
         *(_QWORD *)clip.extents.start.vec.v = *(_QWORD *)start;
         clip.extents.start.vec.v[2] = start[2];

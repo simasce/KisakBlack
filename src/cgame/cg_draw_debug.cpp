@@ -239,9 +239,8 @@ double __cdecl CG_DrawViewpos(const ScreenPlacement *scrPlace, float y, int loca
 
 double __cdecl DrawEntityCounts(const ScreenPlacement *scrPlace, float posY)
 {
-    double v2; // st7
-    double v4; // st7
-    char *v5; // eax
+    double v3; // st7
+    double v5; // st7
     char *v6; // eax
     char *v7; // eax
     char *v8; // eax
@@ -249,18 +248,19 @@ double __cdecl DrawEntityCounts(const ScreenPlacement *scrPlace, float posY)
     char *v10; // eax
     char *v11; // eax
     char *v12; // eax
+    char *v13; // eax
     char *EntityTypeName; // eax
-    char *v14; // eax
     char *v15; // eax
     char *v16; // eax
-    int v17; // [esp+14h] [ebp-90h]
-    char *v18; // [esp+1Ch] [ebp-88h]
-    float v19; // [esp+28h] [ebp-7Ch]
-    float v20; // [esp+38h] [ebp-6Ch]
-    float v21; // [esp+3Ch] [ebp-68h]
-    float v22; // [esp+40h] [ebp-64h]
-    float v23; // [esp+48h] [ebp-5Ch]
-    float v24; // [esp+4Ch] [ebp-58h]
+    char *v17; // eax
+    int v18; // [esp+14h] [ebp-90h]
+    char *v19; // [esp+1Ch] [ebp-88h]
+    float v20; // [esp+28h] [ebp-7Ch]
+    float v21; // [esp+38h] [ebp-6Ch]
+    float v22; // [esp+3Ch] [ebp-68h]
+    float v23; // [esp+40h] [ebp-64h]
+    float v24; // [esp+48h] [ebp-5Ch]
+    float v25; // [esp+4Ch] [ebp-58h]
     unsigned __int16 index; // [esp+54h] [ebp-50h]
     gentity_s *ent; // [esp+58h] [ebp-4Ch]
     fake_centity_s *cent; // [esp+5Ch] [ebp-48h]
@@ -303,46 +303,46 @@ double __cdecl DrawEntityCounts(const ScreenPlacement *scrPlace, float posY)
     float posYk; // [esp+B0h] [ebp+Ch]
 
     listEntityCountsCurrent = g_listEntityCounts->current.integer;
-    if ( sv.bpsWindow[10] > g_maxEntsInSnapshot->current.integer )
-        Dvar_SetInt((dvar_s *)g_maxEntsInSnapshot, sv.bpsWindow[10]);
+    if (sv.num_entities > g_maxEntsInSnapshot->current.integer)
+        Dvar_SetInt((dvar_s*)g_maxEntsInSnapshot, sv.num_entities);
     posX = (float)(scrPlace->virtualViewableMax[0] - scrPlace->virtualViewableMin[0])
-             + cg_debugInfoCornerOffset->current.value;
-    if ( listEntityCountsCurrent || cg_drawFPS && cg_drawFPS->current.integer )
+        + cg_debugInfoCornerOffset->current.value;
+    if (listEntityCountsCurrent || cg_drawFPS && cg_drawFPS->current.integer)
     {
-        v24 = (float)R_TextWidth(" Ent Count", 0, cgMedia.smallDevFont) * 1.0;
-        numUsedEntities = sv.bpsWindow[10];
-        for ( e = level.firstFreeEnt; e; e = e->nextFree )
+        v25 = (float)R_TextWidth(" Ent Count", 0, cgMedia.smallDevFont) * 1.0;
+        numUsedEntities = sv.num_entities;
+        for (e = level.firstFreeEnt; e; e = e->nextFree)
             --numUsedEntities;
         str = va("%s: %d\n", " Ent Count", numUsedEntities);
         color = colorWhite;
-        if ( numUsedEntities <= 925 )
+        if (numUsedEntities <= 925)
         {
-            if ( numUsedEntities > 900 )
+            if (numUsedEntities > 900)
                 color = colorYellow;
-            v2 = CG_CornerDebugPrint(scrPlace, posX, posY, v24, str, (char *)"", color);
+            v3 = CG_CornerDebugPrint(scrPlace, posX, posY, v25, str, (char *)"", color);
         }
         else
         {
-            v2 = CG_CornerDebugPrint(scrPlace, posX, posY, v24, str, (char *)"", colorRed);
+            v3 = CG_CornerDebugPrint(scrPlace, posX, posY, v25, str, (char *)"", colorRed);
         }
-        posY = v2 + posY;
+        posY = v3 + posY;
     }
-    if ( !listEntityCountsCurrent )
+    if (!listEntityCountsCurrent)
         return posY;
-    v23 = (float)R_TextWidth(" Ent Count High", 0, cgMedia.smallDevFont) * 1.0;
+    v24 = (float)R_TextWidth(" Ent Count High", 0, cgMedia.smallDevFont) * 1.0;
     stra = va("%s: %d\n", " Ent Count High", g_maxEntsInSnapshot->current.integer);
     colora = colorWhite;
-    if ( g_maxEntsInSnapshot->current.integer <= 925 )
+    if (g_maxEntsInSnapshot->current.integer <= 925)
     {
-        if ( g_maxEntsInSnapshot->current.integer > 900 )
+        if (g_maxEntsInSnapshot->current.integer > 900)
             colora = colorYellow;
-        v4 = CG_CornerDebugPrint(scrPlace, posX, posY, v23, stra, (char *)"", colora);
+        v5 = CG_CornerDebugPrint(scrPlace, posX, posY, v24, stra, (char *)"", colora);
     }
     else
     {
-        v4 = CG_CornerDebugPrint(scrPlace, posX, posY, v23, stra, (char *)"", colorRed);
+        v5 = CG_CornerDebugPrint(scrPlace, posX, posY, v24, stra, (char *)"", colorRed);
     }
-    posYa = v4 + posY;
+    posYa = v5 + posY;
     total = 0;
     lights = 0;
     fx = 0;
@@ -350,156 +350,156 @@ double __cdecl DrawEntityCounts(const ScreenPlacement *scrPlace, float posY)
     sound = 0;
     triggers = 0;
     scriptmovers = 0;
-    for ( j = 0; j < 512; ++j )
+    for (j = 0; j < 512; ++j)
     {
         cent = &cg_fakeEntitiesArray[j];
-        if ( cg_fakeEntitiesInuseArray[812 * j / 812] )
+        if (cg_fakeEntitiesInuseArray[812 * j / 812])
         {
             ++total;
-            switch ( cent->cent.nextState.eType )
+            switch (cent->cent.nextState.eType)
             {
-                case 6:
-                    ++scriptmovers;
-                    break;
-                case 8:
-                case 9:
-                    ++fx;
-                    break;
-                case 0xA:
-                    ++lights;
-                    break;
-                default:
-                    if ( cent->cent.nextState.loopSoundId )
-                    {
-                        ++sound;
-                    }
-                    else if ( cent->cent.destructible )
-                    {
-                        ++destructibles;
-                    }
-                    else if ( ((*((unsigned int *)&cent->cent + 201) >> 15) & 1) != 0 )
-                    {
-                        ++triggers;
-                    }
-                    break;
+            case 6:
+                ++scriptmovers;
+                break;
+            case 8:
+            case 9:
+                ++fx;
+                break;
+            case 0xA:
+                ++lights;
+                break;
+            default:
+                if (cent->cent.nextState.loopSoundId)
+                {
+                    ++sound;
+                }
+                else if (cent->cent.destructible)
+                {
+                    ++destructibles;
+                }
+                else if (((*((_DWORD *)&cent->cent + 201) >> 15) & 1) != 0)
+                {
+                    ++triggers;
+                }
+                break;
             }
         }
     }
-    if ( total != cg_fakeEntitiesInuseCount[0]
+    if (total != cg_fakeEntitiesInuseCount[0]
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_draw_debug.cpp",
-                    449,
-                    0,
-                    "%s",
-                    "total == cg_fakeEntitiesInuseCount[0]") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_draw_debug.cpp",
+            449,
+            0,
+            "%s",
+            "total == cg_fakeEntitiesInuseCount[0]"))
     {
         __debugbreak();
     }
-    v22 = (float)R_TextWidth("wwwwwwwwwwwwwwww", 0, cgMedia.smallDevFont) * 1.0;
-    if ( listEntityCountsCurrent == 2 )
+    v23 = (float)R_TextWidth("wwwwwwwwwwwwwwww", 0, cgMedia.smallDevFont) * 1.0;
+    if (listEntityCountsCurrent == 2)
     {
-        v5 = va("%d", total);
-        posYb = CG_CornerDebugPrint(scrPlace, posX, posYa, v22, v5, (char*)" CEnt Count High", colorWhite) + posYa;
-        v6 = va("%d", fx);
-        posYc = CG_CornerDebugPrint(scrPlace, posX, posYb, v22, v6, (char *)" CEnt fx", colorWhite) + posYb;
-        v7 = va("%d", sound);
-        posYd = CG_CornerDebugPrint(scrPlace, posX, posYc, v22, v7, (char *)" CEnt sound", colorWhite) + posYc;
-        v8 = va("%d", scriptmovers);
-        posYe = CG_CornerDebugPrint(scrPlace, posX, posYd, v22, v8, (char *)" CEnt scriptmovers", colorWhite) + posYd;
-        v9 = va("%d", lights);
-        posYf = CG_CornerDebugPrint(scrPlace, posX, posYe, v22, v9, (char *)" CEnt lights", colorWhite) + posYe;
-        v10 = va("%d", destructibles);
-        posYg = CG_CornerDebugPrint(scrPlace, posX, posYf, v22, v10, (char *)" CEnt dest", colorWhite) + posYf;
-        v11 = va("%d", triggers);
-        posYh = CG_CornerDebugPrint(scrPlace, posX, posYg, v22, v11, (char *)" CEnt triggers", colorWhite) + posYg;
+        v6 = va("%d", total);
+        posYb = CG_CornerDebugPrint(scrPlace, posX, posYa, v23, v6, (char*)" CEnt Count High", colorWhite) + posYa;
+        v7 = va("%d", fx);
+        posYc = CG_CornerDebugPrint(scrPlace, posX, posYb, v23, v7, (char *)" CEnt fx", colorWhite) + posYb;
+        v8 = va("%d", sound);
+        posYd = CG_CornerDebugPrint(scrPlace, posX, posYc, v23, v8, (char *)" CEnt sound", colorWhite) + posYc;
+        v9 = va("%d", scriptmovers);
+        posYe = CG_CornerDebugPrint(scrPlace, posX, posYd, v23, v9, (char *)" CEnt scriptmovers", colorWhite) + posYd;
+        v10 = va("%d", lights);
+        posYf = CG_CornerDebugPrint(scrPlace, posX, posYe, v23, v10, (char *)" CEnt lights", colorWhite) + posYe;
+        v11 = va("%d", destructibles);
+        posYg = CG_CornerDebugPrint(scrPlace, posX, posYf, v23, v11, (char *)" CEnt dest", colorWhite) + posYf;
+        v12 = va("%d", triggers);
+        posYh = CG_CornerDebugPrint(scrPlace, posX, posYg, v23, v12, (char *)" CEnt triggers", colorWhite) + posYg;
         strb = va("%d", total - (scriptmovers + triggers + destructibles + sound + fx + lights));
-        posYa = CG_CornerDebugPrint(scrPlace, posX, posYh, v22, strb, (char *)" CEnt misc", colorWhite) + posYh;
+        posYa = CG_CornerDebugPrint(scrPlace, posX, posYh, v23, strb, (char *)" CEnt misc", colorWhite) + posYh;
     }
-    if ( listEntityCountsCurrent > 2 && listEntityCountsCurrent <= 5 )
+    if (listEntityCountsCurrent > 2 && listEntityCountsCurrent <= 5)
     {
         memset((unsigned __int8 *)entity_counts, 0, sizeof(entity_counts));
-        for ( i = 0; ; ++i )
+        for (i = 0; ; ++i)
         {
-            if ( i >= 1024 )
+            if (i >= 1024)
             {
-                for ( ia = 0; ia < 0x10000; ++ia )
+                for (ia = 0; ia < 0x10000; ++ia)
                 {
-                    if ( entity_counts[ia] > 0 )
+                    if (entity_counts[ia] > 0)
                     {
-                        v21 = (float)R_TextWidth(" replay time", 0, cgMedia.smallDevFont) * 1.0;
-                        if ( ia )
+                        v22 = (float)R_TextWidth(" replay time", 0, cgMedia.smallDevFont) * 1.0;
+                        if (ia)
                         {
-                            v18 = SL_ConvertToString(ia, SCRIPTINSTANCE_SERVER);
-                            v12 = va("%s: %d\n", v18, entity_counts[ia]);
+                            v19 = SL_ConvertToString(ia, SCRIPTINSTANCE_SERVER);
+                            v13 = va("%s: %d\n", v19, entity_counts[ia]);
                         }
                         else
                         {
-                            v12 = va("%s: %d\n", "<unknown>", entity_counts[0]);
+                            v13 = va("%s: %d\n", "<unknown>", entity_counts[0]);
                         }
-                        posYa = CG_CornerDebugPrint(scrPlace, posX, posYa, v21, v12, (char *)"", colorWhite) + posYa;
+                        posYa = CG_CornerDebugPrint(scrPlace, posX, posYa, v22, v13, (char *)"", colorWhite) + posYa;
                     }
                 }
                 goto LABEL_79;
             }
             ent = &g_entities[i];
-            if ( ent->r.inuse )
+            if (ent->r.inuse)
             {
                 index = ent->classname;
-                if ( listEntityCountsCurrent == 3 )
+                if (listEntityCountsCurrent == 3)
                 {
-                    if ( (ent->r.svFlags & 1) != 0 )
+                    if ((ent->r.svFlags & 1) != 0)
                         continue;
                     goto LABEL_58;
                 }
-                if ( listEntityCountsCurrent == 4 )
+                if (listEntityCountsCurrent == 4)
                 {
-                    if ( (ent->r.svFlags & 1) != 0 )
+                    if ((ent->r.svFlags & 1) != 0)
                         continue;
                     goto LABEL_58;
                 }
-                if ( (ent->r.svFlags & 1) == 0 && ent->classname == scr_const.script_model )
+                if ((ent->r.svFlags & 1) == 0 && ent->classname == scr_const.script_model)
                 {
                     index = ent->targetname;
-LABEL_58:
+                LABEL_58:
                     ++entity_counts[index];
                     continue;
                 }
             }
         }
     }
-    if ( listEntityCountsCurrent == 6 )
+    if (listEntityCountsCurrent == 6)
     {
         memset((unsigned __int8 *)entity_counts, 0, sizeof(entity_counts));
-        for ( ib = 0; ib < 1024; ++ib )
+        for (ib = 0; ib < 1024; ++ib)
         {
-            if ( g_entities[ib].r.inuse )
+            if (g_entities[ib].r.inuse)
                 ++entity_counts[g_entities[ib].s.eType];
         }
-        for ( ic = 0; ic < 21; ++ic )
+        for (ic = 0; ic < 21; ++ic)
         {
-            if ( entity_counts[ic] > 0 )
+            if (entity_counts[ic] > 0)
             {
-                v20 = (float)R_TextWidth(" replay time", 0, cgMedia.smallDevFont) * 1.0;
-                v17 = entity_counts[ic];
+                v21 = (float)R_TextWidth(" replay time", 0, cgMedia.smallDevFont) * 1.0;
+                v18 = entity_counts[ic];
                 EntityTypeName = BG_GetEntityTypeName(ic);
-                strc = va("%s: %d\n", EntityTypeName, v17);
-                posYa = CG_CornerDebugPrint(scrPlace, posX, posYa, v20, strc, (char *)"", colorWhite) + posYa;
+                strc = va("%s: %d\n", EntityTypeName, v18);
+                posYa = CG_CornerDebugPrint(scrPlace, posX, posYa, v21, strc, (char *)"", colorWhite) + posYa;
             }
         }
     }
 LABEL_79:
     labelWidth = (float)R_TextWidth(" ents in snapshot", 0, cgMedia.smallDevFont) * 1.0;
-    v14 = va("ents in snapshot: %d\n", g_entsInSnapshot->current.integer);
-    posYi = CG_CornerDebugPrint(scrPlace, posX, posYa, labelWidth, v14, (char *)"", colorWhite) + posYa;
+    v15 = va("ents in snapshot: %d\n", g_entsInSnapshot->current.integer);
+    posYi = CG_CornerDebugPrint(scrPlace, posX, posYa, labelWidth, v15, (char *)"", colorWhite) + posYa;
     labelWidtha = (float)R_TextWidth(" ents client_once", 0, cgMedia.smallDevFont) * 1.0;
-    v15 = va("ents client_once: %d\n", g_entsClientOnce);
-    posYj = CG_CornerDebugPrint(scrPlace, posX, posYi, labelWidtha, v15, (char *)"", colorWhite) + posYi;
+    v16 = va("ents client_once: %d\n", g_entsClientOnce);
+    posYj = CG_CornerDebugPrint(scrPlace, posX, posYi, labelWidtha, v16, (char *)"", colorWhite) + posYi;
     labelWidthb = (float)R_TextWidth(" ents delta xxxxx", 0, cgMedia.smallDevFont) * 1.0;
-    v16 = va("ents delta compared: %d\n", g_entsDeltaCompared);
-    posYk = CG_CornerDebugPrint(scrPlace, posX, posYj, labelWidthb, v16, (char *)"", colorWhite) + posYj;
-    v19 = (float)R_TextWidth(" ents transmitted", 0, cgMedia.smallDevFont) * 1.0;
+    v17 = va("ents delta compared: %d\n", g_entsDeltaCompared);
+    posYk = CG_CornerDebugPrint(scrPlace, posX, posYj, labelWidthb, v17, (char *)"", colorWhite) + posYj;
+    v20 = (float)R_TextWidth(" ents transmitted", 0, cgMedia.smallDevFont) * 1.0;
     strd = va("ents transmitted: %d\n", g_entsTransmitted);
-    return (float)(CG_CornerDebugPrint(scrPlace, posX, posYk, v19, strd, (char *)"", colorWhite) + posYk);
+    return (float)(CG_CornerDebugPrint(scrPlace, posX, posYk, v20, strd, (char *)"", colorWhite) + posYk);
 }
 
 double __cdecl DrawSnapshotInfo(const ScreenPlacement *scrPlace, float posY)

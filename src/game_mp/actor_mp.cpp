@@ -4589,7 +4589,7 @@ void __fastcall Actor_PredictAnim(actor_s *self)
     ent = self->ent;
     if ( !self->ent && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\actor_mp.cpp", 5152, 0, "%s", "ent") )
         __debugbreak();
-    v1.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    v1.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     G_DObjUpdateServerTime(ent, v1.intValue, BLOPS_NULLSUB);
     Scr_AddInt(1, SCRIPTINSTANCE_SERVER);
 }

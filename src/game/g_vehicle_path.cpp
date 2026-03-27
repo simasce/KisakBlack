@@ -1982,7 +1982,7 @@ void __cdecl GScr_GetVehicleNode()
     vn_field_t *f; // [esp+18h] [ebp-Ch]
     __int16 i; // [esp+1Ch] [ebp-8h]
 
-    name = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    name = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     key = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
     offset = Scr_GetOffset(3u, key, SCRIPTINSTANCE_SERVER);
     if ( offset >= 0 )

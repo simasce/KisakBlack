@@ -57,7 +57,7 @@ char g_sv_skel_memory[262144];
 
 playerState_s *__cdecl SV_GameClientNum(int num)
 {
-    return (playerState_s *)(sv.bpsWindow[11] + num * sv.bpsWindow[12]);
+    return (playerState_s *)((char *)sv.gameClients + num * sv.gameClientSize);
 }
 
 svEntity_s *__cdecl SV_SvEntityForGentity(const gentity_s *gEnt)
@@ -69,7 +69,18 @@ svEntity_s *__cdecl SV_SvEntityForGentity(const gentity_s *gEnt)
         else
             Com_Error(ERR_DROP, "SV_SvEntityForGentity: bad gEnt %d", 0);
     }
-    return (svEntity_s *)sv.svEntities[gEnt->s.number].baseline.s.lerp.apos.trBase;
+
+    return &sv.svEntities[gEnt->s.number];
+}
+
+gentity_s *__cdecl SV_GentityNum(int num)
+{
+    return (gentity_s *)((char *)sv.gentities + num * sv.gentitySize);
+}
+
+gentity_s *__cdecl SV_GEntityForSvEntity(svEntity_s *svEnt)
+{
+    return SV_GentityNum(svEnt - sv.svEntities);
 }
 
 void __cdecl SV_GameSendServerCommand(int clientNum, svscmd_type type, const char *text)
@@ -204,7 +215,7 @@ bool __cdecl SV_inSnapshot(const float *origin, int iEntityNum)
     int i; // [esp+20h] [ebp-Ch]
     unsigned __int8 *bitvector; // [esp+24h] [ebp-8h]
 
-    ent = (gentity_s *)(sv.bpsWindow[8] + iEntityNum * sv.bpsWindow[9]);
+    ent = (gentity_s *)((char *)sv.gentities + iEntityNum * sv.gentitySize);
     if ( !ent->r.linked )
         return 0;
     if ( ent->r.broadcastTime )
@@ -339,11 +350,11 @@ void __cdecl SV_LocateGameData(
                 playerState_s *clients,
                 int sizeofGameClient)
 {
-    sv.bpsWindow[8] = (int)gEnts;
-    sv.bpsWindow[9] = sizeofGEntity_t;
-    sv.bpsWindow[10] = numGEntities;
-    sv.bpsWindow[11] = (int)clients;
-    sv.bpsWindow[12] = sizeofGameClient;
+    sv.gentities = gEnts;
+    sv.gentitySize = sizeofGEntity_t;
+    sv.num_entities = numGEntities;
+    sv.gameClients = clients;
+    sv.gameClientSize = sizeofGameClient;
 }
 
 void __cdecl SV_GetUsercmd(int clientNum, usercmd_s *cmd)
@@ -411,10 +422,10 @@ void __cdecl SV_DObjDumpInfo(gentity_s *ent)
 
 void __cdecl SV_ResetSkeletonCache()
 {
-    if ( !++sv.bpsWindow[14] )
-        sv.bpsWindow[14] = 1;
+    if (!++sv.skelTimeStamp)
+        sv.skelTimeStamp = 1;
     g_sv_skel_memory_start = (char *)((unsigned int)&g_sv_skel_memory[15] & 0xFFFFFFF0);
-    sv.bpsWindow[15] = 0;
+    sv.skelMemPos = 0;
 }
 
 bool __cdecl SV_DObjCreateSkelForBone(DObj *obj, int boneIndex)
@@ -422,11 +433,11 @@ bool __cdecl SV_DObjCreateSkelForBone(DObj *obj, int boneIndex)
     char *buf; // [esp+0h] [ebp-8h]
     unsigned int len; // [esp+4h] [ebp-4h]
 
-    if ( DObjSkelExists(obj, sv.bpsWindow[14]) )
+    if (DObjSkelExists(obj, sv.skelTimeStamp))
         return DObjSkelIsBoneUpToDate(obj, boneIndex);
     len = DObjGetAllocSkelSize(obj);
     buf = SV_AllocSkelMemory(len);
-    DObjCreateSkel(obj, buf, sv.bpsWindow[14]);
+    DObjCreateSkel(obj, buf, sv.skelTimeStamp);
     return 0;
 }
 
@@ -435,44 +446,44 @@ char *__cdecl SV_AllocSkelMemory(unsigned int size)
     char *result; // [esp+0h] [ebp-4h]
     unsigned int sizea; // [esp+Ch] [ebp+8h]
 
-    if ( !size && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_game.cpp", 628, 0, "%s", "size") )
+    if (!size && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_game.cpp", 628, 0, "%s", "size"))
         __debugbreak();
     sizea = (size + 15) & 0xFFFFFFF0;
-    if ( sizea > 0x3FFF0
+    if (sizea > 0x3FFF0
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_game.cpp",
-                    631,
-                    0,
-                    "%s",
-                    "size <= sizeof( g_sv_skel_memory ) - SKEL_MEM_ALIGNMENT") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_game.cpp",
+            631,
+            0,
+            "%s",
+            "size <= sizeof( g_sv_skel_memory ) - SKEL_MEM_ALIGNMENT"))
     {
         __debugbreak();
     }
-    if ( !g_sv_skel_memory_start
+    if (!g_sv_skel_memory_start
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_game.cpp",
-                    633,
-                    0,
-                    "%s",
-                    "g_sv_skel_memory_start") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_game.cpp",
+            633,
+            0,
+            "%s",
+            "g_sv_skel_memory_start"))
     {
         __debugbreak();
     }
-    while ( 1 )
+    while (1)
     {
-        result = &g_sv_skel_memory_start[sv.bpsWindow[15]];
-        sv.bpsWindow[15] += sizea;
-        if ( sv.bpsWindow[15] <= 262128 )
+        result = &g_sv_skel_memory_start[sv.skelMemPos];
+        sv.skelMemPos += sizea;
+        if (sv.skelMemPos <= 262128)
             break;
         static int warnCount_2;
-        if ( warnCount_2 != sv.bpsWindow[14] )
+        if (warnCount_2 != sv.skelTimeStamp)
         {
-            warnCount_2 = sv.bpsWindow[14];
+            warnCount_2 = sv.skelTimeStamp;
             Com_PrintWarning(15, "WARNING: SV_SKEL_MEMORY_SIZE exceeded\n");
         }
         SV_ResetSkeletonCache();
     }
-    if ( !result && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_game.cpp", 641, 0, "%s", "result") )
+    if (!result && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_game.cpp", 641, 0, "%s", "result"))
         __debugbreak();
     return result;
 }
@@ -482,11 +493,11 @@ int __cdecl SV_DObjCreateSkelForBones(DObj *obj, int *partBits)
     char *buf; // [esp+0h] [ebp-8h]
     unsigned int len; // [esp+4h] [ebp-4h]
 
-    if ( DObjSkelExists(obj, sv.bpsWindow[14]) )
+    if (DObjSkelExists(obj, sv.skelTimeStamp))
         return DObjSkelAreBonesUpToDate(obj, partBits);
     len = DObjGetAllocSkelSize(obj);
     buf = SV_AllocSkelMemory(len);
-    DObjCreateSkel(obj, buf, sv.bpsWindow[14]);
+    DObjCreateSkel(obj, buf, sv.skelTimeStamp);
     return 0;
 }
 
@@ -699,7 +710,7 @@ void __cdecl SV_track_shutdown()
 void __cdecl SV_SavePaths(unsigned __int8 *buf, unsigned int size)
 {
     Com_SaveLump(LUMP_PATHCONNECTIONS, buf, size, COM_SAVE_LUMP_AND_REOPEN);
-    sv.bpsWindow[13] = Com_GetBspChecksum();
+    sv.checksum = Com_GetBspChecksum();
 }
 
 int __cdecl SV_GetGuid(int clientNum)
@@ -764,18 +775,18 @@ void __cdecl SV_SetGametype()
     char *s; // [esp+44h] [ebp-4h]
 
     _Dvar_RegisterString("g_gametype", "tdm", 0x24u, "Game Type");
-    if ( com_sv_running->current.enabled && G_GetSavePersist() )
-        I_strncpyz(gametype, (const char *)&sv.killServer, 64);
+    if (com_sv_running->current.enabled && G_GetSavePersist())
+        I_strncpyz(gametype, sv.gametype, 64);
     else
         I_strncpyz(gametype, sv_gametype->current.string, 64);
-    for ( s = gametype; *s; ++s )
+    for (s = gametype; *s; ++s)
         *s = tolower(*s);
-    if ( !Scr_IsValidGameType(gametype) )
+    if (!Scr_IsValidGameType(gametype))
     {
         Com_Printf(15, "g_gametype %s is not a valid gametype, defaulting to dm\n", gametype);
         strcpy(gametype, "dm");
     }
-    Dvar_SetString((dvar_s *)sv_gametype, gametype);
+    Dvar_SetString((dvar_s*)sv_gametype, gametype);
 }
 
 void __cdecl SV_ShutdownGameVM(int clearScripts)

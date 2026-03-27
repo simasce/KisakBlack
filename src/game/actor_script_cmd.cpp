@@ -657,7 +657,7 @@ void __cdecl ActorCmd_FindReacquireDirectPath(scr_entref_t entref)
     self = Actor_Get(entref);
     ignoreSuppression = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
-        ignoreSuppression = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue != 0;
+        ignoreSuppression = Scr_GetInt(0, SCRIPTINSTANCE_SERVER) != 0;
     Actor_Exposed_FindReacquireDirectPath(self, ignoreSuppression);
 }
 
@@ -669,7 +669,7 @@ void __cdecl ActorCmd_FindReacquireProximatePath(scr_entref_t entref)
     self = Actor_Get(entref);
     ignoreSuppression = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
-        ignoreSuppression = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue != 0;
+        ignoreSuppression = Scr_GetInt(0, SCRIPTINSTANCE_SERVER) != 0;
     Actor_Exposed_FindReacquireProximatePath(self, ignoreSuppression);
 }
 
@@ -821,7 +821,7 @@ void __cdecl ActorCmd_MayMoveToPoint(scr_entref_t entref)
     self = Actor_Get(entref);
     Scr_GetVector(0, vPoint, SCRIPTINSTANCE_SERVER);
     checkDrop = (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) <= 1
-                     || Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 0;
+                     || Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 0;
     if ( self->ent->tagInfo )
     {
         DEBUGMAYMOVE(self->ent->r.currentOrigin, vPoint, colorMagenta, DEBUGMAYMOVE_LIFTED);
@@ -970,7 +970,7 @@ void __cdecl ActorCmd_MayMoveFromPointToPoint(scr_entref_t entref)
     Scr_GetVector(0, vStart, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(1u, vEnd, SCRIPTINSTANCE_SERVER);
     checkDrop = (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) <= 2
-                     || Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue != 0;
+                     || Scr_GetInt(2u, SCRIPTINSTANCE_SERVER) != 0;
     if ( self->ent->tagInfo )
     {
         DEBUGMAYMOVE(vStart, vEnd, colorMagenta, DEBUGMAYMOVE_LIFTED);
@@ -1181,7 +1181,7 @@ void __cdecl ActorCmd_AllowedStances(scr_entref_t entref)
     self->eAllowedStances = STANCE_BAD;
     for ( i = 0; i < iNumParam; ++i )
     {
-        str = Scr_GetConstString(i, SCRIPTINSTANCE_SERVER).stringValue;
+        str = Scr_GetConstString(i, SCRIPTINSTANCE_SERVER);
         if ( str == scr_const.stand )
         {
             self->eAllowedStances |= 1;
@@ -1219,7 +1219,7 @@ void __cdecl ActorCmd_IsStanceAllowed(scr_entref_t entref)
     ai_stance_e eStance; // [esp+Ch] [ebp-4h]
 
     self = Actor_Get(entref);
-    str = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    str = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     eStance = STANCE_BAD;
     if ( str == scr_const.stand )
     {
@@ -1266,7 +1266,7 @@ void __cdecl ActorCmd_Knockback(scr_entref_t entref)
 
     Actor_Get(entref);
     pEnt = &g_entities[entref.entnum];
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue == 1 )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) == 1 )
         v1 = pEnt->flags & 0xFFFFFFF7;
     else
         v1 = pEnt->flags | 8;
@@ -1279,7 +1279,7 @@ void __cdecl ActorCmd_TraverseMode(scr_entref_t entref)
     unsigned int mode; // [esp+4h] [ebp-4h]
 
     self = Actor_Get(entref);
-    mode = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    mode = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( mode == scr_const.gravity )
     {
         self->eTraverseMode = AI_TRAVERSE_GRAVITY;
@@ -1306,9 +1306,9 @@ void __cdecl ActorCmd_AnimMode(scr_entref_t entref)
 
     self = Actor_Get(entref);
     clearPath = 1;
-    mode = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    mode = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1 )
-        clearPath = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 0;
+        clearPath = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 0;
     if ( mode != scr_const.none && clearPath )
         Actor_ClearPath(self);
     if ( mode == scr_const.nophysics )
@@ -1373,7 +1373,7 @@ void __cdecl ActorCmd_OrientMode(scr_entref_t entref)
     unsigned int mode; // [esp+34h] [ebp-4h]
 
     self = Actor_Get(entref);
-    mode = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    mode = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( mode == scr_const.face_angle )
     {
         self->ScriptOrient.eMode = AI_ORIENT_DONT_CHANGE;
@@ -1433,7 +1433,7 @@ void __cdecl ActorCmd_OrientMode(scr_entref_t entref)
             "'face angle' takes a second argument that is a yaw angle\n",
             0);
     }
-    if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2 && Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue > 0 )
+    if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2 && Scr_GetInt(2u, SCRIPTINSTANCE_SERVER) > 0 )
     {
         Actor_SetDesiredBodyAngle(&self->CodeOrient, self->ScriptOrient.fDesiredBodyYaw);
         Actor_SetBodyAngle(self, self->ScriptOrient.fDesiredBodyYaw);
@@ -1773,7 +1773,7 @@ void __cdecl ActorCmd_CheckProne(scr_entref_t entref)
     Actor_Get(entref);
     Scr_GetVector(0, position, SCRIPTINSTANCE_SERVER);
     yaw = Scr_GetFloat(1u, SCRIPTINSTANCE_SERVER);
-    isProne = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue != 0;
+    isProne = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER) != 0;
     canGoProne = BG_CheckProne(
                                  0,
                                  entref.entnum,
@@ -1798,7 +1798,7 @@ void __cdecl ActorCmd_PushPlayer(scr_entref_t entref)
     actor_s *self; // [esp+8h] [ebp-4h]
 
     self = Actor_Get(entref);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         v1 = self->Physics.iTraceMask & 0xFDFFFFFF;
     else
         v1 = (unsigned int)&cls.wagerServers[5331].basictraining | self->Physics.iTraceMask;
@@ -2135,7 +2135,7 @@ void __cdecl ActorCmd_SetEntityTarget(scr_entref_t entref)
                 Scr_Error("No target provided for SetEntityTarget", 0);
                 goto LABEL_14;
             }
-            self->sentient->scriptTargetTag = (unsigned __int16)Scr_GetConstLowercaseString(2u, SCRIPTINSTANCE_SERVER).floatValue;
+            self->sentient->scriptTargetTag = (unsigned __int16)Scr_GetConstLowercaseString(2u, SCRIPTINSTANCE_SERVER);
         }
         Float = Scr_GetFloat(1u, SCRIPTINSTANCE_SERVER);
         if ( (float)(Float - 1.0) < 0.0 )
@@ -2290,7 +2290,7 @@ void __cdecl ActorCmd_SetFlashBanged(scr_entref_t entref)
         }
         strength = Scr_GetFloat(1u, SCRIPTINSTANCE_SERVER);
     }
-    flashed.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    flashed.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     Actor_SetFlashed(self, flashed.intValue, strength);
 }
 
@@ -2301,7 +2301,7 @@ void __cdecl ActorCmd_SetFlashbangImmunity(scr_entref_t entref)
 
     self = Actor_Get(entref);
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
-        self->flashBangImmunity = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        self->flashBangImmunity = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     else
         Scr_Error(USAGEMSG_0, 0);
 }
@@ -2354,7 +2354,7 @@ void __cdecl ActorCmd_SetTalkToSpecies(scr_entref_t entref)
     speciesFlag = 0;
     for ( paramNum = 0; paramNum < Scr_GetNumParam(SCRIPTINSTANCE_SERVER); ++paramNum )
     {
-        species = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+        species = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
         if ( species == scr_const.all )
         {
             self->talkToSpecies = -1;
@@ -2399,7 +2399,7 @@ void __cdecl ActorCmd_SetAnimState(scr_entref_t entref)
     int anim_state_index; // [esp+8h] [ebp-4h]
 
     self = Actor_Get(entref);
-    animstate = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    animstate = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     anim_state_index = BG_Actor_GetAnimStateIndex(animstate);
     BG_Dog_SetAnimState(&self->ent->s, anim_state_index);
 }
@@ -2442,14 +2442,14 @@ void __cdecl ActorCmd_finishActorDamage(scr_entref_t entref)
     dir = 0;
     point = 0;
     tempBulletHitEntity = 0;
-    damage = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+    damage = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     if (damage > 0)
     {
         if (Scr_GetType(0, SCRIPTINSTANCE_SERVER) && Scr_GetPointerType(0, SCRIPTINSTANCE_SERVER) == 19)
             inflictor = Scr_GetEntity(0);
         if (Scr_GetType(1u, SCRIPTINSTANCE_SERVER) && Scr_GetPointerType(1u, SCRIPTINSTANCE_SERVER) == 19)
             attacker = Scr_GetEntity(1u);
-        dflags = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+        dflags = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
         mod = (meansOfDeath_t)G_MeansOfDeathFromScriptParam(4u);
         String = Scr_GetString(5u, SCRIPTINSTANCE_SERVER);
         iWeapon = G_GetWeaponIndexForName(String);
@@ -2463,9 +2463,9 @@ void __cdecl ActorCmd_finishActorDamage(scr_entref_t entref)
             Scr_GetVector(7u, vDir, SCRIPTINSTANCE_SERVER);
             dir = vDir;
         }
-        floatValue = (unsigned __int16)Scr_GetConstString(8u, SCRIPTINSTANCE_SERVER).floatValue;
+        floatValue = (unsigned __int16)Scr_GetConstString(8u, SCRIPTINSTANCE_SERVER);
         hitLoc = (hitLocation_t)G_GetHitLocationIndexFromString(floatValue);
-        psTimeOffset = Scr_GetInt(9u, SCRIPTINSTANCE_SERVER).intValue;
+        psTimeOffset = Scr_GetInt(9u, SCRIPTINSTANCE_SERVER);
         if (self->Physics.bIsAlive)
         {
             if (dir)

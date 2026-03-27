@@ -436,7 +436,7 @@ void __cdecl HudElem_SetFlagForeground(game_hudelem_s *hud, int offset)
 
     f = &fields_0[offset];
     flags = (int *)((char *)hud + f->ofs);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
     {
         v5 = GetField((char *)flags, f->size) | 1;
         size = f->size;
@@ -671,7 +671,7 @@ void __cdecl HudElem_SetFont3dUseGlowColor(game_hudelem_s *hud, int offset)
 
     f = &fields_0[offset];
     flags = (int *)((char *)hud + f->ofs);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
     {
         v5 = GetField((char *)flags, f->size) | 0x20;
         size = f->size;
@@ -736,7 +736,7 @@ void __cdecl HudElem_SetFlagHideWhenDead(game_hudelem_s *hud, int offset)
 
     f = &fields_0[offset];
     flags = (int *)((char *)hud + f->ofs);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
     {
         v5 = GetField((char *)flags, f->size) | 2;
         size = f->size;
@@ -801,7 +801,7 @@ void __cdecl HudElem_SetFlagHideWhenInKillCam(game_hudelem_s *hud, int offset)
 
     f = &fields_0[offset];
     flags = (int *)((char *)hud + f->ofs);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
     {
         v5 = GetField((char *)flags, f->size) | 0x40;
         size = f->size;
@@ -866,7 +866,7 @@ void __cdecl HudElem_SetFlagHideWhenInDemo(game_hudelem_s *hud, int offset)
 
     f = &fields_0[offset];
     flags = (int *)((char *)hud + f->ofs);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
     {
         v5 = GetField((char *)flags, f->size) | 0x200;
         size = f->size;
@@ -931,7 +931,7 @@ void __cdecl HudElem_SetFlagOverrideWhenInDemo(game_hudelem_s *hud, int offset)
 
     f = &fields_0[offset];
     flags = (int *)((char *)hud + f->ofs);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
     {
         v5 = GetField((char *)flags, f->size) | 0x400;
         size = f->size;
@@ -996,7 +996,7 @@ void __cdecl HudElem_SetFlagHideWhileRemoteControlling(game_hudelem_s *hud, int 
 
     f = &fields_0[offset];
     flags = (int *)((char *)hud + f->ofs);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
     {
         v5 = GetField((char *)flags, f->size) | 0x800;
         size = f->size;
@@ -1061,7 +1061,7 @@ void __cdecl HudElem_SetFlagHideWhenInMenu(game_hudelem_s *hud, int offset)
 
     f = &fields_0[offset];
     flags = (int *)((char *)hud + f->ofs);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
     {
         v5 = GetField((char *)flags, f->size) | 4;
         size = f->size;
@@ -1126,7 +1126,7 @@ void __cdecl HudElem_SetFlagFadeWhenTargeted(game_hudelem_s *hud, int offset)
 
     f = &fields_0[offset];
     flags = (int *)((char *)hud + f->ofs);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
     {
         v5 = GetField((char *)flags, f->size) | 0x100;
         size = f->size;
@@ -1187,7 +1187,7 @@ void __cdecl HudElem_SetBoolean(game_hudelem_s *hud, int offset)
     char *v4; // [esp+8h] [ebp-Ch]
     int value; // [esp+10h] [ebp-4h]
 
-    value = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    value = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     v2 = &fields_0[offset];
     v4 = (char *)hud + v2->ofs;
     size = v2->size;
@@ -1622,7 +1622,7 @@ void __cdecl HudElem_SetUI3DWindow(game_hudelem_s *hud, int offset)
     {
         __debugbreak();
     }
-    hud->elem.ui3dWindow = (unsigned __int8)Scr_GetInt(0, SCRIPTINSTANCE_SERVER).floatValue;
+    hud->elem.ui3dWindow = (unsigned __int8)Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
 }
 
 void __cdecl HudElem_GetUI3DWindow(game_hudelem_s *hud, int offset)
@@ -1825,7 +1825,7 @@ void __cdecl GScr_NewTeamHudElem()
     unsigned __int16 teamName; // [esp+0h] [ebp-Ch]
     game_hudelem_s *hud; // [esp+8h] [ebp-4h]
 
-    teamName = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    teamName = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( teamName == scr_const.allies )
     {
         v0 = HudElem_Alloc(1023, 2);
@@ -1958,13 +1958,13 @@ void __cdecl HECmd_SetMaterial(scr_entref_t entref)
     }
     else
     {
-        width.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        width.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         if ( width.intValue < 0 )
         {
             v2 = va("width %i < 0", width.intValue);
             Scr_ParamError(1u, v2, SCRIPTINSTANCE_SERVER);
         }
-        height.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        height.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
         if ( height.intValue < 0 )
         {
             v3 = va("height %i < 0", height.intValue);
@@ -1989,9 +1989,9 @@ void __cdecl HECmd_SetWarGameData(scr_entref_t entref)
         HudElem_ClearTypeSettings(hud);
         hud->elem.type = 6;
         hud->elem.value = Scr_GetFloat(0, SCRIPTINSTANCE_SERVER);
-        v1.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        v1.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         AssignToSmallerType<unsigned char>(&hud->elem.materialIndex, v1.intValue);
-        hud->elem.time = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        hud->elem.time = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     }
     else
     {
@@ -2146,13 +2146,13 @@ void __cdecl HECmd_SetClock_Internal(scr_entref_t entref, he_type_t type, const 
     }
     else
     {
-        width.intValue = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+        width.intValue = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
         if ( width.intValue < 0 )
         {
             v7 = va("width %i < 0", width.intValue);
             Scr_ParamError(3u, v7, SCRIPTINSTANCE_SERVER);
         }
-        height.intValue = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).intValue;
+        height.intValue = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER);
         if ( height.intValue < 0 )
         {
             v8 = va("height %i < 0", height.intValue);
@@ -2196,7 +2196,7 @@ void __cdecl HECmd_SetWaypoint(scr_entref_t entref)
 
     hud = HECmd_GetHudElem(entref);
     numParam = Scr_GetNumParam(SCRIPTINSTANCE_SERVER);
-    constantSize = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    constantSize = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     hud->elem.type = 15;
     hud->elem.value = (float)constantSize;
     if ( numParam == 1 )
@@ -2212,7 +2212,7 @@ void __cdecl HECmd_SetWaypoint(scr_entref_t entref)
             AssignToSmallerType<unsigned char>(&hud->elem.offscreenMaterialIdx, v1);
         }
         if ( numParam == 3 )
-            hud->elem.time = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+            hud->elem.time = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     }
 }
 
@@ -2269,8 +2269,8 @@ void __cdecl HECmd_ScaleOverTime(scr_entref_t entref)
         v1 = va("scale time %g <= 0", scaleTime);
         Scr_ParamError(0, v1, SCRIPTINSTANCE_SERVER);
     }
-    width.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
-    height.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+    width.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
+    height.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     hud->elem.scaleStartTime = level.time;
     AssignToSmallerType<short>(&hud->elem.scaleTime, (int)((float)(1000.0 * scaleTime) + 9.313225746154785e-10));
     hud->elem.fromWidth = hud->elem.width;
@@ -2416,11 +2416,11 @@ void __cdecl HECmd_SetPulseFX(scr_entref_t entref)
         Scr_Error("USAGE: <hudelem> SetPulseFX( <speed>, <decayStart>, <decayDuration> );\n", 0);
     hud = HECmd_GetHudElem(entref);
     hud->elem.fxBirthTime = level.time;
-    v1.intValue = GetIntGTZero(0).intValue;
+    v1.intValue = GetIntGTZero(0);
     AssignToSmallerType<unsigned short>(&hud->elem.fxLetterTime, v1.intValue);
-    v2.intValue = GetIntGTZero(1u).intValue;
+    v2.intValue = GetIntGTZero(1u);
     AssignToSmallerType<unsigned short>(&hud->elem.fxDecayStartTime, v2.intValue);
-    v3.intValue = GetIntGTZero(2u).intValue;
+    v3.intValue = GetIntGTZero(2u);
     AssignToSmallerType<unsigned short>(&hud->elem.fxDecayDuration, v3.intValue);
     if ( hud->clientNum == 1023 )
     {
@@ -2448,18 +2448,17 @@ void __cdecl HECmd_SetPulseFX(scr_entref_t entref)
     }
 }
 
-VariableUnion __cdecl GetIntGTZero(unsigned int index)
+int __cdecl GetIntGTZero(unsigned int index)
 {
     const char *v1; // eax
     int number; // [esp+0h] [ebp-4h]
 
-    number = Scr_GetInt(index, SCRIPTINSTANCE_SERVER).intValue;
+    number = Scr_GetInt(index, SCRIPTINSTANCE_SERVER);
     if ( number < 0 )
     {
-        v1 = va("Time (%i) must be greater than zero.", number);
-        Scr_ParamError(index, v1, SCRIPTINSTANCE_SERVER);
+        Scr_ParamError(index, va("Time (%i) must be greater than zero.", number), SCRIPTINSTANCE_SERVER);
     }
-    return (VariableUnion)number;
+    return number;
 }
 
 void __cdecl HECmd_SetCOD7DecodeFX(scr_entref_t entref)
@@ -2474,11 +2473,11 @@ void __cdecl HECmd_SetCOD7DecodeFX(scr_entref_t entref)
     hud = HECmd_GetHudElem(entref);
     hud->elem.flags |= 0x1000u;
     hud->elem.fxBirthTime = level.time;
-    v1.intValue = GetIntGTZero(0).intValue;
+    v1.intValue = GetIntGTZero(0);
     AssignToSmallerType<unsigned short>(&hud->elem.fxLetterTime, v1.intValue);
-    v2.intValue = GetIntGTZero(1u).intValue;
+    v2.intValue = GetIntGTZero(1u);
     AssignToSmallerType<unsigned short>(&hud->elem.fxDecayStartTime, v2.intValue);
-    v3.intValue = GetIntGTZero(2u).intValue;
+    v3.intValue = GetIntGTZero(2u);
     AssignToSmallerType<unsigned short>(&hud->elem.fxDecayDuration, v3.intValue);
 }
 
@@ -2497,13 +2496,13 @@ void __cdecl HECmd_SetRedactFX(scr_entref_t entref)
     hud = HECmd_GetHudElem(entref);
     hud->elem.flags |= 0x80u;
     hud->elem.fxBirthTime = level.time;
-    v1.intValue = GetIntGTZero(0).intValue;
+    v1.intValue = GetIntGTZero(0);
     AssignToSmallerType<unsigned short>(&hud->elem.fxDecayStartTime, v1.intValue);
-    v2.intValue = GetIntGTZero(1u).intValue;
+    v2.intValue = GetIntGTZero(1u);
     AssignToSmallerType<unsigned short>(&hud->elem.fxDecayDuration, v2.intValue);
-    v3.intValue = GetIntGTZero(2u).intValue;
+    v3.intValue = GetIntGTZero(2u);
     AssignToSmallerType<unsigned short>(&hud->elem.fxRedactDecayStartTime, v3.intValue);
-    v4.intValue = GetIntGTZero(3u).intValue;
+    v4.intValue = GetIntGTZero(3u);
     AssignToSmallerType<unsigned short>(&hud->elem.fxRedactDecayDuration, v4.intValue);
 }
 

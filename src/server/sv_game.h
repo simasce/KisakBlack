@@ -5,6 +5,9 @@ struct DObjAnimMat;
 
 playerState_s *__cdecl SV_GameClientNum(int num);
 svEntity_s *__cdecl SV_SvEntityForGentity(const gentity_s *gEnt);
+gentity_s *__cdecl SV_GentityNum(int num);
+gentity_s *__cdecl SV_GEntityForSvEntity(svEntity_s *svEnt);
+
 void __cdecl SV_GameSendServerCommand(int clientNum, svscmd_type type, const char *text);
 void __cdecl SV_GameDropClient(int clientNum, const char *reason);
 void __cdecl SV_SetMapCenter(float *mapCenter);

@@ -761,26 +761,24 @@ void __cdecl Scr_SetGenericField(
                 scriptInstance_t inst,
                 unsigned int whichbits)
 {
-    VariableUnion v5; // eax
     float vec[3]; // [esp+4h] [ebp-Ch] BYREF
 
     switch ( type )
     {
         case F_INT:
-            *(VariableUnion *)&b[ofs] = Scr_GetInt(0, inst);
+            *(int *)&b[ofs] = Scr_GetInt(0, inst);
             break;
         case F_SHORT:
-            *(_WORD *)&b[ofs] = (unsigned __int16)Scr_GetInt(0, SCRIPTINSTANCE_SERVER).floatValue;
+            *(short *)&b[ofs] = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             break;
         case F_BYTE:
-            b[ofs] = (unsigned __int8)Scr_GetInt(0, SCRIPTINSTANCE_SERVER).floatValue;
+            *(uint8 *)&b[ofs] = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             break;
         case F_FLOAT:
             *(float *)&b[ofs] = Scr_GetFloat(0, inst);
             break;
         case F_STRING:
-            v5.intValue = Scr_GetConstStringIncludeNull(0, inst).intValue;
-            Scr_SetString((unsigned __int16 *)&b[ofs], v5.stringValue, inst);
+            Scr_SetString((unsigned short *)&b[ofs], Scr_GetConstStringIncludeNull(0, inst), inst);
             break;
         case F_VECTOR:
             Scr_GetVector(0, vec, inst);
@@ -793,10 +791,14 @@ void __cdecl Scr_SetGenericField(
             *(float *)&b[ofs] = vec[1];
             break;
         case F_BITFLAG:
-            if ( Scr_GetInt(0, inst).intValue )
-                *(unsigned int *)&b[ofs] |= whichbits;
+            if (Scr_GetInt(0, inst))
+            {
+                *(int *)&b[ofs] |= whichbits;
+            }
             else
-                *(unsigned int *)&b[ofs] &= ~whichbits;
+            {
+                *(int *)&b[ofs] &= ~whichbits;
+            }
             break;
         default:
             return;

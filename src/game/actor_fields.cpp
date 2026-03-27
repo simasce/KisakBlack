@@ -187,7 +187,7 @@ void __cdecl ActorScr_SetSpecies(actor_s *pSelf, const actor_fields_s *pField)
 
     if ( !pSelf && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game\\actor_fields.cpp", 304, 0, "%s", "pSelf") )
         __debugbreak();
-    type = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    type = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     for ( i = AI_SPECIES_DOG; i < MAX_AI_SPECIES; ++i )
     {
         if ( type == *g_AISpeciesNames[i] )
@@ -562,7 +562,7 @@ void __cdecl ActorScr_SetFixedNode(actor_s *self, const actor_fields_s *field)
     {
         __debugbreak();
     }
-    self->fixedNode = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue != 0;
+    self->fixedNode = Scr_GetInt(0, SCRIPTINSTANCE_SERVER) != 0;
     self->exposedStartTime = 0x80000000;
 }
 

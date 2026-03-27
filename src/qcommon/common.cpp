@@ -3041,7 +3041,7 @@ void Com_Statmon()
         {
             if ( timeClientFrame - timePrevFrame > 33 && timePrevFrame )
                 StatMon_Warning(0, 3000, (char *)"code_warning_fps");
-            if ( *(int *)&sv.gametype[60] > 50 )
+            if (sv.serverFrameTimeMax > 50)
                 StatMon_Warning(6, 3000, (char *)"code_warning_serverfps");
         }
     }

@@ -83,30 +83,30 @@ struct __declspec(align(4)) VariableStackBuffer // sizeof=0x10
 
 union VariableUnion // sizeof=0x4
 {                                                                             // XREF: Scr_EmitAnimationInternal+8E/w
-    VariableUnion(float f)
-    {
-        floatValue = f;
-    }
-    VariableUnion(int i)
-    {
-        intValue = i;
-    }
-    VariableUnion(unsigned int i)
-    {
-        intValue = (int)i;
-    }
-    VariableUnion(char *str)
-    {
-        codePosValue = str;
-    }
-    VariableUnion(const char *str)
-    {
-        codePosValue = str;
-    }
-    VariableUnion()
-    {
-        intValue = 0;
-    }
+    //VariableUnion(float f)
+    //{
+    //    floatValue = f;
+    //}
+    //VariableUnion(int i)
+    //{
+    //    intValue = i;
+    //}
+    //VariableUnion(unsigned int i)
+    //{
+    //    intValue = (int)i;
+    //}
+    //VariableUnion(char *str)
+    //{
+    //    codePosValue = str;
+    //}
+    //VariableUnion(const char *str)
+    //{
+    //    codePosValue = str;
+    //}
+    //VariableUnion()
+    //{
+    //    intValue = 0;
+    //}
 
     int intValue;
     float floatValue;

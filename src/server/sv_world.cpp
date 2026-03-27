@@ -326,8 +326,10 @@ void __cdecl SV_TraceCapsuleToEntity(const moveclip_t *clip, svEntity_s *check, 
     int entnum; // [esp+48h] [ebp-8h]
     float oldFraction; // [esp+4Ch] [ebp-4h]
 
-    entnum = ((char *)check - (char *)sv.svEntities[0].baseline.s.lerp.apos.trBase) / 360;
-    touch = (gentity_s *)(sv.bpsWindow[8] + entnum * sv.bpsWindow[9]);
+    entnum = ((char *)check - (char *)sv.svEntities) / sizeof(svEntity_s);
+    //touch = (gentity_s *)(sv.bpsWindow[8] + entnum * sv.bpsWindow[9]);
+    touch = SV_GentityNum(entnum);
+
     if ( (touch->r.contents & clip->contentmask) != 0
         && (clip->passEntityNum == 1023
          || entnum != clip->passEntityNum
@@ -469,8 +471,10 @@ void __cdecl SV_TracePointToEntity(const pointtrace_t *clip, svEntity_s *check, 
     int partBits[5]; // [esp+134h] [ebp-18h] BYREF
     float oldFraction; // [esp+148h] [ebp-4h]
 
-    entnum = ((char *)check - (char *)sv.svEntities[0].baseline.s.lerp.apos.trBase) / 360;
-    touch = (gentity_s *)(sv.bpsWindow[8] + entnum * sv.bpsWindow[9]);
+    entnum = ((char *)check - (char *)sv.svEntities) / sizeof(svEntity_s);
+    //touch = (gentity_s *)(sv.bpsWindow[8] + entnum * sv.bpsWindow[9]);
+    touch = SV_GentityNum(entnum);
+
     if ( (touch->r.contents & clip->contentmask) == 0
         || clip->ignoreEntParams
         && clip->ignoreEntParams->baseEntity != 1023
@@ -718,7 +722,7 @@ int __cdecl SV_SightTraceCapsuleToEntity(const sightclip_t *clip, int entnum)
     float boxmaxs[3]; // [esp+30h] [ebp-10h]
     const float *angles; // [esp+3Ch] [ebp-4h]
 
-    touch = (gentity_s *)(sv.bpsWindow[8] + entnum * sv.bpsWindow[9]);
+    touch = (gentity_s *)((char *)sv.gentities + entnum * sv.gentitySize);
     if ( (touch->r.contents & clip->contentmask) == 0 )
         return 0;
     if ( clip->passEntityNum[0] != 1023 )
@@ -829,7 +833,7 @@ int __cdecl SV_SightTracePointToEntity(const sightpointtrace_t *clip, int entnum
     int partBits[5]; // [esp+114h] [ebp-14h] BYREF
 
     //TraceExtents::TraceExtents(&extents);
-    touch = (gentity_s *)(sv.bpsWindow[8] + entnum * sv.bpsWindow[9]);
+    touch = (gentity_s *)((char *)sv.gentities + entnum * sv.gentitySize);
     if ( (touch->r.contents & clip->contentmask) == 0 )
         return 0;
     for ( passEntityIdx = 0; passEntityIdx < 2; ++passEntityIdx )
@@ -979,7 +983,7 @@ void __cdecl SV_SetupIgnoreEntParams(IgnoreEntParams *ignoreEntParams, int baseE
     }
     else
     {
-        base = (gentity_s *)(sv.bpsWindow[8] + baseEntity * sv.bpsWindow[9]);
+        base = (gentity_s *)((char *)sv.gentities + baseEntity * sv.gentitySize);
         if ( base->r.ownerNum.isDefined() )
             ignoreEntParams->parentEntity = base->r.ownerNum.entnum();
         else
@@ -1080,44 +1084,45 @@ void __cdecl SV_TracePoint(trace_t *results, const float *start, const float *en
     clip.ignoreEntParams = context->ignoreEntParams;
     clip.bLocational = context->locational;
     clip.priorityMap = context->priorityMap;
-    if ( context->ignoreEntParams->baseEntity != 1023 && context->ignoreEntParams->parentEntity != -1 )
+    
+    if (context->ignoreEntParams->baseEntity != 1023 && context->ignoreEntParams->parentEntity != -1)
     {
-        //if ( !EntHandle::isDefined((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))
-        if ( !((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))->isDefined()
-            || (ignoreEntParams = context->ignoreEntParams,
-                    ignoreEntParams->parentEntity != ((EntHandle *)(sv.bpsWindow[8] + ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))->entnum()) )
+        //if (!EntHandle::isDefined((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize))
+        if (!(((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize))->isDefined())
+            //|| (ignoreEntParams = context->ignoreEntParams, ignoreEntParams->parentEntity != EntHandle::entnum((EntHandle *)((char *)&sv.gentities->r.ownerNum + ignoreEntParams->baseEntity * sv.gentitySize))))
+            || (ignoreEntParams = context->ignoreEntParams, ignoreEntParams->parentEntity != ((EntHandle *)((char *)&sv.gentities->r.ownerNum + ignoreEntParams->baseEntity * sv.gentitySize))->entnum()))
         {
-            //if ( EntHandle::isDefined((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316)) )
-            if ( ((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))->isDefined() )
+            //if (EntHandle::isDefined((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize)))
+            if ((((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize)))->isDefined())
             {
-                //v6 = EntHandle::entnum((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316));
-                v6 = ((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))->entnum();
+                //v7 = EntHandle::entnum((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize)->entnum());
                 v5 = va(
-                             "base: %d; parent: %d; base's parent: %d\n",
-                             context->ignoreEntParams->baseEntity,
-                             context->ignoreEntParams->parentEntity,
-                             v6);
+                    "base: %d; parent: %d; base's parent: %d\n",
+                    context->ignoreEntParams->baseEntity,
+                    context->ignoreEntParams->parentEntity,
+                    ((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize))->entnum());
             }
             else
             {
                 v5 = va(
-                             "base: %d; parent: %d; base's parent: %d\n",
-                             context->ignoreEntParams->baseEntity,
-                             context->ignoreEntParams->parentEntity,
-                             1023);
+                    "base: %d; parent: %d; base's parent: %d\n",
+                    context->ignoreEntParams->baseEntity,
+                    context->ignoreEntParams->parentEntity,
+                    1023);
             }
-            if ( !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_world.cpp",
-                            867,
-                            0,
-                            "%s\n\t%s",
-                            "context.ignoreEntParams->baseEntity == ENTITYNUM_NONE || context.ignoreEntParams->parentEntity == -1 || (S"
-                            "V_GentityNum( context.ignoreEntParams->baseEntity )->r.ownerNum.isDefined() && (uint)context.ignoreEntPara"
-                            "ms->parentEntity == SV_GentityNum( context.ignoreEntParams->baseEntity )->r.ownerNum.entnum())",
-                            v5) )
+            if (!Assert_MyHandler(
+                "C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_world.cpp",
+                867,
+                0,
+                "%s\n\t%s",
+                "context.ignoreEntParams->baseEntity == ENTITYNUM_NONE || context.ignoreEntParams->parentEntity == -1 || (S"
+                "V_GentityNum( context.ignoreEntParams->baseEntity )->r.ownerNum.isDefined() && (uint)context.ignoreEntPara"
+                "ms->parentEntity == SV_GentityNum( context.ignoreEntParams->baseEntity )->r.ownerNum.entnum())",
+                v5))
                 __debugbreak();
         }
     }
+
     CM_PointTraceToEntities(&clip, results, context);
     DynEntSv_PointTrace(&clip, results);
     GlassSv_PointTrace(&clip, results);
@@ -1219,42 +1224,40 @@ void __cdecl SV_TraceCapsule(
         //TraceExtents::TraceExtents(&clip.extents);
         clip.contentmask = context->mask;
         clip.passEntityNum = context->ignoreEntParams->baseEntity;
-        if ( context->ignoreEntParams->baseEntity != 1023 && context->ignoreEntParams->parentEntity != -1 )
+        if (context->ignoreEntParams->baseEntity != 1023 && context->ignoreEntParams->parentEntity != -1)
         {
-            //if ( !EntHandle::isDefined((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))
-            if ( !((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))->isDefined()
-                || (ignoreEntParams = context->ignoreEntParams,
-                        //ignoreEntParams->parentEntity != EntHandle::entnum((EntHandle *)(sv.bpsWindow[8] + ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))) )
-                        ignoreEntParams->parentEntity != ((EntHandle *)(sv.bpsWindow[8] + ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))->entnum()) )
+            //if (!EntHandle::isDefined((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize))
+            if (!((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize))->isDefined()
+                //|| (ignoreEntParams = context->ignoreEntParams, ignoreEntParams->parentEntity != EntHandle::entnum((EntHandle *)((char *)&sv.gentities->r.ownerNum + ignoreEntParams->baseEntity * sv.gentitySize))))
+                || (ignoreEntParams = context->ignoreEntParams, ignoreEntParams->parentEntity != ((EntHandle *)((char *)&sv.gentities->r.ownerNum + ignoreEntParams->baseEntity * sv.gentitySize))->entnum()))
             {
-                //if ( EntHandle::isDefined((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316)) )
-                if ( ((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))->isDefined() )
+                //if (EntHandle::isDefined((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize)))
+                if ((((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize)))->isDefined())
                 {
-                    //v8 = EntHandle::entnum((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316));
-                    v8 = ((EntHandle *)(sv.bpsWindow[8] + context->ignoreEntParams->baseEntity * sv.bpsWindow[9] + 316))->entnum();
+                    //v9 = EntHandle::entnum((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize));
                     v7 = va(
-                                 "base: %d; parent: %d; base's parent: %d\n",
-                                 context->ignoreEntParams->baseEntity,
-                                 context->ignoreEntParams->parentEntity,
-                                 v8);
+                        "base: %d; parent: %d; base's parent: %d\n",
+                        context->ignoreEntParams->baseEntity,
+                        context->ignoreEntParams->parentEntity,
+                        ((EntHandle *)((char *)&sv.gentities->r.ownerNum + context->ignoreEntParams->baseEntity * sv.gentitySize))->entnum());
                 }
                 else
                 {
                     v7 = va(
-                                 "base: %d; parent: %d; base's parent: %d\n",
-                                 context->ignoreEntParams->baseEntity,
-                                 context->ignoreEntParams->parentEntity,
-                                 1023);
+                        "base: %d; parent: %d; base's parent: %d\n",
+                        context->ignoreEntParams->baseEntity,
+                        context->ignoreEntParams->parentEntity,
+                        1023);
                 }
-                if ( !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_world.cpp",
-                                907,
-                                0,
-                                "%s\n\t%s",
-                                "context.ignoreEntParams->baseEntity == ENTITYNUM_NONE || context.ignoreEntParams->parentEntity == -1 || "
-                                "(SV_GentityNum( context.ignoreEntParams->baseEntity )->r.ownerNum.isDefined() && (uint)context.ignoreEnt"
-                                "Params->parentEntity == SV_GentityNum( context.ignoreEntParams->baseEntity )->r.ownerNum.entnum())",
-                                v7) )
+                if (!Assert_MyHandler(
+                    "C:\\projects_pc\\cod\\codsrc\\src\\server\\sv_world.cpp",
+                    907,
+                    0,
+                    "%s\n\t%s",
+                    "context.ignoreEntParams->baseEntity == ENTITYNUM_NONE || context.ignoreEntParams->parentEntity == -1 || "
+                    "(SV_GentityNum( context.ignoreEntParams->baseEntity )->r.ownerNum.isDefined() && (uint)context.ignoreEnt"
+                    "Params->parentEntity == SV_GentityNum( context.ignoreEntParams->baseEntity )->r.ownerNum.entnum())",
+                    v7))
                     __debugbreak();
             }
         }
@@ -1446,7 +1449,7 @@ int __cdecl SV_PointContents(float *p, int passEntityNum, int contentmask)
     {
         if ( entityList[i] != passEntityNum )
         {
-            ent = (gentity_s *)(sv.bpsWindow[8] + entityList[i] * sv.bpsWindow[9]);
+            ent = (gentity_s *)((char *)sv.gentities + entityList[i] * sv.gentitySize);
             model = SV_ClipHandleForEntity(ent);
             v3 = CM_TransformedPointContents(p, model, ent->r.currentOrigin, ent->r.currentAngles);
             v6 |= v3;

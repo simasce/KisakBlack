@@ -76,7 +76,7 @@ scr_data_t g_scr_data;
 
 void assertCmd()
 {
-    if ( !Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue )
+    if ( !Scr_GetInt(0, SCRIPTINSTANCE_CLIENT) )
         Scr_Error(SCRIPTINSTANCE_CLIENT, "assert fail", 1);
 }
 
@@ -85,7 +85,7 @@ void assertexCmd()
     char *error; // [esp+0h] [ebp-8h]
     char *String; // [esp+4h] [ebp-4h]
 
-    if ( !Scr_GetInt(0, SCRIPTINSTANCE_CLIENT).intValue )
+    if ( !Scr_GetInt(0, SCRIPTINSTANCE_CLIENT) )
     {
         String = Scr_GetString(1u, SCRIPTINSTANCE_CLIENT);
         error = va("assert fail: %s", String);
@@ -253,6 +253,7 @@ int __cdecl GScr_LoadScriptAndLabel(scriptInstance_t inst, const char *filename,
 void __cdecl    GScr_LoadScripts(scriptInstance_t inst)
 {
     Scr_BeginLoadScripts(inst, 1);
+
     g_scr_data.delete_ = GScr_LoadScriptAndLabel(inst, "codescripts/delete", "main", 1);
     g_scr_data.initstructs = GScr_LoadScriptAndLabel(inst, "codescripts/struct", "initstructs", 1);
     g_scr_data.createstruct = GScr_LoadScriptAndLabel(inst, "codescripts/struct", "createstruct", 1);
@@ -275,6 +276,7 @@ void __cdecl    GScr_LoadScripts(scriptInstance_t inst)
     GScr_LoadLevelScript();
     Scr_PostCompileScripts(inst);
     GScr_PostLoadScripts(inst);
+
     Scr_EndLoadScripts(inst);
 }
 
@@ -477,7 +479,7 @@ void GScr_printChannelSet()
             return;
         }
     }
-    else if ( Type != 6 || (channel = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue, !Con_IsChannelOpen(channel)) )
+    else if ( Type != 6 || (channel = Scr_GetInt(0, SCRIPTINSTANCE_SERVER), !Con_IsChannelOpen(channel)) )
     {
         Scr_ParamError(0, "Invalid Print Channel", SCRIPTINSTANCE_SERVER);
         return;
@@ -716,7 +718,7 @@ void GScr_print3d()
         case 5:
             goto $LN5_57;
         case 6:
-            duration.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER).intValue;
+            duration.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER);
 $LN5_57:
             scale = Scr_GetFloat(4u, SCRIPTINSTANCE_SERVER);
 $LN4_64:
@@ -763,9 +765,9 @@ void GScr_line()
         case 5:
             goto $LN5_58;
         case 6:
-            duration.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER).intValue;
+            duration.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER);
 $LN5_58:
-            depthTest = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).intValue;
+            depthTest = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER);
 $LN4_65:
             color[3] = Scr_GetFloat(3u, SCRIPTINSTANCE_SERVER);
 $LN3_69:
@@ -825,9 +827,9 @@ void GScr_box()
         case 7:
             goto $LN8_39;
         case 8:
-            duration = Scr_GetInt(7u, SCRIPTINSTANCE_SERVER).intValue;
+            duration = Scr_GetInt(7u, SCRIPTINSTANCE_SERVER);
 $LN8_39:
-            depthTest = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER).intValue;
+            depthTest = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER);
 $LN7_47:
             color[3] = Scr_GetFloat(5u, SCRIPTINSTANCE_SERVER);
 $LN6_61:
@@ -889,7 +891,7 @@ void GScr_debugstar()
             color[1] = rgb[1];
             color[2] = rgb[2];
         }
-        duration.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        duration.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     }
     Scr_GetVector(0, location, SCRIPTINSTANCE_SERVER);
 LABEL_8:
@@ -927,11 +929,11 @@ void GScr_circle()
         case 5:
             goto $LN6_62;
         case 6:
-            duration.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER).intValue;
+            duration.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER);
 $LN6_62:
-            onGround.intValue = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).intValue;
+            onGround.intValue = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER);
 $LN5_59:
-            depthTest = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+            depthTest = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
 $LN4_66:
             Scr_GetVector(2u, rgb, SCRIPTINSTANCE_SERVER);
             color[0] = rgb[0];
@@ -982,11 +984,11 @@ void GScr_sphere()
         case 6:
             goto $LN7_49;
         case 7:
-            duration.intValue = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER).intValue;
+            duration.intValue = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER);
 $LN7_49:
-            sideCount.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER).intValue;
+            sideCount.intValue = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER);
 $LN6_63:
-            depthTest = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).intValue;
+            depthTest = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER);
 $LN5_60:
             color[3] = Scr_GetFloat(3u, SCRIPTINSTANCE_SERVER);
 $LN4_67:
@@ -1116,9 +1118,9 @@ void GScr_linelist()
         case 4:
             goto $LN8_41;
         case 5:
-            duration = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).intValue;
+            duration = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER);
 $LN8_41:
-            depth_test.intValue = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+            depth_test.intValue = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
 $LN7_50:
             color[3] = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
 $LN6_64:
@@ -1127,7 +1129,7 @@ $LN6_64:
             color[1] = rgb[1];
             color[2] = rgb[2];
 $LN14_16:
-            v0.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).intValue;
+            v0.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
             point_count = Scr_GetArrayValues_Vector(0, v0.stringValue, points, 256, "line list");
             break;
         default:
@@ -1282,7 +1284,7 @@ void GScr_GetDvar()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_SERVER) == 6 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         dvarValue = (char *)SV_Archived_Dvar_GetVariantString(v0.intValue);
     }
     else
@@ -1302,7 +1304,7 @@ void GScr_GetDvarInt()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_SERVER) == 6 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         VariantString = SV_Archived_Dvar_GetVariantString(v0.intValue);
     }
     else
@@ -1323,7 +1325,7 @@ void GScr_GetDvarFloat()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_SERVER) == 6 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         VariantString = SV_Archived_Dvar_GetVariantString(v0.intValue);
     }
     else
@@ -1343,7 +1345,7 @@ void GScr_GetDvarColorRed()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_SERVER) == 6 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         value = Dvar_GetColorRed(v0.intValue);
     }
     else
@@ -1362,7 +1364,7 @@ void GScr_GetDvarColorGreen()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_SERVER) == 6 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         value = Dvar_GetColorGreen(v0.intValue);
     }
     else
@@ -1381,7 +1383,7 @@ void GScr_GetDvarColorBlue()
 
     if ( Scr_GetType(0, SCRIPTINSTANCE_SERVER) == 6 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         value = Dvar_GetColorBlue(v0.intValue);
     }
     else
@@ -1422,7 +1424,7 @@ void GScr_SetDvar()
     }
     CleanDvarValue(dvarValue, outString, 1024);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) >= 3 )
-        Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     Dvar_SetFromStringByName(dvarName, (char *)dvarValue);
     dvar = Dvar_FindVar(dvarName);
     if ( !dvar
@@ -1500,7 +1502,7 @@ void Scr_GetEntByNum()
 {
     int entnum; // [esp+4h] [ebp-4h]
 
-    entnum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    entnum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)entnum < 0x400 )
     {
         if ( g_entities[entnum].r.inuse )
@@ -1555,7 +1557,7 @@ void Scr_GetWeaponModel()
     {
         if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 2 )
         {
-            weaponModel = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).stringValue;
+            weaponModel = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
             if ( weaponModel < 0x100 )
             {
                 if ( !BG_GetWeaponDef(iWeaponIndex)->worldModel[weaponModel] )
@@ -1687,7 +1689,7 @@ void GScr_AnimHasNotetrack()
     const char *anim; // [esp+8h] [ebp-4h]
 
     anim = Scr_GetAnim(0, 0, SCRIPTINSTANCE_SERVER).linkPointer;
-    name = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).floatValue;
+    name = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     Anims = Scr_GetAnims(HIWORD(anim), SCRIPTINSTANCE_SERVER);
     v1 = XAnimNotetrackExists(Anims, (unsigned __int16)anim, name);
     Scr_AddBool(v1, SCRIPTINSTANCE_SERVER);
@@ -1700,7 +1702,7 @@ void GScr_GetNotetrackTimes()
     const char *anim; // [esp+8h] [ebp-4h]
 
     anim = Scr_GetAnim(0, 0, SCRIPTINSTANCE_SERVER).linkPointer;
-    name.intValue = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).intValue;
+    name.intValue = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     Scr_MakeArray(SCRIPTINSTANCE_SERVER);
     Anims = Scr_GetAnims(HIWORD(anim), SCRIPTINSTANCE_SERVER);
     XAnimAddNotetrackTimesToScriptArray(Anims, (unsigned __int16)anim, name.stringValue);
@@ -1731,12 +1733,12 @@ void GScr_Spawn()
     unsigned __int16 classname; // [esp+14h] [ebp-8h]
     gentity_s *ent; // [esp+18h] [ebp-4h]
 
-    classname = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    classname = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(1u, origin, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) <= 2 )
         iSpawnFlags = 0;
     else
-        iSpawnFlags = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        iSpawnFlags = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     ent = G_Spawn();
     Scr_SetString(&ent->classname, classname, SCRIPTINSTANCE_SERVER);
     currentOrigin = ent->r.currentOrigin;
@@ -1768,7 +1770,7 @@ void GScr_SpawnCollision()
     const char *modelname; // [esp+28h] [ebp-4h]
 
     modelname = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-    targetname = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).stringValue;
+    targetname = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(2u, origin, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(3u, angles, SCRIPTINSTANCE_SERVER);
     ent = G_Spawn();
@@ -1809,8 +1811,8 @@ void GScr_SpawnVehicle()
     const char *modelname; // [esp+30h] [ebp-4h]
 
     modelname = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-    targetname = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).stringValue;
-    vehicletype = Scr_GetConstString(2u, SCRIPTINSTANCE_SERVER).stringValue;
+    targetname = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
+    vehicletype = Scr_GetConstString(2u, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(3u, origin, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(4u, angles, SCRIPTINSTANCE_SERVER);
     ent = G_Spawn();
@@ -1832,7 +1834,7 @@ void GScr_SpawnVehicle()
     currentAngles[2] = angles[2];
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 5 )
     {
-        destructibledef = Scr_GetConstString(5u, SCRIPTINSTANCE_SERVER).stringValue;
+        destructibledef = Scr_GetConstString(5u, SCRIPTINSTANCE_SERVER);
         v1 = SL_ConvertToString(destructibledef, SCRIPTINSTANCE_SERVER);
         G_SetupDestructible(ent, v1);
     }
@@ -1858,12 +1860,12 @@ void GScr_SpawnPlane()
     owner = Scr_GetEntity(0);
     if ( !owner->client )
         Scr_ParamError(0, "Owner entity is not a player", SCRIPTINSTANCE_SERVER);
-    classname = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).floatValue;
+    classname = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(2u, origin, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) <= 3 )
         iSpawnFlags = 0;
     else
-        iSpawnFlags = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+        iSpawnFlags = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
     ent = G_Spawn();
     Scr_SetString(&ent->classname, classname, SCRIPTINSTANCE_SERVER);
     currentOrigin = ent->r.currentOrigin;
@@ -1932,7 +1934,7 @@ void GScr_SpawnTimedFX()
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2 )
         Scr_GetVector(2u, direction, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 3 )
-        time = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+        time = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
     weaponIndex = G_GetWeaponIndexForName(weaponName);
     Scr_VerifyWeaponIndex(weaponIndex, weaponName);
     weapDef = BG_GetWeaponDef(weaponIndex);
@@ -1981,7 +1983,7 @@ void GScr_SpawnTurret()
     int savedregs; // [esp+18h] [ebp+0h] BYREF
 
     ent = 0;
-    classname = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    classname = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(1u, origin, SCRIPTINSTANCE_SERVER);
     weaponinfoname = Scr_GetString(2u, SCRIPTINSTANCE_SERVER);
     ent = SpawnTurretInternal(classname, origin, weaponinfoname);
@@ -2037,7 +2039,7 @@ void __cdecl GScr_SetTurretCarried(scr_entref_t entref)
         v2 = va("entity type '%s' is not a turret", v1);
         Scr_Error(v2, 0);
     }
-    v3.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    v3.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     Turret_SetTurretCarried(self, v3.intValue);
 }
 
@@ -2174,11 +2176,11 @@ void __cdecl ScrCmd_attach(scr_entref_t entref)
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) < 2 )
         v7.intValue = scr_const._;
     else
-        v7.intValue = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER).intValue;
+        v7.intValue = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) < 3 )
         v6.intValue = 0;
     else
-        v6.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        v6.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) >= 4 )
         Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) < 5 )
@@ -2235,7 +2237,7 @@ void __cdecl ScrCmd_detach(scr_entref_t entref)
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) < 2 )
         v6.intValue = scr_const._;
     else
-        v6.intValue = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER).intValue;
+        v6.intValue = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER);
     if ( !G_EntDetach(ent, modelName, v6.stringValue) )
     {
         Com_Printf(24, "Current attachments:\n");
@@ -2284,7 +2286,7 @@ void __cdecl ScrCmd_GetAttachModelName(scr_entref_t entref)
     int i; // [esp+4h] [ebp-4h]
 
     ent = GetEntity(entref);
-    i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)i >= 0x13 || !ent->attachModelNames[i] )
         Scr_ParamError(0, "bad index", SCRIPTINSTANCE_SERVER);
     v1 = G_ModelName(ent->attachModelNames[i]);
@@ -2297,7 +2299,7 @@ void __cdecl ScrCmd_GetAttachTagName(scr_entref_t entref)
     int i; // [esp+4h] [ebp-4h]
 
     ent = GetEntity(entref);
-    i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)i >= 0x13 || !ent->attachModelNames[i] )
         Scr_ParamError(0, "bad index", SCRIPTINSTANCE_SERVER);
     if ( !ent->attachTagNames[i]
@@ -2319,7 +2321,7 @@ void __cdecl ScrCmd_GetAttachIgnoreCollision(scr_entref_t entref)
     int i; // [esp+4h] [ebp-4h]
 
     ent = GetEntity(entref);
-    i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)i >= 0x13 || !ent->attachModelNames[i] )
         Scr_ParamError(0, "bad index", SCRIPTINSTANCE_SERVER);
     Scr_AddBool((ent->attachIgnoreCollision & (1 << i)) != 0, SCRIPTINSTANCE_SERVER);
@@ -2366,7 +2368,7 @@ void __cdecl ScrCmd_hidepart(scr_entref_t entref)
     if ( !obj )
         Scr_Error("entity has no model", 0);
     boneIndex = -2;
-    tagName = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    tagName = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER);
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
         if ( !DObjGetBoneIndex(obj, tagName, &boneIndex, -1) )
@@ -2412,7 +2414,7 @@ void __cdecl ScrCmd_showpart(scr_entref_t entref)
     if ( !obj )
         Scr_Error("entity has no model", 0);
     boneIndex = -2;
-    tagName = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    tagName = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER);
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
         if ( !DObjGetBoneIndex(obj, tagName, &boneIndex, -1) )
@@ -2497,7 +2499,7 @@ void __cdecl ScrCmd_SetInvisibleToPlayer(scr_entref_t entref)
     }
     clientNum = player->s.number;
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1 )
-        invisible = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        invisible = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if ( invisible )
         v1 = ent->r.clientMask[clientNum >> 5] | (1 << (clientNum & 0x1F));
     else
@@ -2545,7 +2547,7 @@ void __cdecl ScrCmd_SetVisibleToTeam(scr_entref_t entref)
     gentity_s *clientEnt; // [esp+10h] [ebp-4h]
 
     ent = GetEntity(entref);
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( team != scr_const.allies && team != scr_const.axis )
     {
         v1 = SL_ConvertToString(team, SCRIPTINSTANCE_SERVER);
@@ -2634,7 +2636,7 @@ void __cdecl ScrCmd_LinkTo(scr_entref_t entref)
     tagName.intValue = 0;
     if ( numParam >= 2 )
     {
-        tagName.intValue = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER).intValue;
+        tagName.intValue = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER);
         if ( tagName.intValue == scr_const._ )
             tagName.intValue = 0;
     }
@@ -2729,7 +2731,7 @@ void __cdecl ScrCmd_PlayerLinkToDelta(scr_entref_t entref)
     {
         if ( Scr_GetType(1u, SCRIPTINSTANCE_SERVER) )
         {
-            tagName.intValue = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER).intValue;
+            tagName.intValue = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER);
             if ( tagName.intValue == scr_const._ )
                 tagName.intValue = 0;
         }
@@ -2793,7 +2795,7 @@ void __cdecl ScrCmd_PlayerLinkToDelta(scr_entref_t entref)
         v2 = 0.0f;
     ent->client->linkAnglesMaxClamp[0] = v2;
     G_UpdateViewAngleClamp(ent->client, parent->r.currentAngles);
-    if ( numParam > 7 && Scr_GetInt(7u, SCRIPTINSTANCE_SERVER).intValue )
+    if ( numParam > 7 && Scr_GetInt(7u, SCRIPTINSTANCE_SERVER) )
         ent->client->ps.linkFlags |= 2u;
     else
         ent->client->ps.linkFlags &= ~2u;
@@ -3277,7 +3279,7 @@ void __cdecl ScrCmd_PlaySoundOnTag(scr_entref_t entref)
     }
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) >= 2 )
     {
-        tag = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER).stringValue;
+        tag = Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER);
         if ( tag == scr_const.tag_origin || SV_DObjGetBoneIndex(ent, tag) >= 0 )
         {
             v5 = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
@@ -3315,7 +3317,7 @@ void __cdecl ScrCmd_PlaySoundToTeam(scr_entref_t entref)
     gentity_s *clientEnt; // [esp+28h] [ebp-4h]
 
     //PIXBeginNamedEvent(-1, "ScrCmd_PlaySoundToTeam");
-    team = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     if ( team != scr_const.allies && team != scr_const.axis )
     {
         v1 = SL_ConvertToString(team, SCRIPTINSTANCE_SERVER);
@@ -3384,7 +3386,7 @@ void __cdecl ScrCmd_PlayBattleChatterToTeam(scr_entref_t entref)
     gentity_s *clientEnt; // [esp+14h] [ebp-4h]
 
     tempEnt = StartScriptPlayBattleChatterOnEnt(entref);
-    team = (unsigned __int16)Scr_GetConstString(2u, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(2u, SCRIPTINSTANCE_SERVER);
     if ( team != scr_const.allies && team != scr_const.axis )
     {
         v1 = SL_ConvertToString(team, SCRIPTINSTANCE_SERVER);
@@ -3706,11 +3708,11 @@ void __cdecl ScrCmd_DoDamage(scr_entref_t entref)
             String = Scr_GetString(7u, SCRIPTINSTANCE_SERVER);
             weapon = G_GetWeaponIndexForName(String);
 $LN15_18:
-            dflags = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER).intValue;
+            dflags = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER);
 $LN14_17:
             mod = (meansOfDeath_t)G_MeansOfDeathFromScriptParam(5u);
 $LN13_17:
-            if ( !Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).intValue )
+            if ( !Scr_GetInt(4u, SCRIPTINSTANCE_SERVER) )
                 hitLoc = HITLOC_NONE;
 $LN12_23:
             inflictor = Scr_GetEntity(3u);
@@ -3880,7 +3882,7 @@ void __cdecl GScr_FakeFire(scr_entref_t entref)
         G_AddEvent(ent, 0x45u, iWeaponIndex);
     }
     ent->s.otherEntityNum = owner->s.number;
-    ent->s.un1.scale = (unsigned __int8)Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).floatValue;
+    ent->s.un1.scale = (unsigned __int8)Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
 }
 
 void __cdecl GScr_SetCameraSpikeActive(scr_entref_t entref)
@@ -3895,7 +3897,7 @@ void __cdecl GScr_SetCameraSpikeActive(scr_entref_t entref)
             if ( BG_GetWeaponDef(ent->client->ps.weapon)->guidedMissileType != MISSILE_GUIDANCE_TVGUIDED
                 || ent->client->ps.fWeaponPosFrac < 0.5 )
             {
-                if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+                if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
                     ent->client->ps.weapFlags |= 0x200000u;
                 else
                     ent->client->ps.weapFlags &= ~0x200000u;
@@ -4006,7 +4008,7 @@ void __cdecl ScrCmd_SetContents(scr_entref_t entref)
     int savedregs; // [esp+8h] [ebp+0h] BYREF
 
     ent = GetEntity(entref);
-    contents = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    contents = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     Scr_AddInt(ent->r.contents, SCRIPTINSTANCE_SERVER);
     ent->r.contents = contents;
     SV_LinkEntity(ent);
@@ -4114,7 +4116,7 @@ void __cdecl GScr_SetMode(scr_entref_t entref)
     {
         __debugbreak();
     }
-    mode = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
+    mode = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( mode == scr_const.auto_ai )
     {
         pTurretInfo->flags &= 0xFFFFFFFC;
@@ -4415,7 +4417,7 @@ void __cdecl GScr_SetTurretIgnoreGoals(scr_entref_t entref)
     {
         __debugbreak();
     }
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         ent->pTurretInfo->flags |= 0x2000u;
     else
         ent->pTurretInfo->flags &= ~0x2000u;
@@ -4555,7 +4557,7 @@ void __cdecl ScrCmd_SetStance(scr_entref_t entref)
     unsigned short stance;
 
     ent = GetEntity(entref);
-    stance = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).intValue;
+    stance = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
 
     if (!ent->client)
     {
@@ -4619,7 +4621,7 @@ void __cdecl Scr_SetStableMissile(scr_entref_t entref)
     gentity_s *ent; // [esp+4h] [ebp-4h]
 
     ent = GetEntity(entref);
-    stableMissile = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    stableMissile = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( ent->s.eType != 1 )
         Scr_Error("Type should be a player", 0);
     if ( stableMissile )
@@ -4799,7 +4801,7 @@ void __cdecl GScr_SetHintLowPriority(scr_entref_t entref)
     pEnt = GetEntity(entref);
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 1 )
         Scr_Error("SetHintLowPriority Usage: <bool>", 0);
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         v1 = pEnt->flags | 0x200;
     else
         v1 = pEnt->flags & 0xFFFFFDFF;
@@ -5012,7 +5014,7 @@ void Scr_Objective_Add()
         Scr_Error(
             "objective_add needs at least the first two parameters out of its parameter list of: index state [string] [position]\n",
             0);
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objNum >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
@@ -5022,7 +5024,7 @@ void Scr_Objective_Add()
     level.objectivesClientMask[objNum][0] = 0;
     level.objectivesClientMask[objNum][1] = 0;
     ClearObjective_OnEntity(obj);
-    stateName = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).floatValue;
+    stateName = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     if ( !ObjectiveStateIndexFromString(&state, stateName) )
     {
         v1 = SL_ConvertToString(stateName, SCRIPTINSTANCE_SERVER);
@@ -5089,7 +5091,7 @@ void Scr_Objective_Delete()
     const char *v0; // eax
     int objNum; // [esp+0h] [ebp-4h]
 
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objNum >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
@@ -5111,14 +5113,14 @@ void Scr_Objective_State()
     unsigned __int16 stateName; // [esp+8h] [ebp-8h]
     int objNum; // [esp+Ch] [ebp-4h]
 
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objNum >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
         Scr_ParamError(0, v0, SCRIPTINSTANCE_SERVER);
     }
     obj = &level.objectives[objNum];
-    stateName = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).floatValue;
+    stateName = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     if ( !ObjectiveStateIndexFromString(&state, stateName) )
     {
         String = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
@@ -5137,7 +5139,7 @@ void Scr_Objective_Icon()
     const char *v0; // eax
     int objNum; // [esp+0h] [ebp-4h]
 
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objNum >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
@@ -5152,7 +5154,7 @@ void Scr_Objective_Position()
     objective_t *obj; // [esp+0h] [ebp-8h]
     int objNum; // [esp+4h] [ebp-4h]
 
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objNum >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
@@ -5172,7 +5174,7 @@ void Scr_Objective_OnEntity()
     gentity_s *Entity; // eax
     int objNum; // [esp+8h] [ebp-4h]
 
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objNum >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
@@ -5197,7 +5199,7 @@ void Scr_Objective_Current()
     memset((unsigned __int8 *)makeCurrent, 0, sizeof(makeCurrent));
     for ( i = 0; i < numParam; ++i )
     {
-        objNum = Scr_GetInt(i, SCRIPTINSTANCE_SERVER).intValue;
+        objNum = Scr_GetInt(i, SCRIPTINSTANCE_SERVER);
         if ( (unsigned int)objNum >= 0x20 )
         {
             v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
@@ -5225,7 +5227,7 @@ void Scr_Objective_SetVisibleToPlayer()
     int objNum; // [esp+0h] [ebp-Ch]
     gentity_s *player; // [esp+8h] [ebp-4h]
 
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objNum >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
@@ -5251,7 +5253,7 @@ void Scr_Objective_SetInvisibleToPlayer()
     int objNum; // [esp+0h] [ebp-Ch]
     gentity_s *player; // [esp+8h] [ebp-4h]
 
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objNum >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
@@ -5276,7 +5278,7 @@ void  Scr_Objective_SetVisibleToAll()
     const char *v1; // eax
     int objNum; // [esp+0h] [ebp-4h]
 
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ((unsigned int)objNum >= 0x20)
     {
         v1 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
@@ -5291,7 +5293,7 @@ void Scr_Objective_SetInvisibleToAll()
     char *v1; // eax
     int objNum; // [esp+0h] [ebp-4h]
 
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ((unsigned int)objNum >= 0x20)
     {
         v1 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
@@ -5313,7 +5315,7 @@ void Scr_Objective_SetSize()
 
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) < 2 )
         Scr_Error("Objective_Size() called with wrong params.\n", 0);
-    objectiveIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objectiveIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objectiveIndex >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objectiveIndex, 31);
@@ -5351,7 +5353,7 @@ void Scr_Objective_SetColor()
 
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) < 4 )
         Scr_Error("Objective_Size() called with wrong params.\n", 0);
-    objectiveIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objectiveIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objectiveIndex >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objectiveIndex, 31);
@@ -5375,14 +5377,14 @@ void GScr_Objective_Team()
     unsigned __int16 team; // [esp+4h] [ebp-8h]
     int objNum; // [esp+8h] [ebp-4h]
 
-    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    objNum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)objNum >= 0x20 )
     {
         v0 = va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objNum, 31);
         Scr_ParamError(0, v0, SCRIPTINSTANCE_SERVER);
     }
     obj = &level.objectives[objNum];
-    team = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     if ( team == scr_const.allies )
     {
         obj->teamNum = 2;
@@ -5472,10 +5474,10 @@ void __cdecl SetArtilleryIconLocation()
     isMortar = 0;
     clientNum = -1;
     if ( numParams > 4 )
-        clientNum = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).intValue;
+        clientNum = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER);
     if ( numParams > 3 )
-        isMortar = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
-    isActive = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        isMortar = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
+    isActive = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     teamNum = 0;
     artilleryIconLocation = 0;
     if ( isActive )
@@ -5485,7 +5487,7 @@ void __cdecl SetArtilleryIconLocation()
         vPos[1] = (float)(int)vPos[1];
         vPos[2] = (float)(int)vPos[2];
         GetNormalised2DMapPosition(vPos, outPos);
-        team = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).floatValue;
+        team = (unsigned __int16)Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
         if ( team == scr_const.allies )
         {
             teamNum = 2;
@@ -5693,11 +5695,11 @@ void GScr_AddDemoBookmark()
     if ( Demo_IsEnabled() && Demo_IsRecording() )
     {
         clientNum2.intValue = 255;
-        type = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-        time = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
-        clientNum1 = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        type = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+        time = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
+        clientNum1 = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
         if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 4 )
-            clientNum2.intValue = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+            clientNum2.intValue = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
         if ( clientNum2.intValue > 32 )
             clientNum2.intValue = 255;
         Demo_AddBookmark(type, time, clientNum1, clientNum2.intValue);
@@ -5770,7 +5772,7 @@ int __cdecl GScr_ReadTeamForSpawnPoints(unsigned int index)
     const char *v2; // eax
     unsigned __int16 teamName; // [esp+0h] [ebp-8h]
 
-    teamName = (unsigned __int16)Scr_GetConstString(index, SCRIPTINSTANCE_SERVER).floatValue;
+    teamName = (unsigned __int16)Scr_GetConstString(index, SCRIPTINSTANCE_SERVER);
     if ( teamName == scr_const.allies )
         return 2;
     if ( teamName == scr_const.axis )
@@ -6152,7 +6154,7 @@ void GScr_GetWeaponFireSound()
     int weaponIndex; // [esp+4h] [ebp-4h]
 
     weaponFireSound = (char *)"";
-    weaponIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    weaponIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( weaponIndex && weaponIndex != -1 )
         weaponFireSound = (char *)BG_GetWeaponDef(weaponIndex)->fireSound;
     Scr_AddString(weaponFireSound, SCRIPTINSTANCE_SERVER);
@@ -6164,7 +6166,7 @@ void GScr_GetWeaponFireSoundPlayer()
     char *weaponFireSoundPlayer; // [esp+4h] [ebp-4h]
 
     weaponFireSoundPlayer = (char *)"";
-    weaponIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    weaponIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( weaponIndex && weaponIndex != -1 )
         weaponFireSoundPlayer = (char *)BG_GetWeaponDef(weaponIndex)->fireSoundPlayer;
     Scr_AddString(weaponFireSoundPlayer, SCRIPTINSTANCE_SERVER);
@@ -6176,7 +6178,7 @@ void GScr_GetWeaponPickupSound()
     char *weaponPickupSound; // [esp+4h] [ebp-4h]
 
     weaponPickupSound = (char *)"";
-    weaponIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    weaponIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( weaponIndex && weaponIndex != -1 )
         weaponPickupSound = (char *)BG_GetWeaponDef(weaponIndex)->pickupSound;
     Scr_AddString(weaponPickupSound, SCRIPTINSTANCE_SERVER);
@@ -6188,7 +6190,7 @@ void GScr_GetWeaponPickupSoundPlayer()
     char *weaponPickupSoundPlayer; // [esp+4h] [ebp-4h]
 
     weaponPickupSoundPlayer = (char *)"";
-    weaponIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    weaponIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( weaponIndex && weaponIndex != -1 )
         weaponPickupSoundPlayer = (char *)BG_GetWeaponDef(weaponIndex)->pickupSoundPlayer;
     Scr_AddString(weaponPickupSoundPlayer, SCRIPTINSTANCE_SERVER);
@@ -6428,7 +6430,7 @@ void Scr_BulletTrace()
     memset(&trace, 0, 16);
     Scr_GetVector(0, vStart, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(1u, vEnd, SCRIPTINSTANCE_SERVER);
-    if ( !Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue )
+    if ( !Scr_GetInt(2u, SCRIPTINSTANCE_SERVER) )
         iClipMask &= 0xFDFF7FFF;
     if ( Scr_GetType(3u, SCRIPTINSTANCE_SERVER) == 1 && Scr_GetPointerType(3u, SCRIPTINSTANCE_SERVER) == 19 )
     {
@@ -6437,12 +6439,12 @@ void Scr_BulletTrace()
     }
     bIgnoreWater = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 5 )
-        bIgnoreWater = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).intValue;
+        bIgnoreWater = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER);
     if ( bIgnoreWater )
         iClipMask &= ~0x20u;
     bIgnoreGlass = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 6 )
-        bIgnoreGlass = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER).intValue;
+        bIgnoreGlass = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER);
     if ( bIgnoreGlass )
         iClipMask &= ~0x10u;
     G_LocationalTrace(&trace, vStart, vEnd, iIgnoreEntNum, iClipMask, 0, 0);
@@ -6504,7 +6506,7 @@ void Scr_BulletTracePassed()
     iClipMask = 0x280E033;
     Scr_GetVector(0, vStart, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(1u, vEnd, SCRIPTINSTANCE_SERVER);
-    if ( !Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue )
+    if ( !Scr_GetInt(2u, SCRIPTINSTANCE_SERVER) )
         iClipMask &= 0xFDFF7FFF;
     if ( Scr_GetType(3u, SCRIPTINSTANCE_SERVER) == 1 && Scr_GetPointerType(3u, SCRIPTINSTANCE_SERVER) == 19 )
     {
@@ -6534,7 +6536,7 @@ void __cdecl Scr_SightTracePassed()
     iClipMask = 0x2809803;
     Scr_GetVector(0, vStart, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(1u, vEnd, SCRIPTINSTANCE_SERVER);
-    if ( !Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue )
+    if ( !Scr_GetInt(2u, SCRIPTINSTANCE_SERVER) )
         iClipMask &= 0xFDFF7FFF;
     if ( Scr_GetType(3u, SCRIPTINSTANCE_SERVER) == 1 && Scr_GetPointerType(3u, SCRIPTINSTANCE_SERVER) == 19 )
     {
@@ -6587,7 +6589,7 @@ void Scr_PhysicsTrace()
         case 5:
             goto $LN15_19;
         case 6:
-            maskType = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER).intValue;
+            maskType = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER);
 $LN15_19:
             if ( Scr_GetType(4u, SCRIPTINSTANCE_SERVER) == 1 && Scr_GetPointerType(4u, SCRIPTINSTANCE_SERVER) == 19 )
             {
@@ -6677,7 +6679,7 @@ void Scr_RandomInt()
     int v0; // eax
     int iMax; // [esp+0h] [ebp-4h]
 
-    iMax = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    iMax = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( iMax > 0 )
     {
         v0 = G_irand(0, iMax);
@@ -6706,8 +6708,8 @@ void Scr_RandomIntRange()
     int iMax; // [esp+0h] [ebp-8h]
     int iMin; // [esp+4h] [ebp-4h]
 
-    iMin = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-    iMax = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    iMin = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+    iMax = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if ( iMax <= iMin )
     {
         Com_Printf(24, "RandomIntRange parms: %d %d ", iMin, iMax);
@@ -6967,7 +6969,7 @@ void GScr_CastInt()
             Scr_AddInt((int)Float, SCRIPTINSTANCE_SERVER);
             break;
         case 6:
-            v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+            v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             Scr_AddInt(v0.intValue, SCRIPTINSTANCE_SERVER);
             break;
         default:
@@ -7001,7 +7003,7 @@ void GScr_CastFloat()
             Scr_AddFloat(value, SCRIPTINSTANCE_SERVER);
             break;
         case 6:
-            intValue = (float)Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+            intValue = (float)Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             Scr_AddFloat(intValue, SCRIPTINSTANCE_SERVER);
             break;
         default:
@@ -7348,11 +7350,11 @@ void Scr_GetSubStr()
     const char *s; // [esp+420h] [ebp-4h]
 
     s = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-    start = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    start = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) < 3 )
         v0.intValue = 0x7FFFFFFF;
     else
-        v0.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     end = v0.intValue;
     source = start;
     for ( dest = 0; source < end; ++dest )
@@ -7406,8 +7408,8 @@ void Scr_StrTok()
     int delimLen; // [esp+434h] [ebp-8h]
     unsigned int sId; // [esp+438h] [ebp-4h]
 
-    sId = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).stringValue;
-    delimId = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).stringValue;
+    sId = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
+    delimId = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     s = SL_ConvertToString(sId, SCRIPTINSTANCE_SERVER);
     delim = SL_ConvertToString(delimId, SCRIPTINSTANCE_SERVER);
     SL_AddRefToString(sId, SCRIPTINSTANCE_SERVER);
@@ -7467,7 +7469,7 @@ void __cdecl GScr_NeedsRevive(scr_entref_t entref)
     {
         __debugbreak();
     }
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) )
         needsRevive = 1;
     if ( pEnt->client->ps.clientNum >= 0x20u
         && !Assert_MyHandler(
@@ -7568,7 +7570,7 @@ void __cdecl GScr_SetWaterDrops(scr_entref_t entref)
     int count;
     const char *cmd;
 
-    count = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    count = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if (count < 0)
         Scr_ParamError(1, "Count must be either zero, or a positive number", SCRIPTINSTANCE_SERVER);
 
@@ -7613,7 +7615,7 @@ void __cdecl GScr_SpawnNapalmGroundFlame(scr_entref_t entref)
     weaponName = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(2u, direction, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 3 )
-        time = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+        time = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
     weaponIndex = G_GetWeaponIndexForName(weaponName);
     Scr_VerifyWeaponIndex(weaponIndex, weaponName);
     weapDef = BG_GetWeaponDef(weaponIndex);
@@ -7727,8 +7729,8 @@ void __cdecl GScr_DisplayMedal(scr_entref_t entref)
     int medalIndex; // [esp+20h] [ebp-4h]
 
     player_entity = GetEntity(entref);
-    medalIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-    teamBased = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    medalIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+    teamBased = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     xpScale = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
     sound = Scr_GetString(3u, SCRIPTINSTANCE_SERVER);
     clientNum = player_entity->s.number;
@@ -7746,11 +7748,11 @@ void __cdecl GScr_DisplayContract(scr_entref_t entref)
     int clientNum; // [esp+10h] [ebp-4h]
 
     player_entity = GetEntity(entref);
-    contractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    contractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     sound = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
     passed = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 3 )
-        passed = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        passed = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     clientNum = player_entity->s.number;
     v1 = va("%c %c %i %s %i", 91, 98, contractIndex, sound, passed);
     SV_GameSendServerCommand(clientNum, SV_CMD_RELIABLE, v1);
@@ -7768,10 +7770,10 @@ void __cdecl GScr_DisplayChallengeComplete(scr_entref_t entref)
     int clientNum; // [esp+30h] [ebp-4h]
 
     clientNum = GetEntity(entref)->s.number;
-    tier = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-    index = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    tier = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+    index = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     xpScale = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
-    weaponIndex = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+    weaponIndex = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
     sound = Scr_GetString(4u, SCRIPTINSTANCE_SERVER);
     type = Scr_GetString(5u, SCRIPTINSTANCE_SERVER);
     v1 = va("%c %c %i %i %.2f %i %s %s", 91, 100, tier, index, xpScale, weaponIndex, type, sound);
@@ -7806,10 +7808,10 @@ void __cdecl GScr_DisplayEndGameMilestoneComplete(scr_entref_t entref)
     }
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 5 )
     {
-        slot = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-        tier = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
-        index = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
-        weaponIndex = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+        slot = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+        tier = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
+        index = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
+        weaponIndex = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
         type = Scr_GetString(4u, SCRIPTINSTANCE_SERVER);
         v1 = va("%c %c %i %i %i %i %s", 91, 108, slot, tier, index, weaponIndex, type);
         SV_GameSendServerCommand(clientNum, SV_CMD_RELIABLE, v1);
@@ -7826,10 +7828,10 @@ void __cdecl GScr_DisplayEndGame(scr_entref_t entref)
     int clientNum; // [esp+14h] [ebp-4h]
 
     clientNum = GetEntity(entref)->s.number;
-    promoted = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-    challengeIndex0 = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
-    challengeIndex1 = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
-    challengeIndex2 = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+    promoted = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+    challengeIndex0 = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
+    challengeIndex1 = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
+    challengeIndex2 = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 4
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_scr_main_mp.cpp",
@@ -7868,8 +7870,8 @@ void __cdecl GScr_DisplayKillstreak(scr_entref_t entref)
     player_entity = GetEntity(entref);
     if ( player_entity->s.eType == 1 )
     {
-        streakCount = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-        killstreakTableNumber = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        streakCount = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+        killstreakTableNumber = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         clientNum = player_entity->s.number;
         v1 = va("%c %c %i %i", 91, 101, streakCount, killstreakTableNumber);
         SV_GameSendServerCommand(clientNum, SV_CMD_RELIABLE, v1);
@@ -7888,8 +7890,8 @@ void __cdecl GScr_DisplayRankUp(scr_entref_t entref)
     player_entity = GetEntity(entref);
     if ( player_entity->s.eType == 1 )
     {
-        rank = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-        prestige = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        rank = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+        prestige = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         if ( prestige < 0 )
             prestige = 0;
         sound = Scr_GetString(2u, SCRIPTINSTANCE_SERVER);
@@ -7918,7 +7920,7 @@ void __cdecl GScr_DisplayWagerPopup(scr_entref_t entref)
         messageStringIndex = G_FindConfigstringIndex(messageString, 515, 1023, 0, "WAGER POPUP ERROR:");
         if ( messageStringIndex )
         {
-            points = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+            points = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
             clientNum = player_entity->s.number;
             if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 3 )
             {
@@ -8298,7 +8300,7 @@ void __cdecl GScr_Detonate(scr_entref_t entref)
 
 void GScr_SetPlayerIgnoreRadiusDamage()
 {
-    level.bPlayerIgnoreRadiusDamageLatched = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    level.bPlayerIgnoreRadiusDamageLatched = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
 }
 
 void __cdecl GScr_DamageConeTrace(scr_entref_t entref)
@@ -8374,8 +8376,8 @@ void __cdecl GScr_PlayerSightTrace(scr_entref_t entref)
     playerEyes[2] = client->ps.origin[2];
     playerEyes[2] = playerEyes[2] + ent->client->ps.viewHeightCurrent;
     Scr_GetVector(0, itemPosition, SCRIPTINSTANCE_SERVER);
-    distance = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
-    hitNum = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+    distance = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
+    hitNum = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     AngleVectors(ent->r.currentAngles, viewdir, 0, 0);
     objdir[0] = itemPosition[0] - playerEyes[0];
     objdir[1] = itemPosition[1] - playerEyes[1];
@@ -8418,7 +8420,7 @@ void __cdecl GScr_HeliTurretSightTrace(scr_entref_t entref)
     playerEyes[1] = client->ps.origin[1];
     playerEyes[2] = client->ps.origin[2];
     playerEyes[2] = playerEyes[2] + player->client->ps.viewHeightCurrent;
-    hitNum = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+    hitNum = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     //col_context_t::col_context_t(&context, 14337);
     context.passEntityNum0 = copterEnt->s.number;
     SV_SightTracePoint(&hitNum, playerEyes, turretPosition, &context);
@@ -8441,7 +8443,7 @@ void __cdecl GScr_HeliTurretDogTrace(scr_entref_t entref)
     dogEyes[1] = dog->r.currentOrigin[1];
     dogEyes[2] = dog->r.currentOrigin[2];
     dogEyes[2] = dogEyes[2] + 24.0;
-    hitNum = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+    hitNum = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
     //col_context_t::col_context_t(&context, 14337);
     context.passEntityNum0 = copterEnt->s.number;
     SV_SightTracePoint(&hitNum, dogEyes, turretPosition, &context);
@@ -8486,11 +8488,11 @@ void __cdecl GScr_DirectionalHitIndicator(scr_entref_t entref)
 
     pSelf = GetEntity(entref);
     hitEntBitArray1 = 0;
-    hitEntBitArray0 = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    hitEntBitArray0 = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2 || !Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
         Scr_Error("USAGE: DirectionalHitIndicator ( <victims0>, <victims1> )\n", 0);
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 2 )
-        hitEntBitArray1 = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).floatValue;
+        hitEntBitArray1 = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     memset(zero_vec, 0, sizeof(zero_vec));
     temporary_entity = G_TempEntity(zero_vec, 96);
     temporary_entity->r.clientMask[0] = -1;
@@ -8726,7 +8728,7 @@ void Scr_PlayFX()
     numParams = Scr_GetNumParam(SCRIPTINSTANCE_SERVER);
     if ( numParams < 2 || numParams > 4 )
         Scr_Error("Incorrect number of parameters", 0);
-    fxId = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    fxId = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(1u, pos, SCRIPTINSTANCE_SERVER);
     ent = G_TempEntity(pos, 70);
     if ( ent->s.lerp.apos.trType
@@ -8867,7 +8869,7 @@ void Scr_PlayFXOnTag()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 3 )
         Scr_Error("Incorrect number of parameters", 0);
-    fxId = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    fxId = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( fxId <= 0 || fxId >= 196 )
     {
         v0 = va("effect id %i is invalid\n", fxId);
@@ -8876,7 +8878,7 @@ void Scr_PlayFXOnTag()
     ent = Scr_GetEntity(1u);
     if ( !ent->model )
         Scr_ParamError(1u, "cannot play fx on entity with no model", SCRIPTINSTANCE_SERVER);
-    tag = Scr_GetConstLowercaseString(2u, SCRIPTINSTANCE_SERVER).stringValue;
+    tag = Scr_GetConstLowercaseString(2u, SCRIPTINSTANCE_SERVER);
     v1 = SL_ConvertToString(tag, SCRIPTINSTANCE_SERVER);
     v2 = strchr(v1, 0x22u);
     if ( v2 )
@@ -8926,7 +8928,7 @@ void Scr_PlayLoopedFX()
     }
     givenAxisCount = 0;
     cullDist = 0.0f;
-    fxId = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    fxId = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     NumParam = Scr_GetNumParam(SCRIPTINSTANCE_SERVER);
     if ( NumParam != 4 )
     {
@@ -8989,7 +8991,7 @@ void Scr_SpawnFX()
         Scr_Error("Incorrect number of parameters", 0);
     }
     givenAxisCount = 0;
-    fxId = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    fxId = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     NumParam = Scr_GetNumParam(SCRIPTINSTANCE_SERVER);
     if ( NumParam != 3 )
     {
@@ -9100,10 +9102,10 @@ void __cdecl ScrCmd_SpawnActor(scr_entref_t entref)
     }
     noEnemyInfo = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
-        noEnemyInfo = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        noEnemyInfo = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     targetname.intValue = 0;
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) >= 2 )
-        targetname.intValue = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER).intValue;
+        targetname.intValue = Scr_GetConstString(1u, SCRIPTINSTANCE_SERVER);
     guy = SpawnActor(ent, targetname.stringValue, FORCE_SPAWN, noEnemyInfo == 0);
     if ( guy )
     {
@@ -9138,7 +9140,7 @@ void __cdecl GScr_CreateDynEntAndLaunch()
     Scr_GetVector(3u, hitpos, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(4u, force, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 5 )
-        fxId = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER).intValue;
+        fxId = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER);
     v1 = G_TempEntity(pos, 76);
     tempent = v1;
     v1->s.lerp.pos.trDelta[0] = hitpos[0];
@@ -9168,7 +9170,7 @@ void Scr_PhysicsExplosionSphere()
     }
     Scr_GetVector(0, pos, SCRIPTINSTANCE_SERVER);
     ent = G_TempEntity(pos, 72);
-    ent->s.eventParm = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).floatValue;
+    ent->s.eventParm = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     ent->s.lerp.u.turret.gunAngles[0] = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
     ent->s.lerp.u.actor.team = 0.0f;
     ent->s.lerp.u.destructibleHit.modelState3 = 0.0f;
@@ -9213,7 +9215,7 @@ void Scr_PhysicsRadiusJolt()
         Scr_Error("Incorrect number of parameters", 0);
     Scr_GetVector(0, pos, SCRIPTINSTANCE_SERVER);
     ent = G_TempEntity(pos, 74);
-    ent->s.eventParm = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).floatValue;
+    ent->s.eventParm = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     ent->s.lerp.u.turret.gunAngles[0] = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
     if (ent->s.lerp.u.turret.gunAngles[0] < 0.0)
         Scr_ParamError(2u, "Radius is negative", SCRIPTINSTANCE_SERVER);
@@ -9237,7 +9239,7 @@ void Scr_PhysicsExplosionCylinder()
         Scr_Error("Incorrect number of parameters", 0);
     Scr_GetVector(0, pos, SCRIPTINSTANCE_SERVER);
     ent = G_TempEntity(pos, 73);
-    ent->s.eventParm = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).floatValue;
+    ent->s.eventParm = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     ent->s.lerp.u.turret.gunAngles[0] = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
     if (ent->s.lerp.u.turret.gunAngles[0] < 0.0)
         Scr_ParamError(2u, "Radius is negative", SCRIPTINSTANCE_SERVER);
@@ -9575,7 +9577,7 @@ void Scr_TableLookupRowNum()
             Scr_Error("USAGE: tableLookupRowNum( filename, searchColumnNum, searchValue )\n", 0);
         filename = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
         StringTable_GetAsset(filename, (XAssetHeader *)&tablePtr);
-        comparisonColumn = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        comparisonColumn = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         stringValue = Scr_GetString(2u, SCRIPTINSTANCE_SERVER);
         returnValueRow = StringTable_LookupRowNumForValue(tablePtr, comparisonColumn, stringValue);
         Scr_AddInt(returnValueRow, SCRIPTINSTANCE_SERVER);
@@ -9601,8 +9603,8 @@ void Scr_TableLookupColumnForRow()
             Scr_Error("USAGE: tableLookupColumnForRow( filename, row, column )\n", 0);
         filename = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
         StringTable_GetAsset(filename, (XAssetHeader *)&tablePtr);
-        row = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
-        column = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).intValue;
+        row = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
+        column = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
         returnValue = (char *)StringTable_GetColumnValueForRow(tablePtr, row, column);
         Scr_AddString(returnValue, SCRIPTINSTANCE_SERVER);
     }
@@ -9628,9 +9630,9 @@ void Scr_TableLookup()
             Scr_Error("USAGE: tableLookup( filename, searchColumnNum, searchValue, returnValueColumnNum )\n", 0);
         filename = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
         StringTable_GetAsset(filename, (XAssetHeader *)&tablePtr);
-        comparisonColumn = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        comparisonColumn = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         stringValue = Scr_GetString(2u, SCRIPTINSTANCE_SERVER);
-        returnValueColumn = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+        returnValueColumn = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
         returnValue = (char *)StringTable_Lookup(tablePtr, comparisonColumn, stringValue, returnValueColumn);
         Scr_AddString(returnValue, SCRIPTINSTANCE_SERVER);
     }
@@ -9656,9 +9658,9 @@ void Scr_TableLookupIString()
             Scr_Error("USAGE: tableLookupIString( filename, searchColumnNum, searchValue, returnValueColumnNum )\n", 0);
         filename = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
         StringTable_GetAsset(filename, (XAssetHeader *)&tablePtr);
-        comparisonColumn = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        comparisonColumn = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         stringValue = Scr_GetString(2u, SCRIPTINSTANCE_SERVER);
-        returnValueColumn = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER).intValue;
+        returnValueColumn = Scr_GetInt(3u, SCRIPTINSTANCE_SERVER);
         returnValue = (char *)StringTable_Lookup(tablePtr, comparisonColumn, stringValue, returnValueColumn);
         Scr_AddIString(returnValue, SCRIPTINSTANCE_SERVER);
     }
@@ -9714,7 +9716,7 @@ void GScr_IsPlayer()
 
 void GScr_IsPlayerNumber()
 {
-    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue < 0x20 )
+    if ( Scr_GetInt(0, SCRIPTINSTANCE_SERVER) < 0x20 )
         Scr_AddInt(1, SCRIPTINSTANCE_SERVER);
     else
         Scr_AddInt(0, SCRIPTINSTANCE_SERVER);
@@ -9750,7 +9752,7 @@ void GScr_SetWinningTeam()
     int iWinner; // [esp+8h] [ebp-40Ch]
     char buffer[1028]; // [esp+Ch] [ebp-408h] BYREF
 
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( team == scr_const.allies )
     {
         iWinner = -2;
@@ -9791,7 +9793,7 @@ void GScr_Announcement()
     NumParam = Scr_GetNumParam(SCRIPTINSTANCE_SERVER);
     Scr_ConstructMessageString(0, NumParam - 2, "Announcement", string, 0x400u);
     v1 = Scr_GetNumParam(SCRIPTINSTANCE_SERVER);
-    v2.intValue = Scr_GetInt(v1 - 1, SCRIPTINSTANCE_SERVER).intValue;
+    v2.intValue = Scr_GetInt(v1 - 1, SCRIPTINSTANCE_SERVER);
     v3 = va("%c \"%s\" %i", 99, string, v2.intValue);
     SV_GameSendServerCommand(-1, SV_CMD_CAN_IGNORE, v3);
 }
@@ -9809,7 +9811,7 @@ void GScr_ClientAnnouncement()
     NumParam = Scr_GetNumParam(SCRIPTINSTANCE_SERVER);
     Scr_ConstructMessageString(1, NumParam - 2, "Announcement", string, 0x400u);
     v1 = Scr_GetNumParam(SCRIPTINSTANCE_SERVER);
-    v2.intValue = Scr_GetInt(v1 - 1, SCRIPTINSTANCE_SERVER).intValue;
+    v2.intValue = Scr_GetInt(v1 - 1, SCRIPTINSTANCE_SERVER);
     v3 = va("%c \"%s\" %i", 99, string, v2.intValue);
     SV_GameSendServerCommand(pEnt->s.number, SV_CMD_CAN_IGNORE, v3);
 }
@@ -9820,7 +9822,7 @@ void GScr_GetTeamScore()
     const char *v1; // eax
     unsigned __int16 team; // [esp+4h] [ebp-4h]
 
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( team != scr_const.allies && team != scr_const.axis )
     {
         v0 = SL_ConvertToString(team, SCRIPTINSTANCE_SERVER);
@@ -9841,14 +9843,14 @@ void GScr_SetTeamScore()
     unsigned __int16 team; // [esp+0h] [ebp-8h]
     int teamScore; // [esp+4h] [ebp-4h]
 
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( team != scr_const.allies && team != scr_const.axis )
     {
         v0 = SL_ConvertToString(team, SCRIPTINSTANCE_SERVER);
         v1 = va("Illegal team string '%s'. Must be allies, or axis.", v0);
         Scr_Error(v1, 0);
     }
-    teamScore = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    teamScore = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if ( team == scr_const.allies )
     {
         level.teamScores[2] = teamScore;
@@ -9867,7 +9869,7 @@ void GScr_SetClientNameMode()
 {
     unsigned __int16 mode; // [esp+0h] [ebp-4h]
 
-    mode = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    mode = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( mode == scr_const.auto_change )
     {
         level.manualNameChange = 0;
@@ -9918,7 +9920,7 @@ void GScr_GetTeamPlayersAlive()
     gentity_s *pEnt; // [esp+Ch] [ebp-8h]
     int i; // [esp+10h] [ebp-4h]
 
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( team != scr_const.allies && team != scr_const.axis )
     {
         v0 = SL_ConvertToString(team, SCRIPTINSTANCE_SERVER);
@@ -9980,7 +9982,7 @@ void __cdecl GScr_GetPartName()
 
     String = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
     model = SV_XModelGet(String);
-    index = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).stringValue;
+    index = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     numbones = XModelNumBones((const cpose_t *)model);
     if ( index >= numbones )
     {
@@ -10119,7 +10121,7 @@ void __cdecl GScr_GetTagOrigin(scr_entref_t entref)
     gentity_s *ent; // [esp+4h] [ebp-4h]
 
     ent = GetEntity(entref);
-    tagName.intValue = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER).intValue;
+    tagName.intValue = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER);
     GScr_UpdateTagInternal(ent, tagName.stringValue, &level.cachedTagMat, 1);
     Scr_AddVector(level.cachedTagMat.tagMat[3], SCRIPTINSTANCE_SERVER);
 }
@@ -10177,7 +10179,7 @@ void __cdecl GScr_GetTagAngles(scr_entref_t entref)
     gentity_s *ent; // [esp+10h] [ebp-4h]
 
     ent = GetEntity(entref);
-    tagName.intValue = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER).intValue;
+    tagName.intValue = Scr_GetConstLowercaseString(0, SCRIPTINSTANCE_SERVER);
     GScr_UpdateTagInternal(ent, tagName.stringValue, &level.cachedTagMat, 1);
     AxisToAngles(level.cachedTagMat.tagMat, angles);
     Scr_AddVector(angles, SCRIPTINSTANCE_SERVER);
@@ -10286,7 +10288,7 @@ void __cdecl GScr_ViewKick(scr_entref_t entref)
     ent = GetPlayerEntity(entref);
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 2 )
         Scr_Error("USAGE: <player> viewkick <force 0-127> <source position>\n", 0);
-    ent->client->damage_blood = (ent->maxHealth * Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue + 50) / 100;
+    ent->client->damage_blood = (ent->maxHealth * Scr_GetInt(0, SCRIPTINSTANCE_SERVER) + 50) / 100;
     if ( ent->client->damage_blood < 0 )
     {
         Float = Scr_GetFloat(0, SCRIPTINSTANCE_SERVER);
@@ -10437,7 +10439,7 @@ void __cdecl ScrCmd_SendFaceEvent(scr_entref_t entref)
     gentity_s *ent; // [esp+4h] [ebp-4h]
 
     ent = GetEntity(entref);
-    face_event = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    face_event = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( face_event == scr_const.face_casual )
     {
         G_AddEvent(ent, 0xC5u, 0);
@@ -10520,7 +10522,7 @@ void GScr_MapRestart()
     level.finished = 1;
     level.savepersist = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
-        level.savepersist = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        level.savepersist = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     Cbuf_AddText(0, "fast_restart\n");
 }
 
@@ -10544,7 +10546,7 @@ void GScr_LoadMap()
             level.finished = 2;
             level.savepersist = 0;
             if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1 )
-                level.savepersist = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+                level.savepersist = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
             v0 = va("map %s\n", mapname);
             Cbuf_AddText(0, v0);
         }
@@ -10563,7 +10565,7 @@ void GScr_ExitLevel()
     level.finished = 3;
     level.savepersist = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
-        level.savepersist = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        level.savepersist = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     SV_MatchEnd();
     ExitLevel();
 }
@@ -10633,7 +10635,7 @@ void GScr_SetBombTimer()
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 2 )
     {
         name = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-        value = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        value = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         if ( I_stricmp("A", name) && I_stricmp("primary", name) )
         {
             if ( I_stricmp("B", name) && I_stricmp("secondary", name) )
@@ -10663,7 +10665,7 @@ void GScr_SetMatchTalkFlag()
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 2 )
     {
         flagName = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-        value = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        value = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         if ( I_stricmp("EveryoneHearsEveryone", flagName) )
         {
             if ( I_stricmp("DeadChatWithDead", flagName) )
@@ -10718,7 +10720,7 @@ void GScr_SetMatchFlag()
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 2 )
     {
         flagName = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-        value = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        value = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         if ( I_stricmp("radar_allies", flagName) )
         {
             if ( I_stricmp("radar_axis", flagName) )
@@ -10912,7 +10914,7 @@ void GScr_SetVoteTime()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
     {
-        time = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        time = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         v0 = va("%i", time);
         SV_SetConfigstring(15, v0);
         v1 = va("%i", level.voteYes);
@@ -10930,7 +10932,7 @@ void GScr_SetVoteYesCount()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
     {
-        yes = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        yes = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         v0 = va("%i", yes);
         SV_SetConfigstring(17, v0);
         v1 = va("%i", level.voteNo);
@@ -10945,7 +10947,7 @@ void GScr_SetVoteNoCount()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
     {
-        no = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        no = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         v0 = va("%i", no);
         SV_SetConfigstring(18, v0);
     }
@@ -10961,7 +10963,7 @@ void GScr_KickPlayer()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
     {
-        playernum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        playernum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         strcpy(genericreason, "No reason specified");
         if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 2 )
         {
@@ -10987,10 +10989,10 @@ void GScr_BanPlayer()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
     {
-        playernum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        playernum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         temp = 0;
         if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 2 )
-            temp = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue != 0;
+            temp = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) != 0;
         if ( temp )
             v0 = va("tempBanClient %i\n", playernum);
         else
@@ -11101,7 +11103,7 @@ void GScr_CloseFile()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
     {
-        filenum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        filenum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         if ( (unsigned int)filenum >= 2 )
         {
             Com_Printf(24, "CloseFile failed, invalid file number %i\n", filenum);
@@ -11154,7 +11156,7 @@ void __cdecl Scr_FPrint_internal(bool commaBetweenFields)
 
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1 )
     {
-        filenum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        filenum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         if ( (unsigned int)filenum < 2 )
         {
             if ( level.openScriptIOFileHandles[filenum] )
@@ -11205,7 +11207,7 @@ void GScr_FReadLn()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
     {
-        filenum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        filenum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         if ( (unsigned int)filenum < 2 )
         {
             if ( level.openScriptIOFileBuffers[filenum] )
@@ -11265,8 +11267,8 @@ void GScr_FGetArg()
 
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 1 )
     {
-        filenum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-        arg = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        filenum = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+        arg = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         if ( (unsigned int)filenum < 2 )
         {
             if ( arg >= 0 )
@@ -11359,7 +11361,7 @@ void Scr_SetPlayerStatsForMatchRecording()
     statName = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
     if ( !statName )
         Scr_ParamError(1u, "recordPlayerStats Error: param 1 is not a string.", SCRIPTINSTANCE_SERVER);
-    statValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).stringValue;
+    statValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
 #ifdef KISAK_LIVE
     MatchRecordSetPlayerStat(ent->client, statName, statValue);
 #endif
@@ -11431,7 +11433,7 @@ bool __cdecl GScr_IsItemLockedForChallenge(scr_entref_t entref, bool purchaseReq
     {
         if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
         {
-            itemIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+            itemIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             if ( itemIndex && itemIndex < 256 && CL_LocalClient_GetActiveCount() )
             {
                 ClientRank = G_GetClientRank(playerEnt->s.number);
@@ -11495,7 +11497,7 @@ void GScr_GetRefFromItemIndex()
     VariableUnion itemIndex; // [esp+0h] [ebp-8h]
     char *itemRef; // [esp+4h] [ebp-4h]
 
-    itemIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    itemIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     itemRef = (char *)BG_UnlockablesGetItemRef(itemIndex.intValue);
     if ( itemRef && *itemRef )
         Scr_AddString(itemRef, SCRIPTINSTANCE_SERVER);
@@ -11508,7 +11510,7 @@ void GScr_GetItemGroupFromItemIndex()
     VariableUnion itemIndex; // [esp+0h] [ebp-8h]
     char *itemGroup; // [esp+4h] [ebp-4h]
 
-    itemIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    itemIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     itemGroup = (char *)BG_UnlockablesGetItemGroup(itemIndex.intValue);
     if ( itemGroup && *itemGroup )
         Scr_AddString(itemGroup, SCRIPTINSTANCE_SERVER);
@@ -11581,7 +11583,7 @@ void GScr_GetGameTypeEnumFromName()
     int currGameMode; // [esp+18h] [ebp-4h]
 
     gameTypeName = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-    if ( Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue )
+    if ( Scr_GetInt(1u, SCRIPTINSTANCE_SERVER) )
     {
         endIndex = 4;
         gameModeEnum = lbWagerGameModeEnum;
@@ -11696,7 +11698,7 @@ void __cdecl GScr_GetDStat(scr_entref_t entref)
             }
             if ( searchState.member->arraySize == 1 )
                 Scr_Error("getdstat: member name (string) expected. Received an integer instead.", 0);
-            v4.intValue = Scr_GetInt(i, SCRIPTINSTANCE_SERVER).intValue;
+            v4.intValue = Scr_GetInt(i, SCRIPTINSTANCE_SERVER);
             if ( !DDL_MoveToIndex(&searchState, &searchState, v4.intValue, 1) )
                 Scr_Error("getdstat: Could not find member array index number.", 0);
         }
@@ -11753,7 +11755,7 @@ void __cdecl GScr_GetIndexForActiveContract(scr_entref_t entref)
         playerEnt = GetEntity(entref);
         if ( playerEnt->client )
         {
-            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
+            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             IndexForActiveContract = LiveContracts_SV_GetIndexForActiveContract(playerEnt->s.number, activeContractIndex);
             Scr_AddInt(IndexForActiveContract, SCRIPTINSTANCE_SERVER);
         }
@@ -11775,7 +11777,7 @@ void GScr_GetContractStatType()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         ContractStatType = LiveContracts_GetContractStatType(v0.intValue);
         Scr_AddString(ContractStatType, SCRIPTINSTANCE_SERVER);
     }
@@ -11792,7 +11794,7 @@ void GScr_GetContractStatName()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         ContractStatName = LiveContracts_GetContractStatName(v0.intValue);
         Scr_AddString(ContractStatName, SCRIPTINSTANCE_SERVER);
     }
@@ -11809,7 +11811,7 @@ void GScr_GetContractRewardXP()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         ContractRewardXP = LiveContracts_GetContractRewardXP(v0.intValue);
         Scr_AddInt(ContractRewardXP, SCRIPTINSTANCE_SERVER);
     }
@@ -11826,7 +11828,7 @@ void GScr_GetContractRewardCP()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         ContractRewardCP = LiveContracts_GetContractRewardCP(v0.intValue);
         Scr_AddInt(ContractRewardCP, SCRIPTINSTANCE_SERVER);
     }
@@ -11845,7 +11847,7 @@ void GScr_GetContractRequirements()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        contractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        contractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         Scr_MakeArray(SCRIPTINSTANCE_SERVER);
         for ( i = 0; i < 5; ++i )
         {
@@ -11876,7 +11878,7 @@ void GScr_GetContractName()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        contractIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        contractIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         ContractName = LiveContracts_GetContractName(contractIndex.intValue);
         Scr_AddString(ContractName, SCRIPTINSTANCE_SERVER);
     }
@@ -11893,7 +11895,7 @@ void GScr_GetContractRequiredCount()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        contractIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        contractIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         ContractRequiredCount = LiveContracts_GetContractRequiredCount(contractIndex.intValue);
         Scr_AddInt(ContractRequiredCount, SCRIPTINSTANCE_SERVER);
     }
@@ -11910,7 +11912,7 @@ void GScr_GetContractResetConditions()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 1 )
     {
-        contractIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        contractIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
         resetConditions = LiveContracts_GetResetConditions(contractIndex.intValue);
         if ( resetConditions )
             Scr_AddString(resetConditions, SCRIPTINSTANCE_SERVER);
@@ -11934,7 +11936,7 @@ void __cdecl GScr_GetActiveContractProgress(scr_entref_t entref)
         playerEnt = GetEntity(entref);
         if ( playerEnt->client )
         {
-            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
+            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             ActiveContractProgress = LiveContracts_SV_GetActiveContractProgress(playerEnt->s.number, activeContractIndex);
             Scr_AddInt(ActiveContractProgress, SCRIPTINSTANCE_SERVER);
         }
@@ -11960,8 +11962,8 @@ void __cdecl GScr_IncrementActiveContractProgress(scr_entref_t entref)
         playerEnt = GetEntity(entref);
         if ( playerEnt->client )
         {
-            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-            increment = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+            increment = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
             if ( increment > 0 )
                 LiveContracts_SV_IncrementActiveContractProgress(playerEnt->s.number, activeContractIndex, increment);
             else
@@ -11988,7 +11990,7 @@ void __cdecl GScr_ResetActiveContractProgress(scr_entref_t entref)
         playerEnt = GetEntity(entref);
         if ( playerEnt->client )
         {
-            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
+            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             LiveContracts_SV_ResetActiveContractProgress(playerEnt->s.number, activeContractIndex);
         }
         else
@@ -12013,8 +12015,8 @@ void __cdecl GScr_IncrementActiveContractTime(scr_entref_t entref)
         playerEnt = GetEntity(entref);
         if ( playerEnt->client )
         {
-            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-            increment = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+            increment = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
             if ( increment >= 0 )
                 LiveContracts_SV_IncrementActiveContractTime(playerEnt->s.number, activeContractIndex, increment);
             else
@@ -12041,7 +12043,7 @@ void __cdecl GScr_IsActiveContractComplete(scr_entref_t entref)
         playerEnt = GetEntity(entref);
         if ( playerEnt->client )
         {
-            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
+            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             if ( LiveContracts_SV_GetActiveContractStatus(playerEnt->s.number, activeContractIndex) == 2 )
                 Scr_AddInt(1, SCRIPTINSTANCE_SERVER);
             else
@@ -12068,7 +12070,7 @@ void __cdecl GScr_HasActiveContractExpired(scr_entref_t entref)
         playerEnt = GetEntity(entref);
         if ( playerEnt->client )
         {
-            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
+            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             if ( LiveContracts_SV_GetActiveContractStatus(playerEnt->s.number, activeContractIndex) == 3 )
                 Scr_AddInt(1, SCRIPTINSTANCE_SERVER);
             else
@@ -12096,7 +12098,7 @@ void __cdecl GScr_GetActiveContractTimePassed(scr_entref_t entref)
         playerEnt = GetEntity(entref);
         if ( playerEnt->client )
         {
-            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
+            activeContractIndex = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
             CombatTimePassed = LiveContracts_SV_GetCombatTimePassed(playerEnt->s.number, activeContractIndex);
             Scr_AddInt(CombatTimePassed, SCRIPTINSTANCE_SERVER);
         }
@@ -12131,7 +12133,7 @@ void GScr_EnableOccluder()
     int enable; // [esp+4h] [ebp-4h]
 
     occluderName = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-    enable = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    enable = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     R_EnableOccluder(occluderName, enable != 0);
 }
 
@@ -12144,7 +12146,7 @@ void Gscr_GetCustomClassLoadoutItem()
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 2 )
         Scr_Error("GetCustomClassLoadoutItem usage: <classnum>, <itemname>", 0);
     String = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
-    v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     CustomClassLoadoutItemForSlot = GetCustomClassLoadoutItemForSlot(0, v0.stringValue, String);
     Scr_AddInt(CustomClassLoadoutItemForSlot, SCRIPTINSTANCE_SERVER);
 }
@@ -12158,7 +12160,7 @@ void Gscr_GetCustomClassLoadoutModifier()
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 2 )
         Scr_Error("GetCustomClassLoadoutItem usage: <classnum>, <itemname>", 0);
     String = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
-    v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     CustomClassModifierForClass = GetCustomClassModifierForClass(0, v0.stringValue, String);
     Scr_AddInt(CustomClassModifierForClass, SCRIPTINSTANCE_SERVER);
 }
@@ -12228,7 +12230,7 @@ void __cdecl GScr_SetDStat(scr_entref_t entref)
             }
             if ( searchState.member->arraySize == 1 )
                 Scr_Error("setdstat: member name (string) expected. Received an integer instead.", 0);
-            v4.intValue = Scr_GetInt(i, SCRIPTINSTANCE_SERVER).intValue;
+            v4.intValue = Scr_GetInt(i, SCRIPTINSTANCE_SERVER);
             if ( !DDL_MoveToIndex(&searchState, &searchState, v4.intValue, 1) )
                 Scr_Error("setdstat: Could not find member array index number.", 0);
         }
@@ -12275,11 +12277,11 @@ void __cdecl GScr_SetDStat(scr_entref_t entref)
     {
         if ( searchState.member && searchState.member->type <= 2u )
         {
-            v11.intValue = Scr_GetInt(argc - 1, SCRIPTINSTANCE_SERVER).intValue;
+            v11.intValue = Scr_GetInt(argc - 1, SCRIPTINSTANCE_SERVER);
             SV_SetClientDIntStat(playerEnt->s.number, &searchState, v11.stringValue);
             if ( debugStats && debugStats->current.enabled )
             {
-                v15.intValue = Scr_GetInt(argc - 1, SCRIPTINSTANCE_SERVER).intValue;
+                v15.intValue = Scr_GetInt(argc - 1, SCRIPTINSTANCE_SERVER);
                 v12 = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
                 Com_Printf(16, "setStat %i %s %i\n", playerEnt->s.number, v12, v15.intValue);
             }
@@ -12337,8 +12339,8 @@ void GScr_GetItemAttachment()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 2 )
         Scr_Error("GetItemAttachment( <itemIndex>, <attachmentNum> ) takes 2 parameters", 0);
-    itemIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
-    attachmentNum.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    itemIndex.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+    attachmentNum.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     ItemAttachment = BG_UnlockablesGetItemAttachment(itemIndex.intValue, attachmentNum.intValue);
     AttachmentName = (char *)BG_GetAttachmentName(ItemAttachment);
     Scr_AddString(AttachmentName, SCRIPTINSTANCE_SERVER);
@@ -12385,7 +12387,7 @@ void __cdecl GScr_SetTeamForTrigger(scr_entref_t entref)
         v2 = va("setteamfortrigger: trigger entity must be of type %s, %s, %s or %s", v1, v5, v6, v8);
         Scr_Error(v2, 0);
     }
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( team == scr_const.allies )
     {
         ent->team = 2;
@@ -12623,7 +12625,7 @@ void GScr_SetGameEndTime()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 1 )
         Scr_Error("Expected 1 argument to setGameEndTime()", 0);
-    v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    v0.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     SV_SetGameEndTime(v0.intValue);
 }
 
@@ -12634,7 +12636,7 @@ void GScr_SetTimeScale()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 2 )
         Scr_Error("Expected 2 arguments to SetTimeScale()", 0);
-    intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     endTimeScale = Scr_GetFloat(0, SCRIPTINSTANCE_SERVER);
     SV_SetTimeScale(endTimeScale, intValue);
 }
@@ -12688,7 +12690,7 @@ void GScr_IncrementEscrow()
     {
         xuidString = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
         StringToXUID(xuidString, &xuid);
-        amount = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+        amount = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
         v0 = va("%s %llu %d\n", "incrementescrow", xuid, amount);
         Cbuf_AddText(0, v0);
     }
@@ -12705,14 +12707,14 @@ void GScr_SetTeamSpyplane()
     unsigned __int16 team; // [esp+0h] [ebp-8h]
     unsigned int SpyplaneAvailable; // [esp+4h] [ebp-4h]
 
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if (team != scr_const.allies && team != scr_const.axis && team != scr_const.none)
     {
         v1 = SL_ConvertToString(team, SCRIPTINSTANCE_SERVER);
         v2 = va("Illegal team string '%s'. Must be allies, axis, or none.", v1);
         Scr_ParamError(0, v2, SCRIPTINSTANCE_SERVER);
     }
-    SpyplaneAvailable = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).stringValue;
+    SpyplaneAvailable = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if (team == scr_const.allies)
     {
         level.teamHasSpyplane[2] = SpyplaneAvailable;
@@ -12743,7 +12745,7 @@ void GScr_GetTeamSpyplane()
     const char *v1; // eax
     unsigned __int16 team; // [esp+0h] [ebp-8h]
 
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( team == scr_const.allies )
     {
         Scr_AddInt(level.teamHasSpyplane[2], SCRIPTINSTANCE_SERVER);
@@ -12771,14 +12773,14 @@ void GScr_SetTeamSatellite()
     unsigned __int16 team; // [esp+0h] [ebp-8h]
     unsigned int SatelliteAvailable; // [esp+4h] [ebp-4h]
 
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if (team != scr_const.allies && team != scr_const.axis && team != scr_const.none)
     {
         v1 = SL_ConvertToString(team, SCRIPTINSTANCE_SERVER);
         v2 = va("Illegal team string '%s'. Must be allies, axis, or none.", v1);
         Scr_ParamError(0, v2, SCRIPTINSTANCE_SERVER);
     }
-    SatelliteAvailable = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).stringValue;
+    SatelliteAvailable = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if (team == scr_const.allies)
     {
         level.teamHasSatellite[2] = SatelliteAvailable;
@@ -12809,7 +12811,7 @@ void GScr_GetTeamSatellite()
     const char *v1; // eax
     unsigned __int16 team; // [esp+0h] [ebp-8h]
 
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( team == scr_const.allies )
     {
         Scr_AddInt(level.teamHasSatellite[2], SCRIPTINSTANCE_SERVER);
@@ -12842,7 +12844,7 @@ void GScr_GetArrayKeys()
         v1 = va("Parameter (%s) must be an array", TypeName);
         Scr_ParamError(0, v1, SCRIPTINSTANCE_SERVER);
     }
-    id.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).intValue;
+    id.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
     Scr_AddArrayKeys(id.stringValue, SCRIPTINSTANCE_SERVER);
 }
 
@@ -13430,7 +13432,7 @@ void __cdecl GScr_SetLightExponent(scr_entref_t entref)
     gentity_s *ent; // [esp+4h] [ebp-4h]
 
     ent = GScr_SetupLightEntity(entref);
-    exponent = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    exponent = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)exponent > 0x64 )
         Scr_ParamError(0, "exponent must be in the range from 0 to 100", SCRIPTINSTANCE_SERVER);
     ent->s.lerp.u.primaryLight.colorAndExp[3] = exponent;
@@ -13502,7 +13504,7 @@ void __cdecl GScr_RagdollLaunch(scr_entref_t entref)
         }
         else
         {
-            floatValue = (unsigned __int16)Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER).floatValue;
+            floatValue = (unsigned __int16)Scr_GetConstLowercaseString(1u, SCRIPTINSTANCE_SERVER);
             tempent->s.eventParm = G_GetHitLocationIndexFromString(floatValue);
         }
     }
@@ -13523,7 +13525,7 @@ void __cdecl GScr_VehicleLaunch(scr_entref_t entref)
         tempent->s.otherEntityNum = ent->s.number;
         tempent->s.eventParm = 0;
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2 )
-            tempent->s.eventParm = (unsigned __int16)Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).floatValue;
+            tempent->s.eventParm = (unsigned __int16)Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) <= 1 )
         {
             tempent->s.lerp.pos.trDelta[0] = 0.0f;
@@ -13800,16 +13802,16 @@ void __cdecl ScrCmd_ItemWeaponSetAmmo(scr_entref_t entref)
         Scr_Error("Entity is not an item.", 0);
     if ( bg_itemlist[itemEnt->s.un3.item].giType != IT_WEAPON )
         Scr_Error("Item entity is not a weapon.", 0);
-    clipAmmo = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    clipAmmo = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( clipAmmo < 0 )
         Scr_ParamError(0, "Ammo count must not be negative", SCRIPTINSTANCE_SERVER);
-    reserveAmmo = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    reserveAmmo = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if ( reserveAmmo < 0 )
         Scr_ParamError(1u, "Ammo count must not be negative", SCRIPTINSTANCE_SERVER);
     altIndex = 0;
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2 )
     {
-        altIndex = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).stringValue;
+        altIndex = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
         if ( altIndex >= 2 )
         {
             v1 = va("Value out of range.    Allowed values: 0 to %i", 2);
@@ -13897,7 +13899,7 @@ void GScr_ClientSysSetState()
     char szConfigString[1024]; // [esp+41Ch] [ebp-408h] BYREF
     int i; // [esp+820h] [ebp-4h]
 
-    i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    i = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)i <= 8 )
     {
         SV_GetConfigstring(i + 1538, szConfigString, 1024);
@@ -13989,11 +13991,11 @@ void __cdecl GScr_DisableDestructiblePieces()
     float zero_vec[3]; // [esp+0h] [ebp-10h] BYREF
     gentity_s *tempent; // [esp+Ch] [ebp-4h]
 
-    v0.intValue = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).intValue;
+    v0.intValue = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     DisableDestructiblePiece(v0.intValue);
     memset(zero_vec, 0, sizeof(zero_vec));
     tempent = G_TempEntity(zero_vec, 183);
-    tempent->s.eventParm = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    tempent->s.eventParm = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
 }
 
 void __cdecl GScr_EnableAllDestructiblePieces()
@@ -14026,7 +14028,7 @@ void __cdecl GScr_ClearSpawnPointsBaseWeight()
 {
     VariableUnion team_mask; // [esp+0h] [ebp-4h]
 
-    team_mask.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    team_mask.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     SpawnSystem_ClearPointsBaseWeight(team_mask.intValue);
 }
 
@@ -14039,7 +14041,7 @@ void __cdecl GScr_SetSpawnPointsBaseWeight()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 4 )
         Scr_Error("USAGE: setspawnpointsbaseweight( <team mask>, <objective position>, <angle>, <score> )\n", 0);
-    team_mask.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    team_mask.intValue = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(1u, position, SCRIPTINSTANCE_SERVER);
     angle = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
     score = Scr_GetFloat(3u, SCRIPTINSTANCE_SERVER);
@@ -14061,7 +14063,7 @@ void __cdecl GScr_AddSpawnPoints()
     int id; // [esp+28h] [ebp-4h]
 
     team = GScr_ReadTeamForSpawnPoints(0);
-    parent_id = Scr_GetObject(1u, SCRIPTINSTANCE_SERVER).intValue;
+    parent_id = Scr_GetObject(1u, SCRIPTINSTANCE_SERVER);
     if ( !parent_id
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_scr_main_mp.cpp", 16044, 0, "%s", "parent_id") )
     {
@@ -14224,7 +14226,7 @@ void __cdecl GScr_AddSphereInfluencer()
             "USAGE: addsphereinfluencer( <type>, <origin>, <radius>, <score>, <team mask>, <description>, <curve>, <timeout>, <entity> )\n",
             0);
     }
-    type = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    type = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)type > 6 )
     {
         v0 = va("USAGE: addsphereinfluencer type must be a value from %i to %i\n", 0, 6);
@@ -14233,12 +14235,12 @@ void __cdecl GScr_AddSphereInfluencer()
     Scr_GetVector(1u, origin, SCRIPTINSTANCE_SERVER);
     radius = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
     score = Scr_GetFloat(3u, SCRIPTINSTANCE_SERVER);
-    team_mask = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER).intValue;
+    team_mask = Scr_GetInt(4u, SCRIPTINSTANCE_SERVER);
     description = Scr_GetString(5u, SCRIPTINSTANCE_SERVER);
     curve = 0;
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) >= 7 )
     {
-        curve = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER).intValue;
+        curve = Scr_GetInt(6u, SCRIPTINSTANCE_SERVER);
         if ( (unsigned int)curve > 4 )
         {
             v1 = va("USAGE: addsphereinfluencer curve must be a value from %i to %i\n", 0, 4);
@@ -14359,7 +14361,7 @@ void __cdecl GScr_AddCylinderInfluencer()
             "escription>, <curve>, <timeout>, <entity> )\n",
             0);
     }
-    type = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    type = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)type > 6 )
     {
         v0 = va("USAGE: addcylinderinfluencer type must be a value from %i to %i\n", 0, 6);
@@ -14371,12 +14373,12 @@ void __cdecl GScr_AddCylinderInfluencer()
     radius = Scr_GetFloat(4u, SCRIPTINSTANCE_SERVER);
     length = Scr_GetFloat(5u, SCRIPTINSTANCE_SERVER);
     score = Scr_GetFloat(6u, SCRIPTINSTANCE_SERVER);
-    team_mask = Scr_GetInt(7u, SCRIPTINSTANCE_SERVER).intValue;
+    team_mask = Scr_GetInt(7u, SCRIPTINSTANCE_SERVER);
     description = Scr_GetString(8u, SCRIPTINSTANCE_SERVER);
     curve = 0;
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) >= 0xA )
     {
-        curve = Scr_GetInt(9u, SCRIPTINSTANCE_SERVER).intValue;
+        curve = Scr_GetInt(9u, SCRIPTINSTANCE_SERVER);
         if ( (unsigned int)curve > 4 )
         {
             v1 = va("USAGE: addcylinderinfluencer curve must be a value from %i to %i\n", 0, 4);
@@ -14430,7 +14432,7 @@ void __cdecl GScr_RemoveInfluencer()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 1 )
         Scr_Error("USAGE: removeinfluencer(<influencer id> )\n", 0);
-    influcencer_id = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
+    influcencer_id = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( !SpawnSystem_RemoveInfluencer(influcencer_id) )
         Scr_Error("Trying to remove influencer that does not exist\n", 0);
 }
@@ -14442,8 +14444,8 @@ void __cdecl GScr_EnableInfluencer()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 2 )
         Scr_Error("USAGE: enableinfluencer(<influencer id>, <enable> )\n", 0);
-    influcencer_id = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
-    enable = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    influcencer_id = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+    enable = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if ( !SpawnSystem_EnableInfluencer(influcencer_id, enable != 0) )
         Scr_Error("Trying to enable influencer that does not exist\n", 0);
 }
@@ -14455,8 +14457,8 @@ void __cdecl GScr_SetInfluencerTeamMask()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 2 )
         Scr_Error("USAGE: setinfluencerteammask( <influencer id>, <team mask> )\n", 0);
-    influcencer_id = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).stringValue;
-    team_mask.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+    influcencer_id = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
+    team_mask.intValue = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     if ( !SpawnSystem_SetInfluencerTeamMask(influcencer_id, team_mask.intValue) )
         Scr_Error("Trying to set influencer team mask on an influencer that does not exist\n", 0);
 }
@@ -14467,7 +14469,7 @@ void __cdecl GScr_SetDebugSideSwitch()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 1 )
         Scr_Error("USAGE: setdebugsideswitch( <enabled> )\n", 0);
-    enabled = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    enabled = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     SpawnSystem_DebugSideSwitch(enabled != 0);
 }
 
@@ -14495,7 +14497,7 @@ void GScr_CollisionTestPointsInSphere()
         {
             if ( Scr_GetType(2u, SCRIPTINSTANCE_SERVER) == 5 )
             {
-                v6.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).intValue;
+                v6.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
                 element_count = Scr_GetArrayValues_Vector(0, v6.stringValue, points, 256, "spawn points");
                 Scr_GetVector(1u, sphere_center, SCRIPTINSTANCE_SERVER);
                 sphere_radius = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
@@ -14576,7 +14578,7 @@ void GScr_CollisionTestPointsInCylinder()
                 {
                     if ( Scr_GetType(4u, SCRIPTINSTANCE_SERVER) == 4 )
                     {
-                        v10.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).intValue;
+                        v10.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
                         element_count = Scr_GetArrayValues_Vector(0, v10.stringValue, points, 256, "spawn points");
                         Scr_GetVector(1u, cylinder_base, SCRIPTINSTANCE_SERVER);
                         cylinder_radius = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
@@ -14702,7 +14704,7 @@ void GScr_CollisionTestPointsInPill()
                     {
                         if ( Scr_GetType(5u, SCRIPTINSTANCE_SERVER) == 4 )
                         {
-                            v12.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).intValue;
+                            v12.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
                             element_count = Scr_GetArrayValues_Vector(0, v12.stringValue, points, 256, "spawn points");
                             Scr_GetVector(1u, cylinder_base, SCRIPTINSTANCE_SERVER);
                             cylinder_radius = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
@@ -14870,7 +14872,7 @@ void GScr_CollisionTestPointsInCone()
                     {
                         if ( Scr_GetType(5u, SCRIPTINSTANCE_SERVER) == 4 )
                         {
-                            v12.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).intValue;
+                            v12.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
                             element_count = Scr_GetArrayValues_Vector(0, v12.stringValue, points, 256, "spawn points");
                             Scr_GetVector(1u, cone_base, SCRIPTINSTANCE_SERVER);
                             cone_base_radius = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
@@ -15053,7 +15055,7 @@ void GScr_CollisionTestPointsInBox()
                         {
                             if ( Scr_GetType(6u, SCRIPTINSTANCE_SERVER) == 4 )
                             {
-                                v14.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).intValue;
+                                v14.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
                                 element_count = Scr_GetArrayValues_Vector(0, v14.stringValue, points, 256, "spawn points");
                                 Scr_GetVector(1u, box_origin, SCRIPTINSTANCE_SERVER);
                                 box_width = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
@@ -15180,7 +15182,7 @@ void GScr_QSortScoredSpawnPointArrayAscending()
 
     if ( Scr_GetPointerType(0, SCRIPTINSTANCE_SERVER) == 20 )
     {
-        v2.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).intValue;
+        v2.intValue = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
         element_count = Scr_GetArrayValues_Vector(0, v2.stringValue, scored_spawn_points, 256, "scored spawn points");
         Scr_MakeArray(SCRIPTINSTANCE_SERVER);
         if ( element_count > 0 )
@@ -15231,7 +15233,7 @@ void GScr_Matrix4x4TransformPoints()
 
     k_matrix_4x4_element_count = 16;
     parameter_index = 0;
-    parent_id = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).intValue;
+    parent_id = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
     if ( GetObjectType(SCRIPTINSTANCE_SERVER, parent_id) != 20
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_scr_main_mp.cpp",
@@ -15281,7 +15283,7 @@ void GScr_Matrix4x4TransformPoints()
         }
         if ( element_index == 16 )
         {
-            parent_id = Scr_GetObject(++parameter_index, SCRIPTINSTANCE_SERVER).intValue;
+            parent_id = Scr_GetObject(++parameter_index, SCRIPTINSTANCE_SERVER);
             point_count = Scr_GetArrayValues_Vector(parameter_index, parent_id, points, 128, "debug geometry points");
             Scr_MakeArray(SCRIPTINSTANCE_SERVER);
             for ( point_index = 0; point_index < point_count; ++point_index )
@@ -15628,7 +15630,7 @@ void __cdecl GScr_SetPregameTeam(scr_entref_t entref)
     {
         __debugbreak();
     }
-    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    team = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     if ( team == scr_const.allies )
     {
         Pregame_SetAssignedPregameTeam(ent->s.number, TEAM_ALLIES);
@@ -15704,7 +15706,7 @@ void GScr_IncrementCounter()
         if ( SV_IsServerRanked(LicenseType) )
         {
             counterType = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
-            increment = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER).intValue;
+            increment = Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
             if ( increment )
             {
                 if ( increment < 0
@@ -15902,7 +15904,7 @@ void FUNCTION_NULLSUB()
 
 void assertCmd_0()
 {
-    if (!Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue)
+    if (!Scr_GetInt(0, SCRIPTINSTANCE_SERVER))
         Scr_Error("assert fail", 0);
 }
 
@@ -15911,7 +15913,7 @@ void assertexCmd_0()
     char *String; // eax
     char *v2; // eax
 
-    if (!Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue)
+    if (!Scr_GetInt(0, SCRIPTINSTANCE_SERVER))
     {
         String = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
         v2 = va("assert fail: %s", String);
@@ -15947,7 +15949,7 @@ void GScr_SetPlayerStatsForMatchRecording()
     statName = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
     if (!statName)
         Scr_ParamError(1u, "recordPlayerStats Error: param 1 is not a string.", SCRIPTINSTANCE_SERVER);
-    statValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER).stringValue;
+    statValue = Scr_GetInt(2u, SCRIPTINSTANCE_SERVER);
 
 #ifdef KISAK_LIVE
     MatchRecordSetPlayerStat(ent->client, statName, statValue);
@@ -16387,7 +16389,7 @@ void __cdecl GScr_GetClientFlag(scr_entref_t entref)
     int flag; // [esp+4h] [ebp-4h]
 
     pSelf = GetEntity(entref);
-    flag = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    flag = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
 
     if ((unsigned int)flag < 0x10)
     {
@@ -16410,7 +16412,7 @@ void __cdecl GScr_SetClientFlag(scr_entref_t entref)
     int flag; // [esp+4h] [ebp-4h]
 
     pSelf = GetEntity(entref);
-    flag = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    flag = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)flag < 0x10 )
     {
         if ( pSelf->client )
@@ -16432,7 +16434,7 @@ void __cdecl GScr_ClearClientFlag(scr_entref_t entref)
     int flag; // [esp+4h] [ebp-4h]
 
     pSelf = GetEntity(entref);
-    flag = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    flag = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)flag < 0x10 )
     {
         if ( pSelf->client )
@@ -16512,7 +16514,7 @@ void __cdecl GScr_IsOnGround(scr_entref_t entref)
     }
     worldOnly = 0;
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
-        worldOnly = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+        worldOnly = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( pSelf->client )
     {
         if ( (pSelf->client->ps.eFlags & 0x300) != 0
@@ -17073,7 +17075,7 @@ void __cdecl Scr_SetAngles(gentity_s *ent, int)
 
 void __cdecl Scr_SetExposureIndex(gentity_s *ent, int)
 {
-    ent->item[1].index = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    ent->item[1].index = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
 }
 
 void __cdecl Scr_SetExposureLerpToLighter(gentity_s *ent, int)
@@ -17090,7 +17092,7 @@ void __cdecl Scr_SetHealth(gentity_s *ent, int)
 {
     int health; // [esp+0h] [ebp-4h]
 
-    health = Scr_GetInt(0, SCRIPTINSTANCE_SERVER).intValue;
+    health = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     if ( ent->client )
     {
         ent->health = health;

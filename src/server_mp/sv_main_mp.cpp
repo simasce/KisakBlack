@@ -1132,29 +1132,29 @@ int serverDebugFrame;
 void __cdecl SV_UpdatePerformanceFrame(int time)
 {
     int total; // [esp+0h] [ebp-10h]
-    int maxTime; // [esp+4h] [ebp-Ch]
-    int minTime; // [esp+8h] [ebp-8h]
+    volatile int maxTime; // [esp+4h] [ebp-Ch]
+    volatile int minTime; // [esp+8h] [ebp-8h]
     int i; // [esp+Ch] [ebp-4h]
 
     minTime = 0x7FFFFFFF;
     maxTime = 0;
     serverPreviousFrameTimes[serverDebugFrame % 10] = time;
-    if ( ++serverDebugFrame >= 10 )
+    if (++serverDebugFrame >= 10)
     {
         total = 0;
-        for ( i = 0; i < 10; ++i )
+        for (i = 0; i < 10; ++i)
         {
             total += serverPreviousFrameTimes[i];
-            if ( minTime > serverPreviousFrameTimes[i] )
+            if (minTime > serverPreviousFrameTimes[i])
                 minTime = serverPreviousFrameTimes[i];
-            if ( maxTime < serverPreviousFrameTimes[i] )
+            if (maxTime < serverPreviousFrameTimes[i])
                 maxTime = serverPreviousFrameTimes[i];
         }
-        *(unsigned int *)&sv.gametype[52] = (int)(float)((float)total / 10.0);
-        if ( minTime <= 0 )
+        sv.serverFrameTime = (int)(float)((float)total / 10.0);
+        if (minTime <= 0)
             minTime = 1;
-        *(unsigned int *)&sv.gametype[56] = minTime;
-        *(unsigned int *)&sv.gametype[60] = maxTime;
+        sv.serverFrameTimeMin = minTime;
+        sv.serverFrameTimeMax = maxTime;
     }
 }
 

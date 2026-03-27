@@ -276,7 +276,7 @@ unsigned int __cdecl G_SpawnStruct(SpawnVar *spawnVar)
         __debugbreak();
     }
     Scr_AddExecThread(SCRIPTINSTANCE_SERVER, g_scr_data.createstruct, 0);
-    structId = Scr_GetObject(0, SCRIPTINSTANCE_SERVER).stringValue;
+    structId = Scr_GetObject(0, SCRIPTINSTANCE_SERVER);
     for ( i = 0; i < spawnVar->numSpawnVars; ++i )
     {
         index = G_SetEntityScriptVariableInternal(spawnVar->spawnVars[i][0], spawnVar->spawnVars[i][1]);
@@ -1202,7 +1202,7 @@ void __cdecl Scr_GetEnt()
     int i; // [esp+1Ch] [ebp-8h]
     unsigned __int16 value; // [esp+20h] [ebp-4h]
 
-    name = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+    name = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     key = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
     offset = Scr_GetOffset(0, key, SCRIPTINSTANCE_SERVER);
     if ( offset >= 0 )
@@ -1259,7 +1259,7 @@ void __cdecl Scr_GetEntArray()
 
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) )
     {
-        name = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER).floatValue;
+        name = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
         key = Scr_GetString(1u, SCRIPTINSTANCE_SERVER);
         offset = Scr_GetOffset(0, key, SCRIPTINSTANCE_SERVER);
         if ( offset >= 0 )
