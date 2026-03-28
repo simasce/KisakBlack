@@ -1006,8 +1006,10 @@ void __thiscall GlassRenderer::GenerateVerts(
         std::list<GlassShard *,SmallAllocatorTemplate<GlassShard * *>>::_Const_iterator<1>::operator++((std::list<GlassPhysics *,SmallAllocatorTemplate<GlassPhysics * *> >::_Const_iterator<1> *)&grp);
         v14 = v10;
     }
-    if ( !threadId )
+    if (!threadId)
+    {
         //BLOPS_NULLSUB();
+    }
     this->rendererLock.lock = 0;
     GlassRenderer::StartMaintenance();
     //if ( g_DXDeviceThread == GetCurrentThreadId() )

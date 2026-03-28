@@ -733,8 +733,10 @@ void __cdecl CL_ParseGamestate(int localClientNum, msg_t *msg)
             UI_CloseAll(0);
             FS_Restart(localClientNum, clc->checksumFeed);
         }
-        if ( net_lanauthorize->current.enabled || !Sys_IsLANAddress(clc->serverAddress) )
+        if (net_lanauthorize->current.enabled || !Sys_IsLANAddress(clc->serverAddress))
+        {
             //BLOPS_NULLSUB();
+        }
         CL_InitDownloads(localClientNum);
         cmd = MSG_ReadByte(msg);
         if ( cmd != 6

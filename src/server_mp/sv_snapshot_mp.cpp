@@ -3047,16 +3047,7 @@ void __cdecl SV_GetServerStaticHeader()
     {
         __debugbreak();
     }
-    if ( svsHeader.gentities != (gentity_s *)sv.bpsWindow[8]
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
-                    3609,
-                    0,
-                    "%s",
-                    "svsHeader.gentities == sv.gentities") )
-    {
-        __debugbreak();
-    }
+    iassert(svsHeader.gentities == sv.gentities);
     iassert(svsHeader.gentitySize == sv.gentitySize);
     if ( svsHeader.firstClientState != G_GetClientState(0)
         && !Assert_MyHandler(

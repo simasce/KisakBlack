@@ -949,8 +949,10 @@ const char *__cdecl UI_FeederItemText_NewCategories(
     }
     if ( column != 1 )
     {
-        if ( column == 2 && listboxPtr->cursorPos[contextIndex] == index && Window_HasFocus(contextIndex, &item->window) )
+        if (column == 2 && listboxPtr->cursorPos[contextIndex] == index && Window_HasFocus(contextIndex, &item->window))
+        {
             //BLOPS_NULLSUB();
+        }
         return "";
     }
     if ( index < 0 || index >= Playlist_GetCategoryCount() )
@@ -1040,8 +1042,10 @@ char *__cdecl UI_FeederItemText_DynamicMenu(
         }
         else if ( column == 2 )
         {
-            if ( listPtr->cursorPos[contextIndex] == index )
+            if (listPtr->cursorPos[contextIndex] == index)
+            {
                 //BLOPS_NULLSUB();
+            }
             return (char *)"";
         }
         else if ( listPtr->rows[index].status == 2 )

@@ -370,98 +370,99 @@ void __cdecl G_MoverPush(gentity_s *pusher, mover_info_t *mi)
 {
     float outMaxs[3]; // [esp+28h] [ebp-108Ch] BYREF
     float outMins[3]; // [esp+34h] [ebp-1080h] BYREF
-    int v4; // [esp+40h] [ebp-1074h]
+    int v5; // [esp+40h] [ebp-1074h]
     int j; // [esp+44h] [ebp-1070h]
     float maxs[3]; // [esp+48h] [ebp-106Ch] BYREF
-    float v7[3]; // [esp+54h] [ebp-1060h] BYREF
-    float v8[3]; // [esp+60h] [ebp-1054h] BYREF
-    float move; // [esp+6Ch] [ebp-1048h] BYREF
-    float v10; // [esp+70h] [ebp-1044h]
-    float v11; // [esp+74h] [ebp-1040h]
-    float v12[3]; // [esp+78h] [ebp-103Ch]
-    float __formal; // [esp+84h] [ebp-1030h] BYREF
-    float v14; // [esp+88h] [ebp-102Ch]
-    float v15; // [esp+8Ch] [ebp-1028h]
+    float maxPos[3]; // [esp+54h] [ebp-1060h] BYREF
+    float minPos[3]; // [esp+60h] [ebp-1054h] BYREF
+    float move[3]; // [esp+6Ch] [ebp-1048h] BYREF
+    float minBound[3]; // [esp+78h] [ebp-103Ch]
+    float amove[3]; // [esp+84h] [ebp-1030h] BYREF
     float mins[3]; // [esp+90h] [ebp-1024h] BYREF
-    float v17; // [esp+9Ch] [ebp-1018h]
-    float v18[3]; // [esp+A0h] [ebp-1014h]
+    float v14; // [esp+9Ch] [ebp-1018h]
+    float maxBound[3]; // [esp+A0h] [ebp-1014h]
     int entityList[1024]; // [esp+ACh] [ebp-1008h] BYREF
     int i; // [esp+10ACh] [ebp-8h]
     gentity_s *other; // [esp+10B0h] [ebp-4h]
-    int savedregs; // [esp+10B4h] [ebp+0h] BYREF
 
-    move = mi->m_origin[0] - mi->m_prev_origin[0];
-    v10 = mi->m_origin[1] - mi->m_prev_origin[1];
-    v11 = mi->m_origin[2] - mi->m_prev_origin[2];
-    __formal = mi->m_angles[0] - mi->m_prev_angles[0];
-    v14 = mi->m_angles[1] - mi->m_prev_angles[1];
-    v15 = mi->m_angles[2] - mi->m_prev_angles[2];
+    move[0] = mi->m_origin[0] - mi->m_prev_origin[0];
+    move[1] = mi->m_origin[1] - mi->m_prev_origin[1];
+    move[2] = mi->m_origin[2] - mi->m_prev_origin[2];
+
+    amove[0] = mi->m_angles[0] - mi->m_prev_angles[0];
+    amove[1] = mi->m_angles[1] - mi->m_prev_angles[1];
+    amove[2] = mi->m_angles[2] - mi->m_prev_angles[2];
+
     mins[0] = pusher->r.mins[0];
     mins[1] = pusher->r.mins[1];
     mins[2] = pusher->r.mins[2];
+
     maxs[0] = pusher->r.maxs[0];
     maxs[1] = pusher->r.maxs[1];
     maxs[2] = pusher->r.maxs[2];
+
     parented_pathnode_list_update(pusher, &mi->m_mat);
-    if ( pusher->s.eType == 6 && pusher->model && G_GetModelBounds(pusher->model, outMins, outMaxs) )
+    if (pusher->s.eType == 6 && pusher->model && G_GetModelBounds(pusher->model, outMins, outMaxs))
     {
-        for ( i = 0; i < 3; ++i )
+        for (i = 0; i < 3; ++i)
         {
-            if ( mins[i] > outMins[i] )
+            if (mins[i] > outMins[i])
                 mins[i] = outMins[i];
-            if ( outMaxs[i] > maxs[i] )
+            if (outMaxs[i] > maxs[i])
                 maxs[i] = outMaxs[i];
         }
     }
-    if ( pusher->r.currentAngles[0] == 0.0
+    if (pusher->r.currentAngles[0] == 0.0
         && pusher->r.currentAngles[1] == 0.0
         && pusher->r.currentAngles[2] == 0.0
-        && __formal == 0.0
-        && v14 == 0.0
-        && v15 == 0.0 )
+        && amove[0] == 0.0
+        && amove[1] == 0.0
+        && amove[2] == 0.0)
     {
-        for ( i = 0; i < 3; ++i )
+        for (i = 0; i < 3; ++i)
         {
-            v8[i] = (float)(pusher->r.currentOrigin[i] + mins[i]) - 1.0;
-            v7[i] = (float)(pusher->r.currentOrigin[i] + maxs[i]) + 1.0;
+            minPos[i] = (float)(pusher->r.currentOrigin[i] + mins[i]) - 1.0;
+            maxPos[i] = (float)(pusher->r.currentOrigin[i] + maxs[i]) + 1.0;
         }
     }
     else
     {
-        v17 = RadiusFromBounds(mins, maxs);
-        for ( i = 0; i < 3; ++i )
+        v14 = RadiusFromBounds(mins, maxs);
+        for (i = 0; i < 3; ++i)
         {
-            v8[i] = pusher->r.currentOrigin[i] - v17;
-            v7[i] = pusher->r.currentOrigin[i] + v17;
+            minPos[i] = pusher->r.currentOrigin[i] - v14;
+            maxPos[i] = pusher->r.currentOrigin[i] + v14;
         }
     }
-    for ( i = 0; i < 3; ++i )
+
+    for (i = 0; i < 3; ++i)
     {
-        v12[i] = v8[i] + *(&move + i);
-        v18[i] = v7[i] + *(&move + i);
-        if ( *(&move + i) <= 0.0 )
-            v8[i] = v8[i] + *(&move + i);
+        minBound[i] = minPos[i] + move[i];
+        maxBound[i] = maxPos[i] + move[i];
+        if (move[i] <= 0.0)
+            minPos[i] = minPos[i] + move[i];
         else
-            v7[i] = v7[i] + *(&move + i);
+            maxPos[i] = maxPos[i] + move[i];
     }
+
     SV_UnlinkEntity(pusher);
-    v4 = CM_AreaEntities(v8, v7, entityList, 1024, 100696448);
-    pusher->r.currentOrigin[0] = pusher->r.currentOrigin[0] + move;
-    pusher->r.currentOrigin[1] = pusher->r.currentOrigin[1] + v10;
-    pusher->r.currentOrigin[2] = pusher->r.currentOrigin[2] + v11;
-    pusher->r.currentAngles[0] = pusher->r.currentAngles[0] + __formal;
-    pusher->r.currentAngles[1] = pusher->r.currentAngles[1] + v14;
-    pusher->r.currentAngles[2] = pusher->r.currentAngles[2] + v15;
+    v5 = CM_AreaEntities(minPos, maxPos, entityList, 1024, 100696448);
+    pusher->r.currentOrigin[0] = pusher->r.currentOrigin[0] + move[0];
+    pusher->r.currentOrigin[1] = pusher->r.currentOrigin[1] + move[1];
+    pusher->r.currentOrigin[2] = pusher->r.currentOrigin[2] + move[2];
+    pusher->r.currentAngles[0] = pusher->r.currentAngles[0] + amove[0];
+    pusher->r.currentAngles[1] = pusher->r.currentAngles[1] + amove[1];
+    pusher->r.currentAngles[2] = pusher->r.currentAngles[2] + amove[2];
     SV_LinkEntity(pusher);
-    for ( j = 0; j < v4; ++j )
+    for (j = 0; j < v5; ++j)
     {
         other = &g_entities[entityList[j]];
-        if ( (other->s.eType == 4 || other->s.eType == 3 || other->s.eType == 1 || other->physicsObject)
+        if ((other->s.eType == 4 || other->s.eType == 3 || other->s.eType == 1 || other->physicsObject)
             && !IsEntityLinkedToMe(pusher, other)
             && !other->tagInfo
-            && other->s.groundEntityNum == pusher->s.number )
+            && other->s.groundEntityNum == pusher->s.number)
         {
-            G_PushEntity(other, pusher, &move, &__formal, mi);
+            G_PushEntity(other, pusher, move, amove, mi);
         }
     }
 }

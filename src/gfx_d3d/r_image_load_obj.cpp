@@ -371,8 +371,10 @@ void __cdecl Image_LoadBitmap(
             }
             else
             {
-                if ( format == D3DFMT_A8R8G8B8 )
+                if (format == D3DFMT_A8R8G8B8)
+                {
                     //BLOPS_NULLSUB();
+                }
                 Image_UploadData(image, format, face, mipLevel - picmip, data);
             }
             data += bytesPerPixel * v6 * v7 * v5;

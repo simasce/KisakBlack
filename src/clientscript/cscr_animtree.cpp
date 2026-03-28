@@ -1326,8 +1326,10 @@ bool __cdecl Scr_LoadAnimTreeInternal(
     const char *oldSourceBuf; // [esp+64h] [ebp-4h]
 
     useArchive = 1;
-    if ( com_sv_running->current.enabled )
+    if (com_sv_running->current.enabled)
+    {
         //BLOPS_NULLSUB();
+    }
     if ( strlen(filename) + 15 >= 0x40
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_animtree.cpp",

@@ -301,8 +301,10 @@ void IN_MouseMove()
             IN_ClampMouseMove(&curPos);
         v0 = curPos.x - s_wmv.oldPos.x;
         dy = curPos.y - s_wmv.oldPos.y;
-        if ( curPos.x != s_wmv.oldPos.x || dy )
+        if (curPos.x != s_wmv.oldPos.x || dy)
+        {
             //BLOPS_NULLSUB();
+        }
         s_wmv.oldPos = curPos;
         ScreenToClient(g_wv.hWnd, &curPos);
         g_wv.recenterMouse = CL_MouseEvent(curPos.x, curPos.y, v0, dy);

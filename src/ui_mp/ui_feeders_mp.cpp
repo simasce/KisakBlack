@@ -337,8 +337,10 @@ char *__cdecl UI_FeederItemText_Maps(int controllerIndex, itemDef_s *item, int i
         }
         else if ( column == 2 )
         {
-            if ( listboxPtr->cursorPos[contextIndex] == index && Window_HasFocus(contextIndex, &item->window) )
+            if (listboxPtr->cursorPos[contextIndex] == index && Window_HasFocus(contextIndex, &item->window))
+            {
                 //BLOPS_NULLSUB();
+            }
             return (char *)"";
         }
         else
@@ -410,8 +412,10 @@ const char *__cdecl UI_FeederItemText_GametypesBase(
             }
             break;
         case 2:
-            if ( listPtr->cursorPos[contextIndex] == index && Window_HasFocus(contextIndex, &item->window) )
+            if (listPtr->cursorPos[contextIndex] == index && Window_HasFocus(contextIndex, &item->window))
+            {
                 //BLOPS_NULLSUB();
+            }
             result = "";
             break;
         case 3:
@@ -593,8 +597,10 @@ char *__cdecl UI_Feeder_HandleItemList(
             result = (char *)"";
             break;
         case 6:
-            if ( isSelectedItem )
+            if (isSelectedItem)
+            {
                 //BLOPS_NULLSUB();
+            }
             result = (char *)"";
             break;
         default:
@@ -1939,8 +1945,10 @@ char *__cdecl UI_FeederItemText_Contracts(
             result = (char *)"";
             break;
         case 4:
-            if ( listPtr->cursorPos[contextIndex] == index && Window_HasFocus(contextIndex, &item->window) )
+            if (listPtr->cursorPos[contextIndex] == index && Window_HasFocus(contextIndex, &item->window))
+            {
                 //BLOPS_NULLSUB();
+            }
             result = (char *)"";
             break;
         default:
@@ -2247,8 +2255,10 @@ const char *__cdecl UI_FeederItemText_KillstreakNumKills(
             result = "";
             break;
         case 6:
-            if ( listPtr->cursorPos[contextIndex] == index && !hasKillNumBeenSelected )
+            if (listPtr->cursorPos[contextIndex] == index && !hasKillNumBeenSelected)
+            {
                 //BLOPS_NULLSUB();
+            }
             result = "";
             break;
         default:

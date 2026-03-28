@@ -162,16 +162,12 @@ void __cdecl G_DoTouchTriggers(gentity_s *ent)
     float *origin; // [esp+1Ch] [ebp-103Ch]
     int entityList[1024]; // [esp+28h] [ebp-1030h] BYREF
     int contentmask; // [esp+1028h] [ebp-30h]
-    float mins; // [esp+102Ch] [ebp-2Ch] BYREF
-    float v8; // [esp+1030h] [ebp-28h]
-    float v9; // [esp+1034h] [ebp-24h]
+    float mins[3]; // [esp+102Ch] [ebp-2Ch] BYREF
     void(__cdecl * touch)(gentity_s *, gentity_s *, int); // [esp+1038h] [ebp-20h]
-    entityState_s *item; // [esp+103Ch] [ebp-1Ch]
-    float maxs; // [esp+1040h] [ebp-18h] BYREF
-    float v13; // [esp+1044h] [ebp-14h]
-    float v14; // [esp+1048h] [ebp-10h]
-    void(__cdecl * v15)(gentity_s *, gentity_s *, int); // [esp+104Ch] [ebp-Ch]
-    int v16; // [esp+1050h] [ebp-8h]
+    gentity_s *hit; // [esp+103Ch] [ebp-1Ch]
+    float maxs[3]; // [esp+1040h] [ebp-18h] BYREF
+    void(__cdecl * v11)(gentity_s *, gentity_s *, int); // [esp+104Ch] [ebp-Ch]
+    int v12; // [esp+1050h] [ebp-8h]
     int i; // [esp+1054h] [ebp-4h]
 
     if (!ent->client
@@ -192,46 +188,46 @@ void __cdecl G_DoTouchTriggers(gentity_s *ent)
         || ent->client->ps.pm_type == 7
         || ent->client->ps.pm_type == 8)
     {
-        mins = ent->r.absmin[0] - 20.0;
-        v8 = ent->r.absmin[1] - 20.0;
-        v9 = ent->r.absmin[2] - 20.0;
-        maxs = ent->r.absmax[0] + 20.0;
-        v13 = ent->r.absmax[1] + 20.0;
-        v14 = ent->r.absmax[2] + 20.0;
+        mins[0] = ent->r.absmin[0] - 20.0;
+        mins[1] = ent->r.absmin[1] - 20.0;
+        mins[2] = ent->r.absmin[2] - 20.0;
+        maxs[0] = ent->r.absmax[0] + 20.0;
+        maxs[1] = ent->r.absmax[1] + 20.0;
+        maxs[2] = ent->r.absmax[2] + 20.0;
         if (ent->scr_vehicle)
         {
             contentmask = 8;
         LABEL_26:
-            v16 = CM_AreaEntities(&mins, &maxs, entityList, 1024, contentmask);
+            v12 = CM_AreaEntities(mins, maxs, entityList, 1024, contentmask);
             if (ent->client)
             {
                 origin = ent->client->ps.origin;
-                mins = *origin + ent->r.mins[0];
-                v8 = origin[1] + ent->r.mins[1];
-                v9 = origin[2] + ent->r.mins[2];
+                mins[0] = *origin + ent->r.mins[0];
+                mins[1] = origin[1] + ent->r.mins[1];
+                mins[2] = origin[2] + ent->r.mins[2];
                 client = ent->client;
-                maxs = client->ps.origin[0] + ent->r.maxs[0];
-                v13 = client->ps.origin[1] + ent->r.maxs[1];
+                maxs[0] = client->ps.origin[0] + ent->r.maxs[0];
+                maxs[1] = client->ps.origin[1] + ent->r.maxs[1];
                 v3 = client->ps.origin[2];
             }
             else
             {
-                mins = ent->r.currentOrigin[0] + ent->r.mins[0];
-                v8 = ent->r.currentOrigin[1] + ent->r.mins[1];
-                v9 = ent->r.currentOrigin[2] + ent->r.mins[2];
-                maxs = ent->r.currentOrigin[0] + ent->r.maxs[0];
-                v13 = ent->r.currentOrigin[1] + ent->r.maxs[1];
+                mins[0] = ent->r.currentOrigin[0] + ent->r.mins[0];
+                mins[1] = ent->r.currentOrigin[1] + ent->r.mins[1];
+                mins[2] = ent->r.currentOrigin[2] + ent->r.mins[2];
+                maxs[0] = ent->r.currentOrigin[0] + ent->r.maxs[0];
+                maxs[1] = ent->r.currentOrigin[1] + ent->r.maxs[1];
                 v3 = ent->r.currentOrigin[2];
             }
-            v14 = v3 + ent->r.maxs[2];
-            ExpandBoundsToWidth(&mins, &maxs);
+            maxs[2] = v3 + ent->r.maxs[2];
+            ExpandBoundsToWidth(mins, maxs);
             touch = entityHandlers[ent->handler].touch;
             for (i = 0; ; ++i)
             {
-                if (i >= v16)
+                if (i >= v12)
                     return;
-                item = &g_entities[entityList[i]].s;
-                if ((LODWORD(item[1].lerp.pos.trDelta[1]) & 0x405C0008) == 0
+                hit = &g_entities[entityList[i]];
+                if ((hit->r.contents & 0x405C0008) == 0
                     && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_active_mp.cpp",
                         319,
@@ -241,7 +237,7 @@ void __cdecl G_DoTouchTriggers(gentity_s *ent)
                 {
                     __debugbreak();
                 }
-                if (item->eType == 4
+                if (hit->s.eType == 4
                     && !Assert_MyHandler(
                         "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_active_mp.cpp",
                         320,
@@ -251,34 +247,33 @@ void __cdecl G_DoTouchTriggers(gentity_s *ent)
                 {
                     __debugbreak();
                 }
-                v15 = entityHandlers[BYTE2(item[1].solid)].touch;
-                if ((v15 || touch)
+                v11 = entityHandlers[hit->handler].touch;
+                if ((v11 || touch)
                     && (!ent->client
-                        || (*(&item[1].lerp.eFlags + ((int)ent->client->ps.clientNum >> 5))
-                            & (1 << (ent->client->ps.clientNum & 0x1F))) == 0))
+                        || (hit->r.clientMask[(int)ent->client->ps.clientNum >> 5] & (1 << (ent->client->ps.clientNum & 0x1F))) == 0))
                 {
-                    if (item->eType == 3)
+                    if (hit->s.eType == 3)
                     {
-                        if (!ent->client || !BG_PlayerTouchesItem(&ent->client->ps, item, level.time))
+                        if (!ent->client || !BG_PlayerTouchesItem(&ent->client->ps, &hit->s, level.time))
                             continue;
                     }
-                    else if (!SV_EntityContact(&mins, &maxs, (const gentity_s *)item))
+                    else if (!SV_EntityContact(mins, maxs, hit))
                     {
                         continue;
                     }
                     if (Scr_IsSystemActive(1u, SCRIPTINSTANCE_SERVER))
                     {
                         Scr_AddEntity(ent, SCRIPTINSTANCE_SERVER);
-                        Scr_Notify((gentity_s *)item, scr_const.touch, 1u);
-                        Scr_AddEntity((gentity_s *)item, SCRIPTINSTANCE_SERVER);
+                        Scr_Notify(hit, scr_const.touch, 1u);
+                        Scr_AddEntity(hit, SCRIPTINSTANCE_SERVER);
                         Scr_Notify(ent, scr_const.touch, 1u);
                     }
-                    if (v15)
-                        v15((gentity_s *)item, ent, 1);
+                    if (v11)
+                        v11(hit, ent, 1);
                     if (ent->actor)
                     {
                         if (touch)
-                            touch(ent, (gentity_s *)item, 1);
+                            touch(ent, hit, 1);
                     }
                 }
             }

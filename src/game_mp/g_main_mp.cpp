@@ -1004,7 +1004,8 @@ void G_RegisterDvars()
                                                                  1,
                                                                  0x80u,
                                                                  "Errors out during load if paths are not connected.");
-    sv_mapname = _Dvar_RegisterString("sv_mapname", (char *)"", 0x44u, "The current map name");
+    //sv_mapname = _Dvar_RegisterString("sv_mapname", (char *)"", 0x44u, "The current map name");
+    _Dvar_RegisterString("sv_mapname", (char *)"", 0x44u, "The current map name");
     g_gametype = _Dvar_RegisterString("g_gametype", "tdm", 0x24u, "The current campaign");
     g_synchronousClients = _Dvar_RegisterBool(
                                                      "g_synchronousClients",

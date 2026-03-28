@@ -671,66 +671,66 @@ void __cdecl Com_InitThreadData(int threadContext)
 char value1[3][2][8192];
 char *__cdecl Info_ValueForKey(char *s, char *key)
 {
-    char *v3; // [esp+0h] [ebp-2010h]
     char *v4; // [esp+0h] [ebp-2010h]
-    char *v5; // [esp+4h] [ebp-200Ch]
+    char *v5; // [esp+0h] [ebp-2010h]
+    char *v6; // [esp+4h] [ebp-200Ch]
     char s1[8196]; // [esp+8h] [ebp-2008h] BYREF
-    const char *v7; // [esp+2018h] [ebp+8h]
+    char *v8; // [esp+2018h] [ebp+8h]
 
-    if ( !s || !key )
+    if (!s || !key)
         return (char *)"";
     ++valueindex;
     valueindex %= 2;
-    if ( *s == 92 )
+    if (*s == '\\')
         ++s;
-    while ( 1 )
+    while (1)
     {
-        v3 = s1;
-        while ( *s != 92 )
+        v4 = s1;
+        while (*s != '\\')
         {
-            if ( !*s )
+            if (!*s)
                 return (char *)"";
-            *v3++ = *s++;
-            if ( v3 - s1 >= 0x2000 )
-                Com_Error(ERR_DROP, "Info_ValueForKey: oversize key %d", v3 - s1);
+            *v4++ = *s++;
+            if (v4 - s1 >= 0x2000)
+                Com_Error(ERR_DROP, "Info_ValueForKey: oversize key %d", v4 - s1);
         }
-        *v3 = 0;
-        v7 = s + 1;
-        if ( Sys_IsMainThread() )
+        *v4 = 0;
+        v8 = s + 1;
+        if (Sys_IsMainThread())
         {
-            v5 = value1[0][valueindex];
+            v6 = value1[0][valueindex];
         }
-        else if ( Sys_IsServerThread() )
+        else if (Sys_IsServerThread())
         {
-            v5 = (char *)((valueindex << 13) + 162725720);
+            v6 = value1[2][valueindex];
         }
         else
         {
-            if ( !Sys_IsRenderThread()
+            if (!Sys_IsRenderThread()
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\universal\\q_shared.cpp",
-                            1280,
-                            0,
-                            "%s",
-                            "Sys_IsRenderThread()") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\universal\\q_shared.cpp",
+                    1280,
+                    0,
+                    "%s",
+                    "Sys_IsRenderThread()"))
             {
                 __debugbreak();
             }
-            v5 = (char *)((valueindex << 13) + 162709336);
+            v6 = value1[1][valueindex];
         }
-        v4 = v5;
-        while ( *v7 != 92 && *v7 )
+        v5 = v6;
+        while (*v8 != 92 && *v8)
         {
-            *v4++ = *v7++;
-            if ( v4 - v5 >= 0x2000 )
-                Com_Error(ERR_DROP, "Info_ValueForKey: oversize key %d", v4 - v5);
+            *v5++ = *v8++;
+            if (v5 - v6 >= 0x2000)
+                Com_Error(ERR_DROP, "Info_ValueForKey: oversize key %d", v5 - v6);
         }
-        *v4 = 0;
-        if ( !I_stricmp(key, s1) )
-            return v5;
-        if ( !*v7 )
+        *v5 = 0;
+        if (!I_stricmp(key, s1))
+            return v6;
+        if (!*v8)
             break;
-        s = (char *)(v7 + 1);
+        s = v8 + 1;
     }
     return (char *)"";
 }

@@ -763,25 +763,9 @@ void __cdecl SV_DirectConnect(netadr_t from)
     const char *v2; // eax
     char *v3; // eax
     const char *BuildName; // eax
-    char *v5; // eax
-    char *v6; // eax
-    char *v7; // eax
-    char *v8; // eax
-    char *v9; // eax
-    char *v10; // eax
-    char *v11; // eax
-    char *v12; // eax
-    char *v13; // eax
-    char *v14; // eax
-    char *v15; // eax
-    char *v16; // eax
-    char *v17; // eax
-    char *v18; // eax
+
     unsigned int v19; // eax
     unsigned __int64 v20; // rax
-    char *v21; // eax
-    char *v22; // eax
-    char *v23; // eax
     BOOL v24; // [esp-8h] [ebp-4E0h]
     const char *string; // [esp-4h] [ebp-4DCh]
     BOOL v26; // [esp-4h] [ebp-4DCh]
@@ -828,15 +812,12 @@ void __cdecl SV_DirectConnect(netadr_t from)
     if (version != 1044)
     {
         BuildName = Com_GetBuildName();
-        v5 = va("EXE_SERVER_IS_DIFFERENT_VER", BuildName);
-        NET_OutOfBandPrint(NS_SERVER, from, v5);
+        NET_OutOfBandPrint(NS_SERVER, from, va("EXE_SERVER_IS_DIFFERENT_VER", BuildName));
         Com_DPrintf(15, "    rejected connect from protocol version %i (should be %i)\n", version, 1044);
         return;
     }
-    v6 = Info_ValueForKey(userinfo, "challenge");
-    challenge = atoi(v6);
-    v7 = Info_ValueForKey(userinfo, "qport");
-    qport = atoi(v7);
+    challenge = atoi(Info_ValueForKey(userinfo, "challenge"));
+    qport = atoi(Info_ValueForKey(userinfo, "qport"));
     i = 0;
     clients = svs.clients;
     while (i < com_maxclients->current.integer)
@@ -846,8 +827,7 @@ void __cdecl SV_DirectConnect(netadr_t from)
         {
             if (svs.time - clients->lastConnectTime < 1000 * sv_reconnectlimit->current.integer)
             {
-                v8 = NET_AdrToString(from);
-                Com_DPrintf(15, "%s:reconnect rejected : too soon\n", v8);
+                Com_DPrintf(15, "%s:reconnect rejected : too soon\n", NET_AdrToString(from));
                 return;
             }
             break;
@@ -882,20 +862,17 @@ void __cdecl SV_DirectConnect(netadr_t from)
         ping = svs.time - svs.challenges[i].pingTime;
         svs.challenges[i].firstPing = ping;
     }
-    v9 = NET_AdrToString(from);
-    Com_Printf(15, "Client %i connecting with %i challenge ping from %s\n", i, ping, v9);
+    Com_Printf(15, "Client %i connecting with %i challenge ping from %s\n", i, ping, NET_AdrToString(from));
     svs.challenges[i].connected = 1;
     if (g_password)
     {
         if (*(_BYTE *)g_password->current.integer)
         {
             string = g_password->current.string;
-            v10 = Info_ValueForKey(userinfo, "password");
-            if (I_strcmp(v10, string))
+            if (I_strcmp(Info_ValueForKey(userinfo, "password"), string))
             {
                 NET_OutOfBandPrint(NS_SERVER, from, "error\nGAME_INVALIDPASSWORD");
-                v11 = Info_ValueForKey(userinfo, "password");
-                Com_DPrintf(15, "Rejected connection, invalid password %s\n", v11);
+                Com_DPrintf(15, "Rejected connection, invalid password %s\n", Info_ValueForKey(userinfo, "password"));
                 return;
             }
         }
@@ -911,8 +888,7 @@ void __cdecl SV_DirectConnect(netadr_t from)
     if (!sv_maxPing->current.integer || ping <= sv_maxPing->current.integer)
     {
     LABEL_35:
-        v12 = Info_ValueForKey(userinfo, "cl_punkbuster");
-        cl_pb = atoi(v12);
+        cl_pb = atoi(Info_ValueForKey(userinfo, "cl_punkbuster"));
         if (NET_IsLocalAddress(from))
         {
             //v13 = PbAuthClient("localhost", cl_pb, authSvPBguid);
@@ -940,8 +916,7 @@ void __cdecl SV_DirectConnect(netadr_t from)
                 {
                     v26 = from.port == clients->header.netchan.remoteAddress.port;
                     v24 = clients->header.netchan.qport == qport;
-                    v14 = NET_AdrToString(from);
-                    Com_Printf(15, "%s:reconnect. same qport: %i, same port: %i\n", v14, v24, v26);
+                    Com_Printf(15, "%s:reconnect. same qport: %i, same port: %i\n", NET_AdrToString(from), v24, v26);
                     if (clients->header.state >= 3)
                     {
                         NET_OutOfBandPrint(NS_SERVER, from, "error\nEXE_ERR_QPORT");
@@ -957,8 +932,7 @@ void __cdecl SV_DirectConnect(netadr_t from)
             isDemoClient = 0;
             if (Demo_IsEnabled())
             {
-                v15 = Info_ValueForKey(userinfo, "loller");
-                loller = atoi(v15);
+                loller = atoi(Info_ValueForKey(userinfo, "loller"));
                 if (from.port == 1773 && loller == qport)
                 {
                     isDemoClient = 1;
@@ -1016,8 +990,7 @@ void __cdecl SV_DirectConnect(netadr_t from)
                 newcl->reservedSlot = slot;
             }
             uid = 0;
-            v16 = Info_ValueForKey(userinfo, "bdOnlineUserID");
-            StringToXUID(v16, &uid);
+            StringToXUID(Info_ValueForKey(userinfo, "bdOnlineUserID"), &uid);
             if (SV_IsBannedGuid(uid) || SV_IsTempBannedGuid(uid))
             {
                 NET_OutOfBandPrint(NS_SERVER, from, "error\nPATCH_BANNED_FROM_SERVER");
@@ -1045,16 +1018,7 @@ void __cdecl SV_DirectConnect(netadr_t from)
             {
                 __debugbreak();
             }
-            if (newcl->scriptId
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_client_mp.cpp",
-                    2050,
-                    0,
-                    "%s",
-                    "!newcl->scriptId"))
-            {
-                __debugbreak();
-            }
+            iassert(!newcl->scriptId);
 #ifdef KISAK_LIVE_SERVICE
             if (live_service && live_service->current.enabled)
             {
@@ -1112,8 +1076,7 @@ void __cdecl SV_DirectConnect(netadr_t from)
             denied = ClientConnect(clientNum, newcl->scriptId);
             if (denied)
             {
-                v21 = va("error\n%s", denied);
-                NET_OutOfBandPrint(NS_SERVER, from, v21);
+                NET_OutOfBandPrint(NS_SERVER, from, va("error\n%s", denied));
                 Com_DPrintf(15, "Game rejected a connection: %s.\n", denied);
                 SV_FreeClientScriptId(newcl);
             }
@@ -1134,11 +1097,9 @@ void __cdecl SV_DirectConnect(netadr_t from)
                 I_strncpyz(newcl->clientPBguid, clientPBguid, 33);
                 SV_UserinfoChanged(newcl);
                 svs.challenges[i].firstPing = 0;
-                v22 = va("connectResponse %s", fs_gameDirVar->current.string);
-                NET_OutOfBandPrint(NS_SERVER, from, v22);
+                NET_OutOfBandPrint(NS_SERVER, from, va("connectResponse %s", fs_gameDirVar->current.string));
                 newcl->gamestateMessageNum = -1;
-                v23 = Info_ValueForKey(userinfo, "name");
-                SV_BotNameUpdate(v23);
+                SV_BotNameUpdate(Info_ValueForKey(userinfo, "name"));
                 SV_UpdateSplitscreenStateForAddr();
                 count = 0;
                 i = 0;
@@ -2537,6 +2498,7 @@ void __cdecl SV_UserinfoChanged(client_t *cl)
     I_strncpyz(cl->name, v5, 32);
     v6 = Info_ValueForKey(cl->userinfo, "clanAbbrev");
     I_strncpyz(cl->clanAbbrev, v6, 5);
+
     val = Info_ValueForKey(cl->userinfo, "rate");
     if ( strlen(val) )
     {
@@ -2556,6 +2518,7 @@ void __cdecl SV_UserinfoChanged(client_t *cl)
     {
         cl->rate = 5000;
     }
+
     val = Info_ValueForKey(cl->userinfo, "snaps");
     if ( strlen(val) )
     {
@@ -2575,27 +2538,20 @@ void __cdecl SV_UserinfoChanged(client_t *cl)
     {
         cl->snapshotMsec = 50;
     }
+
     val = Info_ValueForKey(cl->userinfo, "cl_voice");
     cl->sendVoice = atoi(val) > 0;
     if ( cl->rate < 5000 )
         cl->sendVoice = 0;
+
     if ( cl->header.netchan.remoteAddress.type )
     {
         clientNum = cl - svs.clients;
-        if ( (unsigned int)clientNum >= com_maxclients->current.integer
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_client_mp.cpp",
-                        4003,
-                        0,
-                        "clientNum doesn't index com_maxclients->current.integer\n\t%i not in [0, %i)",
-                        clientNum,
-                        com_maxclients->current.integer) )
-        {
-            __debugbreak();
-        }
+        bcassert(clientNum, com_maxclients->current.integer);
+
         val = Info_ValueForKey(cl->userinfo, "bdOnlineUserID");
         StringToXUID(val, &newXuid);
-        if ( newXuid )
+        if ( newXuid ) // KISAKTODO: prob should ifdef off this branch
         {
             if ( newXuid != __PAIR64__(LODWORD(svs.mapCenter[2 * clientNum - 63]), svs.xuids[clientNum]) )
             {
@@ -2660,9 +2616,7 @@ void __cdecl SV_UserinfoChanged(client_t *cl)
         }
         else
         {
-            v11 = (unsigned int *)(8 * clientNum + 159773552);
-            *v11 = 0;
-            v11[1] = 0;
+            svs.xuids[clientNum] = 0;
             SV_SetConfigstring(clientNum + 355, 0);
             Com_Printf(15, "Player '%s' logged out of Xbox Live\n", cl->name);
         }

@@ -1423,8 +1423,10 @@ void __cdecl CL_Disconnect(unsigned int localClientNum, bool deactivateClient)
         SND_DisconnectListener(localClientNum);
         if ( wasConnected )
             clientUIActive->keyCatchers &= 1u;
-        if ( !wasConnected && deactivateClient )
+        if (!wasConnected && deactivateClient)
+        {
             //BLOPS_NULLSUB();
+        }
         if ( wasConnected )
         {
             v5 = Com_LocalClient_GetControllerIndex(localClientNum);
@@ -2507,8 +2509,10 @@ char    CL_DispatchConnectionlessPacket(int localClientNum, netadr_t from, msg_t
                             v32 = "";
                         else
                             v32 = Cmd_Argv(1);
-                        if ( I_stricmp(v32, fs_gameDirVar->current.string) )
+                        if (I_stricmp(v32, fs_gameDirVar->current.string))
+                        {
                             //BLOPS_NULLSUB();
+                        }
                         if ( isMigration )
                         {
                             clientUIActives[localClientNum].connectionState = CA_CONNECTED;

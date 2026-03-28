@@ -3934,8 +3934,10 @@ void __cdecl LiveStats_ValidateStats(int controllerIndex)
     int currentStatsKey; // [esp+60h] [ebp-8h]
     int statsBackupVersion; // [esp+64h] [ebp-4h] BYREF
 
-    if ( !LiveStorage_GetStatsChecksumValid(controllerIndex, STATS_LOCATION_NORMAL) )
+    if (!LiveStorage_GetStatsChecksumValid(controllerIndex, STATS_LOCATION_NORMAL))
+    {
         //BLOPS_NULLSUB();
+    }
     statsKeys[0] = MP_PLAYERSTATSKEY_SCORE;
     statsKeys[1] = MP_PLAYERSTATSKEY_PLEVEL;
     statsKeys[2] = MP_PLAYERSTATSKEY_TIMEPLAYEDTOTAL;
