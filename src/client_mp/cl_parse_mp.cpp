@@ -572,8 +572,6 @@ void __cdecl CL_ParseMapCenter()
 
 void __cdecl CL_ParseGamestate(int localClientNum, msg_t *msg)
 {
-    int Long; // eax
-    int v3; // eax
     unsigned int v4; // [esp+0h] [ebp-1A0h]
     unsigned int v5; // [esp+10h] [ebp-190h]
     unsigned int v6; // [esp+20h] [ebp-180h]
@@ -641,11 +639,11 @@ void __cdecl CL_ParseGamestate(int localClientNum, msg_t *msg)
     while ( 1 )
     {
         cmd = MSG_ReadByte(msg);
-        if ( cmd == 14 )
+        if ( cmd == svc_EOF)
             break;
         switch ( cmd )
         {
-            case 2:
+            case svc_configstring:
                 lastStringIndex = -1;
                 numConfigStrings = MSG_ReadShort(msg);
                 nextConstConfigStringIndex = 0;
@@ -718,85 +716,60 @@ void __cdecl CL_ParseGamestate(int localClientNum, msg_t *msg)
                 return;
         }
     }
-    Long = MSG_ReadLong(msg);
-    clc->clientNum = Long;
-    if ( clc->clientNum < 0x20u )
-    {
-        v3 = MSG_ReadLong(msg);
-        clc->checksumFeed = v3;
-        if ( useFastFile->current.enabled )
-            DB_SyncXAssets();
-        CL_ServerIdChanged(localClientNum);
-        CL_SystemInfoChanged(localClientNum);
-        cls.doVidRestart |= fs_gameDirVar->modified;
-        if ( FS_NeedRestart(clc->checksumFeed) )
-        {
-            UI_CloseAll(0);
-            FS_Restart(localClientNum, clc->checksumFeed);
-        }
-        if (net_lanauthorize->current.enabled || !Sys_IsLANAddress(clc->serverAddress))
-        {
-            //BLOPS_NULLSUB();
-        }
-        CL_InitDownloads(localClientNum);
-        cmd = MSG_ReadByte(msg);
-        if ( cmd != 6
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\client_mp\\cl_parse_mp.cpp",
-                        1341,
-                        0,
-                        "%s",
-                        "cmd == svc_dynentstate") )
-        {
-            __debugbreak();
-        }
-        DynEnt_ReadGameState(msg, localClientNum);
-        cmd = MSG_ReadByte(msg);
-        if ( cmd != 7
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\client_mp\\cl_parse_mp.cpp",
-                        1345,
-                        0,
-                        "%s",
-                        "cmd == svc_destructiblestate") )
-        {
-            __debugbreak();
-        }
-        Destructible_ReadGameState(msg, localClientNum);
-        cmd = MSG_ReadByte(msg);
-        if ( cmd != 8
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\client_mp\\cl_parse_mp.cpp",
-                        1349,
-                        0,
-                        "%s",
-                        "cmd == svc_ropestate") )
-        {
-            __debugbreak();
-        }
-        Rope_ReadGameState(msg, localClientNum);
-        cmd = MSG_ReadByte(msg);
-        if ( cmd != 9
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\client_mp\\cl_parse_mp.cpp",
-                        1354,
-                        0,
-                        "%s",
-                        "cmd == svc_glassstate") )
-        {
-            __debugbreak();
-        }
-        GlassCl_ReadGameState(localClientNum, msg);
-        if ( UI_Gametype_Custom_ReadClientData(msg) && !UI_Gametype_CanUseCustom() )
-            Com_Error(ERR_DROP, "EXE_TRANSMITERROR");
-        Dvar_SetInt((dvar_s *)cl_paused, 0);
-    }
-    else
+
+    clc->clientNum = MSG_ReadLong(msg);
+    if (clc->clientNum >= 32) // KISAKTODO: should probably be com_maxclients instead?
     {
         Com_PrintError(1, "CL_ParseGamestate: bad clientNum %i\n", clc->clientNum);
         clc->clientNum = 0;
         MSG_Discard(msg);
     }
+
+    clc->checksumFeed = MSG_ReadLong(msg);
+
+    if ( useFastFile->current.enabled )
+        DB_SyncXAssets();
+
+    CL_ServerIdChanged(localClientNum);
+    CL_SystemInfoChanged(localClientNum);
+
+    cls.doVidRestart |= fs_gameDirVar->modified;
+    if ( FS_NeedRestart(clc->checksumFeed) )
+    {
+        UI_CloseAll(0);
+        FS_Restart(localClientNum, clc->checksumFeed);
+    }
+
+#if 0
+    if (net_lanauthorize->current.enabled || !Sys_IsLANAddress(clc->serverAddress))
+    {
+        //BLOPS_NULLSUB(); CL_RequestAuthorization
+    }
+#endif
+
+    CL_InitDownloads(localClientNum);
+
+    // New stuff below here
+    cmd = MSG_ReadByte(msg);
+    iassert(cmd == svc_dynentstate);
+    DynEnt_ReadGameState(msg, localClientNum);
+
+    cmd = MSG_ReadByte(msg);
+    iassert(cmd == svc_destructiblestate);
+    Destructible_ReadGameState(msg, localClientNum);
+
+    cmd = MSG_ReadByte(msg);
+    iassert(cmd == svc_ropestate);
+    Rope_ReadGameState(msg, localClientNum);
+
+    cmd = MSG_ReadByte(msg);
+    iassert(cmd == svc_glassstate);
+    GlassCl_ReadGameState(localClientNum, msg);
+
+    if ( UI_Gametype_Custom_ReadClientData(msg) && !UI_Gametype_CanUseCustom() )
+        Com_Error(ERR_DROP, "EXE_TRANSMITERROR");
+
+    Dvar_SetInt((dvar_s *)cl_paused, 0);
 }
 
 void __cdecl CL_ParseWWWDownload(int localClientNum, msg_t *msg)
@@ -843,7 +816,7 @@ void __cdecl CL_ParseWWWDownload(int localClientNum, msg_t *msg)
     }
 }
 
-static unsigned __int8 msgCompressed_buf[65536];
+static unsigned __int8 msgCompressed_buf[0x10000];
 void __cdecl CL_ParseServerMessage(int localClientNum, msg_t *msg)
 {
     msg_t msgCompressed; // [esp+4h] [ebp-38h] BYREF
@@ -858,27 +831,37 @@ void __cdecl CL_ParseServerMessage(int localClientNum, msg_t *msg)
     {
         Com_Printf(14, "------------------\n");
     }
-    MSG_Init(&msgCompressed, msgCompressed_buf, 0x10000);
-    if ( (unsigned int)(msg->cursize - msg->readcount) > 0x10000 )
+
+    MSG_Init(&msgCompressed, msgCompressed_buf, sizeof(msgCompressed_buf));
+
+    if ( (unsigned int)(msg->cursize - msg->readcount) > sizeof(msgCompressed_buf))
         Com_Error(ERR_DROP, "Compressed msg overflow in CL_ParseServerMessage");
+
     msgCompressed.cursize = MSG_ReadBitsCompress(
-                                                        &msg->data[msg->readcount],
-                                                        msg->cursize - msg->readcount,
-                                                        msgCompressed_buf,
-                                                        0x10000u);
+        &msg->data[msg->readcount], 
+        msg->cursize - msg->readcount, 
+        msgCompressed_buf, 
+        sizeof(msgCompressed_buf)
+    );
+
     while ( 2 )
     {
-        if ( msgCompressed.overflowed )
-            goto LABEL_24;
+        if (msgCompressed.overflowed)
+        {
+            MSG_Discard(msg);
+            return;
+        }
+
         cmd = MSG_ReadByte(&msgCompressed);
-        if ( cmd == 14 || msgCompressed.overflowed )
+
+        if ( cmd == svc_EOF || msgCompressed.overflowed )
         {
             SHOWNET(&msgCompressed, (char*)"END OF MESSAGE");
-LABEL_24:
             if ( msgCompressed.overflowed )
                 MSG_Discard(msg);
             return;
         }
+
         if ( cl_shownet->current.integer >= 2 )
         {
             if ( svc_strings[cmd] )
@@ -886,12 +869,13 @@ LABEL_24:
             else
                 Com_Printf(14, "%3i:BAD CMD %i\n", msgCompressed.readcount - 1, cmd);
         }
+
         switch ( cmd )
         {
             case svc_nop:
                 continue;
             case svc_gamestate:
-                CL_ParseGamestate(localClientNum, &msgCompressed);
+                CL_ParseGamestate(localClientNum, &msgCompressed); // contains newer ops like ropestate, glassstate, etc
                 continue;
             case svc_serverCommand:
                 CL_ParseCommandString(localClientNum, &msgCompressed);

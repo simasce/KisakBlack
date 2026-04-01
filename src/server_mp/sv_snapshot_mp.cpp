@@ -2485,8 +2485,8 @@ LABEL_20:
     }
 }
 
-unsigned __int8 svCompressedBuf[65536];
-unsigned __int8 to[65536];
+unsigned __int8 svCompressedBuf[131072];
+//unsigned __int8 to[65536];
 void __cdecl SV_SendMessageToClient(msg_t *msg, client_t *client, bool reliable)
 {
     int lowest_send_count; // [esp+10h] [ebp-Ch]
@@ -2515,7 +2515,9 @@ void __cdecl SV_SendMessageToClient(msg_t *msg, client_t *client, bool reliable)
         __debugbreak();
     }
     *(unsigned int *)svCompressedBuf = *(unsigned int *)msg->data;
-    compressedSize = MSG_WriteBitsCompress(client->header.state == CS_ACTIVE, msg->data + 4, msg->cursize - 4, to, 65532) + 4;
+    // 'to' is not used anywhere, leading svCompressedBuf to be used (with only the 1st 4 bytes set, rest zero). Great!
+    //compressedSize = MSG_WriteBitsCompress(client->header.state == CS_ACTIVE, msg->data + 4, msg->cursize - 4, to, 65532) + 4;
+    compressedSize = MSG_WriteBitsCompress(client->header.state == CS_ACTIVE, msg->data + 4, msg->cursize - 4, svCompressedBuf + 4, 65532) + 4;
     if ( sv_showHuffmanData->current.enabled )
     {
         showHuffmanData();

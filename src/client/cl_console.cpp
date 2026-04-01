@@ -955,23 +955,15 @@ void __cdecl Con_InitMessageBuffer()
 
 void __cdecl CL_ConsolePrint(int localClientNum, int channel, const char *txt, int duration, int pixelWidth, int flags)
 {
-    if ( !txt && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp", 1428, 0, "%s", "txt") )
-        __debugbreak();
+    iassert(txt);
+
     if ( cl_noprint && !cl_noprint->current.enabled && channel != 6 )
     {
         if ( !con.initialized )
         {
             Con_OneTimeInit();
-            if ( !con.initialized
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                            1439,
-                            0,
-                            "%s",
-                            "con.initialized") )
-            {
-                __debugbreak();
-            }
+
+            iassert(con.initialized);
         }
         Con_IsChannelVisible(CON_DEST_CONSOLE, channel, flags);
         Sys_EnterCriticalSection(CRITSECT_CONSOLE);
@@ -980,16 +972,16 @@ void __cdecl CL_ConsolePrint(int localClientNum, int channel, const char *txt, i
     }
 }
 
-char __cdecl CL_ConsolePrint_AddLine(
-                int localClientNum,
-                int channel,
-                const char *txt,
-                int duration,
-                int pixelWidth,
-                char color,
-                int flags)
+void CL_ConsolePrint_AddLine(
+    int localClientNum,
+    int channel,
+    const char *txt,
+    int duration,
+    int pixelWidth,
+    char color,
+    int flags)
 {
-    const char *v8; // eax
+    char *v8; // eax
     char *v9; // ecx
     const char *v10; // edx
     int c; // [esp+24h] [ebp-24h]
@@ -999,276 +991,169 @@ char __cdecl CL_ConsolePrint_AddLine(
     const char *wrapPosition; // [esp+3Ch] [ebp-Ch]
     const char *text; // [esp+44h] [ebp-4h] BYREF
 
-    if ( !txt && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp", 1268, 0, "%s", "txt") )
-        __debugbreak();
-    if ( (color < 48 || color > 64)
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                    1269,
-                    0,
-                    "color not in [COLOR_FIRST, COLOR_LAST]\n\t%i not in [%i, %i]",
-                    color,
-                    48,
-                    64) )
+    iassert(txt);
+    rangeassert(color, COLOR_FIRST, COLOR_LAST);
+
+    if (!callDepth)
     {
-        __debugbreak();
-    }
-    if ( callDepth )
-        return color;
-    callDepth = 1;
-    Con_UpdateNotifyMessage(localClientNum, channel, duration, flags);
-    if ( channel != con.prevChannel && con.lineOffset )
-        Con_Linefeed(localClientNum, con.prevChannel, flags);
-    if ( channel == 2 || channel == 3 || channel == 4 )
-    {
-        font = UI_GetFontHandle(&scrPlaceView[localClientNum], channel != 3 ? 0 : 4, 12.0 / 48.0);
-        xScale = R_NormalizedTextScale(font, 12.0 / 48.0);
-    }
-    else
-    {
-        font = cls.consoleFont;
-        xScale = 1.0f;
-    }
-    if ( !pixelWidth )
-        pixelWidth = con.visiblePixelWidth;
-    wrapPosition = CL_TextLineWrapPosition(txt, 512 - con.lineOffset, pixelWidth, font, xScale, 0);
-    if ( txt == wrapPosition && con.lineOffset )
-    {
-        Con_Linefeed(localClientNum, channel, flags);
+        callDepth = 1;
+        Con_UpdateNotifyMessage(localClientNum, channel, duration, flags);
+        if (channel != con.prevChannel && con.lineOffset)
+            Con_Linefeed(localClientNum, con.prevChannel, flags);
+        if (channel == 2 || channel == 3 || channel == 4)
+        {
+            font = UI_GetFontHandle(&scrPlaceView[localClientNum], channel != 3 ? 0 : 4, 12.0 / 48.0);
+            xScale = R_NormalizedTextScale(font, 12.0 / 48.0);
+        }
+        else
+        {
+            font = cls.consoleFont;
+            xScale = 1.0f;
+        }
+        if (!pixelWidth)
+            pixelWidth = con.visiblePixelWidth;
         wrapPosition = CL_TextLineWrapPosition(txt, 512 - con.lineOffset, pixelWidth, font, xScale, 0);
-    }
-    text = txt;
-    atStartOfBrokenLine = 0;
-    while ( *text )
-    {
-        c = SEH_ReadCharFromString(&text, 0);
-        if ( c == 10 )
+        if (txt == wrapPosition && con.lineOffset)
         {
-            if ( wrapPosition )
+            Con_Linefeed(localClientNum, channel, flags);
+            wrapPosition = CL_TextLineWrapPosition(txt, 512 - con.lineOffset, pixelWidth, font, xScale, 0);
+        }
+        text = txt;
+        atStartOfBrokenLine = 0;
+        while (1)
+        {
+            if (!*text)
             {
-                if ( font )
+                if (con.lineOffset)
                 {
-                    if ( wrapPosition != text )
+                    if (channel == 2 || channel == 3 || channel == 4)
+                        Con_Linefeed(localClientNum, channel, flags);
+                    else
+                        Con_UpdateNotifyLine(localClientNum, channel, 0, flags);
+                }
+                con.prevChannel = channel;
+                --callDepth;
+                return;
+            }
+            c = SEH_ReadCharFromString(&text, 0);
+            if (c == 10)
+            {
+                if (wrapPosition)
+                {
+                    if (font)
                     {
-                        if ( *text )
+                        if (wrapPosition != text)
                         {
-                            v8 = va("font is %s, wrapPosition is %s, text is %s, txt is %s", "valid", wrapPosition, text, txt);
-                            if ( !Assert_MyHandler(
-                                            "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                            1323,
-                                            0,
-                                            "%s\n\t%s",
-                                            "!font || wrapPosition == text || !text[0]",
-                                            v8) )
-                                __debugbreak();
+                            if (*text)
+                            {
+                                v8 = va("font is %s, wrapPosition is %s, text is %s, txt is %s", "valid", wrapPosition, text, txt);
+                                if (!Assert_MyHandler(
+                                    "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
+                                    1323,
+                                    0,
+                                    "%s\n\t%s",
+                                    "!font || wrapPosition == text || !text[0]",
+                                    v8))
+                                    __debugbreak();
+                            }
                         }
                     }
+                }
+                else
+                {
+                    wrapPosition = text;
                 }
             }
             else
             {
-                wrapPosition = text;
-            }
-        }
-        else
-        {
-            if ( c != 94 )
-                goto LABEL_64;
-            if ( text && *text != 94 && *text >= 48 && *text <= 64 || text && *text == 70 )
-            {
-                if ( con.lineOffset >= 0x1FF
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                1330,
-                                0,
-                                "con.lineOffset doesn't index sizeof( con.textTempLine ) - 1\n\t%i not in [0, %i)",
-                                con.lineOffset,
-                                511) )
+                if (c != 94)
+                    goto LABEL_63;
+                if (text && *text != 94 && *text >= 48 && *text <= 64 || text && *text == 70)
                 {
-                    __debugbreak();
+                    bcassert(con.lineOffset, sizeof(con.textTempLine));
+                    color = *text;
+                    con.textTempLine[con.lineOffset++] = 94;
+                    con.textTempLine[con.lineOffset++] = color;
+                    bcassert(con.lineOffset, sizeof(con.textTempLine));
+                    ++text;
+                    atStartOfBrokenLine = 0;
                 }
-                color = *text;
-                con.textTempLine[con.lineOffset++] = 94;
-                con.textTempLine[con.lineOffset++] = color;
-                if ( con.lineOffset >= 0x201
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                1334,
-                                0,
-                                "con.lineOffset doesn't index sizeof( con.textTempLine ) + 1\n\t%i not in [0, %i)",
-                                con.lineOffset,
-                                513) )
+                else
                 {
-                    __debugbreak();
-                }
-                ++text;
-                atStartOfBrokenLine = 0;
-            }
-            else
-            {
-                if ( *text != 1 && *text != 2 )
-                {
-LABEL_64:
-                    if ( c != 32 || !atStartOfBrokenLine )
+                    if (*text != 1 && *text != 2)
                     {
-                        if ( c > 255 )
+                    LABEL_63:
+                        if (c != 32 || !atStartOfBrokenLine)
                         {
-                            if ( con.lineOffset >= 0x200
-                                && !Assert_MyHandler(
-                                            "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                            1364,
-                                            0,
-                                            "con.lineOffset doesn't index sizeof( con.textTempLine )\n\t%i not in [0, %i)",
-                                            con.lineOffset,
-                                            512) )
+                            if (c > 255)
                             {
-                                __debugbreak();
+                                bcassert(con.lineOffset, sizeof(con.textTempLine));
+                                con.textTempLine[con.lineOffset++] = BYTE1(c);
+                                c = (unsigned __int8)c;
+
+                                bcassert(con.lineOffset, sizeof(con.textTempLine));
                             }
-                            con.textTempLine[con.lineOffset++] = BYTE1(c);
-                            c = (unsigned __int8)c;
-                            if ( con.lineOffset >= 0x201
-                                && !Assert_MyHandler(
-                                            "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                            1368,
-                                            0,
-                                            "con.lineOffset doesn't index sizeof( con.textTempLine ) + 1\n\t%i not in [0, %i)",
-                                            con.lineOffset,
-                                            513) )
-                            {
-                                __debugbreak();
-                            }
+
+                            bcassert(con.lineOffset, sizeof(con.textTempLine));
+                            con.textTempLine[con.lineOffset++] = c;
+                            bcassert(con.lineOffset, sizeof(con.textTempLine));
+                            atStartOfBrokenLine = 0;
                         }
-                        if ( con.lineOffset >= 0x200
-                            && !Assert_MyHandler(
-                                        "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                        1370,
-                                        0,
-                                        "con.lineOffset doesn't index sizeof( con.textTempLine )\n\t%i not in [0, %i)",
-                                        con.lineOffset,
-                                        512) )
-                        {
-                            __debugbreak();
-                        }
-                        con.textTempLine[con.lineOffset++] = c;
-                        if ( con.lineOffset >= 0x201
-                            && !Assert_MyHandler(
-                                        "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                        1373,
-                                        0,
-                                        "con.lineOffset doesn't index sizeof( con.textTempLine ) + 1\n\t%i not in [0, %i)",
-                                        con.lineOffset,
-                                        513) )
-                        {
-                            __debugbreak();
-                        }
-                        atStartOfBrokenLine = 0;
+                        goto LABEL_79;
                     }
-                    goto LABEL_80;
+                    bcassert(con.lineOffset, sizeof(con.textTempLine));
+                    if (!IsValidMaterialHandle(*(Material *const *)(text + 3))
+                        && !Assert_MyHandler(
+                            "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
+                            1343,
+                            0,
+                            "%s",
+                            "IsValidMaterialHandle( *reinterpret_cast< const MaterialHandle * >( &text[CONTXTCMD_ARG_HUDICON_MATERIAL] ) )"))
+                    {
+                        __debugbreak();
+                    }
+                    con.textTempLine[con.lineOffset++] = 94;
+                    v9 = &con.textTempLine[con.lineOffset];
+                    v10 = text;
+                    *(_DWORD *)v9 = *(_DWORD *)text;
+                    *((_WORD *)v9 + 2) = *((_WORD *)v10 + 2);
+                    v9[6] = v10[6];
+                    con.lineOffset += 7;
+                    text += 7;
+
+                    bcassert(con.lineOffset, sizeof(con.textTempLine));
+                    atStartOfBrokenLine = 0;
                 }
-                if ( con.lineOffset >= 0x1F9
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                1341,
-                                0,
-                                "con.lineOffset doesn't index sizeof( con.textTempLine ) - CONTXTCMD_LEN_HUDICON\n\t%i not in [0, %i)",
-                                con.lineOffset,
-                                505) )
-                {
-                    __debugbreak();
-                }
-                if ( !IsValidMaterialHandle(*(Material *const *)(text + 3))
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                1343,
-                                0,
-                                "%s",
-                                "IsValidMaterialHandle( *reinterpret_cast< const MaterialHandle * >( &text[CONTXTCMD_ARG_HUDICON_MATERIAL] ) )") )
-                {
-                    __debugbreak();
-                }
-                con.textTempLine[con.lineOffset++] = 94;
-                v9 = &con.textTempLine[con.lineOffset];
-                v10 = text;
-                *(unsigned int *)v9 = *(unsigned int *)text;
-                *((_WORD *)v9 + 2) = *((_WORD *)v10 + 2);
-                v9[6] = v10[6];
-                con.lineOffset += 7;
-                text += 7;
-                if ( con.lineOffset >= 0x201
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                1349,
-                                0,
-                                "con.lineOffset doesn't index sizeof( con.textTempLine ) + 1\n\t%i not in [0, %i)",
-                                con.lineOffset,
-                                513) )
-                {
-                    __debugbreak();
-                }
-                atStartOfBrokenLine = 0;
             }
-        }
-LABEL_80:
-        if ( text == wrapPosition )
-        {
-            Con_Linefeed(localClientNum, channel, flags);
-            if ( c != 10 )
+        LABEL_79:
+            if (text == wrapPosition)
             {
-                atStartOfBrokenLine = 1;
-                if ( color != 55 )
+                Con_Linefeed(localClientNum, channel, flags);
+                if (c != 10)
                 {
-                    if ( (color < 48 || color > 64)
-                        && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                    1387,
-                                    0,
-                                    "color not in [COLOR_FIRST, COLOR_LAST]\n\t%i not in [%i, %i]",
-                                    color,
-                                    48,
-                                    64) )
+                    atStartOfBrokenLine = 1;
+                    if (color != 55)
                     {
-                        __debugbreak();
-                    }
-                    if ( con.lineOffset >= 0x1FF
-                        && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                    1388,
-                                    0,
-                                    "con.lineOffset doesn't index sizeof( con.textTempLine ) - 1\n\t%i not in [0, %i)",
-                                    con.lineOffset,
-                                    511) )
-                    {
-                        __debugbreak();
-                    }
-                    con.textTempLine[con.lineOffset] = '^';
-                    con.textTempLine[con.lineOffset + 1] = color;
-                    con.lineOffset += 2;
-                    if ( con.lineOffset >= 0x201
-                        && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                                    1392,
-                                    0,
-                                    "con.lineOffset doesn't index sizeof( con.textTempLine ) + 1\n\t%i not in [0, %i)",
-                                    con.lineOffset,
-                                    513) )
-                    {
-                        __debugbreak();
+                        rangeassert(color, COLOR_FIRST, COLOR_LAST);
+                        bcassert(con.lineOffset, sizeof(con.textTempLine));
+                        
+                        con.textTempLine[con.lineOffset] = '^';
+                        con.textTempLine[con.lineOffset + 1] = color;
+                        con.lineOffset += 2;
+
+                        bcassert(con.lineOffset, sizeof(con.textTempLine));
                     }
                 }
+                wrapPosition = CL_TextLineWrapPosition(
+                    text,
+                    512 - con.lineOffset,
+                    pixelWidth,
+                    font,
+                    xScale,
+                    atStartOfBrokenLine);
             }
-            wrapPosition = CL_TextLineWrapPosition(text, 512 - con.lineOffset, pixelWidth, font, xScale, atStartOfBrokenLine);
         }
     }
-    if ( con.lineOffset )
-    {
-        if ( channel == 2 || channel == 3 || channel == 4 )
-            Con_Linefeed(localClientNum, channel, flags);
-        else
-            Con_UpdateNotifyLine(localClientNum, channel, 0, flags);
-    }
-    con.prevChannel = channel;
-    --callDepth;
-    return color;
 }
 
 void __cdecl Con_UpdateNotifyMessage(int localClientNum, unsigned int channel, int duration, int flags)

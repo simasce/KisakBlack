@@ -12,6 +12,10 @@
 #include "threads.h"
 #include <server_mp/sv_net_chan_mp.h>
 
+// (jedi academy)
+#define MAX_PACKETLEN 1264
+#define	FRAGMENT_SIZE			(MAX_PACKETLEN - 100)
+
 loopback_t loopbacks[2];
 
 const dvar_t *showpackets;
@@ -381,7 +385,7 @@ int __cdecl Netchan_TransmitFragment(
     int res; // [esp+528h] [ebp-8h]
     int fragmentStart; // [esp+52Ch] [ebp-4h]
 
-    MSG_Init(&send, send_buf, 1264);
+    MSG_Init(&send, send_buf, MAX_PACKETLEN);
     if ( chan->reliable_fragments )
         MSG_WriteLong(&send, chan->outgoingSequence | 0xC0000000);
     else
@@ -390,11 +394,13 @@ int __cdecl Netchan_TransmitFragment(
         MSG_WriteShort(&send, chan->qport);
     MSG_WriteByte(&send, fragmentIndex);
     MSG_WriteByte(&send, maxFragmentIndex);
-    MSG_WriteShort(&send, 1164);
+    MSG_WriteShort(&send, FRAGMENT_SIZE);
     MSG_WriteShort(&send, fragmentLength);
-    fragmentStart = 1164 * fragmentIndex;
-    MSG_WriteData(&send, &chan->unsentBuffer[1164 * fragmentIndex], fragmentLength);
+    fragmentStart = FRAGMENT_SIZE * fragmentIndex;
+    MSG_WriteData(&send, &chan->unsentBuffer[FRAGMENT_SIZE * fragmentIndex], fragmentLength);
+
     res = (unsigned __int8)NET_SendPacket(chan->sock, send.cursize, send.data, chan->remoteAddress);
+
     NetProf_NewSendPacket(chan, send.cursize, 1);
     if ( showpackets->current.integer && (showpackets->current.integer > 1 || chan->remoteAddress.type != NA_LOOPBACK) )
         Com_Printf(
@@ -419,7 +425,7 @@ bool __cdecl Netchan_TransmitNextFragment(netchan_t *chan)
     char message_is_acked; // [esp+23h] [ebp-1h]
 
     NetProf_PrepProfiling(&chan->prof);
-    maxFragments = (chan->unsentLength + 1163) / 1164;
+    maxFragments = (chan->unsentLength + (FRAGMENT_SIZE-1)) / FRAGMENT_SIZE;
     message_is_acked = 1;
     for ( i = 0; i < maxFragments; ++i )
         message_is_acked &= (chan->fragment_ack[i >> 5] & (1 << (i & 0x1F))) != 0;
@@ -437,8 +443,8 @@ LABEL_6:
         {
             if ( fragmentIndex >= 128 )
                 goto LABEL_6;
-            fragmentStart = 1164 * fragmentIndex;
-            if ( 1164 * fragmentIndex < chan->unsentLength
+            fragmentStart = FRAGMENT_SIZE * fragmentIndex;
+            if ( FRAGMENT_SIZE * fragmentIndex < chan->unsentLength
                 && chan->fragment_send_count[fragmentIndex] <= chan->lowest_send_count
                 && (chan->fragment_ack[fragmentIndex >> 5] & (1 << (fragmentIndex & 0x1F))) == 0 )
             {
@@ -451,10 +457,10 @@ LABEL_6:
             }
         }
         ++chan->fragment_send_count[fragmentIndex];
-        if ( fragmentStart + 1164 <= chan->unsentLength )
+        if ( fragmentStart + FRAGMENT_SIZE <= chan->unsentLength )
         {
-            fragmentLength = 1164;
-            v2 = Netchan_TransmitFragment(chan, 1164, fragmentIndex, maxFragments - 1);
+            fragmentLength = FRAGMENT_SIZE;
+            v2 = Netchan_TransmitFragment(chan, FRAGMENT_SIZE, fragmentIndex, maxFragments - 1);
         }
         else
         {
@@ -475,10 +481,10 @@ bool __cdecl Netchan_Transmit(netchan_t *chan, int length, char *data, bool reli
 {
     int file; // [esp+0h] [ebp-52Ch]
     msg_t send; // [esp+4h] [ebp-528h] BYREF
-    unsigned __int8 send_buf[1264]; // [esp+34h] [ebp-4F8h] BYREF
+    unsigned __int8 send_buf[MAX_PACKETLEN]; // [esp+34h] [ebp-4F8h] BYREF
     int res; // [esp+528h] [ebp-4h]
 
-    if ( length > 0x10000 )
+    if ( length > MAX_MSGLEN )
     {
         file = FS_FOpenFileWrite((char*)"badpacket.dat");
         if ( file )
@@ -488,78 +494,67 @@ bool __cdecl Netchan_Transmit(netchan_t *chan, int length, char *data, bool reli
         }
         Com_Error(ERR_DROP, "Netchan_Transmit: length = %i", length);
     }
+
     chan->unsentFragmentStart = 0;
-    if ( chan->remoteAddress.type )
-    {
-        if ( length < 1164 )
-        {
-            NetProf_PrepProfiling(&chan->prof);
-            MSG_Init(&send, send_buf, 1264);
-            MSG_WriteLong(&send, chan->outgoingSequence);
-            ++chan->outgoingSequence;
-            if ( chan->sock < NS_SERVER )
-                MSG_WriteShort(&send, chan->qport);
-            if ( packetDebug->current.enabled )
-                Com_Printf(16, "Adding %i byte payload to packet\n", length);
-            MSG_WriteData(&send, (unsigned __int8 *)data, length);
-            if ( packetDebug->current.enabled )
-                Com_Printf(16, "Sending %i byte packet\n", send.cursize);
-            res = (unsigned __int8)NET_SendPacket(chan->sock, send.cursize, send.data, chan->remoteAddress);
-            NetProf_NewSendPacket(chan, send.cursize, 0);
-            if ( showpackets->current.integer && (showpackets->current.integer > 1 || chan->remoteAddress.type != NA_LOOPBACK) )
-                Com_Printf(
-                    16,
-                    "[%s] send->%u.%u.%u.%u (%4i bytes) : s=%i ack=%i\n",
-                    netsrcString[chan->sock],
-                    chan->remoteAddress.ip[0],
-                    chan->remoteAddress.ip[1],
-                    chan->remoteAddress.ip[2],
-                    chan->remoteAddress.ip[3],
-                    send.cursize,
-                    chan->outgoingSequence - 1,
-                    chan->incomingSequence);
-            return res > 0;
-        }
-        else
-        {
-            chan->unsentFragments = 1;
-            chan->unsentLength = length;
-            chan->reliable_fragments = reliable_fragments;
-            chan->lowest_send_count = 0;
-            chan->fragmentLength = 0;
-            chan->fragment_ack[0] = 0;
-            chan->fragment_ack[1] = 0;
-            chan->fragment_ack[2] = 0;
-            chan->fragment_ack[3] = 0;
-            memset(chan->fragment_send_count, 0, sizeof(chan->fragment_send_count));
-            if ( chan->unsentBufferSize <= length
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\net_chan_mp.cpp",
-                            1429,
-                            0,
-                            "%s\n\t(length) = %i",
-                            "(chan->unsentBufferSize > length)",
-                            length) )
-            {
-                __debugbreak();
-            }
-            Com_Memcpy(chan->unsentBuffer, data, length);
-            Netchan_TransmitNextFragment(chan);
-            return 1;
-        }
-    }
-    else
+
+    if (chan->remoteAddress.type == NA_BOT)
     {
         ++chan->outgoingSequence;
         return 1;
+    }
+
+    if (length >= FRAGMENT_SIZE)
+    {
+        chan->unsentFragments = 1;
+        chan->unsentLength = length;
+        chan->reliable_fragments = reliable_fragments;
+        chan->lowest_send_count = 0;
+        chan->fragmentLength = 0;
+        chan->fragment_ack[0] = 0;
+        chan->fragment_ack[1] = 0;
+        chan->fragment_ack[2] = 0;
+        chan->fragment_ack[3] = 0;
+        memset(chan->fragment_send_count, 0, sizeof(chan->fragment_send_count));
+
+        iassert(chan->unsentBufferSize > length);
+        
+        Com_Memcpy(chan->unsentBuffer, data, length);
+        Netchan_TransmitNextFragment(chan);
+        return 1;
+    }
+
+    {
+        NetProf_PrepProfiling(&chan->prof);
+        MSG_Init(&send, send_buf, MAX_PACKETLEN);
+        MSG_WriteLong(&send, chan->outgoingSequence);
+        ++chan->outgoingSequence;
+        if (chan->sock < NS_SERVER)
+            MSG_WriteShort(&send, chan->qport);
+        if (packetDebug->current.enabled)
+            Com_Printf(16, "Adding %i byte payload to packet\n", length);
+        MSG_WriteData(&send, (unsigned __int8 *)data, length);
+        if (packetDebug->current.enabled)
+            Com_Printf(16, "Sending %i byte packet\n", send.cursize);
+        res = (unsigned __int8)NET_SendPacket(chan->sock, send.cursize, send.data, chan->remoteAddress);
+        NetProf_NewSendPacket(chan, send.cursize, 0);
+        if (showpackets->current.integer && (showpackets->current.integer > 1 || chan->remoteAddress.type != NA_LOOPBACK))
+            Com_Printf(
+                16,
+                "[%s] send->%u.%u.%u.%u (%4i bytes) : s=%i ack=%i\n",
+                netsrcString[chan->sock],
+                chan->remoteAddress.ip[0],
+                chan->remoteAddress.ip[1],
+                chan->remoteAddress.ip[2],
+                chan->remoteAddress.ip[3],
+                send.cursize,
+                chan->outgoingSequence - 1,
+                chan->incomingSequence);
+        return res > 0;
     }
 }
 
 int __cdecl Netchan_Process(netchan_t *chan, msg_t *msg)
 {
-    unsigned int v2; // eax
-    char *v4; // eax
-    char *v5; // [esp-8h] [ebp-890h]
     int incomingSequence; // [esp-4h] [ebp-88Ch]
     int i; // [esp+4h] [ebp-884h]
     unsigned __int8 data[2048]; // [esp+8h] [ebp-880h] BYREF
@@ -583,11 +578,15 @@ int __cdecl Netchan_Process(netchan_t *chan, msg_t *msg)
 
     ack_requested = 0;
     force_ack = 0;
+
     NetProf_PrepProfiling(&chan->prof);
     MSG_BeginReading(msg);
+
     sequence = MSG_ReadLong(msg);
+
     if ( chan->sock == NS_SERVER )
         qport = MSG_ReadShort(msg);
+
     if ( sequence >= 0 )
     {
         fragmented = 0;
@@ -602,11 +601,9 @@ int __cdecl Netchan_Process(netchan_t *chan, msg_t *msg)
             MSG_ReadByte(msg);
             fragmentSize = MSG_ReadShort(msg);
             MSG_ReadShort(msg);
-            if ( fragmentSize != 1164 )
+            if ( fragmentSize != FRAGMENT_SIZE )
             {
-                v5 = NET_AdrToString(chan->remoteAddress);
-                v2 = Sys_Milliseconds();
-                Com_Printf(16, "%08d: [%s] Warning: Invalid fragment size %d\n", v2, v5, fragmentSize);
+                Com_Printf(16, "%08d: [%s] Warning: Invalid fragment size %d\n", Sys_Milliseconds(), NET_AdrToString(chan->remoteAddress), fragmentSize);
             }
             fragment_ack[0] = MSG_ReadLong(msg);
             fragment_ack[1] = MSG_ReadLong(msg);
@@ -633,12 +630,11 @@ int __cdecl Netchan_Process(netchan_t *chan, msg_t *msg)
                 || showpackets->current.integer && (showpackets->current.integer > 1 || chan->remoteAddress.type != NA_LOOPBACK) )
             {
                 incomingSequence = chan->incomingSequence;
-                v4 = NET_AdrToString(chan->remoteAddress);
                 Com_Printf(
                     16,
                     "[%s] %s: Out of order packet %i at %i\n",
                     netsrcString[chan->sock],
-                    v4,
+                    NET_AdrToString(chan->remoteAddress),
                     sequence,
                     incomingSequence);
             }
@@ -708,7 +704,7 @@ int __cdecl Netchan_Process(netchan_t *chan, msg_t *msg)
         }
         if ( chan->fragmentLength > msg->maxsize )
             return 0;
-        *(unsigned int *)msg->data = sequence;
+        *(int *)msg->data = sequence;
         memcpy(msg->data + 4, chan->fragmentBuffer, chan->fragmentLength);
         msg->cursize = chan->fragmentLength + 4;
         chan->fragmentLength = 0;
@@ -854,16 +850,8 @@ void __cdecl NET_DeferPacketToClient(netadr_t *net_from, msg_t *net_message)
 {
     DeferredMsg *msg; // [esp+0h] [ebp-8h]
 
-    if ( !Sys_IsServerThread()
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\net_chan_mp.cpp",
-                    2062,
-                    0,
-                    "%s",
-                    "Sys_IsServerThread()") )
-    {
-        __debugbreak();
-    }
+    iassert(Sys_IsServerThread());
+
     msg = &deferredQueue.msgs[deferredQueue.send & 0xF];
     memcpy(msg->data, net_message->data, net_message->cursize);
     msg->datalen = net_message->cursize;
@@ -872,39 +860,27 @@ void __cdecl NET_DeferPacketToClient(netadr_t *net_from, msg_t *net_message)
     _InterlockedExchangeAdd(&deferredQueue.send, 1u);
 }
 
-char __cdecl NET_GetDeferredClientPacket(netadr_t *net_from, msg_t *net_message)
+bool __cdecl NET_GetDeferredClientPacket(netadr_t *net_from, msg_t *net_message)
 {
     DeferredMsg *msg; // [esp+0h] [ebp-8h]
 
-    if ( !Sys_IsMainThread()
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\net_chan_mp.cpp",
-                    2085,
-                    0,
-                    "%s",
-                    "Sys_IsMainThread()") )
-    {
-        __debugbreak();
-    }
-    if ( !net_from
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\net_chan_mp.cpp", 2086, 0, "%s", "net_from") )
-    {
-        __debugbreak();
-    }
-    if ( !net_message
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\net_chan_mp.cpp", 2087, 0, "%s", "net_message") )
-    {
-        __debugbreak();
-    }
+    iassert(Sys_IsMainThread());
+    iassert(net_from);
+    iassert(net_message);
+
     if ( deferredQueue.send - deferredQueue.get > 16 )
         deferredQueue.get = deferredQueue.send - 16;
+
     if ( deferredQueue.get >= deferredQueue.send )
-        return 0;
+        return false;
+
     msg = &deferredQueue.msgs[deferredQueue.get & 0xF];
     memcpy(net_message->data, msg->data, msg->datalen);
+
     net_message->cursize = msg->datalen;
     net_message->targetLocalNetID = msg->targetLocalNetID;
     *net_from = msg->addr;
+
     _InterlockedExchangeAdd(&deferredQueue.get, 1u);
     return 1;
 }

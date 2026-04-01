@@ -401,7 +401,7 @@ void __cdecl Com_PrintMessage(int channel, char *msg, int error)
                 
                 if (!IsDedicatedServer())
                 {
-                    CL_ConsolePrint(0, channel, msg, 0, 0, error * 32);
+                    CL_ConsolePrint(0, channel, msg, 0, 0, 32 * error);
                 }
             }
 
@@ -1050,55 +1050,46 @@ void __cdecl Com_EventLoop()
 void Com_ClientPacketEvent()
 {
     msg_t netmsg; // [esp+0h] [ebp-50h] BYREF
-    unsigned __int8 (*msgBuf)[65536]; // [esp+30h] [ebp-20h]
+    unsigned __int8 (*msgBuf)[0x10000]; // [esp+30h] [ebp-20h]
     netadr_t adr; // [esp+34h] [ebp-1Ch] BYREF
     LargeLocal msgBuf_large_local(0x10000); // [esp+48h] [ebp-8h] BYREF
 
     //LargeLocal::LargeLocal(&msgBuf_large_local, 0x10000);
-    msgBuf = (unsigned __int8 (*)[65536])msgBuf_large_local.GetBuf(); // LargeLocal::GetBuf(&msgBuf_large_local);
+    msgBuf = (unsigned __int8 (*)[0x10000])msgBuf_large_local.GetBuf(); // LargeLocal::GetBuf(&msgBuf_large_local);
     MSG_Init(&netmsg, (unsigned __int8 *)msgBuf, 0x10000);
-    Com_PacketEventLoop(0, &netmsg);
+
+    Com_PacketEventLoop(NS_CLIENT1, &netmsg);
+
     while ( NET_GetDeferredClientPacket(&adr, &netmsg) )
         Com_DispatchClientPacketEvent(adr, &netmsg);
-    if ( com_sv_running->current.enabled )
-    {
-        //LargeLocal::~LargeLocal(&msgBuf_large_local);
-    }
-    else
+
+    if ( !com_sv_running->current.enabled )
     {
         while ( NET_GetClientPacket(&adr, &netmsg) )
             Com_DispatchClientPacketEvent(adr, &netmsg);
+
         while ( Sys_SocketPool_GetPacket(&adr, &netmsg) )
             Com_DispatchClientPacketEvent(adr, &netmsg);
+
         Sys_CheckForNATOverflow();
-        //LargeLocal::~LargeLocal(&msgBuf_large_local);
     }
+
+    //LargeLocal::~LargeLocal(&msgBuf_large_local);
 }
 
 void __cdecl Com_PacketEventLoop(int localClientNum, msg_t *netmsg)
 {
-    netsrc_t NetworkID; // eax
-    int v3; // eax
-    bool v4; // [esp-4h] [ebp-18h]
     netadr_t adr; // [esp+0h] [ebp-14h] BYREF
 
-    while ( 1 )
+    while (NET_GetLoopPacket((netsrc_t)Com_LocalClient_GetNetworkID(localClientNum), &adr, netmsg))
     {
-        NetworkID = (netsrc_t)Com_LocalClient_GetNetworkID(localClientNum);
-        if ( !NET_GetLoopPacket(NetworkID, &adr, netmsg) )
-            break;
-        v4 = clientConnections == 0;
-        v3 = Sys_Milliseconds();
-        CL_PacketEvent(localClientNum, adr, netmsg, v3, v4);
+        CL_PacketEvent(localClientNum, adr, netmsg, Sys_Milliseconds(), (clientConnections == NULL));
     }
 }
 
 void __cdecl Com_DispatchClientPacketEvent(netadr_t adr, msg_t *netmsg)
 {
-    int v2; // eax
-
-    v2 = Sys_Milliseconds();
-    CL_PacketEvent(0, adr, netmsg, v2, 0);
+    CL_PacketEvent(0, adr, netmsg, Sys_Milliseconds(), 0);
 }
 
 void __cdecl Com_ReadCDKey()

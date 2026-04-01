@@ -1608,16 +1608,9 @@ process_configString:
         if ( sv.configstrings[configStringNumb] != sv.emptyConfigString )
             goto process_configString;
     }
-    if ( configStringCount
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_client_mp.cpp",
-                    2889,
-                    0,
-                    "%s",
-                    "configStringCount == 0") )
-    {
-        __debugbreak();
-    }
+
+    iassert(configStringCount == 0);
+
     if ( msg.cursize - dataStart > 4000 && onlinegame->current.enabled )
         StatMon_Warning(12, 20000, (char *)"code_warning_gamestate");
     Com_Printf(

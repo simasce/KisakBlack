@@ -3,6 +3,13 @@
 #include <qcommon/bitarray.h>
 #include "ent.h"
 
+enum compressionType_t : unsigned __int8 // LWSS: Not a real enum name
+{
+    COMPRESSION_TYPE_NONE = 0,
+    COMPRESSION_TYPE_HUFFMAN = 1,
+    COMPRESSION_TYPE_ZLIB = 2
+};
+
 enum netsrc_t : __int32
 {                                                                             // XREF: msg_t/r netchan_t/r ...
         NS_CLIENT1        = 0x0,
@@ -39,24 +46,18 @@ struct __declspec(align(4)) msg_bookmark_t // sizeof=0x18
 
 struct msg_t // sizeof=0x30
 {                                                                             // XREF: .data:msg_t fakemsg/r
-                                                                                // .data:g_archiveMsg/r ...
-        int overflowed;                                         // XREF: BG_EmblemsWriteString(short,CompositeEmblemLayer *,int)+44/r
-                                                                                // BG_EmblemsWriteString(short,CompositeEmblemLayer *,int):loc_41A8E0/r ...
-        int readOnly;
-        unsigned __int8 *data;                            // XREF: BG_EmblemsWriteString(short,CompositeEmblemLayer *,int)+88/r
-                                                                                // CL_WritePacket(int):loc_552720/r ...
-        unsigned __int8 *splitData;
-        int maxsize;                                                // XREF: CL_ReadDemoNetworkPacket+116/r
-        int cursize;                                                // XREF: BG_EmblemsWriteString(short,CompositeEmblemLayer *,int)+84/r
-                                                                                // BG_EmblemsReadString(char const *,short *,CompositeEmblemLayer *,int)+43/w ...
-        int splitSize;
-        int readcount;                                            // XREF: CL_ReadDemoNetworkPacket+180/w
-                                                                                // CL_ParseServerMessage(int,msg_t *)+103/r ...
-        int bit;                                                        // XREF: SV_SendClientVoiceData(client_t *):loc_71EFFC/r
-                                                                                // Demo_Forward_f(void)+4CA/r ...
-        int lastEntityRef;
-        int flush;
-        netsrc_t targetLocalNetID;
+    int overflowed;                                         // XREF: BG_EmblemsWriteString(short,CompositeEmblemLayer *,int)+44/r
+    int readOnly;
+    unsigned __int8 *data;                            // XREF: BG_EmblemsWriteString(short,CompositeEmblemLayer *,int)+88/r
+    unsigned __int8 *splitData;
+    int maxsize;                                                // XREF: CL_ReadDemoNetworkPacket+116/r
+    int cursize;                                                // XREF: BG_EmblemsWriteString(short,CompositeEmblemLayer *,int)+84/r
+    int splitSize;
+    int readcount;                                            // XREF: CL_ReadDemoNetworkPacket+180/w
+    int bit;                                                        // XREF: SV_SendClientVoiceData(client_t *):loc_71EFFC/r
+    int lastEntityRef;
+    int flush;
+    netsrc_t targetLocalNetID;
 };
 
 struct NetFieldList // sizeof=0xC

@@ -13,6 +13,8 @@
 #include "com_math_anglevectors.h"
 #include <EffectsCore/fx_load_obj.h>
 
+#define BIG_INFO_STRING 0x4000
+
 struct va_info_t
 {
     char va_string[4][1024]; // see va(), the modulo is 4
@@ -818,55 +820,62 @@ void __cdecl Info_RemoveKey(char *s, char *key)
     }
 }
 
+// aislop used here to cleanup
 void __cdecl Info_RemoveKey_Big(char *s, char *key)
 {
-    char *v2; // eax
-    char v3; // al
-    char *v4; // [esp+8h] [ebp-403Ch]
-    char *v5; // [esp+Ch] [ebp-4038h]
-    char *v6; // [esp+34h] [ebp-4010h]
-    char *v7; // [esp+34h] [ebp-4010h]
-    char *v8; // [esp+38h] [ebp-400Ch]
-    char v9[8192]; // [esp+3Ch] [ebp-4008h] BYREF
-    char v10; // [esp+203Ch] [ebp-2008h] BYREF
+    char *pairStart;
+    char *src;
+    char *dst;
+    char keyBuf[BIG_INFO_STRING / 2];
+    char valBuf[BIG_INFO_STRING / 2];
 
-    if ( strlen(s) >= 0x4000 )
-        Com_Error(ERR_DROP, "Info_RemoveKey_Big: oversize infostring");
-    v2 = strchr(key, 0x5Cu);
-    if ( !v2 )
+    if (strlen(s) >= BIG_INFO_STRING)
     {
-        while ( 1 )
-        {
-            v8 = s;
-            if ( *s == 92 )
-                ++s;
-            v6 = v9;
-            while ( *s != 92 )
-            {
-                if ( !*s )
-                    return;
-                *v6++ = *s++;
-            }
-            *v6 = 0;
-            ++s;
-            v7 = &v10;
-            while ( *s != 92 && *s )
-                *v7++ = *s++;
-            *v7 = 0;
-            if ( !strcmp(key, v9) )
-                break;
-            if ( !*s )
-                return;
-        }
-        v5 = s;
-        v4 = v8;
-        do
-        {
-            v3 = *v5;
-            *v4++ = *v5++;
-        }
-        while ( v3 );
+        Com_Error(ERR_DROP, "Info_RemoveKey_Big: oversize infostring");
+        return;
     }
+
+    if (strchr(key, '\\'))
+        return;
+
+    while (1)
+    {
+        pairStart = s;
+
+        if (*s == '\\')
+            s++;
+
+        // parse key
+        dst = keyBuf;
+        while (*s != '\\')
+        {
+            if (!*s)
+                return;
+            *dst++ = *s++;
+        }
+        *dst = '\0';
+        s++;
+
+        // parse value
+        dst = valBuf;
+        while (*s != '\\' && *s)
+            *dst++ = *s++;
+        *dst = '\0';
+
+        if (!strcmp(key, keyBuf))
+            break;
+
+        if (!*s)
+            return;
+    }
+
+    // remove the key\value pair by shifting the rest of the string left
+    src = s;
+    dst = pairStart;
+    do
+    {
+        *dst++ = *src;
+    } while (*src++);
 }
 
 bool __cdecl Info_Validate(char *s)
@@ -1010,97 +1019,72 @@ void __cdecl Info_SetValueForKey(char *s, char *key, const char *value)
 
 void __cdecl Info_SetValueForKey_Big(char *s, char *key, const char *value)
 {
-    char *v3; // eax
-    char *v4; // eax
-    char *v5; // eax
-    int v6; // [esp+54h] [ebp-8018h]
-    char v7; // [esp+5Bh] [ebp-8011h]
-    char v8[16388]; // [esp+5Ch] [ebp-8010h] BYREF
-    int v9; // [esp+4060h] [ebp-400Ch]
-    char dest; // [esp+4064h] [ebp-4008h] BYREF
-    _BYTE v11[3]; // [esp+4065h] [ebp-4007h] BYREF
-    int i; // [esp+8068h] [ebp-4h]
+    int j; // [esp+54h] [ebp-8018h]
+    char c; // [esp+5Bh] [ebp-8011h]
+    char str[BIG_INFO_STRING]; // [esp+5Ch] [ebp-8010h] BYREF
+    char dest[BIG_INFO_STRING]; // [esp+4064h] [ebp-4008h] BYREF
 
-    if ( !value && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\universal\\q_shared.cpp", 1594, 0, "%s", "value") )
-        __debugbreak();
-    if ( strlen(s) < 0x4000 )
-    {
-        v6 = 0;
-        for ( i = 0; i < 0x3FFF; ++i )
-        {
-            v7 = value[i];
-            if ( !v7 )
-                break;
-            if ( v7 != 92 && v7 != 59 && v7 != 34 )
-            {
-                if ( v6 >= 0x4000
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\universal\\q_shared.cpp",
-                                1610,
-                                0,
-                                "%s",
-                                "j < BIG_INFO_STRING") )
-                {
-                    __debugbreak();
-                }
-                v8[v6++] = v7;
-            }
-        }
-        if ( v6 >= 0x4000
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\universal\\q_shared.cpp",
-                        1615,
-                        0,
-                        "%s",
-                        "j < BIG_INFO_STRING") )
-        {
-            __debugbreak();
-        }
-        v8[v6] = 0;
-        v3 = strchr(key, 0x5Cu);
-        if ( v3 )
-        {
-            Com_Printf(16, "Can't use keys with a \\ key: %s, value: %s", key, value);
-        }
-        else
-        {
-            v4 = strchr(key, 0x3Bu);
-            if ( v4 )
-            {
-                Com_Printf(16, "Can't use keys with a semicolon. key: %s, value: %s", key, value);
-            }
-            else
-            {
-                v5 = strchr(key, 0x22u);
-                if ( v5 )
-                {
-                    Com_Printf(16, "Can't use keys with a \". key: %s, value: %s", key, value);
-                }
-                else
-                {
-                    Info_RemoveKey_Big(s, key);
-                    if ( v8[0] )
-                    {
-                        v9 = Com_sprintf(&dest, 0x4000u, "\\%s\\%s", key, v8);
-                        if ( v9 > 0 )
-                        {
-                            if ( strlen(s) + &v11[strlen(&dest)] - v11 <= 0x4000 )
-                                memcpy(&s[strlen(s)], &dest, (char*)&v11[strlen(&dest)] - &dest);
-                            else
-                                Com_Printf(16, "Big info string length exceeded. key: %s, value: %s, info string: %s", key, value, s);
-                        }
-                        else
-                        {
-                            Com_Printf(16, "Info buffer length exceeded, not including key/value pair in response.");
-                        }
-                    }
-                }
-            }
-        }
-    }
-    else
+    iassert(value);
+
+    if (strlen(s) >= BIG_INFO_STRING)
     {
         Com_Printf(16, "Info_SetValueForKey: oversize infostring");
+        return;
+    }
+
+    j = 0;
+    for (int i = 0; i < 0x3FFF; ++i )
+    {
+        c = value[i];
+        if ( !c )
+            break;
+        if (c != '\\' && c != ';' && c != '"')
+        {
+            iassert(j < BIG_INFO_STRING);
+            str[j++] = c;
+        }
+    }
+
+    iassert(j < BIG_INFO_STRING);
+
+    str[j] = 0;
+
+    if (strchr(key, '\\'))
+    {
+        Com_Printf(16, "Can't use keys with a \\ key: %s, value: %s", key, value);
+        return;
+    }
+
+    if (strchr(key, ';'))
+    {
+        Com_Printf(16, "Can't use keys with a semicolon. key: %s, value: %s", key, value);
+        return;
+    }
+
+    if (strchr(key, '\"'))
+    {
+        Com_Printf(16, "Can't use keys with a \". key: %s, value: %s", key, value);
+        return;
+    }
+
+    Info_RemoveKey_Big(s, key);
+
+    if ( str[0] )
+    {
+        int destStr = Com_sprintf(dest, sizeof(dest), "\\%s\\%s", key, str);
+        if ( destStr <= 0 )
+        {
+            Com_Printf(16, "Info buffer length exceeded, not including key/value pair in response.");
+            return;
+        }
+
+        if (strlen(s) + strlen(dest) > BIG_INFO_STRING)
+        {
+            Com_Printf(16, "Big info string length exceeded. key: %s, value: %s, info string: %s", key, value, s);
+            return;
+        }
+
+        strcat(s, dest);
     }
 }
 

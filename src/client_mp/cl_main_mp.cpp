@@ -2741,11 +2741,7 @@ void    CL_InitLoad(char *mapname, const char *gametype)
 
 bool __cdecl CL_PacketEvent(int localClientNum, netadr_t from, msg_t *msg, int time, bool connectionlesss_packets_only)
 {
-    const char *v6; // eax
-    const char *v7; // eax
-    const char *v8; // eax
     int ControllerIndex; // eax
-    int v10; // [esp-8h] [ebp-28h]
     clientActive_t *LocalClientGlobals; // [esp+4h] [ebp-1Ch]
     connstate_t connstate; // [esp+8h] [ebp-18h]
     int savedServerMessageSequence; // [esp+Ch] [ebp-14h]
@@ -2753,124 +2749,117 @@ bool __cdecl CL_PacketEvent(int localClientNum, netadr_t from, msg_t *msg, int t
     int headerBytes; // [esp+14h] [ebp-Ch]
     int savedReliableAcknowledge; // [esp+18h] [ebp-8h]
 
-    if ( msg->cursize >= 4 && *(unsigned int *)msg->data == -1 )
-        return CL_ConnectionlessPacket(localClientNum, from, msg, time);
-    if ( connectionlesss_packets_only )
-        return 0;
-    connstate = CL_GetLocalClientConnectionState(localClientNum);
-    if ( connstate >= CA_CONNECTED )
+    volatile int startingSize = msg->cursize;
+
+    if (msg->cursize >= 4 && *(unsigned int *)msg->data == -1)
     {
-        clc = CL_GetLocalClientConnection(localClientNum);
-        if ( msg->cursize >= 4 )
+        return CL_ConnectionlessPacket(localClientNum, from, msg, time);
+    }
+
+    if (connectionlesss_packets_only)
+    {
+        return false;
+    }
+
+    connstate = CL_GetLocalClientConnectionState(localClientNum);
+
+    if (connstate < CA_CONNECTED)
+    {
+        Com_DPrintf(14, "%s: Got msg sequence %i but connstate (%i) is < CA_CONNECTED\n", NET_AdrToString(from), *(unsigned int *)msg->data, connstate);
+        return false;
+    }
+
+    clc = CL_GetLocalClientConnection(localClientNum);
+
+    if (msg->cursize < 4)
+    {
+        Com_Printf(14, "%s: Runt packet\n", NET_AdrToString(from));
+        return true;
+    }
+
+    if (!NET_CompareAdr(from, clc->netchan.remoteAddress))
+    {
+        Com_DPrintf(14, "%s:sequenced packet without connection\n", NET_AdrToString(from));
+        return false;
+    }
+
+    clc->lastPacketTime = cls.realtime;
+
+    if (!Netchan_Process(&clc->netchan, msg))
+    {
+        return false;
+    }
+
+    headerBytes = msg->readcount;
+    savedServerMessageSequence = clc->serverMessageSequence;
+    savedReliableAcknowledge = clc->reliableAcknowledge;
+    clc->serverMessageSequence = *(int *)msg->data;
+    clc->reliableAcknowledge = MSG_ReadLong(msg);
+
+    if (clc->reliableAcknowledge < (clc->reliableSequence - 128))
+    {
+        clc->reliableAcknowledge = clc->reliableSequence;
+        return false;
+    }
+
+    CL_ParseServerMessage(localClientNum, msg);
+
+    if ( msg->overflowed )
+    {
+        Com_DPrintf(14, "ignoring illegible message\n");
+        clc->serverMessageSequence = savedServerMessageSequence;
+        clc->reliableAcknowledge = savedReliableAcknowledge;
+        return false;
+    }
+
+    if ( clc->demorecording && !clc->demowaiting )
+    {
+        if ( clc->demoUseMemoryBuffer )
         {
-            if ( NET_CompareAdr(from, clc->netchan.remoteAddress) )
+            if ( clc->demoReceivedUncompressedPacket )
             {
-                clc->lastPacketTime = cls.realtime;
-                if ( Netchan_Process(&clc->netchan, msg) )
+                CL_WriteUncompressedDemoInfo(localClientNum);
+                clc->demoReceivedUncompressedPacket = 0;
+            }
+            clc->demoContinuousStateBufferIndex = (clc->demoContinuousStateBufferIndex + 1) % 200;
+            CL_WriteNewDemoClientArchiveToMemory(localClientNum);
+            CL_WriteDemoMessageToMemory(localClientNum, msg, headerBytes);
+            clc->demoContinuousStateBuffer[clc->demoContinuousStateBufferIndex].intialBufferStateIndex = clc->demoInitialStateBufferIndex;
+            if ( clc->demoCoolRecordProcessingExtendedCapture )
+            {
+                if ( Sys_Milliseconds() - clc->demoCoolRecordProcessingTime >= 1000 * cl_clientDemoCoolMomentExtendTime->current.integer )
                 {
-                    headerBytes = msg->readcount;
-                    savedServerMessageSequence = clc->serverMessageSequence;
-                    savedReliableAcknowledge = clc->reliableAcknowledge;
-                    clc->serverMessageSequence = *(unsigned int *)msg->data;
-                    clc->reliableAcknowledge = MSG_ReadLong(msg);
-                    if ( clc->reliableAcknowledge >= clc->reliableSequence - 128 )
-                    {
-                        CL_ParseServerMessage(localClientNum, msg);
-                        if ( msg->overflowed )
-                        {
-                            Com_DPrintf(14, "ignoring illegible message");
-                            clc->serverMessageSequence = savedServerMessageSequence;
-                            clc->reliableAcknowledge = savedReliableAcknowledge;
-                            return 0;
-                        }
-                        else
-                        {
-                            if ( clc->demorecording && !clc->demowaiting )
-                            {
-                                if ( clc->demoUseMemoryBuffer )
-                                {
-                                    if ( clc->demoReceivedUncompressedPacket )
-                                    {
-                                        CL_WriteUncompressedDemoInfo(localClientNum);
-                                        clc->demoReceivedUncompressedPacket = 0;
-                                    }
-                                    clc->demoContinuousStateBufferIndex = (clc->demoContinuousStateBufferIndex + 1) % 200;
-                                    CL_WriteNewDemoClientArchiveToMemory(localClientNum);
-                                    CL_WriteDemoMessageToMemory(localClientNum, msg, headerBytes);
-                                    clc->demoContinuousStateBuffer[clc->demoContinuousStateBufferIndex].intialBufferStateIndex = clc->demoInitialStateBufferIndex;
-                                    if ( clc->demoCoolRecordProcessingExtendedCapture )
-                                    {
-                                        if ( Sys_Milliseconds() - clc->demoCoolRecordProcessingTime >= 1000
-                                                                                                                                                                 * cl_clientDemoCoolMomentExtendTime->current.integer )
-                                        {
-                                            Com_Printf(14, "Writing Epilog through the cool record extended system.\n");
-                                            CL_WriteDemoEpilog(localClientNum);
-                                            clc->demoCoolRecordProcessingExtendedCapture = 0;
-                                        }
-                                        else
-                                        {
-                                            CL_WriteDemoFromContinuousStateBuffer(localClientNum, clc->demoContinuousStateBufferIndex);
-                                        }
-                                    }
-                                    if ( Sys_Milliseconds() - clc->demoRequestUncompressedPacketTime >= 1000
-                                                                                                                                                                        * cl_clientDemoRequestPingTime->current.integer )
-                                        clc->demoRequestUncompressedPacket = 1;
-                                }
-                                else
-                                {
-                                    CL_WriteNewDemoClientArchive(localClientNum);
-                                    CL_WriteDemoMessage(localClientNum, msg, headerBytes);
-                                    if ( Sys_Milliseconds() - clc->demoRecordStartTime >= 1000
-                                                                                                                                            * cl_clientDemoMaxRecordTime->current.integer
-                                        && cl_clientDemoType->current.integer == 1 )
-                                    {
-                                        ControllerIndex = Com_LocalClient_GetControllerIndex(localClientNum);
-                                        Cmd_ExecuteSingleCommand(localClientNum, ControllerIndex, (char*)"stoprecord");
-                                    }
-                                }
-                                if ( clc->demoLiveStream )
-                                {
-                                    LocalClientGlobals = CL_GetLocalClientGlobals(localClientNum);
-                                    FS_Printf(clc->demoLiveStream, (char *)"%i\n", LocalClientGlobals->serverTime);
-                                    if ( cl_demoLiveStreaming->current.integer > 1 )
-                                        FS_Flush(clc->demoLiveStream);
-                                }
-                            }
-                            return 1;
-                        }
-                    }
-                    else
-                    {
-                        clc->reliableAcknowledge = clc->reliableSequence;
-                        return 0;
-                    }
+                    Com_Printf(14, "Writing Epilog through the cool record extended system.\n");
+                    CL_WriteDemoEpilog(localClientNum);
+                    clc->demoCoolRecordProcessingExtendedCapture = 0;
                 }
                 else
                 {
-                    return 0;
+                    CL_WriteDemoFromContinuousStateBuffer(localClientNum, clc->demoContinuousStateBufferIndex);
                 }
             }
-            else
-            {
-                v8 = NET_AdrToString(from);
-                Com_DPrintf(14, "%s:sequenced packet without connection\n", v8);
-                return 0;
-            }
+            if ( Sys_Milliseconds() - clc->demoRequestUncompressedPacketTime >= 1000 * cl_clientDemoRequestPingTime->current.integer )
+                clc->demoRequestUncompressedPacket = 1;
         }
         else
         {
-            v7 = NET_AdrToString(from);
-            Com_Printf(14, "%s: Runt packet\n", v7);
-            return 1;
+            CL_WriteNewDemoClientArchive(localClientNum);
+            CL_WriteDemoMessage(localClientNum, msg, headerBytes);
+            if ( Sys_Milliseconds() - clc->demoRecordStartTime >= 1000 * cl_clientDemoMaxRecordTime->current.integer && cl_clientDemoType->current.integer == 1 )
+            {
+                ControllerIndex = Com_LocalClient_GetControllerIndex(localClientNum);
+                Cmd_ExecuteSingleCommand(localClientNum, ControllerIndex, (char*)"stoprecord");
+            }
+        }
+        if ( clc->demoLiveStream )
+        {
+            LocalClientGlobals = CL_GetLocalClientGlobals(localClientNum);
+            FS_Printf(clc->demoLiveStream, (char *)"%i\n", LocalClientGlobals->serverTime);
+            if ( cl_demoLiveStreaming->current.integer > 1 )
+                FS_Flush(clc->demoLiveStream);
         }
     }
-    else
-    {
-        v10 = *(unsigned int *)msg->data;
-        v6 = NET_AdrToString(from);
-        Com_DPrintf(14, "%s: Got msg sequence %i but connstate (%i) is < CA_CONNECTED\n", v6, v10, connstate);
-        return 0;
-    }
+    return true;
 }
 
 void __cdecl CL_WriteNewDemoClientArchive(int localClientNum)

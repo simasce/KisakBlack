@@ -5,6 +5,13 @@
 #include <universal/com_stringtable.h>
 #include <universal/dvar.h>
 
+enum
+{
+    COLOR_FIRST = 48,
+    //... KISAKTODO
+    COLOR_LAST = 64,
+};
+
 enum e_restricted_initState : __int32
 {                                       // XREF: ?Con_Restricted_SetState@@YAXW4e_restricted_initState@@@Z/r
     RESTRICTED_DISABLED    = 0x0,
@@ -211,7 +218,7 @@ void __cdecl Con_Clear_f();
 void __cdecl Con_InitClientAssets();
 void __cdecl Con_InitMessageBuffer();
 void __cdecl CL_ConsolePrint(int localClientNum, int channel, const char *txt, int duration, int pixelWidth, int flags);
-char __cdecl CL_ConsolePrint_AddLine(
+void __cdecl CL_ConsolePrint_AddLine(
                 int localClientNum,
                 int channel,
                 const char *txt,

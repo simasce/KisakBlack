@@ -2465,12 +2465,11 @@ void __cdecl MSG_Init(msg_t *buf, unsigned __int8 *data, int length)
 {
     if ( !msgInit )
         MSG_InitHuffman();
-    memset((unsigned __int8 *)buf, 0, sizeof(msg_t));
+
+    memset(buf, 0, sizeof(msg_t));
+
     buf->data = data;
     buf->maxsize = length;
-    buf->readOnly = 0;
-    buf->splitData = 0;
-    buf->splitSize = 0;
 }
 
 void __cdecl MSG_InitReadOnly(msg_t *buf, unsigned __int8 *data, int length)
@@ -2752,10 +2751,9 @@ int __cdecl MSG_WriteBitsCompress(
 {
     int bit; // [esp+0h] [ebp-Ch] BYREF
     int compressedSize; // [esp+4h] [ebp-8h]
-    int i; // [esp+8h] [ebp-4h]
 
     if ( msg_zlibCompress->current.enabled
-        && (*to = 2, (compressedSize = MSG_CompressWithZLib(from, fromSizeBytes, to + 1, toSizeBytes - 1)) != 0)
+        && (*to = COMPRESSION_TYPE_ZLIB, (compressedSize = MSG_CompressWithZLib(from, fromSizeBytes, to + 1, toSizeBytes - 1)) != 0)
         && compressedSize < fromSizeBytes + 1 )
     {
         if ( msg_zlibCompressOutput->current.enabled )
@@ -2766,17 +2764,19 @@ int __cdecl MSG_WriteBitsCompress(
     {
         if ( trainHuffman )
         {
-            for ( i = 0; i < fromSizeBytes; ++i )
+            for ( int i = 0; i < fromSizeBytes; ++i )
                 ++huffBytesSeen[from[i]];
         }
-        *to = 1;
+
+        *to = COMPRESSION_TYPE_HUFFMAN;
         bit = 0;
-        for ( i = 0; i < fromSizeBytes; ++i )
+
+        for ( int i = 0; i < fromSizeBytes; ++i )
             Huff_offsetTransmit(&msgHuff.compressDecompress, from[i], to + 1, &bit);
         compressedSize = ((bit + 7) >> 3) + 1;
         if ( compressedSize > fromSizeBytes + 1 )
         {
-            *to = 0;
+            *to = COMPRESSION_TYPE_NONE;
             memcpy(to + 1, from, fromSizeBytes);
             return fromSizeBytes + 1;
         }
@@ -2838,54 +2838,48 @@ unsigned int __cdecl MSG_ReadBitsCompress(
                 unsigned __int8 *to,
                 unsigned int toSizeBytes)
 {
-    const char *v5; // eax
     int bit; // [esp+4h] [ebp-18h] BYREF
     unsigned __int8 *data; // [esp+8h] [ebp-14h]
     int bits; // [esp+Ch] [ebp-10h]
-    unsigned __int8 compressionType; // [esp+13h] [ebp-9h]
+    compressionType_t compressionType; // [esp+13h] [ebp-9h]
     int i; // [esp+14h] [ebp-8h]
     int get; // [esp+18h] [ebp-4h] BYREF
-    unsigned __int8 *froma; // [esp+24h] [ebp+8h]
-    unsigned int fromSizeBytesa; // [esp+28h] [ebp+Ch]
-    unsigned int toSizeBytesa; // [esp+30h] [ebp+14h]
 
-    compressionType = *from;
-    froma = from + 1;
-    fromSizeBytesa = fromSizeBytes - 1;
-    if ( compressionType )
+    compressionType = (compressionType_t)*from;
+    from++;
+    fromSizeBytes--;
+
+    if (compressionType == COMPRESSION_TYPE_NONE)
     {
-        if ( compressionType == 1 )
+        memcpy(to, from, fromSizeBytes);
+        return fromSizeBytes;
+    }
+
+    if ( compressionType == COMPRESSION_TYPE_HUFFMAN )
+    {
+        bits = 8 * fromSizeBytes;
+        i = 0;
+        data = to;
+        bit = 0;
+        while ( bit < bits )
         {
-            bits = 8 * fromSizeBytesa;
-            i = 0;
-            data = to;
-            bit = 0;
-            while ( bit < bits )
-            {
-                Huff_offsetReceive(msgHuff.compressDecompress.tree, &get, froma, &bit);
-                *data++ = get;
-            }
-            return data - to;
+            Huff_offsetReceive(msgHuff.compressDecompress.tree, &get, from, &bit);
+            *data++ = get;
         }
-        else if ( compressionType == 2 )
-        {
-            toSizeBytesa = MSG_DecompressWithZLib(froma, fromSizeBytesa, to, toSizeBytes);
-            if ( msg_zlibCompressOutput->current.enabled )
-                Com_Printf(15, "zlib decompress %d\n", toSizeBytesa);
-            return toSizeBytesa;
-        }
-        else
-        {
-            v5 = va("Unknown compression protocol %d", compressionType);
-            if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\msg_mp.cpp", 578, 0, v5) )
-                __debugbreak();
-            return 0;
-        }
+        return data - to;
+    }
+    else if ( compressionType == COMPRESSION_TYPE_ZLIB )
+    {
+        toSizeBytes = MSG_DecompressWithZLib(from, fromSizeBytes, to, toSizeBytes);
+        if ( msg_zlibCompressOutput->current.enabled )
+            Com_Printf(15, "zlib decompress %d\n", toSizeBytes);
+        return toSizeBytes;
     }
     else
     {
-        memcpy(to, froma, fromSizeBytesa);
-        return fromSizeBytesa;
+        if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\msg_mp.cpp", 578, 0, va("Unknown compression protocol %d", compressionType)) )
+            __debugbreak();
+        return 0;
     }
 }
 

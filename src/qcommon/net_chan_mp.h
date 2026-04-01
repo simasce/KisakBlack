@@ -3,6 +3,8 @@
 
 #include <universal/dvar.h>
 
+#define MAX_MSGLEN 0x10000
+
 enum netadrtype_t : __int32
 {                                                                             // XREF: netadr_t/r
         NA_BOT             = 0x0,
@@ -150,7 +152,7 @@ int __cdecl NET_GetLoopPacket_Real(netsrc_t sock, netadr_t *net_from, msg_t *net
 int __cdecl NET_GetLoopPacket(netsrc_t sock, netadr_t *net_from, msg_t *net_message);
 void __cdecl NET_SendLoopPacket(netsrc_t sock, unsigned int length, unsigned __int8 *data, netadr_t to);
 void __cdecl NET_DeferPacketToClient(netadr_t *net_from, msg_t *net_message);
-char __cdecl NET_GetDeferredClientPacket(netadr_t *net_from, msg_t *net_message);
+bool __cdecl NET_GetDeferredClientPacket(netadr_t *net_from, msg_t *net_message);
 char __cdecl NET_SendPacket(netsrc_t sock, unsigned int length, unsigned __int8 *data, netadr_t to);
 bool __cdecl NET_OutOfBandPrint(netsrc_t sock, netadr_t adr, const char *data);
 bool __cdecl NET_OutOfBandData(netsrc_t sock, netadr_t adr, const unsigned __int8 *format, int len);
