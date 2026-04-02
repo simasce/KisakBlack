@@ -3,8 +3,12 @@
 #include <cstring>
 #include <qcommon/cm_load.h>
 
+CgEntCollNode cgEntCollNodes_data[1][1536];
+
 CgEntCollWorld cgEntCollWorld[1];
-CgEntCollNode *cgEntCollNodes[1];
+CgEntCollNode *cgEntCollNodes[1] = { cgEntCollNodes_data[0] };
+
+
 
 void __cdecl CG_ClearEntityCollWorld(int localClientNum)
 {

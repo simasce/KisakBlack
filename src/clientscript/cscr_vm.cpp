@@ -4321,7 +4321,6 @@ unsigned int __cdecl VM_Execute_0(scriptInstance_t inst)
     VariableValue v90; // [esp+234h] [ebp-108h]
     VariableValue v91; // [esp+23Ch] [ebp-100h]
     scr_entref_t v92; // [esp+244h] [ebp-F8h] BYREF
-    scr_entref_t v93; // [esp+24Eh] [ebp-EEh]
     VariableValue v94; // [esp+254h] [ebp-E8h]
     VariableValue v95; // [esp+25Ch] [ebp-E0h]
     VariableValue v96; // [esp+264h] [ebp-D8h]
@@ -6148,8 +6147,7 @@ scriptmethodthreadcallpointer:
                 Scr_SetThreadWaitTime(inst, localFs.localId, gScrVarPub[inst].time);
                 goto thread_end;
             }
-            v93 = Scr_GetEntityIdRef(inst, objectId);
-            entref = v93;
+            entref = Scr_GetEntityIdRef(inst, objectId);
             RemoveRefToObject(inst, objectId);
             gScrVmPub[inst].function_frame->fs.pos = localFs.pos;
             if (gScrVmGlob[inst].recordPlace)
@@ -6173,7 +6171,8 @@ scriptmethodthreadcallpointer:
             }
             gFs[inst] = localFs;
             //LOWORD(v63) = entref.client;
-            ((void(__cdecl *)(_DWORD, int))gScrCompilePub[inst].func_table[builtinIndex])(*(_DWORD *)&entref.entnum, entref.client);
+            //((void(__cdecl *)(_DWORD, int))gScrCompilePub[inst].func_table[builtinIndex])(*(_DWORD *)&entref.entnum, entref.client);
+            ((void(*)(scr_entref_t))gScrCompilePub[inst].func_table[builtinIndex]) (entref);
         post_builtin:
             localFs.top = gScrVmPub[inst].top;
             localFs.pos = gScrVmPub[inst].function_frame->fs.pos;

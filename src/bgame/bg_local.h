@@ -722,6 +722,7 @@ struct playerState_s // sizeof=0x26A4
                 hudelem_s archival[31];
         } hud;
 };
+static_assert(sizeof(playerState_s) == 9892);
 
 struct lerpFrame_t // sizeof=0x34
 {                                                                             // XREF: clientInfo_t/r

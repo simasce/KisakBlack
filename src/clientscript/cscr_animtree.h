@@ -6,6 +6,8 @@
 
 #define SL_MAX_STRING_INDEX 0x10000
 
+#define MAX_XANIMTREE_NUM       0x80 // 128
+
 struct XAnim_s;
 
 struct scr_anim_s // sizeof=0x4
@@ -65,7 +67,7 @@ struct scrAnimGlob_t // sizeof=0x40C
 {
     const char *start;
     const char *pos;
-    unsigned int using_xanim_lookup[2][128];
+    unsigned int using_xanim_lookup[2][MAX_XANIMTREE_NUM];
     int bAnimCheck;
 };
 
@@ -77,7 +79,7 @@ struct __declspec(align(4)) scrAnimPub_t // sizeof=0x41C
                                         // Scr_LoadAnimTreeAtIndex(scriptInstance_t,uint,void * (*)(int),int,bool)+2C8/w ...
     unsigned int animTreeNames;         // XREF: Scr_EmitAnimation(scriptInstance_t,char *,uint,uint)+C/r
                                         // Scr_EmitAnimation(scriptInstance_t,char *,uint,uint)+39/r ...
-    scr_animtree_t xanim_lookup[2][128];
+    scr_animtree_t xanim_lookup[2][MAX_XANIMTREE_NUM];
                                         // XREF: GScr_GetAnimTreesLoaded+3D/r
                                         // GScr_FindAnimByName+D0/r ...
     unsigned int xanim_num[2];          // XREF: GScr_GetAnimTreesLoaded+31/r

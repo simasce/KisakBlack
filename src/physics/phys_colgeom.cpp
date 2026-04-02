@@ -23,7 +23,7 @@ phys_simple_allocator<gjk_double_sphere_t> double_sphere_pool;
 phys_simple_allocator<gjk_cylinder_t> cylinder_pool;
 phys_simple_allocator<gjk_polygon_cylinder_t> polygon_cylinder_pool;
 
-gjk_unique_id_database_t g_gjk_unique_id_database;
+gjk_unique_id_database_t g_gjk_unique_id_database{ 1 };
 
 const phys_vec3 g_phys_vec3_box_sgn[8] =
 {

@@ -125,6 +125,7 @@ bool __cdecl DynEntCl_IsHealthGone(const DynEntityDef *dynEntDef, const DynEntit
 
 void __cdecl DynEntCl_LinkModel(unsigned __int16 dynEntId)
 {
+#if 0
     int v1; // [esp+4h] [ebp-204h]
     int v2; // [esp+8h] [ebp-200h]
     int v3; // [esp+Ch] [ebp-1FCh]
@@ -272,6 +273,60 @@ void __cdecl DynEntCl_LinkModel(unsigned __int16 dynEntId)
     worldBoundsVec3[1][2] = worldBoundsFloat4[1].v[2];
     DynEnt_LinkEntity(DYNENT_COLL_CLIENT_FIRST, dynEntId, worldBoundsVec3[0], worldBoundsVec3[1]);
     R_LinkDynEnt(dynEntId, DYNENT_DRAW_MODEL, worldBoundsVec3[0], worldBoundsVec3[1]);
+#else
+    // aislop cleanup
+    const DynEntityDef    *dynEntDef;
+    DynEntityPose         *dynEntPose;
+    DynEntityClient       *dynEntClient;
+    XModel                *model;
+    float                  modelAxis[3][3];
+    float                  modelBoundsMin[3];
+    float                  modelBoundsMax[3];
+    float                  worldBoundsMin[3];
+    float                  worldBoundsMax[3];
+    float                  origin[3];
+
+    dynEntDef   = DynEnt_GetEntityDef(dynEntId, DYNENT_DRAW_MODEL);
+    dynEntPose  = DynEnt_GetClientPose(dynEntId, DYNENT_DRAW_MODEL);
+    dynEntClient = DynEnt_GetClientEntity(dynEntId, DYNENT_DRAW_MODEL);
+    model       = DynEntCl_GetCurrentXModel(dynEntDef, dynEntClient);
+    iassert(model);
+
+    dynEntPose->radius = XModelGetRadius(model);
+    XModelGetBounds(model, modelBoundsMin, modelBoundsMax);
+    UnitQuatToAxis(dynEntPose->pose.quat, modelAxis);
+
+    origin[0] = dynEntPose->pose.origin[0];
+    origin[1] = dynEntPose->pose.origin[1];
+    origin[2] = dynEntPose->pose.origin[2];
+
+    // Transform OBB to world-space AABB.
+    // For each output axis component, select the min or max model bound
+    // based on the sign of the rotation axis component, then accumulate.
+    for (int i = 0; i < 3; i++)
+    {
+        worldBoundsMin[i] = origin[i];
+        worldBoundsMax[i] = origin[i];
+
+        for (int j = 0; j < 3; j++)
+        {
+            float axisComp = modelAxis[j][i];
+            if (axisComp >= 0.0f)
+            {
+                worldBoundsMin[i] += modelBoundsMin[j] * axisComp;
+                worldBoundsMax[i] += modelBoundsMax[j] * axisComp;
+            }
+            else
+            {
+                worldBoundsMin[i] += modelBoundsMax[j] * axisComp;
+                worldBoundsMax[i] += modelBoundsMin[j] * axisComp;
+            }
+        }
+    }
+
+    DynEnt_LinkEntity(DYNENT_COLL_CLIENT_FIRST, dynEntId, worldBoundsMin, worldBoundsMax);
+    R_LinkDynEnt(dynEntId, DYNENT_DRAW_MODEL, worldBoundsMin, worldBoundsMax);
+#endif
 }
 
 const DynEntityDef *__cdecl DynEnt_GetEntityDef(unsigned __int16 dynEntId, DynEntityDrawType drawType)

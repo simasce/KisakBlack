@@ -41,9 +41,9 @@ GlassRenderer::GlassRenderer(const Glasses *glasses)
     FixedSizeAllocator<ShardGroup *> *v16; // [esp+34h] [ebp-C4h]
     std::list<GlassPhysics *,SmallAllocatorTemplate<GlassPhysics * *> > *v17; // [esp+38h] [ebp-C0h]
     std::list<GlassPhysics *,SmallAllocatorTemplate<GlassPhysics * *> > *v18; // [esp+3Ch] [ebp-BCh]
-    SmallAllocatorTemplate<GlassPhysics *> v20; // [esp+90h] [ebp-68h] BYREF
+    //SmallAllocatorTemplate<GlassPhysics *> v20; // [esp+90h] [ebp-68h] BYREF
     unsigned int *v21; // [esp+94h] [ebp-64h]
-    SmallAllocatorTemplate<GlassPhysics *> _Al; // [esp+A0h] [ebp-58h] BYREF
+    //SmallAllocatorTemplate<GlassPhysics *> _Al; // [esp+A0h] [ebp-58h] BYREF
     unsigned int *v23; // [esp+A4h] [ebp-54h]
     SmallAllocator *p_smallAllocator; // [esp+A8h] [ebp-50h]
     GlassLock *p_rendererLock; // [esp+ACh] [ebp-4Ch]
@@ -82,7 +82,7 @@ GlassRenderer::GlassRenderer(const Glasses *glasses)
     //{
     //    this->colidingShards = 0;
     //}
-    this->colidingShards = new GlassRenderer::SortedShardsList();
+    this->colidingShards = new GlassRenderer::SortedShardsList(&this->smallAllocator);
 
 
     //v21 = GlassesClient::Allocate(28, "C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_renderer.cpp", 73);
@@ -97,7 +97,7 @@ GlassRenderer::GlassRenderer(const Glasses *glasses)
     //{
     //    this->tempShardsList = 0;
     //}
-    this->tempShardsList = new GlassRenderer::SortedShardsList();
+    this->tempShardsList = new GlassRenderer::SortedShardsList(&this->smallAllocator);
 
 
     //v28 = (FixedSizeAllocator<ShardGroup *> *)GlassesClient::Allocate(64, "C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_renderer.cpp", 75);
@@ -3162,20 +3162,3 @@ int __thiscall ShardGroup::TracePoint(float *p0, const float *p1)
 }
 
 
-void *GlassRenderer::SortedShardsList::operator new(size_t size, SmallAllocator *alloc)
-{
-    return GlassesClient::Allocate(size, "C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_renderer.cpp", 72);
-}
-
-void *GlassRenderer::SortedShardsList::operator new(size_t size)
-{
-    return GlassesClient::Allocate(
-        size,
-        "C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_renderer.cpp",
-        72);
-}
-
-void GlassRenderer::SortedShardsList::operator delete(void *ptr)
-{
-    GlassesClient::Free((char *)ptr);
-}

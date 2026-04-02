@@ -1794,33 +1794,35 @@ bool __cdecl G_ClientCanSpectateTeamOrLocalPlayer(gclient_s *client, clientState
 
 void __cdecl SpectatorClientEndFrame(gentity_s *ent)
 {
-    unsigned int v1; // ecx
+    unsigned int v2; // ecx
     int number; // [esp+0h] [ebp-2828h]
     gclient_s *client; // [esp+4h] [ebp-2824h]
-    _BYTE v4[10028]; // [esp+8h] [ebp-2820h] BYREF
+    playerState_s ps; // [esp+8h] [ebp-2820h] BYREF
     int health; // [esp+2734h] [ebp-F4h] BYREF
     int otherFlags; // [esp+2738h] [ebp-F0h] BYREF
     int EarliestArchivedClientInfoTime; // [esp+273Ch] [ebp-ECh]
-    clientState_s v8; // [esp+2740h] [ebp-E8h] BYREF
-    int v9; // [esp+2814h] [ebp-14h]
-    unsigned int v10; // [esp+2818h] [ebp-10h]
+    clientState_s v9; // [esp+2740h] [ebp-E8h] BYREF
+    int v10; // [esp+2814h] [ebp-14h]
+    unsigned int v11; // [esp+2818h] [ebp-10h]
     int clientNum; // [esp+281Ch] [ebp-Ch]
-    playerState_s *ps; // [esp+2820h] [ebp-8h]
+    //playerState_s *ps; // [esp+2820h] [ebp-8h]
     int pArchiveTime; // [esp+2824h] [ebp-4h] BYREF
     int savedregs; // [esp+2828h] [ebp+0h] BYREF
 
-    ps = (playerState_s *)&v4[(0x80 - (((unsigned __int8)&savedregs - 32) & 0x7F)) & 0x7F];
-    if ( ((unsigned __int8)ps & 0x7F) != 0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_active_mp.cpp",
-                    1896,
-                    0,
-                    "%s",
-                    "( (unsigned int)ps & (128-1) ) == 0") )
-    {
-        __debugbreak();
-    }
-    v9 = 1000;
+    // LWSS: this is likely some 128bit aligned alloca
+    //ps = (playerState_s *)((char *)&playerstate + ((0x80 - (((unsigned __int8)&savedregs - 32) & 0x7F)) & 0x7F));
+    //if (((unsigned __int8)ps & 0x7F) != 0
+    //    && !Assert_MyHandler(
+    //        "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_active_mp.cpp",
+    //        1896,
+    //        0,
+    //        "%s",
+    //        "( (unsigned int)ps & (128-1) ) == 0"))
+    //{
+    //    __debugbreak();
+    //}
+
+    v10 = 1000;
     client = ent->client;
     ent->r.svFlags &= ~2u;
     ent->r.svFlags |= 1u;
@@ -1831,35 +1833,35 @@ void __cdecl SpectatorClientEndFrame(gentity_s *ent)
     client->ps.viewmodelIndex = 0;
     client->fGunPitch = 0.0f;
     client->fGunYaw = 0.0f;
-    if ( client->sess.forceSpectatorClient < 0 )
+    if (client->sess.forceSpectatorClient < 0)
     {
-LABEL_26:
-        if ( client->spectatorClient < 0 && !G_ClientCanSpectateTeam(client, TEAM_NUM_TEAMS) )
+    LABEL_26:
+        if (client->spectatorClient < 0 && !G_ClientCanSpectateTeam(client, TEAM_NUM_TEAMS))
             Cmd_FollowCycle_f(ent, 1);
         clientNum = client->spectatorClient;
-        if ( clientNum < 0 )
+        if (clientNum < 0)
             goto LABEL_45;
         pArchiveTime = client->sess.psOffsetTime + client->sess.archiveTime;
-        if ( !SV_GetArchivedClientInfo(clientNum, &pArchiveTime, ps, &v8, 0, &health, &otherFlags) )
+        if (!SV_GetArchivedClientInfo(clientNum, &pArchiveTime, &ps, &v9, 0, &health, &otherFlags))
             goto LABEL_45;
-        if ( (otherFlags & 4) == 0
+        if ((otherFlags & 4) == 0
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_active_mp.cpp",
-                        1997,
-                        0,
-                        "%s",
-                        "otherFlags & POF_PLAYER") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_active_mp.cpp",
+                1997,
+                0,
+                "%s",
+                "otherFlags & POF_PLAYER"))
         {
             __debugbreak();
         }
-        if ( !G_ClientCanSpectateTeamOrLocalPlayer(client, &v8) )
+        if (!G_ClientCanSpectateTeamOrLocalPlayer(client, &v9))
         {
-LABEL_45:
+        LABEL_45:
             StopFollowing(ent);
             client->ps.otherFlags &= ~0x10u;
-            if ( G_ClientCanSpectateTeam(client, TEAM_ALLIES)
+            if (G_ClientCanSpectateTeam(client, TEAM_ALLIES)
                 || G_ClientCanSpectateTeam(client, TEAM_AXIS)
-                || G_ClientCanSpectateTeam(client, TEAM_FREE) )
+                || G_ClientCanSpectateTeam(client, TEAM_FREE))
             {
                 client->ps.otherFlags |= 8u;
             }
@@ -1875,38 +1877,38 @@ LABEL_45:
         clientNum = client->sess.forceSpectatorClient;
         client->spectatorClient = clientNum;
         EarliestArchivedClientInfoTime = SV_GetEarliestArchivedClientInfoTime();
-        while ( 1 )
+        while (1)
         {
-            if ( client->sess.archiveTime < 0 )
+            if (client->sess.archiveTime < 0)
                 client->sess.archiveTime = 0;
             pArchiveTime = client->sess.archiveTime - client->sess.psOffsetTime;
-            if ( pArchiveTime > EarliestArchivedClientInfoTime - 1000 )
+            if (pArchiveTime > EarliestArchivedClientInfoTime - 1000)
             {
                 client->sess.archiveTime = EarliestArchivedClientInfoTime + client->sess.psOffsetTime - 1000;
                 pArchiveTime = client->sess.archiveTime - client->sess.psOffsetTime;
             }
-            if ( SV_GetArchivedClientInfo(clientNum, &pArchiveTime, ps, &v8, 0, &health, &otherFlags) )
+            if (SV_GetArchivedClientInfo(clientNum, &pArchiveTime, &ps, &v9, 0, &health, &otherFlags))
             {
-                if ( client->sess.killCamEntity == -1 )
-                    ps->killCamEntity = 1023;
+                if (client->sess.killCamEntity == -1)
+                    ps.killCamEntity = 1023;
                 else
-                    ps->killCamEntity = client->sess.killCamEntity;
-                ps->killCamTargetEntity = client->sess.killCamTargetEntity;
-                if ( (otherFlags & 4) == 0
+                    ps.killCamEntity = client->sess.killCamEntity;
+                ps.killCamTargetEntity = client->sess.killCamTargetEntity;
+                if ((otherFlags & 4) == 0
                     && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_active_mp.cpp",
-                                1952,
-                                0,
-                                "%s\n\t(otherFlags) = %i",
-                                "(otherFlags & (1<<2))",
-                                otherFlags) )
+                        "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_active_mp.cpp",
+                        1952,
+                        0,
+                        "%s\n\t(otherFlags) = %i",
+                        "(otherFlags & (1<<2))",
+                        otherFlags))
                 {
                     __debugbreak();
                 }
-                if ( G_ClientCanSpectateTeam(client, v8.team) )
+                if (G_ClientCanSpectateTeam(client, v9.team))
                     break;
             }
-            if ( client->sess.archiveTime <= 0 )
+            if (client->sess.archiveTime <= 0)
             {
                 client->sess.forceSpectatorClient = -1;
                 client->sess.killCamEntity = -1;
@@ -1914,14 +1916,14 @@ LABEL_45:
                 client->spectatorClient = -1;
                 goto LABEL_26;
             }
-            if ( client->sess.killCamEntity < 0 )
+            if (client->sess.killCamEntity < 0)
                 goto LABEL_25;
             number = ent->s.number;
-            if ( client->sess.killCamTargetEntity < 0x20u )
+            if (client->sess.killCamTargetEntity < 0x20u)
                 number = client->sess.killCamTargetEntity;
-            if ( clientNum == number )
+            if (clientNum == number)
             {
-LABEL_25:
+            LABEL_25:
                 client->sess.archiveTime -= 50;
             }
             else
@@ -1931,26 +1933,26 @@ LABEL_25:
             }
         }
     }
-    v10 = client->ps.eFlags & 0x100000 | ps->eFlags & 0xFFEFFFFF;
-    Com_Memcpy(client, ps, 9892);
+    v11 = client->ps.eFlags & 0x100000 | ps.eFlags & 0xFFEFFFFF;
+    Com_Memcpy(&client->ps, &ps, sizeof(playerState_s));
     HudElem_UpdateClient(client, ent->s.number, HUDELEM_UPDATE_CURRENT);
-    if ( client->sess.archiveTime && client->sess.killCamEntity >= 0 )
+    if (client->sess.archiveTime && client->sess.killCamEntity >= 0)
         HudElem_ClearClient(client, HUDELEM_UPDATE_ARCHIVAL);
-    client->ps.eFlags = v10;
+    client->ps.eFlags = v11;
     client->ps.otherFlags &= ~4u;
     client->ps.otherFlags |= 2u;
-    if ( client->sess.forceSpectatorClient >= 0 || RETURN_ZERO32() )
+    if (client->sess.forceSpectatorClient >= 0 || RETURN_ZERO32())
     {
         client->ps.otherFlags &= 0xFFFFFFE7;
     }
     else
     {
         client->ps.otherFlags |= 8u;
-        if ( G_ClientCanSpectateTeam(client, TEAM_NUM_TEAMS) )
-            v1 = client->ps.otherFlags | 0x10;
+        if (G_ClientCanSpectateTeam(client, TEAM_NUM_TEAMS))
+            v2 = client->ps.otherFlags | 0x10;
         else
-            v1 = client->ps.otherFlags & 0xFFFFFFEF;
-        client->ps.otherFlags = v1;
+            v2 = client->ps.otherFlags & 0xFFFFFFEF;
+        client->ps.otherFlags = v2;
     }
 }
 

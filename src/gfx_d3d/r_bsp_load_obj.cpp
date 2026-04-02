@@ -5838,7 +5838,7 @@ void __cdecl R_InterpretSunLightParseParamsIntoLights(SunLightParseParams *sunPa
     AngleVectors(sunParse->sunSettings[0].angles, sunDirection, 0, 0);
     sunScale = sunParse->sunSettings[0].sunDiffuseColor[3];
     sunColor[0] = sunParse->sunSettings[0].sunDiffuseColor[0] * sunScale;
-    sunColor[1] = *(float *)&sunParse[1].name[32] * sunScale;
+    sunColor[1] = sunParse[1].sunSettings[0].skyColor[0] * sunScale;
     sunColor[2] = sunParse[1].sunSettings[0].skyColor[1] * sunScale;
     if ( sunLight )
     {

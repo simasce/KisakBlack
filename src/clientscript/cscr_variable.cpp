@@ -6769,6 +6769,8 @@ scr_entref_t __cdecl Scr_GetEntityIdRef(scriptInstance_t inst, unsigned int entI
 
     entref.entnum = entValue->u.o.u.entnum & 0x3FFF;
     entref.classnum = entValue->w.classnum >> VAR_NAME_BITS;
+    entref.client = entValue->u.o.u.entnum >> 14;
+
     return entref;
 }
 

@@ -2152,6 +2152,21 @@ void __cdecl R_FilterDynEntIntoCells(unsigned int dynEntId, DynEntityDrawType dr
     R_FilterDynEntIntoCells_r((mnode_t *)rgp.world->dpvsPlanes.nodes, dynEntId, drawType, mins, maxs);
 }
 
+static void __cdecl R_AddDynEntToCell(unsigned int cellIndex, unsigned int dynEntIndex, DynEntityDrawType drawType)
+{
+    unsigned int wordIndex; // [esp+Ch] [ebp-4h]
+
+    iassert(Sys_IsMainThread());
+    wordIndex = rgp.world->dpvsDyn.dynEntClientWordCount[drawType] * cellIndex + (dynEntIndex >> 5);
+    rgp.world->dpvsDyn.dynEntCellBits[drawType][wordIndex] |= 0x80000000 >> (dynEntIndex & 0x1F);
+
+
+    //dynEntCellBits = rgp.world->dpvsDyn.dynEntCellBits[drawType];
+    //wordIndex = rgp.world->dpvsDyn.dynEntClientWordCount[drawType] * (cellIndex - 1) + (dynEntIndex >> 5);
+    //bit = 0x80000000 >> (dynEntIndex & 0x1F);
+    //dynEntCellBits[wordIndex] |= bit;
+}
+
 void __cdecl R_FilterDynEntIntoCells_r(
                 mnode_t *node,
                 unsigned int dynEntIndex,
@@ -2159,68 +2174,62 @@ void __cdecl R_FilterDynEntIntoCells_r(
                 const float *mins,
                 const float *maxs)
 {
-    const cplane_s *v5; // [esp+0h] [ebp-60h]
-    float localmaxs[3]; // [esp+4h] [ebp-5Ch]
-    float dist; // [esp+10h] [ebp-50h]
-    float localmins[3]; // [esp+14h] [ebp-4Ch] BYREF
-    unsigned int type; // [esp+20h] [ebp-40h]
-    unsigned int bit; // [esp+24h] [ebp-3Ch]
-    unsigned int *dynEntCellBits; // [esp+28h] [ebp-38h]
-    unsigned int wordIndex; // [esp+2Ch] [ebp-34h]
-    int side; // [esp+30h] [ebp-30h]
-    cplane_s *plane; // [esp+34h] [ebp-2Ch]
-    int cellIndex; // [esp+38h] [ebp-28h]
-    float mins2[3]; // [esp+3Ch] [ebp-24h] BYREF
-    int cellCount; // [esp+48h] [ebp-18h]
-    float maxs2[3]; // [esp+4Ch] [ebp-14h] BYREF
-    mnode_t *rightNode; // [esp+58h] [ebp-8h]
-    int planeIndex; // [esp+5Ch] [ebp-4h]
+    float localmaxs[3]; // [esp+0h] [ebp-50h]
+    float dist; // [esp+Ch] [ebp-44h]
+    float localmins[3]; // [esp+10h] [ebp-40h] BYREF
+    unsigned int type; // [esp+1Ch] [ebp-34h]
+    int side; // [esp+20h] [ebp-30h]
+    cplane_s *plane; // [esp+24h] [ebp-2Ch]
+    int cellIndex; // [esp+28h] [ebp-28h]
+    float mins2[3]; // [esp+2Ch] [ebp-24h] BYREF
+    int cellCount; // [esp+38h] [ebp-18h]
+    float maxs2[3]; // [esp+3Ch] [ebp-14h] BYREF
+    mnode_t *rightNode; // [esp+48h] [ebp-8h]
+    int planeIndex; // [esp+4Ch] [ebp-4h]
 
     cellCount = rgp.world->dpvsPlanes.cellCount + 1;
-    mins2[0] = *mins;
+
+    mins2[0] = mins[0];
     mins2[1] = mins[1];
     mins2[2] = mins[2];
-    maxs2[0] = *maxs;
+
+    maxs2[0] = maxs[0];
     maxs2[1] = maxs[1];
     maxs2[2] = maxs[2];
-    while ( 1 )
+
+    while (1)
     {
         cellIndex = node->cellIndex;
         planeIndex = cellIndex - cellCount;
-        if ( cellIndex - cellCount < 0 )
+        if (cellIndex - cellCount < 0)
             break;
         plane = &rgp.world->dpvsPlanes.planes[planeIndex];
         side = BoxOnPlaneSide(mins2, maxs2, plane);
-        if ( side == 3 )
+        if (side == 3)
         {
             type = plane->type;
             rightNode = (mnode_t *)((char *)node + 2 * node->rightChildOffset);
-            if ( type >= 3 )
+            if (type >= 3)
             {
                 R_FilterDynEntIntoCells_r(node + 1, dynEntIndex, drawType, mins2, maxs2);
             }
             else
             {
                 dist = plane->dist;
+
                 localmins[0] = mins2[0];
                 localmins[1] = mins2[1];
                 localmins[2] = mins2[2];
                 localmins[type] = dist;
+
                 localmaxs[0] = maxs2[0];
                 localmaxs[1] = maxs2[1];
                 localmaxs[2] = maxs2[2];
                 localmaxs[type] = dist;
-                if ( BoxOnPlaneSide(localmins, maxs2, plane) != 1
-                    && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_dpvs.cpp",
-                                2963,
-                                0,
-                                "%s",
-                                "BoxOnPlaneSide( localmins, maxs2, plane ) == BOXSIDE_FRONT") )
-                {
-                    __debugbreak();
-                }
-                if ( maxs2[type] > dist )
+
+                iassert(BoxOnPlaneSide(localmins, maxs2, plane) == BOXSIDE_FRONT);
+
+                if (maxs2[type] > (double)dist)
                     R_FilterDynEntIntoCells_r(node + 1, dynEntIndex, drawType, localmins, maxs2);
                 maxs2[0] = localmaxs[0];
                 maxs2[1] = localmaxs[1];
@@ -2230,37 +2239,12 @@ void __cdecl R_FilterDynEntIntoCells_r(
         }
         else
         {
-            if ( side != 1
-                && side != 2
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_dpvs.cpp",
-                            2991,
-                            0,
-                            "%s",
-                            "(side == BOXSIDE_FRONT) || (side == BOXSIDE_BACK)") )
-            {
-                __debugbreak();
-            }
-            node = (mnode_t *)((char *)node + 2 * (side - 1) * (node->rightChildOffset - 2) + 4);
+            iassert((side == BOXSIDE_FRONT) || (side == BOXSIDE_BACK));
+            node = (mnode_t *)((char *)node + ((side - 1) * (node->rightChildOffset - 2)) * 2 + 4);
         }
     }
-    if ( cellIndex )
-    {
-        if ( !Sys_IsMainThread()
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_dpvs.cpp",
-                        2915,
-                        0,
-                        "%s",
-                        "Sys_IsMainThread()") )
-        {
-            __debugbreak();
-        }
-        dynEntCellBits = rgp.world->dpvsDyn.dynEntCellBits[drawType];
-        wordIndex = rgp.world->dpvsDyn.dynEntClientWordCount[drawType] * (cellIndex - 1) + (dynEntIndex >> 5);
-        bit = 0x80000000 >> (dynEntIndex & 0x1F);
-        dynEntCellBits[wordIndex] |= bit;
-    }
+    if (cellIndex)
+        R_AddDynEntToCell(cellIndex - 1, dynEntIndex, drawType);
 }
 
 void __cdecl R_FilterXModelIntoScene(

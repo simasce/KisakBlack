@@ -1643,152 +1643,156 @@ int __cdecl SV_GetArchivedClientInfo(
                 int *health,
                 int *otherFlags)
 {
-    float *v8; // [esp+0h] [ebp-274Ch]
-    _BYTE v9[10028]; // [esp+Ch] [ebp-2740h] BYREF
+    float *v9; // [esp+0h] [ebp-274Ch]
+    playerState_s v10; // [esp+Ch] [ebp-2740h] BYREF
     cachedSnapshot_t *CachedSnapshot; // [esp+273Ch] [ebp-10h]
     unsigned int i; // [esp+2740h] [ebp-Ch]
-    int v12; // [esp+2744h] [ebp-8h]
-    cachedClient_s *v13; // [esp+2748h] [ebp-4h]
+    int v13; // [esp+2744h] [ebp-8h]
+    cachedClient_s *v14; // [esp+2748h] [ebp-4h]
     int savedregs; // [esp+274Ch] [ebp+0h] BYREF
 
-    if ( !health
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp", 2610, 0, "%s", "health") )
+    if (!health
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp", 2610, 0, "%s", "health"))
     {
         __debugbreak();
     }
-    if ( !otherFlags
+    if (!otherFlags
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
-                    2611,
-                    0,
-                    "%s",
-                    "otherFlags") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
+            2611,
+            0,
+            "%s",
+            "otherFlags"))
     {
         __debugbreak();
     }
     CachedSnapshot = SV_GetCachedSnapshot(pArchiveTime);
-    if ( CachedSnapshot )
+    if (CachedSnapshot)
     {
-        if ( *pArchiveTime <= 0
+        if (*pArchiveTime <= 0
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
-                        2639,
-                        0,
-                        "%s",
-                        "*pArchiveTime > 0") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
+                2639,
+                0,
+                "%s",
+                "*pArchiveTime > 0"))
         {
             __debugbreak();
         }
-        v12 = svs.time - CachedSnapshot->time;
-        v13 = 0;
-        for ( i = 0; ; ++i )
+        v13 = svs.time - CachedSnapshot->time;
+        v14 = 0;
+        for (i = 0; ; ++i)
         {
-            if ( i >= CachedSnapshot->num_clients )
+            if (i >= CachedSnapshot->num_clients)
                 return 0;
-            v13 = &svs.cachedSnapshotClients[(i + CachedSnapshot->first_client) % svs.numCachedSnapshotClients];
-            if ( v13->cs.clientIndex == clientNum )
+            v14 = &svs.cachedSnapshotClients[(i + CachedSnapshot->first_client) % svs.numCachedSnapshotClients];
+            if (v14->cs.clientIndex == clientNum)
                 break;
         }
-        if ( !v13->playerStateExists )
+        if (!v14->playerStateExists)
             return 0;
-        if ( !v13
+        if (!v14
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
-                        2660,
-                        0,
-                        "%s",
-                        "cachedClient") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
+                2660,
+                0,
+                "%s",
+                "cachedClient"))
         {
             __debugbreak();
         }
-        if ( (v13->ps.otherFlags & 4) == 0
+        if ((v14->ps.otherFlags & 4) == 0
             && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
-                        2661,
-                        0,
-                        "%s",
-                        "cachedClient->ps.otherFlags & POF_PLAYER") )
+                "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
+                2661,
+                0,
+                "%s",
+                "cachedClient->ps.otherFlags & POF_PLAYER"))
         {
             __debugbreak();
         }
-        if ( origin )
+        if (origin)
         {
-            v8 = v13->ps.origin;
-            *origin = v13->ps.origin[0];
-            origin[1] = v8[1];
-            origin[2] = v8[2];
+            v9 = v14->ps.origin;
+            *origin = v14->ps.origin[0];
+            origin[1] = v9[1];
+            origin[2] = v9[2];
         }
-        if ( cs )
-            Com_Memcpy(cs, &v13->cs, 208);
-        *health = v13->ps.stats[0];
-        *otherFlags = v13->ps.otherFlags;
-        if ( ps )
+        if (cs)
+            Com_Memcpy(cs, &v14->cs, 208);
+        *health = v14->ps.stats[0];
+        *otherFlags = v14->ps.otherFlags;
+        if (ps)
         {
-            Com_Memcpy(ps, &v13->ps, 9892);
-            if ( ps->commandTime )
-                ps->commandTime += v12;
-            if ( ps->pm_time )
-                ps->pm_time += v12;
-            if ( ps->foliageSoundTime )
-                ps->foliageSoundTime += v12;
-            if ( ps->jumpTime )
-                ps->jumpTime += v12;
-            if ( ps->viewHeightLerpTime )
-                ps->viewHeightLerpTime += v12;
-            if ( ps->shellshockTime )
-                ps->shellshockTime += v12;
-            for ( i = 0; i < 0x1F && ps->hud.archival[i].type; ++i )
+            Com_Memcpy(ps, &v14->ps, 9892);
+            if (ps->commandTime)
+                ps->commandTime += v13;
+            if (ps->pm_time)
+                ps->pm_time += v13;
+            if (ps->foliageSoundTime)
+                ps->foliageSoundTime += v13;
+            if (ps->jumpTime)
+                ps->jumpTime += v13;
+            if (ps->viewHeightLerpTime)
+                ps->viewHeightLerpTime += v13;
+            if (ps->shellshockTime)
+                ps->shellshockTime += v13;
+            for (i = 0; i < 0x1F && ps->hud.archival[i].type; ++i)
             {
-                if ( ps->hud.archival[i].time )
-                    ps->hud.archival[i].time += v12;
-                if ( ps->hud.archival[i].fadeStartTime )
+                if (ps->hud.archival[i].time)
+                    ps->hud.archival[i].time += v13;
+                if (ps->hud.archival[i].fadeStartTime)
                 {
-                    ps->hud.archival[i].fadeStartTime += v12;
-                    if ( ps->hud.archival[i].fadeStartTime > svs.time
+                    ps->hud.archival[i].fadeStartTime += v13;
+                    if (ps->hud.archival[i].fadeStartTime > svs.time
                         && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
-                                    2703,
-                                    0,
-                                    "ps->hud.archival[i].fadeStartTime <= svs.time\n\t%i, %i",
-                                    ps->hud.archival[i].fadeStartTime,
-                                    svs.time) )
+                            "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
+                            2703,
+                            0,
+                            "ps->hud.archival[i].fadeStartTime <= svs.time\n\t%i, %i",
+                            ps->hud.archival[i].fadeStartTime,
+                            svs.time))
                     {
                         __debugbreak();
                     }
                 }
-                if ( ps->hud.archival[i].scaleStartTime )
-                    ps->hud.archival[i].scaleStartTime += v12;
-                if ( ps->hud.archival[i].moveStartTime )
-                    ps->hud.archival[i].moveStartTime += v12;
+                if (ps->hud.archival[i].scaleStartTime)
+                    ps->hud.archival[i].scaleStartTime += v13;
+                if (ps->hud.archival[i].moveStartTime)
+                    ps->hud.archival[i].moveStartTime += v13;
             }
-            ps->deltaTime += v12;
+            ps->deltaTime += v13;
         }
         return 1;
     }
     else
     {
-        if ( ((unsigned __int8)&v9[(0x80 - (((unsigned __int8)&savedregs - 64) & 0x7F)) & 0x7F] & 0x7F) != 0
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
-                        2622,
-                        0,
-                        "%s",
-                        "( (unsigned int)backupPs & (128-1) ) == 0") )
+        // LWSS: this is likely some 128bit aligned alloca
+        //if ((((unsigned __int8)&v10 + ((0x80 - (((unsigned __int8)&savedregs - 64) & 0x7F)) & 0x7F)) & 0x7F) != 0
+        //    && !Assert_MyHandler(
+        //        "C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp",
+        //        2622,
+        //        0,
+        //        "%s",
+        //        "( (unsigned int)backupPs & (128-1) ) == 0"))
+        //{
+        //    __debugbreak();
+        //}
+        if (!ps)
+        {
+            //ps = (playerState_s *)((char *)&v10 + ((0x80 - (((unsigned __int8)&savedregs - 64) & 0x7F)) & 0x7F));
+            ps = &v10;
+        }
+        if (!ps
+            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp", 2627, 0, "%s", "ps"))
         {
             __debugbreak();
         }
-        if ( !ps )
-            ps = (playerState_s *)&v9[(0x80 - (((unsigned __int8)&savedregs - 64) & 0x7F)) & 0x7F];
-        if ( !ps
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\server_mp\\sv_snapshot_mp.cpp", 2627, 0, "%s", "ps") )
-        {
-            __debugbreak();
-        }
-        if ( *pArchiveTime <= 0 && SV_GetCurrentClientInfo(clientNum, ps, cs) )
+        if (*pArchiveTime <= 0 && SV_GetCurrentClientInfo(clientNum, ps, cs))
         {
             *health = ps->stats[0];
             *otherFlags = ps->otherFlags;
-            if ( origin )
+            if (origin)
             {
                 *origin = ps->origin[0];
                 origin[1] = ps->origin[1];

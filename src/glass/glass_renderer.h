@@ -69,10 +69,36 @@ struct GlassRenderer // sizeof=0x4DF8
     {
         // aislop
 
+        SortedShardsList() = default;
+
+        // pass allocator down to SmallAllocatorTemplate
+        explicit SortedShardsList(SmallAllocator *alloc) 
+            : std::list<GlassShard *, SmallAllocatorTemplate<GlassShard *>>(SmallAllocatorTemplate<GlassShard *>(alloc))
+        {
+        }
+
         // new/delete operators here are inlined in the bin
-        static void *operator new(size_t size, SmallAllocator *alloc);
-        static void *operator new(size_t size);
-        static void operator delete(void *ptr);
+        //static void *operator new(size_t size, SmallAllocator *alloc);
+        //static void *operator new(size_t size);
+        //static void operator delete(void *ptr);
+
+        void *operator new(size_t size, SmallAllocator *alloc)
+        {
+            return GlassesClient::Allocate(size, "C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_renderer.cpp", 72);
+        }
+
+        void *operator new(size_t size)
+        {
+            return GlassesClient::Allocate(
+                size,
+                "C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_renderer.cpp",
+                72);
+        }
+
+        void operator delete(void *ptr)
+        {
+            GlassesClient::Free((char *)ptr);
+        }
 
         void InsertReverse(GlassShard *shard);
         void Insert(GlassShard *shard);

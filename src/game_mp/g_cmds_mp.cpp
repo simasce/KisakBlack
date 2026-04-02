@@ -581,61 +581,63 @@ void __cdecl StopFollowing(gentity_s *ent)
 
 int __cdecl Cmd_FollowCycle_f(gentity_s *ent, int dir)
 {
-    int v3; // [esp+0h] [ebp-2814h]
-    _BYTE v4[10028]; // [esp+4h] [ebp-2810h] BYREF
+    int v4; // [esp+0h] [ebp-2814h]
+    playerState_s v5; // [esp+4h] [ebp-2810h] BYREF
     int health; // [esp+2730h] [ebp-E4h] BYREF
     int clientNum; // [esp+2734h] [ebp-E0h]
     int otherFlags; // [esp+2738h] [ebp-DCh] BYREF
-    clientState_s v8; // [esp+273Ch] [ebp-D8h] BYREF
+    clientState_s v9; // [esp+273Ch] [ebp-D8h] BYREF
     playerState_s *ps; // [esp+2810h] [ebp-4h]
     int savedregs; // [esp+2814h] [ebp+0h] BYREF
 
-    ps = (playerState_s *)&v4[(0x80 - (((unsigned __int8)&savedregs - 16) & 0x7F)) & 0x7F];
-    if ( ((unsigned __int8)ps & 0x7F) != 0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_cmds_mp.cpp",
-                    784,
-                    0,
-                    "%s",
-                    "( (unsigned int)ps & (128-1) ) == 0") )
-    {
-        __debugbreak();
-    }
-    if ( dir != 1 && dir != -1 )
+    ps = &v5;
+    // LWSS: this is likely some 128bit aligned alloca
+    //ps = (playerState_s *)((char *)&v5 + ((0x80 - (((unsigned __int8)&savedregs - 16) & 0x7F)) & 0x7F));
+    //if (((unsigned __int8)ps & 0x7F) != 0
+    //    && !Assert_MyHandler(
+    //        "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_cmds_mp.cpp",
+    //        784,
+    //        0,
+    //        "%s",
+    //        "( (unsigned int)ps & (128-1) ) == 0"))
+    //{
+    //    __debugbreak();
+    //}
+    if (dir != 1 && dir != -1)
         Com_Error(ERR_DROP, "Cmd_FollowCycle_f: bad dir %i", dir);
-    if ( !ent->client
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_cmds_mp.cpp", 792, 0, "%s", "ent->client") )
+    if (!ent->client
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_cmds_mp.cpp", 792, 0, "%s", "ent->client"))
     {
         __debugbreak();
     }
-    if ( ent->client->sess.sessionState != SESS_STATE_SPECTATOR )
+    if (ent->client->sess.sessionState != SESS_STATE_SPECTATOR)
         return 0;
-    if ( ent->client->sess.forceSpectatorClient >= 0 )
+    if (ent->client->sess.forceSpectatorClient >= 0)
         return 0;
     clientNum = ent->client->spectatorClient;
-    if ( clientNum < 0 )
+    if (clientNum < 0)
         clientNum = 0;
-    v3 = clientNum;
+    v4 = clientNum;
     do
     {
         clientNum += dir;
-        if ( clientNum >= level.maxclients )
+        if (clientNum >= level.maxclients)
             clientNum = 0;
-        if ( clientNum < 0 )
+        if (clientNum < 0)
             clientNum = level.maxclients - 1;
-        if ( SV_GetArchivedClientInfo(clientNum, &ent->client->sess.archiveTime, ps, &v8, 0, &health, &otherFlags) )
+        if (SV_GetArchivedClientInfo(clientNum, &ent->client->sess.archiveTime, ps, &v9, 0, &health, &otherFlags))
         {
-            if ( (otherFlags & 4) == 0
+            if ((otherFlags & 4) == 0
                 && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_cmds_mp.cpp",
-                            822,
-                            0,
-                            "%s",
-                            "otherFlags & POF_PLAYER") )
+                    "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_cmds_mp.cpp",
+                    822,
+                    0,
+                    "%s",
+                    "otherFlags & POF_PLAYER"))
             {
                 __debugbreak();
             }
-            if ( G_ClientCanSpectateTeamOrLocalPlayer(ent->client, &v8) )
+            if (G_ClientCanSpectateTeamOrLocalPlayer(ent->client, &v9))
             {
                 ent->client->spectatorClient = clientNum;
                 ent->client->sess.sessionState = SESS_STATE_SPECTATOR;
@@ -644,8 +646,7 @@ int __cdecl Cmd_FollowCycle_f(gentity_s *ent, int dir)
                 return 1;
             }
         }
-    }
-    while ( clientNum != v3 );
+    } while (clientNum != v4);
     return 0;
 }
 

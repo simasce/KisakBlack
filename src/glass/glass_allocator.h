@@ -27,7 +27,7 @@ struct SmallAllocatorTemplate//<GlassPhysics * *> // sizeof=0x4
 
     SmallAllocator *alloc;
 
-    SmallAllocatorTemplate() noexcept : alloc(nullptr) {}
+    //SmallAllocatorTemplate() noexcept : alloc(nullptr) {}
     SmallAllocatorTemplate(SmallAllocator *a) noexcept : alloc(a) {}
 
     template<class U>

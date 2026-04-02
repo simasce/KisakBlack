@@ -3,6 +3,9 @@
 #include <xanim/xmodel.h>
 #include "r_gfx.h"
 
+#define BOXSIDE_FRONT 1
+#define BOXSIDE_BACK 2
+
 static const float cull_thresh = -100.0f;
 static const float dist_thresh2 = 6.4e7f;
 
