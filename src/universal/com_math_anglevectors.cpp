@@ -51,7 +51,7 @@ void __cdecl AngleVectors(const float *angles, float *forward, float *right, flo
     }
 }
 
-void __cdecl AnglesToAxis(const float *angles, float (*axis)[3])
+void __cdecl AnglesToAxis(const float *angles, float axis[3][3])
 {
     float cy; // [esp+18h] [ebp-1Ch]
     float angle; // [esp+1Ch] [ebp-18h]
@@ -63,28 +63,25 @@ void __cdecl AnglesToAxis(const float *angles, float (*axis)[3])
     float cp; // [esp+2Ch] [ebp-8h]
     float sy; // [esp+30h] [ebp-4h]
 
-    angle = angles[1] * 0.017453292;
+    angle = angles[1] * 0.01745329238474369;
     cy = cos(angle);
     sy = sin(angle);
-    anglea = *angles * 0.017453292;
+    anglea = angles[0] * 0.01745329238474369;
     cp = cos(anglea);
     v7 = sin(anglea);
-    (*axis)[0] = cp * cy;
-    (*axis)[1] = cp * sy;
-    //LODWORD((*axis)[2]) = LODWORD(v7) ^ _mask__NegFloat_;
-    LODWORD((*axis)[2]) = -v7;
-    angleb = angles[2] * 0.017453292;
+
+    axis[0][0] = cp * cy;
+    axis[0][1] = cp * sy;
+    axis[0][2] = -v7;
+    angleb = angles[2] * 0.01745329238474369;
     cr = cos(angleb);
     sr = sin(angleb);
-    //(*axis)[3] = (float)((float)(sr * v7) * cy) + (float)(COERCE_FLOAT(LODWORD(sy) ^ _mask__NegFloat_) * cr);
-    (*axis)[3] = (float)((float)(sr * v7) * cy) + (float)(-sy * cr);
-    (*axis)[4] = (float)((float)(sr * v7) * sy) + (float)(cr * cy);
-    (*axis)[5] = sr * cp;
-    //(*axis)[6] = (float)((float)(cr * v7) * cy) + (float)(COERCE_FLOAT(LODWORD(sr) ^ _mask__NegFloat_) * COERCE_FLOAT(LODWORD(sy) ^ _mask__NegFloat_));
-    (*axis)[6] = (float)((float)(cr * v7) * cy) + (float)(-sr * -sy);
-    //(*axis)[7] = (float)((float)(cr * v7) * sy) + (float)(COERCE_FLOAT(LODWORD(sr) ^ _mask__NegFloat_) * cy);
-    (*axis)[7] = (float)((float)(cr * v7) * sy) + (float)(-sr * cy);
-    (*axis)[8] = cr * cp;
+    axis[1][0] = sr * v7 * cy + -sy * cr;
+    axis[1][1] = sr * v7 * sy + cr * cy;
+    axis[1][2] = sr * cp;
+    axis[2][0] = cr * v7 * cy + -sr * -sy;
+    axis[2][1] = cr * v7 * sy + -sr * cy;
+    axis[2][2] = cr * cp;
 }
 
 void __cdecl AnglesToQuat(const float *angles, float *quat)

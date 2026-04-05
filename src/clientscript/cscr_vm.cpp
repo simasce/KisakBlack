@@ -130,9 +130,15 @@ void __cdecl Scr_Settings(int developer, int developer_script, int abort_on_erro
     {
         __debugbreak();
     }
+#if 0
     gScrVarPub[inst].developer = developer != 0;
     gScrVarPub[inst].developer_script = developer_script != 0;
     gScrVmPub[inst].abort_on_error = abort_on_error != 0;
+#endif
+    // KISAKTODO: script debug "potential infinite loop!!!"
+    gScrVarPub[inst].developer = false;
+    gScrVarPub[inst].developer_script = false;
+    gScrVmPub[inst].abort_on_error = false;
 }
 
 void __cdecl Scr_Shutdown(scriptInstance_t inst)
@@ -2062,7 +2068,7 @@ unsigned __int16 __cdecl Scr_ReadUnsignedShort(const char **pos)
     __int16 v2; // [esp+0h] [ebp-4h]
 
     v2 = *(_WORD *)*pos;
-    *pos += 2;
+    *pos += sizeof(short);
     return v2;
 }
 
@@ -2070,6 +2076,36 @@ uintptr_t Scr_ReadUnsigned(const char **pos)
 {
     uintptr_t value = *(reinterpret_cast<const uintptr_t *>(*pos));
     *pos += sizeof(uintptr_t);
+    return value;
+}
+
+const float *Scr_ReadVector(const char **pos)
+{
+    const float *value = reinterpret_cast<const float *>(*pos);
+    *pos += (sizeof(float) * 3);
+    return value;
+}
+
+float Scr_ReadFloat(const char **pos)
+{
+    float value = *(reinterpret_cast<const float *>(*pos));
+    *pos += sizeof(float);
+    return value;
+}
+
+int Scr_ReadInt(const char **pos)
+{
+    int value = *(int *)*pos;
+    *pos += sizeof(int);
+    return value ;
+}
+
+const unsigned int *Scr_ReadIntArray(const char **pos, int count)
+{
+    const unsigned int *value;
+
+    value = reinterpret_cast<const unsigned int *>(*pos);
+    *pos += sizeof(unsigned int) * count;
     return value;
 }
 
@@ -4195,27 +4231,19 @@ int __cdecl Scr_AddLocalVars(scriptInstance_t inst, unsigned int localId)
     return localVarCount;
 }
 
+// This function is called whenever there is a 'wait', resetting the starttime for the thread, preventing the infinite loop detector from going off.
 void __cdecl Scr_ResetTimeout(scriptInstance_t inst)
 {
-    DWORD v1; // eax
-
     gScrVmGlob[inst].starttime = Sys_Milliseconds();
-    if (!logScriptTimes
-        && !Assert_MyHandler(
-            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-            5847,
-            0,
-            "%s",
-            "logScriptTimes"))
-    {
-        __debugbreak();
-    }
+
+    iassert(logScriptTimes);
+    
     if (logScriptTimes->current.enabled)
     {
-        v1 = Sys_Milliseconds();
-        Com_Printf(24, "RESET TIME: %d\n", v1);
+        Com_Printf(24, "RESET TIME: %d\n", Sys_Milliseconds());
     }
-    memset((unsigned __int8 *)gScrVmDebugPub[inst].jumpbackHistory, 0, sizeof(gScrVmDebugPub[inst].jumpbackHistory));
+
+    memset(gScrVmDebugPub[inst].jumpbackHistory, 0, sizeof(gScrVmDebugPub[inst].jumpbackHistory));
 }
 
 bool __cdecl Scr_IsStackClear(scriptInstance_t inst)
@@ -4231,7 +4259,7 @@ void __cdecl Scr_StackClear(scriptInstance_t inst)
 unsigned int __cdecl VM_Execute_0(scriptInstance_t inst)
 {
     int v1; // ecx
-    unsigned int Self; // eax
+    //unsigned int Self; // eax
     VariableValue v3; // rax
     const char *v4; // eax
     const char *v5; // eax
@@ -4240,29 +4268,14 @@ unsigned int __cdecl VM_Execute_0(scriptInstance_t inst)
     VariableValue VariableField; // rax
     unsigned int v9; // eax
     unsigned int v10; // eax
-    const char *v11; // eax
-    const char *v12; // eax
     char v13; // fl
     bool v14; // cf
     bool v15; // zf
     char v16; // sf
     char v17; // of
     char v18; // pf
-    const char *v19; // eax
-    unsigned int v20; // eax
-    unsigned int v21; // eax
-    const char *v22; // eax
-    const char *v23; // eax
     unsigned int PrimDrawSurfInt; // eax
-    unsigned int v25; // eax
-    const char *v26; // eax
-    unsigned int v27; // eax
-    unsigned int v28; // eax
-    const char *v29; // eax
     unsigned int LocalVar; // eax
-    DWORD v31; // eax
-    const char *v32; // eax
-    const char *v33; // eax
     unsigned int v34; // eax
     unsigned int Array; // eax
     unsigned int v36; // eax
@@ -4277,15 +4290,13 @@ unsigned int __cdecl VM_Execute_0(scriptInstance_t inst)
     unsigned int v45; // eax
     unsigned int v46; // eax
     unsigned int v47; // eax
-    const char *v48; // eax
-    const char *v49; // eax
+    //const char *v48; // eax
+    //const char *v49; // eax
     unsigned int EntityId; // eax
     unsigned __int16 UnsignedShort; // ax
     unsigned __int16 v53; // ax
     unsigned int v54; // eax
     unsigned __int16 v55; // ax
-    const char *v56; // eax
-    const char *v57; // eax
     unsigned int localId; // [esp-8h] [ebp-344h]
     unsigned int v59; // [esp-8h] [ebp-344h]
     unsigned int v60; // [esp-8h] [ebp-344h]
@@ -4318,8 +4329,6 @@ unsigned int __cdecl VM_Execute_0(scriptInstance_t inst)
     unsigned __int16 v87; // [esp+214h] [ebp-128h]
     unsigned __int16 v88; // [esp+218h] [ebp-124h]
     VariableValue v89; // [esp+22Ch] [ebp-110h]
-    VariableValue v90; // [esp+234h] [ebp-108h]
-    VariableValue v91; // [esp+23Ch] [ebp-100h]
     scr_entref_t v92; // [esp+244h] [ebp-F8h] BYREF
     VariableValue v94; // [esp+254h] [ebp-E8h]
     VariableValue v95; // [esp+25Ch] [ebp-E0h]
@@ -4331,7 +4340,6 @@ unsigned int __cdecl VM_Execute_0(scriptInstance_t inst)
     VariableValue v101; // [esp+28Ch] [ebp-B0h]
     VariableValue v102; // [esp+294h] [ebp-A8h]
     VariableValue v103; // [esp+29Ch] [ebp-A0h]
-    VariableValue v104; // [esp+2A4h] [ebp-98h]
     unsigned int v105; // [esp+2ACh] [ebp-90h]
     unsigned int outparamcount; // [esp+2B0h] [ebp-8Ch]
     scr_entref_t entref; // [esp+2B4h] [ebp-88h]
@@ -4558,7 +4566,6 @@ methodcallpointer:
         case OP_ScriptThreadCallPointer:
         case OP_ScriptMethodThreadCallPointer:
 scriptmethodthreadcallpointer:
-            //for (paramcount = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)&localFs); paramcount; --paramcount)
             for (paramcount = Scr_ReadUnsigned(&localFs.pos); paramcount; --paramcount)
             {
                 RemoveRefToValue(inst, localFs.top--);
@@ -4639,7 +4646,6 @@ scriptmethodthreadcallpointer:
             {
                 do
                 {
-                    //currentCaseValue = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)&localFs);
                     currentCaseValue = Scr_ReadUnsigned(&localFs.pos);
                     currentCodePos = Scr_ReadCodePos(inst, &localFs.pos);
                     --gCaseCount[inst];
@@ -4680,8 +4686,9 @@ scriptmethodthreadcallpointer:
         iassert(!gScrVmPub[inst].inparamcount);
 
         gOpcode[inst] = (unsigned __int8)*localFs.pos++;
-    interrupt_return:
+interrupt_return:
         gScrVarPub[inst].varUsagePos = localFs.pos;
+
         switch (gOpcode[inst])
         {
         case OP_End:
@@ -4699,35 +4706,16 @@ scriptmethodthreadcallpointer:
             --gScrVmPub[inst].function_frame;
             if (!parentLocalId)
             {
-                if (localFs.top != localFs.startTop
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        930,
-                        0,
-                        "%s\n\t(localFs.top - localFs.startTop) = %i",
-                        "(localFs.top == localFs.startTop)",
-                        localFs.top - localFs.startTop))
-                {
-                    __debugbreak();
-                }
-            thread_end:
-                localFs.startTop[1].type = 0;
+                iassert(localFs.top == localFs.startTop);
+thread_end:
+                localFs.startTop[1].type = VAR_UNDEFINED;
                 goto thread_return;
             }
-            if (localFs.top->type != 7
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    934,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top->type == VAR_CODEPOS)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top->type = 0;
+            iassert(localFs.top->type == VAR_CODEPOS);
+            localFs.top->type = VAR_UNDEFINED;
             goto end;
-        case 1:
+
+        case OP_Return:
             parentLocalId = GetSafeParentLocalId(inst, localFs.localId);
             Scr_KillThread(inst, localFs.localId);
             gScrVmPub[inst].localVars -= localFs.localVarCount;
@@ -4735,89 +4723,35 @@ scriptmethodthreadcallpointer:
             tempValue.u.intValue = localFs.top->u.intValue;
             tempValue.type = v1;
             --localFs.top;
-            if (localFs.top->type == 8
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    961,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top->type != VAR_PRECODEPOS)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            while (localFs.top->type != 7)
+            iassert(localFs.top->type != VAR_PRECODEPOS);
+
+            while (localFs.top->type != VAR_CODEPOS)
             {
                 RemoveRefToValue(inst, localFs.top->type, localFs.top->u);
                 --localFs.top;
-                if (localFs.top->type == 8
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        966,
-                        0,
-                        "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                        "(localFs.top->type != VAR_PRECODEPOS)",
-                        localFs.top - gScrVmPub[inst].stack))
-                {
-                    __debugbreak();
-                }
+                iassert(localFs.top->type != VAR_PRECODEPOS);
             }
+
             --gScrVmPub[inst].function_count;
             --gScrVmPub[inst].function_frame;
+
             if (parentLocalId)
             {
-                if (localFs.top->type != 7
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        978,
-                        0,
-                        "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                        "(localFs.top->type == VAR_CODEPOS)",
-                        localFs.top - gScrVmPub[inst].stack))
-                {
-                    __debugbreak();
-                }
+                iassert(localFs.top->type == VAR_CODEPOS);
                 *localFs.top = tempValue;
-            end:
-                if (localFs.top == localFs.startTop
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        937,
-                        0,
-                        "%s",
-                        "localFs.top != localFs.startTop"))
-                {
-                    __debugbreak();
-                }
+end:
+                iassert(localFs.top != localFs.startTop);
                 RemoveRefToObject(inst, localFs.localId);
                 localFs.pos = gScrVmPub[inst].function_frame->fs.pos;
-                if (!localFs.pos
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        949,
-                        0,
-                        "%s",
-                        "localFs.pos"))
-                {
-                    __debugbreak();
-                }
+                iassert(localFs.pos);
                 localFs.localVarCount = gScrVmPub[inst].function_frame->fs.localVarCount;
                 localFs.localId = parentLocalId;
                 continue;
             }
-            if (localFs.top != localFs.startTop
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    973,
-                    0,
-                    "%s\n\t(localFs.top - localFs.startTop) = %i",
-                    "(localFs.top == localFs.startTop)",
-                    localFs.top - localFs.startTop))
-            {
-                __debugbreak();
-            }
+            iassert(localFs.top == localFs.startTop);
             localFs.top[1] = tempValue;
-        thread_return:
+thread_return:
+
             if (gThreadCount[inst])
             {
                 --gThreadCount[inst];
@@ -4827,522 +4761,189 @@ scriptmethodthreadcallpointer:
                 ++localFs.top;
                 continue;
             }
-            if (g_script_error_level[inst] < 0
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2511,
-                    0,
-                    "%s\n\t(g_script_error_level[inst]) = %i",
-                    "(g_script_error_level[inst] >= 0)",
-                    g_script_error_level[inst]))
-            {
-                __debugbreak();
-            }
+
+            iassert(g_script_error_level[inst] >= 0);
             --g_script_error_level[inst];
             gFs[inst] = localFs;
             return localFs.localId;
-        case 2:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    983,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    984,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 0;
+
+        case OP_GetUndefined:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+            localFs.top[1].type = VAR_UNDEFINED;
             ++localFs.top;
             continue;
-        case 3:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    990,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    991,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 6;
+
+        case OP_GetZero:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_INTEGER;
             localFs.top[1].u.intValue = 0;
             ++localFs.top;
             continue;
-        case 4:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    998,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    999,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 6;
+
+        case OP_GetByte:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_INTEGER;
             localFs.top[1].u.intValue = (unsigned __int8)*localFs.pos;
             ++localFs.top;
             ++localFs.pos;
             continue;
-        case 5:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1007,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1008,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 6;
+
+        case OP_GetNegByte:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_INTEGER;
             localFs.top[1].u.intValue = -(unsigned __int8)*localFs.pos;
             ++localFs.top;
             ++localFs.pos;
             continue;
-        case 6:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1016,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1017,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 6;
-            v88 = *(_WORD *)localFs.pos;
-            localFs.pos += 2;
-            localFs.top[1].u.intValue = v88;
+
+        case OP_GetUnsignedShort:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_INTEGER;
+            localFs.top[1].u.intValue = Scr_ReadUnsignedShort(&localFs.pos);
             ++localFs.top;
             continue;
-        case 7:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1024,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1025,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 6;
-            v87 = *(_WORD *)localFs.pos;
-            localFs.pos += 2;
-            localFs.top[1].u.intValue = -v87;
+
+        case OP_GetNegUnsignedShort:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_INTEGER;
+            localFs.top[1].u.intValue = -Scr_ReadUnsignedShort(&localFs.pos);
             ++localFs.top;
             continue;
-        case 8:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1032,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1033,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 6;
-            v86.intValue = *(int *)localFs.pos;
-            localFs.pos += 4;
-            localFs.top[1].u = v86;
+
+        case OP_GetInteger:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_INTEGER;
+            localFs.top[1].u.intValue = Scr_ReadInt(&localFs.pos);
             ++localFs.top;
             continue;
-        case 9:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1040,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1041,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 5;
-            v85.intValue = *(int *)localFs.pos;
-            localFs.pos += 4;
-            localFs.top[1].u = v85;
+
+        case OP_GetFloat:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_FLOAT;
+            localFs.top[1].u.floatValue = Scr_ReadFloat(&localFs.pos);
             ++localFs.top;
             continue;
-        case 10:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1048,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1049,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 2;
-            v84 = *(_WORD *)localFs.pos;
-            localFs.pos += 2;
-            localFs.top[1].u.intValue = v84;
+
+        case OP_GetString:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_STRING;
+            localFs.top[1].u.stringValue = Scr_ReadUnsignedShort(&localFs.pos);
             SL_AddRefToString(localFs.top[1].u.stringValue, inst);
             ++localFs.top;
             continue;
-        case 11:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1057,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1058,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 3;
-            v83 = *(_WORD *)localFs.pos;
-            localFs.pos += 2;
-            localFs.top[1].u.intValue = v83;
+
+        case OP_GetIString:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_ISTRING;
+            localFs.top[1].u.stringValue = Scr_ReadUnsignedShort(&localFs.pos);
             SL_AddRefToString(localFs.top[1].u.stringValue, inst);
             ++localFs.top;
             continue;
-        case 12:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1066,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1067,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 4;
-            pos = localFs.pos;
-            localFs.pos += 12;
-            localFs.top[1].u.intValue = (int)pos;
+
+        case OP_GetVector:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_VECTOR;
+            localFs.top[1].u.vectorValue = Scr_ReadVector(&localFs.pos);
             ++localFs.top;
             continue;
-        case 13:
+
+        case OP_GetLevelObject:
             objectId = gScrVarPub[inst].levelId;
             continue;
-        case 14:
+
+        case OP_GetAnimObject:
             objectId = gScrVarPub[inst].animId;
             continue;
-        case 15:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1082,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1083,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 1;
-            Self = Scr_GetSelf(inst, localFs.localId);
-            localFs.top[1].u.intValue = Self;
-            AddRefToObject(inst, localFs.top[1].u.stringValue);
+
+        case OP_GetSelf:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_POINTER;
+            localFs.top[1].u.pointerValue = Scr_GetSelf(inst, localFs.localId);
+            AddRefToObject(inst, localFs.top[1].u.pointerValue);
             ++localFs.top;
             continue;
-        case 16:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1091,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1092,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 1;
-            localFs.top[1].u.intValue = gScrVarPub[inst].levelId;
+
+        case OP_GetLevel:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_POINTER;
+            localFs.top[1].u.pointerValue = gScrVarPub[inst].levelId;
             ++localFs.top;
             AddRefToObject(inst, gScrVarPub[inst].levelId);
             continue;
-        case 17:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1100,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1101,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            v104 = Scr_EvalVariable(inst, gScrVarPub[inst].gameId);
-            localFs.top[1] = v104;
+
+        case OP_GetGame:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1] = Scr_EvalVariable(inst, gScrVarPub[inst].gameId);
             ++localFs.top;
             continue;
-        case 18:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1107,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1108,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 1;
-            localFs.top[1].u.intValue = gScrVarPub[inst].animId;
+
+        case OP_GetAnim:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_POINTER;
+            localFs.top[1].u.pointerValue = gScrVarPub[inst].animId;
             ++localFs.top;
             AddRefToObject(inst, gScrVarPub[inst].animId);
             continue;
-        case 19:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1121,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1122,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 11;
-            v81.intValue = *(int *)localFs.pos;
-            localFs.pos += 4;
-            localFs.top[1].u = v81;
+
+        case OP_GetAnimation:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_ANIMATION;
+            localFs.top[1].u.intValue = Scr_ReadInt(&localFs.pos);
             ++localFs.top;
             continue;
-        case 20:
+
+        case OP_GetGameRef:
             fieldValueIndex = 0;
             fieldValueId = gScrVarPub[inst].gameId;
             continue;
-        case 21:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1134,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1135,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 9;
-            v80.intValue = *(int *)localFs.pos;
-            localFs.pos += 4;
-            localFs.top[1].u = v80;
+
+        case OP_GetFunction:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_FUNCTION;
+            localFs.top[1].u.intValue = Scr_ReadInt(&localFs.pos);
             ++localFs.top;
             continue;
-        case 22:
+
+        case OP_CreateLocalVariable:
             ++gScrVmPub[inst].localVars;
             ++localFs.localVarCount;
-            v79 = *(_WORD *)localFs.pos;
-            localFs.pos += 2;
-            *gScrVmPub[inst].localVars = GetNewVariable(inst, localFs.localId, v79);
+            *gScrVmPub[inst].localVars = GetNewVariable(inst, localFs.localId, Scr_ReadUnsignedShort(&localFs.pos));
             continue;
-        case 23:
+
+        case OP_RemoveLocalVariables:
             removeCount = *localFs.pos++;
             gScrVmPub[inst].localVars -= removeCount;
             localFs.localVarCount -= removeCount;
@@ -5352,191 +4953,59 @@ scriptmethodthreadcallpointer:
                 --removeCount;
             }
             continue;
-        case 24:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1160,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1161,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            v103 = Scr_EvalVariable(inst, *gScrVmPub[inst].localVars);
-            localFs.top[1] = v103;
+
+        case OP_EvalLocalVariableCached0:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1] = Scr_EvalVariable(inst, *gScrVmPub[inst].localVars);
             ++localFs.top;
             continue;
-        case 25:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1167,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1168,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            v102 = Scr_EvalVariable(inst, *(gScrVmPub[inst].localVars - 1));
-            localFs.top[1] = v102;
+
+        case OP_EvalLocalVariableCached1:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1] = Scr_EvalVariable(inst, *(gScrVmPub[inst].localVars - 1));
             ++localFs.top;
             continue;
-        case 26:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1174,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1175,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            v101 = Scr_EvalVariable(inst, *(gScrVmPub[inst].localVars - 2));
-            localFs.top[1] = v101;
+
+        case OP_EvalLocalVariableCached2:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1] = Scr_EvalVariable(inst, *(gScrVmPub[inst].localVars - 2));
             ++localFs.top;
             continue;
-        case 27:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1181,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1182,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            v100 = Scr_EvalVariable(inst, *(gScrVmPub[inst].localVars - 3));
-            localFs.top[1] = v100;
+
+        case OP_EvalLocalVariableCached3:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1] = Scr_EvalVariable(inst, *(gScrVmPub[inst].localVars - 3));
             ++localFs.top;
             continue;
-        case 28:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1188,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1189,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            v99 = Scr_EvalVariable(inst, *(gScrVmPub[inst].localVars - 4));
-            localFs.top[1] = v99;
+
+        case OP_EvalLocalVariableCached4:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1] = Scr_EvalVariable(inst, *(gScrVmPub[inst].localVars - 4));
             ++localFs.top;
             continue;
-        case 29:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1195,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1196,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            v98 = Scr_EvalVariable(inst, *(gScrVmPub[inst].localVars - 5));
-            localFs.top[1] = v98;
+
+        case OP_EvalLocalVariableCached5:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1] = Scr_EvalVariable(inst, *(gScrVmPub[inst].localVars - 5));
             ++localFs.top;
             continue;
-        case 30:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1202,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top >= gScrVmPub[inst].stack)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1203,
-                    0,
-                    "%s\n\t(localFs.top+1 - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top+1 <= gScrVmPub[inst].maxstack)",
-                    &localFs.top[1] - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
+
+        case OP_EvalLocalVariableCached:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
             v3 = Scr_EvalVariable(inst, gScrVmPub[inst].localVars[-(unsigned __int8)*localFs.pos]);
             v97 = v3;
             v3.type = (int)localFs.top;
@@ -5545,7 +5014,8 @@ scriptmethodthreadcallpointer:
             ++localFs.top;
             ++localFs.pos;
             continue;
-        case 31:
+
+        case OP_EvalLocalArrayCached:
             if (localFs.top < gScrVmPub[inst].stack
                 && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
@@ -5573,17 +5043,17 @@ scriptmethodthreadcallpointer:
             ++localFs.top;
             ++localFs.pos;
             goto $LN290;
-        case 32:
+        case OP_EvalArray:
         $LN290:
             Scr_EvalArray(inst, localFs.top, localFs.top - 1);
             goto loop_dec_top;
-        case 33:
+        case OP_EvalLocalArrayRefCached0:
             fieldValueId = *gScrVmPub[inst].localVars;
             goto $LN286;
-        case 34:
+        case OP_EvalLocalArrayRefCached:
             fieldValueId = gScrVmPub[inst].localVars[-(unsigned __int8)*localFs.pos++];
             goto $LN286;
-        case 35:
+        case OP_EvalArrayRef:
         $LN286:
             objectId = Scr_EvalArrayRef(inst, fieldValueId);
             if (localFs.top->type == 6)
@@ -5619,24 +5089,24 @@ scriptmethodthreadcallpointer:
                 __debugbreak();
             }
             goto loop_dec_top;
-        case 36:
+        case OP_ClearArray:
             ClearArray(inst, fieldValueId, localFs.top);
             goto loop_dec_top;
-        case 37:
+        case OP_EmptyArray:
             localFs.top[1].type = 1;
             v6.intValue = Scr_AllocArray(inst);
             localFs.top[1].u = v6;
             ++localFs.top;
             continue;
-        case 38:
+        case OP_GetSelfObject:
             objectId = Scr_GetSelf(inst, localFs.localId);
             if (IsFieldObject(inst, objectId))
                 continue;
             goto not_an_object;
-        case 39:
+        case OP_EvalLevelFieldVariable:
             objectId = gScrVarPub[inst].levelId;
             goto EvalFieldVariable;
-        case 40:
+        case OP_EvalAnimFieldVariable:
             objectId = gScrVarPub[inst].animId;
         EvalFieldVariable:
             if (localFs.top < gScrVmPub[inst].stack
@@ -5666,7 +5136,7 @@ scriptmethodthreadcallpointer:
             localFs.top[1] = v95;
             ++localFs.top;
             continue;
-        case 41:
+        case OP_EvalSelfFieldVariable:
             objectId = Scr_GetSelf(inst, localFs.localId);
             if (IsFieldObject(inst, objectId))
                 goto $LN272;
@@ -5695,7 +5165,7 @@ scriptmethodthreadcallpointer:
         not_an_object:
             type = GetObjectType(inst, objectId);
             goto not_an_object_error;
-        case 42:
+        case OP_EvalFieldVariable:
         $LN272:
             if (localFs.top < gScrVmPub[inst].stack
                 && !Assert_MyHandler(
@@ -5726,35 +5196,35 @@ scriptmethodthreadcallpointer:
             *(_DWORD *)(VariableField.type + 12) = v94.type;
             ++localFs.top;
             continue;
-        case 43:
+        case OP_EvalLevelFieldVariableRef:
             objectId = gScrVarPub[inst].levelId;
             goto EvalFieldVariableRef;
-        case 44:
+        case OP_EvalAnimFieldVariableRef:
             objectId = gScrVarPub[inst].animId;
             goto EvalFieldVariableRef;
-        case 45:
+        case OP_EvalSelfFieldVariableRef:
             objectId = Scr_GetSelf(inst, localFs.localId);
             goto EvalFieldVariableRef;
-        case 46:
+        case OP_EvalFieldVariableRef:
         EvalFieldVariableRef:
             v76 = *(_WORD *)localFs.pos;
             localFs.pos += 2;
             fieldValueIndex = Scr_GetVariableFieldIndex(inst, objectId, v76);
             fieldValueId = gScrVarGlob[inst].variableList[fieldValueIndex + 0x8000].hash.id;
             continue;
-        case 47:
+        case OP_ClearFieldVariable:
             v75 = *(_WORD *)localFs.pos;
             localFs.pos += 2;
             ClearVariableField(inst, objectId, v75, localFs.top);
             continue;
-        case 48:
+        case OP_SafeCreateVariableFieldCached:
             ++gScrVmPub[inst].localVars;
             ++localFs.localVarCount;
             v74 = *(_WORD *)localFs.pos;
             localFs.pos += 2;
             *gScrVmPub[inst].localVars = GetNewVariable(inst, localFs.localId, v74);
             goto $LN261_1;
-        case 49:
+        case OP_SafeSetVariableFieldCached0:
         $LN261_1:
             if (localFs.top->type == 7
                 && !Assert_MyHandler(
@@ -5770,7 +5240,7 @@ scriptmethodthreadcallpointer:
             if (localFs.top->type != 8)
                 goto LABEL_298;
             continue;
-        case 50:
+        case OP_SafeSetVariableFieldCached:
             if (localFs.top->type == 7
                 && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
@@ -5786,7 +5256,7 @@ scriptmethodthreadcallpointer:
                 goto LABEL_304;
             ++localFs.pos;
             continue;
-        case 51:
+        case OP_SafeSetWaittillVariableFieldCached:
             if (localFs.top->type == 8
                 && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
@@ -5802,7 +5272,7 @@ scriptmethodthreadcallpointer:
                 goto LABEL_304;
             ClearVariableValue(inst, gScrVmPub[inst].localVars[-(unsigned __int8)*localFs.pos++]);
             continue;
-        case 52:
+        case OP_clearparams:
             if (localFs.top->type == 8
                 && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
@@ -5831,7 +5301,7 @@ scriptmethodthreadcallpointer:
                 }
             }
             continue;
-        case 53:
+        case OP_checkclearparams:
             if (localFs.top->type == 7
                 && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
@@ -5867,29 +5337,29 @@ scriptmethodthreadcallpointer:
                 fieldValueId = *gScrVmPub[inst].localVars;
             }
             continue;
-        case 54:
+        case OP_EvalLocalVariableRefCached0:
             goto $LN247;
-        case 55:
+        case OP_EvalLocalVariableRefCached:
             fieldValueIndex = 0;
             fieldValueId = gScrVmPub[inst].localVars[-(unsigned __int8)*localFs.pos++];
             continue;
-        case 56:
+        case OP_SetLevelFieldVariableField:
             v73 = *(_WORD *)localFs.pos;
             localFs.pos += 2;
             top = localFs.top;
             v9 = GetVariable(inst, gScrVarPub[inst].levelId, v73);
             SetVariableValue(inst, v9, top);
             goto loop_dec_top;
-        case 57:
+        case OP_SetVariableField:
             goto $LN1040;
-        case 58:
+        case OP_SetAnimFieldVariableField:
             v71 = *(_WORD *)localFs.pos;
             localFs.pos += 2;
             v62 = localFs.top;
             v10 = GetVariable(inst, gScrVarPub[inst].animId, v71);
             SetVariableValue(inst, v10, v62);
             goto loop_dec_top;
-        case 59:
+        case OP_SetSelfFieldVariableField:
             v72 = *(_WORD *)localFs.pos;
             localFs.pos += 2;
             fieldName = v72;
@@ -5919,55 +5389,28 @@ scriptmethodthreadcallpointer:
                 SetVariableFieldValue(inst, fieldValueId, localFs.top);
             }
             goto loop_dec_top;
-        case 60:
+        case OP_SetLocalVariableFieldCached0:
         LABEL_298:
             SetVariableValue(inst, *gScrVmPub[inst].localVars, localFs.top);
             goto loop_dec_top;
-        case 61:
+        case OP_SetLocalVariableFieldCached:
         LABEL_304:
             SetVariableValue(inst, gScrVmPub[inst].localVars[-(unsigned __int8)*localFs.pos++], localFs.top);
             goto loop_dec_top;
-        case 62:
-        case 63:
-        case 64:
-        case 65:
-        case 66:
-        case 67:
-            if (gScrVmPub[inst].outparamcount
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1462,
-                    0,
-                    "%s",
-                    "!gScrVmPub[inst].outparamcount"))
-            {
-                __debugbreak();
-            }
+        case OP_CallBuiltin0:
+        case OP_CallBuiltin1:
+        case OP_CallBuiltin2:
+        case OP_CallBuiltin3:
+        case OP_CallBuiltin4:
+        case OP_CallBuiltin5:
+            iassert(!gScrVmPub[inst].outparamcount);
             gScrVmPub[inst].outparamcount = gOpcode[inst] - 62;
             goto CallBuiltin;
-        case 68:
-            if (gScrVmPub[inst].outparamcount
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1467,
-                    0,
-                    "%s",
-                    "!gScrVmPub[inst].outparamcount"))
-            {
-                __debugbreak();
-            }
+        case OP_CallBuiltin:
+            iassert(!gScrVmPub[inst].outparamcount);
             gScrVmPub[inst].outparamcount = (unsigned __int8)*localFs.pos++;
-        CallBuiltin:
-            if (gScrVmPub[inst].inparamcount
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1474,
-                    0,
-                    "%s",
-                    "!gScrVmPub[inst].inparamcount"))
-            {
-                __debugbreak();
-            }
+CallBuiltin:
+            iassert(!gScrVmPub[inst].inparamcount);
             debugpos = localFs.pos;
             v70 = *(_WORD *)localFs.pos;
             localFs.pos += 2;
@@ -5989,100 +5432,67 @@ scriptmethodthreadcallpointer:
             gScrVmPub[inst].top = localFs.top;
             ((void (*)(void))gScrCompilePub[inst].func_table[builtinIndex])();
             goto post_builtin;
-        case 69:
-        case 70:
-        case 71:
-        case 72:
-        case 73:
-        case 74:
-            if (gScrVmPub[inst].outparamcount
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1565,
-                    0,
-                    "%s",
-                    "!gScrVmPub[inst].outparamcount"))
-            {
-                __debugbreak();
-            }
+        case OP_CallBuiltinMethod0:
+        case OP_CallBuiltinMethod1:
+        case OP_CallBuiltinMethod2:
+        case OP_CallBuiltinMethod3:
+        case OP_CallBuiltinMethod4:
+        case OP_CallBuiltinMethod5:
+            iassert(!gScrVmPub[inst].outparamcount);
             gScrVmPub[inst].outparamcount = gOpcode[inst] - 69;
             goto CallBuiltinMethod;
-        case 75:
-            if (gScrVmPub[inst].outparamcount
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1570,
-                    0,
-                    "%s",
-                    "!gScrVmPub[inst].outparamcount"))
-            {
-                __debugbreak();
-            }
+        case OP_CallBuiltinMethod:
+            iassert(!gScrVmPub[inst].outparamcount);
             gScrVmPub[inst].outparamcount = (unsigned __int8)*localFs.pos++;
         CallBuiltinMethod:
-            if (gScrVmPub[inst].inparamcount
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1577,
-                    0,
-                    "%s",
-                    "!gScrVmPub[inst].inparamcount"))
-            {
-                __debugbreak();
-            }
+            iassert(!gScrVmPub[inst].inparamcount);
             debugpos = localFs.pos;
             gScrVmPub[inst].top = localFs.top - 1;
             v69 = *(_WORD *)localFs.pos;
             localFs.pos += 2;
             builtinIndex = v69;
-            if (localFs.top->type != 1)
+            if (localFs.top->type != VAR_POINTER)
                 goto LABEL_395;
             objectId = localFs.top->u.stringValue;
-            if (GetObjectType(inst, objectId) != 19)
+            if (GetObjectType(inst, objectId) != VAR_ENTITY)
             {
                 type = GetObjectType(inst, objectId);
                 RemoveRefToObject(inst, objectId);
                 gScrVarPub[inst].error_index = -1;
                 gFs[inst] = localFs;
-                v11 = va("%s is not an entity", var_typename[type]);
-                Scr_Error(inst, v11, 0);
-            LABEL_395:
+                Scr_Error(inst, va("%s is not an entity", var_typename[type]), 0);
+LABEL_395:
                 type = localFs.top->type;
                 RemoveRefToValue(inst, localFs.top->type, localFs.top->u);
                 gScrVarPub[inst].error_index = -1;
                 gFs[inst] = localFs;
-                v12 = va("%s is not an entity", var_typename[type]);
-                Scr_Error(inst, v12, 0);
-            $LN221_0:
-                if (!Scr_IsInOpcodeMemory(inst, localFs.pos)
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        1659,
-                        0,
-                        "%s",
-                        "Scr_IsInOpcodeMemory( inst, localFs.pos )"))
+                Scr_Error(inst, va("%s is not an entity", var_typename[type]), 0);
+WAIT:
+                iassert(Scr_IsInOpcodeMemory(inst, localFs.pos));
+                // wait( 0.01 ); -- Convert Float wait
+                if (localFs.top->type == VAR_FLOAT)
                 {
-                    __debugbreak();
-                }
-                if (localFs.top->type == 5)
-                {
-                    if (*(float *)&localFs.top->u.intValue < 0.0)
+                    if (localFs.top->u.floatValue < 0.0)
                         goto negWait;
-                    waitTime = (int)((float)((float)(inst != SCRIPTINSTANCE_SERVER ? 60 : 20)
-                        * *(float *)&localFs.top->u.intValue)
-                        + 9.313225746154785e-10);
+                    //waitTime = (int)((float)((float)(inst != SCRIPTINSTANCE_SERVER ? 60 : 20)
+                    //    * *(float *)&localFs.top->u.intValue)
+                    //    + 9.313225746154785e-10);
+                    waitTime = Q_rint(localFs.top->u.floatValue * (inst != SCRIPTINSTANCE_SERVER ? 60.0f : 20.0f));
                     if (!waitTime)
                     {
-                        v14 = *(float *)&localFs.top->u.intValue < 0.0;
-                        v18 = 0;
-                        v15 = *(float *)&localFs.top->u.intValue == 0.0;
-                        v16 = 0;
-                        v17 = 0;
+                        waitTime = isnan(localFs.top->u.floatValue) ? 1 : 0;
+
+                        //v14 = *(float *)&localFs.top->u.intValue < 0.0;
+                        //v18 = 0;
+                        //v15 = *(float *)&localFs.top->u.intValue == 0.0;
+                        //v16 = 0;
+                        //v17 = 0;
                         //waitTime = __SETP__(v13 & 0x44, 0);
-                        waitTime = isnan(*(float *)&localFs.top->u.intValue) ? 1 : 0;
+                        //waitTime = isnan(*(float *)&localFs.top->u.intValue) ? 1 : 0;
                     }
                 }
-                else if (localFs.top->type == 6)
+                // wait ( 1 ); -- Convert Integer wait
+                else if (localFs.top->type == VAR_INTEGER)
                 {
                     waitTime = localFs.top->u.intValue * (inst != SCRIPTINSTANCE_SERVER ? 60 : 20);
                 }
@@ -6090,58 +5500,40 @@ scriptmethodthreadcallpointer:
                 {
                     gScrVarPub[inst].error_index = 2;
                     gFs[inst] = localFs;
-                    v19 = va("type %s is not a float", var_typename[localFs.top->type]);
-                    Scr_Error(inst, v19, 0);
+                    Scr_Error(inst, va("type %s is not a float", var_typename[localFs.top->type]), 0);
                 }
+
                 if ((unsigned int)waitTime < 0xFFFFFF)
                 {
                     if (waitTime)
                         Scr_ResetTimeout(inst);
                     waitTime = (waitTime + gScrVarPub[inst].time) & 0xFFFFFF;
                     --localFs.top;
-                    stackValue.type = 10;
-                    stackValue.u.intValue = (int)VM_ArchiveStack(inst, &localFs);
-                    v20 = GetVariable(inst, gScrVarPub[inst].timeArrayId, waitTime);
-                    id = GetArray(inst, v20);
+                    stackValue.type = VAR_STACK;
+                    stackValue.u.stackValue = VM_ArchiveStack(inst, &localFs);
+                    id = GetArray(inst, GetVariable(inst, gScrVarPub[inst].timeArrayId, waitTime));
                     stackId = GetNewObjectVariable(inst, id, localFs.localId);
                     SetNewVariableValue(inst, stackId, &stackValue);
                     Scr_SetThreadWaitTime(inst, localFs.localId, waitTime);
                     goto thread_end;
                 }
+
                 gScrVarPub[inst].error_index = 2;
                 if (waitTime >= 0)
                 {
                     gFs[inst] = localFs;
                     Scr_Error(inst, "wait is too long", 0);
                 }
-            negWait:
+negWait:
                 gFs[inst] = localFs;
                 Scr_Error(inst, "negative wait is not allowed", 0);
             $LN209:
-                if (!Scr_IsInOpcodeMemory(inst, localFs.pos)
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        1712,
-                        0,
-                        "%s",
-                        "Scr_IsInOpcodeMemory( inst, localFs.pos )"))
-                {
-                    __debugbreak();
-                }
-                if ((gScrVarPub[inst].time & 0xFF000000) != 0
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        1713,
-                        0,
-                        "%s",
-                        "!(gScrVarPub[inst].time & ~VAR_NAME_LOW_MASK)"))
-                {
-                    __debugbreak();
-                }
+                iassert(Scr_IsInOpcodeMemory(inst, localFs.pos));
+                iassert(!(gScrVarPub[inst].time & ~VAR_NAME_LOW_MASK));
+
                 stackValue.type = 10;
-                stackValue.u.intValue = (int)VM_ArchiveStack(inst, &localFs);
-                v21 = GetVariable(inst, gScrVarPub[inst].timeArrayId, gScrVarPub[inst].time);
-                id = GetArray(inst, v21);
+                stackValue.u.stackValue = VM_ArchiveStack(inst, &localFs);
+                id = GetArray(inst, GetVariable(inst, gScrVarPub[inst].timeArrayId, gScrVarPub[inst].time));
                 stackId = GetNewObjectVariableReverse(inst, id, localFs.localId);
                 SetNewVariableValue(inst, stackId, &stackValue);
                 Scr_SetThreadWaitTime(inst, localFs.localId, gScrVarPub[inst].time);
@@ -6154,16 +5546,7 @@ scriptmethodthreadcallpointer:
                 Scr_GetFileAndLine(inst, localFs.pos, (char **)&gScrVmGlob[inst].lastFileName, &gScrVmGlob[inst].lastLine);
             if (gScrVmDebugPub[inst].func_table[builtinIndex].breakpointCount)
             {
-                if (gScrVmPub[inst].top != localFs.top - 1
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        1611,
-                        0,
-                        "%s",
-                        "gScrVmPub[inst].top == localFs.top - 1"))
-                {
-                    __debugbreak();
-                }
+                iassert(gScrVmPub[inst].top == localFs.top - 1);
                 v105 = gScrVmPub[inst].outparamcount;
                 Scr_HitBuiltinBreakpoint(inst, localFs.top, debugpos, localFs.localId, gOpcode[inst], builtinIndex, v105 + 1);
                 gScrVmPub[inst].outparamcount = v105;
@@ -6173,7 +5556,7 @@ scriptmethodthreadcallpointer:
             //LOWORD(v63) = entref.client;
             //((void(__cdecl *)(_DWORD, int))gScrCompilePub[inst].func_table[builtinIndex])(*(_DWORD *)&entref.entnum, entref.client);
             ((void(*)(scr_entref_t))gScrCompilePub[inst].func_table[builtinIndex]) (entref);
-        post_builtin:
+post_builtin:
             localFs.top = gScrVmPub[inst].top;
             localFs.pos = gScrVmPub[inst].function_frame->fs.pos;
             if (gScrVmPub[inst].outparamcount)
@@ -6190,98 +5573,39 @@ scriptmethodthreadcallpointer:
             }
             if (gScrVmPub[inst].inparamcount)
             {
-                if (gScrVmPub[inst].inparamcount != 1
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        1545,
-                        0,
-                        "%s",
-                        "gScrVmPub[inst].inparamcount == 1"))
-                {
-                    __debugbreak();
-                }
+                iassert(gScrVmPub[inst].inparamcount == 1);
                 gScrVmPub[inst].inparamcount = 0;
-                if (localFs.top != gScrVmPub[inst].top
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        1547,
-                        0,
-                        "%s",
-                        "localFs.top == gScrVmPub[inst].top"))
-                {
-                    __debugbreak();
-                }
+                iassert(localFs.top == gScrVmPub[inst].top);
             }
             else
             {
-                if (localFs.top != gScrVmPub[inst].top
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        1552,
-                        0,
-                        "%s",
-                        "localFs.top == gScrVmPub[inst].top"))
-                {
-                    __debugbreak();
-                }
+                iassert(localFs.top == gScrVmPub[inst].top);
                 localFs.top[1].type = 0;
                 ++localFs.top;
             }
             continue;
-        case 76:
-            goto $LN221_0;
-        case 77:
+        case OP_wait:
+            goto WAIT;
+        case OP_waittillFrameEnd:
             goto $LN209;
-        case 78:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1727,
-                    0,
-                    "%s",
-                    "localFs.top >= gScrVmPub[inst].stack"))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1728,
-                    0,
-                    "%s",
-                    "localFs.top+1 <= gScrVmPub[inst].maxstack"))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 8;
+        case OP_PreScriptCall:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_PRECODEPOS;
             ++localFs.top;
             continue;
-        case 79:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1734,
-                    0,
-                    "%s",
-                    "localFs.top >= gScrVmPub[inst].stack"))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1735,
-                    0,
-                    "%s",
-                    "localFs.top+1 <= gScrVmPub[inst].maxstack"))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 8;
+
+        case OP_ScriptFunctionCall2:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_PRECODEPOS;
             ++localFs.top;
             goto $LN205_0;
-        case 80:
-        $LN205_0:
+
+        case OP_ScriptFunctionCall:
+$LN205_0:
             if (gScrVmPub[inst].function_count < 31)
             {
                 selfId = Scr_GetSelf(inst, localFs.localId);
@@ -6296,8 +5620,8 @@ scriptmethodthreadcallpointer:
             }
             gFs[inst] = localFs;
             Scr_Error(inst, "script stack overflow (too many embedded function calls)", 0);
-        $LN202_0:
-            if (localFs.top->type != 9)
+$LN202_0:
+            if (localFs.top->type != VAR_FUNCTION)
                 goto LABEL_442;
             if (gScrVmPub[inst].function_count < 31)
             {
@@ -6314,8 +5638,7 @@ scriptmethodthreadcallpointer:
             Scr_Error(inst, "script stack overflow (too many embedded function calls)", 0);
         LABEL_442:
             gFs[inst] = localFs;
-            v22 = va("%s is not a function pointer", var_typename[localFs.top->type]);
-            Scr_Error(inst, v22, 0);
+            Scr_Error(inst, va("%s is not a function pointer", var_typename[localFs.top->type]), 0);
         $LN198:
             if (localFs.top->type != 1)
                 goto not_an_object1;
@@ -6332,11 +5655,11 @@ scriptmethodthreadcallpointer:
         not_an_object1:
             type = localFs.top->type;
             goto not_an_object_error1;
-        case 81:
+        case OP_ScriptFunctionCallPointer:
             goto $LN202_0;
-        case 82:
+        case OP_ScriptMethodCall:
             goto $LN198;
-        case 83:
+        case OP_ScriptMethodCallPointer:
             if (localFs.top->type == 9)
             {
                 tempCodePos = localFs.top->u.codePosValue;
@@ -6359,8 +5682,7 @@ scriptmethodthreadcallpointer:
             {
                 RemoveRefToValue(inst, localFs.top--);
                 gFs[inst] = localFs;
-                v23 = va("%s is not a function pointer", var_typename[localFs.top[1].type]);
-                Scr_Error(inst, v23, 0);
+                Scr_Error(inst, va("%s is not a function pointer", var_typename[localFs.top[1].type]), 0);
             $LN187:
                 if (gScrVmPub[inst].function_count < 31)
                 {
@@ -6370,8 +5692,7 @@ scriptmethodthreadcallpointer:
                     gScrVmPub[inst].function_frame->fs.pos = localFs.pos;
                     gScrVmPub[inst].function_frame->fs.startTop = localFs.startTop;
                     localFs.pos = Scr_ReadCodePos(inst, &gScrVmPub[inst].function_frame->fs.pos);
-                    PrimDrawSurfInt = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)gScrVmPub[inst].function_frame);
-                    localFs.startTop = &localFs.top[-(int)PrimDrawSurfInt];
+                    localFs.startTop = &localFs.top[-(int)Scr_ReadInt(&gScrVmPub[inst].function_frame->fs.pos)];
                     goto thread_call;
                 }
                 gScrVarPub[inst].error_index = 1;
@@ -6390,8 +5711,7 @@ scriptmethodthreadcallpointer:
                         gScrVmPub[inst].function_frame->fs.pos = localFs.pos;
                         gScrVmPub[inst].function_frame->fs.startTop = localFs.startTop;
                         localFs.pos = tempCodePos;
-                        v25 = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)gScrVmPub[inst].function_frame);
-                        localFs.startTop = &localFs.top[-(int)v25];
+                        localFs.startTop = &localFs.top[-(int)Scr_ReadInt(&gScrVmPub[inst].function_frame->fs.pos)];
                         goto thread_call;
                     }
                     gScrVarPub[inst].error_index = 1;
@@ -6399,8 +5719,7 @@ scriptmethodthreadcallpointer:
                     Scr_Error(inst, "script stack overflow (too many embedded function calls)", 0);
                 }
                 gFs[inst] = localFs;
-                v26 = va("%s is not a function pointer", var_typename[localFs.top->type]);
-                Scr_Error(inst, v26, 0);
+                Scr_Error(inst, va("%s is not a function pointer", var_typename[localFs.top->type]), 0);
             $LN180_0:
                 if (localFs.top->type == 1)
                 {
@@ -6411,8 +5730,7 @@ scriptmethodthreadcallpointer:
                         gScrVmPub[inst].function_frame->fs.pos = localFs.pos;
                         gScrVmPub[inst].function_frame->fs.startTop = localFs.startTop;
                         localFs.pos = Scr_ReadCodePos(inst, &gScrVmPub[inst].function_frame->fs.pos);
-                        v27 = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)gScrVmPub[inst].function_frame);
-                        localFs.startTop = &localFs.top[-(int)v27];
+                        localFs.startTop = &localFs.top[-(int)Scr_ReadInt(&gScrVmPub[inst].function_frame->fs.pos)];
                         goto thread_call;
                     }
                     gScrVarPub[inst].error_index = 1;
@@ -6421,19 +5739,18 @@ scriptmethodthreadcallpointer:
                 }
             }
             goto not_an_object2;
-        case 84:
+        case OP_ScriptThreadCall:
             goto $LN187;
-        case 85:
+        case OP_ScriptThreadCallPointer:
             goto $LN184_0;
-        case 86:
+        case OP_ScriptMethodThreadCall:
             goto $LN180_0;
-        case 87:
+        case OP_ScriptMethodThreadCallPointer:
             if (localFs.top->type != 9)
             {
                 RemoveRefToValue(inst, localFs.top--);
                 gFs[inst] = localFs;
-                v29 = va("%s is not a function pointer", var_typename[localFs.top[1].type]);
-                Scr_Error(inst, v29, 0);
+                Scr_Error(inst, va("%s is not a function pointer", var_typename[localFs.top[1].type]), 0);
             $LN169:
                 RemoveRefToValue(inst, localFs.top);
                 goto loop_dec_top;
@@ -6456,120 +5773,77 @@ scriptmethodthreadcallpointer:
             gScrVmPub[inst].function_frame->fs.pos = localFs.pos;
             gScrVmPub[inst].function_frame->fs.startTop = localFs.startTop;
             localFs.pos = tempCodePos;
-            v28 = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)gScrVmPub[inst].function_frame);
-            localFs.startTop = &localFs.top[-(int)v28];
-        thread_call:
+            localFs.startTop = &localFs.top[-(int)Scr_ReadInt(&gScrVmPub[inst].function_frame->fs.pos)];
+
+thread_call:
             gScrVmPub[inst].function_frame->fs.top = localFs.startTop;
             gScrVmPub[inst].function_frame->topType = localFs.startTop->type;
             localFs.startTop->type = 8;
             ++gThreadCount[inst];
-        function_call:
+
+function_call:
             gScrVmPub[inst].function_frame->fs.localVarCount = localFs.localVarCount;
             localFs.localVarCount = 0;
             ++gScrVmPub[inst].function_count;
             ++gScrVmPub[inst].function_frame;
             gScrVmPub[inst].function_frame->fs.localId = localFs.localId;
-            if (!localFs.pos
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2496,
-                    0,
-                    "%s",
-                    "localFs.pos"))
-            {
-                __debugbreak();
-            }
+            iassert(localFs.pos);
             continue;
-        case 88:
+
+        case OP_DecTop:
             goto $LN169;
-        case 89:
+        case OP_CastFieldObject:
             objectId = Scr_EvalFieldObject(inst, gScrVarPub[inst].tempVariable, localFs.top);
             goto loop_dec_top;
-        case 90:
+        case OP_EvalLocalVariableObjectCached:
             LocalVar = Scr_GetLocalVar(inst, localFs.pos);
             objectId = Scr_EvalVariableObject(inst, LocalVar);
             ++localFs.pos;
             continue;
-        case 91:
+        case OP_CastBool:
             Scr_CastBool(inst, localFs.top);
             continue;
-        case 92:
+        case OP_BoolNot:
             Scr_EvalBoolNot(inst, localFs.top);
             continue;
-        case 93:
+        case OP_BoolComplement:
             Scr_EvalBoolComplement(inst, localFs.top);
             continue;
-        case 94:
+        case OP_JumpOnFalse:
             Scr_CastBool(inst, localFs.top);
-            if (localFs.top->type != 6
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1944,
-                    0,
-                    "%s",
-                    "localFs.top->type == VAR_INTEGER"))
-            {
-                __debugbreak();
-            }
+            iassert(localFs.top->type == VAR_INTEGER);
             jumpOffset = Scr_ReadUnsignedShort(&localFs.pos);
             if (!localFs.top->u.intValue)
                 localFs.pos += jumpOffset;
             goto loop_dec_top;
-        case 95:
+        case OP_JumpOnTrue:
             Scr_CastBool(inst, localFs.top);
-            if (localFs.top->type != 6
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1953,
-                    0,
-                    "%s",
-                    "localFs.top->type == VAR_INTEGER"))
-            {
-                __debugbreak();
-            }
+            iassert(localFs.top->type == VAR_INTEGER);
             jumpOffset = Scr_ReadUnsignedShort(&localFs.pos);
             if (localFs.top->u.intValue)
                 localFs.pos += jumpOffset;
             goto loop_dec_top;
-        case 96:
+        case OP_JumpOnFalseExpr:
             Scr_CastBool(inst, localFs.top);
-            if (localFs.top->type != 6
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1962,
-                    0,
-                    "%s",
-                    "localFs.top->type == VAR_INTEGER"))
-            {
-                __debugbreak();
-            }
+            iassert(localFs.top->type == VAR_INTEGER);
             jumpOffset = Scr_ReadUnsignedShort(&localFs.pos);
             if (localFs.top->u.intValue)
                 goto loop_dec_top;
             localFs.pos += jumpOffset;
             continue;
-        case 97:
+        case OP_JumpOnTrueExpr:
             Scr_CastBool(inst, localFs.top);
-            if (localFs.top->type != 6
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    1971,
-                    0,
-                    "%s",
-                    "localFs.top->type == VAR_INTEGER"))
-            {
-                __debugbreak();
-            }
+            iassert(localFs.top->type == VAR_INTEGER);
             jumpOffset = Scr_ReadUnsignedShort(&localFs.pos);
             if (!localFs.top->u.intValue)
                 goto loop_dec_top;
             localFs.pos += jumpOffset;
             continue;
-        case 98:
-            jumpOffset = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)&localFs);
+        case OP_jump:
+            jumpOffset = Scr_ReadInt(&localFs.pos);
             localFs.pos += jumpOffset;
             continue;
-        case 99:
+        case OP_jumpback:
             if (gScrVarPub[inst].numScriptValues > 0x3F37E || gScrVarPub[inst].numScriptObjects > 0x737E)
             {
                 if (gScrVmPub[inst].showError)
@@ -6583,38 +5857,22 @@ scriptmethodthreadcallpointer:
             }
             if ((int)(Sys_Milliseconds() - gScrVmGlob[inst].starttime) >= 2500)
             {
-                if (!logScriptTimes
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        2013,
-                        0,
-                        "%s",
-                        "logScriptTimes"))
-                {
-                    __debugbreak();
-                }
+                iassert(logScriptTimes);
+
                 if (logScriptTimes->current.enabled)
                 {
-                    v31 = Sys_Milliseconds();
-                    Com_Printf(24, "EXCEED TIME: %d\n", v31);
+                    Com_Printf(24, "EXCEED TIME: %d\n", Sys_Milliseconds());
                 }
+
                 if (!gScrVmGlob[inst].loading)
                 {
                     if (RETURN_ZERO32())
                         goto ignore_error;
+
                     VM_PrintJumpHistory(inst);
                     if (gScrVmPub[inst].showError)
                     {
-                        if (gScrVmPub[inst].debugCode
-                            && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                2046,
-                                0,
-                                "%s",
-                                "!gScrVmPub[inst].debugCode"))
-                        {
-                            __debugbreak();
-                        }
+                        iassert(!gScrVmPub[inst].debugCode);
                         Scr_DumpScriptThreads(inst);
                         Scr_DumpScriptVariablesDefault(inst);
                         gFs[inst] = localFs;
@@ -6639,174 +5897,62 @@ scriptmethodthreadcallpointer:
                             parentLocalId = GetSafeParentLocalId(inst, localFs.localId);
                             Scr_KillThread(inst, localFs.localId);
                             gScrVmPub[inst].localVars -= localFs.localVarCount;
-                            if (localFs.top->type == 8
-                                && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                    2541,
-                                    0,
-                                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                                    "(localFs.top->type != VAR_PRECODEPOS)",
-                                    localFs.top - gScrVmPub[inst].stack))
-                            {
-                                __debugbreak();
-                            }
-                            while (localFs.top->type != 7)
+                            iassert(localFs.top->type != VAR_PRECODEPOS);
+
+                            while (localFs.top->type != VAR_CODEPOS)
                             {
                                 RemoveRefToValue(inst, localFs.top--);
-                                if (localFs.top->type == 8
-                                    && !Assert_MyHandler(
-                                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                        2546,
-                                        0,
-                                        "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                                        "(localFs.top->type != VAR_PRECODEPOS)",
-                                        localFs.top - gScrVmPub[inst].stack))
-                                {
-                                    __debugbreak();
-                                }
+                                iassert(localFs.top->type != VAR_PRECODEPOS);
                             }
+
                             --gScrVmPub[inst].function_count;
                             --gScrVmPub[inst].function_frame;
                             if (!parentLocalId)
                                 break;
-                            if (localFs.top == localFs.startTop
-                                && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                    2557,
-                                    0,
-                                    "%s",
-                                    "localFs.top != localFs.startTop"))
-                            {
-                                __debugbreak();
-                            }
+                            iassert(localFs.top != localFs.startTop);
                             RemoveRefToObject(inst, localFs.localId);
-                            if (localFs.top->type != 7
-                                && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                    2565,
-                                    0,
-                                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                                    "(localFs.top->type == VAR_CODEPOS)",
-                                    localFs.top - gScrVmPub[inst].stack))
-                            {
-                                __debugbreak();
-                            }
+                            iassert(localFs.top->type == VAR_CODEPOS);
                             localFs.pos = gScrVmPub[inst].function_frame->fs.pos;
-                            if (!localFs.pos
-                                && !Assert_MyHandler(
-                                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                    2567,
-                                    0,
-                                    "%s",
-                                    "localFs.pos"))
-                            {
-                                __debugbreak();
-                            }
+                            iassert(localFs.pos);
                             localFs.localVarCount = gScrVmPub[inst].function_frame->fs.localVarCount;
                             localFs.localId = parentLocalId;
                             --localFs.top;
                         }
-                        if (localFs.top != localFs.startTop
-                            && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                2553,
-                                0,
-                                "%s\n\t(localFs.top - localFs.startTop) = %i",
-                                "(localFs.top == localFs.startTop)",
-                                localFs.top - localFs.startTop))
-                        {
-                            __debugbreak();
-                        }
+                        iassert(localFs.top == localFs.startTop);
                         goto thread_end;
                     }
                     Scr_Error(inst, "potential infinite loop in script", 0);
                 $LN142:
-                    if (localFs.top < gScrVmPub[inst].stack
-                        && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                            2068,
-                            0,
-                            "%s",
-                            "localFs.top >= gScrVmPub[inst].stack"))
-                    {
-                        __debugbreak();
-                    }
-                    if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                        && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                            2069,
-                            0,
-                            "%s",
-                            "localFs.top+1 <= gScrVmPub[inst].maxstack"))
-                    {
-                        __debugbreak();
-                    }
-                    v91 = Scr_EvalVariableField(inst, fieldValueId);
-                    localFs.top[1] = v91;
-                    if (localFs.top[1].type == 6)
+                    iassert(localFs.top >= gScrVmPub[inst].stack);
+                    iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+                    localFs.top[1] = Scr_EvalVariableField(inst, fieldValueId);
+
+                    if (localFs.top[1].type == VAR_INTEGER)
                     {
                         ++localFs.top[1].u.intValue;
-                        if (*localFs.pos != 57
-                            && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                2074,
-                                0,
-                                "%s",
-                                "*localFs.pos == OP_SetVariableField"))
-                        {
-                            __debugbreak();
-                        }
+                        iassert(*localFs.pos == OP_SetVariableField);
                     }
                     else
                     {
                         ++localFs.top;
                         gFs[inst] = localFs;
-                        v32 = va("++ must be applied to an int (applied to %s)", var_typename[localFs.top->type]);
-                        Scr_Error(inst, v32, 0);
+                        Scr_Error(inst, va("++ must be applied to an int (applied to %s)", var_typename[localFs.top->type]), 0);
                     $LN140_0:
-                        if (localFs.top < gScrVmPub[inst].stack
-                            && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                2085,
-                                0,
-                                "%s",
-                                "localFs.top >= gScrVmPub[inst].stack"))
-                        {
-                            __debugbreak();
-                        }
-                        if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                            && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                2086,
-                                0,
-                                "%s",
-                                "localFs.top+1 <= gScrVmPub[inst].maxstack"))
-                        {
-                            __debugbreak();
-                        }
-                        v90 = Scr_EvalVariableField(inst, fieldValueId);
-                        localFs.top[1] = v90;
-                        if (localFs.top[1].type != 6)
+                        iassert(localFs.top >= gScrVmPub[inst].stack);
+                        iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+                        localFs.top[1] = Scr_EvalVariableField(inst, fieldValueId);
+
+                        if (localFs.top[1].type != VAR_INTEGER)
                         {
                             ++localFs.top;
                             gFs[inst] = localFs;
-                            v33 = va("-- must be applied to an int (applied to %s)", var_typename[localFs.top->type]);
-                            Scr_Error(inst, v33, 0);
+                            Scr_Error(inst, va("-- must be applied to an int (applied to %s)", var_typename[localFs.top->type]), 0);
                         $LN138:
                             Scr_EvalOr(inst, localFs.top - 1, localFs.top);
                             goto loop_dec_top;
                         }
                         --localFs.top[1].u.intValue;
-                        if (*localFs.pos != 57
-                            && !Assert_MyHandler(
-                                "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                                2091,
-                                0,
-                                "%s",
-                                "*localFs.pos == OP_SetVariableField"))
-                        {
-                            __debugbreak();
-                        }
+                        iassert(*localFs.pos == OP_SetVariableField);
                     }
                     ++localFs.pos;
                     SetVariableFieldValue(inst, fieldValueId, ++localFs.top);
@@ -6831,79 +5977,70 @@ scriptmethodthreadcallpointer:
                 localFs.pos -= jumpOffset;
             }
             continue;
-        case 100:
+        case OP_inc:
             goto $LN142;
-        case 101:
+        case OP_dec:
             goto $LN140_0;
-        case 102:
+        case OP_bit_or:
             goto $LN138;
-        case 103:
+        case OP_bit_ex_or:
             Scr_EvalExOr(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 104:
+        case OP_bit_and:
             Scr_EvalAnd(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 105:
+        case OP_equality:
             Scr_EvalEquality(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 106:
+        case OP_inequality:
             Scr_EvalInequality(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 107:
+        case OP_less:
             Scr_EvalLess(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 108:
+        case OP_greater:
             Scr_EvalGreater(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 109:
+        case OP_less_equal:
             Scr_EvalLessEqual(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 110:
+        case OP_greater_equal:
             Scr_EvalGreaterEqual(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 111:
+        case OP_shift_left:
             Scr_EvalShiftLeft(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 112:
+        case OP_shift_right:
             Scr_EvalShiftRight(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 113:
+        case OP_plus:
             Scr_EvalPlus(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 114:
+        case OP_minus:
             Scr_EvalMinus(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 115:
+        case OP_multiply:
             Scr_EvalMultiply(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 116:
+        case OP_divide:
             Scr_EvalDivide(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 117:
+        case OP_mod:
             Scr_EvalMod(inst, localFs.top - 1, localFs.top);
             goto loop_dec_top;
-        case 118:
+        case OP_size:
             Scr_EvalSizeValue(inst, localFs.top);
             continue;
-        case 119:
-        case 120:
-            if (!Scr_IsInOpcodeMemory(inst, localFs.pos)
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2171,
-                    0,
-                    "%s",
-                    "Scr_IsInOpcodeMemory( inst, localFs.pos )"))
-            {
-                __debugbreak();
-            }
+        case OP_waittillmatch:
+        case OP_waittill:
+            iassert(Scr_IsInOpcodeMemory(inst, localFs.pos));
             if (localFs.top->type != 1)
                 goto not_an_object2;
             if (!IsFieldObject(inst, localFs.top->u.stringValue))
                 goto not_an_object2a;
             tempValue.u.intValue = localFs.top->u.intValue;
             --localFs.top;
-            if (localFs.top->type != 2)
+            if (localFs.top->type != VAR_STRING)
             {
                 ++localFs.top;
                 gScrVarPub[inst].error_index = 3;
@@ -6915,63 +6052,18 @@ scriptmethodthreadcallpointer:
                 gScrVarPub[inst].error_index = 2;
             not_an_object_error:
                 gFs[inst] = localFs;
-                v57 = va("%s is not an object", var_typename[type]);
-                Scr_Error(inst, v57, 0);
+                Scr_Error(inst, va("%s is not an object", var_typename[type]), 0);
                 goto error_1;
             }
             stringValue = localFs.top->u.stringValue;
             --localFs.top;
-            if (GetObjectType(inst, tempValue.u.stringValue) == 13
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2186,
-                    0,
-                    "%s",
-                    "GetObjectType( inst, tempValue.u.pointerValue ) != VAR_THREAD"))
-            {
-                __debugbreak();
-            }
-            if (GetObjectType(inst, tempValue.u.stringValue) == 14
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2187,
-                    0,
-                    "%s",
-                    "GetObjectType( inst, tempValue.u.pointerValue ) != VAR_NOTIFY_THREAD"))
-            {
-                __debugbreak();
-            }
-            if (GetObjectType(inst, tempValue.u.stringValue) == 15
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2188,
-                    0,
-                    "%s",
-                    "GetObjectType( inst, tempValue.u.pointerValue ) != VAR_TIME_THREAD"))
-            {
-                __debugbreak();
-            }
-            if (GetObjectType(inst, tempValue.u.stringValue) == 16
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2189,
-                    0,
-                    "%s",
-                    "GetObjectType( inst, tempValue.u.pointerValue ) != VAR_CHILD_THREAD"))
-            {
-                __debugbreak();
-            }
-            if (GetObjectType(inst, tempValue.u.stringValue) == 21
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2190,
-                    0,
-                    "%s",
-                    "GetObjectType( inst, tempValue.u.pointerValue ) != VAR_DEAD_THREAD"))
-            {
-                __debugbreak();
-            }
-            stackValue.type = 10;
+            iassert(GetObjectType(inst, tempValue.u.pointerValue) != VAR_THREAD);
+            iassert(GetObjectType(inst, tempValue.u.pointerValue) != VAR_NOTIFY_THREAD);
+            iassert(GetObjectType(inst, tempValue.u.pointerValue) != VAR_TIME_THREAD);
+            iassert(GetObjectType(inst, tempValue.u.pointerValue) != VAR_CHILD_THREAD);
+            iassert(GetObjectType(inst, tempValue.u.pointerValue) != VAR_DEAD_THREAD);
+
+            stackValue.type = VAR_STACK;
             stackValue.u.intValue = (int)VM_ArchiveStack(inst, &localFs);
             v64 = stringValue;
             v34 = GetVariable(inst, tempValue.u.stringValue, 0x17FFEu);
@@ -6989,7 +6081,7 @@ scriptmethodthreadcallpointer:
             SetNewVariableValue(inst, NewObjectVariable, &tempValue);
             Scr_SetThreadNotifyName(inst, localFs.localId, stringValue);
             goto thread_end;
-        case 121:
+        case OP_notify:
             if (localFs.top->type != 1)
                 goto not_an_object2;
             id = localFs.top->u.stringValue;
@@ -7013,93 +6105,31 @@ scriptmethodthreadcallpointer:
             localFs.pos = gScrVmPub[inst].function_frame->fs.pos;
             RemoveRefToObject(inst, id);
             SL_RemoveRefToString(inst, stringValue);
-            if (localFs.top->type == 7
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2246,
-                    0,
-                    "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                    "(localFs.top->type != VAR_CODEPOS)",
-                    localFs.top - gScrVmPub[inst].stack))
-            {
-                __debugbreak();
-            }
-            while (localFs.top->type != 8)
+            iassert(localFs.top->type != VAR_CODEPOS);
+
+            while (localFs.top->type != VAR_PRECODEPOS)
             {
                 RemoveRefToValue(inst, localFs.top--);
-                if (localFs.top->type == 7
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        2251,
-                        0,
-                        "%s\n\t(localFs.top - gScrVmPub[inst].stack) = %i",
-                        "(localFs.top->type != VAR_CODEPOS)",
-                        localFs.top - gScrVmPub[inst].stack))
-                {
-                    __debugbreak();
-                }
+                iassert(localFs.top->type != VAR_CODEPOS);
             }
             goto loop_dec_top;
-        case 122:
-            if (localFs.top->type != 1)
+        case OP_endon:
+            if (localFs.top->type != VAR_POINTER)
                 goto not_an_object1;
             if (!IsFieldObject(inst, localFs.top->u.stringValue))
                 goto LABEL_633;
-            if (localFs.top[-1].type == 2)
+            if (localFs.top[-1].type == VAR_STRING)
             {
                 stringValue = localFs.top[-1].u.stringValue;
                 AddRefToObject(inst, localFs.localId);
                 threadId = AllocThread(inst, localFs.localId);
-                if (GetObjectType(inst, localFs.top->u.stringValue) == 13
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        2280,
-                        0,
-                        "%s",
-                        "GetObjectType( inst, localFs.top->u.pointerValue ) != VAR_THREAD"))
-                {
-                    __debugbreak();
-                }
-                if (GetObjectType(inst, localFs.top->u.stringValue) == 14
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        2281,
-                        0,
-                        "%s",
-                        "GetObjectType( inst, localFs.top->u.pointerValue ) != VAR_NOTIFY_THREAD"))
-                {
-                    __debugbreak();
-                }
-                if (GetObjectType(inst, localFs.top->u.stringValue) == 15
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        2282,
-                        0,
-                        "%s",
-                        "GetObjectType( inst, localFs.top->u.pointerValue ) != VAR_TIME_THREAD"))
-                {
-                    __debugbreak();
-                }
-                if (GetObjectType(inst, localFs.top->u.stringValue) == 16
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        2283,
-                        0,
-                        "%s",
-                        "GetObjectType( inst, localFs.top->u.pointerValue ) != VAR_CHILD_THREAD"))
-                {
-                    __debugbreak();
-                }
-                if (GetObjectType(inst, localFs.top->u.stringValue) == 21
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        2284,
-                        0,
-                        "%s",
-                        "GetObjectType( inst, localFs.top->u.pointerValue ) != VAR_DEAD_THREAD"))
-                {
-                    __debugbreak();
-                }
+
+                iassert(GetObjectType(inst, localFs.top->u.pointerValue) != VAR_THREAD);
+                iassert(GetObjectType(inst, localFs.top->u.pointerValue) != VAR_NOTIFY_THREAD);
+                iassert(GetObjectType(inst, localFs.top->u.pointerValue) != VAR_TIME_THREAD);
+                iassert(GetObjectType(inst, localFs.top->u.pointerValue) != VAR_CHILD_THREAD);
+                iassert(GetObjectType(inst, localFs.top->u.pointerValue) != VAR_DEAD_THREAD);
+
                 v65 = threadId;
                 v59 = stringValue;
                 v41 = GetVariable(inst, localFs.top->u.stringValue, 0x17FFEu);
@@ -7126,38 +6156,23 @@ scriptmethodthreadcallpointer:
         not_an_object_error1:
             gScrVarPub[inst].error_index = 1;
             goto not_an_object_error;
-        case 123:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2314,
-                    0,
-                    "%s",
-                    "localFs.top >= gScrVmPub[inst].stack"))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2315,
-                    0,
-                    "%s",
-                    "localFs.top+1 <= gScrVmPub[inst].maxstack"))
-            {
-                __debugbreak();
-            }
-            localFs.top[1].type = 8;
+
+        case OP_voidCodepos:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top + 1 <= gScrVmPub[inst].maxstack);
+
+            localFs.top[1].type = VAR_PRECODEPOS;
             ++localFs.top;
             continue;
-        case 124:
-            jumpOffset = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)&localFs);
+
+        case OP_switch:
+            jumpOffset = Scr_ReadInt(&localFs.pos);
             localFs.pos += jumpOffset;
             gCaseCount[inst] = Scr_ReadUnsignedShort(&localFs.pos);
             v66 = localFs.top->type;
-            if (v66 == 2)
+            if (v66 == VAR_STRING)
                 goto LABEL_647;
-            if (v66 == 6)
+            if (v66 == VAR_INTEGER)
             {
                 if (IsValidArrayIndex(inst, localFs.top->u.stringValue))
                 {
@@ -7166,8 +6181,7 @@ scriptmethodthreadcallpointer:
                 else
                 {
                     gFs[inst] = localFs;
-                    v48 = va("switch index %d out of range", localFs.top->u.intValue);
-                    Scr_Error(inst, v48, 0);
+                    Scr_Error(inst, va("switch index %d out of range", localFs.top->u.intValue), 0);
                 LABEL_647:
                     caseValue = localFs.top->u.stringValue;
                     SL_RemoveRefToString(inst, localFs.top->u.stringValue);
@@ -7176,105 +6190,58 @@ scriptmethodthreadcallpointer:
             else
             {
                 gFs[inst] = localFs;
-                v49 = va("cannot switch on %s", var_typename[localFs.top->type]);
-                Scr_Error(inst, v49, 0);
+                Scr_Error(inst, va("cannot switch on %s", var_typename[localFs.top->type]), 0);
             }
             if (!gCaseCount[inst])
                 goto loop_dec_top;
-            if (!caseValue
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2352,
-                    0,
-                    "%s",
-                    "caseValue"))
-            {
-                __debugbreak();
-            }
+            iassert(caseValue);
+            
             do
             {
-                currentCaseValue = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)&localFs);
+                currentCaseValue = Scr_ReadInt(&localFs.pos);
                 currentCodePos = Scr_ReadCodePos(inst, &localFs.pos);
                 if (currentCaseValue == caseValue)
                 {
                     localFs.pos = currentCodePos;
-                    if (!currentCodePos
-                        && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                            2361,
-                            0,
-                            "%s",
-                            "localFs.pos"))
-                    {
-                        __debugbreak();
-                    }
+                    iassert(localFs.pos);
                     goto loop_dec_top;
                 }
                 --gCaseCount[inst];
             } while (gCaseCount[inst]);
+
             if (!currentCaseValue)
             {
                 localFs.pos = currentCodePos;
-                if (!currentCodePos
-                    && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                        2371,
-                        0,
-                        "%s",
-                        "localFs.pos"))
-                {
-                    __debugbreak();
-                }
+                iassert(localFs.pos);
             }
             goto loop_dec_top;
-        case 125:
+
+        case OP_endswitch:
             gCaseCount[inst] = Scr_ReadUnsignedShort(&localFs.pos);
-            R_ReadPrimDrawSurfData((GfxReadCmdBuf *)&localFs, 2 * gCaseCount[inst]);
+            Scr_ReadIntArray(&localFs.pos, 2 * gCaseCount[inst]);
+            //R_ReadPrimDrawSurfData((GfxReadCmdBuf *)&localFs, 2 * gCaseCount[inst]);
             continue;
-        case 126:
+
+        case OP_vector:
             localFs.top -= 2;
             Scr_CastVector(inst, localFs.top);
             continue;
-        case 127:
+
+        case OP_NOP:
             continue;
-        case 128:
-            if (g_script_error_level[inst] < 0
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2387,
-                    0,
-                    "%s\n\t(g_script_error_level[inst]) = %i",
-                    "(g_script_error_level[inst] >= 0)",
-                    g_script_error_level[inst]))
-            {
-                __debugbreak();
-            }
+
+        case OP_abort:
+            iassert(g_script_error_level[inst] >= 0);
             --g_script_error_level[inst];
             gFs[inst] = localFs;
             return 0;
-        case 129:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2397,
-                    0,
-                    "%s",
-                    "localFs.top >= gScrVmPub[inst].stack"))
-            {
-                __debugbreak();
-            }
-            if (localFs.top > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2398,
-                    0,
-                    "%s",
-                    "localFs.top <= gScrVmPub[inst].maxstack"))
-            {
-                __debugbreak();
-            }
-            classnum = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)&localFs);
-            entnum = R_ReadPrimDrawSurfInt((GfxReadCmdBuf *)&localFs);
+
+        case OP_object:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top <= gScrVmPub[inst].maxstack);
+
+            classnum = Scr_ReadInt(&localFs.pos);
+            entnum = Scr_ReadInt(&localFs.pos);
             EntityId = FindEntityId(inst, entnum, classnum, 0);
             localFs.top[1].u.intValue = EntityId;
             if (localFs.top[1].u.intValue)
@@ -7289,27 +6256,11 @@ scriptmethodthreadcallpointer:
                 Scr_Error(inst, "unknown object", 0);
             }
             goto object;
-        case 130:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2422,
-                    0,
-                    "%s",
-                    "localFs.top >= gScrVmPub[inst].stack"))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2423,
-                    0,
-                    "%s",
-                    "localFs.top+1 <= gScrVmPub[inst].maxstack"))
-            {
-                __debugbreak();
-            }
+
+        case OP_thread_object:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top <= gScrVmPub[inst].maxstack);
+
             UnsignedShort = Scr_ReadUnsignedShort(&localFs.pos);
             localFs.top[1].u.intValue = UnsignedShort;
             ++localFs.top;
@@ -7317,34 +6268,18 @@ scriptmethodthreadcallpointer:
             localFs.top->type = 1;
             AddRefToObject(inst, localFs.top->u.stringValue);
             continue;
-        case 131:
-            if (localFs.top < gScrVmPub[inst].stack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2429,
-                    0,
-                    "%s",
-                    "localFs.top >= gScrVmPub[inst].stack"))
-            {
-                __debugbreak();
-            }
-            if (&localFs.top[1] > gScrVmPub[inst].maxstack
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\clientscript\\cscr_vm.cpp",
-                    2430,
-                    0,
-                    "%s",
-                    "localFs.top+1 <= gScrVmPub[inst].maxstack"))
-            {
-                __debugbreak();
-            }
+
+        case OP_EvalLocalVariable:
+            iassert(localFs.top >= gScrVmPub[inst].stack);
+            iassert(localFs.top <= gScrVmPub[inst].maxstack);
+
             v53 = Scr_ReadUnsignedShort(&localFs.pos);
             v54 = FindVariable(inst, localFs.localId, v53);
             v89 = Scr_EvalVariable(inst, v54);
             localFs.top[1] = v89;
             ++localFs.top;
             continue;
-        case 132:
+        case OP_EvalLocalVariableRef:
             fieldValueIndex = 0;
             v55 = Scr_ReadUnsignedShort(&localFs.pos);
             fieldValueId = FindVariable(inst, localFs.localId, v55);
@@ -7353,28 +6288,27 @@ scriptmethodthreadcallpointer:
             gFs[inst] = localFs;
             Scr_Error(inst, "cannot create a new local variable in the debugger", 0);
             goto $LN74_5;
-        case 133:
+        case OP_prof_begin:
         $LN74_5:
             ++localFs.pos;
             continue;
-        case 134:
+        case OP_prof_end:
             ++localFs.pos;
             continue;
-        case 135:
+        case OP_breakpoint:
             if (!gScrVarPub[inst].developer)
                 continue;
             gOpcode[inst] = Scr_HitBreakpoint(inst, localFs.top, localFs.pos, localFs.localId, 0);
             goto interrupt_return;
-        case 136:
+        case OP_assignmentBreakpoint:
             gOpcode[inst] = Scr_HitAssignmentBreakpoint(inst, localFs.top, localFs.pos, localFs.localId, 0);
             goto interrupt_return;
-        case 137:
+        case OP_manualAndAssignmentBreakpoint:
             gOpcode[inst] = Scr_HitAssignmentBreakpoint(inst, localFs.top, localFs.pos, localFs.localId, 1);
             goto interrupt_return;
         default:
             gScrVmPub[inst].terminal_error = 1;
-            v56 = va("CODE ERROR: unknown opcode %d", gOpcode[inst]);
-            RuntimeError(inst, (char *)localFs.pos, 0, v56, 0);
+            RuntimeError(inst, (char *)localFs.pos, 0, va("CODE ERROR: unknown opcode %d", gOpcode[inst]), 0);
             continue;
         }
     }

@@ -1206,19 +1206,14 @@ int __cdecl Con_GetDefaultMsgDuration(print_msg_dest_t dest)
 {
     if ( dest == CON_DEST_MINICON )
         return (int)((float)(con_minicontime->current.value * 1000.0) + 9.313225746154785e-10);
+
     if ( dest == CON_DEST_ERROR )
         return (int)((float)(con_errormessagetime->current.value * 1000.0) + 9.313225746154785e-10);
-    if ( (dest < CON_DEST_GAME_FIRST || dest > CON_DEST_GAME3)
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\client\\cl_console.cpp",
-                    839,
-                    0,
-                    "%s",
-                    "dest >= CON_DEST_GAME_FIRST && dest <= CON_DEST_GAME_LAST") )
-    {
-        __debugbreak();
-    }
-    return (int)((float)(con_gameMsgWindowNLineCount[dest]->current.value * 1000.0) + 9.313225746154785e-10);
+
+    iassert(dest >= CON_DEST_GAME_FIRST && dest <= CON_DEST_GAME_LAST);
+
+    //return (int)((float)(con_gameMsgWindowNLineCount[dest]->current.value * 1000.0) + 9.313225746154785e-10);
+    return (int)((float)(con_gameMsgWindowNLineCount[dest - CON_DEST_GAME_FIRST]->current.value * 1000.0) + 9.313225746154785e-10); // not sure why this is missing
 }
 
 void __cdecl Con_UpdateMessage(int localClientNum, MessageWindow *msgwnd, int duration)

@@ -407,221 +407,204 @@ int last_time;
 float g_LastGlobalWindVector[4];
 void CG_UpdateWind(int cur_time)
 {
-    double v3; // xmm0_8
-    double v4; // xmm0_8
+    float v3; // xmm0_4
+    float v4; // xmm0_4
     double v5; // st7
     int v6; // eax
-    //long double v7; // [esp+8h] [ebp-10Ch]
-    unsigned int v8[3]; // [esp+18h] [ebp-FCh] BYREF
-    FX_WindInfo fxWind; // [esp+24h] [ebp-F0h]
-    float v10; // [esp+40h] [ebp-D4h]
-    float treeBend; // [esp+44h] [ebp-D0h]
-    float v12; // [esp+48h] [ebp-CCh]
-    float v13; // [esp+4Ch] [ebp-C8h]
-    float v14; // [esp+50h] [ebp-C4h]
-    GrassWind *v15; // [esp+54h] [ebp-C0h]
-    GrassWind *v16; // [esp+58h] [ebp-BCh]
-    float *v17; // [esp+5Ch] [ebp-B8h]
-    float v18; // [esp+60h] [ebp-B4h]
-    float v19; // [esp+64h] [ebp-B0h]
-    float v20; // [esp+68h] [ebp-ACh]
-    GrassWind *v21; // [esp+6Ch] [ebp-A8h]
-    GrassWind *v22; // [esp+70h] [ebp-A4h]
-    float scalar; // [esp+74h] [ebp-A0h]
-    float v24; // [esp+78h] [ebp-9Ch]
-    float v25; // [esp+7Ch] [ebp-98h]
-    float v26; // [esp+80h] [ebp-94h]
-    float rot[3]; // [esp+84h] [ebp-90h] BYREF
-    float v28; // [esp+90h] [ebp-84h]
-    float dist[3]; // [esp+94h] [ebp-80h]
-    centity_s *Entity; // [esp+A0h] [ebp-74h]
-    float v31[2]; // [esp+A4h] [ebp-70h] BYREF
-    int v32; // [esp+B0h] [ebp-64h]
-    float v33; // [esp+B4h] [ebp-60h]
-    float v34; // [esp+B8h] [ebp-5Ch]
-    float v35; // [esp+BCh] [ebp-58h]
-    cg_s *LocalClientGlobals; // [esp+C0h] [ebp-54h]
-    int n; // [esp+C4h] [ebp-50h]
-    float v38; // [esp+C8h] [ebp-4Ch] BYREF
-    float windRustleAngle[3]; // [esp+D4h] [ebp-40h]
-    float v40; // [esp+E0h] [ebp-34h]
-    int m; // [esp+E4h] [ebp-30h]
-    int k; // [esp+E8h] [ebp-2Ch]
-    const DvarValue *p_current; // [esp+ECh] [ebp-28h]
-    int i; // [esp+F4h] [ebp-20h]
-    int v46; // [esp+104h] [ebp-10h]
-    //int v47; // [esp+108h] [ebp-Ch]
-    //void *v48; // [esp+10Ch] [ebp-8h]
-    //void *retaddr; // [esp+114h] [ebp+0h]
-
-    //v47 = a1;
-    //v48 = retaddr;
-    //LODWORD(v7) = a2;
+    float v7; // xmm0_4
+    float v8; // xmm0_4
+    FX_WindInfo fxWind; // [esp+18h] [ebp-FCh] BYREF
+    const DvarValue *v10; // [esp+34h] [ebp-E0h]
+    float treeBend; // [esp+38h] [ebp-DCh]
+    float v12; // [esp+3Ch] [ebp-D8h]
+    float v13; // [esp+40h] [ebp-D4h]
+    float v14; // [esp+44h] [ebp-D0h]
+    float v15; // [esp+48h] [ebp-CCh]
+    float v16; // [esp+4Ch] [ebp-C8h]
+    float v17; // [esp+50h] [ebp-C4h]
+    GrassWind *v18; // [esp+54h] [ebp-C0h]
+    GrassWind *v19; // [esp+58h] [ebp-BCh]
+    float *dir; // [esp+5Ch] [ebp-B8h]
+    float v21; // [esp+60h] [ebp-B4h]
+    float v22; // [esp+64h] [ebp-B0h]
+    float scalar; // [esp+68h] [ebp-ACh]
+    GrassWind *v24; // [esp+6Ch] [ebp-A8h]
+    GrassWind *v25; // [esp+70h] [ebp-A4h]
+    float v26; // [esp+74h] [ebp-A0h]
+    float rot[3]; // [esp+78h] [ebp-9Ch]
+    float v28; // [esp+84h] [ebp-90h]
+    float dist[3]; // [esp+88h] [ebp-8Ch] BYREF
+    float *v30; // [esp+94h] [ebp-80h]
+    float *origin; // [esp+98h] [ebp-7Ch]
+    GrassWind *v32; // [esp+9Ch] [ebp-78h]
+    centity_s *ent; // [esp+A0h] [ebp-74h]
+    float v34[5]; // [esp+A4h] [ebp-70h] BYREF
+    float v35; // [esp+B8h] [ebp-5Ch]
+    float v36; // [esp+BCh] [ebp-58h]
+    cg_s *cgameGlob; // [esp+C0h] [ebp-54h]
+    int localClientNum; // [esp+C4h] [ebp-50h]
+    float windRustleAngle[5]; // [esp+C8h] [ebp-4Ch] BYREF
+    float v40; // [esp+DCh] [ebp-38h]
+    float v41; // [esp+E0h] [ebp-34h]
+    int j; // [esp+E4h] [ebp-30h]
+    int i; // [esp+E8h] [ebp-2Ch]
+    const DvarValue *v44; // [esp+ECh] [ebp-28h]
+    const DvarValue *p_current; // [esp+F4h] [ebp-20h]
+    int v47; // [esp+104h] [ebp-10h]
+    //_UNKNOWN *v48; // [esp+108h] [ebp-Ch]
+    //int cur_timea; // [esp+10Ch] [ebp-8h]
+    //int vars0; // [esp+114h] [ebp+0h]
+    //
+    //v48 = a1;
+    //cur_timea = vars0;
     //PIXBeginNamedEvent(-1, "CG_UpdateWind");
-
-    int a2;
-    float *dir;
-    if ( (_S1_0 & 1) == 0 )
+    if ((_S1_0 & 1) == 0)
     {
         _S1_0 |= 1u;
         last_time = cur_time;
     }
-    if ( g_EnableGlobalWind->current.enabled )
+    if (g_EnableGlobalWind->current.enabled)
     {
-        if ( cg_paused->current.integer )
+        if (cg_paused->current.integer)
         {
             last_time = cur_time;
-            ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+            //if (GetCurrentThreadId() == g_DXDeviceThread)
             //    goto LABEL_5;
-            return;
         }
         else
         {
-            i = (int)&g_GlobalWindVector->current;
-            if ( g_GlobalWindVector->current.value != g_LastGlobalWindVector[0]
-                || *(float *)(i + 4) != g_LastGlobalWindVector[1]
-                || *(float *)(i + 8) != g_LastGlobalWindVector[2]
-                || *(float *)(i + 12) != g_LastGlobalWindVector[3] )
+            p_current = &g_GlobalWindVector->current;
+            if (g_GlobalWindVector->current.value != g_LastGlobalWindVector[0]
+                || p_current->vector[1] != g_LastGlobalWindVector[1]
+                || p_current->vector[2] != g_LastGlobalWindVector[2]
+                || p_current->vector[3] != g_LastGlobalWindVector[3])
             {
-                p_current = &g_GlobalWindVector->current;
+                v44 = &g_GlobalWindVector->current;
                 *(DvarValue *)g_LastGlobalWindVector = g_GlobalWindVector->current;
                 BG_SeedVarintWinds(0x7FFFu, cur_time);
             }
-            for ( k = 0; k < 16; ++k )
+            for (i = 0; i < 16; ++i)
             {
-                BG_UpdateVariantWind(&g_VariantWind[k], k, &g_GlobalWindVector->current.value, cur_time);
-                for ( m = 0; m < 3; ++m )
+                BG_UpdateVariantWind(&g_VariantWind[i], i, &g_GlobalWindVector->current.value, cur_time);
+                for (j = 0; j < 3; ++j)
                 {
-                    v40 = (float)((float)cur_time / 1000.0) * g_VariantWind[k].rustle_angular_frequency[m];
-                    windRustleAngle[2] = fmod(v40, 6.2831855);
-                    windRustleAngle[1] = windRustleAngle[2];
-                    v3 = windRustleAngle[2];
-                    //__libm_sse2_sin(v7);
-                    //*(float *)&v3 = v3;
-                    //windRustleAngle[0] = *(float *)&v3;
-                    windRustleAngle[0] = sin(windRustleAngle[2]);
-                    windRustleAngle[m + 1] = g_VariantWind[k].rustle_amplitude[m] * *(float *)&v3;
+                    v41 = (float)((float)cur_time / 1000.0) * g_VariantWind[i].rustle_angular_frequency[j];
+                    v40 = fmod(v41, 6.2831855);
+                    windRustleAngle[4] = v40;
+                    v3 = sin(v40);
+                    windRustleAngle[3] = v3;
+                    windRustleAngle[j] = g_VariantWind[i].rustle_amplitude[j] * v3;
                 }
-                R_SetVariantWindRustleAngle(k, &v38);
-                R_SetVariantWindSpringAngle(k, g_VariantWind[k].blade_velocity);
+                R_SetVariantWindRustleAngle(i, windRustleAngle);
+                R_SetVariantWindSpringAngle(i, g_VariantWind[i].blade_velocity);
             }
-            if ( g_EnableGrassWind->current.enabled )
+            if (g_EnableGrassWind->current.enabled)
             {
-                for ( n = 0; n < 1; ++n )
+                for (localClientNum = 0; localClientNum < 1; ++localClientNum)
                 {
-                    if ( CL_LocalClient_IsActive(n) )
+                    if (CL_LocalClient_IsActive(localClientNum))
                     {
-                        LocalClientGlobals = CG_GetLocalClientGlobals(n);
-                        if (LocalClientGlobals)
+                        cgameGlob = CG_GetLocalClientGlobals(localClientNum);
+                        if (cgameGlob)
                         {
-                            for (k = 0; k < 16; ++k)
+                            for (i = 0; i < 16; ++i)
                             {
-                                if (k || g_localWind.entnum == 1023)
+                                if (i || g_localWind.entnum == 1023)
                                 {
-                                    a2 = 28 * k;
-                                    if (g_GrassWind[n][k].life_span + g_GrassWind[n][k].start_time >= cur_time)
+                                    //a2 = 28 * i;
+                                    if (g_GrassWind[localClientNum][i].life_span + g_GrassWind[localClientNum][i].start_time >= cur_time)
                                     {
-                                        v20 = (float)(cur_time - last_time) / 1000.0;
-                                        v19 = v20;
-                                        dir = g_GrassWind[n][k].dir;
-                                        v18 = v20 * *dir;
-                                        v19 = v20 * dir[1];
-                                        v16 = &g_GrassWind[n][k];
-                                        v15 = v16;
-                                        v16->pos[0] = v16->pos[0] + v18;
-                                        v16->pos[1] = v15->pos[1] + v19;
+                                        scalar = (float)(cur_time - last_time) / 1000.0;
+                                        v22 = scalar;
+                                        dir = g_GrassWind[localClientNum][i].dir;
+                                        v21 = scalar * *dir;
+                                        v22 = scalar * dir[1];
+                                        v19 = &g_GrassWind[localClientNum][i];
+                                        v18 = v19;
+                                        v19->pos[0] = v19->pos[0] + v21;
+                                        v19->pos[1] = v18->pos[1] + v22;
                                     }
                                     else
                                     {
-                                        g_GrassWind[n][k].dir[0] = (float)(g_GlobalWindVector->current.value * g_WindVariants[k % 17])
+                                        g_GrassWind[localClientNum][i].dir[0] = (float)(g_GlobalWindVector->current.value
+                                            * g_WindVariants[i % 17])
                                             + g_GlobalWindVector->current.value;
-                                        g_GrassWind[n][k].dir[1] = (float)(g_GlobalWindVector->current.vector[1]
-                                            * g_WindVariants[(k + 1) % 17])
+                                        g_GrassWind[localClientNum][i].dir[1] = (float)(g_GlobalWindVector->current.vector[1]
+                                            * g_WindVariants[(i + 1) % 17])
                                             + g_GlobalWindVector->current.vector[1];
-                                        g_GrassWind[n][k].dir[0] = g_GrassWind[n][k].dir[0] * g_GlobalWindGustSpeedMultiplier->current.value;
-                                        g_GrassWind[n][k].dir[1] = g_GrassWind[n][k].dir[1] * g_GlobalWindGustSpeedMultiplier->current.value;
+                                        g_GrassWind[localClientNum][i].dir[0] = g_GrassWind[localClientNum][i].dir[0]
+                                            * g_GlobalWindGustSpeedMultiplier->current.value;
+                                        g_GrassWind[localClientNum][i].dir[1] = g_GrassWind[localClientNum][i].dir[1]
+                                            * g_GlobalWindGustSpeedMultiplier->current.value;
                                         v5 = flrand(0.1, 1.0);
-                                        g_GrassWind[n][k].strength_skew = v5;
-                                        g_GrassWind[n][k].start_time = cur_time;
+                                        g_GrassWind[localClientNum][i].strength_skew = v5;
+                                        g_GrassWind[localClientNum][i].start_time = cur_time;
                                         v6 = irand(5000, 10000);
-                                        g_GrassWind[n][k].life_span = v6;
-                                        //LODWORD(dist[0]) = g_GrassWind[n][k].dir;
-                                        //rot[1] = *(float *)LODWORD(dist[0]);
-                                        rot[1] = g_GrassWind[n][k].dir[0];
-                                        //rot[2] = *(float *)(LODWORD(dist[0]) + 4);
-                                        rot[2] = g_GrassWind[n][k].dir[1];
-                                        //v28 = *(float *)(LODWORD(dist[0]) + 8);
-                                        v28 = g_GrassWind[n][k].strength_skew;
-                                        //LODWORD(rot[1]) ^= _mask__NegFloat_;
-                                        rot[1] = -rot[1];
-                                        //LODWORD(rot[2]) ^= _mask__NegFloat_;
-                                        rot[2] = -rot[2];
-                                        //LODWORD(v28) ^= _mask__NegFloat_;
-                                        v28 = -v28;
-                                        rot[0] = (float)((float)g_GrassWind[n][k].life_span / 2.0) / 1000.0;
-                                        rot[1] = rot[0] * rot[1];
-                                        rot[2] = rot[0] * rot[2];
-                                        v28 = rot[0] * v28;
-                                        g_GrassWind[n][k].pos[0] = LocalClientGlobals->refdef.vieworg[0] + rot[1];
-                                        g_GrassWind[n][k].pos[1] = LocalClientGlobals->refdef.vieworg[1] + rot[2];
-                                        Vec3Normalize(&rot[1]);
-                                        //v24 = -rot[2];
-                                        v24 = -rot[2];
-                                        v25 = rot[1];
-                                        //v26 = *(float *)&FLOAT_0_0;
-                                        v26 = 0.0f;
-                                        scalar = flrand(
-                                            //COERCE_FLOAT(g_GlobalWindGustDistance->current.integer ^ _mask__NegFloat_),
-                                            -g_GlobalWindGustDistance->current.value,
-                                            g_GlobalWindGustDistance->current.value);
-                                        v24 = scalar * v24;
-                                        v25 = scalar * v25;
-                                        v26 = scalar * 0.0;
-                                        v22 = &g_GrassWind[n][k];
-                                        v21 = v22;
-                                        v22->pos[0] = v22->pos[0] + v24;
-                                        v22->pos[1] = v21->pos[1] + v25;
-                                        v22->dir[0] = v21->dir[0] + v26;
+                                        g_GrassWind[localClientNum][i].life_span = v6;
+                                        v30 = g_GrassWind[localClientNum][i].dir;
+                                        dist[0] = *v30;
+                                        dist[1] = v30[1];
+                                        dist[2] = v30[2];
+                                        //LODWORD(dist[0]) ^= _mask__NegFloat_;
+                                        //LODWORD(dist[1]) ^= _mask__NegFloat_;
+                                        //LODWORD(dist[2]) ^= _mask__NegFloat_;
+                                        dist[0] = -dist[0];
+                                        dist[1] = -dist[1];
+                                        dist[2] = -dist[2];
+                                        v28 = (float)((float)g_GrassWind[localClientNum][i].life_span / 2.0) / 1000.0;
+                                        dist[0] = v28 * dist[0];
+                                        dist[1] = v28 * dist[1];
+                                        dist[2] = v28 * dist[2];
+                                        g_GrassWind[localClientNum][i].pos[0] = cgameGlob->refdef.vieworg[0] + dist[0];
+                                        g_GrassWind[localClientNum][i].pos[1] = cgameGlob->refdef.vieworg[1] + dist[1];
+                                        Vec3Normalize(dist);
+                                        rot[0] = -dist[1];
+                                        rot[1] = dist[0];
+                                        rot[2] = 0.0f;
+                                        v26 = flrand(-g_GlobalWindGustDistance->current.value, g_GlobalWindGustDistance->current.value);
+                                        rot[0] = v26 * rot[0];
+                                        rot[1] = v26 * rot[1];
+                                        rot[2] = v26 * 0.0;
+                                        v25 = &g_GrassWind[localClientNum][i];
+                                        v24 = v25;
+                                        v25->pos[0] = v25->pos[0] + rot[0];
+                                        v25->pos[1] = v24->pos[1] + rot[1];
+                                        v25->dir[0] = v24->dir[0] + rot[2];
                                     }
-                                    v14 = (float)((float)(cur_time - g_GrassWind[n][k].start_time) / (float)g_GrassWind[n][k].life_span)
+                                    v17 = (float)((float)(cur_time - g_GrassWind[localClientNum][i].start_time)
+                                        / (float)g_GrassWind[localClientNum][i].life_span)
                                         * 3.1415927;
-                                    v13 = fmod(v14, 6.2831855);
-                                    v12 = v13;
-                                    //__libm_sse2_sin(v7);
-                                    //treeBend = v13;
-                                    treeBend = sin(v13);
+                                    v16 = fmod(v17, 6.2831855);
+                                    v15 = v16;
+                                    v7 = sin(v16);
+                                    v14 = v7;
                                     R_FoliageSetGrassWindForces(
-                                        n,
-                                        g_GrassWind[n][k].pos,
+                                        localClientNum,
+                                        g_GrassWind[localClientNum][i].pos,
                                         g_GlobalWindGustRadius->current.value,
-                                        (float)(g_GlobalWindGustStrength->current.value * g_GrassWind[n][k].strength_skew) * v13);
+                                        (float)(g_GlobalWindGustStrength->current.value * g_GrassWind[localClientNum][i].strength_skew) * v7);
                                 }
                                 else
                                 {
                                     BG_UpdateVariantWind(&g_localWind.wind, 0, &g_localWindVector->current.value, cur_time);
-                                    for (m = 0; m < 3; ++m)
+                                    for (j = 0; j < 3; ++j)
                                     {
-                                        v35 = (float)((float)cur_time / 1000.0) * g_localWindFrequency->current.vector[m];
-                                        v34 = fmod(v35, 6.2831855);
-                                        v33 = v34;
-                                        v4 = v34;
-                                        //__libm_sse2_sin(v7);
-                                        v4 = sin(v34);
-                                        //*(float *)&v4 = v4;
-                                        v32 = LODWORD(v4);
-                                        v31[m] = g_localWindAmplitude->current.vector[m] * *(float *)&v4;
+                                        v36 = (float)((float)cur_time / 1000.0) * g_localWindFrequency->current.vector[j];
+                                        v35 = fmod(v36, 6.2831855);
+                                        v34[4] = v35;
+                                        v4 = sin(v35);
+                                        v34[3] = v4;
+                                        v34[j] = g_localWindAmplitude->current.vector[j] * v4;
                                     }
-                                    Entity = CG_GetEntity(n, g_localWind.entnum);
-                                    R_SetLocalWind(Entity->pose.origin, g_GlobalWindGustRadius->current.value, v31);
-                                    //LODWORD(dist[2]) = g_GrassWind[n];
-                                    //LODWORD(dist[1]) = Entity->pose.origin;
-                                    //*(float *)LODWORD(dist[2]) = Entity->pose.origin[0];
-                                    g_GrassWind[n]->pos[0] = Entity->pose.origin[0];
-                                    //*(float *)(LODWORD(dist[2]) + 4) = *(float *)(LODWORD(dist[1]) + 4);
-                                    g_GrassWind[n]->pos[1] = Entity->pose.origin[1];;
+                                    ent = CG_GetEntity(localClientNum, g_localWind.entnum);
+                                    R_SetLocalWind(ent->pose.origin, g_GlobalWindGustRadius->current.value, v34);
+                                    v32 = g_GrassWind[localClientNum];
+                                    origin = ent->pose.origin;
+                                    v32->pos[0] = ent->pose.origin[0];
+                                    v32->pos[1] = origin[1];
                                     R_FoliageSetGrassWindForces(
-                                        n,
-                                        Entity->pose.origin,
+                                        localClientNum,
+                                        ent->pose.origin,
                                         g_localWindGustRadius->current.value,
                                         g_localWindGustStrength->current.value);
                                 }
@@ -631,31 +614,30 @@ void CG_UpdateWind(int cur_time)
                 }
             }
             DisplayWindDebug();
-            v10 = (float)((float)cur_time * g_GlobalTreeFrequency->current.value) / 1000.0;
-            //__libm_sse2_sin(v7);
-            v10 = sin(v10);
-            fxWind.windVectorMagnitude = v10;
-            fxWind.lowWindStrengthPercent = (float)(g_GlobalTreeRandom->current.value * v10) + g_GlobalTreeBend->current.value;
-            R_SetWindDirection((float*)&g_GlobalWindVector->current.value, fxWind.lowWindStrengthPercent);
-            fxWind.hiWindAltitude = g_GlobalWindVector->current.value;
-            v8[0] = g_GlobalWindVector->current.integer;
-            v8[1] = LODWORD(g_GlobalWindVector->current.vector[1]);
-            v8[2] = LODWORD(g_GlobalWindVector->current.vector[2]);
-            LODWORD(fxWind.windVector[1]) = g_GlobalHiWindAltitude->current.integer;
-            LODWORD(fxWind.windVector[0]) = g_GlobalLowWindAltitude->current.integer;
-            LODWORD(fxWind.windVector[2]) = g_GlobalLowWindStrengthPercentage->current.integer;
-            FX_SetGlobalWind((const FX_WindInfo *)v8);
+            v13 = (float)((float)cur_time * g_GlobalTreeFrequency->current.value) / 1000.0;
+            v8 = sin(v13);
+            v12 = v8;
+            treeBend = (float)(g_GlobalTreeRandom->current.value * v8) + g_GlobalTreeBend->current.value;
+            R_SetWindDirection((float*)&g_GlobalWindVector->current.value, treeBend);
+            v10 = &g_GlobalWindVector->current;
+            LODWORD(fxWind.windVector[0]) = g_GlobalWindVector->current.integer;
+            fxWind.windVector[1] = g_GlobalWindVector->current.vector[1];
+            fxWind.windVector[2] = g_GlobalWindVector->current.vector[2];
+            LODWORD(fxWind.hiWindAltitude) = g_GlobalHiWindAltitude->current.integer;
+            LODWORD(fxWind.lowWindAltitude) = g_GlobalLowWindAltitude->current.integer;
+            LODWORD(fxWind.lowWindStrengthPercent) = g_GlobalLowWindStrengthPercentage->current.integer;
+            FX_SetGlobalWind(&fxWind);
             last_time = cur_time;
-            ////if ( g_DXDeviceThread == GetCurrentThreadId() )
-            //    //D3DPERF_EndEvent();
+            //if (g_DXDeviceThread == GetCurrentThreadId())
+            //    D3DPERF_EndEvent();
         }
     }
     else
     {
-        v46 = 0;
-//        //if ( GetCurrentThreadId() == g_DXDeviceThread )
-//LABEL_5:
-//            //D3DPERF_EndEvent();
+        v47 = 0;
+        //if (GetCurrentThreadId() == g_DXDeviceThread)
+        //    LABEL_5:
+        //D3DPERF_EndEvent();
     }
 }
 

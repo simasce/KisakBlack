@@ -143,6 +143,7 @@ enum $6D51E4D9581472729AE3FDE62615AD51 : __int32
     OP_breakpoint                    = 0x87,
     OP_assignmentBreakpoint          = 0x88,
     OP_manualAndAssignmentBreakpoint = 0x89,
+
     OP_count                         = 0x8A,
 };
 

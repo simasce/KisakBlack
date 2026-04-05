@@ -329,18 +329,19 @@ void __cdecl SND_SetListener(
 
     if ( SND_Active() )
     {
-        if ( Abs((const float *)axis) <= 0.99998474 || Abs((const float *)axis) >= 1.0000153 )
-        {
-            v5 = Abs((const float *)axis);
-            if ( !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_public_async.cpp",
-                            335,
-                            0,
-                            "%s\n\t(Vec3Length(axis[0])) = %g",
-                            "(Vec3Length(axis[0]) > 1.0f-(1.52879e-5f) && Vec3Length(axis[0]) < 1.0f+(1.52879e-5f))",
-                            v5) )
-                __debugbreak();
-        }
+        iassert(Vec3Length(axis[0]) > 1.0f - (1.52879e-5f) && Vec3Length(axis[0]) < 1.0f + (1.52879e-5f));
+        //if ( Abs((const float *)axis) <= 0.99998474 || Abs((const float *)axis) >= 1.0000153 )
+        //{
+        //    v5 = Abs((const float *)axis);
+        //    if ( !Assert_MyHandler(
+        //                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_public_async.cpp",
+        //                    335,
+        //                    0,
+        //                    "%s\n\t(Vec3Length(axis[0])) = %g",
+        //                    "(Vec3Length(axis[0]) > 1.0f-(1.52879e-5f) && Vec3Length(axis[0]) < 1.0f+(1.52879e-5f))",
+        //                    v5) )
+        //        __debugbreak();
+        //}
         cmd = SND_GetNewCommand();
         if ( cmd )
         {
