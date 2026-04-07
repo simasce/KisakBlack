@@ -334,7 +334,7 @@ void __cdecl R_AddAllSceneEntSurfacesCamera(const GfxViewInfo *viewInfo)
     unsigned int visLightsMask; // [esp+E4h] [ebp-64h]
     unsigned int visLightsMaska; // [esp+E4h] [ebp-64h]
     volatile int lightingInfoUsed; // [esp+E8h] [ebp-60h]
-    int lightingInfoUseda; // [esp+E8h] [ebp-60h]
+    //int lightingInfoUseda; // [esp+E8h] [ebp-60h]
     bool dobjLightingFinished; // [esp+EFh] [ebp-59h]
     GfxLightingInfo *modelLightingInfo; // [esp+F0h] [ebp-58h]
     GfxDrawSurf *lastDrawSurfs[3]; // [esp+F4h] [ebp-54h] BYREF
@@ -386,11 +386,11 @@ void __cdecl R_AddAllSceneEntSurfacesCamera(const GfxViewInfo *viewInfo)
     }
     //if ( g_DXDeviceThread == GetCurrentThreadId() )
         //D3DPERF_EndEvent();
-    modelLightingInfo = (GfxLightingInfo *)(8 * lightingInfoUsed + 176473584);
+    modelLightingInfo = &lightingInfo[lightingInfoUsed];
     //PIXBeginNamedEvent(-1, "sceneModel lighting");
     LaunchModelLightingJobs(viewInfo, scene.sceneModelCount, scene.sceneModelVisData[0], modelLightingInfo);
-    lightingInfoUseda = scene.sceneModelCount + lightingInfoUsed;
-    if ( scene.sceneDynModelCount + lightingInfoUseda > 0x400 )
+    lightingInfoUsed = scene.sceneModelCount + lightingInfoUsed;
+    if ( scene.sceneDynModelCount + lightingInfoUsed > 0x400 )
     {
         Sys_AssistAndWaitWorkerCmdInternal(&r_model_lightingWorkerCmd);
         FinishModelLighting(
@@ -402,11 +402,11 @@ void __cdecl R_AddAllSceneEntSurfacesCamera(const GfxViewInfo *viewInfo)
             visibleLights,
             visibleLightCount);
         modelLightingFinished = 1;
-        lightingInfoUseda = 0;
+        lightingInfoUsed = 0;
     }
     //if ( g_DXDeviceThread == GetCurrentThreadId() )
         //D3DPERF_EndEvent();
-    dynentLightingInfo = (GfxLightingInfo *)(8 * lightingInfoUseda + 176473584);
+    dynentLightingInfo = &lightingInfo[lightingInfoUsed];
     //PIXBeginNamedEvent(-1, "sceneDynModel lighting");
     if ( scene.sceneDynModelCount >= 0x400
         && !Assert_MyHandler(
@@ -631,7 +631,7 @@ void __cdecl LaunchDobjLightingJobs(
     bool useHeroLighting; // [esp+1Bh] [ebp-15h]
     GfxEntity *gfxEnt; // [esp+1Ch] [ebp-14h]
     GfxSceneEntity *sceneEnt; // [esp+20h] [ebp-10h]
-    cpose_t *cachedLightingHandle; // [esp+24h] [ebp-Ch]
+    cpose_t *pose; // [esp+24h] [ebp-Ch]
     unsigned int sceneEntIndex; // [esp+2Ch] [ebp-4h]
 
     for ( sceneEntIndex = 0; sceneEntIndex < sceneEntCount; ++sceneEntIndex )
@@ -651,7 +651,7 @@ void __cdecl LaunchDobjLightingJobs(
                 __debugbreak();
             }
             useHeroLighting = (gfxEnt->renderFxFlags & 0x400000) != 0;
-            cachedLightingHandle = (cpose_t *)Ragdoll_HandleBody(sceneEnt->info.pose);
+            pose = (cpose_t *)Ragdoll_HandleBody(sceneEnt->info.pose);
             if ( !R_AllocModelLighting_Box(
                             viewInfo,
                             sceneEnt->lightingOrigin,
@@ -659,7 +659,7 @@ void __cdecl LaunchDobjLightingJobs(
                             sceneEnt->cull.mins,
                             sceneEnt->cull.maxs,
                             useHeroLighting,
-                            &cachedLightingHandle->lightingHandle,
+                            &pose->lightingHandle,
                             &lightingInfo[sceneEntIndex]) )
                 sceneEntVisData[sceneEntIndex] = 0;
         }

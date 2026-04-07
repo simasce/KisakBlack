@@ -12,14 +12,13 @@ void    R_DrawSunShadowMap(
                 unsigned int partitionIndex,
                 GfxCmdBuf *cmdBuf)
 {
-    void *v4; // esp
     float x; // [esp+20h] [ebp-1ABCh]
     const GfxBackEndData *data; // [esp+2Ch] [ebp-1AB0h]
     GfxCmdBufSourceState state; // [esp+30h] [ebp-1AACh] BYREF
 
     R_InitCmdBufSourceState(&state, &viewInfo->input, 0);
     R_SetWindShaderConstants(&state);
-    R_SetRenderTargetSize(&state, 14u);
+    R_SetRenderTargetSize(&state, R_RENDERTARGET_SHADOWMAP_SUN);
 
     data = viewInfo->input.data;
     x = data->sunShadow.partition[partitionIndex].shadowViewParms.projectionMatrix.m[2][2];
@@ -31,25 +30,34 @@ void    R_DrawSunShadowMap(
         sm_polygonOffsetScale->current.value,
         0.0,
         0.0);
+
     R_SetViewportValues(&state, 0, partitionIndex * dx.sunShadowmapSize, dx.sunShadowmapSize, dx.sunShadowmapSize);
+
+    SunShadowMapCallbackUserData userData;
+    userData.partition = &data->sunShadow.partition[partitionIndex];
+    userData.drawList = &viewInfo->drawList[DRAWLIST_SUN_SHADOW_MAP0 + partitionIndex];
+    
     R_DrawCall(
-        (void(__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawSunShadowMapCallback, 
-        &data->sunShadow.partition[partitionIndex],
+        R_DrawSunShadowMapCallback, 
+        &userData,
         &state, 
         viewInfo, 
-        (GfxDrawSurfListInfo*)&viewInfo->drawList[partitionIndex + 8], // de-const cast
+        (GfxDrawSurfListInfo*)&viewInfo->drawList[DRAWLIST_SUN_SHADOW_MAP0 + partitionIndex], // de-const cast
         &data->sunShadow.partition[partitionIndex].shadowViewParms,
         cmdBuf, 
         0);
 }
 
-void __cdecl R_DrawSunShadowMapCallback(const GfxSunShadowPartition **userData, GfxCmdBufContext context)
+void __cdecl R_DrawSunShadowMapCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
     const GfxDrawSurfListInfo *drawList; // [esp+34h] [ebp-8h]
     const GfxSunShadowPartition *partition; // [esp+38h] [ebp-4h]
 
-    partition = *userData;
-    drawList = (const GfxDrawSurfListInfo *)userData[1];
+    const SunShadowMapCallbackUserData *data = (const SunShadowMapCallbackUserData *)userData;
+
+    partition = data->partition;
+    drawList = data->drawList;
+
     R_SetRenderTarget(context, 0xEu);
     if ( !partition->partitionIndex )
         R_ClearScreen(context.state->prim.device, 3u, shadowmapClearColor, 1.0, 0, 0);

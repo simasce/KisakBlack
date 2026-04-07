@@ -51,6 +51,26 @@ enum GfxRenderCommand : __int32
     RC_COUNT                         = 0x1D,
 };
 
+enum $FA8CAEF21A4B336C234573FF5E09E0DB : __int32
+{
+    DRAWLIST_LIT                = 0x0,
+    DRAWLIST_LIT_POST_RESOLVE   = 0x1,
+    DRAWLIST_LIT_PUNCHTHROUGH   = 0x2,
+    DRAWLIST_LIT_COUNT          = 0x3,
+    DRAWLIST_DECAL              = 0x3,
+    DRAWLIST_EMISSIVE           = 0x4,
+    DRAWLIST_REFLECTED          = 0x5,
+    DRAWLIST_CLOAKED            = 0x6,
+    DRAWLIST_EMISSIVE_VIEWMODEL = 0x7,
+    DRAWLIST_SUN_SHADOW_MAP0    = 0x8,
+    DRAWLIST_SUN_SHADOW_MAP1    = 0x9,
+    DRAWLIST_SPOT_SHADOW_MAP0   = 0xA,
+    DRAWLIST_SPOT_SHADOW_MAP1   = 0xB,
+    DRAWLIST_SPOT_SHADOW_MAP2   = 0xC,
+    DRAWLIST_SPOT_SHADOW_MAP3   = 0xD,
+    DRAWLIST_COUNT              = 0xE,
+};
+
 enum ShadowType : __int32
 {                                       // XREF: GfxViewInfo/r
                                         // R_GenerateSortedDrawSurfs/r ...

@@ -88,7 +88,7 @@ void    R_DrawEmissive(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf)
     R_SetViewportStruct(&state, &viewInfo->cullViewInfo.sceneViewport);
     R_SetADSZScaleConstants(viewInfo->localClientNum, &state);
     R_DrawCall(
-        (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawEmissiveCallback,
+        R_DrawEmissiveCallback,
         viewInfo,
         &state,
         viewInfo,
@@ -98,16 +98,20 @@ void    R_DrawEmissive(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf)
         0);
 }
 
-void __cdecl R_DrawEmissiveCallback(char *userData, GfxCmdBufContext context)
+void __cdecl R_DrawEmissiveCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
     GfxViewInfo *viewInfo = (GfxViewInfo *)userData;
 
     //PIXBeginNamedEvent(-1, "R_DrawEmissiveCallback");
     R_UpdateCodeConstant(context.source, CONST_SRC_CODE_FRAMEBUFFER_READ, 0.0, 0.0, 1.0, 1.0);
-    //PIXBeginNamedEvent(-1, "emissive");
-    R_DrawSurfs(context, 0, &viewInfo->drawList[4]);
-    //if (GetCurrentThreadId() == g_DXDeviceThread)
-    //    D3DPERF_EndEvent();
+
+    {
+        //PIXBeginNamedEvent(-1, "emissive");
+        R_DrawSurfs(context, 0, &viewInfo->drawList[4]);
+        //if (GetCurrentThreadId() == g_DXDeviceThread)
+        //    D3DPERF_EndEvent();
+    }
+    
     R_ShowTris(context, viewInfo->drawList);
     R_ShowTris(context, &viewInfo->drawList[3]);
     R_ShowTris(context, &viewInfo->drawList[4]);
@@ -156,7 +160,7 @@ void    R_DrawReflected(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf)
     R_SetRenderTargetSize(&state, viewInfo->sceneComposition.mainSceneMSAA);
     R_SetViewportStruct(&state, &viewInfo->cullViewInfo.sceneViewport);
     R_DrawCall(
-        (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawReflectedCallback,
+        R_DrawReflectedCallback,
         viewInfo,
         &state,
         viewInfo,
@@ -166,10 +170,12 @@ void    R_DrawReflected(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf)
         0);
 }
 
-void __cdecl R_DrawReflectedCallback(char *userData, GfxCmdBufContext context)
+void __cdecl R_DrawReflectedCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
     float clearColor[4]; // [esp+20h] [ebp-14h] BYREF
     unsigned __int8 surface; // [esp+33h] [ebp-1h]
+
+    const GfxViewInfo *viewInfo = (const GfxViewInfo *)userData;
 
     surface = 10;
     R_InitLocalCmdBufState(context.state);
@@ -178,18 +184,23 @@ void __cdecl R_DrawReflectedCallback(char *userData, GfxCmdBufContext context)
     R_Set3D(context.source);
     memset(clearColor, 0, sizeof(clearColor));
     R_ClearScreen(context.state->prim.device, 1u, clearColor, 1.0, 0, 0);
-    ////PIXBeginNamedEvent(-1, "reflected");
-    R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)(userData + 9152));
-    ////if ( GetCurrentThreadId() == g_DXDeviceThread )
-        ////D3DPERF_EndEvent();
+
+    {
+        ////PIXBeginNamedEvent(-1, "reflected");
+        //R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)(userData + 9152));
+        R_DrawSurfs(context, 0, &viewInfo->drawList[5]);
+        ////if ( GetCurrentThreadId() == g_DXDeviceThread )
+            ////D3DPERF_EndEvent();
+    }
+    
     R_HW_DisableScissor(context.state->prim.device);
 }
 
 void __cdecl R_InitLocalCmdBufState(GfxCmdBufState *state)
 {
     memcpy(state->refSamplerState, gfxCmdBufState.refSamplerState, sizeof(GfxCmdBufState));
-    memset((unsigned __int8 *)state->vertexShaderConstState, 0, sizeof(state->vertexShaderConstState));
-    memset((unsigned __int8 *)state->pixelShaderConstState, 0, sizeof(state->pixelShaderConstState));
+    memset(state->vertexShaderConstState, 0, sizeof(state->vertexShaderConstState));
+    memset(state->pixelShaderConstState, 0, sizeof(state->pixelShaderConstState));
 }
 
 bool __cdecl RB_ShouldDrawCoronas()
@@ -323,7 +334,7 @@ void __cdecl R_DrawFullbright(const GfxViewInfo *viewInfo, GfxCmdBufInput *input
 
     ////PIXBeginNamedEvent(-1, "R_DrawFullbrightOrDebugShader - Lit");
     R_DrawFullbrightOrDebugShader(
-        (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawFullbrightLitCallback,
+        R_DrawFullbrightLitCallback,
         viewInfo,
         viewInfo->drawList,
         cmdBuf);
@@ -331,7 +342,7 @@ void __cdecl R_DrawFullbright(const GfxViewInfo *viewInfo, GfxCmdBufInput *input
         ////D3DPERF_EndEvent();
     ////PIXBeginNamedEvent(-1, "R_DrawFullbrightOrDebugShader - Decal");
     R_DrawFullbrightOrDebugShader(
-        (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawFullbrightDecalCallback,
+        R_DrawFullbrightDecalCallback,
         viewInfo,
         &viewInfo->drawList[3],
         cmdBuf);
@@ -339,7 +350,7 @@ void __cdecl R_DrawFullbright(const GfxViewInfo *viewInfo, GfxCmdBufInput *input
         ////D3DPERF_EndEvent();
     ////PIXBeginNamedEvent(-1, "R_DrawFullbrightOrDebugShader - Emissive");
     R_DrawFullbrightOrDebugShader(
-        (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawFullbrightEmissiveCallback,
+        R_DrawFullbrightEmissiveCallback,
         viewInfo,
         &viewInfo->drawList[4],
         cmdBuf);
@@ -347,18 +358,20 @@ void __cdecl R_DrawFullbright(const GfxViewInfo *viewInfo, GfxCmdBufInput *input
         ////D3DPERF_EndEvent();
 }
 
-void __cdecl R_DrawFullbrightLitCallback(char *data, GfxCmdBufContext context)
+void __cdecl R_DrawFullbrightLitCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
-    R_SetRenderTarget(context, data[13808]);
-    if ( (*((unsigned int *)data + 3464) & 7) == 0 )
+    const GfxViewInfo *viewInfo = (const GfxViewInfo *)userData;
+
+    R_SetRenderTarget(context, viewInfo->sceneComposition.mainSceneMSAA);
+    if ((viewInfo->sceneComposition.renderingMode & 7) == 0)
         R_HW_EnableScissor(
             context.state->prim.device,
-            *((unsigned int *)data + 88),
-            *((unsigned int *)data + 89),
-            *((unsigned int *)data + 90),
-            *((unsigned int *)data + 91));
-    R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)(data + 8752));
-    if ( (*((unsigned int *)data + 3464) & 7) == 0 )
+            viewInfo->cullViewInfo.scissorViewport.x,
+            viewInfo->cullViewInfo.scissorViewport.y,
+            viewInfo->cullViewInfo.scissorViewport.width,
+            viewInfo->cullViewInfo.scissorViewport.height);
+    R_DrawSurfs(context, 0, viewInfo->drawList);
+    if ((viewInfo->sceneComposition.renderingMode & 7) == 0)
         R_HW_DisableScissor(context.state->prim.device);
 }
 
@@ -418,42 +431,46 @@ void __cdecl R_HW_EnableScissor(
     }
 }
 
-void __cdecl R_DrawFullbrightDecalCallback(char *data, GfxCmdBufContext context)
+void __cdecl R_DrawFullbrightDecalCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
-    R_SetRenderTarget(context, data[13808]);
-    if ( (*((unsigned int *)data + 3464) & 7) == 0 )
+    const GfxViewInfo *viewInfo = (const GfxViewInfo *)userData;
+
+    R_SetRenderTarget(context, viewInfo->sceneComposition.mainSceneMSAA);
+    if ((viewInfo->sceneComposition.renderingMode & 7) == 0)
         R_HW_EnableScissor(
             context.state->prim.device,
-            *((unsigned int *)data + 88),
-            *((unsigned int *)data + 89),
-            *((unsigned int *)data + 90),
-            *((unsigned int *)data + 91));
-    R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)(data + 8992));
-    if ( (*((unsigned int *)data + 3464) & 7) == 0 )
+            viewInfo->cullViewInfo.scissorViewport.x,
+            viewInfo->cullViewInfo.scissorViewport.y,
+            viewInfo->cullViewInfo.scissorViewport.width,
+            viewInfo->cullViewInfo.scissorViewport.height);
+    R_DrawSurfs(context, 0, &viewInfo->drawList[3]);
+    if ((viewInfo->sceneComposition.renderingMode & 7) == 0)
         R_HW_DisableScissor(context.state->prim.device);
 }
 
-void __cdecl R_DrawFullbrightEmissiveCallback(char *data, GfxCmdBufContext context)
+void __cdecl R_DrawFullbrightEmissiveCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
-    R_SetRenderTarget(context, data[13808]);
-    if ( (*((unsigned int *)data + 3464) & 7) == 0 )
+    const GfxViewInfo *viewInfo = (const GfxViewInfo *)userData;
+
+    R_SetRenderTarget(context, viewInfo->sceneComposition.mainSceneMSAA);
+    if ((viewInfo->sceneComposition.renderingMode & 7) == 0)
         R_HW_EnableScissor(
             context.state->prim.device,
-            *((unsigned int *)data + 88),
-            *((unsigned int *)data + 89),
-            *((unsigned int *)data + 90),
-            *((unsigned int *)data + 91));
-    R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)(data + 9072));
-    R_ShowTris(context, (const GfxDrawSurfListInfo *)(data + 8752));
-    R_ShowTris(context, (const GfxDrawSurfListInfo *)(data + 8832));
-    R_ShowTris(context, (const GfxDrawSurfListInfo *)(data + 8992));
-    R_ShowTris(context, (const GfxDrawSurfListInfo *)(data + 9072));
-    if ( (*((unsigned int *)data + 3464) & 7) == 0 )
+            viewInfo->cullViewInfo.scissorViewport.x,
+            viewInfo->cullViewInfo.scissorViewport.y,
+            viewInfo->cullViewInfo.scissorViewport.width,
+            viewInfo->cullViewInfo.scissorViewport.height);
+    R_DrawSurfs(context, 0, &viewInfo->drawList[4]);
+    R_ShowTris(context, viewInfo->drawList);
+    R_ShowTris(context, &viewInfo->drawList[1]);
+    R_ShowTris(context, &viewInfo->drawList[3]);
+    R_ShowTris(context, &viewInfo->drawList[4]);
+    if ((viewInfo->sceneComposition.renderingMode & 7) == 0)
         R_HW_DisableScissor(context.state->prim.device);
 }
 
 void R_DrawFullbrightOrDebugShader(
-    void(__cdecl *callback)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *),
+    void(__cdecl *callback)(const void *, GfxCmdBufContext , GfxCmdBufContext ),
     const GfxViewInfo *viewInfo,
     const GfxDrawSurfListInfo *info,
     GfxCmdBuf *cmdBuf)
@@ -519,55 +536,61 @@ void __cdecl R_DrawDebugShader(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf)
     int savedregs; // [esp+0h] [ebp+0h] BYREF
 
     R_DrawFullbrightOrDebugShader(
-        (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawDebugShaderLitCallback,
+        R_DrawDebugShaderLitCallback,
         viewInfo,
         viewInfo->drawList,
         cmdBuf);
     R_DrawFullbrightOrDebugShader(
-        (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawDebugShaderDecalCallback,
+        R_DrawDebugShaderDecalCallback,
         viewInfo,
         &viewInfo->drawList[3],
         cmdBuf);
     R_DrawFullbrightOrDebugShader(
-        (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawDebugShaderEmissiveCallback,
+        R_DrawDebugShaderEmissiveCallback,
         viewInfo,
         &viewInfo->drawList[4],
         cmdBuf);
 }
 
-void __cdecl R_DrawDebugShaderLitCallback(char *data, GfxCmdBufContext context)
+void __cdecl R_DrawDebugShaderLitCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
+    const GfxViewInfo *viewInfo = (const GfxViewInfo *)userData;
+
     R_SetRenderTarget(context, 3u);
     R_HW_EnableScissor(
         context.state->prim.device,
-        *((unsigned int *)data + 88),
-        *((unsigned int *)data + 89),
-        *((unsigned int *)data + 90),
-        *((unsigned int *)data + 91));
-    R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)(data + 8752));
+        viewInfo->cullViewInfo.scissorViewport.x,
+        viewInfo->cullViewInfo.scissorViewport.y,
+        viewInfo->cullViewInfo.scissorViewport.width,
+        viewInfo->cullViewInfo.scissorViewport.height);
+    R_DrawSurfs(context, 0, viewInfo->drawList);
     R_HW_DisableScissor(context.state->prim.device);
 }
 
-void __cdecl R_DrawDebugShaderDecalCallback(char *data, GfxCmdBufContext context)
+void __cdecl R_DrawDebugShaderDecalCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
+    const GfxViewInfo *viewInfo = (const GfxViewInfo *)userData;
+
     R_SetRenderTarget(context, 3u);
-    R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)(data + 8992));
+    R_DrawSurfs(context, 0, &viewInfo->drawList[3]);
 }
 
-void __cdecl R_DrawDebugShaderEmissiveCallback(char *data, GfxCmdBufContext context)
+void __cdecl R_DrawDebugShaderEmissiveCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
+    const GfxViewInfo *viewInfo = (const GfxViewInfo *)userData;
+
     R_SetRenderTarget(context, 3u);
     R_HW_EnableScissor(
         context.state->prim.device,
-        *((unsigned int *)data + 88),
-        *((unsigned int *)data + 89),
-        *((unsigned int *)data + 90),
-        *((unsigned int *)data + 91));
-    R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)(data + 9072));
-    R_ShowTris(context, (const GfxDrawSurfListInfo *)(data + 8752));
-    R_ShowTris(context, (const GfxDrawSurfListInfo *)(data + 8832));
-    R_ShowTris(context, (const GfxDrawSurfListInfo *)(data + 8992));
-    R_ShowTris(context, (const GfxDrawSurfListInfo *)(data + 9072));
+        viewInfo->cullViewInfo.scissorViewport.x,
+        viewInfo->cullViewInfo.scissorViewport.y,
+        viewInfo->cullViewInfo.scissorViewport.width,
+        viewInfo->cullViewInfo.scissorViewport.height);
+    R_DrawSurfs(context, 0, &viewInfo->drawList[4]);
+    R_ShowTris(context, viewInfo->drawList);
+    R_ShowTris(context, &viewInfo->drawList[1]);
+    R_ShowTris(context, &viewInfo->drawList[3]);
+    R_ShowTris(context, &viewInfo->drawList[4]);
     R_HW_DisableScissor(context.state->prim.device);
 }
 
@@ -1040,7 +1063,7 @@ void __cdecl R_DrawPointLitSurfs(GfxCmdBufSourceState *source, const GfxViewInfo
             info.y += viewInfo->cullViewInfo.sceneViewport.y;
             R_SetQuadMeshData(info.clearQuadMesh, x, y, width, height, 0.0, 0.0, 1.0, 1.0, 0xFFFFFFFF);
             R_DrawCall(
-                (void(__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawPointLitSurfsCallback,
+                R_DrawPointLitSurfsCallback,
                 &info,
                 source,
                 viewInfo,
@@ -1052,21 +1075,18 @@ void __cdecl R_DrawPointLitSurfs(GfxCmdBufSourceState *source, const GfxViewInfo
     }
 }
 
-void __cdecl R_DrawPointLitSurfsCallback(GfxMeshData **userData, GfxCmdBufContext context)
+void __cdecl R_DrawPointLitSurfsCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
-    R_SetRenderTarget(context, (*userData)[383].vb.total);
+    GfxPointLitSurfsInfo *info = (GfxPointLitSurfsInfo *)userData;
+
+    R_SetRenderTarget(context, info->viewInfo->sceneComposition.mainSceneMSAA);
     R_Set2D(context.source);
-    R_DrawQuadMesh(context, rgp.clearAlphaMaterial, userData[1]);
+    R_DrawQuadMesh(context, rgp.clearAlphaMaterial, info->clearQuadMesh);
     R_Set3D(context.source);
-    if ( ((*userData)[384].vertSize & 7) == 0 )
-        R_HW_EnableScissor(
-            context.state->prim.device,
-            (unsigned int)userData[3],
-            (unsigned int)userData[4],
-            (unsigned int)userData[5],
-            (unsigned int)userData[6]);
-    R_DrawSurfs(context, 0, (const GfxDrawSurfListInfo *)userData[2]);
-    if ( ((*userData)[384].vertSize & 7) == 0 )
+    if ((info->viewInfo->sceneComposition.renderingMode & 7) == 0)
+        R_HW_EnableScissor(context.state->prim.device, info->x, info->y, info->w, info->h);
+    R_DrawSurfs(context, 0, info->drawSurfInfo);
+    if ((info->viewInfo->sceneComposition.renderingMode & 7) == 0)
         R_HW_DisableScissor(context.state->prim.device);
 }
 

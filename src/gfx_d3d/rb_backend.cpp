@@ -1637,8 +1637,10 @@ void __cdecl R_DrawSurfs(GfxCmdBufContext context, GfxCmdBufState *prepassState,
     {
         __debugbreak();
     }
-    if ( context.state->prim.device != dx.device )
+    if (context.state->prim.device != dx.device)
+    {
         //PIXBeginNamedEvent(-1, "draw surf");
+    }
     R_BeginPixMaterials(context.state);
     if ( prepassContext.state )
         R_BeginPixMaterials(prepassContext.state);

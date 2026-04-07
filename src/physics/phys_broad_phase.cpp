@@ -1021,7 +1021,7 @@ void __cdecl merge_sort_bpb(broad_phase_base **list, int list_count)
     }
 }
 
-#if 0
+#if 1
 void broad_phase_process_object_environment_collision(bpi_environment_collision_info *eci)
 {
     bpi_environment_collision_info *v2; // esi
@@ -1085,9 +1085,9 @@ void broad_phase_process_object_environment_collision(bpi_environment_collision_
     phys_vec3 v60; // [esp-1Ch] [ebp-15Ch] BYREF
     phys_vec3 v61; // [esp-Ch] [ebp-14Ch] BYREF
     phys_vec3 p2; // [esp+4h] [ebp-13Ch] BYREF
-    phys_vec3 p2_4; // [esp+14h] [ebp-12Ch] BYREF
+    phys_vec3 aabb2_min_new; // [esp+14h] [ebp-12Ch] BYREF
     phys_vec3 half_dims; // [esp+24h] [ebp-11Ch] BYREF
-    phys_vec3 half_dims_4; // [esp+34h] [ebp-10Ch] BYREF
+    phys_vec3 v65; // [esp+34h] [ebp-10Ch] BYREF
     phys_vec3 p1; // [esp+44h] [ebp-FCh] BYREF
     broad_phase_prolog_task_input bppti; // [esp+5Ch] [ebp-E4h] BYREF
     phys_vec3 bp_aabb_min; // [esp+64h] [ebp-DCh] BYREF
@@ -1112,19 +1112,19 @@ void broad_phase_process_object_environment_collision(bpi_environment_collision_
     float v87; // [esp+11Ch] [ebp-24h]
     float v88; // [esp+120h] [ebp-20h]
     int *v89; // [esp+124h] [ebp-1Ch]
-    _EXCEPTION_REGISTRATION_RECORD *ExceptionList; // [esp+128h] [ebp-18h]
-    _UNKNOWN **v91; // [esp+12Ch] [ebp-14h]
-    int v92; // [esp+130h] [ebp-10h]
-    _UNKNOWN *v93[2]; // [esp+134h] [ebp-Ch] BYREF
-    int v94; // [esp+13Ch] [ebp-4h] BYREF
-    int vars0; // [esp+140h] [ebp+0h]
-
-    v93[0] = a1;
-    v93[1] = (_UNKNOWN *)vars0;
-    v92 = -1;
-    v91 = &_ehhandler__broad_phase_process_object_environment_collision__YAXAAVbpi_environment_collision_info___Z;
-    ExceptionList = NtCurrentTeb()->NtTib.ExceptionList;
-    v89 = &v94;
+    //_EXCEPTION_REGISTRATION_RECORD *ExceptionList; // [esp+128h] [ebp-18h]
+    //_UNKNOWN **v91; // [esp+12Ch] [ebp-14h]
+    //int v92; // [esp+130h] [ebp-10h]
+    //_UNKNOWN *v93[2]; // [esp+134h] [ebp-Ch] BYREF
+    //int v94; // [esp+13Ch] [ebp-4h] BYREF
+    //int vars0; // [esp+140h] [ebp+0h]
+    //
+    //v93[0] = a1;
+    //v93[1] = (_UNKNOWN *)vars0;
+    //v92 = -1;
+    //v91 = &_ehhandler__broad_phase_process_object_environment_collision__YAXAAVbpi_environment_collision_info___Z;
+    //ExceptionList = NtCurrentTeb()->NtTib.ExceptionList;
+    //v89 = &v94;
     v2 = eci;
     if (eci->m_bpb_count <= 0 && _tlAssert("source/phys_broad_phase.cpp", 1005, "eci.m_bpb_count > 0", ""))
         __debugbreak();
@@ -1132,14 +1132,13 @@ void broad_phase_process_object_environment_collision(bpi_environment_collision_
     transient_buffer.m_mutex.m_count = 1;
     transient_buffer.m_slot_pool = 0;
     v59 = 4 * eci->m_bpb_count;
-    v92 = 0;
-    *(float *)&v3 = COERCE_FLOAT(
-        phys_transient_allocator::allocate(
-            &transient_buffer,
-            v59,
-            4,
-            0,
-            "phys_transient_allocator out of memory."));
+    int v92 = 0;
+    v3 = //phys_transient_allocator::allocate(
+        (broad_phase_base **)transient_buffer.allocate(
+        v59,
+        4,
+        0,
+        "phys_transient_allocator out of memory.");
     m_bpb_i_start = eci->m_bpb_i_start;
     v5 = v3;
     bpb_ptr_list = v3;
@@ -1346,23 +1345,23 @@ LABEL_20:
                     v60.x = v86;
                     v60.y = v85;
                     v60.z = v87;
-                    phys_min(&p2_4, &aabb2_min, &v60);
+                    phys_min(&aabb2_min_new, &aabb2_min, &v60);
                     v86 = m_list_bpb_next->m_trace_aabb_max_whace.x + m_list_bpb_next->m_trace_translation.x;
                     v85 = m_list_bpb_next->m_trace_aabb_max_whace.y + m_list_bpb_next->m_trace_translation.y;
                     v87 = m_list_bpb_next->m_trace_aabb_max_whace.z + m_list_bpb_next->m_trace_translation.z;
-                    half_dims_4.x = v86;
-                    half_dims_4.y = v85;
-                    half_dims_4.z = v87;
-                    phys_max(&v61, &aabb2_max, &half_dims_4);
+                    v65.x = v86;
+                    v65.y = v85;
+                    v65.z = v87;
+                    phys_max(&v61, &aabb2_max, &v65);
                     v37 = v61.x;
-                    v38 = p2_4.x;
-                    v86 = v61.x - p2_4.x;
+                    v38 = aabb2_min_new.x;
+                    v86 = v61.x - aabb2_min_new.x;
                     v39 = v61.y;
-                    v40 = p2_4.y;
-                    v85 = v61.y - p2_4.y;
+                    v40 = aabb2_min_new.y;
+                    v85 = v61.y - aabb2_min_new.y;
                     v41 = v61.z;
-                    v42 = p2_4.z;
-                    v87 = v61.z - p2_4.z;
+                    v42 = aabb2_min_new.z;
+                    v87 = v61.z - aabb2_min_new.z;
                     if (v86 <= 136.0 && v85 <= 136.0 && v87 <= 136.0)
                     {
                         v43 = bpb_cluster_head;
@@ -1399,7 +1398,8 @@ LABEL_20:
             if (v48)
                 goto LABEL_70;
         }
-        phys_transient_allocator::resize(&transient_buffer);
+        //phys_transient_allocator::resize(&transient_buffer);
+        transient_buffer.resize();
         v50 = (int)(transient_buffer.m_cur + 15) & 0xFFFFFFF0;
         if ((char *)(v50 + 80) <= transient_buffer.m_end)
         {
@@ -1415,7 +1415,7 @@ LABEL_20:
                 ++bpb_cluster_list_count;
                 *(float *)(LODWORD(v51) + 52) = *(float *)&bpb_cluster_list;
                 *(float *)&bpb_cluster_list = v51;
-                comp_trace_volume((int)v93, &aabb1_min, &aabb1_max, &aabb2_min, &aabb2_max, &p1, &p2, &half_dims);
+                comp_trace_volume(&aabb1_min, &aabb1_max, &aabb2_min, &aabb2_max, &p1, &p2, &half_dims);
                 v52 = p1.x;
                 v53 = half_dims.x;
                 v86 = p1.x - half_dims.x;
@@ -1481,7 +1481,8 @@ LABEL_75:
     g_thread_id = 0;
     phys_task_manager_process(&bp_env_jq_module2Module, 0, v13);
     phys_task_manager_flush();
-    phys_transient_allocator::reset(&transient_buffer);
+    //phys_transient_allocator::reset(&transient_buffer);
+    transient_buffer.reset();
     v92 = -1;
     if (transient_buffer.m_first_block)
     {
@@ -1497,6 +1498,7 @@ LABEL_75:
 }
 #else // aislop
 // this looks like a fairly nice AI cleanup, but could be a pig wearin' lipstick
+// Update: the bastard is passing null in for required args
 void broad_phase_process_object_environment_collision(bpi_environment_collision_info *eci)
 {
     iassert(eci->m_bpb_count > 0);

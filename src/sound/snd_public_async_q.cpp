@@ -110,7 +110,7 @@ unsigned int __cdecl SND_CommandPush(snd_command *cmd)
     {
         __debugbreak();
     }
-    //if ( (cmd < g_snd.commands || cmd >= (snd_command *)&g_snd.command_free)// KISAKTODO
+    //if ( (cmd < g_snd.commands || cmd >= (snd_command *)&g_snd.command_free)// KISAKTODOmake 
     //    && !Assert_MyHandler(
     //                "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_public_async_q.cpp",
     //                126,

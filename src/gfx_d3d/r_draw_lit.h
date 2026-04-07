@@ -22,11 +22,11 @@ void    R_SetDrawLitConstants(
                 const GfxViewParms *viewParms);
 void    R_DrawCloakHDR(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf, CloakPhaseID phase);
 void __cdecl R_DrawCloakPrePassCallbackHDR(
-                const GfxViewInfo *userData,
+                const void *userData,
                 GfxCmdBufContext context,
                 GfxCmdBufContext prepassContext);
 void __cdecl R_DrawCloakPostEmissiveCallbackHDR(
-                const GfxViewInfo *userData,
+                const void *userData,
                 GfxCmdBufContext context,
                 GfxCmdBufContext prepassContext);
 void    R_DrawLit(
@@ -34,7 +34,7 @@ void    R_DrawLit(
                 GfxCmdBuf *cmdBuf,
                 GfxCmdBuf *prepassCmdBuf,
                 LitPhaseID phase);
-void __cdecl R_DrawLitCallback(char *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext);
-void __cdecl R_DrawLitPostResolveCallback(char *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext);
+void __cdecl R_DrawLitCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext);
+void __cdecl R_DrawLitPostResolveCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext);
 void    R_DrawDecal(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf, GfxCmdBuf *prepassCmdBuf);
-void __cdecl R_DrawDecalCallback(char *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext);
+void __cdecl R_DrawDecalCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext);

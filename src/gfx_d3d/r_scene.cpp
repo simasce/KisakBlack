@@ -441,7 +441,7 @@ void __cdecl R_AddDObjToScene(
                 sceneModel->obj = obj;
                 sceneModel->entnum = entnum;
                 scene.dpvs.sceneXModelIndex[entnum] = sceneEntIndex;
-                sceneModel->cachedLightingHandle = (unsigned short*)Ragdoll_HandleBody(pose);
+                sceneModel->cachedLightingHandle = (unsigned short*)&Ragdoll_HandleBody(pose)->lightingHandle;
                 sceneModel->lightingOriginToleranceSq = lightingOriginToleranceSq;
                 radius = XModelGetRadius(model);
                 CG_GetPoseOrigin(pose, sceneModel->placement.base.origin);
@@ -2436,7 +2436,7 @@ void __cdecl R_GenerateMarkVertsForDynamicModels(const GfxLight *visibleLights, 
         entnum = sceneEntity->entnum;
         if ( entnum < gfxCfg.entnumOrdinaryEnd && (scene.sceneDObjVisData[0][dobjIndex] & 1) != 0 )
         {
-            lightHandle = Ragdoll_HandleBody(sceneEntity->info.pose);
+            lightHandle = Ragdoll_HandleBody(sceneEntity->info.pose)->lightingHandle;
             FX_GenerateMarkVertsForEntDObj(
                 scene.dpvs.localClientNum,
                 entnum,

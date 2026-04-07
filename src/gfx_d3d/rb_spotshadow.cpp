@@ -11,14 +11,17 @@
 #include "rb_shade.h"
 #include "rb_sunshadow.h"
 
-void __cdecl R_DrawSpotShadowMapCallback(const GfxSpotShadow **userData, GfxCmdBufContext context)
+void __cdecl R_DrawSpotShadowMapCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
     const GfxDrawSurfListInfo *drawList; // [esp+Ch] [ebp-8h]
     const GfxSpotShadow *spotShadow; // [esp+10h] [ebp-4h]
 
-    spotShadow = *userData;
-    drawList = (const GfxDrawSurfListInfo *)userData[1];
-    R_SetRenderTarget(context, (*userData)->renderTargetId);
+    const SpotShadowMapCallbackUserData *data = (const SpotShadowMapCallbackUserData *)userData;
+
+    spotShadow = data->shadow;
+    drawList = data->drawList;
+
+    R_SetRenderTarget(context, spotShadow->renderTargetId);
     if ( spotShadow->clearScreen )
         R_ClearScreen(context.state->prim.device, 3u, shadowmapClearColor, 1.0, 0, 0);
     if ( !gfxMetrics.hasHardwareShadowmap )
@@ -56,41 +59,42 @@ void __cdecl RB_SpotShadowMaps(const GfxBackEndData *data, const GfxViewInfo *vi
 
 void    R_DrawSpotShadowMapArray(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf)
 {
-    void *v3; // esp
-    unsigned int v4[2]; // [esp+18h] [ebp-1AC4h] BYREF
-    const GfxDrawSurfListInfo *v5; // [esp+20h] [ebp-1ABCh]
-    unsigned int i; // [esp+28h] [ebp-1AB4h]
-    const GfxBackEndData *data; // [esp+2Ch] [ebp-1AB0h]
     GfxCmdBufSourceState state; // [esp+30h] [ebp-1AACh] BYREF
 
-    //R_InitCmdBufSourceState(&state, &viewInfo->input, 0);
-    //R_SetWindShaderConstants(&state);
-    //data = viewInfo->input.data;
-    //for ( i = 0; i < data->spotShadowCount; ++i )
-    //{
-    //    v6 = &data->spotShadows[i];
-    //    v5 = &viewInfo->drawList[i + 10];
-    //    R_SetRenderTargetSize(&state, data->spotShadows[i].renderTargetId);
-    //    R_UpdateCodeConstant(
-    //        &state,
-    //        0x14u,
-    //        sm_polygonOffsetBias->current.value * 0.25,
-    //        sm_polygonOffsetScale->current.value,
-    //        0.0,
-    //        0.0);
-    //    R_SetViewportValues(&state, v6->viewport.x, v6->viewport.y, v6->viewport.width, v6->viewport.height);
-    //    v4[0] = v6;
-    //    v4[1] = v5;
-    //    R_DrawCall(
-    //        (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawSpotShadowMapCallback,
-    //        v4,
-    //        &state,
-    //        viewInfo,
-    //        v5,
-    //        &v6->shadowViewParms,
-    //        cmdBuf,
-    //        0);
-    //}
+    R_InitCmdBufSourceState(&state, &viewInfo->input, 0);
+    R_SetWindShaderConstants(&state);
+
+    const GfxBackEndData *data = viewInfo->input.data;
+
+    for ( unsigned int i = 0; i < data->spotShadowCount; ++i )
+    {
+        const GfxSpotShadow *shadow = &data->spotShadows[i];
+        const GfxDrawSurfListInfo *list = &viewInfo->drawList[DRAWLIST_SPOT_SHADOW_MAP0 + i];
+
+        R_SetRenderTargetSize(&state, data->spotShadows[i].renderTargetId);
+        R_UpdateCodeConstant(
+            &state,
+            CONST_SRC_CODE_SHADOWMAP_POLYGON_OFFSET,
+            sm_polygonOffsetBias->current.value * 0.25,
+            sm_polygonOffsetScale->current.value,
+            0.0,
+            0.0);
+        R_SetViewportValues(&state, shadow->viewport.x, shadow->viewport.y, shadow->viewport.width, shadow->viewport.height);
+
+        SpotShadowMapCallbackUserData userData;
+        userData.shadow = shadow;
+        userData.drawList = list;
+
+        R_DrawCall(
+            R_DrawSpotShadowMapCallback,
+            &userData,
+            &state,
+            viewInfo,
+            list,
+            &shadow->shadowViewParms,
+            cmdBuf,
+            0);
+    }
 
     R_InitCmdBufSourceState(&state, &viewInfo->input, 0);
     R_SetWindShaderConstants(&state);
@@ -109,8 +113,10 @@ void    R_DrawSpotShadowMapArray(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf)
             0.0);
         R_SetViewportValues(&state, spotShadow->viewport.x, spotShadow->viewport.y, spotShadow->viewport.width, spotShadow->viewport.height);
 
+
+
         R_DrawCall(
-            (void(__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawSpotShadowMapCallback,
+            R_DrawSpotShadowMapCallback,
             spotShadow,
             &state,
             viewInfo,

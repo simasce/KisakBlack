@@ -100,7 +100,7 @@ void R_DrawCloakHDR(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf, CloakPhaseID
     {
         if (phase == CLOAK_PHASE_CLOAKED)
             R_DrawCall(
-                (void(__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawCloakPostEmissiveCallbackHDR,
+                R_DrawCloakPostEmissiveCallbackHDR,
                 viewInfo,
                 &state,
                 viewInfo,
@@ -112,7 +112,7 @@ void R_DrawCloakHDR(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf, CloakPhaseID
     else
     {
         R_DrawCall(
-            (void(__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawCloakPrePassCallbackHDR,
+            R_DrawCloakPrePassCallbackHDR,
             viewInfo,
             &state,
             viewInfo,
@@ -126,7 +126,7 @@ void R_DrawCloakHDR(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf, CloakPhaseID
 }
 
 void __cdecl R_DrawCloakPrePassCallbackHDR(
-                const GfxViewInfo *userData,
+                const void *userData,
                 GfxCmdBufContext context,
                 GfxCmdBufContext prepassContext)
 {
@@ -135,14 +135,9 @@ void __cdecl R_DrawCloakPrePassCallbackHDR(
     GfxDrawSurfListInfo info; // [esp+38h] [ebp-58h] BYREF
     const GfxViewInfo *viewInfo; // [esp+8Ch] [ebp-4h]
 
-    v3 = 3;
-    for ( i = info.group; --v3 >= 0; ++i )
-    {
-        i->QueuedBatchCount = 0;
-        i->ExecutingBatchCount = 0;
-    }
-    viewInfo = userData;
-    R_SetRenderTarget(context, userData->sceneComposition.mainSceneMSAA);
+    viewInfo = (const GfxViewInfo *)userData;
+
+    R_SetRenderTarget(context, viewInfo->sceneComposition.mainSceneMSAA);
     if ( (viewInfo->sceneComposition.renderingMode & 7) == 0 )
         R_HW_EnableScissor(
             context.state->prim.device,
@@ -158,7 +153,7 @@ void __cdecl R_DrawCloakPrePassCallbackHDR(
 }
 
 void __cdecl R_DrawCloakPostEmissiveCallbackHDR(
-                const GfxViewInfo *userData,
+                const void *userData,
                 GfxCmdBufContext context,
                 GfxCmdBufContext prepassContext)
 {
@@ -167,14 +162,9 @@ void __cdecl R_DrawCloakPostEmissiveCallbackHDR(
     GfxDrawSurfListInfo info; // [esp+38h] [ebp-58h] BYREF
     const GfxViewInfo *viewInfo; // [esp+8Ch] [ebp-4h]
 
-    v3 = 3;
-    for ( i = info.group; --v3 >= 0; ++i )
-    {
-        i->QueuedBatchCount = 0;
-        i->ExecutingBatchCount = 0;
-    }
-    viewInfo = userData;
-    R_SetRenderTarget(context, userData->sceneComposition.mainSceneMSAA);
+    viewInfo = (const GfxViewInfo * )userData;
+
+    R_SetRenderTarget(context, viewInfo->sceneComposition.mainSceneMSAA);
     if ( (viewInfo->sceneComposition.renderingMode & 7) == 0 )
         R_HW_EnableScissor(
             context.state->prim.device,
@@ -207,7 +197,7 @@ void    R_DrawLit(
         if ( phase == LIT_PHASE_POST_RESOLVE )
         {
             R_DrawCall(
-                (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawLitPostResolveCallback,
+                R_DrawLitPostResolveCallback,
                 viewInfo,
                 &v6,
                 viewInfo,
@@ -224,7 +214,7 @@ void    R_DrawLit(
     else
     {
         R_DrawCall(
-            (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawLitCallback,
+            R_DrawLitCallback,
             viewInfo,
             &v6,
             viewInfo,
@@ -235,7 +225,7 @@ void    R_DrawLit(
     }
 }
 
-void __cdecl R_DrawLitCallback(char *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
+void __cdecl R_DrawLitCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
     const GfxViewInfo *viewInfo = (const GfxViewInfo *)userData;
 
@@ -254,7 +244,7 @@ void __cdecl R_DrawLitCallback(char *userData, GfxCmdBufContext context, GfxCmdB
         R_HW_DisableScissor(context.state->prim.device);
 }
 
-void __cdecl R_DrawLitPostResolveCallback(char *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
+void __cdecl R_DrawLitPostResolveCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
     const GfxViewInfo *viewInfo = (const GfxViewInfo *)userData;
 
@@ -299,7 +289,7 @@ void R_DrawDecal(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf, GfxCmdBuf *prep
 
     R_SetADSZScaleConstants(viewInfo->localClientNum, &v10);
     R_DrawCall(
-        (void(__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DrawDecalCallback,
+        R_DrawDecalCallback,
         viewInfo,
         &v10,
         viewInfo,
@@ -311,7 +301,7 @@ void R_DrawDecal(const GfxViewInfo *viewInfo, GfxCmdBuf *cmdBuf, GfxCmdBuf *prep
     //    D3DPERF_EndEvent();
 }
 
-void __cdecl R_DrawDecalCallback(char *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
+void __cdecl R_DrawDecalCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
     const GfxViewInfo *viewInfo = (const GfxViewInfo *)userData;
 

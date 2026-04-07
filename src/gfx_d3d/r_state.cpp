@@ -3651,9 +3651,8 @@ void __cdecl R_Set_Texture_SeeThruDecal(GfxCmdBufSourceState *source)
     R_SetCodeImageTexture(source, 0x26u, rgp.r32fWhiteImage);
 }
 
-// bad sp value at call has been detected, the output may be wrong!
 void R_DrawCall(
-    void(__cdecl *callback)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *),
+    void(__cdecl *callback)(const void *, GfxCmdBufContext, GfxCmdBufContext),
     const void *userData,
     GfxCmdBufSourceState *source,
     const GfxViewInfo *viewInfo,
@@ -3662,60 +3661,48 @@ void R_DrawCall(
     GfxCmdBuf *cmdBufEA,
     GfxCmdBuf *prepassCmdBufEA)
 {
-    void *v9; // esp
     GfxCmdBufState prepassCmdBuf; // [esp-27D0h] [ebp-27DCh] BYREF
     GfxCmdBufState cmdBuf; // [esp-1400h] [ebp-140Ch] BYREF
-    const GfxSceneDef *p_sceneDef; // [esp-24h] [ebp-30h]
-    const GfxCmdBufInput *p_input; // [esp-20h] [ebp-2Ch]
-    GfxCmdBuf *v14; // [esp-1Ch] [ebp-28h]
-    GfxCmdBuf *v15; // [esp-18h] [ebp-24h]
     GfxCmdBufContext prepassContext; // [esp-14h] [ebp-20h]
-    GfxCmdBufSourceState *v17; // [esp-Ch] [ebp-18h]
-    GfxCmdBufState *v18; // [esp-8h] [ebp-14h]
-    int v19; // [esp+0h] [ebp-Ch]
-    void *v20; // [esp+4h] [ebp-8h]
-    void *retaddr; // [esp+Ch] [ebp+0h]
+    GfxCmdBufContext context;
 
-    //v19 = a1;
-    //v20 = retaddr;
-    //v9 = alloca(10192);
-    v17 = 0;
-    v18 = 0;
+    context.source = source;
+    context.state = &cmdBuf;
+
     prepassContext.source = 0;
     prepassContext.state = 0;
-    v15 = cmdBufEA;
-    v14 = prepassCmdBufEA;
-    p_input = &viewInfo->input;
-    p_sceneDef = &viewInfo->sceneDef;
+
     if (info)
         info->isMissileCamera = viewInfo->isMissileCamera;
-    R_BeginView(source, p_sceneDef, viewParms);
-    cmdBuf.prim.device = v15->device;
+
+    R_BeginView(source, &viewInfo->sceneDef, viewParms);
+
+    cmdBuf.prim.device = cmdBufEA->device;
     R_InitLocalCmdBufState(&cmdBuf);
+
     R_Set_Texture_SeeThruDecal(source);
-    R_SetCodeImageTexture(source, 0x27u, gfxRenderTargets[20].image);
+    R_SetCodeImageTexture(source, 0x27u, gfxRenderTargets[R_RENDERTARGET_UI3D].image);
+
     if (viewInfo->isMissileCamera)
         R_SetCodeImageTexture(source, 0x28u, rgp.blackImage);
     else
-        R_SetCodeImageTexture(source, 0x28u, gfxRenderTargets[22].image);
-    if (v14)
+        R_SetCodeImageTexture(source, 0x28u, gfxRenderTargets[R_RENDERTARGET_MISSILE_CAM].image);
+
+    if (prepassCmdBufEA)
     {
-        prepassCmdBuf.prim.device = v14->device;
-        R_InitLocalCmdBufState(&prepassCmdBuf);
         prepassContext.source = source;
         prepassContext.state = &prepassCmdBuf;
-        v17 = source;
-        v18 = &cmdBuf;
-        callback(userData, source, &cmdBuf, source, &prepassCmdBuf);
-        memcpy(gfxCmdBufState.refSamplerState, prepassCmdBuf.refSamplerState, sizeof(gfxCmdBufState));
+
+        R_InitLocalCmdBufState(&prepassCmdBuf);
+
+        callback(userData, context, prepassContext);
+        memcpy(&gfxCmdBufState, &prepassCmdBuf, sizeof(gfxCmdBufState));
     }
     else
     {
-        prepassContext.source = 0;
-        prepassContext.state = 0;
-        v17 = source;
-        v18 = &cmdBuf;
-        callback(userData, source, &cmdBuf, 0, 0);
+        prepassContext.source = NULL;
+        prepassContext.state = NULL;
+        callback(userData, context, prepassContext);
     }
     memcpy(gfxCmdBufState.refSamplerState, cmdBuf.refSamplerState, sizeof(gfxCmdBufState));
 }

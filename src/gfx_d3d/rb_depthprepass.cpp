@@ -22,7 +22,7 @@ void    R_DepthPrepass(
         R_SetViewportStruct(&state, &viewInfo->cullViewInfo.sceneViewport);
         R_SetADSZScaleConstants(viewInfo->localClientNum, &state);
         R_DrawCall(
-            (void (__cdecl *)(const void *, GfxCmdBufSourceState *, GfxCmdBufState *, GfxCmdBufSourceState *, GfxCmdBufState *))R_DepthPrepassCallback,
+            R_DepthPrepassCallback,
             viewInfo,
             &state,
             viewInfo,
@@ -33,7 +33,7 @@ void    R_DepthPrepass(
     }
 }
 
-void __cdecl R_DepthPrepassCallback(const GfxViewInfo *userData, GfxCmdBufContext context)
+void __cdecl R_DepthPrepassCallback(const void *userData, GfxCmdBufContext context, GfxCmdBufContext prepassContext)
 {
     int v2; // [esp+44h] [ebp-64h]
     jqBatchGroup *i; // [esp+48h] [ebp-60h]
@@ -41,14 +41,9 @@ void __cdecl R_DepthPrepassCallback(const GfxViewInfo *userData, GfxCmdBufContex
     unsigned __int8 baseTechType; // [esp+A3h] [ebp-5h]
     const GfxViewInfo *viewInfo; // [esp+A4h] [ebp-4h]
 
-    v2 = 3;
-    for ( i = info.group; --v2 >= 0; ++i )
-    {
-        i->QueuedBatchCount = 0;
-        i->ExecutingBatchCount = 0;
-    }
-    viewInfo = userData;
-    if ( (userData->sceneComposition.renderingMode & 7) == 0 )
+    viewInfo = (const GfxViewInfo *)userData;
+
+    if ( (viewInfo->sceneComposition.renderingMode & 7) == 0 )
         R_HW_EnableScissor(
             context.state->prim.device,
             viewInfo->cullViewInfo.scissorViewport.x,
