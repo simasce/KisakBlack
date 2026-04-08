@@ -233,7 +233,7 @@ void __cdecl SP_light(gentity_s *self, SpawnVar *spawnVar)
         self->r.maxs[0] = radius;
         self->r.maxs[1] = radius;
         self->r.maxs[2] = radius;
-        self->s.eType = 10;
+        self->s.eType = ET_PRIMARY_LIGHT;
         if ( self->r.contents )
         {
             if ( !Assert_MyHandler(

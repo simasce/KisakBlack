@@ -266,7 +266,7 @@ int __cdecl SP_actor_spawner(gentity_s *pEnt, SpawnVar *spawnVar)
     pEnt->clipmask = 0;
     pEnt->r.contents = 0;
     pEnt->r.svFlags = 1;
-    pEnt->s.eType = 18;
+    pEnt->s.eType = ET_ACTOR_SPAWNER;
     pEnt->item[0].clipAmmoCount = -1;
     pEnt->item[0].ammoCount = 0;
     return 1;

@@ -156,7 +156,7 @@ void __cdecl G_SpawnHelicopter(gentity_s *ent, gentity_s *owner, char *vehicleIn
     G_SetModel(ent, modelName);
     G_SpawnVehicle(ent, vehicleInfoName, 1);
     ent->clipmask = 8389632;
-    ent->s.eType = 12;
+    ent->s.eType = ET_HELICOPTER;
     veh = ent->scr_vehicle;
     bg_vehicleInfos[veh->infoIdx].type = 6;
     veh->targetEnt = 1023;

@@ -1586,7 +1586,7 @@ void __cdecl G_AddPlayerMantleBlockage(float *endPos, int duration, pmove_t *pm)
     ent->r.contents = 0x10000;
     ent->clipmask = 0x10000;
     ent->r.svFlags = 33;
-    ent->s.eType = 5;
+    ent->s.eType = ET_INVISIBLE;
     ent->handler = 24;
     ent->r.mins[0] = owner->r.mins[0];
     ent->r.mins[1] = owner->r.mins[1];
@@ -1779,7 +1779,7 @@ void __cdecl IntermissionClientEndFrame(gentity_s *ent)
     client->ps.eFlags &= ~0x200000u;
     client->ps.eFlags &= ~0x40u;
     client->ps.viewmodelIndex = 0;
-    ent->s.eType = 5;
+    ent->s.eType = ET_INVISIBLE;
 }
 
 bool __cdecl G_ClientCanSpectateTeam(gclient_s *client, team_t team)
@@ -1829,7 +1829,7 @@ void __cdecl SpectatorClientEndFrame(gentity_s *ent)
     ent->takedamage = 0;
     ent->r.contents = 0;
     client->ps.otherFlags &= ~4u;
-    ent->s.eType = 5;
+    ent->s.eType = ET_INVISIBLE;
     client->ps.viewmodelIndex = 0;
     client->fGunPitch = 0.0f;
     client->fGunYaw = 0.0f;

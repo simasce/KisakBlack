@@ -2,6 +2,8 @@
 
 #include <universal/q_shared.h>
 
+enum entityType_t : __int16;
+
 struct LerpEntityStateTurret // sizeof=0x20
 {                                                                             // XREF: LerpEntityStateTypeUnion/r
         float gunAngles[3];
@@ -319,7 +321,8 @@ struct __declspec(align(4)) entityState_s // sizeof=0xE0
         unsigned __int8 events[4];
         unsigned __int16 eventParms[4];
         unsigned __int16 eventParm;
-        __int16 eType;                                            // XREF: BounceMissile+34D/r
+        //__int16 eType;                                            // XREF: BounceMissile+34D/r
+        entityType_t eType; // LWSS: enforce enum usage
                                                                                 // BounceMissile+3C5/r ...
         __int16 groundEntityNum;
         //entityState_s::<unnamed_type_index> index;

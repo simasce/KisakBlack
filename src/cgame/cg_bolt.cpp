@@ -19,7 +19,7 @@ void __cdecl CG_InitBolt(unsigned int localClientNum)
         g_BoltEnt[localClientNum][i] = CG_Spawn(localClientNum);
         if ( g_BoltEnt[localClientNum][i] )
         {
-            g_BoltEnt[localClientNum][i]->nextState.eType = 6;
+            g_BoltEnt[localClientNum][i]->nextState.eType = ET_SCRIPTMOVER;
             g_BoltEnt[localClientNum][i]->nextState.lerp.u.player.meleeWeapon = 1023;
             g_BoltEnt[localClientNum][i]->currentState.eFlags |= 0x20u;
             g_BoltEnt[localClientNum][i]->nextState.lerp.eFlags |= 0x20u;

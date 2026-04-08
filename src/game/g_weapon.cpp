@@ -391,9 +391,9 @@ gentity_s *__cdecl Weapon_Melee_internal(gentity_s *ent, weaponParms *wp, float 
             G_AddEvent(ent, 0x2Eu, hit_type);
         }
         if ( traceEnt->client || traceEnt->actor )
-            tent = G_TempEntity(hitOrigin, 44);
+            tent = G_TempEntity(hitOrigin, EV_MELEE_HIT);
         else
-            tent = G_TempEntity(hitOrigin, 45);
+            tent = G_TempEntity(hitOrigin, EV_MELEE_MISS);
         AssignToSmallerType<short>(&tent->s.otherEntityNum, traceEnt->s.number);
         v12 = *wp->weapDef->gunXModel && ent->client;
         tent->s.eventParm = v12;

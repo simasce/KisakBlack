@@ -292,7 +292,7 @@ void __thiscall UIViewer::Show()
                 Dvar_SetColor((dvar_s *)r_clearColor2, 0.0, 0.0, 0.0, 0.0);
                 Dvar_SetBool((dvar_s *)r_setFrameBufferAlpha, 1);
                 CL_ResetSkeletonCache(0);
-                cgArray->predictedPlayerEntity.nextState.eType = 1;
+                cgArray->predictedPlayerEntity.nextState.eType = ET_PLAYER;
                 if ( !this->animTree )
                 {
                     BG_LoadPlayerAnimTypes();
@@ -796,7 +796,7 @@ void __thiscall UIViewer::Update(float deltaTime)
             PM_Weapon(&this->pmove, &pml);
             v6 = (unsigned int *)((char *)UIViewer::GetPlayerEntity() + 804);
             *v6 |= 2u;
-            UIViewer::GetPlayerEntity()->nextState.eType = 1;
+            UIViewer::GetPlayerEntity()->nextState.eType = ET_PLAYER;
             UIViewer::GetPlayerEntity()->nextState.animState.state = this->ps.legsAnim;
             UIViewer::GetPlayerEntity()->nextState.anim.torsoAnim = this->ps.torsoAnim;
             this->bgs.clientinfo[0].pXAnimTree = UIViewer::GetAnimTree();
@@ -1369,7 +1369,7 @@ void __thiscall UIViewer::UpdatePlayerAnim(const WeaponVariantDef *weaponVariant
         UIViewer::GetPlayerEntity()->nextState.weapon = this->ps.weapon;
         v3 = (unsigned int *)((char *)UIViewer::GetPlayerEntity() + 804);
         *v3 |= 2u;
-        UIViewer::GetPlayerEntity()->nextState.eType = 1;
+        UIViewer::GetPlayerEntity()->nextState.eType = ET_PLAYER;
         BG_SetConditionBit(0, 1, weaponVariantDef->weapDef->weapClass);
         BG_SetConditionBit(0, 0, weaponVariantDef->weapDef->playerAnimType);
         BG_SetConditionValue(0, 0x16u, 1u);

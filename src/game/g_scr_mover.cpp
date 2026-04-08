@@ -194,7 +194,7 @@ void __cdecl InitScriptMover(gentity_s *pSelf)
     pSelf->handler = 8;
     pSelf->s.lerp.eFlags |= 0x10u;
     pSelf->r.svFlags = 0;
-    pSelf->s.eType = 6;
+    pSelf->s.eType = ET_SCRIPTMOVER;
     pSelf->s.lerp.pos.trBase[0] = pSelf->r.currentOrigin[0];
     pSelf->s.lerp.pos.trBase[1] = pSelf->r.currentOrigin[1];
     pSelf->s.lerp.pos.trBase[2] = pSelf->r.currentOrigin[2];

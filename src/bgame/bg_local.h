@@ -243,7 +243,8 @@ struct cgScriptMover_s // sizeof=0x60
 
 struct Material;
 
-enum entityType_t : __int32
+//enum entityType_t : __int32
+enum entityType_t : __int16
 {                                       // XREF: ?CG_EntityEvent@@YAXHPAUcentity_s@@H@Z/r
     ET_GENERAL         = 0x0,
     ET_PLAYER          = 0x1,
@@ -267,6 +268,8 @@ enum entityType_t : __int32
     ET_ACTOR_CORPSE    = 0x13,
     ET_STREAMER_HINT   = 0x14,
     ET_EVENTS          = 0x15,
+    // Numbers higher than this are used for Temp Entities
+    // (ET_EVENTS + entity_event_t) -- (See G_TempEntity())
 };
 
 struct centity_s // sizeof=0x328

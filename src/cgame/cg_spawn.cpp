@@ -312,7 +312,7 @@ void __cdecl CScr_SetDynamicEntityField(unsigned __int16 clientNum, centity_s *e
 void __cdecl CG_InitScriptMover(centity_s *cent)
 {
     cent->nextState.lerp.eFlags |= 0x10u;
-    cent->nextState.eType = 6;
+    cent->nextState.eType = ET_SCRIPTMOVER;
     cent->pose.eType = 6;
     cent->nextState.lerp.pos.trBase[0] = cent->pose.origin[0];
     cent->nextState.lerp.pos.trBase[1] = cent->pose.origin[1];

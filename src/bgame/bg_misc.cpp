@@ -2899,9 +2899,9 @@ void __cdecl BG_PlayerToEntitySetMisc(playerState_s *ps, entityState_s *s)
     if ( (ps->eFlags & 0x300) != 0 )
         s->otherEntityNum = ps->viewlocked_entNum;
     if ( (ps->otherFlags & 6) != 0 )
-        s->eType = 1;
+        s->eType = ET_PLAYER;
     else
-        s->eType = 5;
+        s->eType = ET_INVISIBLE;
     s->clientNum = ps->clientNum;
     if ( BG_GetWeaponDef(ps->weapon)->inventoryType == WEAPINVENTORY_ALTMODE )
     {

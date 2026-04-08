@@ -861,7 +861,7 @@ void __cdecl Bullet_ImpactEffect(
             }
             else
             {
-                tempEnt = G_TempEntity(br->hitPos, 51);
+                tempEnt = G_TempEntity(br->hitPos, EV_BULLET_HIT);
                 WeaponIndex = BG_GetWeaponIndex(weapVariantDef);
                 AssignToSmallerType<unsigned short>(&tempEnt->s.weapon, WeaponIndex);
                 tempEnt->s.eventParm = DirToByte(normal);

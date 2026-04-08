@@ -589,7 +589,7 @@ inline bool IsDedicatedServer()
 template <typename T>
 inline void AssignToSmallerType(T *dest, int src)
 {
-    *dest = src;
+    *dest = (T)src;
     iassert((int)*dest == src);
 }
 

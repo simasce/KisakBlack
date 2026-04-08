@@ -1805,7 +1805,7 @@ LABEL_13:
     {
         __debugbreak();
     }
-    cent->cent.nextState.eType = 9;
+    cent->cent.nextState.eType = ET_LOOP_FX;
     cent->cent.nextState.un1.scale = fxId;
     origin = cent->cent.pose.origin;
     cent->cent.pose.origin[0] = pos[0];
@@ -6644,7 +6644,7 @@ void __cdecl CScrCmd_MakeLight(scr_entref_t entref)
     vectoangles(facingDir, facingAngles);
     CG_SetAngle(pSelf, facingAngles);
     CG_SetOrigin(pSelf, light->origin);
-    pSelf->nextState.eType = 10;
+    pSelf->nextState.eType = ET_PRIMARY_LIGHT;
     pSelf->nextState.lerp.eFlags |= 0x20u;
     CG_LinkEntity(entref.client, entref.entnum);
     DynEnt_FixupLightConstraints(entref.client, entref.entnum, primaryLightIndex);

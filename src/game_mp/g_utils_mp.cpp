@@ -1925,14 +1925,14 @@ void __cdecl G_FreeEntityAfterEvent(gentity_s *ent)
     ent->freeAfterEvent = 1;
 }
 
-gentity_s *__cdecl G_TempEntity(const float *origin, int event)
+gentity_s *__cdecl G_TempEntity(const float *origin, entity_event_t event)
 {
     float snapped[3]; // [esp+0h] [ebp-10h] BYREF
     gentity_s *e; // [esp+Ch] [ebp-4h]
     int savedregs; // [esp+10h] [ebp+0h] BYREF
 
     e = G_Spawn();
-    AssignToSmallerType<short>(&e->s.eType, event + 21);
+    AssignToSmallerType<entityType_t>(&e->s.eType, ET_EVENTS + event);
     Scr_SetString(&e->classname, scr_const.tempEntity, SCRIPTINSTANCE_SERVER);
     e->eventTime = level.time;
     e->r.eventTime = level.time;
@@ -1940,7 +1940,7 @@ gentity_s *__cdecl G_TempEntity(const float *origin, int event)
     snapped[0] = *origin;
     snapped[1] = origin[1];
     snapped[2] = origin[2];
-    snapped[0] = (float)(int)snapped[0];
+    snapped[0] = (float)(int)snapped[0]; // KISAKTODO: SnapVector()
     snapped[1] = (float)(int)snapped[1];
     snapped[2] = (float)(int)snapped[2];
     G_SetOrigin(e, snapped);
@@ -2004,7 +2004,7 @@ gentity_s *__cdecl G_PlaySoundAliasAtPoint(const float *origin, unsigned int ali
     tmp = 0;
     if ( alias )
     {
-        tmp = G_TempEntity(origin, 4);
+        tmp = G_TempEntity(origin, EV_SOUND_ALIAS);
         tmp->r.svFlags |= 8u;
         tmp->s.loopSoundId = alias;
         tmp->s.otherEntityNum = 1022;
@@ -2029,7 +2029,7 @@ gentity_s *__cdecl G_PlaySoundAlias(gentity_s *ent, unsigned int alias, unsigned
     }
     if ( alias )
     {
-        tmp = G_TempEntity(ent->r.currentOrigin, 4);
+        tmp = G_TempEntity(ent->r.currentOrigin, EV_SOUND_ALIAS);
         tmp->r.svFlags |= 8u;
         tmp->s.loopSoundId = alias;
         AssignToSmallerType<short>(&tmp->s.otherEntityNum, ent->s.number);

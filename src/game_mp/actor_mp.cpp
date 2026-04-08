@@ -234,7 +234,7 @@ LABEL_2:
         ent->r.maxs[2] = 48.0;
         ent->clipmask = 0x2820011;
         ent->r.contents = 0x8000;
-        ent->s.eType = 17;
+        ent->s.eType = ET_ACTOR;
         AssignToSmallerType<int>(&ent->s.lerp.useCount, ent->useCount + 1);
         ent->s.lerp.u.turret.ownerNum = 1023;
         G_SetOrigin(ent, ent->r.currentOrigin);

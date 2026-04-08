@@ -657,7 +657,7 @@ int __cdecl Actor_BecomeCorpse(gentity_s *self)
         __debugbreak();
     }
     body->physicsObject = 1;
-    body->s.eType = 19;
+    body->s.eType = ET_ACTOR_CORPSE;
     dobj = Com_GetServerDObj(self->s.number);
     tree = DObjGetTree(dobj);
     for ( axis = 0; axis < 2; ++axis )

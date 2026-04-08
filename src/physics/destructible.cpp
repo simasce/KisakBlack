@@ -800,7 +800,7 @@ void __cdecl DestructibleExplosiveDamageEvent(
 {
     gentity_s *tent; // [esp+1Ch] [ebp-4h]
 
-    tent = G_TempEntity(point, 55);
+    tent = G_TempEntity(point, EV_DESTRUCTIBLE_EXPLOSION_HIT);
     if ( tent )
     {
         AssignToSmallerType<short>(&tent->s.otherEntityNum, self->s.number);
@@ -832,7 +832,7 @@ void __cdecl DestructibleBulletDamageEvent(
 {
     gentity_s *tent; // [esp+1Ch] [ebp-4h]
 
-    tent = G_TempEntity(point, 54);
+    tent = G_TempEntity(point, EV_DESTRUCTIBLE_BULLET_HIT);
     if ( tent )
     {
         AssignToSmallerType<short>(&tent->s.otherEntityNum, self->s.number);
@@ -1503,7 +1503,7 @@ void __cdecl CG_DestructibleClientOnlyCreate(centity_s *ent, DestructibleDef *dd
         __debugbreak();
     }
     ent->destructible->entNum = ent->nextState.number;
-    ent->nextState.eType = 6;
+    ent->nextState.eType = ET_SCRIPTMOVER;
     ent->nextState.lerp.pos.trBase[0] = ent->pose.origin[0];
     ent->nextState.lerp.pos.trBase[1] = ent->pose.origin[1];
     ent->nextState.lerp.pos.trBase[2] = ent->pose.origin[2];

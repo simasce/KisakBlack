@@ -633,7 +633,7 @@ void __cdecl VEH_InitEntity(gentity_s *ent, scr_vehicle_s *veh, int infoIdx)
     ent->r.contents = 8462464;
     if ( (ent->spawnflags & 1) != 0 )
         ent->r.contents |= 0x200000u;
-    ent->s.eType = 14;
+    ent->s.eType = ET_VEHICLE;
     if ( (ent->s.lerp.eFlags & 0x20000) != 0 )
         ent->s.lerp.eFlags |= 0x20000u;
     ent->s.lerp.pos.trType = 1;
@@ -2978,7 +2978,7 @@ void __cdecl G_SpawnVehicle(gentity_s *ent, char *typeName, int load)
     if ( (ent->spawnflags & 2) != 0 )
     {
         G_FreeVehicle(ent);
-        ent->s.eType = 16;
+        ent->s.eType = ET_VEHICLE_CORPSE;
     }
 }
 
@@ -3247,7 +3247,7 @@ void __cdecl VEH_InitModelAndValidateTags(gentity_s *ent, int *infoIdx)
         }
         *infoIdx = defaultInfoIdx;
     }
-    ent->s.eType = 14;
+    ent->s.eType = ET_VEHICLE;
     G_DObjUpdate(ent);
     if ( !VEH_DObjHasRequiredTags(ent, *infoIdx) )
     {
@@ -8696,7 +8696,7 @@ void __cdecl SP_script_vehicle(gentity_s *pSelf, SpawnVar *spawnVar)
 void __cdecl SP_script_vehicle_collmap(gentity_s *pSelf, SpawnVar *v)
 {
     pSelf->r.contents = 0;
-    pSelf->s.eType = 15;
+    pSelf->s.eType = ET_VEHICLE_COLLMAP;
 }
 
 void (__cdecl *__cdecl ScriptVehicle_GetMethod(const char **pName))(scr_entref_t)
@@ -9245,7 +9245,7 @@ void __cdecl CMD_VEH_FreeVehicle(scr_entref_t entref)
     if ( !veh->nitrousVehicle )
     {
         G_FreeVehicle(ent);
-        ent->s.eType = 16;
+        ent->s.eType = ET_VEHICLE_CORPSE;
         Scr_SetString(&ent->classname, scr_const.script_vehicle_corpse, SCRIPTINSTANCE_SERVER);
     }
     ent->flags |= 0x40000u;

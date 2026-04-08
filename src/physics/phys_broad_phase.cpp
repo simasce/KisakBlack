@@ -3173,7 +3173,6 @@ void __thiscall axis_aligned_sweep_and_prune::init_system(int max_num_active_pai
 
 void    process_cluster_environment_collision_prolog(broad_phase_info *bpb, broad_phase_base *info)
 {
-    unsigned int m_flags; // eax
     const phys_vec3 *v4; // eax
     const phys_vec3 *v5; // eax
     phys_vec3 v6; // [esp-10h] [ebp-1Ch] BYREF
@@ -3182,26 +3181,18 @@ void    process_cluster_environment_collision_prolog(broad_phase_info *bpb, broa
     //
     //v7[0] = a1;
     //v7[1] = retaddr;
-    m_flags = bpb->m_flags;
-    if ( (m_flags & 1) != 0 ) // guessing this is "info" flag that marks it as `broad_phase_info`
+    if ( bpb->is_bpi() )
     {
         //broad_phase_info::collision_prolog(bpb);
         bpb->collision_prolog();
     }
     else
     {
-        if ( (m_flags & 2) == 0
-            && _tlAssert(
-                     "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\collision\\phys_broad_phase_base.h",
-                     100,
-                     "is_bpg()",
-                     "") )
-        {
-            __debugbreak();
-        }
+        iassert(bpb->is_bpg());
         //broad_phase_group::collision_prolog((broad_phase_group *)bpb, (int)v7);
         bpb->get_bpg()->collision_prolog();
     }
+
     bpb->m_flags &= ~0x10u;
     bpb->m_list_bpb_cluster_next = 0;
     v4 = phys_min(&v6, &info->m_trace_aabb_min_whace, &bpb->m_trace_aabb_min_whace);

@@ -772,7 +772,7 @@ gentity_s *__cdecl LaunchItem(const gitem_s *item, float *origin, float *angles,
     //EntHandle::setEnt((EntHandle *)(4 * dropIdx + 65348584), dropped);
     //EntHandle::setEnt(&level.droppedWeaponCue[dropIdx], dropped);
     level.droppedWeaponCue[dropIdx].setEnt(dropped);
-    dropped->s.eType = 3;
+    dropped->s.eType = ET_ITEM;
     dropped->s.un3.item = (unsigned __int16)itemIndex;
     if ( dropped->s.un3.item >= 0x800u
         && !Assert_MyHandler(
@@ -1582,7 +1582,7 @@ void __cdecl G_SpawnItem(gentity_s *ent, const gitem_s *item)
     ent->r.maxs[2] = 1.0f;
     ent->r.contents = 1079771400;
     ent->r.contents |= 0x200000u;
-    ent->s.eType = 3;
+    ent->s.eType = ET_ITEM;
     ent->s.un3.item = *((unsigned __int16 *)&ent->spawner + 4);
     if ( ent->s.un3.item >= 0x800u
         && !Assert_MyHandler(

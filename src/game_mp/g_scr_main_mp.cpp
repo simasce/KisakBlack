@@ -1900,12 +1900,12 @@ void GScr_SpawnPlane()
     if ( G_CallSpawnEntity(ent) )
     {
         Scr_AddEntity(ent, SCRIPTINSTANCE_SERVER);
-        ent->s.eType = 13;
+        ent->s.eType = ET_PLANE;
         ent->s.faction.iHeadIconTeam = team | (4 * ownerIndex);
     }
     else
     {
-        ent->s.eType = 13;
+        ent->s.eType = ET_PLANE;
         ent->s.faction.iHeadIconTeam = team | (4 * ownerIndex);
         v0 = SL_ConvertToString(classname, SCRIPTINSTANCE_SERVER);
         v1 = va("unable to spawn \"%s\" entity", v0);
@@ -1942,7 +1942,7 @@ void GScr_SpawnTimedFX()
     G_SetOrigin(ent, origin);
     ent->s.weapon = weaponIndex;
     Vec3Normalize(direction);
-    ent->s.eType = 0;
+    ent->s.eType = ET_GENERAL;
     ent->s.lerp.eFlags |= 0x20u;
     ent->s.weapon = ent->s.weapon;
     G_BroadcastEntity(ent);
@@ -3437,7 +3437,7 @@ gentity_s *__cdecl StartScriptPlayBattleChatterOnEnt(scr_entref_t entref)
     gentity_s *ent; // [esp+4h] [ebp-4h]
 
     ent = GetEntity(entref);
-    tmp = G_TempEntity(ent->r.currentOrigin, 6);
+    tmp = G_TempEntity(ent->r.currentOrigin, EV_SOUND_BATTLECHAT_ALIAS);
     tmp->r.svFlags |= 8u;
     String = Scr_GetString(0, SCRIPTINSTANCE_SERVER);
     tmp->s.loopSoundId = SND_FindAliasId(String);
@@ -3874,7 +3874,7 @@ void __cdecl GScr_FakeFire(scr_entref_t entref)
     ent->s.lerp.eFlags |= 0x40u;
     if ( ent->s.eType == 1 )
     {
-        ent = G_TempEntity(origin, 69);
+        ent = G_TempEntity(origin, EV_FAKE_FIRE);
         ent->s.eventParm = iWeaponIndex;
     }
     else
@@ -5577,7 +5577,7 @@ void GScr_Obituary()
     weapondef = BG_GetWeaponDef(iWeaponNum);
     iMODNum = G_MeansOfDeathFromScriptParam(3u);
     pOtherEnt = Scr_GetEntity(0);
-    pEnt = G_TempEntity(vec3_origin, 94);
+    pEnt = G_TempEntity(vec3_origin, EV_OBITUARY);
     pEnt->s.otherEntityNum = pOtherEnt->s.number;
     if (Scr_GetType(1u, SCRIPTINSTANCE_SERVER) == 1 && Scr_GetPointerType(1u, SCRIPTINSTANCE_SERVER) == 19)
         pEnt->s.attackerEntityNum = Scr_GetEntity(1u)->s.number;
@@ -5613,7 +5613,7 @@ void __cdecl GScr_ReviveObituary()
     victim_entity = Scr_GetEntity(0);
     if ( victim_entity->s.eType == 1 )
     {
-        temporary_entity = G_TempEntity(vec3_origin, 95);
+        temporary_entity = G_TempEntity(vec3_origin, EV_REVIVE_OBITUARY);
         client_index = victim_entity->client->ps.clientNum;
         temporary_entity->r.clientMask[0] = -1;
         temporary_entity->s.eventParms[0] = client_index;
@@ -7622,7 +7622,7 @@ void __cdecl GScr_SpawnNapalmGroundFlame(scr_entref_t entref)
     G_SetOrigin(ent, origin);
     G_SetAngle(ent, direction);
     ent->s.weapon = weaponIndex;
-    ent->s.eType = 0;
+    ent->s.eType = ET_GENERAL;
     ent->s.lerp.eFlags |= 0x20u;
     ent->s.weapon = ent->s.weapon;
     G_BroadcastEntity(ent);
@@ -8190,7 +8190,7 @@ void Scr_GrenadeExplosionEffect()
     vPos[0] = vOrg[0];
     vPos[1] = vOrg[1];
     vPos[2] = vOrg[2] + 1.0;
-    pEnt = G_TempEntity(vPos, 57);
+    pEnt = G_TempEntity(vPos, EV_GRENADE_EXPLODE);
     vDir[0] = 0.0f;
     vDir[1] = 0.0f;
     vDir[2] = 1.0f;
@@ -8494,7 +8494,7 @@ void __cdecl GScr_DirectionalHitIndicator(scr_entref_t entref)
     if ( Scr_GetNumParam(SCRIPTINSTANCE_SERVER) == 2 )
         hitEntBitArray1 = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     memset(zero_vec, 0, sizeof(zero_vec));
-    temporary_entity = G_TempEntity(zero_vec, 96);
+    temporary_entity = G_TempEntity(zero_vec, EV_DIRECTIONAL_HIT_INDICATOR);
     temporary_entity->r.clientMask[0] = -1;
     temporary_entity->s.eventParms[0] = hitEntBitArray0;
     temporary_entity->s.eventParms[1] = hitEntBitArray1;
@@ -8730,7 +8730,7 @@ void Scr_PlayFX()
         Scr_Error("Incorrect number of parameters", 0);
     fxId = Scr_GetInt(0, SCRIPTINSTANCE_SERVER);
     Scr_GetVector(1u, pos, SCRIPTINSTANCE_SERVER);
-    ent = G_TempEntity(pos, 70);
+    ent = G_TempEntity(pos, EV_PLAY_FX);
     if ( ent->s.lerp.apos.trType
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\game_mp\\g_scr_main_mp.cpp",
@@ -8954,7 +8954,7 @@ LABEL_13:
     if ( repeat <= 0 )
         Scr_FxParamError(1u, "playLoopedFx called with repeat < 0.001 seconds", fxId);
     ent = G_Spawn();
-    ent->s.eType = 9;
+    ent->s.eType = ET_LOOP_FX;
     ent->r.svFlags |= 8u;
     ent->s.un1.scale = fxId;
     if ( ent->s.un1.scale != fxId
@@ -9009,7 +9009,7 @@ void Scr_SpawnFX()
 LABEL_12:
     Scr_GetVector(1u, pos, SCRIPTINSTANCE_SERVER);
     ent = G_Spawn();
-    ent->s.eType = 8;
+    ent->s.eType = ET_FX;
     ent->r.svFlags |= 8u;
     ent->s.un1.scale = fxId;
     if ( ent->s.un1.scale != fxId
@@ -9141,7 +9141,7 @@ void __cdecl GScr_CreateDynEntAndLaunch()
     Scr_GetVector(4u, force, SCRIPTINSTANCE_SERVER);
     if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 5 )
         fxId = Scr_GetInt(5u, SCRIPTINSTANCE_SERVER);
-    v1 = G_TempEntity(pos, 76);
+    v1 = G_TempEntity(pos, EV_CREATE_DYNENT);
     tempent = v1;
     v1->s.lerp.pos.trDelta[0] = hitpos[0];
     v1->s.lerp.pos.trDelta[1] = hitpos[1];
@@ -9169,7 +9169,7 @@ void Scr_PhysicsExplosionSphere()
         Scr_Error("Incorrect number of parameters", 0);
     }
     Scr_GetVector(0, pos, SCRIPTINSTANCE_SERVER);
-    ent = G_TempEntity(pos, 72);
+    ent = G_TempEntity(pos, EV_PHYS_EXPLOSION_SPHERE);
     ent->s.eventParm = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     ent->s.lerp.u.turret.gunAngles[0] = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
     ent->s.lerp.u.actor.team = 0.0f;
@@ -9196,7 +9196,7 @@ void Scr_CreateStreamerHint()
     Scr_GetVector(0, origin, SCRIPTINSTANCE_SERVER);
     ent = G_Spawn();
     G_SetOrigin(ent, origin);
-    ent->s.eType = 20;
+    ent->s.eType = ET_STREAMER_HINT;
     ent->flags |= 0x1000u;
     ent->s.lerp.pos.trType = 0;
     ent->s.lerp.u.turret.gunAngles[0] = Scr_GetFloat(1u, SCRIPTINSTANCE_SERVER);
@@ -9214,7 +9214,7 @@ void Scr_PhysicsRadiusJolt()
     if (Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 4)
         Scr_Error("Incorrect number of parameters", 0);
     Scr_GetVector(0, pos, SCRIPTINSTANCE_SERVER);
-    ent = G_TempEntity(pos, 74);
+    ent = G_TempEntity(pos, EV_PHYS_EXPLOSION_JOLT);
     ent->s.eventParm = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     ent->s.lerp.u.turret.gunAngles[0] = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
     if (ent->s.lerp.u.turret.gunAngles[0] < 0.0)
@@ -9238,7 +9238,7 @@ void Scr_PhysicsExplosionCylinder()
     if (Scr_GetNumParam(SCRIPTINSTANCE_SERVER) != 4)
         Scr_Error("Incorrect number of parameters", 0);
     Scr_GetVector(0, pos, SCRIPTINSTANCE_SERVER);
-    ent = G_TempEntity(pos, 73);
+    ent = G_TempEntity(pos, EV_PHYS_EXPLOSION_CYLINDER);
     ent->s.eventParm = (unsigned __int16)Scr_GetInt(1u, SCRIPTINSTANCE_SERVER);
     ent->s.lerp.u.turret.gunAngles[0] = Scr_GetFloat(2u, SCRIPTINSTANCE_SERVER);
     if (ent->s.lerp.u.turret.gunAngles[0] < 0.0)
@@ -10021,7 +10021,7 @@ void GScr_Earthquake()
         target = 0;
     else
         target = Scr_GetEntity(4u);
-    tent = G_TempEntity(source, 88);
+    tent = G_TempEntity(source, EV_EARTHQUAKE);
     tent->s.lerp.u.turret.gunAngles[0] = scale;
     tent->s.lerp.u.actor.team = duration;
     tent->s.lerp.u.turret.gunAngles[1] = radius;
@@ -13037,7 +13037,7 @@ LABEL_22:
     {
         Bullet_Fire(attacker, 0.0, &wp, 0, level.time);
     }
-    tempEnt = G_TempEntity(source, 29);
+    tempEnt = G_TempEntity(source, EV_FIRE_WEAPON);
     vectoangles(dir, angles);
     G_SetAngle(tempEnt, angles);
     tempEnt->s.weapon = weapon;
@@ -13467,7 +13467,7 @@ void __cdecl GScr_RagdollLaunch(scr_entref_t entref)
     if ( Com_IsRagdollTrajectory(&ent->s.lerp.pos) )
     {
         Scr_GetVector(0, force, SCRIPTINSTANCE_SERVER);
-        tempent = G_TempEntity(force, 75);
+        tempent = G_TempEntity(force, EV_PHYS_LAUNCH);
         tempent->s.otherEntityNum = ent->s.number;
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) <= 1 )
         {
@@ -13492,7 +13492,7 @@ void __cdecl GScr_VehicleLaunch(scr_entref_t entref)
     if ( ent->scr_vehicle && ent->scr_vehicle->nitrousVehicle )
     {
         Scr_GetVector(0, force, SCRIPTINSTANCE_SERVER);
-        tempent = G_TempEntity(force, 75);
+        tempent = G_TempEntity(force, EV_PHYS_LAUNCH);
         tempent->s.otherEntityNum = ent->s.number;
         tempent->s.eventParm = 0;
         if ( (unsigned int)Scr_GetNumParam(SCRIPTINSTANCE_SERVER) > 2 )
@@ -13965,7 +13965,7 @@ void __cdecl GScr_DisableDestructiblePieces()
     v0.intValue = Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
     DisableDestructiblePiece(v0.intValue);
     memset(zero_vec, 0, sizeof(zero_vec));
-    tempent = G_TempEntity(zero_vec, 183);
+    tempent = G_TempEntity(zero_vec, EV_DESTRUCTIBLE_DISABLE_PIECES);
     tempent->s.eventParm = (unsigned __int16)Scr_GetConstString(0, SCRIPTINSTANCE_SERVER);
 }
 
@@ -13976,7 +13976,7 @@ void __cdecl GScr_EnableAllDestructiblePieces()
 
     EnableAllDestructiblePieces();
     memset(zero_vec, 0, sizeof(zero_vec));
-    tempent = G_TempEntity(zero_vec, 183);
+    tempent = G_TempEntity(zero_vec, EV_DESTRUCTIBLE_DISABLE_PIECES);
     tempent->s.eventParm = 0;
 }
 

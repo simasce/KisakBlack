@@ -2476,7 +2476,7 @@ void __cdecl ActorCmd_finishActorDamage(scr_entref_t entref)
             {
                 if (iWeapon && BG_GetWeaponDef(iWeapon)->weapType == WEAPTYPE_BULLET && IsBulletImpactMOD(mod))
                 {
-                    tempBulletHitEntity = G_TempEntity(vPoint, 51);
+                    tempBulletHitEntity = G_TempEntity(vPoint, EV_BULLET_HIT);
                     AssignToSmallerType<unsigned short>(&tempBulletHitEntity->s.weapon, iWeapon);
                     v3 = DirToByte(localdir);
                     tempBulletHitEntity->s.eventParm = v3;

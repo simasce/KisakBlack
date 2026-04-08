@@ -36,6 +36,16 @@ struct __declspec(align(8)) broad_phase_base // sizeof=0x50
     // padding byte
     // padding byte
 
+    bool is_bpi()
+    {
+        return (this->m_flags & 1) != 0;
+    }
+
+    bool is_bpg()
+    {
+        return (this->m_flags & 2) != 0;
+    }
+
     broad_phase_base *get_bpb_cluster_next()
     {
         return m_list_bpb_cluster_next;

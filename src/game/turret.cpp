@@ -2821,7 +2821,7 @@ void __cdecl G_SpawnTurret(gentity_s *self, const char *weaponinfoname, SpawnVar
     self->clipmask = 1;
     self->r.contents = 2097156;
     self->r.svFlags = 0;
-    self->s.eType = 11;
+    self->s.eType = ET_MG42;
     self->flags |= 0x1000u;
     G_DObjUpdate(self);
     obj = Com_GetServerDObj(self->s.number);

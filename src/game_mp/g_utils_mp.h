@@ -7,6 +7,8 @@
 struct DObjAnimMat;
 struct DObjTrace_s;
 
+enum entity_event_t : __int32;
+
 void __cdecl G_ClearCachedModels();
 int __cdecl G_FindConfigstringIndex(char *name, int start, int max, int create, const char *errormsg);
 int __cdecl G_LocalizedStringIndex(char *string);
@@ -80,7 +82,7 @@ void __cdecl G_FreeEntity(gentity_s *ed);
 void __cdecl G_FreeEntityDelay(gentity_s *ed);
 void __cdecl G_BroadcastEntity(gentity_s *ent);
 void __cdecl G_FreeEntityAfterEvent(gentity_s *ent);
-gentity_s *__cdecl G_TempEntity(const float *origin, int event);
+gentity_s *__cdecl G_TempEntity(const float *origin, entity_event_t event);
 void __cdecl G_AddPredictableEvent(gentity_s *ent, unsigned int event, unsigned int eventParm);
 void __cdecl G_AddEvent(gentity_s *ent, unsigned int event, unsigned int eventParm);
 gentity_s *__cdecl G_PlaySoundAliasAtPoint(const float *origin, unsigned int alias);

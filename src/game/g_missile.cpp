@@ -589,7 +589,7 @@ void    G_ExplodeMissile(gentity_s *ent)
             if (doEvent)
             {
                 eventEnt = G_Spawn();
-                eventEnt->s.eType = 0;
+                eventEnt->s.eType = ET_GENERAL;
                 eventEnt->s.lerp.eFlags |= 0x20u;
                 eventEnt->s.weapon = ent->s.weapon;
                 eventEnt->s.weaponModel = ent->s.weaponModel;
@@ -1883,7 +1883,7 @@ void    MissileImpact(gentity_s *ent, trace_t *trace, float *dir, float *endpos)
                             break;
                         case 8:
                             eventEnt = G_Spawn();
-                            eventEnt->s.eType = 0;
+                            eventEnt->s.eType = ET_GENERAL;
                             eventEnt->s.lerp.eFlags |= 0x20u;
                             eventEnt->s.weapon = ent->s.weapon;
                             eventEnt->s.weaponModel = ent->s.weaponModel;
@@ -3591,7 +3591,7 @@ void __cdecl RunMissile_CreateWaterSplash(const gentity_s *missile, const float 
     Vec3NormalizeTo(missile->s.lerp.pos.trDelta, reflect);
     if ( reflect[2] < 0.0 )
         reflect[2] = reflect[2] * -1.0;
-    tent = G_TempEntity(hitPos, 56);
+    tent = G_TempEntity(hitPos, EV_GRENADE_BOUNCE);
     tent->s.eventParm = DirToByte(trace->normal.vec.v);
     tent->s.un1.scale = 0;
     tent->s.surfType = (int)(0x3F00000 & trace->sflags) >> 20;
@@ -5103,7 +5103,7 @@ void __cdecl G_InitGrenadeEntity(gentity_s *parent, gentity_s *grenade)
     weapDef = BG_GetWeaponDef(grenade->s.weapon);
     if ( !weapDef && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\game\\g_missile.cpp", 4109, 0, "%s", "weapDef") )
         __debugbreak();
-    grenade->s.eType = 4;
+    grenade->s.eType = ET_MISSILE;
     grenade->s.lerp.eFlags = 0x1000000;
     grenade->s.lerp.u.actor.actorNum = level.time;
     fusetime = weapDef->aiFuseTime;
@@ -5447,7 +5447,7 @@ gentity_s *__cdecl G_FireRocket(
     }
     bolt = G_Spawn();
     Scr_SetString(&bolt->classname, scr_const.rocket, SCRIPTINSTANCE_SERVER);
-    bolt->s.eType = 4;
+    bolt->s.eType = ET_MISSILE;
     AssignToSmallerType<unsigned short>(&bolt->s.weapon, weaponIndex);
     bolt->s.weaponModel = 0;
     bolt->s.lerp.u.actor.actorNum = level.time;
@@ -5764,7 +5764,7 @@ gentity_s *__cdecl G_DropBomb(
     }
     bolt = G_Spawn();
     Scr_SetString(&bolt->classname, scr_const.rocket, SCRIPTINSTANCE_SERVER);
-    bolt->s.eType = 4;
+    bolt->s.eType = ET_MISSILE;
     AssignToSmallerType<unsigned short>(&bolt->s.weapon, weaponIndex);
     bolt->s.lerp.u.actor.actorNum = level.time;
     if ( parent->client )

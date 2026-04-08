@@ -32,6 +32,7 @@
 #include <cgame/cg_drawtools.h>
 #include <xanim/xanim_clientnotify.h>
 #include <cgame_mp/cg_local_mp.h>
+#include <bgame/bg_misc.h>
 
 float S_HEAVY_TILT_FAKEY = 0.40000001;
 float S_HEAVY_TANK_ACCEL = 15.0;
@@ -1351,7 +1352,7 @@ void __thiscall NitrousVehicle::damage(int damage, const float *point, const flo
         force[2] = (float)((float)damage * forcescale) * force[2];
         if ( this->m_owner )
         {
-            tempent = G_TempEntity(force, 75);
+            tempent = G_TempEntity(force, EV_PHYS_LAUNCH);
             AssignToSmallerType<short>(&tempent->s.otherEntityNum, this->m_owner->s.number);
             tempent->s.lerp.pos.trDelta[0] = force[0];
             tempent->s.lerp.pos.trDelta[1] = force[1];

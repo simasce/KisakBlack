@@ -3896,7 +3896,7 @@ void __cdecl PlayerCmd_finishPlayerDamage(scr_entref_t entref)
             }
             if ( iWeapon && BG_GetWeaponDef(iWeapon)->weapType == WEAPTYPE_BULLET && IsBulletImpactMOD(mod) )
             {
-                tempBulletHitEntity = G_TempEntity(vPoint, 51);
+                tempBulletHitEntity = G_TempEntity(vPoint, EV_BULLET_HIT);
                 AssignToSmallerType<unsigned short>(&tempBulletHitEntity->s.weapon, iWeapon);
                 v5 = DirToByte(localdir);
                 tempBulletHitEntity->s.eventParm = v5;
@@ -3919,7 +3919,7 @@ void __cdecl PlayerCmd_finishPlayerDamage(scr_entref_t entref)
                 tempBulletHitEntity->r.clientMask[(int)pSelf->client->ps.clientNum >> 5] |= 1 << (pSelf->client->ps.clientNum
                                                                                                                                                                                 & 0x1F);
                 WeaponDef = BG_GetWeaponDef(iWeapon);
-                tent = G_TempEntity(vPoint, WeaponDef->bRifleBullet + 52);
+                tent = G_TempEntity(vPoint, (entity_event_t)(WeaponDef->bRifleBullet + EV_BULLET_HIT_CLIENT_SMALL));
                 AssignToSmallerType<unsigned short>(&tent->s.weapon, iWeapon);
                 tent->s.surfType = iSurfType;
                 AssignToSmallerType<short>(&tent->s.otherEntityNum, attacker->s.number);
@@ -5191,7 +5191,7 @@ void __cdecl PlayerCmd_ClonePlayer(scr_entref_t entref)
     {
         __debugbreak();
     }
-    body->s.eType = 2;
+    body->s.eType = ET_PLAYER_CORPSE;
     body->physicsObject = 1;
     body->model = pSelf->model;
     body->s.renderOptions.i = pSelf->s.renderOptions.i;
