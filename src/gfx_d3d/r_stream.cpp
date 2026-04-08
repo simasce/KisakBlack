@@ -2521,36 +2521,33 @@ void __cdecl R_StreamUpdateForXModel(const XModel *remoteModel, float distSq)
 
 int __cdecl r_stream_update_staticmodelsCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+0h] [ebp-4h]
-
     if ( batch->Module->Group.ExecutingBatchCount > 1 )
         return 1;
-    data = jqLockData(batch);
-    R_Stream_UpdateStaticModelsCmd((char *)data);
+
+    char *data = (char *)jqLockData(batch);
+    R_Stream_UpdateStaticModelsCmd(data);
     jqUnlockData(batch);
     return 0;
 }
 
 int __cdecl r_stream_update_staticsurfacesCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+0h] [ebp-4h]
-
     if ( batch->Module->Group.ExecutingBatchCount > 1 )
         return 1;
-    data = jqLockData(batch);
-    R_Stream_UpdateStaticSurfacesCmd((char *)data);
+
+    char *data = (char *)jqLockData(batch);
+    R_Stream_UpdateStaticSurfacesCmd(data);
     jqUnlockData(batch);
     return 0;
 }
 
 int __cdecl r_stream_sortCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+0h] [ebp-4h]
-
     if ( jqPoll(&r_stream_combineModule.Group) || jqPoll(&r_stream_updateModule.Group) )
         return 1;
-    data = jqLockData(batch);
-    R_Stream_SortCmd((unsigned char*)data);
+
+    unsigned char *data = (unsigned char *)jqLockData(batch);
+    R_Stream_SortCmd(data);
     jqUnlockData(batch);
     return 0;
 }
@@ -2571,13 +2568,13 @@ int __cdecl r_stream_combineCallback(jqBatch *batch)
 
 int __cdecl r_stream_updateCallback(jqBatch *batch)
 {
-    unsigned int *cmd; // [esp+Ch] [ebp-4h]
+    StreamUpdateCmd *cmd; // [esp+Ch] [ebp-4h]
 
-    if ( batch->Module->Group.ExecutingBatchCount > 1 )
+    if (batch->Module->Group.ExecutingBatchCount > 1)
         return 1;
-    cmd = jqLockData(batch);
-    s_viewPos = *(float4 *)(cmd + 1);
-    R_StreamUpdateStatic((const float *)cmd + 1, *((float *)cmd + 4), (float *)cmd + 5);
+    cmd = (StreamUpdateCmd *)jqLockData(batch);
+    s_viewPos = *(float4 *)cmd->viewPos;
+    R_StreamUpdateStatic(cmd->viewPos, cmd->maxDistSq, cmd->distanceScale);
     jqUnlockData(batch);
     return 0;
 }

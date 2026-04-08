@@ -46,18 +46,29 @@ void __cdecl jqSafeFlush(jqBatchGroup *group, unsigned __int64 batchCount)
     jqFlush(group, batchCount);
 }
 
-unsigned int *__cdecl jqLockData(jqBatch *batch)
+jqWorkerCmd *jqGetWorkercmdParam(jqBatch *batch)
 {
-    if ( *(unsigned int *)(batch->ParamData[0] + 4) > 0x54u )
-        return (unsigned int *)batch->Input;
-    else
+    return *reinterpret_cast<jqWorkerCmd **> (batch->ParamData);
+}
+
+void *__cdecl jqLockData(jqBatch *batch)
+{
+    jqWorkerCmd *workerCmd = jqGetWorkercmdParam(batch);
+    if (workerCmd->dataSize <= 84)
+    {
         return &batch->ParamData[2];
+    }
+    iassert((batch->Input));
+    return batch->Input;
 }
 
 void __cdecl jqUnlockData(jqBatch *batch)
 {
-    if ( *(unsigned int *)(batch->ParamData[0] + 4) > 0x54u )
-        jqFreeBatchData((jqAtomicHeap::LevelInfo *)batch->Input);
+    jqWorkerCmd *workerCmd = jqGetWorkercmdParam(batch);
+    if (workerCmd->dataSize > 84)
+    {
+        jqFreeBatchData((jqAtomicHeap::LevelInfo*)batch->Input);
+    }
 }
 
 void __cdecl Sys_AddWorkerCmdInternal(jqWorkerCmd *name, unsigned __int8 *data, WorkerCmdConditional *cond)

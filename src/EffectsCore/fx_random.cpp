@@ -104,7 +104,10 @@ const float fx_randomTable[] = { // idb
 , 0.45510319f, 0.87240946f, 0.84151697f, 0.37590459f, 0.64859152f
 , 0.85434818f, 0.0097696204f, 0.49672353f, 0.43216714f, 0.43313825f
 , 0.23515075f, 0.5371843f, 0.61560357f, 0.03023384f, 0.057191439f
-, 0.65731519f, 0.29047075f
+, 0.65731519f, 0.29047075f,
+// LWSS ADD - I got a global buffer oob here at index 507 (LAST), so I'm just gonna add another value, deal with it
+  0.13374503f
+// LWSS END
 };
 
 void __cdecl FX_RandomDir(int seed, float *dir)

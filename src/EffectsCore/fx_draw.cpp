@@ -305,9 +305,6 @@ void __cdecl FX_DrawElem_BillboardSprite_NoCull(FxDrawState *draw)
     const FxCamera *v3; // edx
     unsigned int v4; // [esp+0h] [ebp-98h]
     const FxCamera *camera; // [esp+28h] [ebp-70h]
-    const FxCamera *v6; // [esp+64h] [ebp-34h]
-    const float *v7; // [esp+6Ch] [ebp-2Ch]
-    const float *v8; // [esp+70h] [ebp-28h]
     float normal[3]; // [esp+74h] [ebp-24h] BYREF
     float tangent[3]; // [esp+80h] [ebp-18h] BYREF
     float binormal[3]; // [esp+8Ch] [ebp-Ch] BYREF
@@ -333,10 +330,9 @@ void __cdecl FX_DrawElem_BillboardSprite_NoCull(FxDrawState *draw)
     }
     else if ( v4 == 0x100000 )
     {
-        v6 = draw->camera;
-        normal[0] = v6->origin[0] - draw->posWorld[0];
-        normal[1] = v6->origin[1] - draw->posWorld[1];
-        normal[2] = v6->origin[2] - draw->posWorld[2];
+        normal[0] = draw->camera->origin[0] - draw->posWorld[0];
+        normal[1] = draw->camera->origin[1] - draw->posWorld[1];
+        normal[2] = draw->camera->origin[2] - draw->posWorld[2];
         Vec3Normalize(normal);
         origin = draw->camera->origin;
         binormal[0] = origin[34];
@@ -364,7 +360,6 @@ void __cdecl FX_DrawElem_BillboardSprite_NoCull(FxDrawState *draw)
     }
     else
     {
-        v8 = draw->camera->axis[0];
         //LODWORD(normal[0]) = *(unsigned int *)v8 ^ _mask__NegFloat_;
         //LODWORD(normal[1]) = *((unsigned int *)v8 + 1) ^ _mask__NegFloat_;
         //LODWORD(normal[2]) = *((unsigned int *)v8 + 2) ^ _mask__NegFloat_;
@@ -372,14 +367,12 @@ void __cdecl FX_DrawElem_BillboardSprite_NoCull(FxDrawState *draw)
         normal[1] = -draw->camera->axis[0][1];
         normal[2] = -draw->camera->axis[0][2];
 
-        v7 = draw->camera->axis[1];
-
         //LODWORD(tangent[0]) = *(unsigned int *)v7 ^ _mask__NegFloat_;
         //LODWORD(tangent[1]) = *((unsigned int *)v7 + 1) ^ _mask__NegFloat_;
         //LODWORD(tangent[2]) = *((unsigned int *)v7 + 2) ^ _mask__NegFloat_;
         tangent[0] = -draw->camera->axis[1][0];
-        tangent[0] = -draw->camera->axis[1][1];
-        tangent[0] = -draw->camera->axis[1][2];
+        tangent[1] = -draw->camera->axis[1][1];
+        tangent[2] = -draw->camera->axis[1][2];
 
         v1 = draw->camera->origin;
         binormal[0] = v1[34];

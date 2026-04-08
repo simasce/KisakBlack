@@ -12,7 +12,7 @@ struct WorkerCmdConditional // sizeof=0x8
 void __cdecl Sys_WorkerCmdInit();
 unsigned __int8 *__cdecl jqCommitMemory(jqBatch *batch, unsigned __int8 *input, unsigned int dataSize);
 void __cdecl jqSafeFlush(jqBatchGroup *group, unsigned __int64 batchCount);
-unsigned int *__cdecl jqLockData(jqBatch *batch);
+void *__cdecl jqLockData(jqBatch *batch);
 void __cdecl jqUnlockData(jqBatch *batch);
 void __cdecl Sys_AddWorkerCmdInternal(jqWorkerCmd *name, unsigned __int8 *data, WorkerCmdConditional *cond);
 void __cdecl Sys_WaitWorkerCmdInternal(jqWorkerCmd *name);

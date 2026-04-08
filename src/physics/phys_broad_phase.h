@@ -36,6 +36,11 @@ struct __declspec(align(8)) broad_phase_base // sizeof=0x50
     // padding byte
     // padding byte
 
+    broad_phase_base *get_bpb_cluster_next()
+    {
+        return m_list_bpb_cluster_next;
+    }
+
     struct broad_phase_info *get_bpi()
     {
         return (broad_phase_info *)this;

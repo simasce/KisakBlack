@@ -349,10 +349,10 @@ char jqAtomicHeap::AllocBlock(jqAtomicHeap::LevelInfo **FitLevel, int *FitSlot)
   if ( *FitLevel >= &this->Levels[this->NLevels] )
     return 0;
   while ( !jqAtomicHeap::GetAvailableBlock(*FitLevel, FitSlot) )
-  {
+    {
     if ( ++*FitLevel >= &this->Levels[this->NLevels] )
       return 0;
-  }
+    }
   return 1;
 }
 
@@ -380,9 +380,9 @@ unsigned __int8 *jqAtomicHeap::AllocLevel(int LevelIdx)
 
   v3 = &this->Levels[LevelIdx];
   FitLevel = v3;
-  LevelIdx = 0;
+    LevelIdx = 0;
   if ( !jqAtomicHeap::AllocBlock(&FitLevel, &LevelIdx) )
-    return 0;
+        return 0;
   v5 = jqAtomicHeap::SplitBlock(FitLevel, LevelIdx, v3);
   tlAtomicAdd(&this->ThisPtr->TotalBlocks, 1u);
   tlAtomicAdd(&this->ThisPtr->TotalUsed, v3->BlockSize);
@@ -409,43 +409,24 @@ int jqAtomicHeap::FindLevelForSize(unsigned int Size)
 
 unsigned __int8 *jqAtomicHeap::Alloc(unsigned int Size, unsigned int Align)
 {
-  //tlAtomicMutex *p_Mutex; // edi
-  unsigned int v5; // eax
-  int LevelForSize; // eax
-  unsigned __int8 *v8; // eax
-  bool v9; // zf
-  unsigned __int8 *v10; // esi
+    this->Mutex.Lock();
 
-  //p_Mutex = &this->Mutex;
-  //tlAtomicMutex::Lock(&this->Mutex);
-  this->Mutex.Lock();
-  v5 = Size;
-  if ( Size < Align )
-    v5 = Align;
-  if ( v5 <= this->HeapSize )
-  {
-    //LevelForSize = jqAtomicHeap::FindLevelForSize(this, v5);
-    LevelForSize = this->FindLevelForSize(v5);
-    //v8 = jqAtomicHeap::AllocLevel(this, LevelForSize);
-    v8 = this->AllocLevel(LevelForSize);
-    v10 = v8;
-    this->Mutex.Unlock();
-    //v9 = p_Mutex->LockCount-- == 1;
-    //if ( v9 )
-    //{
-    //  Size = 0;
-    //  InterlockedExchange((volatile unsigned int *)&Size, 0);
-    //  //LODWORD(p_Mutex->ThreadId) = 0;
-    //  //HIDWORD(p_Mutex->ThreadId) = 0;
-    //  p_Mutex->ThreadId = (unsigned long long)0;
-    //}
-    return v10;
-  }
-  else
-  {
-    tlPrintf("Size (%d) > HeapSize (%d), return NULL\n", v5, this->HeapSize);
-    return 0;
-  }
+    if (Size < Align)
+    {
+        Size = Align;
+    }
+
+    if (Size <= this->HeapSize )
+    {
+        unsigned __int8 *mem = this->AllocLevel(this->FindLevelForSize(Size));
+        this->Mutex.Unlock();
+        return mem;
+    }
+    else
+    {
+        tlPrintf("Size (%d) > HeapSize (%d), return NULL\n", Size, this->HeapSize);
+        return 0;
+    }
 }
 
 void jqAtomicHeap::FindAllocatedBlock(

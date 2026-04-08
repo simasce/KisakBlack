@@ -900,7 +900,7 @@ int    bp_env_jq_batch_function1(jqBatch *pBatch)
     bool v18; // c0
     bool v19; // c3
     double v20; // st7
-    broad_phase_base v22; // [esp-Ch] [ebp-6Ch] BYREF
+    broad_phase_base bpb; // [esp-Ch] [ebp-6Ch] BYREF
     float bpb_72; // [esp+48h] [ebp-18h] BYREF
     float bpb_76; // [esp+4Ch] [ebp-14h]
     float v25; // [esp+50h] [ebp-10h]
@@ -909,68 +909,35 @@ int    bp_env_jq_batch_function1(jqBatch *pBatch)
     //
     //v26[0] = a1;
     //v26[1] = retaddr;
-    v22.m_trace_aabb_min_whace.x = 1.0e30;
-    v22.m_trace_aabb_min_whace.y = 1.0e30;
-    v22.m_trace_aabb_min_whace.z = 1.0e30;
-    v22.m_trace_aabb_max_whace.x = -1.0e30;
-    v22.m_trace_aabb_max_whace.y = -1.0e30;
-    v22.m_trace_aabb_max_whace.z = -1.0e30;
+    bpb.m_trace_aabb_min_whace.x = 1.0e30;
+    bpb.m_trace_aabb_min_whace.y = 1.0e30;
+    bpb.m_trace_aabb_min_whace.z = 1.0e30;
+    bpb.m_trace_aabb_max_whace.x = -1.0e30;
+    bpb.m_trace_aabb_max_whace.y = -1.0e30;
+    bpb.m_trace_aabb_max_whace.z = -1.0e30;
+
     for (i = _InterlockedExchangeAdd(&g_bpb_list_index, 1u);
         i < g_bpb_list_max_index;
         i = _InterlockedExchangeAdd(&g_bpb_list_index, 1u))
     {
-        process_cluster_environment_collision_prolog((broad_phase_info *)g_bpb_ptr_list[i], &v22);
+        process_cluster_environment_collision_prolog((broad_phase_info *)g_bpb_ptr_list[i], &bpb);
     }
+
     Input = (float **)pBatch->Input;
     //tlAtomicMutex::Lock(&g_prolog_task_mutex);
     g_prolog_task_mutex.Lock();
-    v4 = *Input;
-    z = v22.m_trace_aabb_min_whace.z;
-    if (v22.m_trace_aabb_min_whace.z >= (double)(*Input)[2])
-        z = v4[2];
-    bpb_72 = z;
-    y = v22.m_trace_aabb_min_whace.y;
-    if (v22.m_trace_aabb_min_whace.y >= (double)v4[1])
-        y = v4[1];
-    bpb_76 = y;
-    x = v22.m_trace_aabb_min_whace.x;
-    if (v22.m_trace_aabb_min_whace.x >= (double)*v4)
-        x = *v4;
-    v25 = x;
-    *v4 = v25;
-    v4[1] = bpb_76;
-    v4[2] = bpb_72;
-    v8 = Input[1];
-    v9 = v8[2];
-    v10 = v22.m_trace_aabb_max_whace.z < v9;
-    v11 = v22.m_trace_aabb_max_whace.z == v9;
-    v12 = v22.m_trace_aabb_max_whace.z;
-    if (v10 || v11)
-        v12 = v8[2];
-    v25 = v12;
-    v13 = v8[1];
-    v14 = v22.m_trace_aabb_max_whace.y < v13;
-    v15 = v22.m_trace_aabb_max_whace.y == v13;
-    v16 = v22.m_trace_aabb_max_whace.y;
-    if (v14 || v15)
-        v16 = v8[1];
-    bpb_76 = v16;
-    v17 = *v8;
-    v18 = v22.m_trace_aabb_max_whace.x < v17;
-    v19 = v22.m_trace_aabb_max_whace.x == v17;
-    v20 = v22.m_trace_aabb_max_whace.x;
-    if (v18 || v19)
-        v20 = *v8;
-    bpb_72 = v20;
-    *v8 = bpb_72;
-    v8[1] = bpb_76;
-    v8[2] = v25;
-    if (!--g_prolog_task_mutex.LockCount)
-    {
-        bpb_72 = 0.0;
-        InterlockedExchange((volatile LONG *)&bpb_72, 0);
-        g_prolog_task_mutex.ThreadId = 0;
-    }
+
+    float *minOut = Input[0];
+    minOut[0] = (bpb.m_trace_aabb_min_whace.x < minOut[0]) ? bpb.m_trace_aabb_min_whace.x : minOut[0];
+    minOut[1] = (bpb.m_trace_aabb_min_whace.y < minOut[1]) ? bpb.m_trace_aabb_min_whace.y : minOut[1];
+    minOut[2] = (bpb.m_trace_aabb_min_whace.z < minOut[2]) ? bpb.m_trace_aabb_min_whace.z : minOut[2];
+
+    float *maxOut = Input[1];
+    maxOut[0] = (bpb.m_trace_aabb_max_whace.x > maxOut[0]) ? bpb.m_trace_aabb_max_whace.x : maxOut[0];
+    maxOut[1] = (bpb.m_trace_aabb_max_whace.y > maxOut[1]) ? bpb.m_trace_aabb_max_whace.y : maxOut[1];
+    maxOut[2] = (bpb.m_trace_aabb_max_whace.z > maxOut[2]) ? bpb.m_trace_aabb_max_whace.z : maxOut[2];
+
+    g_prolog_task_mutex.Unlock();
     return 0;
 }
 
@@ -1020,20 +987,15 @@ void __cdecl merge_sort_bpb(broad_phase_base **list, int list_count)
     }
 }
 
-#if 1
 void broad_phase_process_object_environment_collision(bpi_environment_collision_info *eci)
 {
-    bpi_environment_collision_info *v2; // esi
-    broad_phase_base **v3; // eax
+    broad_phase_base **mem; // eax
     broad_phase_base *m_bpb_i_start; // edi
-    broad_phase_base **v5; // ecx
-    int m_bpb_count; // eax
-    int v7; // eax
     broad_phase_base **v8; // edi
     int v9; // ecx
     broad_phase_base **v10; // edx
     broad_phase_base **i; // eax
-    broad_phase_base *v12; // edi
+    broad_phase_base *bpb_i; // edi
     int v13; // eax
     float x; // eax
     float y; // ecx
@@ -1080,7 +1042,6 @@ void broad_phase_process_object_environment_collision(bpi_environment_collision_
     double v56; // st3
     double v57; // st2
     unsigned int v58; // ecx
-    int v59; // [esp-40h] [ebp-180h]
     phys_vec3 v60; // [esp-1Ch] [ebp-15Ch] BYREF
     phys_vec3 v61; // [esp-Ch] [ebp-14Ch] BYREF
     phys_vec3 p2; // [esp+4h] [ebp-13Ch] BYREF
@@ -1088,7 +1049,6 @@ void broad_phase_process_object_environment_collision(bpi_environment_collision_
     phys_vec3 half_dims; // [esp+24h] [ebp-11Ch] BYREF
     phys_vec3 v65; // [esp+34h] [ebp-10Ch] BYREF
     phys_vec3 p1; // [esp+44h] [ebp-FCh] BYREF
-    broad_phase_prolog_task_input bppti; // [esp+5Ch] [ebp-E4h] BYREF
     phys_vec3 bp_aabb_min; // [esp+64h] [ebp-DCh] BYREF
     phys_vec3 bp_aabb_max; // [esp+74h] [ebp-CCh] BYREF
     phys_vec3 aabb2_max; // [esp+84h] [ebp-BCh] BYREF
@@ -1124,148 +1084,147 @@ void broad_phase_process_object_environment_collision(bpi_environment_collision_
     //v91 = &_ehhandler__broad_phase_process_object_environment_collision__YAXAAVbpi_environment_collision_info___Z;
     //ExceptionList = NtCurrentTeb()->NtTib.ExceptionList;
     //v89 = &v94;
-    v2 = eci;
-    if (eci->m_bpb_count <= 0 && _tlAssert("source/phys_broad_phase.cpp", 1005, "eci.m_bpb_count > 0", ""))
-        __debugbreak();
+
+    iassert(eci->m_bpb_count > 0);
+
     phys_transient_allocator transient_buffer;
-    v59 = 4 * eci->m_bpb_count;
     int v92 = 0;
-    v3 = //phys_transient_allocator::allocate(
-        (broad_phase_base **)transient_buffer.allocate(
-        v59,
-        4,
-        0,
-        "phys_transient_allocator out of memory.");
+    mem = (broad_phase_base **)transient_buffer.allocate(4 * eci->m_bpb_count, 4, 0, "phys_transient_allocator out of memory.");
     m_bpb_i_start = eci->m_bpb_i_start;
-    v5 = v3;
-    bpb_ptr_list = v3;
-    bpb_ptr_cur = v3;
-    if (m_bpb_i_start != eci->m_bpb_i_end)
+    bpb_ptr_list = mem;
+    bpb_ptr_cur = mem;
+
+    for (broad_phase_base *bpb = eci->m_bpb_i_start; bpb != eci->m_bpb_i_end; bpb = bpb->m_list_bpb_next)
     {
-        *(float *)&v82 = 0.0;
-        do
-        {
-            if (v82 >> 2 >= eci->m_bpb_count)
-            {
-                if (_tlAssert(
-                    "source/phys_broad_phase.cpp",
-                    1020,
-                    "bpb_ptr_cur - bpb_ptr_list < eci.m_bpb_count",
-                    ""))
-                {
-                    __debugbreak();
-                }
-                v3 = bpb_ptr_cur;
-            }
-            v82 += 4;
-            *v3 = m_bpb_i_start;
-            m_bpb_i_start = m_bpb_i_start->m_list_bpb_next;
-            bpb_ptr_cur = ++v3;
-        } while (m_bpb_i_start != eci->m_bpb_i_end);
-        v5 = bpb_ptr_list;
+        iassert(bpb_ptr_cur - bpb_ptr_list < eci->m_bpb_count);
+        *bpb_ptr_cur++ = bpb;
     }
-    if (v3 - v5 != eci->m_bpb_count
-        && _tlAssert("source/phys_broad_phase.cpp", 1027, "bpb_ptr_cur - bpb_ptr_list == eci.m_bpb_count", ""))
-    {
-        __debugbreak();
-    }
+
+    iassert(bpb_ptr_cur - bpb_ptr_list == eci->m_bpb_count);
+
     g_bpb_ptr_list = bpb_ptr_list;
-    bp_aabb_min.x = 1.0e30;
     g_bpb_list_index = 0;
+    g_bpb_list_max_index = eci->m_bpb_count;
+
+    bp_aabb_min.x = 1.0e30;
     bp_aabb_min.y = 1.0e30;
-    m_bpb_count = eci->m_bpb_count;
     bp_aabb_min.z = 1.0e30;
-    g_bpb_list_max_index = m_bpb_count;
-    v7 = eci->m_bpb_count;
+
     bp_aabb_max.x = -1.0e30;
     bp_aabb_max.y = -1.0e30;
-    bppti.m_aabb_min = &bp_aabb_min;
     bp_aabb_max.z = -1.0e30;
+
+    broad_phase_prolog_task_input bppti;
+    bppti.m_aabb_min = &bp_aabb_min;
     bppti.m_aabb_max = &bp_aabb_max;
-    phys_task_manager_process(&bp_env_jq_module1Module, &bppti, v7);
+
+    phys_task_manager_process(&bp_env_jq_module1Module, &bppti, eci->m_bpb_count);
     phys_task_manager_flush();
-    *(float *)&bpb_cluster_list_count = bp_aabb_max.x - bp_aabb_min.x;
-    *(float *)&env_collision_flags = bp_aabb_max.y - bp_aabb_min.y;
-    *(float *)&bpb_cluster_list = bp_aabb_max.z - bp_aabb_min.z;
-    if (*(float *)&env_collision_flags > (double)*(float *)&bpb_cluster_list_count)
-    {
-        g_bpb_cluster_sort_axis = 1;
-        if (*(float *)&bpb_cluster_list <= (double)*(float *)&env_collision_flags)
-            goto LABEL_20;
-    }
-    else if (*(float *)&bpb_cluster_list <= (double)*(float *)&bpb_cluster_list_count)
-    {
-        g_bpb_cluster_sort_axis = 0;
-        goto LABEL_20;
-    }
-    g_bpb_cluster_sort_axis = 2;
-LABEL_20:
-    v8 = bpb_ptr_list;
+
+    //*(float *)&bpb_cluster_list_count = bp_aabb_max.x - bp_aabb_min.x;
+    //*(float *)&env_collision_flags = bp_aabb_max.y - bp_aabb_min.y;
+    //*(float *)&bpb_cluster_list = bp_aabb_max.z - bp_aabb_min.z;
+    //if (*(float *)&env_collision_flags > (double)*(float *)&bpb_cluster_list_count)
+    //{
+    //    g_bpb_cluster_sort_axis = 1;
+    //    if (*(float *)&bpb_cluster_list <= (double)*(float *)&env_collision_flags)
+    //        goto LABEL_20;
+    //}
+    //else if (*(float *)&bpb_cluster_list <= (double)*(float *)&bpb_cluster_list_count)
+    //{
+    //    g_bpb_cluster_sort_axis = 0;
+    //    goto LABEL_20;
+    //}
+    //
+    //g_bpb_cluster_sort_axis = 2;
+//LABEL_20:
+
+    float extentX = bp_aabb_max.x - bp_aabb_min.x;
+    float extentY = bp_aabb_max.y - bp_aabb_min.y;
+    float extentZ = bp_aabb_max.z - bp_aabb_min.z;
+
+    if (extentY > extentX)
+        g_bpb_cluster_sort_axis = (extentZ > extentY) ? 2 : 1;
+    else
+        g_bpb_cluster_sort_axis = (extentZ > extentX) ? 2 : 0;
+
     merge_sort_bpb(bpb_ptr_list, eci->m_bpb_count);
-    G_BPM->g_list_bpb = *v8;
-    v9 = eci->m_bpb_count;
-    eci->m_bpb_i_start = *v8;
-    v10 = &v8[v9];
-    for (i = v8; i < v10; ++i)
-        (*i)->m_list_bpb_next = i[1];
-    (*(i - 1))->m_list_bpb_next = eci->m_bpb_i_end;
-    v12 = eci->m_bpb_i_start;
+
+    //v8 = bpb_ptr_list;
+    //G_BPM->g_list_bpb = *v8;
+    //v9 = eci->m_bpb_count;
+    //eci->m_bpb_i_start = *v8;
+    //v10 = &v8[v9];
+    //for (i = v8; i < v10; ++i)
+    //    (*i)->m_list_bpb_next = i[1];
+    //(*(i - 1))->m_list_bpb_next = eci->m_bpb_i_end;
+
+    G_BPM->g_list_bpb = bpb_ptr_list[0];
+    eci->m_bpb_i_start = bpb_ptr_list[0];
+    for (int i = 0; i < eci->m_bpb_count - 1; ++i)
+        bpb_ptr_list[i]->m_list_bpb_next = bpb_ptr_list[i + 1];
+    bpb_ptr_list[eci->m_bpb_count - 1]->m_list_bpb_next = eci->m_bpb_i_end;
+
+    bpb_cluster_list = NULL;
+    bpb_cluster_list_count = 0;
+
+#if 0
+    bpb_i = eci->m_bpb_i_start;
     v13 = 0;
-    *(float *)&bpb_cluster_list = 0.0;
-    *(float *)&bpb_cluster_list_count = 0.0;
-    if (v12 != eci->m_bpb_i_end)
+
+    if (bpb_i != eci->m_bpb_i_end)
     {
-        while ((v12->m_flags & 0x10) != 0)
+        while ((bpb_i->m_flags & 0x10) != 0)
         {
         LABEL_73:
-            v12 = v12->m_list_bpb_next;
-            if (v12 == v2->m_bpb_i_end)
+            bpb_i = bpb_i->m_list_bpb_next;
+            if (bpb_i == eci->m_bpb_i_end)
             {
                 v13 = bpb_cluster_list_count;
                 goto LABEL_75;
             }
         }
-        if (v12->m_list_bpb_cluster_next
-            && _tlAssert("source/phys_broad_phase.cpp", 1093, "bpb_i->get_bpb_cluster_next() == NULL", ""))
-        {
-            __debugbreak();
-        }
-        v12->m_flags |= 0x10u;
-        x = v12->m_trace_aabb_min_whace.x;
-        y = v12->m_trace_aabb_min_whace.y;
-        z = v12->m_trace_aabb_min_whace.z;
-        *(float *)&env_collision_flags = v12->m_trace_aabb_min_whace.x + v12->m_trace_translation.x;
+
+        iassert(bpb_i->get_bpb_cluster_next() == NULL);
+
+        bpb_i->m_flags |= 0x10u;
+
+        x = bpb_i->m_trace_aabb_min_whace.x;
+        y = bpb_i->m_trace_aabb_min_whace.y;
+        z = bpb_i->m_trace_aabb_min_whace.z;
+        *(float *)&env_collision_flags = bpb_i->m_trace_aabb_min_whace.x + bpb_i->m_trace_translation.x;
         v17 = g_bpb_cluster_sort_axis;
-        v18 = v12->m_trace_translation.y;
+        v18 = bpb_i->m_trace_translation.y;
         aabb1_min.x = x;
-        v19 = v18 + v12->m_trace_aabb_min_whace.y;
-        w = v12->m_trace_aabb_min_whace.w;
+        v19 = v18 + bpb_i->m_trace_aabb_min_whace.y;
+        w = bpb_i->m_trace_aabb_min_whace.w;
         aabb1_min.y = y;
-        v21 = v12->m_trace_aabb_max_whace.x;
+        v21 = bpb_i->m_trace_aabb_max_whace.x;
         *(float *)&bpb_cluster_head = v19;
         aabb1_min.z = z;
-        v22 = v12->m_trace_aabb_max_whace.y;
-        v23 = v12->m_trace_translation.z + v12->m_trace_aabb_min_whace.z;
+        v22 = bpb_i->m_trace_aabb_max_whace.y;
+        v23 = bpb_i->m_trace_translation.z + bpb_i->m_trace_aabb_min_whace.z;
         aabb1_min.w = w;
-        v24 = v12->m_trace_aabb_max_whace.z;
+        v24 = bpb_i->m_trace_aabb_max_whace.z;
         aabb1_max.x = v21;
         v88 = v23;
-        v25 = v12->m_trace_aabb_max_whace.w;
+        v25 = bpb_i->m_trace_aabb_max_whace.w;
         aabb1_max.y = v22;
         aabb2_min.x = *(float *)&env_collision_flags;
-        m_env_collision_flags = v12->m_env_collision_flags;
+        m_env_collision_flags = bpb_i->m_env_collision_flags;
         aabb1_max.z = v24;
         aabb2_min.y = *(float *)&bpb_cluster_head;
         aabb1_max.w = v25;
         aabb2_min.z = v88;
-        *(float *)&env_collision_flags = v12->m_trace_aabb_max_whace.x + v12->m_trace_translation.x;
-        *(float *)&bpb_cluster_head = v12->m_trace_aabb_max_whace.y + v12->m_trace_translation.y;
-        v88 = v12->m_trace_aabb_max_whace.z + v12->m_trace_translation.z;
+        *(float *)&env_collision_flags = bpb_i->m_trace_aabb_max_whace.x + bpb_i->m_trace_translation.x;
+        *(float *)&bpb_cluster_head = bpb_i->m_trace_aabb_max_whace.y + bpb_i->m_trace_translation.y;
+        v88 = bpb_i->m_trace_aabb_max_whace.z + bpb_i->m_trace_translation.z;
+
         v27 = *(float *)&env_collision_flags;
         env_collision_flags = m_env_collision_flags;
         aabb2_max.x = v27;
         v28 = *(float *)&bpb_cluster_head;
-        bpb_cluster_head = v12;
+        bpb_cluster_head = bpb_i;
         aabb2_max.y = v28;
         aabb2_max.z = v88;
         if ((unsigned int)g_bpb_cluster_sort_axis > 2
@@ -1277,8 +1236,8 @@ LABEL_20:
         {
             __debugbreak();
         }
-        v29 = *(&v12->m_trace_aabb_min_whace.x + v17);
-        m_list_bpb_next = v12->m_list_bpb_next;
+        v29 = *(&bpb_i->m_trace_aabb_min_whace.x + v17);
+        m_list_bpb_next = bpb_i->m_list_bpb_next;
         for (bpb_i_aabb_min = v29; m_list_bpb_next != eci->m_bpb_i_end; m_list_bpb_next = m_list_bpb_next->m_list_bpb_next)
         {
             v88 = *(float *)&g_bpb_cluster_sort_axis;
@@ -1440,7 +1399,6 @@ LABEL_20:
                 v58 = env_collision_flags;
                 *(float *)(LODWORD(v51) + 56) = *(float *)&bpb_cluster_head;
                 *(_DWORD *)(LODWORD(v51) + 68) = v58;
-                v2 = eci;
                 goto LABEL_73;
             }
         }
@@ -1471,140 +1429,151 @@ LABEL_20:
         }
         goto LABEL_69;
     }
+
 LABEL_75:
+
     g_bpb_list_cur = bpb_cluster_list;
     g_bpb_list_index = 0;
     g_bpb_list_max_index = v13;
     g_thread_id = 0;
     phys_task_manager_process(&bp_env_jq_module2Module, 0, v13);
     phys_task_manager_flush();
-    //phys_transient_allocator::reset(&transient_buffer);
+
     transient_buffer.reset();
-    v92 = -1;
-    if (transient_buffer.m_first_block)
+#else // aislop hybrid
+ for (broad_phase_base *bpb_i = eci->m_bpb_i_start; bpb_i != eci->m_bpb_i_end; bpb_i = bpb_i->m_list_bpb_next)
     {
-        if (_tlAssert(
-            "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\phys_transient_allocator.h",
-            69,
-            "m_first_block == NULL",
-            ""))
-        {
-            __debugbreak();
-        }
-    }
-}
-#else // aislop
-// this looks like a fairly nice AI cleanup, but could be a pig wearin' lipstick
-// Update: the bastard is passing null in for required args
-void broad_phase_process_object_environment_collision(bpi_environment_collision_info *eci)
-{
-    iassert(eci->m_bpb_count > 0);
+        // Skip BPBs that have already been clustered
+        if (bpb_i->m_flags & 0x10)
+            continue;
 
-    // Initialize transient allocator
-    phys_transient_allocator transient_buffer;
+        iassert(bpb_i->get_bpb_cluster_next() == NULL);
 
-    const int ptr_count = 4 * eci->m_bpb_count;
-    //broad_phase_base **bpb_ptr_list = (broad_phase_base **)phys_transient_allocator::allocate(&transient_buffer, ptr_count, 4, 0, "phys_transient_allocator out of memory.");
-    broad_phase_base **bpb_ptr_list = (broad_phase_base **)transient_buffer.allocate(ptr_count, 4, 0, "phys_transient_allocator out of memory.");
-    broad_phase_base **bpb_ptr_cur = bpb_ptr_list;
-
-    // Populate temporary pointer list
-    broad_phase_base *bpb_i = eci->m_bpb_i_start;
-    while (bpb_i != eci->m_bpb_i_end)
-    {
-        iassert((bpb_ptr_cur - bpb_ptr_list) < eci->m_bpb_count);
-        *bpb_ptr_cur++ = bpb_i;
-        bpb_i = bpb_i->m_list_bpb_next;
-    }
-    iassert(bpb_ptr_cur - bpb_ptr_list == eci->m_bpb_count);
-
-    g_bpb_ptr_list = bpb_ptr_list;
-
-    // Prepare AABB for task
-    phys_vec3 bp_aabb_min{ 1e30f, 1e30f, 1e30f, 0.0f };
-    phys_vec3 bp_aabb_max{ -1e30f, -1e30f, -1e30f, 0.0f };
-    broad_phase_prolog_task_input bppti{ &bp_aabb_min, &bp_aabb_max };
-
-    // Process broad phase AABB
-    phys_task_manager_process(&bp_env_jq_module1Module, &bppti, eci->m_bpb_count);
-    phys_task_manager_flush();
-
-    // Decide cluster sort axis
-    float dx = bp_aabb_max.x - bp_aabb_min.x;
-    float dy = bp_aabb_max.y - bp_aabb_min.y;
-    float dz = bp_aabb_max.z - bp_aabb_min.z;
-
-    if (dy > dx && dy >= dz) g_bpb_cluster_sort_axis = 1;
-    else if (dz > dx && dz >= dy) g_bpb_cluster_sort_axis = 2;
-    else g_bpb_cluster_sort_axis = 0;
-
-    // Sort BPB pointers
-    merge_sort_bpb(bpb_ptr_list, eci->m_bpb_count);
-
-    // Reconstruct linked list
-    eci->m_bpb_i_start = *bpb_ptr_list;
-    for (int i = 0; i < eci->m_bpb_count - 1; ++i)
-        bpb_ptr_list[i]->m_list_bpb_next = bpb_ptr_list[i + 1];
-    bpb_ptr_list[eci->m_bpb_count - 1]->m_list_bpb_next = eci->m_bpb_i_end;
-
-    // Cluster formation
-    broad_phase_base *bpb_cluster_head = nullptr;
-    float cluster_count = 0;
-
-    for (bpb_i = eci->m_bpb_i_start; bpb_i != eci->m_bpb_i_end; bpb_i = bpb_i->m_list_bpb_next)
-    {
-        if (bpb_i->m_flags & 0x10) continue; // already clustered
-        iassert(bpb_i->m_list_bpb_cluster_next == nullptr);
-
+        // Start a new cluster with bpb_i as the head
         bpb_i->m_flags |= 0x10;
 
-        // Current cluster AABB
-        phys_vec3 cluster_min = bpb_i->m_trace_aabb_min_whace;
-        phys_vec3 cluster_max = bpb_i->m_trace_aabb_max_whace;
-        phys_vec3 cluster_translation = bpb_i->m_trace_translation;
-        cluster_min.x += cluster_translation.x;
-        cluster_min.y += cluster_translation.y;
-        cluster_min.z += cluster_translation.z;
-        cluster_max.x += cluster_translation.x;
-        cluster_max.y += cluster_translation.y;
-        cluster_max.z += cluster_translation.z;
+        phys_vec3 aabb1_min = bpb_i->m_trace_aabb_min_whace;
+        phys_vec3 aabb1_max = bpb_i->m_trace_aabb_max_whace;
 
-        // Expand cluster with nearby BPBs
-        for (broad_phase_base *bpj = bpb_i->m_list_bpb_next; bpj != eci->m_bpb_i_end; bpj = bpj->m_list_bpb_next)
+        phys_vec3 aabb2_min = {
+            bpb_i->m_trace_aabb_min_whace.x + bpb_i->m_trace_translation.x,
+            bpb_i->m_trace_aabb_min_whace.y + bpb_i->m_trace_translation.y,
+            bpb_i->m_trace_aabb_min_whace.z + bpb_i->m_trace_translation.z
+        };
+        phys_vec3 aabb2_max = {
+            bpb_i->m_trace_aabb_max_whace.x + bpb_i->m_trace_translation.x,
+            bpb_i->m_trace_aabb_max_whace.y + bpb_i->m_trace_translation.y,
+            bpb_i->m_trace_aabb_max_whace.z + bpb_i->m_trace_translation.z
+        };
+
+        unsigned int cluster_env_flags = bpb_i->m_env_collision_flags;
+        broad_phase_base *cluster_head = bpb_i;
+
+        iassert(g_bpb_cluster_sort_axis >= 0 && g_bpb_cluster_sort_axis < 3);
+        float bpb_i_sort_val = *(&bpb_i->m_trace_aabb_min_whace.x + g_bpb_cluster_sort_axis);
+
+        // Try to merge subsequent BPBs into this cluster
+        for (broad_phase_base *bpb_j = bpb_i->m_list_bpb_next;
+             bpb_j != eci->m_bpb_i_end;
+             bpb_j = bpb_j->m_list_bpb_next)
         {
-            if (bpj->m_flags & 0x10) continue;
-            iassert(bpj->m_list_bpb_cluster_next == nullptr);
+            iassert(g_bpb_cluster_sort_axis >= 0 && g_bpb_cluster_sort_axis < 3);
 
-            float axis_diff = *((float *)&bpj->m_trace_aabb_min_whace + g_bpb_cluster_sort_axis) -
-                *((float *)&cluster_min + g_bpb_cluster_sort_axis);
-            if (axis_diff > 136.0f) break;
+            float bpb_j_sort_val = *(&bpb_j->m_trace_aabb_min_whace.x + g_bpb_cluster_sort_axis);
 
-            // Expand cluster AABB
-            phys_min(&cluster_min, &cluster_min, &bpj->m_trace_aabb_min_whace);
-            phys_max(&cluster_max, &cluster_max, &bpj->m_trace_aabb_max_whace);
+            // Stop searching if BPBs are too far apart along the sort axis
+            if (bpb_j_sort_val - bpb_i_sort_val > 136.0f)
+                break;
 
-            bpj->m_flags |= 0x10;
-            bpj->m_list_bpb_cluster_next = bpb_cluster_head;
-            bpb_cluster_head = bpj;
+            if (bpb_j->m_flags & 0x10)
+                continue;
+
+            iassert(bpb_j->get_bpb_cluster_next() == NULL);
+
+            // Check if merged static AABB (whace) is within the cluster size limit
+            phys_vec3 merged1_min = {
+                fminf(aabb1_min.x, bpb_j->m_trace_aabb_min_whace.x),
+                fminf(aabb1_min.y, bpb_j->m_trace_aabb_min_whace.y),
+                fminf(aabb1_min.z, bpb_j->m_trace_aabb_min_whace.z)
+            };
+            phys_vec3 merged1_max = {
+                fmaxf(aabb1_max.x, bpb_j->m_trace_aabb_max_whace.x),
+                fmaxf(aabb1_max.y, bpb_j->m_trace_aabb_max_whace.y),
+                fmaxf(aabb1_max.z, bpb_j->m_trace_aabb_max_whace.z)
+            };
+
+            static constexpr float MAX_CLUSTER_EXTENT = 136.0f;
+
+            if (merged1_max.x - merged1_min.x > MAX_CLUSTER_EXTENT) continue;
+            if (merged1_max.y - merged1_min.y > MAX_CLUSTER_EXTENT) continue;
+            if (merged1_max.z - merged1_min.z > MAX_CLUSTER_EXTENT) continue;
+
+            // Also check if merged trace AABB (including translation) is within limit
+            phys_vec3 bpb_j_aabb2_min = {
+                bpb_j->m_trace_aabb_min_whace.x + bpb_j->m_trace_translation.x,
+                bpb_j->m_trace_aabb_min_whace.y + bpb_j->m_trace_translation.y,
+                bpb_j->m_trace_aabb_min_whace.z + bpb_j->m_trace_translation.z
+            };
+            phys_vec3 bpb_j_aabb2_max = {
+                bpb_j->m_trace_aabb_max_whace.x + bpb_j->m_trace_translation.x,
+                bpb_j->m_trace_aabb_max_whace.y + bpb_j->m_trace_translation.y,
+                bpb_j->m_trace_aabb_max_whace.z + bpb_j->m_trace_translation.z
+            };
+
+            phys_vec3 merged2_min, merged2_max;
+            phys_min(&merged2_min, &aabb2_min, &bpb_j_aabb2_min);
+            phys_max(&merged2_max, &aabb2_max, &bpb_j_aabb2_max);
+
+            if (merged2_max.x - merged2_min.x > MAX_CLUSTER_EXTENT) continue;
+            if (merged2_max.y - merged2_min.y > MAX_CLUSTER_EXTENT) continue;
+            if (merged2_max.z - merged2_min.z > MAX_CLUSTER_EXTENT) continue;
+
+            // Accept bpb_j into the cluster
+            bpb_j->m_flags |= 0x10;
+            bpb_j->m_list_bpb_cluster_next = cluster_head;
+            cluster_head = bpb_j;
+            cluster_env_flags |= bpb_j->m_env_collision_flags;
+
+            aabb1_min = merged1_min;
+            aabb1_max = merged1_max;
+            aabb2_min = merged2_min;
+            aabb2_max = merged2_max;
         }
 
-        // Do trace volume computation
-        comp_trace_volume(&cluster_min, &cluster_max, &cluster_min, &cluster_max, nullptr, nullptr, nullptr);
-        ++cluster_count;
+        // Allocate a cluster entry from the transient buffer (80 bytes, 16-byte aligned)
+        transient_allocator_update_largest_size();
+
+        broad_phase_base *entry = (broad_phase_base *)transient_buffer.allocate(80, 16, 0, "phys_transient_allocator out of memory.");
+
+        // Link into cluster list
+        entry->m_list_bpb_next = bpb_cluster_list;
+        bpb_cluster_list = entry;
+        ++bpb_cluster_list_count;
+
+        // Compute the combined trace volume for this cluster
+        phys_vec3 p1, p2, half_dims;
+        comp_trace_volume(&aabb1_min, &aabb1_max, &aabb2_min, &aabb2_max, &p1, &p2, &half_dims);
+
+        entry->m_trace_aabb_min_whace = { p1.x - half_dims.x, p1.y - half_dims.y, p1.z - half_dims.z };
+        entry->m_trace_aabb_max_whace = { p1.x + half_dims.x, p1.y + half_dims.y, p1.z + half_dims.z };
+        entry->m_trace_translation = { p2.x - p1.x,         p2.y - p1.y,         p2.z - p1.z };
+        entry->m_env_collision_flags = cluster_env_flags;
+        entry->m_list_bpb_cluster_next = cluster_head;
     }
 
-    g_bpb_list_cur = bpb_cluster_head;
-    g_bpb_list_index = 0;
-    g_bpb_list_max_index = cluster_count;
+    // Phase 3: process all clusters in parallel
+    g_bpb_list_cur       = bpb_cluster_list;
+    g_bpb_list_index     = 0;
+    g_bpb_list_max_index = bpb_cluster_list_count;
+    g_thread_id          = 0;
 
-    phys_task_manager_process(&bp_env_jq_module2Module, nullptr, cluster_count);
+    phys_task_manager_process(&bp_env_jq_module2Module, nullptr, bpb_cluster_list_count);
     phys_task_manager_flush();
 
-    //phys_transient_allocator::reset(&transient_buffer);
     transient_buffer.reset();
+#endif
 }
 
-#endif
 void __cdecl broad_phase_process_object_environment_collision()
 {
     int g_list_bpb_count; // eax

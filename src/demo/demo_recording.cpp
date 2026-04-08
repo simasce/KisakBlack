@@ -414,14 +414,14 @@ int __cdecl Demo_WriteToStream(unsigned __int8 *data, unsigned int dataSize)
 
 int __cdecl Demo_SaveCallback(jqBatch *batch)
 {
-    unsigned int *cmd; // [esp+14h] [ebp-4h]
+    demoSaveCmd *cmd; // [esp+14h] [ebp-4h]
 
     //PIXBeginNamedEvent(-1, "Demo_SaveCmd");
-    cmd = jqLockData(batch);
-    Demo_SaveInternal((unsigned __int8 *)*cmd, cmd[1], *((_BYTE *)cmd + 8));
+    cmd = (demoSaveCmd *)jqLockData(batch);
+    Demo_SaveInternal(cmd->data, cmd->size, cmd->writeInfoFile);
     jqUnlockData(batch);
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //D3DPERF_EndEvent();
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
     return 0;
 }
 

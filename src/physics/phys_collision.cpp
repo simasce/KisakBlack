@@ -1957,7 +1957,7 @@ void broad_phase_info::collision_prolog()
     if ((this->m_flags & 0x200) != 0)
         phys_full_multiply_mat((phys_mat44 *)this->m_cg_to_world_xform, this->m_rb_to_world_xform, this->m_cg_to_rb_xform);
 
-    ((phys_gjk_geom *)this->m_gjk_geom)->calc_aabb(this->m_cg_to_world_xform, &this->m_rb->m_last_position, &this->m_trace_aabb_max_whace);
+    ((phys_gjk_geom *)this->m_gjk_geom)->calc_aabb(this->m_cg_to_world_xform, &this->m_trace_aabb_min_whace, &this->m_trace_aabb_max_whace);
 
     phys_aabb_add_hace(&this->m_trace_aabb_min_whace, &this->m_trace_aabb_max_whace);
     m_rb = this->m_rb;
@@ -2171,8 +2171,8 @@ void standard_query::query(
     const DObj *ClientDObj; // [esp-3370h] [ebp-337Ch]
     const centity_s *Entity; // [esp-336Ch] [ebp-3378h]
     int n; // [esp-3368h] [ebp-3374h]
-    int v31; // [esp-3364h] [ebp-3370h]
-    int v32[17]; // [esp-3360h] [ebp-336Ch] BYREF
+    int entCount; // [esp-3364h] [ebp-3370h]
+    int entityList[17]; // [esp-3360h] [ebp-336Ch] BYREF
     DynEntityClient *ClientEntity; // [esp-331Ch] [ebp-3328h]
     unsigned __int16 Id; // [esp-3318h] [ebp-3324h]
     const DynEntityDef *EntityDef; // [esp-3314h] [ebp-3320h]
@@ -2224,28 +2224,28 @@ void standard_query::query(
     int physics_contents_mask; // [esp-168h] [ebp-174h]
     environment_rigid_body *environment_rigid_body; // [esp-164h] [ebp-170h]
     gjk_physics_collision_visitor v83; // [esp-160h] [ebp-16Ch] BYREF
-    float v84[3]; // [esp-DCh] [ebp-E8h] BYREF
+    float lineEnd[3]; // [esp-DCh] [ebp-E8h] BYREF
     phys_vec3 v85; // [esp-D0h] [ebp-DCh] BYREF
     float v86; // [esp-B4h] [ebp-C0h]
     float v87; // [esp-B0h] [ebp-BCh]
     float v88; // [esp-ACh] [ebp-B8h]
     const phys_vec3 *v89; // [esp-A8h] [ebp-B4h]
-    float v90[3]; // [esp-A4h] [ebp-B0h] BYREF
-    float v91[3]; // [esp-98h] [ebp-A4h] BYREF
-    float v92[3]; // [esp-8Ch] [ebp-98h] BYREF
+    float lineStart[3]; // [esp-A4h] [ebp-B0h] BYREF
+    float maxs[3]; // [esp-98h] [ebp-A4h] BYREF
+    float mins[3]; // [esp-8Ch] [ebp-98h] BYREF
     phys_vec3 v93; // [esp-80h] [ebp-8Ch] BYREF
     phys_vec3 v94; // [esp-70h] [ebp-7Ch] BYREF
     float v95; // [esp-54h] [ebp-60h]
     float v96; // [esp-50h] [ebp-5Ch]
     float v97; // [esp-4Ch] [ebp-58h]
-    const phys_vec3 *p_trace_aabb_max_wace; // [esp-48h] [ebp-54h]
-    const phys_vec3 *v99; // [esp-44h] [ebp-50h]
+    //const phys_vec3 *p_trace_aabb_max_wace; // [esp-48h] [ebp-54h]
+    //const phys_vec3 *v99; // [esp-44h] [ebp-50h]
     phys_vec3 v100; // [esp-40h] [ebp-4Ch] BYREF
     phys_vec3 v101; // [esp-30h] [ebp-3Ch] BYREF
     float v102; // [esp-18h] [ebp-24h]
     float v103; // [esp-14h] [ebp-20h]
     float v104; // [esp-10h] [ebp-1Ch]
-    const phys_vec3 *p_trace_translation; // [esp-Ch] [ebp-18h]
+    //const phys_vec3 *p_trace_translation; // [esp-Ch] [ebp-18h]
     standard_query *v106; // [esp-8h] [ebp-14h]
     //_DWORD v107[2]; // [esp+0h] [ebp-Ch] BYREF
     //int v108; // [esp+8h] [ebp-4h] BYREF
@@ -2255,7 +2255,7 @@ void standard_query::query(
     //v107[1] = retaddr;
     v4 = alloca(13760);
     v106 = this;
-    p_trace_translation = &bpeqi->trace_translation;
+
     v104 = bpeqi->trace_aabb_min_wace.x + bpeqi->trace_translation.x;
     v103 = bpeqi->trace_aabb_min_wace.y + bpeqi->trace_translation.y;
     v102 = bpeqi->trace_aabb_min_wace.z + bpeqi->trace_translation.z;
@@ -2263,8 +2263,7 @@ void standard_query::query(
     v101.y = v103;
     v101.z = v102;
     phys_min(&v100, &bpeqi->trace_aabb_min_wace, &v101);
-    v99 = &bpeqi->trace_translation;
-    p_trace_aabb_max_wace = &bpeqi->trace_aabb_max_wace;
+
     v97 = bpeqi->trace_aabb_max_wace.x + bpeqi->trace_translation.x;
     v96 = bpeqi->trace_aabb_max_wace.y + bpeqi->trace_translation.y;
     v95 = bpeqi->trace_aabb_max_wace.z + bpeqi->trace_translation.z;
@@ -2272,14 +2271,16 @@ void standard_query::query(
     v94.y = v96;
     v94.z = v95;
     phys_max(&v93, &bpeqi->trace_aabb_max_wace, &v94);
-    Phys_NitrousVecToVec3(&v100, v92);
-    Phys_NitrousVecToVec3(&v93, v91);
+
+    Phys_NitrousVecToVec3(&v100, mins);
+    Phys_NitrousVecToVec3(&v93, maxs);
+
     if (phys_debugBigQueries->current.enabled && Abs(&bpeqi->trace_translation.x) > 500.0)
     {
         //minspec_mutex::Lock(&g_render_mutex);
         g_render_mutex.Lock();
         render_box(&bpeqi->trace_aabb_min_wace, &bpeqi->trace_aabb_max_wace, colorBlue, 1000);
-        Phys_NitrousVecToVec3(&bpeqi->trace_aabb_min_wace, v90);
+        Phys_NitrousVecToVec3(&bpeqi->trace_aabb_min_wace, lineStart);
         v89 = &bpeqi->trace_translation;
         v88 = bpeqi->trace_aabb_min_wace.x + bpeqi->trace_translation.x;
         v87 = bpeqi->trace_aabb_min_wace.y + bpeqi->trace_translation.y;
@@ -2287,12 +2288,12 @@ void standard_query::query(
         v85.x = v88;
         v85.y = v87;
         v85.z = v86;
-        Phys_NitrousVecToVec3(&v85, v84);
-        CG_DebugLine(v90, v84, colorRed, 1, 1000);
-        v84[0] = v90[0];
-        v84[1] = v90[1];
-        v84[2] = v90[2] + 10000.0;
-        CG_DebugLine(v90, v84, colorWhite, 1, 1000);
+        Phys_NitrousVecToVec3(&v85, lineEnd);
+        CG_DebugLine(lineStart, lineEnd, colorRed, 1, 1000);
+        lineEnd[0] = lineStart[0];
+        lineEnd[1] = lineStart[1];
+        lineEnd[2] = lineStart[2] + 10000.0;
+        CG_DebugLine(lineStart, lineEnd, colorWhite, 1, 1000);
         //minspec_mutex::Unlock(&g_render_mutex);
         g_render_mutex.Unlock();
     }
@@ -2311,7 +2312,7 @@ void standard_query::query(
         v77 = 0;
         v79 = 0;
         //colgeom_visitor_t::intersect_box(&v76, v92, v91, physics_contents_mask);
-        v76.intersect_box(v92, v91, physics_contents_mask);
+        v76.intersect_box(mins, maxs, physics_contents_mask);
         for (i = 0; i < v79; ++i)
         {
             v74 = (const cbrush_t *)v80[i];
@@ -2479,8 +2480,8 @@ void standard_query::query(
     {
         if ((bpeqi->env_collision_flags & 0x10) == 0 && (bpeqi->env_collision_flags & 4) != 0)
         {
-            v39.mins = v92;
-            v39.maxs = v91;
+            v39.mins = mins;
+            v39.maxs = maxs;
             v39.contentMask = -1;
             v39.list = v38;
             v39.maxCount = 4096;
@@ -2513,11 +2514,11 @@ void standard_query::query(
         }
         if ((bpeqi->env_collision_flags & 2) != 0)
         {
-            v31 = CG_AreaEntities(v92, v91, v32, 16, physics_contents_mask);
-            for (n = 0; n < v31; ++n)
+            entCount = CG_AreaEntities(mins, maxs, entityList, 16, physics_contents_mask);
+            for (n = 0; n < entCount; ++n)
             {
-                Entity = CG_GetEntity(0, v32[n]);
-                ClientDObj = Com_GetClientDObj(v32[n], 0);
+                Entity = CG_GetEntity(0, entityList[n]);
+                ClientDObj = Com_GetClientDObj(entityList[n], 0);
                 if (ClientDObj)
                 {
                     Model = DObjGetModel(ClientDObj, 0);
@@ -2559,7 +2560,7 @@ void standard_query::query(
         }
         if ((bpeqi->env_collision_flags & 0x40) != 0)
         {
-            v23 = GlassCl_AreaGlasses(v92, v91, v24, 0x80u);
+            v23 = GlassCl_AreaGlasses(mins, maxs, v24, 0x80u);
             for (ii = 0; ii < v23; ++ii)
             {
                 v21 = v24[ii];

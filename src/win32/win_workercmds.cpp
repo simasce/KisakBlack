@@ -29,16 +29,16 @@ jqModule setup_worker_threadsModule =
 
 int __cdecl nuge_physicsCallback(jqBatch *batch)
 {
-    char *Name; // [esp+8h] [ebp-14h]
-    unsigned int *realbatch; // [esp+18h] [ebp-4h]
+    const char *Name; // [esp+8h] [ebp-14h]
+    jqBatch *realbatch; // [esp+18h] [ebp-4h]
 
-    realbatch = jqLockData(batch);
-    Name = va("nuge_physics: %s", *(const char **)realbatch[3]);
+    realbatch = (jqBatch *)jqLockData(batch);
+    Name = va("nuge_physics: %s", realbatch->Module->Name);
     //PIXBeginNamedEvent(-1, Name);
-    (*(void (__cdecl **)(unsigned int *))(realbatch[3] + 8))(realbatch);
+    realbatch->Module->Code(realbatch);
     jqUnlockData(batch);
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //D3DPERF_EndEvent();
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
     return 0;
 }
 

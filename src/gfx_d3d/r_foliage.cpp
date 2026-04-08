@@ -743,23 +743,23 @@ void __cdecl R_DynSModelInitGfxState(DynSModelGfxState *dynData)
 
 int __cdecl dyn_smodel_drawstateCallback(jqBatch *batch)
 {
-    unsigned int *cmd; // [esp+14h] [ebp-4h]
+    DynSModelDrawStateCmd *cmd; // [esp+14h] [ebp-4h]
 
-    cmd = jqLockData(batch);
+    cmd = (DynSModelDrawStateCmd *)jqLockData(batch);
     //PIXBeginNamedEvent(-1, "dyn_smodel_drawstate");
     R_CalcVisDynSModelDrawState(
-        (const unsigned __int16 *)cmd[1],
-        cmd[2],
-        cmd[3],
-        (const PerFrameFoliageInfo *)*cmd,
-        (DynSModelClientView *)cmd[4],
-        (DynSModelGfxState *)cmd[5],
-        cmd[6],
-        cmd[7],
-        (const ForceBoundsInfo *)cmd[8]);
+        cmd->smodelList,
+        cmd->listBegin,
+        cmd->listEnd,
+        cmd->frameInfo,
+        cmd->view,
+        cmd->dynData,
+        cmd->persistForceIndexOffset,
+        cmd->instantForceIndexOffset,
+        cmd->boundsInfo);
     jqUnlockData(batch);
-    //if ( GetCurrentThreadId() == g_DXDeviceThread )
-        //D3DPERF_EndEvent();
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
     return 0;
 }
 

@@ -243,15 +243,12 @@ int __cdecl r_dpvs_entityCallback(jqBatch *batch)
 
 int __cdecl r_model_skinCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-4h]
-    int savedregs; // [esp+14h] [ebp+0h] BYREF
-
-    data = jqLockData(batch);
+    SkinXModelCmd *data = (SkinXModelCmd *)jqLockData(batch);
     if ( R_DynamicFenceBusy() )
         return 1;
     *frontEndDataOut->dynamicBufferCurrentFrame = frontEndDataOut->frameCount;
     //PIXBeginNamedEvent(-1, "r_model_skin");
-    R_SkinXModelCmd((SkinXModelCmd *)data);
+    R_SkinXModelCmd(data);
     jqUnlockData(batch);
     ////if ( GetCurrentThreadId() == g_DXDeviceThread )
     //    //D3DPERF_EndEvent();
@@ -265,11 +262,9 @@ bool __cdecl R_DynamicFenceBusy()
 
 int __cdecl r_dpvs_staticCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-4h]
-
     //PIXBeginNamedEvent(-1, "r_dpvs_static");
-    data = jqLockData(batch);
-    R_AddCellStaticSurfacesInFrustumCmd((DpvsStaticCellCmd *)data);
+    DpvsStaticCellCmd *data = (DpvsStaticCellCmd *)jqLockData(batch);
+    R_AddCellStaticSurfacesInFrustumCmd(data);
     jqUnlockData(batch);
     ////if ( GetCurrentThreadId() == g_DXDeviceThread )
     //    //D3DPERF_EndEvent();
@@ -278,11 +273,9 @@ int __cdecl r_dpvs_staticCallback(jqBatch *batch)
 
 int __cdecl r_dpvs_dynmodelCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-4h]
-
     //PIXBeginNamedEvent(-1, "r_dpvs_dynmodel");
-    data = jqLockData(batch);
-    R_AddCellDynModelSurfacesInFrustumCmd((const DpvsPlane **)data);
+    const DpvsPlane **data = (const DpvsPlane **)jqLockData(batch);
+    R_AddCellDynModelSurfacesInFrustumCmd(data);
     jqUnlockData(batch);
     ////if ( GetCurrentThreadId() == g_DXDeviceThread )
     //    //D3DPERF_EndEvent();
@@ -305,11 +298,9 @@ int __cdecl r_dpvs_sceneentCallback(jqBatch *batch)
 
 int __cdecl r_dpvs_dynbrushCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-4h]
-
     //PIXBeginNamedEvent(-1, "r_dpvs_dynbrush");
-    data = jqLockData(batch);
-    R_AddCellDynBrushSurfacesInFrustumCmd((DpvsPlane**)data);
+    DpvsPlane **data = (DpvsPlane **)jqLockData(batch);
+    R_AddCellDynBrushSurfacesInFrustumCmd(data);
     jqUnlockData(batch);
     ////if ( GetCurrentThreadId() == g_DXDeviceThread )
     //    //D3DPERF_EndEvent();
@@ -318,13 +309,11 @@ int __cdecl r_dpvs_dynbrushCallback(jqBatch *batch)
 
 int __cdecl r_waterCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-4h]
-
-    data = jqLockData(batch);
+    water_t **data = (water_t **)jqLockData(batch);
     if ( R_UploadWaterPending() )
         return 1;
     //PIXBeginNamedEvent(-1, "r_water");
-    R_UploadWaterTextureInternal((water_t **)data);
+    R_UploadWaterTextureInternal(data);
     jqUnlockData(batch);
     ////if ( GetCurrentThreadId() == g_DXDeviceThread )
     //    //D3DPERF_EndEvent();
@@ -366,11 +355,9 @@ bool __cdecl R_EndFenceBusy()
 
 int __cdecl r_spot_shadow_entCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-4h]
-
     //PIXBeginNamedEvent(-1, "r_spot_shadow_ent");
-    data = jqLockData(batch);
-    R_AddSpotShadowEntCmd((const GfxSpotShadowEntCmd *)data);
+    const GfxSpotShadowEntCmd *data = (const GfxSpotShadowEntCmd *)jqLockData(batch);
+    R_AddSpotShadowEntCmd(data);
     jqUnlockData(batch);
     ////if ( GetCurrentThreadId() == g_DXDeviceThread )
     //    //D3DPERF_EndEvent();
@@ -379,11 +366,9 @@ int __cdecl r_spot_shadow_entCallback(jqBatch *batch)
 
 int __cdecl fx_updateCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-4h]
-
     //PIXBeginNamedEvent(-1, "fx_update");
-    data = jqLockData(batch);
-    R_ProcessCmd_UpdateFxNonDependent((FxCmd *)data);
+    FxCmd *data = (FxCmd *)jqLockData(batch);
+    R_ProcessCmd_UpdateFxNonDependent(data);
     jqUnlockData(batch);
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
         //D3DPERF_EndEvent();
@@ -446,9 +431,8 @@ bool __cdecl R_FXDependentPending()
 
 int __cdecl fx_drawCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-8h]
+    FxGenerateVertsCmd *data = (FxGenerateVertsCmd *)jqLockData(batch);
 
-    data = jqLockData(batch);
     if ( *frontEndDataOut->dynamicBufferCurrentFrame
         && *frontEndDataOut->dynamicBufferCurrentFrame < frontEndDataOut->frameCount )
     {
@@ -457,7 +441,7 @@ int __cdecl fx_drawCallback(jqBatch *batch)
     *frontEndDataOut->dynamicBufferCurrentFrame = frontEndDataOut->frameCount;
     //PIXBeginNamedEvent(-1, "fx_draw");
     if ( Sys_QueryD3DDeviceOKEvent() )
-        FX_GenerateVerts((FxGenerateVertsCmd *)data);
+        FX_GenerateVerts(data);
     jqUnlockData(batch);
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
         //D3DPERF_EndEvent();
@@ -466,11 +450,9 @@ int __cdecl fx_drawCallback(jqBatch *batch)
 
 int __cdecl dobj_skelCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-4h]
-
     //PIXBeginNamedEvent(-1, "dobj_skel");
-    data = jqLockData(batch);
-    R_UpdateGfxEntityBoundsCmd((GfxSceneEntity **)data);
+    GfxSceneEntity **data = (GfxSceneEntity **)jqLockData(batch);
+    R_UpdateGfxEntityBoundsCmd(data);
     jqUnlockData(batch);
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
         //D3DPERF_EndEvent();
@@ -479,11 +461,9 @@ int __cdecl dobj_skelCallback(jqBatch *batch)
 
 int __cdecl dobj_skinCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-4h]
-
     //PIXBeginNamedEvent(-1, "dobj_skin");
-    data = jqLockData(batch);
-    R_SkinGfxEntityCmd((GfxSceneEntity **)data);
+    GfxSceneEntity **data = (GfxSceneEntity **)jqLockData(batch);
+    R_SkinGfxEntityCmd(data);
     jqUnlockData(batch);
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
         //D3DPERF_EndEvent();
@@ -505,11 +485,10 @@ int __cdecl r_model_lightingCallback(jqBatch *batch)
 
 int __cdecl r_add_sceneentCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+8h] [ebp-4h]
+    const GfxViewInfo **data = (const GfxViewInfo **)jqLockData(batch);
 
-    data = jqLockData(batch);
     //PIXBeginNamedEvent(-1, "r_add_sceneent");
-    R_AddAllSceneEntSurfacesCamera((const GfxViewInfo *)*data);
+    R_AddAllSceneEntSurfacesCamera(*data);
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
         //D3DPERF_EndEvent();
     jqUnlockData(batch);
@@ -518,21 +497,21 @@ int __cdecl r_add_sceneentCallback(jqBatch *batch)
 
 int __cdecl fx_marks_drawCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+10h] [ebp-4h]
+    FxCmd *data; // [esp+10h] [ebp-4h]
 
-    data = jqLockData(batch);
-    if ( *frontEndDataOut->dynamicBufferCurrentFrame
-        && *frontEndDataOut->dynamicBufferCurrentFrame < frontEndDataOut->frameCount )
+    data = (FxCmd *)jqLockData(batch);
+    if (*frontEndDataOut->dynamicBufferCurrentFrame
+        && *frontEndDataOut->dynamicBufferCurrentFrame < frontEndDataOut->frameCount)
     {
         return 1;
     }
     *frontEndDataOut->dynamicBufferCurrentFrame = frontEndDataOut->frameCount;
-    if ( Sys_QueryD3DDeviceOKEvent() )
+    if (Sys_QueryD3DDeviceOKEvent())
     {
         //PIXBeginNamedEvent(-1, "fx_marks_draw");
-        FX_GenerateMarkVertsForWorld(data[1], (const GfxLight *)data[9], data[10]);
-        //if ( GetCurrentThreadId() == g_DXDeviceThread )
-            //D3DPERF_EndEvent();
+        FX_GenerateMarkVertsForWorld(data->localClientNum, data->visibleLights, data->visibleLightCount);
+        //if (GetCurrentThreadId() == g_DXDeviceThread)
+        //    D3DPERF_EndEvent();
     }
     jqUnlockData(batch);
     return 0;
@@ -540,29 +519,28 @@ int __cdecl fx_marks_drawCallback(jqBatch *batch)
 
 int __cdecl fx_update_spotCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+8h] [ebp-4h]
+    FxCmd *data = (FxCmd*)jqLockData(batch);
 
-    data = jqLockData(batch);
     //PIXBeginNamedEvent(-1, "fx_update_spot");
-    R_ProcessCmd_UpdateFxSpotLight((FxCmd *)data);
+    R_ProcessCmd_UpdateFxSpotLight(data);
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
         //D3DPERF_EndEvent();
+
     jqUnlockData(batch);
     return 0;
 }
 
 int __cdecl r_skin_cached_staticmodelCallback(jqBatch *batch)
 {
-    unsigned int *data; // [esp+0h] [ebp-4h]
+    SkinCachedStaticModelCmd *data = (SkinCachedStaticModelCmd*)jqLockData(batch);
 
-    data = jqLockData(batch);
     if ( *frontEndDataOut->dynamicBufferCurrentFrame
         && *frontEndDataOut->dynamicBufferCurrentFrame < frontEndDataOut->frameCount )
     {
         return 1;
     }
     *frontEndDataOut->dynamicBufferCurrentFrame = frontEndDataOut->frameCount;
-    R_SkinCachedStaticModelCmd((SkinCachedStaticModelCmd *)data);
+    R_SkinCachedStaticModelCmd(data);
     jqUnlockData(batch);
     return 0;
 }
