@@ -1148,23 +1148,13 @@ PhysObjUserData * Phys_CreateBodyFromState(
                 bool do_collision_test)
 {
     int m_geom_count; // ecx
-    phys_vec3 v8; // [esp+28h] [ebp-36Ch] BYREF
-    float v9; // [esp+44h] [ebp-350h] BYREF
-    phys_vec3 v10; // [esp+48h] [ebp-34Ch] BYREF
-    float v11; // [esp+60h] [ebp-334h]
-    float v12; // [esp+64h] [ebp-330h]
-    float v13; // [esp+68h] [ebp-32Ch]
+    //phys_vec3 v8; // [esp+28h] [ebp-36Ch] BYREF // inertia
+    //float v9; // [esp+44h] [ebp-350h] BYREF // volume
+    //phys_vec3 v10; // [esp+48h] [ebp-34Ch] BYREF // dim
     float mass; // [esp+6Ch] [ebp-328h]
     float m_inv_mass; // [esp+70h] [ebp-324h]
-    rigid_body *v16; // [esp+74h] [ebp-320h]
+    rigid_body *body2; // [esp+74h] [ebp-320h]
     float *savedPos; // [esp+90h] [ebp-304h]
-    phys_vec3 *p_m_gravity_acc_vec; // [esp+94h] [ebp-300h]
-    float v25; // [esp+98h] [ebp-2FCh]
-    float v26; // [esp+9Ch] [ebp-2F8h]
-    float v27; // [esp+A0h] [ebp-2F4h]
-    float v28; // [esp+A8h] [ebp-2ECh]
-    float v29; // [esp+ACh] [ebp-2E8h]
-    float v30; // [esp+B0h] [ebp-2E4h]
     float value; // [esp+B4h] [ebp-2E0h]
     phys_vec3 gravity_dir; // [esp+B8h] [ebp-2DCh] BYREF
     phys_mat44 rb2w; // [esp+C8h] [ebp-2CCh] BYREF
@@ -1173,10 +1163,6 @@ PhysObjUserData * Phys_CreateBodyFromState(
     phys_vec3 center; // [esp+188h] [ebp-20Ch]
     float v47; // [esp+1A8h] [ebp-1ECh]
     float v48; // [esp+1ACh] [ebp-1E8h]
-    float v49; // [esp+1B0h] [ebp-1E4h]
-    float v50; // [esp+1BCh] [ebp-1D8h]
-    float v51; // [esp+1C0h] [ebp-1D4h]
-    float v52; // [esp+1C4h] [ebp-1D0h]
     phys_vec3 gjk_geom_list_aabb_mn_loc; // [esp+1C8h] [ebp-1CCh] BYREF
     phys_vec3 gjk_geom_list_aabb_mx_loc; // [esp+1D8h] [ebp-1BCh] BYREF
     phys_mat44 m2w; // [esp+258h] [ebp-13Ch] BYREF
@@ -1303,12 +1289,6 @@ PhysObjUserData * Phys_CreateBodyFromState(
     //phys_mat44::operator=(&userData->cg2w, &PHYS_IDENTITY_MATRIX_43);
     userData->cg2w = PHYS_IDENTITY_MATRIX;
 
-    v52 = gjk_geom_list_aabb_mn_loc.x + gjk_geom_list_aabb_mx_loc.x;
-    v51 = gjk_geom_list_aabb_mn_loc.y + gjk_geom_list_aabb_mx_loc.y;
-    v50 = gjk_geom_list_aabb_mn_loc.z + gjk_geom_list_aabb_mx_loc.z;
-    v47 = gjk_geom_list_aabb_mn_loc.x + gjk_geom_list_aabb_mx_loc.x;
-    v48 = gjk_geom_list_aabb_mn_loc.y + gjk_geom_list_aabb_mx_loc.y;
-    v49 = gjk_geom_list_aabb_mn_loc.z + gjk_geom_list_aabb_mx_loc.z;
     center.x = 0.5 * (float)(gjk_geom_list_aabb_mn_loc.x + gjk_geom_list_aabb_mx_loc.x);
     center.y = 0.5 * (float)(gjk_geom_list_aabb_mn_loc.y + gjk_geom_list_aabb_mx_loc.y);
     center.z = 0.5 * (float)(gjk_geom_list_aabb_mn_loc.z + gjk_geom_list_aabb_mx_loc.z);
@@ -1331,16 +1311,11 @@ PhysObjUserData * Phys_CreateBodyFromState(
     body->m_userdata = userData;
     Phys_Vec3ToNitrousVec(&phys_gravity_dir->current.value, &gravity_dir);
     value = phys_gravity->current.value;
-    v30 = value * gravity_dir.x;
-    v29 = value * gravity_dir.y;
-    v28 = value * gravity_dir.z;
-    v25 = value * gravity_dir.x;
-    v26 = value * gravity_dir.y;
-    v27 = value * gravity_dir.z;
-    p_m_gravity_acc_vec = &body->m_gravity_acc_vec;
+
     body->m_gravity_acc_vec.x = value * gravity_dir.x;
-    p_m_gravity_acc_vec->y = v26;
-    p_m_gravity_acc_vec->z = v27;
+    body->m_gravity_acc_vec.y = value * gravity_dir.y;
+    body->m_gravity_acc_vec.z = value * gravity_dir.z;
+
     body->m_max_avel = maxAVel;
     userData->body = body;
     savedPos = userData->savedPos;
@@ -1373,34 +1348,22 @@ PhysObjUserData * Phys_CreateBodyFromState(
     userData->centerOfMassOffset[1] = state->centerOfMassOffset[1];
     userData->centerOfMassOffset[2] = state->centerOfMassOffset[2];
 
-    v16 = userData->body;
-    m_inv_mass = v16->m_inv_mass;
+    body2 = userData->body;
+    m_inv_mass = body2->m_inv_mass;
     mass = 1.0 / m_inv_mass;
-    v13 = gjk_geom_list_aabb_mx_loc.x - gjk_geom_list_aabb_mn_loc.x;
-    v12 = gjk_geom_list_aabb_mx_loc.y - gjk_geom_list_aabb_mn_loc.y;
-    v11 = gjk_geom_list_aabb_mx_loc.z - gjk_geom_list_aabb_mn_loc.z;
-    v10.x = gjk_geom_list_aabb_mx_loc.x - gjk_geom_list_aabb_mn_loc.x;
-    v10.y = gjk_geom_list_aabb_mx_loc.y - gjk_geom_list_aabb_mn_loc.y;
-    v10.z = gjk_geom_list_aabb_mx_loc.z - gjk_geom_list_aabb_mn_loc.z;
-    if (Abs(&v10.x) >= 10000.0
-        && !Assert_MyHandler(
-            "C:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_main.cpp",
-            902,
-            0,
-            "%s",
-            "Abs(dim) < 10000.0f"))
-    {
-        __debugbreak();
-    }
 
-    nuge::calc_box_inertia(&v10, &v8, &v9);
-    v8.x *= (float)(mass / v9);
-    v8.y *= (float)(mass / v9);
-    v8.z *= (float)(mass / v9);
+    dim.x = gjk_geom_list_aabb_mx_loc.x - gjk_geom_list_aabb_mn_loc.x;
+    dim.y = gjk_geom_list_aabb_mx_loc.y - gjk_geom_list_aabb_mn_loc.y;
+    dim.z = gjk_geom_list_aabb_mx_loc.z - gjk_geom_list_aabb_mn_loc.z;
 
-    //rigid_body::set_inertia(v16, &v8);
+    iassert(Abs(dim) < 10000.0f);
 
-    v16->set_inertia(&v8);
+    nuge::calc_box_inertia(&dim, &inertia, &volume);
+    inertia.x *= (float)(mass / volume);
+    inertia.y *= (float)(mass / volume);
+    inertia.z *= (float)(mass / volume);
+
+    body2->set_inertia(&inertia);
     create_broad_phase_info(userData->body);
 
     //if (do_collision_test)

@@ -601,12 +601,14 @@ void __thiscall GlassClient::Shatter(const float *pos, const float *dir)
     int i; // [esp+34h] [ebp-65Ch]
     int numNewShards; // [esp+3Ch] [ebp-654h]
     int numNewShardsa; // [esp+3Ch] [ebp-654h]
-    GlassShard *newShards[400]; // [esp+40h] [ebp-650h] BYREF
     float glassExtent; // [esp+684h] [ebp-Ch]
     GlassShard *shard; // [esp+68Ch] [ebp-4h]
 
+    const GlassShard *newShards[400]; // [esp+40h] [ebp-650h] BYREF
+
     //PIXBeginNamedEvent(-1, "GlassClient.Shatter");
     //shard = GlassRenderer::AllocShard(clGlasses->renderer);
+
     shard = clGlasses->renderer->AllocShard();
     if ( shard )
     {
@@ -621,14 +623,14 @@ void __thiscall GlassClient::Shatter(const float *pos, const float *dir)
                 //numNewShards = GlassClient::Outlines::InitShards(this->outlines, shard, newShards, 400);
                 numNewShards = this->outlines->InitShards(shard, newShards, 400);
                 //GlassShard::Remove(shard, (GlassShard::RemoveReason)8, 0);
-                shard->Remove((GlassShard::RemoveReason)8, 0);
+                shard->Remove(GlassShard::RemoveReason::KISAK_I_HAVE_NO_CLUE_WHY, 0);
                 //GlassRenderer::FreeShardMemory(clGlasses->renderer, &this->outlines->numOutlines);
                 clGlasses->renderer->FreeShardMemory((unsigned int*)&this->outlines);
                 this->outlines = 0;
                 if (numNewShards > 0)
                 {
                     //GlassShard::InitPhysics(newShards[0], newShards, numNewShards, glassExtent, pos, dir);
-                    newShards[0]->InitPhysics(newShards, numNewShards, glassExtent, pos, dir);
+                    ((GlassShard *)newShards[0])->InitPhysics(newShards, numNewShards, glassExtent, pos, dir);
                 }
                 //if ( GetCurrentThreadId() == g_DXDeviceThread )
                     //D3DPERF_EndEvent();
@@ -657,7 +659,7 @@ void __thiscall GlassClient::Shatter(const float *pos, const float *dir)
                     for (i = 0; i < numNewShardsa; ++i)
                     {
                         //GlassShard::Remove(newShards[i], (GlassShard::RemoveReason)8, 0);
-                        newShards[i]->Remove((GlassShard::RemoveReason)8, 0);
+                        ((GlassShard *)newShards[i])->Remove(GlassShard::RemoveReason::KISAK_I_HAVE_NO_CLUE_WHY, 0);
                     }
                 }
             }
@@ -685,7 +687,7 @@ char __thiscall GlassClient::PreShatter()
     GlassShard *baseShard; // [esp+38h] [ebp-654h]
     Allocator::Memory **buffer; // [esp+3Ch] [ebp-650h]
     int numNewShards; // [esp+40h] [ebp-64Ch]
-    GlassShard *newShards[400]; // [esp+44h] [ebp-648h] BYREF
+    const GlassShard *newShards[400]; // [esp+44h] [ebp-648h] BYREF
     GlassShard *shard; // [esp+688h] [ebp-4h]
 
     if ( (this->state.val.i & 0xF) == 2 || this->outlines )
@@ -725,7 +727,7 @@ char __thiscall GlassClient::PreShatter()
             for (i = 0; i < numNewShards; ++i)
             {
                 //GlassShard::Remove(newShards[i], (GlassShard::RemoveReason)8, 0);
-                newShards[i]->Remove(GlassShard::RemoveReason::KISAK_I_HAVE_NO_CLUE_WHY, 0);
+                ((GlassShard*)newShards[i])->Remove(GlassShard::RemoveReason::KISAK_I_HAVE_NO_CLUE_WHY, 0);
             }
         }
         else
@@ -745,7 +747,7 @@ char __thiscall GlassClient::PreShatter()
     }
 }
 
-int __cdecl GlassClient::Outlines::CalcMemorySize(GlassShard **shards, int numShards)
+int __cdecl GlassClient::Outlines::CalcMemorySize(const GlassShard **shards, int numShards)
 {
     int i; // [esp+4h] [ebp-8h]
     int numVerts; // [esp+8h] [ebp-4h]
@@ -758,7 +760,7 @@ int __cdecl GlassClient::Outlines::CalcMemorySize(GlassShard **shards, int numSh
 
 GlassClient::Outlines::Outlines(
                 const GlassShard *baseShard,
-                GlassShard **shards,
+                const GlassShard **shards,
                 int numShards)
 {
     float *v4; // [esp+Ch] [ebp-18h]
@@ -790,7 +792,7 @@ GlassClient::Outlines::Outlines(
 
 int __thiscall GlassClient::Outlines::InitShards(
                 const GlassShard *baseShard,
-                GlassShard **shards,
+                const GlassShard **shards,
                 int maxNewShards)
 {
     bool v4; // bl
@@ -826,16 +828,16 @@ int __thiscall GlassClient::Outlines::InitShards(
         if ( !shards[numNewShards] )
             break;
         //if ( !GlassShard::Init(shards[numNewShards], baseShard, &newOutline, offset) || (grp = (ShardGroup *)GlassRenderer::GetShardGroup(
-        if ( !shards[numNewShards]->Init(baseShard, &newOutline, offset) || (grp = (ShardGroup *)clGlasses->renderer->GetShardGroup(
+        if ( !((GlassShard *)shards[numNewShards])->Init(baseShard, &newOutline, offset) || (grp = (ShardGroup *)clGlasses->renderer->GetShardGroup(
                                                                 shards[numNewShards]->origin,
                                                                 baseShard->group->glassDef)) == 0 )
         {
             //GlassRenderer::FreeShard(clGlasses->renderer, shards[numNewShards]);
-            clGlasses->renderer->FreeShard(shards[numNewShards]);
+            clGlasses->renderer->FreeShard((GlassShard*)shards[numNewShards]);
             break;
         }
         //ShardGroup::Add(grp, shards[numNewShards++]);
-        grp->Add(shards[numNewShards++]);
+        grp->Add((GlassShard *)shards[numNewShards++]);
     }
     v8 = numNewShards;
     //if ( GetCurrentThreadId() == g_DXDeviceThread )

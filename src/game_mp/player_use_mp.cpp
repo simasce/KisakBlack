@@ -554,9 +554,9 @@ int Player_GetUseList(gentity_s *ent, useList_t *useList, int prevHintEntIndex)
     float v16; // [esp+2C4h] [ebp-10E0h]
     gentity_s *ent1; // [esp+2C8h] [ebp-10DCh]
     float v18; // [esp+2CCh] [ebp-10D8h]
-    float v; // [esp+2D0h] [ebp-10D4h] BYREF
-    float v20; // [esp+2D4h] [ebp-10D0h]
-    float v21; // [esp+2D8h] [ebp-10CCh]
+    float v[3]; // [esp+2D0h] [ebp-10D4h] BYREF
+    //float v20; // [esp+2D4h] [ebp-10D0h]
+    //float v21; // [esp+2D8h] [ebp-10CCh]
     int entityList[1025]; // [esp+2DCh] [ebp-10C8h] BYREF
     int hitNum; // [esp+12E0h] [ebp-C4h] BYREF
     float origin[3]; // [esp+130Ch] [ebp-98h] BYREF
@@ -707,13 +707,13 @@ int Player_GetUseList(gentity_s *ent, useList_t *useList, int prevHintEntIndex)
                                     pos = 0.5 * pos;
                                     v46 = 0.5 * v46;
                                     v47 = 0.5 * v47;
-                                    v = pos - origin[0];
-                                    v20 = v46 - origin[1];
-                                    v21 = v47 - origin[2];
-                                    v33 = Vec3Normalize(&v);
+                                    v[0] = pos - origin[0];
+                                    v[1] = v46 - origin[1];
+                                    v[2] = v47 - origin[2];
+                                    v33 = Vec3Normalize(v);
                                     if (v33 <= v38)
                                     {
-                                        if ((v18 = (float)((float)(v * forward[0]) + (float)(v20 * forward[1])) + (float)(v21 * forward[2]),
+                                        if ((v18 = (float)((float)(v[0] * forward[0]) + (float)(v[1] * forward[1])) + (float)(v[2] * forward[2]),
                                             gEnt->classname != scr_const.trigger_use)
                                             && gEnt->classname != scr_const.trigger_radius
                                             && gEnt->classname != scr_const.trigger_radius_use

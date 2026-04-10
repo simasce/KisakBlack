@@ -109,7 +109,7 @@ jqModule _UpdateFrameModule =
     .Code = (int(__cdecl *)(jqBatch *))_UpdateFrameCallback,
     //.Group = 0
 };
-jqWorkerCmd _UpdateFrameWorkerCmd = { &_UpdateFrameModule, 4u, 0, 0, &_UpdateFrameLimit, NULL, 0u };
+jqWorkerCmd _UpdateFrameWorkerCmd = { &_UpdateFrameModule, sizeof(CINE_JQ_CMD), 0, 0, &_UpdateFrameLimit, NULL, 0u};
 
 void __cdecl R_CinematicInitSound(const _GUID *guid)
 {

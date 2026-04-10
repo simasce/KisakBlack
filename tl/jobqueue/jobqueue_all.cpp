@@ -268,7 +268,6 @@ void tlSharedAtomicMutex::Lock()
 
 bool jqAtomicHeap::GetAvailableBlock(jqAtomicHeap::LevelInfo *FitLevel, int *FitSlot)
 {
-#if 0
   int NCells; // edx
   int v4; // eax
   signed __int64 v5; // rdi
@@ -306,42 +305,6 @@ bool jqAtomicHeap::GetAvailableBlock(jqAtomicHeap::LevelInfo *FitLevel, int *Fit
            (volatile signed __int64 *)&FitLevel->CellAvailable[v4],
            v5 & ~(1LL << ((63 - v9) & 0x3F)),
            v5) == v5;
-#else // aislop
-    uint64_t *cells = FitLevel->CellAvailable;
-    int nCells = FitLevel->NCells;
-
-    for (int cellIndex = 0; cellIndex < nCells; ++cellIndex)
-    {
-        uint64_t cell = cells[cellIndex];
-
-        if (cell == 0)
-            continue;
-
-        // Find highest set bit (MSB first like the ASM)
-        int bitIndex = 63;
-        while (((cell >> bitIndex) & 1ULL) == 0)
-            --bitIndex;
-
-        int slot = (cellIndex << 6) + bitIndex;
-
-        uint64_t mask = 1ULL << bitIndex;
-        uint64_t newCell = cell & ~mask;
-
-        // cmpxchg8b equivalent
-        if (_InterlockedCompareExchange64(
-            (volatile LONG64 *)&cells[cellIndex],
-            newCell,
-            cell) == (LONG64)cell)
-        {
-            *FitSlot = slot;
-            return true;
-        }
-
-        return false;
-    }
-
-    return false;
-#endif
 }
 
 char jqAtomicHeap::AllocBlock(jqAtomicHeap::LevelInfo **FitLevel, int *FitSlot)
@@ -1523,14 +1486,9 @@ char  jqPopNextBatch(
 
 void __cdecl jqWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool BreakWhenEmpty, unsigned __int64 *batchCount)
 {
-    //TLS_HACK *v5; // eax
-    _LARGE_INTEGER Tick; // rax
-    //int HighPart; // edi
-    //unsigned int LowPart; // esi
     //unsigned __int64 v9; // rax
     //bool v10; // cf
     bool v11; // zf
-    //TLS_HACK *v12; // ecx
     jqAtomicQueue<jqBatch,32> *p_Queue; // esi
     jqAtomicQueue<jqBatch,32>::NodeType **FreeListPtr; // eax
     jqAtomicQueue<jqBatch,32>::NodeType *freeList; // edi
@@ -1544,23 +1502,20 @@ void __cdecl jqWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool BreakWhe
     void *CachedConditionalAddress; // [esp+94h] [ebp-1Ch]
     unsigned __int64 lastConditionalCheckTime; // [esp+98h] [ebp-18h]
     unsigned int CachedConditionalValue; // [esp+A0h] [ebp-10h]
-    //TLS_HACK *v26; // [esp+A4h] [ebp-Ch]
     int ret; // [esp+A8h] [ebp-8h]
     bool doHighPriority; // [esp+AFh] [ebp-1h] BYREF
     uint64_t totalTime;
     uint64_t tick64;
-    uint64_t delta;
 
     if (jqWorkerInitFn && Worker->WorkerID > 0)
         jqWorkerInitFn(Worker->WorkerID);
-    //v5 = NtCurrentTeb()->ThreadLocalStoragePointer[_tls_index];
+
     lastConditionalCheckTime = 0;
     CachedConditionalAddress = 0;
     CachedConditionalValue = 0;
-    //v26 = v5;
     jqCurWorker = Worker;
     doHighPriority = 1;
-    memset(&CurBatch, 0, 28);
+
     while (1)
     {
         if (jqPopNextBatch(Worker, &doHighPriority, GroupID, &CurBatch))
@@ -1569,10 +1524,7 @@ void __cdecl jqWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool BreakWhe
             {
                 jqCurBatch = &CurBatch;
                 ret = 1;
-                Tick = tlPcGetTick();
-                //HighPart = Tick.HighPart;
-                //LowPart = Tick.LowPart;
-                tick64 = Tick.QuadPart;
+                tick64 = tlPcGetTick().QuadPart;
 
                 if (CachedConditionalAddress == CurBatch.ConditionalAddress
                     && CachedConditionalValue == CurBatch.ConditionalValue)
@@ -1581,12 +1533,8 @@ void __cdecl jqWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool BreakWhe
                 }
                 if (!CurBatch.ConditionalAddress)
                     goto LABEL_9;
-                //Tick.LowPart -= lastConditionalCheckTime;
-                //Target = (__PAIR64__(Tick.HighPart, LowPart) - lastConditionalCheckTime) >> 32;
-                //Target = (Tick.QuadPart - lastConditionalCheckTime) >> 32;
-                //if (Target || Tick.LowPart > 50000)
-                delta = tick64 - lastConditionalCheckTime;
-                if (delta > 50000)
+
+                if (tick64 - lastConditionalCheckTime > 50000)
                 {
                     if (*(_DWORD *)CurBatch.ConditionalAddress >= CurBatch.ConditionalValue)
                     {
@@ -1595,22 +1543,24 @@ void __cdecl jqWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool BreakWhe
                         CurBatch.ConditionalAddress = 0;
                         ret = CurBatch.Module->Code(&CurBatch);
                     }
-                    //lastConditionalCheckTime = __PAIR64__(HighPart, LowPart);
-                    //lastConditionalCheckTime = Tick.QuadPart;
                     lastConditionalCheckTime = tick64;
                     goto LABEL_10;
                 }
             LABEL_21:
                 v11 = ret == 0;
-                //v12 = v26;
                 jqCurBatch = 0;
                 if (!v11)
                 {
                     _InterlockedExchangeAdd(&jqPool.ThisPtr->group.QueuedBatchCount, 1u);
                     _InterlockedExchangeAdd(&CurBatch.Module->Group.QueuedBatchCount, 1u);
                     _InterlockedExchangeAdd(&jqCurQueue->ThisPtr->QueuedBatchCount, 1u);
+
                     if (CurBatch.GroupID)
+                    {
                         _InterlockedExchangeAdd(&CurBatch.GroupID->QueuedBatchCount, 1u);
+                    }
+                    jqCurQueue->Queue.Push(&CurBatch);
+#if 0
                     p_Queue = (jqAtomicQueue<jqBatch,32> *)&jqCurQueue->Queue;
                     //tlSharedAtomicMutex::Lock(&jqCurQueue->Queue.FreeLock);
                     jqCurQueue->Queue.FreeLock.Lock();
@@ -1670,6 +1620,7 @@ void __cdecl jqWorkerLoop(jqWorker *Worker, jqBatchGroup *GroupID, bool BreakWhe
                     //    InterlockedExchange(&v22, 0);
                     //    p_Queue->TailLock.ThreadId = 0;
                     //}
+#endif
                 }
                 _InterlockedExchangeAdd(&jqPool.ThisPtr->group.ExecutingBatchCount, 0xFFFFFFFF);
                 _InterlockedExchangeAdd(&CurBatch.Module->Group.ExecutingBatchCount, 0xFFFFFFFF);
@@ -1961,7 +1912,7 @@ void __cdecl jqFlush(jqBatchGroup *GroupID, unsigned __int64 batchCount)
         jqWorkerLoop(jqWorkers, GroupID, true, workerBatchCount);
 
         // blops2 added this
-        if (i > 1)
+        if (i++ > 1)
             Sleep(0);
     }
 }

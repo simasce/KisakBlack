@@ -10,6 +10,8 @@
 
 #define SURF_TYPECOUNT 31
 
+#define FLAG_AABB_LOC_VALID 2
+
 struct cpose_t;
 struct gentity_s;
 struct Glass;
@@ -98,7 +100,13 @@ public:
 
         inline int get_flag(int flag)
         {
-                return m_flags & flag;
+            return m_flags & flag;
+        }
+
+        // inferred from asserts
+        inline void check_aabb_valid()
+        {
+            iassert(get_flag(FLAG_AABB_LOC_VALID));
         }
 
         virtual ~gjk_base_t()

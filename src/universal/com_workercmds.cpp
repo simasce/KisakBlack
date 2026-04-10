@@ -75,12 +75,14 @@ void __cdecl Sys_AddWorkerCmdInternal(jqWorkerCmd *name, unsigned __int8 *data, 
 {
     jqBatch batch; // [esp+0h] [ebp-88h] BYREF
 
-    //jqBatch::jqBatch(&batch);
     batch.Input = jqCommitMemory(&batch, data, name->dataSize);
     batch.Module = name->module;
     batch.GroupID = 0;
-    if ( cond )
-        *(WorkerCmdConditional *)&batch.ConditionalAddress = *cond;
+    if (cond)
+    {
+        batch.ConditionalAddress = cond->address;
+        batch.ConditionalValue = cond->value;
+    }
     batch.ParamData[0] = (unsigned int)name;
     batch.ParamData[1] = _InterlockedExchangeAdd(&name->ppu_fence, 1u);
     jqAddBatch(&batch, name->queue);

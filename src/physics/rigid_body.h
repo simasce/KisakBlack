@@ -529,6 +529,7 @@ struct phys_collision_pair : phys_link_list_base<phys_collision_pair> // sizeof=
     float m_hit_time;
     struct phys_gjk_cache_info *m_gjk_ci;
 };
+static_assert(sizeof(phys_collision_pair) == 20);
 
 class __declspec(align(16)) contact_point_info // sizeof=0x50
 {

@@ -1009,38 +1009,22 @@ int __thiscall GlassShard::Outline::SetPointers(unsigned __int8 *ptr)
     return 24 * this->numVerts;
 }
 
-GlassShard::Outline *__thiscall GlassShard::Outline::operator=(GlassShard::Outline *o)
+GlassShard::Outline &__thiscall GlassShard::Outline::operator=(const GlassShard::Outline &o)
 {
-    if ( !this->verts
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_shard.cpp", 462, 0, "%s", "verts") )
-    {
-        __debugbreak();
-    }
-    if ( !o->verts
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_shard.cpp", 463, 0, "%s", "o.verts") )
-    {
-        __debugbreak();
-    }
-    if ( this->maxVerts < (int)o->numVerts
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_shard.cpp",
-                    464,
-                    0,
-                    "%s",
-                    "maxVerts >= o.numVerts") )
-    {
-        __debugbreak();
-    }
-    this->isClosed = o->isClosed;
-    this->numVerts = o->numVerts;
-    memcpy((unsigned __int8 *)this->verts, (unsigned __int8 *)o->verts, 24 * this->numVerts);
-    this->length = o->Length();
-    this->area = o->Area();
+    iassert(verts);
+    iassert(o.verts);
+    iassert(maxVerts >= o.numVerts);
+
+    this->isClosed = o.isClosed;
+    this->numVerts = o.numVerts;
+    memcpy(this->verts, o.verts, sizeof(Outline::Vertex) * this->numVerts);
+    this->length = o.Length();
+    this->area = o.Area();
     GlassShard::Outline::Verify();
-    return this;
+    return *this;
 }
 
-double __thiscall GlassShard::Outline::Length()
+double __thiscall GlassShard::Outline::Length() const
 {
     if ( !this->isClosed
         && !Assert_MyHandler("c:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_shard.h", 145, 0, "%s", "isClosed") )
@@ -1361,7 +1345,7 @@ int __thiscall GlassShard::Outline::GetNumIntersections(
                 const float *start,
                 const float *dir,
                 float *nearestDist,
-                int *nearestedge)
+                int *nearestedge) const
 {
     double SegmentParam; // st7
     float dist; // [esp+44h] [ebp-20h]
@@ -1578,7 +1562,7 @@ void __thiscall GlassShard::Outline::GetNearestDistances(
     }
 }
 
-void __thiscall GlassShard::Outline::Verify()
+void __thiscall GlassShard::Outline::Verify() const
 {
     if ( !this->isClosed
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_shard.cpp", 781, 0, "%s", "isClosed") )
@@ -1995,7 +1979,7 @@ char __thiscall GlassShard::Create(const Glass *glass)
     if ( !this->AllocateMemory(newOutline.numVerts, &triangles) )
         return 0;
     //GlassShard::Outline::operator=(&this->outline, &newOutline);
-    this->outline = newOutline;
+    this->outline.operator=(newOutline);
     this->thickness = glass->thickness;
     this->uvScale = glass->uvScale;
     this->glassIndex = glass->index;
@@ -2022,7 +2006,7 @@ char __thiscall GlassShard::Create(const Glass *glass)
     return 1;
 }
 
-bool __thiscall GlassShard::CanSplit(float maxShardSize, float minShardSize)
+bool __thiscall GlassShard::CanSplit(float maxShardSize, float minShardSize) const
 {
     float v4; // [esp+4h] [ebp-10h]
 
@@ -2034,7 +2018,7 @@ bool __thiscall GlassShard::CanSplit(float maxShardSize, float minShardSize)
     return this->outline.Area() > v4;
 }
 
-bool __thiscall GlassShard::CanSplit(bool shatter)
+bool GlassShard::CanSplit(bool shatter) const
 {
     float value; // [esp+8h] [ebp-14h]
 
@@ -2051,7 +2035,7 @@ bool __thiscall GlassShard::CanSplit(bool shatter)
     return this->CanSplit(this->group->glassDef->maxShardSize, this->group->glassDef->minShardSize * value);
 }
 
-int __thiscall GlassShard::Shatter(GlassShard **newShards, int maxNewShards)
+int __thiscall GlassShard::Shatter(const GlassShard **newShards, int maxNewShards)
 {
     double v3; // st7
     signed int v5; // [esp+2Ch] [ebp-A0h]
@@ -2060,7 +2044,7 @@ int __thiscall GlassShard::Shatter(GlassShard **newShards, int maxNewShards)
     float v9; // [esp+54h] [ebp-78h]
     signed int j; // [esp+8Ch] [ebp-40h]
     int numNewVerts; // [esp+90h] [ebp-3Ch]
-    int i; // [esp+94h] [ebp-38h]
+    //int i; // [esp+94h] [ebp-38h]
     int ns; // [esp+98h] [ebp-34h]
     float glassSize; // [esp+9Ch] [ebp-30h]
     int numTries; // [esp+A0h] [ebp-2Ch]
@@ -2113,7 +2097,7 @@ int __thiscall GlassShard::Shatter(GlassShard **newShards, int maxNewShards)
     {
         ns = 0;
         //for ( i = 0; i < numNewShards && !ns && GlassShard::CanSplit(newShards[i], maxShardSize, minShardSize); ++i )
-        for ( i = 0; i < numNewShards && !ns && newShards[i]->CanSplit(maxShardSize, minShardSize); ++i )
+        for ( int i = 0; i < numNewShards && !ns && newShards[i]->CanSplit(maxShardSize, minShardSize); ++i )
         {
             ++numTries;
             //ns = GlassShard::Split(newShards[i], &newShards[numNewShards], minShardSize, 0, -1.0);
@@ -2167,24 +2151,19 @@ int __thiscall GlassShard::Shatter(GlassShard **newShards, int maxNewShards)
     return numNewShards;
 }
 
-int compareShards(const void *s1, const void *a2)
+int compareShards(const void *s1, const void *s2)
 {
-    const GlassShard **s2 = (const GlassShard **)a2;
-    float v4; // [esp+4h] [ebp-10h]
-    float v5; // [esp+8h] [ebp-Ch]
-    const GlassShard *shard2; // [esp+10h] [ebp-4h]
+    float area1 = (*(const GlassShard **)s1)->outline.area;
+    float area2 = (*(const GlassShard **)s2)->outline.area;
 
-    shard2 = *s2;
-    v5 = ((GlassShard::Outline *)(*(unsigned int *)s1 + 12))->Area();
-    v4 = shard2->outline.area;
-    if ( (float)(v5 - v4) < 0.0 )
-        return (int)1.0f;
-    else
-        return (int)-1.0f;
+    // Sort largest first (descending)
+    if (area1 > area2) return -1;
+    if (area1 < area2) return  1;
+    return 0;
 }
 
 void __thiscall GlassShard::InitPhysics(
-                GlassShard **newShards,
+                const GlassShard **newShards,
                 int numNewShards,
                 float glassExtent,
                 const float *pos,
@@ -2201,7 +2180,7 @@ void __thiscall GlassShard::InitPhysics(
         for (i = 0; i < numNewShards; ++i)
         {
             //GlassShard::Remove(newShards[i], (GlassShard::RemoveReason)8, 0);
-            newShards[i]->Remove((GlassShard::RemoveReason)8, 0);
+            ((GlassShard*)newShards[i])->Remove((GlassShard::RemoveReason)8, 0);
         }
         return;
     }
@@ -2215,14 +2194,14 @@ void __thiscall GlassShard::InitPhysics(
     for ( j = 0; j < numNewShards; ++j )
     {
         //GlassShard::InitMesh(newShards[j]);
-        newShards[j]->InitMesh();
+        ((GlassShard *)newShards[j])->InitMesh();
         if ( clGlasses->renderer->freezeShards->current.enabled )
         {
             //GlassShard::UpdateBBox(newShards[j]);
-            newShards[j]->UpdateBBox();
+            ((GlassShard *)newShards[j])->UpdateBBox();
         }
         //else if ( !GlassShard::InitPhysics(newShards[j], j < numKeepShards, pos, dir, glassExtent, 1.0) )
-        else if ( !newShards[j]->InitPhysics(j < numKeepShards, pos, dir, glassExtent, 1.0) )
+        else if ( !((GlassShard *)newShards[j])->InitPhysics(j < numKeepShards, pos, dir, glassExtent, 1.0) )
         {
             continue;
         }
@@ -2231,18 +2210,18 @@ void __thiscall GlassShard::InitPhysics(
             if ( !this->group )
             {
                 //GlassShard::Remove(newShards[j], (GlassShard::RemoveReason)8, 0);
-                newShards[j]->Remove((GlassShard::RemoveReason)8, 0);
+                ((GlassShard *)newShards[j])->Remove((GlassShard::RemoveReason)8, 0);
                 continue;
             }
             //ShardGroup::Add(this->group, newShards[j]);
-            this->group->Add(newShards[j]);
+            this->group->Add(((GlassShard *)newShards[j]));
         }
         group = newShards[j]->group;
         //if ( group->packedPos != GlassRenderer::CalcPackedPos(clGlasses->renderer, newShards[j]->origin) )
         if (group->packedPos != clGlasses->renderer->CalcPackedPos(newShards[j]->origin))
         {
             //GlassRenderer::AddGroupChange(clGlasses->renderer, newShards[j]);
-            clGlasses->renderer->AddGroupChange(newShards[j]);
+            clGlasses->renderer->AddGroupChange(((GlassShard *)newShards[j]));
         }
     }
     //if ( GetCurrentThreadId() == g_DXDeviceThread )
@@ -2706,7 +2685,7 @@ LABEL_23:
         for (i = 0; i < 5 && !ns && newShards[0]->CanSplit(maxShardSize, minShardSize); ++i)
         {
             ns = newShards[0]->Split(
-                &newShards[numNewShards],
+                (const GlassShard**)&newShards[numNewShards],
                 minShardSize,
                 dists[0].edgeIndex,
                 dists[0].edgeParam);
@@ -2719,7 +2698,7 @@ LABEL_23:
     else
     {
         //PIXBeginNamedEvent(-1, "Chip");
-        if ( GlassShard::Chip(dists, hitPoint2d, &newShards[numNewShards], minShardSize) )
+        if ( GlassShard::Chip(dists, hitPoint2d, (const GlassShard **)&newShards[numNewShards], minShardSize) )
             ++numNewShards;
         //if ( g_DXDeviceThread != GetCurrentThreadId() )
         //    goto LABEL_38;
@@ -2821,7 +2800,7 @@ LABEL_38:
                     //GlassShard::Outline::GetNearestDistances(&newShards[v46]->outline, pos2d, dists, 1);
                     newShards[v46]->outline.GetNearestDistances(pos2d, dists, 1);
                     v47 = newShards[v46]->Split(
-                                    &newShards[numNewShards],
+                        (const GlassShard **)&newShards[numNewShards],
                                     minShardSize,
                                     dists[0].edgeIndex,
                                     dists[0].edgeParam);
@@ -2911,40 +2890,12 @@ void __thiscall GlassShard::GetLocalBBox(float *mins, float *maxs)
         mins[2] = this->thickness;
     else
         maxs[2] = this->thickness;
-    if ( !mins && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_shard.cpp", 2159, 0, "%s", "mins") )
-        __debugbreak();
-    if ( !maxs && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_shard.cpp", 2159, 0, "%s", "maxs") )
-        __debugbreak();
-    if ( *maxs < *mins
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_shard.cpp",
-                    2159,
-                    0,
-                    "%s",
-                    "maxs[0] >= mins[0]") )
-    {
-        __debugbreak();
-    }
-    if ( maxs[1] < mins[1]
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_shard.cpp",
-                    2159,
-                    0,
-                    "%s",
-                    "maxs[1] >= mins[1]") )
-    {
-        __debugbreak();
-    }
-    if ( maxs[2] < mins[2]
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_shard.cpp",
-                    2159,
-                    0,
-                    "%s",
-                    "maxs[2] >= mins[2]") )
-    {
-        __debugbreak();
-    }
+
+    iassert(mins);
+    iassert(maxs);
+    iassert(maxs[0] >= mins[0]);
+    iassert(maxs[1] >= mins[1]);
+    iassert(maxs[2] >= mins[2]);
     nanassertvec3(mins);
     nanassertvec3(maxs);
 }
@@ -3434,11 +3385,11 @@ void __thiscall GlassShard::GenerateVerts(
 #endif
 }
 
-int __thiscall GlassShard::Split(
-                GlassShard **newShards,
+int GlassShard::Split(
+                const GlassShard **newShards,
                 float minShardSize,
                 unsigned int startEdge,
-                float startEdgeParam)
+                float startEdgeParam) const
 {
     float max; // [esp+4h] [ebp-DB4h]
     float v7; // [esp+8h] [ebp-DB0h]
@@ -3682,10 +3633,10 @@ LABEL_36:
     }
 }
 
-int __thiscall GlassShard::Chip(
+int GlassShard::Chip(
                 const GlassShard::Outline::EdgeDistance *dist,
                 const float *hitPoint,
-                GlassShard **newShards,
+                const GlassShard **newShards,
                 float minShardSize)
 {
     unsigned int v6; // [esp+8h] [ebp-C9Ch]
@@ -3767,11 +3718,11 @@ int __thiscall GlassShard::Chip(
     }
 }
 
-int __thiscall GlassShard::InitSplitShards(
+int GlassShard::InitSplitShards(
                 GlassShard::Outline *outline1,
                 GlassShard::Outline *outline2,
-                GlassShard **newShards,
-                float minShardSize)
+                const GlassShard **newShards,
+                float minShardSize) const
 {
     float otherOffset[2]; // [esp+14h] [ebp-10h] BYREF
     float offset[2]; // [esp+1Ch] [ebp-8h] BYREF
@@ -3808,20 +3759,20 @@ int __thiscall GlassShard::InitSplitShards(
         otherOffset[1] = 0.0f;
         outline2->Reverse();
         //if (GlassShard::Init(*newShards, a2, this, outline2, otherOffset))
-        if ((*newShards)->Init(this, outline2, otherOffset))
+        if (((GlassShard*)*newShards)->Init(this, outline2, otherOffset))
         {
             offset[0] = 0.0f;
             offset[1] = 0.0f;
             //if (GlassShard::Init(this, a2, this, outline1, offset))
-            if (this->Init(this, outline1, offset)) // KISAKTODO: sus
+            if (((GlassShard *)this)->Init(this, outline1, offset)) // KISAKTODO: sus
             {
                 return 1;
             }
             else
             {
-                clGlasses->renderer->FreeShard(*newShards);
+                clGlasses->renderer->FreeShard((GlassShard*)*newShards);
                 //if (!GlassShard::Init(this, a2, this, outline2, otherOffset))
-                if (!this->Init(this, outline2, otherOffset))
+                if (!((GlassShard *)this)->Init(this, outline2, otherOffset))
                 {
                     //if (!Assert_MyHandler(
                     //    a2,
@@ -3839,7 +3790,7 @@ int __thiscall GlassShard::InitSplitShards(
         else
         {
             ++GlassShard::splitFailCount[2];
-            clGlasses->renderer->FreeShard(*newShards);
+            clGlasses->renderer->FreeShard((GlassShard*)*newShards);
             return 0;
         }
     }
@@ -3852,8 +3803,8 @@ int __thiscall GlassShard::InitSplitShards(
 
 char __thiscall GlassShard::Init(
                 const GlassShard *other,
-                GlassShard::Outline *newOutline,
-                float *offset)
+                const GlassShard::Outline *newOutline, // KISAKTODO: convert to ref &
+                const float * const offset)
 {
     float v6; // [esp+10h] [ebp-150h]
     float v7; // [esp+20h] [ebp-140h]
@@ -3872,7 +3823,7 @@ char __thiscall GlassShard::Init(
         return 0;
 
     //GlassShard::Outline::operator=(&this->outline, newOutline);
-    this->outline = newOutline;
+    this->outline = *newOutline;
     this->thickness = other->thickness;
     this->uvScale = other->uvScale;
     this->glassIndex = other->glassIndex;

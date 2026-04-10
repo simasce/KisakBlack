@@ -23,11 +23,11 @@ struct GlassClient // sizeof=0xC
         unsigned int numOutlines;
         GlassClient::Outlines::Outline *outlines;
 
-        Outlines(const GlassShard *baseShard, GlassShard **shards, int numShards);
+        Outlines(const GlassShard *baseShard, const GlassShard **shards, int numShards);
 
-        int InitShards(const GlassShard *baseShard, GlassShard **shards, int maxNewShards);
+        int InitShards(const GlassShard *baseShard, const GlassShard **shards, int maxNewShards);
 
-        static int __cdecl CalcMemorySize(GlassShard **shards, int numShards);
+        static int __cdecl CalcMemorySize(const GlassShard **shards, int numShards);
     };
 
     const Glass *glass;

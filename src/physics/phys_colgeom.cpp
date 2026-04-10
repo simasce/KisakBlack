@@ -42,10 +42,17 @@ create_gjk_geom_collision_visitor g_empty_collision_visitor;
 
 void gjk_base_t::comp_aabb_loc()
 {
-    if ((this->m_flags & 2) == 0)
+    if ((this->m_flags & FLAG_AABB_LOC_VALID) == 0)
     {
-        this->m_flags |= 2u;
+        this->m_flags |= FLAG_AABB_LOC_VALID;
         this->calc_aabb(&PHYS_IDENTITY_MATRIX, &this->m_aabb_mn_loc, &this->m_aabb_mx_loc);
+
+        iassert(!BADFLOAT(m_aabb_mn_loc.x));
+        iassert(!BADFLOAT(m_aabb_mn_loc.y));
+        iassert(!BADFLOAT(m_aabb_mn_loc.z));
+        iassert(!BADFLOAT(m_aabb_mx_loc.x));
+        iassert(!BADFLOAT(m_aabb_mx_loc.y));
+        iassert(!BADFLOAT(m_aabb_mx_loc.z));
     }
 }
 
@@ -2489,24 +2496,18 @@ gjk_aabb_t * create_aabb_gjk_geom(
                 int stype,
                 gjk_collision_visitor *allocator)
 {
-    phys_vec3 v6; // [esp-Ch] [ebp-4Ch] OVERLAPPED BYREF
-    phys_vec3 v7; // [esp+4h] [ebp-3Ch] BYREF
-    float dims__12[3]; // [esp+1Ch] [ebp-24h] BYREF
-    float center[3]; // [esp+28h] [ebp-18h] BYREF
-    float dims[3]; // [esp+34h] [ebp-Ch]
-    float retaddr; // [esp+40h] [ebp+0h]
+    phys_vec3 center;
+    phys_vec3 halfExtents;
 
-    //dims[0] = a1;
-    //dims[1] = retaddr;
-    center[0] = (float)(0.5 * *mx) + (float)(-0.5 * *mn);
-    center[1] = (float)(0.5 * mx[1]) + (float)(-0.5 * mn[1]);
-    center[2] = (float)(0.5 * mx[2]) + (float)(-0.5 * mn[2]);
-    dims__12[0] = (float)(0.5 * *mx) + (float)(0.5 * *mn);
-    dims__12[1] = (float)(0.5 * mx[1]) + (float)(0.5 * mn[1]);
-    dims__12[2] = (float)(0.5 * mx[2]) + (float)(0.5 * mn[2]);
-    Phys_Vec3ToNitrousVec(center, &v7);
-    Phys_Vec3ToNitrousVec(dims__12, &v6);
-    return gjk_aabb_t::create(&v6, &v7, stype, allocator);
+    center.x = (mx[0] + mn[0]) * 0.5f;
+    center.y = (mx[1] + mn[1]) * 0.5f;
+    center.z = (mx[2] + mn[2]) * 0.5f;
+
+    halfExtents.x = (mx[0] - mn[0]) * 0.5f;
+    halfExtents.y = (mx[1] - mn[1]) * 0.5f;
+    halfExtents.z = (mx[2] - mn[2]) * 0.5f;
+
+    return gjk_aabb_t::create(&center, &halfExtents, stype, allocator);
 }
 
 gjk_obb_t * create_obb_gjk_geom(

@@ -1102,14 +1102,10 @@ public:
 
 inline phys_vec3 *__cdecl phys_AbsValue(phys_vec3 *result, const phys_vec3 *a)
 {
-    float v3; // [esp+8h] [ebp-10h]
-    float v4; // [esp+10h] [ebp-8h]
-
-    v4 = fabsf(a->z);
-    v3 = fabsf(a->y);
     result->x = fabsf(a->x);
-    result->y = v3;
-    result->z = v4;
+    result->y = fabsf(a->y);
+    result->z = fabsf(a->z);
+
     return result;
 }
 
@@ -1859,18 +1855,10 @@ inline const phys_vec3 *__cdecl phys_max(phys_vec3 *result, const phys_vec3 *v1,
 
 inline const phys_vec3 *__cdecl phys_multiply(phys_vec3 *result, const phys_mat44 *mat, const phys_vec3 *v)
 {
-    float v4; // [esp-ACh] [ebp-B8h]
-    float v5; // [esp-A8h] [ebp-B4h]
-    float y; // [esp-34h] [ebp-40h]
-    float z; // [esp-4h] [ebp-10h]
+    result->x = ((v->x * mat->x.x) + (v->y * mat->y.x)) + (v->z * mat->z.x);
+    result->y = ((v->x * mat->x.y) + (v->y * mat->y.y)) + (v->z * mat->z.y);
+    result->z = ((v->x * mat->x.z) + (v->y * mat->y.z)) + (v->z * mat->z.z);
 
-    z = v->z;
-    y = v->y;
-    v5 = (float)((float)(v->x * mat->x.y) + (float)(y * mat->y.y)) + (float)(z * mat->z.y);
-    v4 = (float)((float)(v->x * mat->x.z) + (float)(y * mat->y.z)) + (float)(z * mat->z.z);
-    result->x = (float)((float)(v->x * mat->x.x) + (float)(y * mat->y.x)) + (float)(z * mat->z.x);
-    result->y = v5;
-    result->z = v4;
     return result;
 }
 
@@ -1879,25 +1867,13 @@ inline const phys_vec3 *phys_full_multiply(
     const phys_mat44 *mat,
     const phys_vec3 *v)
 {
-    //phys_vec3 *result;
-    float v5; // [esp-30h] [ebp-3Ch]
-    float v6; // [esp-2Ch] [ebp-38h]
     const phys_vec3 *v7; // [esp-24h] [ebp-30h]
     phys_vec3 v8; // [esp-20h] [ebp-2Ch] BYREF
-    const phys_vec3 *p_w; // [esp-4h] [ebp-10h]
-    //int v10; // [esp+0h] [ebp-Ch]
-    //void *v11; // [esp+4h] [ebp-8h]
-    //void *retaddr; // [esp+Ch] [ebp+0h]
 
-    //v10 = a1;
-    //v11 = retaddr;
-    p_w = &mat->w;
     v7 = phys_multiply(&v8, mat, v);
-    v6 = v7->y + p_w->y;
-    v5 = v7->z + p_w->z;
-    result->x = v7->x + p_w->x;
-    result->y = v6;
-    result->z = v5;
+    result->x = v7->x + mat->w.x;
+    result->y = v7->y + mat->w.y;
+    result->z = v7->z + mat->w.z;
     return result;
 }
 
@@ -1915,14 +1891,8 @@ inline void phys_calc_world_aabb(
     phys_vec3 *aabb_max)
 {
     const phys_vec3 *v6; // eax
-    float v7; // [esp-48h] [ebp-108h]
-    float v8; // [esp-44h] [ebp-104h]
-    float v9; // [esp-28h] [ebp-E8h]
-    float v10; // [esp-24h] [ebp-E4h]
     phys_vec3 v11; // [esp-Ch] [ebp-CCh] BYREF
-    float center_4; // [esp+4h] [ebp-BCh]
-    float center_8; // [esp+8h] [ebp-B8h]
-    float center_12; // [esp+Ch] [ebp-B4h]
+    phys_vec3 center; // [esp+4h] [ebp-BCh]
     float v15; // [esp+20h] [ebp-A0h]
     phys_vec3 v16; // [esp+24h] [ebp-9Ch] BYREF
     float v17; // [esp+3Ch] [ebp-84h]
@@ -1931,78 +1901,84 @@ inline void phys_calc_world_aabb(
     float v20; // [esp+5Ch] [ebp-64h]
     phys_vec3 *v21; // [esp+60h] [ebp-60h]
     phys_vec3 v22; // [esp+64h] [ebp-5Ch] BYREF
-    phys_mat44 v23; // [esp+74h] [ebp-4Ch] BYREF
-    //_DWORD world_to_local_xform_52[3]; // [esp+B4h] [ebp-Ch] BYREF
-    //_UNKNOWN *retaddr; // [esp+C0h] [ebp+0h]
+    phys_mat44 world_to_local_xform; // [esp+74h] [ebp-4Ch] BYREF
 
-    //*(float *)world_to_local_xform_52 = a1;
-    //world_to_local_xform_52[1] = retaddr;
-    phys_transpose(&v23, local_to_world_xform);
-    v21 = phys_AbsValue(&v22, &v23.z);
-    v20 = (float)((float)(v21->x * local_half_aabb_dims->x) + (float)(v21->y * local_half_aabb_dims->y))
-        + (float)(v21->z * local_half_aabb_dims->z);
-    v18 = phys_AbsValue(&v19, &v23.y);
-    v17 = (float)((float)(v18->x * local_half_aabb_dims->x) + (float)(v18->y * local_half_aabb_dims->y))
-        + (float)(v18->z * local_half_aabb_dims->z);
-    v6 = phys_AbsValue(&v16, &v23.x);
-    v15 = phys_dot(v6, local_half_aabb_dims);
-    center_4 = v15;
-    center_8 = v17;
-    center_12 = v20;
-    phys_full_multiply(&v11, local_to_world_xform, local_center);
-    v9 = v11.y - center_8;
-    v10 = v11.z - center_12;
-    aabb_min->x = v11.x - center_4;
-    aabb_min->y = v9;
-    aabb_min->z = v10;
-    v7 = v11.y + center_8;
-    v8 = v11.z + center_12;
-    aabb_max->x = v11.x + center_4;
-    aabb_max->y = v7;
-    aabb_max->z = v8;
+    phys_transpose(&world_to_local_xform, local_to_world_xform);
+
+    phys_vec3 absX, absY, absZ;
+
+    phys_AbsValue(&absX, &world_to_local_xform.x);
+    phys_AbsValue(&absY, &world_to_local_xform.y);
+    phys_AbsValue(&absZ, &world_to_local_xform.z);
+
+    float ex = phys_dot(&absX, local_half_aabb_dims);
+    float ey = phys_dot(&absY, local_half_aabb_dims);
+    float ez = phys_dot(&absZ, local_half_aabb_dims);
+
+    //phys_vec3 center;
+    phys_full_multiply(&center, local_to_world_xform, local_center);
+
+    aabb_min->x = center.x - ex;
+    aabb_min->y = center.y - ey;
+    aabb_min->z = center.z - ez;
+
+    aabb_max->x = center.x + ex;
+    aabb_max->y = center.y + ey;
+    aabb_max->z = center.z + ez;
+
+    iassert(!IS_NAN(aabb_max->x) && !IS_NAN(aabb_max->y) && !IS_NAN(aabb_max->z));
+    iassert(!IS_NAN(aabb_min->x) && !IS_NAN(aabb_min->y) && !IS_NAN(aabb_min->z));
+
+    //v21 = phys_AbsValue(&v22, &world_to_local_xform.z);
+    //v20 = (float)((float)(v21->x * local_half_aabb_dims->x) + (float)(v21->y * local_half_aabb_dims->y))
+    //    + (float)(v21->z * local_half_aabb_dims->z);
+    //v18 = phys_AbsValue(&v19, &world_to_local_xform.y);
+    //v17 = (float)((float)(v18->x * local_half_aabb_dims->x) + (float)(v18->y * local_half_aabb_dims->y))
+    //    + (float)(v18->z * local_half_aabb_dims->z);
+    //v6 = phys_AbsValue(&v16, &world_to_local_xform.x);
+    //v15 = phys_dot(v6, local_half_aabb_dims);
+    //center[0] = v15;
+    //center[1] = v17;
+    //center[2] = v20;
+    //phys_full_multiply(&v11, local_to_world_xform, local_center);
+    //
+    //aabb_min->x = v11.x - center[0];
+    //aabb_min->y = v11.y - center[1];
+    //aabb_min->z = v11.z - center[2];
+    //
+    //aabb_max->x = v11.x + center[0];
+    //aabb_max->y = v11.y + center[1];
+    //aabb_max->z = v11.z + center[2];
 }
 
 inline void __cdecl phys_transpose(phys_mat44 *dest, const phys_mat44 *source)
 {
-    float *v2; // [esp+8h] [ebp-24h]
-    float *v3; // [esp+Ch] [ebp-20h]
-    float v4; // [esp+10h] [ebp-1Ch]
-    float *v5; // [esp+14h] [ebp-18h]
-    float *v6; // [esp+18h] [ebp-14h]
-    float v7; // [esp+1Ch] [ebp-10h]
-    float *v8; // [esp+24h] [ebp-8h]
-    float v9; // [esp+28h] [ebp-4h]
-
     if (dest == source)
     {
-        //v8 = phys_vec3::operator[]<int>(&dest->x, 1u);
-        v8 = &dest->x[1];
-        v9 = *v8;
-        *v8 = dest->y.x;
-        dest->y.x = v9;
-        //v5 = phys_vec3::operator[]<int>(&dest->z, 0);
-        v5 = &dest->z[0];
-        //v6 = phys_vec3::operator[]<int>(&dest->x, 2u);
-        v6 = &dest->x[2];
-        v7 = *v6;
-        *v6 = *v5;
-        *v5 = v7;
-        //v2 = phys_vec3::operator[]<int>(&dest->z, 1u);
-        v2 = &dest->z[1];
-        //v3 = phys_vec3::operator[]<int>(&dest->y, 2u);
-        v3 = &dest->y[2];
-        v4 = *v3;
-        *v3 = *v2;
-        *v2 = v4;
+        float tmp;
+
+        tmp = dest->x.y;
+        dest->x.y = dest->y.x;
+        dest->y.x = tmp;
+
+        tmp = dest->x.z;
+        dest->x.z = dest->z.x;
+        dest->z.x = tmp;
+
+        tmp = dest->y.z;
+        dest->y.z = dest->z.y;
+        dest->z.y = tmp;
     }
     else
     {
         dest->x.x = source->x.x;
         dest->x.y = source->y.x;
         dest->x.z = source->z.x;
+
         dest->y.x = source->x.y;
         dest->y.y = source->y.y;
         dest->y.z = source->z.y;
+
         dest->z.x = source->x.z;
         dest->z.y = source->y.z;
         dest->z.z = source->z.z;

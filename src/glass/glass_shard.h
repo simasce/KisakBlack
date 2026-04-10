@@ -165,6 +165,7 @@ struct GlassShard // sizeof=0x90
 
             void operator=(const GlassShard::Outline::Vertex *other);
         };
+        static_assert(sizeof(Outline::Vertex) == 24);
         GlassShard::Outline::Vertex *verts; // XREF: GlassClient::Outlines::InitShards(GlassShard const *,GlassShard * * const,int)+4F/w
                                             // GlassShard::Create(Glass const *)+35/w ...
         float length;
@@ -181,9 +182,9 @@ struct GlassShard // sizeof=0x90
 
         int Init(Vertex *ptr,unsigned __int8 num);
         int SetPointers(unsigned __int8 *ptr);
-        GlassShard::Outline *operator=(GlassShard::Outline *o);
-        double Length();
-        inline float Area()
+        GlassShard::Outline &operator=(const GlassShard::Outline &o);
+        double Length() const;
+        inline float Area() const
         {
             return this->area;
         }
@@ -202,7 +203,7 @@ struct GlassShard // sizeof=0x90
             const float *start,
             const float *dir,
             float *nearestDist,
-            int *nearestedge);
+            int *nearestedge) const;
         char DoesIntersect(
             const float *start,
             const float *dir,
@@ -212,7 +213,7 @@ struct GlassShard // sizeof=0x90
             const float *p,
             EdgeDistance *dists,
             int nDists);
-        void Verify();
+        void Verify() const;
 
         static void Defrag(GlassShard *ptr);
         void Defrag();
@@ -272,11 +273,11 @@ struct GlassShard // sizeof=0x90
     double EdgeRatio();
     void UnEdge();
     char Create(const Glass *glass);
-    bool CanSplit(float maxShardSize, float minShardSize);
-    bool CanSplit(bool shatter);
-    int Shatter(GlassShard **newShards, int maxNewShards);
+    bool CanSplit(float maxShardSize, float minShardSize) const;
+    bool CanSplit(bool shatter) const;
+    int Shatter(const GlassShard **newShards, int maxNewShards);
     void InitPhysics(
-        GlassShard **newShards,
+        const GlassShard **newShards,
         int numNewShards,
         float glassExtent,
         const float *pos,
@@ -315,24 +316,24 @@ struct GlassShard // sizeof=0x90
         unsigned __int16 vertsBaseIndex,
         unsigned __int16 *idxOut);
     int Split(
-        GlassShard **newShards,
+        const GlassShard **newShards,
         float minShardSize,
         unsigned int startEdge,
-        float startEdgeParam);
+        float startEdgeParam) const;
     int Chip(
         const Outline::EdgeDistance *dist,
         const float *hitPoint,
-        GlassShard **newShards,
+        const GlassShard **newShards,
         float minShardSize);
     int InitSplitShards(
         Outline *outline1,
         Outline *outline2,
-        GlassShard **newShards,
-        float minShardSize);
+        const GlassShard **newShards,
+        float minShardSize) const;
     char Init(
         const GlassShard *other,
-        Outline *newOutline,
-        float *offset);
+        const GlassShard::Outline *newOutline,
+        const float *const offset);
     double GetMass();
     bool InitPhysicsObj(bool enableCollisions);
     void DestroyPhysicsObj();

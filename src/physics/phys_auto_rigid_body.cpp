@@ -131,50 +131,47 @@ void __cdecl auto_rigid_body::add(const centity_s *cent, gjk_physics_collision_v
     }
 }
 
-// local variable allocation has failed, the output may be wrong!
 void    auto_rigid_body::update()
 {
-    _BYTE v1[12]; // [esp-Ch] [ebp-8Ch] BYREF
-    _BYTE dictator_36[36]; // [esp+24h] [ebp-5Ch] OVERLAPPED BYREF
-    const float *angles; // [esp+60h] [ebp-20h]
-    const float *origin; // [esp+64h] [ebp-1Ch]
-    auto_rigid_body *next; // [esp+68h] [ebp-18h]
-    auto_rigid_body **p_next; // [esp+6Ch] [ebp-14h]
-    auto_rigid_body *v7; // [esp+70h] [ebp-10h]
-    //auto_rigid_body *iter_next; // [esp+74h] [ebp-Ch]
-    //auto_rigid_body **prev_next; // [esp+78h] [ebp-8h]
-    //auto_rigid_body **retaddr; // [esp+80h] [ebp+0h]
-
-    //iter_next = a1;
-    //prev_next = retaddr;
-    v7 = g_auto_rigid_body_list;
-    p_next = &g_auto_rigid_body_list;
-    while ( v7 )
+    phys_mat44 dictator; // [esp-Ch] [ebp-8Ch] OVERLAPPED BYREF
+    float axis[3][3]; // [esp+3Ch] [ebp-44h] BYREF
+    auto_rigid_body *iter_next; // [esp+68h] [ebp-18h]
+    auto_rigid_body **prev_next; // [esp+6Ch] [ebp-14h]
+    auto_rigid_body *iter; // [esp+70h] [ebp-10h]
+    //_UNKNOWN *v8; // [esp+74h] [ebp-Ch]
+    //int v9; // [esp+78h] [ebp-8h]
+    //int vars0; // [esp+80h] [ebp+0h]
+    //
+    //v8 = a1;
+    //v9 = vars0;
+    iter = g_auto_rigid_body_list;
+    prev_next = &g_auto_rigid_body_list;
+    while (iter)
     {
-        if ( --v7->frame_count <= 0
-            || CG_IsRagdollTrajectory(&v7->cent->nextState.lerp.pos)
-            || v7->cent->nextState.lerp.pos.trType == 10 )
+        if (--iter->frame_count <= 0
+            || CG_IsRagdollTrajectory(&iter->cent->nextState.lerp.pos)
+            || iter->cent->nextState.lerp.pos.trType == 10)
         {
-            next = v7->next;
-            //phys_inplace_avl_tree<centity_s const *,auto_rigid_body,auto_rigid_body>::remove(&g_auto_rigid_body_map, &v7->cent);
-            g_auto_rigid_body_map.remove(v7->cent);
-            phys_sys::destroy(v7->rb);
-            //phys_simple_allocator<auto_rigid_body>::free(&g_auto_rigid_body_allocator, v7);
-            g_auto_rigid_body_allocator.free(v7);
-            *p_next = next;
-            v7 = next;
+            iter_next = iter->next;
+            //phys_inplace_avl_tree<centity_s const *, auto_rigid_body, auto_rigid_body>::remove(&g_auto_rigid_body_map,&iter->cent);
+            g_auto_rigid_body_map.remove(iter->cent);
+            phys_sys::destroy(iter->rb);
+            //phys_simple_allocator<auto_rigid_body>::free(&g_auto_rigid_body_allocator, iter);
+            g_auto_rigid_body_allocator.free(iter);
+            *prev_next = iter_next;
+            iter = iter_next;
         }
         else
         {
-            origin = v7->cent->pose.origin;
-            angles = v7->cent->pose.angles;
-            AnglesToAxis(angles, (float (*)[3])&dictator_36[24]);
-            Phys_AxisToNitrousMat((float (*)[3])&dictator_36[24], (phys_mat44 *)v1);
-            Phys_Vec3ToNitrousVec(origin, (phys_vec3 *)dictator_36);
-            //user_rigid_body::setPosition(v7->rb, (const phys_mat44 *const)v1);
-            v7->rb->setPosition((const phys_mat44 *const)v1);
-            p_next = &v7->next;
-            v7 = v7->next;
+            const float *origin = iter->cent->pose.origin;
+            const float *angles = iter->cent->pose.angles;
+            AnglesToAxis(angles, axis);
+            Phys_AxisToNitrousMat(axis, &dictator);
+            Phys_Vec3ToNitrousVec(origin, &dictator.w);
+            //user_rigid_body::setPosition(iter->rb, &dictator);
+            iter->rb->setPosition(&dictator);
+            prev_next = &iter->next;
+            iter = iter->next;
         }
     }
 }

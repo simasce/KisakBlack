@@ -556,6 +556,9 @@ void __cdecl init_bpeqi(broad_phase_environment_query_input *bpeqi, broad_phase_
     float v6; // [esp-8h] [ebp-14h]
     float v7; // [esp-8h] [ebp-14h]
 
+    nanassertvec3(bpb->m_trace_aabb_min_whace); // LWSS ADD
+    nanassertvec3(bpb->m_trace_aabb_max_whace); // LWSS ADD
+
     v2 = bpb->m_trace_aabb_min_whace.x - 0.5099999904632568;
     v4 = bpb->m_trace_aabb_min_whace.y - 0.5099999904632568;
     v6 = bpb->m_trace_aabb_min_whace.z - 0.5099999904632568;
@@ -1101,6 +1104,8 @@ void broad_phase_process_object_environment_collision(bpi_environment_collision_
     }
 
     iassert(bpb_ptr_cur - bpb_ptr_list == eci->m_bpb_count);
+
+
 
     g_bpb_ptr_list = bpb_ptr_list;
     g_bpb_list_index = 0;
@@ -2181,124 +2186,103 @@ char    bpi_do_gjk_intersect(
                 broad_phase_info *p2,
                 float hit_time)
 {
-    unsigned int m_gjk_geom_id; // ecx
-    phys_gjk_info v6; // [esp-Ch] [ebp-41Ch] BYREF
     phys_gjk_input pgi; // [esp+394h] [ebp-7Ch] BYREF
     phys_collision_pair pcp; // [esp+3E8h] [ebp-28h] BYREF
     unsigned int id1; // [esp+3FCh] [ebp-14h]
     unsigned int id2; // [esp+400h] [ebp-10h]
-    //_UNKNOWN *v11[2]; // [esp+404h] [ebp-Ch] BYREF
-    //float hit_timea; // [esp+410h] [ebp+0h]
-    //
-    //v11[0] = a1;
-    //*(float *)&v11[1] = hit_timea;
-    if ((hit_time < 0.0 || hit_time > 1.0)
-        && _tlAssert("source/phys_broad_phase.cpp", 81, "hit_time >= 0.0f && hit_time <= 1.0f", ""))
-    {
-        __debugbreak();
-    }
-    m_gjk_geom_id = p2->m_gjk_geom_id;
+
+    iassert(hit_time >= 0.0f && hit_time <= 1.0f);
+
     id1 = p1->m_gjk_geom_id;
-    id2 = m_gjk_geom_id;
-    if (p1 == p2 && _tlAssert("source/phys_broad_phase.cpp", 86, "p1 && p2 && p1 != p2", ""))
-        __debugbreak();
-    if (id1 == id2 && _tlAssert("source/phys_broad_phase.cpp", 87, "id1 != id2", ""))
-        __debugbreak();
+    id2 = p2->m_gjk_geom_id;
+
+    iassert(p1 && p2 && p1 != p2);
+    iassert(id1 != id2);
+
     pcp.m_hit_time = hit_time;
     pcp.m_bpi1 = p1;
     pcp.m_bpi2 = p2;
-    pcp.m_gjk_ci = //phys_heap_gjk_cache_system_avl_tree::get_gjk_cache_info_mutex(
-        G_BPM->g_phys_gjk_cache_system.get_gjk_cache_info_mutex(
-        id1,
-        id2,
-        &G_BPM->g_bp_gjk_cache_mutex,
-        1);
+    pcp.m_gjk_ci = G_BPM->g_phys_gjk_cache_system.get_gjk_cache_info_mutex(id1, id2, &G_BPM->g_bp_gjk_cache_mutex, 1);
     setup_gjk_input_from_pcp(&pgi, &pcp);
     pgi.m_sep_thresh = 1.02;
     pgi.m_intersection_test_only = 1;
     pgi.m_continuous_collision = 1;
-    //return phys_gjk_info::phys_collide_do_gjk_collide(&v6, (int)v11, &pgi);
-    return v6.phys_collide_do_gjk_collide(&pgi);
+
+    phys_gjk_info gjk;
+    return gjk.phys_collide_do_gjk_collide(&pgi);
 }
 
 // char __usercall phys_are_potentially_colliding_whace<broad_phase_info,broad_phase_info>@<al>
 // omitting template stuff ^^ - only used in 1 distinct typing
-bool phys_are_potentially_colliding_whace(
-    broad_phase_info *p1,
-    broad_phase_info *p2,
-    float *hit_time)
+bool phys_are_potentially_colliding_whace(broad_phase_info *p1, broad_phase_info *p2, float *hit_time)
 {
-    phys_vec3 v5; // [esp-Ch] [ebp-1Ch] BYREF
-    //float trans_4; // [esp+4h] [ebp-Ch]
-    //void *trans_8; // [esp+8h] [ebp-8h]
-    //void *retaddr; // [esp+10h] [ebp+0h]
-    //
-    //trans_4 = a1;
-    //trans_8 = retaddr;
-    v5.x = p1->m_trace_translation.x - p2->m_trace_translation.x;
-    v5.y = p1->m_trace_translation.y - p2->m_trace_translation.y;
-    v5.z = p1->m_trace_translation.z - p2->m_trace_translation.z;
+    phys_vec3 relative_translation = {
+        p1->m_trace_translation.x - p2->m_trace_translation.x,
+        p1->m_trace_translation.y - p2->m_trace_translation.y,
+        p1->m_trace_translation.z - p2->m_trace_translation.z
+    };
+
     return phys_are_potentially_colliding(
         &p1->m_trace_aabb_min_whace,
         &p1->m_trace_aabb_max_whace,
-        &v5,
+        &relative_translation,
         &p2->m_trace_aabb_min_whace,
         &p2->m_trace_aabb_max_whace,
         hit_time);
 }
 
 // aislopped
-void __cdecl collide_bpi_environment(broad_phase_group *bpi, broad_phase_environement_query_results *bpeqr)
+void collide_bpi_environment(broad_phase_info *bpi, const broad_phase_environement_query_results &bpeqr)
 {
-    if ((bpi->m_env_collision_flags & bpeqr->m_env_collision_flags) == 0)
+    if (!(bpi->m_env_collision_flags & bpeqr.m_env_collision_flags))
         return;
 
-    auto *iter_node = *bpeqr->m_list_bpi_env.m_list_cur;
-    auto *list_head = bpeqr->m_list_bpi_env.m_list;
-    auto *last_node = iter_node;
+    broad_phase_base_list::node *end = *bpeqr.m_list_bpi_env.m_list_cur;
+    broad_phase_base_list::node *iter = bpeqr.m_list_bpi_env.m_list;
 
-    while (list_head != last_node)
+    for (; iter != end; iter = iter->m_next)
     {
-        broad_phase_base *bpb = list_head->m_bpb;
+        broad_phase_base *bpi_env = iter->m_bpb;
+
+        if (!(bpi_env->m_env_collision_flags & bpi->m_env_collision_flags))
+            continue;
+
         float hit_time = 0.0f;
 
-        if ((bpb->m_env_collision_flags & bpi->m_env_collision_flags) != 0 &&
-            phys_are_potentially_colliding_whace((broad_phase_info*)bpi, bpb->get_bpi_env(), &hit_time))
-        {
-            // Static or normal collision
-            if (bpb->m_flags & 0x80) // high bit set means some special type, e.g., static
-            {
-                add_collision_pair_mutex((broad_phase_info *)bpi, bpb->get_bpi_env(), hit_time, nullptr);
-            }
-            else
-            {
-                // dynamic / SAP collision
-                auto *sap_node = reinterpret_cast<axis_aligned_sweep_and_prune::sap_node *>(bpb->m_sap_node);
+        if (!phys_are_potentially_colliding_whace(bpi, (broad_phase_info *)bpi_env, &hit_time))
+            continue;
 
-                // Check if SAP node is inactive and run GJK intersection
-                if (sap_node && !sap_node->m_updated &&
-                    bpi_do_gjk_intersect((broad_phase_info *)bpi, bpb->get_bpi_env(), 0.0f))
-                {
-                    // Lock auto-activate mutex while potentially activating
-                    //tlAtomicMutex::Lock(&G_BPM->g_bp_auto_activate_mutex);
-                    G_BPM->g_bp_auto_activate_mutex.Lock();
-                    if (!sap_node->m_updated)
-                    {
-                        // Example call: activate SAP node with this BPI
-                        // (original decomp showed a function pointer call at +4 offset)
-                        sap_node->init(bpb, nullptr, nullptr, nullptr);
-                    }
-                    //tlAtomicMutex::Unlock(&G_BPM->g_bp_auto_activate_mutex);
-                    G_BPM->g_bp_auto_activate_mutex.Unlock();
-                }
-            }
+        if (!(bpi_env->m_flags & 0x80))
+        {
+            // No auto-activate controller — add pair directly
+            add_collision_pair_mutex(bpi, (broad_phase_info *)bpi_env, hit_time, nullptr);
+            continue;
         }
 
-        list_head = list_head->m_next;
+        // BPI has an auto-activate controller
+        phys_auto_activate_callback *aac = (phys_auto_activate_callback *)bpi_env->m_sap_node;
+
+        // Skip GJK if already auto-activated (no need to wake it)
+        if (aac->has_auto_activated())
+        {
+            add_collision_pair_mutex(bpi, (broad_phase_info *)bpi_env, hit_time, nullptr);
+            continue;
+        }
+
+        if (!bpi_do_gjk_intersect(bpi, (broad_phase_info *)bpi_env, hit_time))
+            continue;
+
+        // Double-checked lock: activate if not already activated
+        G_BPM->g_bp_auto_activate_mutex.Lock();
+
+        if (!aac->has_auto_activated())
+            aac->auto_activate(bpi);
+
+        G_BPM->g_bp_auto_activate_mutex.Unlock();
     }
 }
 
-// aislop
+#if 0
 void    collide_bpg_environment(
                 broad_phase_group *bpg,
                 const broad_phase_environement_query_results *bpeqr)
@@ -2451,37 +2435,160 @@ void    collide_bpg_environment(
     //broad_phase_group::collision_epilog((broad_phase_group *)v3);
     v3->get_bpg()->collision_epilog();
 }
+#else
+// aisloppd
+void collide_bpg_environment(broad_phase_group *bpg, const broad_phase_environement_query_results &bpeqr)
+{
+    // Early out if no collision flag overlap
+    if (!(bpg->m_env_collision_flags & bpeqr.m_env_collision_flags))
+    {
+        bpg->collision_epilog();
+        return;
+    }
+
+    // Optional tunnel test for vehicle groups
+    if (bpg->m_flags & 0x200)
+        do_initial_tunnel_test(bpg, &bpeqr);
+
+    broad_phase_base_list::node *end = *bpeqr.m_list_bpi_env.m_list_cur;
+    broad_phase_base_list::node *iter = bpeqr.m_list_bpi_env.m_list;
+
+    if (iter == end)
+    {
+        bpg->collision_epilog();
+        return;
+    }
+
+    for (; iter != end; iter = iter->m_next)
+    {
+        broad_phase_base *bpi_env = iter->m_bpb;
+
+        if (!(bpi_env->m_env_collision_flags & bpg->m_env_collision_flags))
+            continue;
+
+        float hit_time = 0.0f;
+        if (!phys_are_potentially_colliding_whace((broad_phase_info *)bpg, (broad_phase_info *)bpi_env, &hit_time))
+            continue;
+
+        if (bpi_env->m_flags & 0x80) // bpi_env has auto-activate controller
+        {
+            phys_auto_activate_callback *aac = (phys_auto_activate_callback *)bpi_env->m_sap_node;
+
+            // Iterate BPG's broad_phase_info list via m_list_bpb_next
+            for (broad_phase_info *bpi = bpg->m_list_bpi_head;
+                bpi != nullptr;
+                bpi = (broad_phase_info *)bpi->m_list_bpb_next)
+            {
+                if (aac->has_auto_activated())
+                    break;
+
+                if (!(bpi->m_env_collision_flags & bpi_env->m_env_collision_flags))
+                    continue;
+
+                if (!phys_are_potentially_colliding_whace(bpi, (broad_phase_info *)bpi_env, &hit_time))
+                    continue;
+
+                if (!bpi_do_gjk_intersect(bpi, (broad_phase_info *)bpi_env, hit_time))
+                    continue;
+
+                G_BPM->g_bp_auto_activate_mutex.Lock();
+
+                if (!aac->has_auto_activated())
+                    aac->auto_activate(bpi);
+
+                G_BPM->g_bp_auto_activate_mutex.Unlock();
+            }
+        }
+        else
+        {
+            // Normal path: iterate BPG's BPI list and add collision pairs
+            for (broad_phase_info *bpi = bpg->m_list_bpi_head;
+                bpi != nullptr;
+                bpi = (broad_phase_info *)bpi->m_list_bpb_next)
+            {
+                if (!(bpi->m_env_collision_flags & bpi_env->m_env_collision_flags))
+                    continue;
+
+                phys_vec3 relative_translation = {
+                    bpi->m_trace_translation.x - bpi_env->m_trace_translation.x,
+                    bpi->m_trace_translation.y - bpi_env->m_trace_translation.y,
+                    bpi->m_trace_translation.z - bpi_env->m_trace_translation.z
+                };
+
+                if (!phys_are_potentially_colliding(
+                    &bpi->m_trace_aabb_min_whace,
+                    &bpi->m_trace_aabb_max_whace,
+                    &relative_translation,
+                    &bpi_env->m_trace_aabb_min_whace,
+                    &bpi_env->m_trace_aabb_max_whace,
+                    &hit_time))
+                    continue;
+
+                add_collision_pair_mutex(bpi, (broad_phase_info *)bpi_env, hit_time, nullptr);
+            }
+
+            // Wheel collision path
+            if (bpg->m_rbvm)
+            {
+                iassert(bpg->m_list_wci);
+
+                phys_wheel_collide_info *wci = bpg->m_list_wci;
+                phys_wheel_collide_info *wci_end = wci + bpg->m_rbvm->m_wheels.m_alloc_count;
+
+                for (; wci != wci_end; ++wci)
+                {
+                    // Wheel uses m_ray_pos as a point AABB (min == max)
+                    // relative translation is wci->m_ray_dir - bpi_env->m_trace_translation
+                    phys_vec3 wheel_relative_translation = {
+                        wci->m_ray_dir.x - bpi_env->m_trace_translation.x,
+                        wci->m_ray_dir.y - bpi_env->m_trace_translation.y,
+                        wci->m_ray_dir.z - bpi_env->m_trace_translation.z
+                    };
+
+                    if (!phys_are_potentially_colliding(
+                        &wci->m_ray_pos,  // point AABB — min == max
+                        &wci->m_ray_pos,
+                        &wheel_relative_translation,
+                        &bpi_env->m_trace_aabb_min_whace,
+                        &bpi_env->m_trace_aabb_max_whace,
+                        &hit_time))
+                        continue;
+
+                    wci->collision_process((broad_phase_info *)bpi_env);
+                }
+            }
+        }
+    }
+
+    bpg->collision_epilog();
+}
+#endif
 
 int    bp_env_jq_batch_function2(jqBatch *pBatch)
 {
     int v1; // eax
-    broad_phase_base *v2; // esi
-    broad_phase_environment_query_input v4; // [esp-Ch] [ebp-6Ch] BYREF
-    broad_phase_environement_query_results v5; // [esp+40h] [ebp-20h] BYREF
-    //int v6; // [esp+54h] [ebp-Ch]
-    //void *v7; // [esp+58h] [ebp-8h]
-    //void *retaddr; // [esp+60h] [ebp+0h]
-    //
-    //v6 = a1;
-    //v7 = retaddr;
+    broad_phase_base *bpb; // esi
+    broad_phase_environment_query_input bpeqi; // [esp-Ch] [ebp-6Ch] BYREF
+    broad_phase_environement_query_results bpeqr; // [esp+40h] [ebp-20h] BYREF
+    
     v1 = _InterlockedExchangeAdd(&g_thread_id, 1u);
-    v2 = g_bpb_list_cur;
-    v5.m_list_bpi_env.m_list = 0;
-    v5.m_list_bpi_env.m_list_cur = (broad_phase_base_list::node **)&v5;
-    for (v5.m_thread_id = v1; g_bpb_list_cur; v2 = g_bpb_list_cur)
+    bpb = g_bpb_list_cur;
+    bpeqr.m_list_bpi_env.m_list = 0;
+    bpeqr.m_list_bpi_env.m_list_cur = (broad_phase_base_list::node **)&bpeqr;
+    for (bpeqr.m_thread_id = v1; g_bpb_list_cur; bpb = g_bpb_list_cur)
     {
         if ((broad_phase_base *)_InterlockedCompareExchange(
             (volatile unsigned __int32 *)&g_bpb_list_cur,
-            (signed __int32)v2->m_list_bpb_next,
-            (signed __int32)v2) == v2)
+            (signed __int32)bpb->m_list_bpb_next,
+            (signed __int32)bpb) == bpb)
         {
-            check_terrain_query_params(v2);
-            v5.m_list_bpi_env.m_list_cur = (broad_phase_base_list::node **)&v5;
-            v5.m_list_bpi_env_count = 0;
-            v5.m_env_collision_flags = 0;
-            init_bpeqi(&v4, v2);
-            G_BPM->g_broad_phase_terrain_query_callback->query(&v4, &v5);
-            process_cluster_environment_collision(v2, &v5);
+            check_terrain_query_params(bpb);
+            bpeqr.m_list_bpi_env.m_list_cur = (broad_phase_base_list::node **)&bpeqr;
+            bpeqr.m_list_bpi_env_count = 0;
+            bpeqr.m_env_collision_flags = 0;
+            init_bpeqi(&bpeqi, bpb);
+            G_BPM->g_broad_phase_terrain_query_callback->query(&bpeqi, &bpeqr);
+            process_cluster_environment_collision(bpb, bpeqr);
         }
     }
     return 0;
@@ -3203,6 +3310,11 @@ void    process_cluster_environment_collision_prolog(broad_phase_info *bpb, broa
     info->m_trace_aabb_max_whace.x = v5->x;
     info->m_trace_aabb_max_whace.y = v5->y;
     info->m_trace_aabb_max_whace.z = v5->z;
+
+    nanassertvec3(bpb->m_trace_aabb_min_whace); // LWSS ADD
+    nanassertvec3(bpb->m_trace_aabb_max_whace); // LWSS ADD
+    nanassertvec3(info->m_trace_aabb_min_whace); // LWSS ADD
+    nanassertvec3(info->m_trace_aabb_max_whace); // LWSS ADD
 }
 
 bool __cdecl compare_bpb(broad_phase_base *bpb1, broad_phase_base *bpb2)
@@ -3481,29 +3593,26 @@ void __cdecl add_collision_pair_mutex(
                 float hit_time,
                 phys_gjk_cache_info *gjk_ci)
 {
-    phys_collision_pair *v4; // eax
+    phys_collision_pair *pair; // eax
 
-    if ( (hit_time < 0.0 || hit_time > 1.0)
-        && _tlAssert("source/phys_broad_phase.cpp", 23, "hit_time >= 0.0f && hit_time <= 1.0f", "") )
-    {
-        __debugbreak();
-    }
-    v4 = (phys_collision_pair *)//phys_transient_allocator::mt_allocate(
-                                                                G_BPM->g_collision_memory_buffer.mt_allocate(
-                                                                20,
-                                                                4,
-                                                                0,
-                                                                "broad phase collision out of memory.");
-    if ( v4 )
-        v4->m_hit_time = -1.0;
-    else
-        v4 = 0;
-    v4->m_hit_time = hit_time;
-    v4->m_bpi1 = bpi1;
-    v4->m_gjk_ci = gjk_ci;
-    v4->m_bpi2 = bpi2;
-    //phys_link_list<phys_collision_pair>::add_mt(&G_BPM->g_list_phys_collide_data, v4);
-    G_BPM->g_list_phys_collide_data.add_mt(v4);
+    iassert(hit_time >= 0.0f && hit_time <= 1.0f);
+
+    pair = (phys_collision_pair *)G_BPM->g_collision_memory_buffer.mt_allocate(sizeof(phys_collision_pair), 4, 0, "broad phase collision out of memory.");
+
+    iassert(pair); // LWSS ADD
+
+    //if ( pair )
+    //    pair->m_hit_time = -1.0;
+    //else
+    //    pair = 0;
+
+    pair->m_hit_time = -1.0;
+    pair->m_hit_time = hit_time;
+    pair->m_bpi1 = bpi1;
+    pair->m_gjk_ci = gjk_ci;
+    pair->m_bpi2 = bpi2;
+
+    G_BPM->g_list_phys_collide_data.add_mt(pair);
 }
 
 void __thiscall axis_aligned_sweep_and_prune::add_active_pair(
@@ -4563,46 +4672,24 @@ void __thiscall axis_aligned_sweep_and_prune::process()
     v36->process_active_pair_list();
 }
 
-void __cdecl process_cluster_environment_collision(broad_phase_base *bpb, broad_phase_environement_query_results *bpeqr)
+void __cdecl process_cluster_environment_collision(broad_phase_base *bpb, const broad_phase_environement_query_results &bpeqr)
 {
     broad_phase_base *i; // esi
-    unsigned int m_flags; // eax
-    int savedregs; // [esp+4h] [ebp+0h] BYREF
 
-    if ( (!bpb || !bpb->m_list_bpb_cluster_next)
-        && _tlAssert("source/phys_broad_phase.cpp", 888, "bpb && bpb->get_bpb_cluster_next()", "") )
-    {
-        __debugbreak();
-    }
+    iassert(bpb && bpb->get_bpb_cluster_next());
+
     for ( i = bpb->m_list_bpb_cluster_next; i; i = i->m_list_bpb_cluster_next )
     {
-        if ( (i->m_flags & 0x10) == 0
-            && _tlAssert(
-                     "source/phys_broad_phase.cpp",
-                     891,
-                     "bpb->get_flag(broad_phase_base::FLAG_IS_IN_CLUSTER)",
-                     "") )
+        iassert(i->get_flag(broad_phase_base::FLAG_IS_IN_CLUSTER));
+
+        if (i->is_bpi())
         {
-            __debugbreak();
-        }
-        m_flags = i->m_flags;
-        if ( (m_flags & 1) != 0 )
-        {
-            collide_bpi_environment(i->get_bpg(), bpeqr);
+            collide_bpi_environment(i->get_bpi(), bpeqr);
         }
         else
         {
-            if ( (m_flags & 2) == 0 )
-            {
-                if ( _tlAssert(
-                             "c:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\collision\\phys_broad_phase_base.h",
-                             100,
-                             "is_bpg()",
-                             "") )
-                {
-                    __debugbreak();
-                }
-            }
+            iassert(i->is_bpg());
+            
             collide_bpg_environment(i->get_bpg(), bpeqr);
         }
     }

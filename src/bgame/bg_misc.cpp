@@ -1939,20 +1939,14 @@ void __cdecl BG_RegisterDvars()
 
 char *__cdecl BG_GetEntityTypeName(int eType)
 {
-    if ( eType < 21 )
+    if ( eType < ET_EVENTS )
         return (char*)entityTypeNames[eType];
-    if ( (unsigned int)(eType - 21) >= 0xCE
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\bgame\\bg_misc.cpp",
-                    1127,
-                    0,
-                    "%s\n\t(eType) = %i",
-                    "(eType - ET_EVENTS >= 0 && eType - ET_EVENTS < EV_MAX_EVENTS)",
-                    eType) )
-    {
-        __debugbreak();
-    }
-    return va("Event %s (%i)", entityTypeNames[eType + 1], eType - 21);
+
+    iassert(eType - ET_EVENTS >= 0 && eType - ET_EVENTS < EV_MAX_EVENTS);
+
+    // this is laid out in the binary with a continuous layout so they can use 1 index
+    //return va("Event %s (%i)", entityTypeNames[eType + 1], eType - 21);
+    return va("Event %s (%i)", eventnames[eType - ET_EVENTS], eType - ET_EVENTS);
 }
 
 const gitem_s *__cdecl BG_FindItemForWeapon(unsigned int weapon)

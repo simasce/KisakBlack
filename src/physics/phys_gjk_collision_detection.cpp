@@ -484,37 +484,10 @@ void __thiscall gjk_query_output::get_local_query_aabb(
 
 bool __thiscall gjk_query_output::query_create_prolog(const void *geom)
 {
-    if ( !geom
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_gjk_collision_detection.cpp",
-                    458,
-                    0,
-                    "%s",
-                    "geom") )
-    {
-        __debugbreak();
-    }
-    if ( !this->m_local_ent_info
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_gjk_collision_detection.cpp",
-                    459,
-                    0,
-                    "%s",
-                    "m_local_ent_info") )
-    {
-        __debugbreak();
-    }
+    iassert(geom);
+    iassert(m_local_ent_info);
     iassert(m_local_ent_info->get_ent());
-    //if ( !gjk_entity_info_t::get_ent(this->m_local_ent_info)
-    //    && !Assert_MyHandler(
-    //                "C:\\projects_pc\\cod\\codsrc\\src\\physics\\phys_gjk_collision_detection.cpp",
-    //                460,
-    //                0,
-    //                "%s",
-    //                "m_local_ent_info->get_ent()") )
-    //{
-    //    __debugbreak();
-    //}
+
     //this->m_local_database_id.m_id1 = (unsigned int)gjk_entity_info_t::get_ent(this->m_local_ent_info);
     this->m_local_database_id.m_id1 = (unsigned int)this->m_local_ent_info->get_ent();
     this->m_local_database_id.m_id2 = (unsigned int)geom;
@@ -527,17 +500,13 @@ broad_phase_environment_info *__thiscall bpei_database_t::get_bpei_mt(bpei_datab
 {
     broad_phase_environment_info *bpei; // [esp+64h] [ebp-4h]
 
-    //minspec_read_write_mutex::ReadLock(&this->m_mutex);
     this->m_mutex.ReadLock();
-    //bpei = phys_inplace_avl_tree<bpei_database_id, broad_phase_environment_info, broad_phase_environment_info::avl_tree_accessor>::find(&this->m_bpei_map, &database_id);
     bpei = this->m_bpei_map.find(database_id);
-    //minspec_read_write_mutex::ReadUnlock(&this->m_mutex);
     this->m_mutex.ReadUnlock();
+
     if (!bpei)
     {
-        //minspec_read_write_mutex::WriteLock(&this->m_mutex);
         this->m_mutex.WriteLock();
-        //bpei = phys_inplace_avl_tree<bpei_database_id, broad_phase_environment_info, broad_phase_environment_info::avl_tree_accessor>::find(&this->m_bpei_map, &database_id);
         bpei = this->m_bpei_map.find(database_id);
         if (!bpei)
         {
@@ -545,18 +514,10 @@ broad_phase_environment_info *__thiscall bpei_database_t::get_bpei_mt(bpei_datab
             bpei->m_next_bpei = this->m_bpei_list;
             this->m_bpei_list = bpei;
         }
-        //minspec_read_write_mutex::WriteUnlock(&this->m_mutex);
         this->m_mutex.WriteUnlock();
     }
-    if (!bpei
-        && _tlAssert(
-            "C:\\projects_pc\\cod\\codsrc\\tl\\physics\\include\\collision\\phys_broad_phase.h",
-            278,
-            "bpei",
-            ""))
-    {
-        __debugbreak();
-    }
+
+    iassert(bpei);
     return bpei;
 }
 
@@ -2309,13 +2270,13 @@ bool gjk_aabb_t::is_walkable(
     float v20; // [esp+18h] [ebp-4Ch]
     float v21; // [esp+1Ch] [ebp-48h]
     phys_vec3 *v22; // [esp+20h] [ebp-44h]
-    phys_vec3 *v23; // [esp+24h] [ebp-40h]
+    const phys_vec3 *v23; // [esp+24h] [ebp-40h]
     phys_vec3 aabb_min; // [esp+28h] [ebp-3Ch]
     float v25; // [esp+38h] [ebp-2Ch]
     float v26; // [esp+3Ch] [ebp-28h]
     float v27; // [esp+40h] [ebp-24h]
     phys_vec3 *p_m_center_local; // [esp+44h] [ebp-20h]
-    phys_vec3 *p_m_dims; // [esp+48h] [ebp-1Ch]
+    const phys_vec3 *p_m_dims; // [esp+48h] [ebp-1Ch]
     float furthest_walk_normal; // [esp+4Ch] [ebp-18h]
     float furthest_dist; // [esp+50h] [ebp-14h]
     const gjk_aabb_t *thisa; // [esp+54h] [ebp-10h]

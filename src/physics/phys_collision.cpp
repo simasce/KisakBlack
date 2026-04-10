@@ -2275,6 +2275,9 @@ void standard_query::query(
     Phys_NitrousVecToVec3(&v100, mins);
     Phys_NitrousVecToVec3(&v93, maxs);
 
+    nanassertvec3(mins); // LWSS ADD
+    nanassertvec3(maxs); // ^^
+
     if (phys_debugBigQueries->current.enabled && Abs(&bpeqi->trace_translation.x) > 500.0)
     {
         //minspec_mutex::Lock(&g_render_mutex);

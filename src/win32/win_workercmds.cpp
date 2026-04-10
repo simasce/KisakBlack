@@ -15,9 +15,9 @@ jqModule nuge_physicsModule =
 {
     .Name = "nuge_physics",
     .Type = JQ_WORKER_GENERIC,
-    .Code = (int(__cdecl *)(jqBatch *))nuge_physicsCallback,
+    .Code = nuge_physicsCallback,
 };
-jqWorkerCmd nuge_physicsWorkerCmd = { &nuge_physicsModule, 124u, 0, 0, &nuge_physicsLimit, NULL, 0u };
+jqWorkerCmd nuge_physicsWorkerCmd = { &nuge_physicsModule, sizeof(jqBatch), 0, 0, &nuge_physicsLimit, NULL, 0u};
 
 // no workerCmd
 jqModule setup_worker_threadsModule =

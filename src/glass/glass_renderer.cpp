@@ -894,72 +894,82 @@ void __thiscall GlassRenderer::Update(int threadId)
 // aislop
 void GlassRenderer::Update(int threadId)
 {
-    if (threadId && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\glass\\glass_renderer.cpp", 386, 0, "threadId == 0"))
-        __debugbreak();
+    iassert(threadId == 0);
 
-    // Pre-update housekeeping
+    //PIXBeginNamedEvent(-1, "Glasses Update");
+
     CrashGlass();
     Broom();
 
-    // Acquire renderer lock
+    // Acquire renderer spin lock
     while (_InterlockedCompareExchange(&rendererLock.lock, 1, 0))
         ;
 
     if (!threadId)
     {
         ++frame;
-        deltaTime = 0.016666668f;
+        deltaTime = 1.0f / 60.0f; // 0.016666668f
 
         cg_s *cg = CG_GetLocalClientGlobals(0);
         if (cg && cg->snap)
         {
             for (int i = 0; i < 1; ++i)
             {
-                if (CL_LocalClient_IsActive(i) && CL_GetLocalClientConnectionState(i) >= 4)
+                if (!CL_LocalClient_IsActive(i))
+                    continue;
+                if (CL_GetLocalClientConnectionState(i) < 4)
+                    continue;
+
+                cg_s *cgameGlob = CG_GetLocalClientGlobals(i);
+                if (!cgameGlob)
                 {
-                    cg_s *cgameGlob = CG_GetLocalClientGlobals(i);
-                    if (!cgameGlob)
-                        return;
-
-                    int now = cgameGlob->physicsTime;
-                    float dt = (float)(now - timeLastUpdate) * 0.001f;
-
-                    // Clamp deltaTime to [0, 0.1]
-                    if (dt < 0.0f)
-                        dt = 0.0f;
-                    else if (dt > 0.1f)
-                        dt = 0.1f;
-
-                    deltaTime = dt;
-                    timeLastUpdate = now;
-                    break;
+                    //if (GetCurrentThreadId() == g_DXDeviceThread)
+                    //    D3DPERF_EndEvent();
+                    return;
                 }
+
+                int now = cgameGlob->physicsTime;
+                float dt = (float)(now - timeLastUpdate) * 0.001f;
+
+                // Clamp to [0, 0.1]
+                dt = (dt < 0.0f) ? 0.0f : (dt > 0.1f) ? 0.1f : dt;
+
+                deltaTime = dt;
+                timeLastUpdate = now;
+                break;
             }
         }
 
-        // Execute queued group changes and actions
         DoGroupChanges();
         ExecuteActions();
 
-        //prevStat = stat;
-        memcpy(&prevStat, &stat, sizeof(prevStat));
+        // prevStat = stat (4 fields copied individually)
+        prevStat.numMovingShards = stat.numMovingShards;
+        prevStat.numVisGroups = stat.numVisGroups;
+        prevStat.numVisShards = stat.numVisShards;
+        prevStat.numOOMGroups = stat.numOOMGroups;
+
+        stat.numMovingShards = 0;
         stat.numVisGroups = 0;
         stat.numVisShards = 0;
         stat.numOOMGroups = 0;
-        stat.numMovingShards = 0;
     }
 
-    // Update all shard groups
+    //PIXBeginNamedEvent(0, "ShardGroup.Update");
+
     for (ShardGroup *grp : groupsAllocator->used)
-    {
         grp->Update(deltaTime);
-    }
+
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
 
     if (!threadId)
         DoGroupChanges();
 
-    // Release renderer lock
     rendererLock.lock = 0;
+
+    //if (GetCurrentThreadId() == g_DXDeviceThread)
+    //    D3DPERF_EndEvent();
 }
 
 #if 0
@@ -2304,7 +2314,7 @@ void GlassRenderer::CrashGlass()
     GetLargestShards(maxCrashShards, false, false);
 
 
-    for (GlassShard *shard : *tempShardsList)
+    for (const GlassShard *shard : *tempShardsList)
     {
         if (!shard->CanSplit(false))
             continue;

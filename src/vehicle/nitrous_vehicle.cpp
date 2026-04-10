@@ -962,103 +962,62 @@ void gjk_geom_list_t::comp_aabb_loc(
 {
     const phys_vec3 *v4; // [esp-6Ch] [ebp-B0h]
     phys_vec3 v5; // [esp-68h] [ebp-ACh] BYREF
-    phys_vec3 m_aabb_mx_loc; // [esp-58h] [ebp-9Ch] BYREF
     const phys_vec3 *v7; // [esp-3Ch] [ebp-80h]
     phys_vec3 v8; // [esp-38h] [ebp-7Ch] BYREF
-    phys_vec3 m_aabb_mn_loc; // [esp-28h] [ebp-6Ch] BYREF
     gjk_base_t *i; // [esp-Ch] [ebp-50h]
-    float v11; // [esp-8h] [ebp-4Ch]
-    float v12; // [esp-4h] [ebp-48h]
     //gjk_base_t *geom; // [esp+0h] [ebp-44h]
     float v14; // [esp+4h] [ebp-40h]
-    gjk_base_t *v15; // [esp+14h] [ebp-30h]
     float x; // [esp+18h] [ebp-2Ch]
     float y; // [esp+1Ch] [ebp-28h]
     float z; // [esp+20h] [ebp-24h]
     float w; // [esp+24h] [ebp-20h]
-    gjk_base_t *m_first_geom; // [esp+30h] [ebp-14h]
-    gjk_geom_list_t *thisa; // [esp+34h] [ebp-10h]
+    //gjk_geom_list_t *thisa; // [esp+34h] [ebp-10h]
     //_UNKNOWN *v22; // [esp+38h] [ebp-Ch]
     //phys_vec3 *aabb_mn_loca; // [esp+3Ch] [ebp-8h]
     //int vars0; // [esp+44h] [ebp+0h]
     //
     //v22 = a2;
     //aabb_mn_loca = (phys_vec3 *)vars0;
-    thisa = this;
-    if (!this->m_first_geom
-        && _tlAssert(
-            "c:\\projects_pc\\cod\\codsrc\\src\\vehicle\\../physics/phys_colgeom.h",
-            1040,
-            "m_first_geom",
-            ""))
-    {
-        __debugbreak();
-    }
-    thisa->m_first_geom->comp_aabb_loc();
-    m_first_geom = thisa->m_first_geom;
-    if ((m_first_geom->m_flags & 2) == 0
-        && _tlAssert(
-            "c:\\projects_pc\\cod\\codsrc\\src\\vehicle\\../physics/phys_colgeom.h",
-            82,
-            "get_flag(FLAG_AABB_LOC_VALID)",
-            ""))
-    {
-        __debugbreak();
-    }
-    x = m_first_geom->m_aabb_mn_loc.x;
-    y = m_first_geom->m_aabb_mn_loc.y;
-    z = m_first_geom->m_aabb_mn_loc.z;
-    w = m_first_geom->m_aabb_mn_loc.w;
-    aabb_mn_loc->x = x;
-    aabb_mn_loc->y = y;
-    aabb_mn_loc->z = z;
-    v15 = thisa->m_first_geom;
-    if ((v15->m_flags & 2) == 0
-        && _tlAssert(
-            "c:\\projects_pc\\cod\\codsrc\\src\\vehicle\\../physics/phys_colgeom.h",
-            83,
-            "get_flag(FLAG_AABB_LOC_VALID)",
-            ""))
-    {
-        __debugbreak();
-    }
-    v11 = v15->m_aabb_mx_loc.x;
-    v12 = v15->m_aabb_mx_loc.y;
+    //thisa = this;
+
+    iassert(m_first_geom);
+    this->m_first_geom->comp_aabb_loc();
+    m_first_geom = this->m_first_geom;
+
+    m_first_geom->check_aabb_valid();
+
+    //x = ;
+    //y = ;
+    //z = ;
+    //w = m_first_geom->m_aabb_mn_loc.w;
+
+    aabb_mn_loc->x = m_first_geom->m_aabb_mn_loc.x;
+    aabb_mn_loc->y = m_first_geom->m_aabb_mn_loc.y;
+    aabb_mn_loc->z = m_first_geom->m_aabb_mn_loc.z;
+
+    this->m_first_geom->check_aabb_valid();
+
     //geom = (gjk_base_t *)LODWORD(v15->m_aabb_mx_loc.z);
-    v14 = v15->m_aabb_mx_loc.w;
-    aabb_mx_loc->x = v11;
-    aabb_mx_loc->y = v12;
-    (aabb_mx_loc->z) = v15->m_aabb_mx_loc.z;
-    for (i = thisa->m_first_geom->m_next_geom; i; i = i->m_next_geom)
+    //v14 = this->m_first_geom->m_aabb_mx_loc.w;
+
+    aabb_mx_loc->x = this->m_first_geom->m_aabb_mx_loc.x;
+    aabb_mx_loc->y = this->m_first_geom->m_aabb_mx_loc.y;
+    aabb_mx_loc->z = this->m_first_geom->m_aabb_mx_loc.z;
+
+    for (i = this->m_first_geom->m_next_geom; i; i = i->m_next_geom)
     {
         i->comp_aabb_loc();
-        if ((i->m_flags & 2) == 0
-            && _tlAssert(
-                "c:\\projects_pc\\cod\\codsrc\\src\\vehicle\\../physics/phys_colgeom.h",
-                82,
-                "get_flag(FLAG_AABB_LOC_VALID)",
-                ""))
-        {
-            __debugbreak();
-        }
-        m_aabb_mn_loc = i->m_aabb_mn_loc;
-        v7 = phys_min(&v8, aabb_mn_loc, &m_aabb_mn_loc);
+
+        i->check_aabb_valid();
+
+        v7 = phys_min(&v8, aabb_mn_loc, &i->m_aabb_mn_loc);
         aabb_mn_loc->x = v7->x;
         aabb_mn_loc->y = v7->y;
         aabb_mn_loc->z = v7->z;
-        if ((i->m_flags & 2) == 0)
-        {
-            if (_tlAssert(
-                "c:\\projects_pc\\cod\\codsrc\\src\\vehicle\\../physics/phys_colgeom.h",
-                83,
-                "get_flag(FLAG_AABB_LOC_VALID)",
-                ""))
-            {
-                __debugbreak();
-            }
-        }
-        m_aabb_mx_loc = i->m_aabb_mx_loc;
-        v4 = phys_max(&v5, aabb_mx_loc, &m_aabb_mx_loc);
+
+        i->check_aabb_valid();
+
+        v4 = phys_max(&v5, aabb_mx_loc, &i->m_aabb_mx_loc);
         aabb_mx_loc->x = v4->x;
         aabb_mx_loc->y = v4->y;
         aabb_mx_loc->z = v4->z;

@@ -20,7 +20,13 @@ struct broad_phase_prolog_task_input // sizeof=0x8
 
 struct __declspec(align(8)) broad_phase_base // sizeof=0x50
 {                                                                             // XREF: broad_phase_info/r
-                                                                                // broad_phase_group/r ...
+    enum
+    {
+        FLAG_IS_BPI = 1,
+        FLAG_IS_BPG = 2,
+        FLAG_IS_IN_CLUSTER = 16
+    };
+    // broad_phase_group/r ...
     phys_vec3 m_trace_aabb_min_whace;
     phys_vec3 m_trace_aabb_max_whace;
     phys_vec3 m_trace_translation;
@@ -36,14 +42,19 @@ struct __declspec(align(8)) broad_phase_base // sizeof=0x50
     // padding byte
     // padding byte
 
+    int get_flag(int flag)
+    {
+        return this->m_flags & flag;
+    }
+
     bool is_bpi()
     {
-        return (this->m_flags & 1) != 0;
+        return (this->m_flags & FLAG_IS_BPI) != 0;
     }
 
     bool is_bpg()
     {
-        return (this->m_flags & 2) != 0;
+        return (this->m_flags & FLAG_IS_BPG) != 0;
     }
 
     broad_phase_base *get_bpb_cluster_next()
@@ -389,10 +400,10 @@ char    bpi_do_gjk_intersect(
                 broad_phase_info *p1,
                 broad_phase_info *p2,
     float hit_time);
-void collide_bpi_environment(broad_phase_group *bpi, broad_phase_environement_query_results *bpeqr);
-void    collide_bpg_environment(
-    broad_phase_group *bpg,
-                const broad_phase_environement_query_results *bpeqr);
+
+void collide_bpi_environment(broad_phase_info *bpi, const broad_phase_environement_query_results &bpeqr);
+void collide_bpg_environment(broad_phase_group *bpg, const broad_phase_environement_query_results &bpeqr);
+
 int    bp_env_jq_batch_function2(jqBatch *pBatch);
 void    broad_phase_process();
 void broad_phase_system_init(
@@ -421,7 +432,7 @@ void add_collision_pair_mutex(
 
 
 void    broad_phase_process_collision_pairs();
-void process_cluster_environment_collision(broad_phase_base *bpb, broad_phase_environement_query_results *bpeqr);
+void __cdecl process_cluster_environment_collision(broad_phase_base *bpb, const broad_phase_environement_query_results &bpeqr);
 
 char __cdecl phys_are_potentially_colliding(
     const phys_vec3 *aabb_min0,
