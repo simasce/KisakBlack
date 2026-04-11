@@ -42,7 +42,7 @@ struct float44 // sizeof=0x40
         };
 };
 
-union float4 
+union alignas(16) float4 
 {
         float v[4];
         unsigned int u[4];

@@ -1009,9 +1009,9 @@ void __cdecl SND_UpdateVoicePosition(snd_voice_t *voice, const float *startPosit
             AxisClear(voice->orientation);
             return;
         }
-        if ( (voice->sndEnt.handle & 0xFFF) == 0xFFF
+        if ((voice->sndEnt.handle & 0xFFF) == 0xFFF
             || (((unsigned int)voice->sndEnt.handle >> 21) & 1) != 0
-            || ((unsigned int)&cls.unrankedServers[14176].score & voice->alias->flags) >> 22 )
+            || (voice->alias->flags & 0x1C00000) >> 22)
         {
             voice->entity_update = SND_ENTITY_UPDATE_NEVER;
             voice->positionUpdated = 1;

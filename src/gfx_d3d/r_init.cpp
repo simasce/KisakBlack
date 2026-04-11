@@ -189,71 +189,69 @@ void __cdecl R_ReleaseForShutdownOrReset()
     int gpuIdx; // [esp+8h] [ebp-1Ch]
     IDirect3DSurface9 *v3; // [esp+Ch] [ebp-18h]
     IDirect3DSurface9 *var; // [esp+10h] [ebp-14h]
-    IDirect3DSurface9 *varCopy; // [esp+14h] [ebp-10h]
+    IDirect3DSwapChain9 *varCopy; // [esp+14h] [ebp-10h]
     unsigned int fenceIter; // [esp+18h] [ebp-Ch]
     int semaphore; // [esp+1Ch] [ebp-8h]
     int windowIndex; // [esp+20h] [ebp-4h]
 
     semaphore = R_AcquireDXDeviceOwnership(0);
-    for ( windowIndex = 0; windowIndex < (int)dx.windows[0].hwnd; ++windowIndex )
+    for (windowIndex = 0; windowIndex < dx.windowCount; ++windowIndex)
     {
         do
         {
-            if ( r_logFile )
+            if (r_logFile)
             {
-                if ( r_logFile->current.integer )
+                if (r_logFile->current.integer)
                     RB_LogPrint("dx.windows[windowIndex].swapChain->Release()\n");
             }
-            varCopy = (IDirect3DSurface9 *)dx.windows[windowIndex].width;
-            dx.windows[windowIndex].width = 0;
+            varCopy = dx.windows[windowIndex].swapChain;
+            dx.windows[windowIndex].swapChain = 0;
             R_ReleaseAndSetNULL<IDirect3DIndexBuffer9>(
-                varCopy,
+                (IDirect3DSurface9 *)varCopy,
                 "dx.windows[windowIndex].swapChain",
                 "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp",
                 1374);
-        }
-        while ( alwaysfails );
+        } while (alwaysfails);
     }
     R_ShutdownRenderTargets();
     R_ShutdownModelLightingImage();
     R_ShutdownStaticModelCache();
     R_DestroyDynamicBuffers();
     R_DestroyParticleCloudBuffer();
-    if ( !g_allocateMinimalResources )
+    if (!g_allocateMinimalResources)
         R_ShutdownRenderBuffers();
-    if ( gfxBuf.smodelCacheVb
+    if (gfxBuf.smodelCacheVb
         && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp",
-                    1388,
-                    0,
-                    "%s",
-                    "!gfxBuf.smodelCacheVb") )
+            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp",
+            1388,
+            0,
+            "%s",
+            "!gfxBuf.smodelCacheVb"))
     {
         __debugbreak();
     }
-    if ( LODWORD(dx.gpuSyncDelay) )
+    if (dx.flushGpuQuery)
     {
         do
         {
-            if ( r_logFile && r_logFile->current.integer )
+            if (r_logFile && r_logFile->current.integer)
                 RB_LogPrint("dx.flushGpuQuery->Release()\n");
-            var = (IDirect3DSurface9 *)dx.gpuSyncDelay;
-            LODWORD(dx.gpuSyncDelay) = 0;
+            var = (IDirect3DSurface9 *)dx.flushGpuQuery;
+            dx.flushGpuQuery = 0;
             R_ReleaseAndSetNULL<IDirect3DIndexBuffer9>(
                 var,
                 "dx.flushGpuQuery",
                 "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp",
                 1392);
-        }
-        while ( alwaysfails );
+        } while (alwaysfails);
     }
-    for ( fenceIter = 0; fenceIter < 8; ++fenceIter )
+    for (fenceIter = 0; fenceIter < 8; ++fenceIter)
     {
-        if ( dx.fencePool[fenceIter] )
+        if (dx.fencePool[fenceIter])
         {
             do
             {
-                if ( r_logFile && r_logFile->current.integer )
+                if (r_logFile && r_logFile->current.integer)
                     RB_LogPrint("dx.fencePool[fenceIter]->Release()\n");
                 v3 = (IDirect3DSurface9 *)dx.fencePool[fenceIter];
                 dx.fencePool[fenceIter] = 0;
@@ -262,25 +260,24 @@ void __cdecl R_ReleaseForShutdownOrReset()
                     "dx.fencePool[fenceIter]",
                     "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp",
                     1398);
-            }
-            while ( alwaysfails );
+            } while (alwaysfails);
         }
     }
-    for ( gpuIdx = 0; gpuIdx < 4; ++gpuIdx )
+    for (gpuIdx = 0; gpuIdx < 4; ++gpuIdx)
     {
-        if ( dx.swapFence[gpuIdx + 2] )
-            dx.swapFence[gpuIdx + 2] = 0;
+        if (dx.swapFence[gpuIdx])
+            dx.swapFence[gpuIdx] = 0;
     }
     RB_FreeSuperFlareQueries();
     RB_FreeSunSpriteQueries();
     RB_FreeCoronaSpriteQueries();
-    for ( i = 0; i < 4; ++i )
+    for (i = 0; i < 4; ++i)
     {
-        if ( gfxAssets.pixelCountQuery[i] )
+        if (gfxAssets.pixelCountQuery[i])
         {
             do
             {
-                if ( r_logFile && r_logFile->current.integer )
+                if (r_logFile && r_logFile->current.integer)
                     RB_LogPrint("gfxAssets.pixelCountQuery[gpuIdx]->Release()\n");
                 v0 = (IDirect3DSurface9 *)gfxAssets.pixelCountQuery[i];
                 gfxAssets.pixelCountQuery[i] = 0;
@@ -289,11 +286,10 @@ void __cdecl R_ReleaseForShutdownOrReset()
                     "gfxAssets.pixelCountQuery[gpuIdx]",
                     "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp",
                     1426);
-            }
-            while ( alwaysfails );
+            } while (alwaysfails);
         }
     }
-    if ( semaphore )
+    if (semaphore)
         R_AcquireDXDeviceOwnership(0);
 }
 
@@ -310,44 +306,44 @@ void __cdecl R_UpdateGpuSyncType()
 
 char __cdecl R_CreateDevice(const GfxWindowParms *wndParms)
 {
-    const char *unitScaleValue; // eax
+    const char *v1; // eax
     _D3DPRESENT_PARAMETERS_ d3dpp; // [esp+0h] [ebp-44h] BYREF
     HWND__ *hwnd; // [esp+38h] [ebp-Ch]
     HRESULT hr; // [esp+3Ch] [ebp-8h]
     unsigned int behavior; // [esp+40h] [ebp-4h]
 
     hwnd = 0;
-    if ( !wndParms
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2006, 0, "%s", "wndParms") )
+    if (!wndParms
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2006, 0, "%s", "wndParms"))
     {
         __debugbreak();
     }
-    if ( dx.windows[0].hwnd
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2008, 0, "%s", "dx.windowCount == 0") )
+    if (dx.windowCount
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2008, 0, "%s", "dx.windowCount == 0"))
     {
         __debugbreak();
     }
-    if ( !wndParms->hwnd
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2009, 0, "%s", "wndParms->hwnd") )
+    if (!wndParms->hwnd
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2009, 0, "%s", "wndParms->hwnd"))
     {
         __debugbreak();
     }
     hwnd = wndParms->hwnd;
-    if ( dx.device
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2017, 0, "%s", "dx.device == NULL") )
+    if (dx.device
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2017, 0, "%s", "dx.device == NULL"))
     {
         __debugbreak();
     }
     dx.depthStencilFormat = (D3DFORMAT)R_GetDepthStencilFormat(D3DFMT_A8R8G8B8);
     R_SetD3DPresentParameters(&d3dpp, wndParms);
     behavior = 64;
-    if ( r_multithreaded_device->current.enabled )
+    if (r_multithreaded_device->current.enabled)
         behavior |= 4u;
     hr = R_CreateDeviceInternal(hwnd, behavior, &d3dpp);
-    if ( hr >= 0 )
+    if (hr >= 0)
     {
-        if ( !dx.device
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2049, 1, "%s", "dx.device") )
+        if (!dx.device
+            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2049, 1, "%s", "dx.device"))
         {
             __debugbreak();
         }
@@ -355,8 +351,8 @@ char __cdecl R_CreateDevice(const GfxWindowParms *wndParms)
     }
     else
     {
-        unitScaleValue = R_ErrorDescription(hr);
-        Com_Printf(8, "Couldn't create a Direct3D device: %s\n", unitScaleValue);
+        v1 = R_ErrorDescription(hr);
+        Com_Printf(8, "Couldn't create a Direct3D device: %s\n", v1);
         return 0;
     }
 }
@@ -578,7 +574,7 @@ void __cdecl R_CheckResizeWindow()
 
 void __cdecl R_ResizeWindow()
 {
-    HWND__ *hwnd; // [esp+0h] [ebp-44h]
+    HWND hwnd; // [esp+0h] [ebp-44h]
     DWORD exStyle; // [esp+4h] [ebp-40h]
     unsigned int style; // [esp+8h] [ebp-3Ch]
     GfxWindowParms wndParms; // [esp+Ch] [ebp-38h] BYREF
@@ -593,15 +589,15 @@ void __cdecl R_ResizeWindow()
     Dvar_MakeLatchedValueCurrent((dvar_s*)r_displayRefresh);
     R_SetWndParms(&wndParms);
     R_StoreWindowSettings(&wndParms);
-    hwnd = (HWND__ *)dx.windows[0].swapChain;
-    if (!dx.windows[0].swapChain
+    hwnd = dx.windows[0].hwnd;
+    if (!dx.windows[0].hwnd
         && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 2739, 0, "%s", "hwnd"))
     {
         __debugbreak();
     }
     R_SetWndParms(&wndParms);
-    dx.windows[0].height = wndParms.displayWidth;
-    dx.flushGpuQuery = (IDirect3DQuery9 *)wndParms.displayHeight;
+    dx.windows[0].width = wndParms.displayWidth;
+    dx.windows[0].height = wndParms.displayHeight;
     if (wndParms.fullscreen)
     {
         exStyle = 8;
@@ -1722,9 +1718,9 @@ void R_ShutdownDirect3DInternal()
         R_UnloadGraphicsAssets();
     R_Cinematic_Shutdown();
     R_ReleaseForShutdownOrReset();
-    while (dx.windows[0].hwnd)
+    while (dx.windowCount)
     {
-        if (!dx.windows[(int)--dx.windows[0].hwnd].swapChain
+        if (!dx.windows[--dx.windowCount].hwnd
             && !Assert_MyHandler(
                 "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp",
                 3029,
@@ -1734,9 +1730,9 @@ void R_ShutdownDirect3DInternal()
         {
             __debugbreak();
         }
-        if (IsWindow((HWND)dx.windows[(int)dx.windows[0].hwnd].swapChain))
-            DestroyWindow((HWND)dx.windows[(int)dx.windows[0].hwnd].swapChain);
-        dx.windows[(int)dx.windows[0].hwnd].swapChain = 0;
+        if (IsWindow(dx.windows[dx.windowCount].hwnd))
+            DestroyWindow(dx.windows[dx.windowCount].hwnd);
+        dx.windows[dx.windowCount].hwnd = 0;
     }
     R_AssertDXDeviceOwnership();
     if (dx.device)
@@ -1749,6 +1745,7 @@ void R_ShutdownDirect3DInternal()
     }
     if (dx.d3d9)
     {
+        //dx.d3d9->Release(dx.d3d9);
         dx.d3d9->Release();
         dx.d3d9 = 0;
     }
@@ -1954,83 +1951,83 @@ char __cdecl R_RecoverLostDevice()
 
 char __cdecl R_ResetDevice()
 {
-  _D3DPRESENT_PARAMETERS_ d3dpp; // [esp+0h] [ebp-74h] BYREF
-  GfxWindowParms wndParms; // [esp+3Ch] [ebp-38h] BYREF
-  tagRECT rc; // [esp+64h] [ebp-10h] BYREF
+    _D3DPRESENT_PARAMETERS_ d3dpp; // [esp+0h] [ebp-74h] BYREF
+    GfxWindowParms wndParms; // [esp+3Ch] [ebp-38h] BYREF
+    tagRECT rc; // [esp+64h] [ebp-10h] BYREF
 
-  wndParms.hwnd = (HWND__ *)dx.windows[0].swapChain;
-  wndParms.x = 0;
-  wndParms.y = 0;
-  wndParms.displayWidth = dx.windows[0].height;
-  wndParms.displayHeight = (int)dx.flushGpuQuery;
-  wndParms.sceneWidth = dx.windows[0].height;
-  wndParms.sceneHeight = (int)dx.flushGpuQuery;
-  wndParms.hz = vidConfig.displayFrequency;
-  wndParms.fullscreen = vidConfig.isFullscreen != 0;
-  wndParms.aaSamples = r_aaSamples->current.integer;
-  R_SetD3DPresentParameters(&d3dpp, &wndParms);
-  if ( d3dpp.Windowed )
-    Com_Printf(8, "Resetting %i x %i window.\n", d3dpp.BackBufferWidth, d3dpp.BackBufferHeight);
-  else
-    Com_Printf(8, "Resetting %i x %i fullscreen.\n", d3dpp.BackBufferWidth, d3dpp.BackBufferHeight);
-  if ( dx.device->Reset(&d3dpp) )
-    return 0;
-  if ( wndParms.fullscreen )
-  {
-    SetWindowPos(wndParms.hwnd, (HWND)(/*HWND_MESSAGE*/-3|0x2), 0, 0, 0, 0, 3u);
-  }
-  else
-  {
-    rc.left = 0;
-    rc.right = wndParms.displayWidth;
-    rc.top = 0;
-    rc.bottom = wndParms.displayHeight;
-    AdjustWindowRectEx(&rc, 0xC80000u, 0, 0);
-    SetWindowPos(wndParms.hwnd, (HWND)0xFFFFFFFE, wndParms.x, wndParms.y, rc.right - rc.left, rc.bottom - rc.top, 0x62u);
-  }
-  if ( !R_CreateForInitOrReset() )
-    R_FatalInitError("Couldn't reinitialize after a lost Direct3D device");
-  R_InitCmdBufSourceState(&gfxCmdBufSourceState, &gfxCmdBufInput, 0);
-  R_InitCmdBufState(&gfxCmdBufState);
-  RB_InitSceneViewport();
-  R_SetRenderTargetSize(&gfxCmdBufSourceState, 2u);
-  R_SetRenderTarget(gfxCmdBufContext, 2u);
-  return 1;
+    wndParms.hwnd = dx.windows[0].hwnd;
+    wndParms.x = 0;
+    wndParms.y = 0;
+    wndParms.displayWidth = dx.windows[0].width;
+    wndParms.displayHeight = dx.windows[0].height;
+    wndParms.sceneWidth = dx.windows[0].width;
+    wndParms.sceneHeight = dx.windows[0].height;
+    wndParms.hz = vidConfig.displayFrequency;
+    wndParms.fullscreen = vidConfig.isFullscreen != 0;
+    wndParms.aaSamples = r_aaSamples->current.integer;
+    R_SetD3DPresentParameters(&d3dpp, &wndParms);
+    if (d3dpp.Windowed)
+        Com_Printf(8, "Resetting %i x %i window.\n", d3dpp.BackBufferWidth, d3dpp.BackBufferHeight);
+    else
+        Com_Printf(8, "Resetting %i x %i fullscreen.\n", d3dpp.BackBufferWidth, d3dpp.BackBufferHeight);
+    if (dx.device->Reset(&d3dpp))
+        return 0;
+    if (wndParms.fullscreen)
+    {
+        SetWindowPos(wndParms.hwnd, (HWND)(/*HWND_MESSAGE*/-3 | 0x2), 0, 0, 0, 0, 3u);
+    }
+    else
+    {
+        rc.left = 0;
+        rc.right = wndParms.displayWidth;
+        rc.top = 0;
+        rc.bottom = wndParms.displayHeight;
+        AdjustWindowRectEx(&rc, 0xC80000u, 0, 0);
+        SetWindowPos(wndParms.hwnd, (HWND)0xFFFFFFFE, wndParms.x, wndParms.y, rc.right - rc.left, rc.bottom - rc.top, 0x62u);
+    }
+    if (!R_CreateForInitOrReset())
+        R_FatalInitError("Couldn't reinitialize after a lost Direct3D device");
+    R_InitCmdBufSourceState(&gfxCmdBufSourceState, &gfxCmdBufInput, 0);
+    R_InitCmdBufState(&gfxCmdBufState);
+    RB_InitSceneViewport();
+    R_SetRenderTargetSize(&gfxCmdBufSourceState, 2u);
+    R_SetRenderTarget(gfxCmdBufContext, 2u);
+    return 1;
 }
 
 void __cdecl R_ComErrorCleanup()
 {
-    const char *v0; // eax
+    const char *v1; // eax
     int semaphore; // [esp+0h] [ebp-8h]
     int hr; // [esp+4h] [ebp-4h]
 
-    if ( !Sys_IsMainThread()
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 4028, 0, "%s", "Sys_IsMainThread()") )
+    if (!Sys_IsMainThread()
+        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp", 4028, 0, "%s", "Sys_IsMainThread()"))
     {
         __debugbreak();
     }
     R_AbortRenderCommands();
     R_SyncRenderThread();
-    if ( LOBYTE(dx.targetWindowIndex) )
+    if (dx.inScene)
     {
         R_AssertDXDeviceOwnership();
-        if ( r_logFile && r_logFile->current.integer )
+        if (r_logFile && r_logFile->current.integer)
             RB_LogPrint("dx.device->EndScene()\n");
         semaphore = R_AcquireDXDeviceOwnership(0);
         hr = dx.device->EndScene();
-        if ( semaphore )
+        if (semaphore)
             R_ReleaseDXDeviceOwnership();
-        if ( hr < 0 )
+        if (hr < 0)
         {
             ++g_disableRendering;
-            v0 = R_ErrorDescription(hr);
+            v1 = R_ErrorDescription(hr);
             Com_Error(
                 ERR_FATAL,
                 "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_init.cpp (%i) dx.device->EndScene() failed: %s\n",
                 4036,
-                v0);
+                v1);
         }
-        LOBYTE(dx.targetWindowIndex) = 0;
+        dx.inScene = 0;
     }
 }
 

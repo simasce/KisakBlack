@@ -4567,7 +4567,7 @@ void __cdecl CL_Shutdown(int localClientNum)
             Cmd_RemoveCommand("openScriptMenu");
             Cmd_RemoveCommand("openmenu");
             Cmd_RemoveCommand("closemenu");
-            memset((unsigned __int8 *)&cls, 0, (unsigned int)&cls.unrankedServers[16818].mapName[19]);
+            memset(&cls, 0, sizeof(cls));
         }
         CL_LocalClient_ClearCUIFlag(localClientNum, 2);
         recursive = 0;
