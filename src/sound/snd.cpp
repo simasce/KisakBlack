@@ -108,18 +108,9 @@ void __cdecl SND_GetNearestListenerPosition(const float *position, float *listen
 
 int __cdecl SND_SetPlaybackIdNotPlayed(unsigned int index)
 {
-    if ( index >= 0x4A
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp",
-                    212,
-                    0,
-                    "%s",
-                    "index >= 0 && index < SND_MAX_VOICES") )
-    {
-        __debugbreak();
-    }
-    g_snd.voice[index].playbackId = -1;
-    return -1;
+    iassert(index >= 0 && index < SND_MAX_VOICES);
+    g_snd.voice[index].playbackId = SND_PLAYBACKID_NOTPLAYED;
+    return SND_PLAYBACKID_NOTPLAYED;
 }
 
 int __cdecl SND_AcquirePlaybackId()
@@ -217,7 +208,7 @@ void __cdecl SND_StartLengthNotify(unsigned int index, unsigned int totalMsec)
     int lengthNotifyIndex; // [esp+4h] [ebp-8h]
     snd_length_type id; // [esp+8h] [ebp-4h]
 
-    if ( index >= 0x4A
+    if ( index >= SND_MAX_VOICES
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp",
                     296,
@@ -507,7 +498,7 @@ void __cdecl SND_SetVoiceStartInfo(unsigned int index, SndStartAliasInfo *SndSta
     float occlusionGoal; // [esp+78h] [ebp-4h]
 
     alias = SndStartAliasInfo->alias;
-    if ( index >= 0x4A
+    if ( index >= SND_MAX_VOICES
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp",
                     708,
@@ -1247,7 +1238,7 @@ void __cdecl SND_SetSoundFileVoiceInfo(
 {
     snd_voice_t *voice; // [esp+0h] [ebp-4h]
 
-    if ( voiceIndex >= 0x4A
+    if ( voiceIndex >= SND_MAX_VOICES
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp",
                     852,
@@ -1641,7 +1632,7 @@ void __cdecl SND_ContinueLoopingSound_Internal(
 {
     snd_voice_t *voice; // [esp+2Ch] [ebp-4h]
 
-    if ( voiceIndex >= 0x4A
+    if ( voiceIndex >= SND_MAX_VOICES
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp",
                     1072,
@@ -2166,7 +2157,7 @@ void __cdecl SND_GetPlayingInfo(
     {
         __debugbreak();
     }
-    for (i = 0; i < 0x4A; ++i)
+    for (i = 0; i < SND_MAX_VOICES; ++i)
     {
         if (g_snd.voiceAliasHash[i] == aliasHash && (!useEnt || g_snd.voice[i].sndEnt.handle == ent.handle))
         {
@@ -2196,7 +2187,7 @@ char __cdecl SND_LimitVoice(const snd_alias_t *alias, SndEntHandle ent)
 
     if (SND_IsAliasVoice(alias))
     {
-        for (i = 0; i < 0x4A; ++i)
+        for (i = 0; i < SND_MAX_VOICES; ++i)
         {
             if (g_snd.voiceAliasHash[i] && g_snd.voice[i].sndEnt.handle == ent.handle)
             {
@@ -2207,7 +2198,7 @@ char __cdecl SND_LimitVoice(const snd_alias_t *alias, SndEntHandle ent)
     }
     if ((alias->flags & 0x3F0000) >> 16 == g_snd.announcerGroup)
     {
-        for (j = 0; j < 0x4A; ++j)
+        for (j = 0; j < SND_MAX_VOICES; ++j)
         {
             if (g_snd.voiceAliasHash[j] && (g_snd.voice[j].alias->flags & 0x3F0000) >> 16 == g_snd.announcerGroup)
                 return 0;
@@ -2240,7 +2231,7 @@ void __cdecl SND_UpdateDebugAlias()
 
     if ( snd_stop_alias && snd_stop_alias->current.integer && *(_BYTE *)snd_stop_alias->current.integer )
     {
-        for ( i = 0; i < 0x4A; ++i )
+        for ( i = 0; i < SND_MAX_VOICES; ++i )
         {
             if ( g_snd.voiceAliasHash[i] )
             {
@@ -2387,7 +2378,7 @@ void __cdecl SND_UpdateMasterVolumes(float dt)
     SND_FaderUpdate(&g_snd.volume, dt);
     if (g_snd.volume.value < 0.0000152879 && g_snd.volume.goal < 0.0000152879)
     {
-        for (i = 0; i < 0x4A; ++i)
+        for (i = 0; i < SND_MAX_VOICES; ++i)
         {
             if (g_snd.voiceAliasHash[i]
                 && (SND_GroupCategory((g_snd.voice[i].alias->flags & 0x3F0000) >> 16) != SND_CATEGORY_UI
@@ -2420,7 +2411,7 @@ void __cdecl SND_UpdateVoices(int frametime)
         dt = 0.0f;
     count = 0;
     //PIXBeginNamedEvent(-1, "SND_UpdateVoicePosition");
-    for (i = 0; i < 0x4A; ++i)
+    for (i = 0; i < SND_MAX_VOICES; ++i)
     {
         if (g_snd.voiceAliasHash[i])
             SND_UpdateVoicePosition(&g_snd.voice[i], 0);
@@ -2428,7 +2419,7 @@ void __cdecl SND_UpdateVoices(int frametime)
     //if (g_DXDeviceThread == GetCurrentThreadId())
     //    D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "SND_UpdateVoice");
-    for (j = 0; j < 0x4A; ++j)
+    for (j = 0; j < SND_MAX_VOICES; ++j)
     {
         if (g_snd.voiceAliasHash[j])
             SND_UpdateVoice(&g_snd.voice[j], dt);
@@ -2436,7 +2427,7 @@ void __cdecl SND_UpdateVoices(int frametime)
     //if (g_DXDeviceThread == GetCurrentThreadId())
     //    D3DPERF_EndEvent();
     //PIXBeginNamedEvent(-1, "SD_UpdateVoice");
-    for (voiceIndex = 0; voiceIndex < 0x4A; ++voiceIndex)
+    for (voiceIndex = 0; voiceIndex < SND_MAX_VOICES; ++voiceIndex)
     {
         if (g_snd.voiceAliasHash[voiceIndex])
         {
@@ -2651,19 +2642,11 @@ int __cdecl SND_Active()
 
 void __cdecl SND_Init()
 {
-    void *v1; // [esp+4h] [ebp-38h]
+    iassert(!g_snd.init);
+    iassert(Sys_IsMainThread());
 
-    if (g_snd.init
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2122, 0, "%s", "!g_snd.init"))
-    {
-        __debugbreak();
-    }
-    if (!Sys_IsMainThread()
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2123, 0, "%s", "Sys_IsMainThread()"))
-    {
-        __debugbreak();
-    }
     memset(&g_snd, 0, sizeof(g_snd));
+
     SND_InitDvar();
     g_snd.defaultHash = SND_HashName("default");
     if (SND_ShouldInit())
@@ -2682,11 +2665,9 @@ void __cdecl SND_Init()
             g_snd.global_constants->snapshotGroupCount,
             g_snd.global_constants->snapshotGroups);
         g_snd.defaultCurve = SND_GetCurveById(g_snd.defaultHash);
-        if (!g_snd.global_constants
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2154, 0, "%s", "g_snd.global_constants"))
-        {
-            __debugbreak();
-        }
+
+        iassert(g_snd.global_constants);
+
         g_snd.maximumPriority = 0.0f;
         SND_FaderSetGoal(&g_snd.minimumPriority, 0.0);
         SND_FaderSetRate(&g_snd.minimumPriority, 20.0);
@@ -2700,53 +2681,49 @@ void __cdecl SND_Init()
         g_snd.effect->wetlevel = 0.0f;
         g_snd.effect->wetgoal = 0.0f;
         g_snd.effect->wetrate = 0.0f;
-        g_snd.effect->active = 1;
+        g_snd.effect->active = true;
         g_snd.forcePause = 0;
         g_snd.timescale = 1.0f;
         g_snd.scriptTimescale = 0.0f;
         Snd_StreamInit();
-        memset((unsigned __int8 *)g_snd.voiceAliasHash, 0, sizeof(g_snd.voiceAliasHash));
+        memset(g_snd.voiceAliasHash, 0, sizeof(g_snd.voiceAliasHash));
+
         SND_InitGroups();
         SND_InitSnapshot();
         SND_LosOcclusionInit();
         SND_DebugInit();
+
         g_snd.playbackIdCounter = 1;
         SND_FaderSetGoal(&g_snd.volume, 1.0);
         SND_FaderSetValue(&g_snd.volume, 1.0);
         SND_FaderSetRate(&g_snd.volume, 1.0);
+
         g_snd.time = Sys_Milliseconds();
         g_snd.looptime = 0;
         g_snd.traceSequence = 0;
         g_snd.lastTraceSequence = 0;
-        memset((unsigned __int8 *)g_snd.meters, 0, sizeof(g_snd.meters));
-        g_snd.init = (unsigned __int8)SD_Init();
+        memset(g_snd.meters, 0, sizeof(g_snd.meters));
+        g_snd.init = SD_Init();
         SND_AsyncInit();
         Sys_SetSndInitializedEvent();
     }
 }
 
-unsigned int SND_InitGroups()
+void SND_InitGroups()
 {
-    unsigned int result; // eax
-    const snd_group *GroupByIndex; // eax
-    const snd_group *v3; // eax
-    unsigned int i; // [esp+0h] [ebp-4h]
-
     iassert(g_snd.global_constants);
 
-    for (i = 0; ; ++i)
+    for (int i = 0; i < SND_GetGroupCount(); i++)
     {
-        result = SND_GetGroupCount();
-        if (i >= result)
-            break;
-        GroupByIndex = SND_GetGroupByIndex(i);
-        if (!I_stricmp("voice", GroupByIndex->name))
+        if (!I_stricmp("voice", SND_GetGroupByIndex(i)->name))
+        {
             g_snd.voiceGroup = i;
-        v3 = SND_GetGroupByIndex(i);
-        if (!I_stricmp("voice_announcer", v3->name))
+        }
+        if (!I_stricmp("voice_announcer", SND_GetGroupByIndex(i)->name))
+        {
             g_snd.announcerGroup = i;
+        }
     }
-    return result;
 }
 
 void __cdecl SND_Shutdown()
@@ -2754,11 +2731,7 @@ void __cdecl SND_Shutdown()
     if ( g_snd.init )
     {
         SND_DebugFini();
-        if ( !Sys_IsMainThread()
-            && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2232, 0, "%s", "Sys_IsMainThread()") )
-        {
-            __debugbreak();
-        }
+        iassert(Sys_IsMainThread());
         SND_ShutdownVoices();
         SND_UpdateWait();
         SD_Shutdown();
@@ -2771,15 +2744,12 @@ void __cdecl SND_Shutdown()
 
 void __cdecl SND_ShutdownVoices()
 {
-    unsigned int i; // [esp+0h] [ebp-4h]
+    iassert(Sys_IsMainThread());
 
-    if ( !Sys_IsMainThread()
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2261, 0, "%s", "Sys_IsMainThread()") )
+    for (int i = 0; i < SND_MAX_VOICES; ++i)
     {
-        __debugbreak();
-    }
-    for ( i = 0; i < 0x4A; ++i )
         SND_StopVoice(i);
+    }
 }
 
 void __cdecl SND_InitSnapshot()
@@ -2870,7 +2840,7 @@ void __cdecl SND_UpdateSnapshot(float dt)
         voiceAttenuations[i] = 1.0f;
         voiceOcclusions[i] = 1.0f;
     }
-    for (j = 0; j < 0x4A; ++j)
+    for (j = 0; j < SND_MAX_VOICES; ++j)
     {
         voice = &g_snd.voice[j];
         if (g_snd.voiceAliasHash[j])
@@ -3007,61 +2977,50 @@ double __cdecl SND_GetPitch(snd_voice_t *voice)
 {
     float v3; // [esp+4h] [ebp-34h]
     float pitch; // [esp+30h] [ebp-8h]
-    float pitcha; // [esp+30h] [ebp-8h]
-    float pitchb; // [esp+30h] [ebp-8h]
     const snd_alias_t *alias; // [esp+34h] [ebp-4h]
 
-    if (!voice && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2501, 0, "%s", "voice"))
-        __debugbreak();
+    iassert(voice);
     alias = voice->alias;
-    if (!alias && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2505, 0, "%s", "alias"))
-        __debugbreak();
+    iassert(alias);
+
     if (!snd_enable_pitch->current.enabled)
         return 1.0;
-    pitch = (float)((float)(1.0 - voice->pitchModSeed) * (float)((float)alias->pitchMin / 32767.0))
-        + (float)((float)((float)alias->pitchMax / 32767.0) * voice->pitchModSeed);
-    if ((LODWORD(pitch) & 0x7F800000) == 0x7F800000
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2514, 0, "%s", "!IS_NAN(pitch)"))
-    {
-        __debugbreak();
-    }
+
+    pitch = (float)((float)(1.0 - voice->pitchModSeed) * (float)((float)alias->pitchMin / 32767.0)) + (float)((float)((float)alias->pitchMax / 32767.0) * voice->pitchModSeed);
+    iassert(!IS_NAN(pitch));
+
     if (SND_IsAliasTimescale(voice->alias))
-        pitch = (float)((float)((float)(g_snd.timescale - 1.0) * snd_pitch_timescale->current.value) + 1.0) * pitch;
-    if ((LODWORD(pitch) & 0x7F800000) == 0x7F800000
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2521, 0, "%s", "!IS_NAN(pitch)"))
     {
-        __debugbreak();
+        pitch *= (((g_snd.timescale - 1.0) * snd_pitch_timescale->current.value) + 1.0);
     }
-    pitcha = pitch * voice->script_pitch.value;
-    if ((LODWORD(pitcha) & 0x7F800000) == 0x7F800000
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2525, 0, "%s", "!IS_NAN(pitch)"))
-    {
-        __debugbreak();
-    }
+
+    iassert(!IS_NAN(pitch));
+    pitch *= voice->script_pitch.value;
+    iassert(!IS_NAN(pitch));
+
     if ((alias->flags & 2) >> 1 && SND_IsOnSameTeam(voice->closestListenerIndex, voice->sndEnt))
-        pitcha = (float)((float)voice->alias->teamPitchMod / 32767.0) * pitcha;
-    if ((LODWORD(pitcha) & 0x7F800000) == 0x7F800000
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2533, 0, "%s", "!IS_NAN(pitch)"))
     {
-        __debugbreak();
+        pitch *= (voice->alias->teamPitchMod / 32767.0);
     }
+
+    iassert(!IS_NAN(pitch));
     if ((voice->alias->flags & 0x10) >> 4)
-        pitcha = pitcha + voice->doppler.value;
-    if ((LODWORD(pitcha) & 0x7F800000) == 0x7F800000
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp", 2540, 0, "%s", "!IS_NAN(pitch)"))
     {
-        __debugbreak();
+        pitch += voice->doppler.value;
     }
-    pitchb = pitcha * snd_global_pitch->current.value;
-    if ((fabs(pitchb - 1.0)) > 0.0000152879)
+    iassert(!IS_NAN(pitch));
+
+    pitch *= snd_global_pitch->current.value;
+
+    if ((fabs(pitch - 1.0)) > 0.0000152879)
         voice->pitchShift = 1;
-    if ((fabs(pitchb - 1.0) ) < 0.0000152879)
-        pitchb = 1.0f;
-    if ((float)(pitchb - 1.9) < 0.0)
-        v3 = pitchb;
+    if ((fabs(pitch - 1.0) ) < 0.0000152879)
+        pitch = 1.0f;
+    if ((float)(pitch - 1.9) < 0.0)
+        v3 = pitch;
     else
         v3 = 1.9f;
-    if ((float)(0.0099999998 - pitchb) < 0.0)
+    if ((float)(0.0099999998 - pitch) < 0.0)
         return v3;
     else
         return 0.0099999998f;
@@ -3471,7 +3430,7 @@ double __cdecl I_fmap(float minx, float maxx, float miny, float maxy, float x)
 
 unsigned int __cdecl SND_GetVoiceLength(unsigned int voiceIndex)
 {
-    if (voiceIndex >= 0x4A
+    if (voiceIndex >= SND_MAX_VOICES
         && !Assert_MyHandler(
             "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd.cpp",
             2777,

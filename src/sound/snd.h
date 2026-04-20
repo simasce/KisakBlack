@@ -1146,7 +1146,7 @@ void SND_UpdateStaticSounds();
 void __cdecl SND_StopVoice(int voiceIndex);
 int __cdecl SND_Active();
 void __cdecl SND_Init();
-unsigned int SND_InitGroups();
+void SND_InitGroups();
 void __cdecl SND_Shutdown();
 void __cdecl SND_ShutdownVoices();
 void __cdecl SND_InitSnapshot();

@@ -2123,6 +2123,8 @@ XAPO_REGISTRATION_PROPERTIES g_RadverbEffectProps =
 
 
 SDXA2Effect::SDXA2Effect(XAPO_REGISTRATION_PROPERTIES *props) : CXAPOBase(props)
+//SDXA2Effect::SDXA2Effect(XAPO_REGISTRATION_PROPERTIES *pRegistrationProperties, BYTE *pParameterBlocks, UINT32 uParameterBlockByteSize, BOOL fProducer) 
+//    : CXAPOParametersBase(pRegistrationProperties, pParameterBlocks, uParameterBlockByteSize, fProducer)
 {
     //CXAPOBase::CXAPOBase(this, props);
     //this->CXAPOBase::IXAPO::IUnknown::__vftable = (SDXA2Effect_vtbl *)&SDXA2Effect::`vftable'{for `CXAPOBase'};
@@ -2188,72 +2190,31 @@ void __stdcall SDXA2Effect::Process(
     float *input; // [esp+0h] [ebp-8h]
     float *output; // [esp+4h] [ebp-4h]
 
-    if ( !this->locked
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2_dsp.cpp", 116, 0, "%s", "locked") )
+    iassert(locked);
+    iassert(InputProcessParameterCount == 1);
+    iassert(OutputProcessParameterCount == 1);
+    iassert(pInputProcessParameters[0].ValidFrameCount == frameCount);
+    iassert(SDXA2_MAX_FRAME_COUNT >= frameCount);
+
+    if (pInputProcessParameters->BufferFlags == XAPO_BUFFER_SILENT)
     {
-        __debugbreak();
+        memset(pInputProcessParameters->pBuffer, 0, 4 * this->frameCount * this->channelCount);
     }
-    if ( InputProcessParameterCount != 1
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2_dsp.cpp",
-                    117,
-                    0,
-                    "%s",
-                    "InputProcessParameterCount == 1") )
-    {
-        __debugbreak();
-    }
-    if ( OutputProcessParameterCount != 1
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2_dsp.cpp",
-                    118,
-                    0,
-                    "%s",
-                    "OutputProcessParameterCount == 1") )
-    {
-        __debugbreak();
-    }
-    if ( pInputProcessParameters->ValidFrameCount != this->frameCount
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2_dsp.cpp",
-                    119,
-                    0,
-                    "%s",
-                    "pInputProcessParameters[0].ValidFrameCount == frameCount") )
-    {
-        __debugbreak();
-    }
-    if ( this->frameCount > 0x1E0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2_dsp.cpp",
-                    120,
-                    0,
-                    "%s",
-                    "SDXA2_MAX_FRAME_COUNT >= frameCount") )
-    {
-        __debugbreak();
-    }
-    if ( pInputProcessParameters->BufferFlags == XAPO_BUFFER_SILENT )
-        memset((unsigned __int8 *)pInputProcessParameters->pBuffer, 0, 4 * this->frameCount * this->channelCount);
     pOutputProcessParameters->BufferFlags = XAPO_BUFFER_VALID;
+
     input = (float *)pInputProcessParameters->pBuffer;
     output = (float *)pOutputProcessParameters->pBuffer;
-    if ( this->frameCount != 480
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2_dsp.cpp",
-                    132,
-                    0,
-                    "%s",
-                    "frameCount == 480") )
-    {
-        __debugbreak();
-    }
+
+    iassert(frameCount == 480);
+
     SND_DspUninterleave(this->channelCount, this->frameCount, input, this->interleave);
     this->Process(this->channelCount, this->frameCount, this->interleave);
     SND_DspInterleave(this->channelCount, this->frameCount, this->interleave, output);
 }
 
-SDXA2SourceEffect::SDXA2SourceEffect() : SDXA2Effect(&g_sourceEffectProps)
+SDXA2SourceEffect::SDXA2SourceEffect() 
+    //: SDXA2Effect(&g_sourceEffectProps, (BYTE *)&this->params, sizeof(params), TRUE)
+    : SDXA2Effect(&g_sourceEffectProps)
 {
     //SDXA2Effect::SDXA2Effect(this, &g_sourceEffectProps);
     //this->SDXA2Effect::CXAPOBase::IXAPO::IUnknown::__vftable = (SDXA2SourceEffect_vtbl *)&SDXA2SourceEffect::`vftable'{for `CXAPOBase'};
@@ -2264,26 +2225,9 @@ SDXA2SourceEffect::SDXA2SourceEffect() : SDXA2Effect(&g_sourceEffectProps)
 
 void SDXA2SourceEffect::Clear()
 {
-    if ( this->locked
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2_dsp.cpp",
-                    165,
-                    0,
-                    "%s",
-                    "!locked") )
-    {
-        __debugbreak();
-    }
-    if ( this->started
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2_dsp.cpp",
-                    166,
-                    0,
-                    "%s",
-                    "!started") )
-    {
-        __debugbreak();
-    }
+    iassert(!locked);
+    iassert(!started);
+
     memset((unsigned __int8 *)&this->params, 0, sizeof(this->params));
     memset((unsigned __int8 *)this->state, 0, sizeof(this->state));
 }
@@ -2315,13 +2259,15 @@ void __thiscall SDXA2SourceEffect::Process(
             this->tempb);
 }
 
-void SDXA2SourceEffect::SetParameters(const void *pParams, unsigned int cbParams)
+void STDMETHODCALLTYPE SDXA2SourceEffect::SetParameters(const void *pParams, unsigned int cbParams)
 {
     iassert(cbParams == sizeof(params));
     memcpy(&params, pParams, sizeof(params));
 }
 
-SDXA2MasterNoVoiceBusEffect::SDXA2MasterNoVoiceBusEffect() : SDXA2Effect(&g_masterNoVoiceEffectProps)
+SDXA2MasterNoVoiceBusEffect::SDXA2MasterNoVoiceBusEffect() 
+    //: SDXA2Effect(&g_masterNoVoiceEffectProps, (BYTE*)&this->params, sizeof(params), TRUE)
+    : SDXA2Effect(&g_masterNoVoiceEffectProps)
 {
     //SDXA2Effect::SDXA2Effect(this, &g_masterNoVoiceEffectProps);
     //this->SDXA2Effect::CXAPOBase::IXAPO::IUnknown::__vftable = (SDXA2MasterNoVoiceBusEffect_vtbl *)&SDXA2MasterNoVoiceBusEffect::`vftable'{for `CXAPOBase'};
@@ -2350,7 +2296,7 @@ void __thiscall SDXA2MasterNoVoiceBusEffect::Process(
     }
 }
 
-void SDXA2MasterNoVoiceBusEffect::SetParameters(
+void STDMETHODCALLTYPE SDXA2MasterNoVoiceBusEffect::SetParameters(
                 const void *pParams,
                 unsigned int cbParams)
 {
@@ -2358,7 +2304,9 @@ void SDXA2MasterNoVoiceBusEffect::SetParameters(
     memcpy(&params, pParams, sizeof(params));
 }
 
-SDXA2MasterBusEffect::SDXA2MasterBusEffect() : SDXA2Effect(&g_masterEffectProps)
+SDXA2MasterBusEffect::SDXA2MasterBusEffect() 
+    //: SDXA2Effect(&g_masterEffectProps, (BYTE*)&this->params, sizeof(params), TRUE)
+    : SDXA2Effect(&g_masterEffectProps)
 {
     //SDXA2Effect::SDXA2Effect(this, &g_masterEffectProps);
     //this->SDXA2Effect::CXAPOBase::IXAPO::IUnknown::__vftable = (SDXA2MasterBusEffect_vtbl *)&SDXA2MasterBusEffect::`vftable'{for `CXAPOBase'};
@@ -2395,6 +2343,7 @@ void __thiscall SDXA2MasterBusEffect::Process(
             &this->state[i],
             &g_snd.meters[i]);
     }
+    // lwss: seems like some kind of cinematic hack
     if ( mjpeg_is_encoding() )
     {
         for ( framesProcessed = 0; framesProcessed < frameCount; framesProcessed += v7 )
@@ -2423,13 +2372,15 @@ void __thiscall SDXA2MasterBusEffect::Process(
     }
 }
 
-void SDXA2MasterBusEffect::SetParameters(const void *pParams, unsigned int cbParams)
+void STDMETHODCALLTYPE SDXA2MasterBusEffect::SetParameters(const void *pParams, unsigned int cbParams)
 {
     iassert(cbParams == sizeof(params));
     memcpy(&params, pParams, 96);
 }
 
-SDXA2RadverbEffect::SDXA2RadverbEffect() : SDXA2Effect(&g_RadverbEffectProps)
+SDXA2RadverbEffect::SDXA2RadverbEffect() 
+    //: SDXA2Effect(&g_RadverbEffectProps, (BYTE*)&this->params, 96, TRUE)
+    : SDXA2Effect(&g_RadverbEffectProps)
 {
     //SDXA2Effect::SDXA2Effect(this, &g_RadverbEffectProps);
     //this->SDXA2Effect::CXAPOBase::IXAPO::IUnknown::__vftable = (SDXA2RadverbEffect_vtbl *)&SDXA2RadverbEffect::`vftable'{for `CXAPOBase'};
@@ -2443,26 +2394,9 @@ void __thiscall SDXA2RadverbEffect::Process(
                 unsigned int frameCount,
                 float *data)
 {
-    if ( channelCount != 4
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2_dsp.cpp",
-                    344,
-                    0,
-                    "%s",
-                    "channelCount == 4") )
-    {
-        __debugbreak();
-    }
-    if ( this->params.earlySize <= 0.0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_driver_xaudio2_dsp.cpp",
-                    345,
-                    0,
-                    "%s",
-                    "params.earlySize > 0") )
-    {
-        __debugbreak();
-    }
+    iassert(channelCount == 4);
+    iassert(params.earlySize > 0);
+
     SND_RvFrame(
         &this->params,
         &this->state,
@@ -2475,10 +2409,11 @@ void __thiscall SDXA2RadverbEffect::Process(
         &this->temp[frameCount],
         this->temp,
         &this->temp[2 * frameCount]);
+
     memcpy(data, this->temp, frameCount * 4 * channelCount);
 }
 
-void SDXA2RadverbEffect::SetParameters(const void *pParams, unsigned int cbParams)
+void STDMETHODCALLTYPE SDXA2RadverbEffect::SetParameters(const void *pParams, unsigned int cbParams)
 {
     iassert(cbParams == sizeof(params));
     memcpy(&params, pParams, sizeof(params));

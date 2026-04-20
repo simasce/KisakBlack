@@ -57,16 +57,10 @@ void __cdecl SND_DspScaleCache(unsigned int count, float a, float *c)
     int v5; // eax
 
     v3 = c;
-    if ( (count & 0x1F) != 0
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 174, 0, "%s", "(count&31) == 0") )
-    {
-        __debugbreak();
-    }
-    if ( ((unsigned __int8)c & 0x1F) != 0
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 175, 0, "%s", "(((int)c)&31) == 0") )
-    {
-        __debugbreak();
-    }
+
+    iassert((count & 31) == 0);
+    iassert((((int)c) & 31) == 0);
+
     if ( count >> 5 )
     {
         v4 = count >> 5;
@@ -746,32 +740,17 @@ void __cdecl SND_DspSquelch(
         v9 = *v7 * v8;
         state->g = v8;
     }
-    if ( IS_NAN(state->g) )
-    {
-        if ( !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 1150, 0, "%s", "!IS_NAN(state->g)") )
-            __debugbreak();
-    }
+
+    iassert(!IS_NAN(state->g));
 }
 
 double __cdecl SND_DspDecayConstant(float time, float dt, float targetAmplitude)
 {
-    if ( time < 0.0
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 1107, 0, "%s", "time >= 0") )
-    {
-        __debugbreak();
-    }
-    if ( IS_NAN(time)
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 1108, 0, "%s", "!IS_NAN(time)") )
-    {
-        __debugbreak();
-    }
-    if ( dt < 0.0 && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 1109, 0, "%s", "dt >= 0") )
-        __debugbreak();
-    if ( IS_NAN(dt)
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 1110, 0, "%s", "!IS_NAN(dt)") )
-    {
-        __debugbreak();
-    }
+    iassert(time >= 0);
+    iassert(!IS_NAN(time));
+    iassert(dt >= 0);
+    iassert(!IS_NAN(dt));
+
     if ( dt < time )
         return -(logf(targetAmplitude) * (dt / time));
     else
@@ -836,82 +815,30 @@ void __cdecl SND_DspFutzMono(
 
 void __cdecl SND_DspInterleave(unsigned int channel_count, unsigned int frame_count, float *in, float *out)
 {
-    unsigned int v4; // eax
-    unsigned int v5; // ebx
-    int v8; // eax
-    float *v9; // ecx
-    float *v10; // edx
-    double v11; // st7
-    unsigned int v12; // [esp+0h] [ebp-4h]
-
-    v4 = channel_count;
-    if ( channel_count )
+    // aislopped for correctness
+    for (unsigned int ch = 0; ch < channel_count; ch++)
     {
-        v5 = frame_count;
-        v12 = channel_count;
-        while ( 1 )
+        float *src = in + ch * frame_count;
+        float *dst = out + ch;
+
+        for (unsigned int i = 0; i < frame_count; i++)
         {
-            if ( v5 )
-            {
-                v8 = 4 * v4;
-                v9 = in;
-                v10 = out;
-                do
-                {
-                    v11 = *v9++;
-                    *v10 = v11;
-                    v10 = (float *)((char *)v10 + v8);
-                    --v5;
-                }
-                while ( v5 );
-            }
-            v5 = frame_count;
-            in += frame_count;
-            ++out;
-            if ( !--v12 )
-                break;
-            v4 = channel_count;
+            dst[i * channel_count] = src[i];
         }
     }
 }
 
 void __cdecl SND_DspUninterleave(unsigned int channel_count, unsigned int frame_count, float *in, float *out)
 {
-    unsigned int v4; // eax
-    unsigned int v5; // ebx
-    int v8; // eax
-    float *v9; // ecx
-    float *v10; // edx
-    double v11; // st7
-    unsigned int v12; // [esp+0h] [ebp-4h]
-
-    v4 = channel_count;
-    if ( channel_count )
+    // aislopped for correctness
+    for (unsigned int ch = 0; ch < channel_count; ch++)
     {
-        v5 = frame_count;
-        v12 = channel_count;
-        while ( 1 )
+        float *dst = out + ch * frame_count;
+        float *src = in + ch;
+
+        for (unsigned int i = 0; i < frame_count; i++)
         {
-            if ( v5 )
-            {
-                v8 = 4 * v4;
-                v9 = out;
-                v10 = in;
-                do
-                {
-                    v11 = *v10;
-                    v10 = (float *)((char *)v10 + v8);
-                    *v9++ = v11;
-                    --v5;
-                }
-                while ( v5 );
-            }
-            v5 = frame_count;
-            out += frame_count;
-            ++in;
-            if ( !--v12 )
-                break;
-            v4 = channel_count;
+            dst[i] = src[i * channel_count];
         }
     }
 }
@@ -1169,30 +1096,10 @@ double __cdecl I_fsel(float comparand, float valGE, float valLT)
 
 void __cdecl SND_DspBiquadNanCheck(snd_dsp_biquad_state *state)
 {
-    int i; // [esp+10h] [ebp-4h]
-
-    for ( i = 0; i < 3; ++i )
+    for ( int i = 0; i < 3; ++i )
     {
-        if ( IS_NAN(state->y[i])
-            && !Assert_MyHandler(
-                        "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp",
-                        822,
-                        0,
-                        "%s",
-                        "!IS_NAN(state->y[i])") )
-        {
-            __debugbreak();
-        }
-        if ( IS_NAN(state->x[i]) )
-        {
-            if ( !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp",
-                            823,
-                            0,
-                            "%s",
-                            "!IS_NAN(state->x[i])") )
-                __debugbreak();
-        }
+        iassert(!IS_NAN(state->y[i]));
+        iassert(!IS_NAN(state->x[i]));
     }
 }
 
@@ -1235,12 +1142,10 @@ void __cdecl SND_DspFxMasterSingleChannel(
 {
     snd_dsp_biquad_coef hi; // [esp+2Ch] [ebp-14h] BYREF
 
-    if ( !params && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 2107, 0, "%s", "params") )
-        __debugbreak();
-    if ( !state && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 2108, 0, "%s", "state") )
-        __debugbreak();
-    if ( !meters && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_dsp.cpp", 2109, 0, "%s", "meters") )
-        __debugbreak();
+    iassert(params);
+    iassert(state);
+    iassert(meters);
+
     SND_DspScaleCache(frameCount, params->eqG, frames);
     //PIXBeginNamedEvent(-1, "eq");
     if ( params->lowE <= 0.0000152879 )
@@ -1254,6 +1159,7 @@ void __cdecl SND_DspFxMasterSingleChannel(
         SND_DspBiquadDenormal(&state->low);
         SND_DspBiquadNanCheck(&state->low);
     }
+
     if ( params->peak1E <= 0.0000152879 )
     {
         memset(&state->peak1, 0, sizeof(state->peak1));

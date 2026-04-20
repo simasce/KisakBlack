@@ -5,7 +5,12 @@
 #include <universal/assertive.h>
 #include "snd_radverb.h"
 
-struct SDXA2Effect : CXAPOBase // sizeof=0x3C80
+#define SDXA2_MAX_FRAME_COUNT 480
+
+static const GUID HACK_IID_IXAPOParameters = { 0xA90BC001, 0xE897, 0xE897, { 0x55, 0xE4, 0x9E, 0x47, 0x00, 0x00, 0x00, 0x01 } };
+
+//struct SDXA2Effect : public CXAPOParametersBase  // sizeof=0x3C80
+struct SDXA2Effect : public CXAPOBase, public IXAPOParameters // sizeof=0x3C80
 {                                       // XREF: SDXA2MasterNoVoiceBusEffect/r
     int locked;
     int started;
@@ -15,7 +20,48 @@ struct SDXA2Effect : CXAPOBase // sizeof=0x3C80
     __declspec(align(32)) float interleave[3840];             // XREF: .rdata:stru_D50258/o
 
     SDXA2Effect(XAPO_REGISTRATION_PROPERTIES *props);
+    //SDXA2Effect(XAPO_REGISTRATION_PROPERTIES *pRegistrationProperties, BYTE *pParameterBlocks, UINT32 uParameterBlockByteSize, BOOL fProducer);
     ~SDXA2Effect();
+
+    // IUnknown CANCER
+
+    HRESULT __stdcall QueryInterface(REFIID riid,void **ppvObject)
+    {
+        if (!ppvObject)
+            return E_POINTER;
+
+        *ppvObject = nullptr;
+
+        // IUnknown
+        if (riid == __uuidof(IUnknown))
+        {
+            *ppvObject = static_cast<IUnknown *>(static_cast<CXAPOBase *>(this));
+            AddRef();
+            return S_OK;
+        }
+
+        // IXAPOParameters (your custom IID)
+        //if (riid == IID_IXAPOParameters)
+        if (riid == HACK_IID_IXAPOParameters)
+        {
+            *ppvObject = static_cast<IXAPOParameters *>(this);
+            AddRef();
+            return S_OK;
+        }
+
+        // fallback to base implementation
+        return CXAPOBase::QueryInterface(riid, ppvObject);
+    }
+
+    ULONG __stdcall AddRef()
+    {
+        return InterlockedIncrement(&this->m_lReferenceCount);
+    }
+
+    ULONG __stdcall Release()
+    {
+        return CXAPOBase::Release();
+    }
 
     HRESULT STDMETHODCALLTYPE LockForProcess(
         unsigned int InputLockedParameterCount,
@@ -26,6 +72,11 @@ struct SDXA2Effect : CXAPOBase // sizeof=0x3C80
     //int __stdcall SDXA2Effect::Release(); CXAPOBase
     void STDMETHODCALLTYPE Reset();
     void STDMETHODCALLTYPE UnlockForProcess();
+
+    void STDMETHODCALLTYPE GetParameters(void *, UINT32)
+    {
+        iassert(0);
+    }
 
     virtual void __stdcall Process(
         unsigned int InputProcessParameterCount,
@@ -146,9 +197,7 @@ struct SDXA2MasterBusEffect : SDXA2Effect // sizeof=0xBD00
         unsigned int channelCount,
         unsigned int frameCount,
         float *data);
-    void SetParameters(
-        const void *pParams,
-        unsigned int cbParams);
+    void STDMETHODCALLTYPE SetParameters(const void *pParams, unsigned int cbParams); 
 };
 
 struct SDXA2RadverbEffect : SDXA2Effect // sizeof=0x87B80
@@ -166,8 +215,7 @@ struct SDXA2RadverbEffect : SDXA2Effect // sizeof=0x87B80
         unsigned int frameCount,
         float *data);
 
-    void SetParameters(const void *pParams, unsigned int cbParams);
-
+    void STDMETHODCALLTYPE SetParameters(const void *pParams, unsigned int cbParams);
 };
 
 struct snd_dsp_squelch_param // sizeof=0x8
@@ -207,7 +255,7 @@ struct snd_dsp_source_state // sizeof=0x4C
     snd_dsp_futz_state futz;
 };
 
-struct SDXA2SourceEffect : SDXA2Effect // sizeof=0x5B80
+struct SDXA2SourceEffect : public SDXA2Effect // sizeof=0x5B80
 {                                       // XREF: SoundState/r
     snd_dsp_source_params params;
     snd_dsp_source_state state[2];
@@ -221,7 +269,7 @@ struct SDXA2SourceEffect : SDXA2Effect // sizeof=0x5B80
         unsigned int channelCount,
         unsigned int frameCount,
         float *data);
-    void SetParameters(const void *pParams, unsigned int cbParams);
+    void STDMETHODCALLTYPE SetParameters(const void *pParams, unsigned int cbParams);
 };
 
 struct SDXA2MasterNoVoiceBusEffect : SDXA2Effect // sizeof=0xB900
@@ -235,9 +283,7 @@ struct SDXA2MasterNoVoiceBusEffect : SDXA2Effect // sizeof=0xB900
         unsigned int channelCount,
         unsigned int frameCount,
         float *data);
-    void SetParameters(
-        const void *pParams,
-        unsigned int cbParams);
+    void STDMETHODCALLTYPE SetParameters(const void *pParams, unsigned int cbParams);
 };
 
 

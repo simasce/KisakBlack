@@ -6,6 +6,11 @@
 #include "snd.h"
 #include "snd_driver_xaudio2_dsp.h"
 
+#define SND_MAX_STREAM_VOICES 10
+#define SND_MAX_VOICES 74
+#define SND_PLAYBACKID_NOTPLAYED -1
+
+
 enum snd_stream_status : __int32
 {                                       // XREF: ?Snd_StreamStatus@@YA?AW4snd_stream_status@@I@Z/r
                                         // ?Snd_StreamAcquireWindow@@YA?AW4snd_stream_status@@IPAI0PAPAD@Z/r ...
@@ -17,22 +22,31 @@ enum snd_stream_status : __int32
     SND_STREAM_ERROR    = 0x5,
 };
 
-struct $adpcmwaveformat_tag$_extraBytes_28 // sizeof=0x32
+//typedef struct ADPCMWAVEFORMAT {
+//    WAVEFORMATEX wfx;
+//    WORD wSamplesPerBlock;
+//    WORD wNumCoef;
+//    ADPCMCOEFSET aCoef[1];
+//} ADPCMWAVEFORMAT;
+
+// LWSS: the above struct is from the xaudio Sdk and aCoef[] array is variable sized, therefore the dev's just redeclared it with size 7
+struct my_adpcmwaveformat_tag // sizeof=0x32
 {                                       // XREF: iSND_CreateVoice/r
-    tWAVEFORMATEX wfx;                  // XREF: iSND_CreateVoice+A8/w
-                                        // iSND_CreateVoice+B1/w ...
-    unsigned __int16 wSamplesPerBlock;  // XREF: iSND_CreateVoice+E9/w
-                                        // iSND_CreateVoice+2FD/w ...
-    unsigned __int16 wNumCoef;          // XREF: iSND_CreateVoice+F2/w
-                                        // iSND_CreateVoice+309/w
-    adpcmcoef_tag aCoef[7];             // XREF: iSND_CreateVoice+FE/w
-                                        // iSND_CreateVoice+107/w ...
+    WAVEFORMATEX wfx;
+    WORD wSamplesPerBlock;
+    WORD wNumCoef;
+    ADPCMCOEFSET aCoef[7];
 };
 
 void __cdecl iSND_ReleaseStreamBuffer(unsigned int streamVoice, unsigned int bufferIndex);
 
 struct StreamVoice : IXAudio2VoiceCallback // sizeof=0x50
 {                                       // XREF: SoundState/r
+    enum
+    {
+        BUFFER_COUNT = 2
+    };
+
     XAUDIO2_BUFFER buffers[2];
     unsigned int bufferQueuedCount;
 
@@ -110,9 +124,9 @@ struct __declspec(align(128)) SoundState // sizeof=0x3EF600
     SDXA2RadverbEffect radverbDsp;      // XREF: SND_InitMasterVoice+17C/o
     snd_rv_params radverbParams;        // XREF: SD_Init(void)+E7/o
     SDXA2SourceEffect voiceDsp[148];    // XREF: SDXA2_VoiceDspAllocate(void)+2E/o
-    IXAudio2SourceVoice *voices[74];    // XREF: SD_StopVoice(int)+9/r
-    VoiceInfo voiceInfos[74];           // XREF: iSND_CreateVoice+7D/o
-    StreamVoice streamVoices[10];       // XREF: iSND_ReleaseStreamBuffer+64/o
+    IXAudio2SourceVoice *voices[SND_MAX_VOICES];    // XREF: SD_StopVoice(int)+9/r
+    VoiceInfo voiceInfos[SND_MAX_VOICES];           // XREF: iSND_CreateVoice+7D/o
+    StreamVoice streamVoices[SND_MAX_STREAM_VOICES];       // XREF: iSND_ReleaseStreamBuffer+64/o
     XAUDIO2_PERFORMANCE_DATA perfData;  // XREF: SD_Init(void)+10C/o
 
     SoundState() = default;
