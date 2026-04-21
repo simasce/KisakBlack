@@ -282,10 +282,10 @@ const dvar_s *__cdecl _Dvar_RegisterVec3(
                 const char *description);
 const dvar_s *__cdecl _Dvar_RegisterVec4(
                 const char *dvarName,
-                unsigned int x,
-                unsigned int y,
-                unsigned int z,
-                unsigned int w,
+                float x,
+                float y,
+                float z,
+                float w,
                 float min,
                 float max,
                 unsigned __int16 flags,
@@ -358,9 +358,9 @@ void __cdecl Dvar_SetBoolByName(const char *dvarName, bool value);
 void __cdecl Dvar_SetIntByName(const char *dvarName, int value);
 void __cdecl Dvar_SetInt64ByName(const char *dvarName, __int64 value);
 void __cdecl Dvar_SetFloatByName(const char *dvarName, float value);
-void __cdecl Dvar_SetVec2ByName(const char *dvarName, unsigned int x, unsigned int y);
-void __cdecl Dvar_SetVec3ByName(const char *dvarName, unsigned int x, unsigned int y, float z);
-void __cdecl Dvar_SetVec4ByName(const char *dvarName, unsigned int x, unsigned int y, unsigned int z, unsigned int w);
+void __cdecl Dvar_SetVec2ByName(const char *dvarName, float x, float y);
+void __cdecl Dvar_SetVec3ByName(const char *dvarName, float x, float y, float z);
+void __cdecl Dvar_SetVec4ByName(const char *dvarName, float x, float y, float z, float w);
 void __cdecl Dvar_SetStringByName(const char *dvarName, char *value);
 void __cdecl Dvar_SetColorByName(const char *dvarName, float r, float g, float b, float a);
 const dvar_s *__cdecl Dvar_SetFromStringByNameFromSource(

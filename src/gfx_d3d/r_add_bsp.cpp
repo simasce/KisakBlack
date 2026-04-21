@@ -23,17 +23,8 @@ void __cdecl R_AddBspDrawSurfs(
 {
     bool v4; // [esp+13h] [ebp-1h]
 
-    if ( ((drawSurf.packed >> 51) & 0xF) != 0
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_add_bsp.cpp",
-                    337,
-                    0,
-                    "%s\n\t(drawSurf.fields.surfType) = %i",
-                    "(drawSurf.fields.surfType == SF_TRIANGLES)",
-                    (unsigned int)(drawSurf.packed >> 51) & 0xF) )
-    {
-        __debugbreak();
-    }
+    iassert(drawSurf.fields.surfType == SF_TRIANGLES);
+    
     v4 = Sys_QueryD3DDeviceOKEvent() && r_pretess->current.enabled;
     if ( !v4 || !R_PreTessBspDrawSurfs(drawSurf, (const unsigned __int16 *)list, count, surfData) )
     {
@@ -171,47 +162,18 @@ void __cdecl R_AddAllBspDrawSurfacesRangeCamera(
     GfxBspDrawSurfData surfData; // [esp+16Ch] [ebp-20h] BYREF
     bool hasSkyBoxModel; // [esp+18Bh] [ebp-1h]
 
-    if ( !rgp.world
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_add_bsp.cpp", 383, 0, "%s", "rgp.world") )
-    {
-        __debugbreak();
-    }
-    if ( beginSurface >= rgp.world->models->surfaceCount + 1
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_add_bsp.cpp",
-                    384,
-                    0,
-                    "beginSurface doesn't index rgp.world->models[0].surfaceCount + 1\n\t%i not in [0, %i)",
-                    beginSurface,
-                    rgp.world->models->surfaceCount + 1) )
-    {
-        __debugbreak();
-    }
-    if ( endSurface >= rgp.world->models->surfaceCount + 1
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_add_bsp.cpp",
-                    385,
-                    0,
-                    "endSurface doesn't index rgp.world->models[0].surfaceCount + 1\n\t%i not in [0, %i)",
-                    endSurface,
-                    rgp.world->models->surfaceCount + 1) )
-    {
-        __debugbreak();
-    }
+    iassert(rgp.world);
+    bcassert(beginSurface, rgp.world->models[0].surfaceCount + 1);
+    bcassert(endSurface, rgp.world->models[0].surfaceCount + 1);
+
+
     surfaceVisData = rgp.world->dpvs.surfaceVisData[0];
     dynamicSpotLightPlanes = scene.dynamicSpotLightPlanes;
     R_InitBspDrawSurf((GfxSModelDrawSurfLightingData *)&surfData);
     surfData.drawSurfList.current = scene.drawSurfs[stage];
-    if ( maxDrawSurfCount != scene.maxDrawSurfCount[stage]
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_add_bsp.cpp",
-                    403,
-                    0,
-                    "%s",
-                    "(int)maxDrawSurfCount == scene.maxDrawSurfCount[stage]") )
-    {
-        __debugbreak();
-    }
+
+    iassert((int)maxDrawSurfCount == scene.maxDrawSurfCount[stage]);
+
     surfaceMaterials = rgp.world->dpvs.surfaceMaterials;
     surfData.drawSurfList.end = &surfData.drawSurfList.current[maxDrawSurfCount];
     prevDrawSurf.packed = -1;
@@ -273,7 +235,7 @@ void __cdecl R_AddAllBspDrawSurfacesRangeCamera(
                         {
                             if ( triSurfCount )
                                 R_AddBspDrawSurfs(prevDrawSurf, (unsigned __int8 *)triSurfList, triSurfCount, &surfData);
-                            Com_BitSetAssert(scene.shadowableLightIsUsed, (unsigned __int8)(drawSurf.packed >> 43), 128);
+                            Com_BitSetAssert(scene.shadowableLightIsUsed, drawSurf.fields.primaryLightIndex, 128);
                             prevDrawSurf.fields = drawSurf.fields;
                             triSurfCount = 0;
                         }

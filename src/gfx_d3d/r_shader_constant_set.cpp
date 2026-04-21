@@ -146,10 +146,8 @@ const ShaderConstantSet *__cdecl RB_ShaderConstantSetFromDrawSurf(
 
 unsigned int __cdecl XModelDrawSurf_DecodeIndex(const GfxDrawSurf *drawSurf)
 {
-    unsigned __int64 v1; // rax
-
-    v1 = drawSurf->packed >> 51;
-    if ( (v1 & 0xF) >= 7 && (v1 & 0xF) < 0xB )
+    int surfType = drawSurf->fields.surfType;
+    if (surfType >= SF_BEGIN_XMODEL && surfType < SF_END_XMODEL)
         return (4 * ((drawSurf->packed >> 20) & 0x1C)) | HIWORD(*(unsigned int *)&drawSurf->fields) & 0xF;
     else
         return 0;

@@ -2389,10 +2389,10 @@ const dvar_s *__cdecl _Dvar_RegisterVec3(
 
 const dvar_s *__cdecl _Dvar_RegisterVec4(
                 const char *dvarName,
-                unsigned int x,
-                unsigned int y,
-                unsigned int z,
-                unsigned int w,
+                float x,
+                float y,
+                float z,
+                float w,
                 float min,
                 float max,
                 unsigned __int16 flags,
@@ -3119,7 +3119,7 @@ void __cdecl Dvar_SetFloatByName(const char *dvarName, float value)
     }
 }
 
-void __cdecl Dvar_SetVec2ByName(const char *dvarName, unsigned int x, unsigned int y)
+void __cdecl Dvar_SetVec2ByName(const char *dvarName, float x, float y)
 {
     char string[64]; // [esp+10h] [ebp-48h] BYREF
     const dvar_s *dvar; // [esp+54h] [ebp-4h]
@@ -3131,12 +3131,12 @@ void __cdecl Dvar_SetVec2ByName(const char *dvarName, unsigned int x, unsigned i
     }
     else
     {
-        Com_sprintf(string, 0x40u, "%g %g", *(float *)&x, *(float *)&y);
+        Com_sprintf(string, 0x40u, "%g %g", x, y);
         _Dvar_RegisterString(dvarName, string, 0x4000u, "External Dvar");
     }
 }
 
-void __cdecl Dvar_SetVec3ByName(const char *dvarName, unsigned int x, unsigned int y, float z)
+void __cdecl Dvar_SetVec3ByName(const char *dvarName, float x, float y, float z)
 {
     char string[128]; // [esp+18h] [ebp-88h] BYREF
     const dvar_s *dvar; // [esp+9Ch] [ebp-4h]
@@ -3148,12 +3148,12 @@ void __cdecl Dvar_SetVec3ByName(const char *dvarName, unsigned int x, unsigned i
     }
     else
     {
-        Com_sprintf(string, 0x80u, "%g %g %g", *(float *)&x, *(float *)&y, z);
+        Com_sprintf(string, 0x80u, "%g %g %g", x, y, z);
         _Dvar_RegisterString(dvarName, string, 0x4000u, "External Dvar");
     }
 }
 
-void __cdecl Dvar_SetVec4ByName(const char *dvarName, unsigned int x, unsigned int y, unsigned int z, unsigned int w)
+void __cdecl Dvar_SetVec4ByName(const char *dvarName, float x, float y, float z, float w)
 {
     char string[128]; // [esp+20h] [ebp-88h] BYREF
     const dvar_s *dvar; // [esp+A4h] [ebp-4h]
@@ -3165,7 +3165,7 @@ void __cdecl Dvar_SetVec4ByName(const char *dvarName, unsigned int x, unsigned i
     }
     else
     {
-        Com_sprintf(string, 0x80u, "%g %g %g %g", *(float *)&x, *(float *)&y, *(float *)&z, *(float *)&w);
+        Com_sprintf(string, 0x80u, "%g %g %g %g", x, y, z, w);
         _Dvar_RegisterString(dvarName, string, 0x4000u, "External Dvar");
     }
 }

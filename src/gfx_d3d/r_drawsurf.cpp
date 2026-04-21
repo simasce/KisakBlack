@@ -386,23 +386,10 @@ GfxWorld *R_SetPrimaryLightShadowSurfaces()
 
 GfxDrawSurf __cdecl R_GetWorldDrawSurf(GfxSurface *worldSurf)
 {
-    Material *material; // ecx
-    GfxDrawSurf drawSurf; // [esp+14h] [ebp-8h]
+    GfxDrawSurf drawSurf = worldSurf->material->info.drawSurf;
+    drawSurf.fields.primaryLightIndex = worldSurf->primaryLightIndex;
+    iassert(drawSurf.fields.primaryLightIndex == worldSurf->primaryLightIndex);
 
-    material = worldSurf->material;
-    *(unsigned int *)&drawSurf.fields = *(DWORD *)&material->info.drawSurf.fields;
-    HIDWORD(drawSurf.packed) = (worldSurf->primaryLightIndex << 11) | HIDWORD(material->info.drawSurf.packed) & 0xFFF807FF;
-    if ( (unsigned __int8)(drawSurf.packed >> 43) != worldSurf->primaryLightIndex
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_drawsurf.cpp",
-                    535,
-                    1,
-                    "drawSurf.fields.primaryLightIndex == worldSurf->primaryLightIndex\n\t%i, %i",
-                    (unsigned __int8)(drawSurf.packed >> 43),
-                    worldSurf->primaryLightIndex) )
-    {
-        __debugbreak();
-    }
     return drawSurf;
 }
 

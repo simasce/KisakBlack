@@ -120,10 +120,12 @@ unsigned __int8 __cdecl RemoveSunShadowTech(unsigned __int8 srcTech)
 
 unsigned int __cdecl R_GfxDrawSurf_GetFade(const GfxDrawSurf *drawSurf)
 {
-    if ( ((drawSurf->packed >> 51) & 0xF) == 2 )
-        return (drawSurf->packed >> 16) & 0xF;
-    else
-        return 0;
+    if (drawSurf->fields.surfType == 2)
+    {
+        return drawSurf->fields.fade;
+    }
+
+    return 0;
 }
 
 unsigned __int8 __cdecl R_Get_NvFloatZLitTech(const Material *material, unsigned __int8 originalTechType)
@@ -158,7 +160,8 @@ unsigned __int8 __cdecl R_GetTechType(
     unsigned __int8 actualTechType; // [esp+47h] [ebp-5h]
     unsigned int surfType; // [esp+48h] [ebp-4h]
 
-    surfType = (drawSurf.packed >> 51) & 0xF;
+    surfType = drawSurf.fields.surfType;
+
     switch ( baseTechType )
     {
         case 5u:
@@ -177,18 +180,10 @@ LABEL_38:
             needsCharredTech = TechLit_NeedsCharredTech(&drawSurf);
             fadeType = (GfxFadeType)(R_GfxDrawSurf_GetFade(&drawSurf) != 0);
             data = context.source->input.data;
-            if ( (unsigned __int8)(drawSurf.packed >> 43) >= data->shadowableLightCount
-                && !Assert_MyHandler(
-                            "C:\\projects_pc\\cod\\codsrc\\src\\gfx_d3d\\r_draw_material.cpp",
-                            542,
-                            0,
-                            "drawSurf.fields.primaryLightIndex doesn't index data->shadowableLightCount\n\t%i not in [0, %i)",
-                            (unsigned __int8)(drawSurf.packed >> 43),
-                            data->shadowableLightCount) )
-            {
-                __debugbreak();
-            }
-            actualTechType = data->primaryLightTechType[surfType][fadeType][needsCharredTech != 0][(unsigned __int8)(drawSurf.packed >> 43)];
+
+            bcassert(drawSurf.fields.primaryLightIndex, data->shadowableLightCount);
+            
+            actualTechType = data->primaryLightTechType[surfType][fadeType][needsCharredTech != 0][drawSurf.fields.primaryLightIndex];
             if ( info->isMissileCamera || (drawSurf.packed & 0x200000000000000LL) != 0 )
                 actualTechType = RemoveSunShadowTech(actualTechType);
             if ( actualTechType >= 0xAu && actualTechType <= 0x10u )
@@ -300,7 +295,7 @@ int __cdecl R_SetTechnique(
     if ( techType > 1u )
     {
         if ( info->baseTechType == 10 )
-            R_SetShadowableLight(context.source, (unsigned __int8)(drawSurf.packed >> 43));
+            R_SetShadowableLight(context.source, drawSurf.fields.primaryLightIndex);
         if ( !R_TrySetMaterialWithFunc(
                         R_SetMaterial,
                         context,
@@ -449,7 +444,7 @@ int __cdecl R_SetMaterial(GfxCmdBufContext context, GfxDrawSurf drawSurf, unsign
         R_DirtyCodeConstant(context.source, CONST_SRC_CODE_ALPHA_FADE);
     }
     RB_ApplyShaderConstantSet(context.source, &drawSurf);
-    if ( ((drawSurf.packed >> 51) & 0xF) == 0 && (material->info.gameFlags & 8) != 0 )
+    if ( drawSurf.fields.surfType == 0 && (material->info.gameFlags & 8) != 0 )
         return 0;
     context.state->techType = techType;
     return 1;
