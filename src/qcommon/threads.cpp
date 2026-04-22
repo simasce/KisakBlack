@@ -234,44 +234,20 @@ void __cdecl Sys_CreateThread(void (__cdecl *function)(unsigned int), unsigned i
 {
     unsigned int LastError; // eax
 
-    if ( threadFunc[threadContext]
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\threads.cpp",
-                    939,
-                    0,
-                    "%s",
-                    "threadFunc[threadContext] == NULL") )
-    {
-        __debugbreak();
-    }
-    if ( threadContext >= 0xF
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\threads.cpp",
-                    940,
-                    0,
-                    "%s",
-                    "threadContext < THREAD_CONTEXT_COUNT") )
-    {
-        __debugbreak();
-    }
+    iassert(threadFunc[threadContext] == NULL);
+    iassert(threadContext < THREAD_CONTEXT_COUNT);
+
     threadFunc[threadContext] = function;
     threadHandle[threadContext] = CreateThread(
         0,
         0,
-        (LPTHREAD_START_ROUTINE)Sys_ThreadMain,
+        Sys_ThreadMain,
         (LPVOID)threadContext,
-        4u,
+        CREATE_SUSPENDED,
         &threadId[threadContext]);
-    if ( !threadHandle[threadContext]
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\threads.cpp",
-                    944,
-                    0,
-                    "%s",
-                    "threadHandle[threadContext] != NULL") )
-    {
-        __debugbreak();
-    }
+
+    iassert(threadHandle[threadContext] != NULL);
+
     if ( !threadHandle[threadContext] )
     {
         LastError = GetLastError();
@@ -291,35 +267,27 @@ void __cdecl SetThreadName(unsigned int dwThreadID, const char *szThreadName)
     info.dwFlags = 0;
     //ms_exc.registration.TryLevel = 0;
     //RaiseException(0x406D1388u, 0, 4u, &info.dwType);
-    RaiseException(0x406D1388, 0, sizeof(info) / sizeof(DWORD), (ULONG_PTR *)&info);
+
+    // LWSS: this try/except needs to be here, otherwise it wont run without a debugger :D
+    __try {
+        RaiseException(0x406D1388, 0, sizeof(info) / sizeof(DWORD), (ULONG_PTR *)&info);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+    }
 }
 
-unsigned int __stdcall Sys_ThreadMain(int parameter)
+DWORD WINAPI Sys_ThreadMain(LPVOID parameter)
 {
-    if ( (unsigned int)parameter >= 0xF
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\threads.cpp",
-                    908,
-                    0,
-                    "threadContext doesn't index THREAD_CONTEXT_COUNT\n\t%i not in [0, %i)",
-                    parameter,
-                    15) )
-    {
-        __debugbreak();
-    }
-    if ( !threadFunc[parameter]
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\qcommon\\threads.cpp",
-                    909,
-                    0,
-                    "%s",
-                    "threadFunc[threadContext]") )
-    {
-        __debugbreak();
-    }
-    SetThreadName(0xFFFFFFFF, s_threadNames[parameter]);
-    Sys_InitThread(parameter);
-    threadFunc[parameter](parameter);
+    unsigned int threadContext = (unsigned int)parameter;
+
+    bcassert(threadContext, THREAD_CONTEXT_COUNT);
+    iassert(threadFunc[threadContext]);
+
+    SetThreadName(0xFFFFFFFF, s_threadNames[threadContext]);
+
+    Sys_InitThread(threadContext);
+    threadFunc[threadContext](threadContext);
+
     return 0;
 }
 

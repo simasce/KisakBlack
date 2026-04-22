@@ -79,7 +79,7 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;TRACY_ENABLE;TRACY_ON_DEMAND;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -1211,6 +1211,7 @@
     <ClCompile Include="src\stringed\stringed_ingame.cpp" />
     <ClCompile Include="src\stringed\stringed_interface.cpp" />
     <ClCompile Include="src\stringed\stringed_remote.cpp" />
+    <ClCompile Include="src\tracy\public\TracyClient.cpp" />
     <ClCompile Include="src\turret\turret_placement.cpp" />
     <ClCompile Include="src\ui\l_memory.cpp" />
     <ClCompile Include="src\ui\l_precomp.cpp" />
@@ -2033,6 +2034,8 @@
     <ClInclude Include="src\stringed\stringed_ingame.h" />
     <ClInclude Include="src\stringed\stringed_interface.h" />
     <ClInclude Include="src\stringed\stringed_remote.h" />
+    <ClInclude Include="src\tracy\public\tracy\Tracy.hpp" />
+    <ClInclude Include="src\tracy\public\tracy\TracyC.h" />
     <ClInclude Include="src\turret\turret_placement.h" />
     <ClInclude Include="src\ui\keycodes.h" />
     <ClInclude Include="src\ui\l_memory.h" />
@@ -2091,6 +2094,7 @@
     <ClInclude Include="src\universal\mem_largelocal.h" />
     <ClInclude Include="src\universal\mem_userhunk.h" />
     <ClInclude Include="src\universal\physicalmemory.h" />
+    <ClInclude Include="src\universal\profile.h" />
     <ClInclude Include="src\universal\q_parse.h" />
     <ClInclude Include="src\universal\q_shared.h" />
     <ClInclude Include="src\universal\reliablemsg.h" />

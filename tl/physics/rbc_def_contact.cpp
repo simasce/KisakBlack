@@ -16,22 +16,15 @@ void __thiscall rigid_body_constraint_contact::verify_constraint(
         environment_rigid_body *b1_,
         environment_rigid_body *b2_)
 {
-  if ( (this->b1 != b1_ || this->b2 != b2_) && (this->b1 != b2_ || this->b2 != b1_) )
-  {
-    if ( _tlAssert(
-           "source/rbc_def_contact.cpp",
-           14,
-           "(b1 == b1_ && b2 == b2_) || (b1 == b2_ && b2 == b1_)",
-           "") )
-    {
-      __debugbreak();
-    }
-  }
-  //physics_system::validate_member(g_physics_system, b1_);
-  g_physics_system->validate_member(b1_);
-  //physics_system::validate_member(g_physics_system, b2_);
-  g_physics_system->validate_member(b2_);
-  PMM_VALIDATE((char *)&this[-1].m_avl_key, 0x38u, 4u);
+    iassert((b1 == b1_ && b2 == b2_) || (b1 == b2_ && b2 == b1_));
+    
+    g_physics_system->validate_member(b1_);
+    g_physics_system->validate_member(b2_);
+
+    using TI = phys_free_list<rigid_body_constraint_contact>::T_internal;
+    static_assert(sizeof(TI) == 0x38, "size mismatch");
+    TI *ti = (TI *)((char *)this - offsetof(TI, m_data));
+    PMM_VALIDATE((char *)ti, sizeof(TI), 4u);
 }
 
 void __thiscall rigid_body_constraint_contact::setup_constraint(pulse_sum_constraint_solver *psys, float delta_t)

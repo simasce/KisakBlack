@@ -9,7 +9,7 @@ bool g_streamReadThreadSpawned;
 
 char __cdecl Stream_Init()
 {
-    if ( !g_streamReadThreadSpawned && !Sys_SpawnStreamThread((void (__cdecl *)(unsigned int))Stream_Thread) )
+    if ( !g_streamReadThreadSpawned && !Sys_SpawnStreamThread(Stream_Thread) )
         return 0;
     g_streamReadThreadSpawned = 1;
     return 1;
