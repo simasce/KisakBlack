@@ -128,56 +128,22 @@ double __cdecl Snd_NormalizeAngle(float x)
     return x;
 }
 
+// aislop cleanup
 void __cdecl Snd_PanStereo(float angle, float boost, float *left, float *right)
 {
-    float v4; // [esp+Ch] [ebp-24h]
-    float v5; // [esp+10h] [ebp-20h]
-    float v6; // [esp+14h] [ebp-1Ch]
-    float v7; // [esp+18h] [ebp-18h]
-    float v8; // [esp+1Ch] [ebp-14h]
-    float v9; // [esp+20h] [ebp-10h]
-    float v10; // [esp+24h] [ebp-Ch]
-    float A; // [esp+28h] [ebp-8h]
-    float anglea; // [esp+38h] [ebp+8h]
+    // Float literals throughout: anglea is float, and using double constants
+    // (e.g. `3.1415927`) would promote anglea to double for comparison. The
+    // float bit-pattern of pi (0x40490FDB = 3.14159274...) is strictly greater
+    // than the double 3.1415927 (= 3.14159270...), so an anglea exactly equal
+    // to pi-as-float would take the wrong branch and trip the (v6 > pi) assert.
+    const float A = Snd_PanMono(angle);
+    const float anglea = Snd_NormalizeAngle(angle + 1.5707964f);
+    const float v6 = (anglea > 3.1415927f) ? (6.2831855f - anglea) : anglea;
+    iassert(v6 <= 3.1415927f);
 
-    A = Snd_PanMono(angle);
-    anglea = Snd_NormalizeAngle(angle + 1.5707964);
-    if ( anglea > 3.1415927 )
-        v6 = 6.2831855 - anglea;
-    else
-        v6 = anglea;
-    if ( v6 > 3.1415927
-        && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_utils.cpp",
-                    166,
-                    0,
-                    "%s\n\t(angleFromRight) = %g",
-                    "(angleFromRight <= (3.141592653f))",
-                    v6) )
-    {
-        __debugbreak();
-    }
-    SND_EqualPowerFadeCoefs(v6 / 3.1415927, left, right);
-    v9 = (float)(*left * A) + boost;
-    if ( (float)(v9 - 1.0) < 0.0 )
-        v10 = (float)(*left * A) + boost;
-    else
-        v10 = 1.0f;
-    if ( (float)(0.0 - v9) < 0.0 )
-        v5 = v10;
-    else
-        v5 = 0.0f;
-    *left = v5;
-    v7 = (float)(*right * A) + boost;
-    if ( (float)(v7 - 1.0) < 0.0 )
-        v8 = (float)(*right * A) + boost;
-    else
-        v8 = 1.0f;
-    if ( (float)(0.0 - v7) < 0.0 )
-        v4 = v8;
-    else
-        v4 = 0.0f;
-    *right = v4;
+    SND_EqualPowerFadeCoefs(v6 / 3.1415927f, left, right);
+    *left  = I_fmin(1.0f, I_fmax(0.0f, *left  * A + boost));
+    *right = I_fmin(1.0f, I_fmax(0.0f, *right * A + boost));
 }
 
 void __cdecl Snd_Pan(unsigned int speakerCount, const float *angles, float toSound, float *levels)
@@ -365,20 +331,15 @@ void __cdecl Snd_Pan3d(
     }
     else
     {
-        //v9 = to[0];
-        //__libm_sse2_atan2(v11, v15);
-        //*(float *)&v9 = v9;
-        //v22 = *(float *)&v9;
-        //v10 = *forward;
-        //__libm_sse2_atan2(v12, v16);
-        //*(float *)&v10 = v10;
-        //angle = Snd_NormalizeAngle(v22 - *(float *)&v10);
-
-        // Compute the azimuth angles in 2D (X/Y plane)
-        float azimuthTo = atan2f(to[1], to[0]);       // atan2(y, x) for vector from listener to sound
-        float azimuthForward = atan2f(forward[1], forward[0]); // atan2(y, x) for listener's forward vector
-
-        // Difference between angles, normalized
+        // aislop
+        // The engine's angle convention is CW from +X (forward): 0=forward,
+        // pi/2=right, pi=behind, 3pi/2=left — matching the speaker table where
+        // LEFT sits at 315 deg and RIGHT at 45 deg. The original binary calls
+        // __libm_sse2_atan2 with xmm0=X, xmm1=Y, which produces atan2(X, Y) =
+        // pi/2 - atan2(Y, X). Standard atan2f(Y, X) here would invert the
+        // angle and swap L/R, so we keep the (X, Y) arg order.
+        const float azimuthTo      = atan2f(to[0],      to[1]);
+        const float azimuthForward = atan2f(forward[0], forward[1]);
         angle = Snd_NormalizeAngle(azimuthTo - azimuthForward);
 
         if ( (float)((float)(d / 10.0) - 1.0) < 0.0 )

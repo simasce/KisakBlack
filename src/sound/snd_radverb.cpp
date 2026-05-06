@@ -119,196 +119,84 @@ void __cdecl SND_RvParamsValidate(snd_rv_params *params)
     }
 }
 
+// aislop
 void __cdecl SND_RvFrameParam(snd_rv_params *params, snd_rv_state *state, unsigned int frameCount)
 {
-    float *wallReflect; // ebx
-    double v6; // st7
-    unsigned int v7; // ebx
-    double v8; // st7
-    float v9; // xmm0_4
-    float v10; // xmm1_4
-    float v11; // xmm2_4
-    float v12; // xmm3_4
-    unsigned int *v13; // esi
-    int v14; // ebx
-    int v15; // ecx
-    double v16; // st7
-    bool v17; // cf
-    unsigned int delayMatrix; // [esp-4h] [ebp-2Ch]
-    float v19; // [esp+8h] [ebp-20h]
-    float xa; // [esp+8h] [ebp-20h]
-    float coef[4]; // [esp+18h] [ebp-10h]
-    float smooth; // [esp+30h] [ebp+8h]
-    float smootha; // [esp+30h] [ebp+8h]
-    float *smoothb; // [esp+30h] [ebp+8h]
-    float *db; // [esp+34h] [ebp+Ch]
-    float dbc; // [esp+34h] [ebp+Ch]
-    float dba; // [esp+34h] [ebp+Ch]
-    int dbb; // [esp+34h] [ebp+Ch]
-    unsigned int frameCounta; // [esp+38h] [ebp+10h]
-
     SND_RvParamsValidate(params);
+
     state->params.frameRate = params->frameRate;
-    if (params->frameRate <= 1000.0
-        && !Assert_MyHandler(
-            "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_radverb.cpp",
-            165,
-            0,
-            "%s",
-            "params->frameRate > 1000.0f"))
-    {
-        __debugbreak();
-    }
-    if (params->frameRate >= 100000.0
-        && !Assert_MyHandler(
-            "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_radverb.cpp",
-            166,
-            0,
-            "%s",
-            "params->frameRate < 100000.0f"))
-    {
-        __debugbreak();
-    }
-    smooth = (1.0 - params->smoothing) / (params->frameRate / (double)frameCount * 0.1);
-    if (IS_NAN(smooth)
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_radverb.cpp", 170, 0, "%s", "!IS_NAN(smooth)"))
-    {
-        __debugbreak();
-    }
-    state->params.earlyTime = I_flerp(state->params.earlyTime, params->earlyTime, smooth);
-    state->params.lateTime = I_flerp(state->params.lateTime, params->lateTime, smooth);
-    state->params.earlyGain = I_flerp(state->params.earlyGain, params->earlyGain, smooth);
-    state->params.lateGain = I_flerp(state->params.lateGain, params->lateGain, smooth);
-    state->params.lateGainProx[0] = params->lateGainProx[0] * state->params.lateGain;
-    state->params.lateGainProx[1] = params->lateGainProx[1] * state->params.lateGain;
-    state->params.lateGainProx[2] = params->lateGainProx[2] * state->params.lateGain;
-    state->params.lateGainProx[3] = params->lateGainProx[3] * state->params.lateGain;
+    iassert(params->frameRate > 1000.0f);
+    iassert(params->frameRate < 100000.0f);
+
+    const float smooth = (1.0f - params->smoothing) / (params->frameRate / (float)frameCount * 0.1f);
+    iassert(!IS_NAN(smooth));
+
+    state->params.earlyTime  = I_flerp(state->params.earlyTime,  params->earlyTime,  smooth);
+    state->params.lateTime   = I_flerp(state->params.lateTime,   params->lateTime,   smooth);
+    state->params.earlyGain  = I_flerp(state->params.earlyGain,  params->earlyGain,  smooth);
+    state->params.lateGain   = I_flerp(state->params.lateGain,   params->lateGain,   smooth);
+    for (int i = 0; i < 4; ++i)
+        state->params.lateGainProx[i] = params->lateGainProx[i] * state->params.lateGain;
     state->params.returnGain = I_flerp(state->params.returnGain, params->returnGain, smooth);
-    state->params.earlyLpf = I_flerp(state->params.earlyLpf, params->earlyLpf, smooth);
-    state->params.lateLpf = I_flerp(state->params.lateLpf, params->lateLpf, smooth);
-    state->params.inputLpf = I_flerp(state->params.inputLpf, params->inputLpf, smooth);
-    state->params.dampLpf = I_flerp(state->params.dampLpf, params->dampLpf, smooth);
-    wallReflect = state->params.wallReflect;
-    db = params->wallReflect;
-    frameCounta = 4;
-    do
-    {
-        v6 = I_flerp(*wallReflect, *db++, smooth);
-        *wallReflect++ = v6;
-        --frameCounta;
-    } while (frameCounta);
-    state->params.dryGain = I_flerp(state->params.dryGain, params->dryGain, smooth);
+    state->params.earlyLpf   = I_flerp(state->params.earlyLpf,   params->earlyLpf,   smooth);
+    state->params.lateLpf    = I_flerp(state->params.lateLpf,    params->lateLpf,    smooth);
+    state->params.inputLpf   = I_flerp(state->params.inputLpf,   params->inputLpf,   smooth);
+    state->params.dampLpf    = I_flerp(state->params.dampLpf,    params->dampLpf,    smooth);
+    for (int i = 0; i < 4; ++i)
+        state->params.wallReflect[i] = I_flerp(state->params.wallReflect[i], params->wallReflect[i], smooth);
+    state->params.dryGain   = I_flerp(state->params.dryGain,   params->dryGain,   smooth);
     state->params.diffusion = I_flerp(state->params.diffusion, params->diffusion, smooth);
     state->params.earlySize = I_flerp(state->params.earlySize, params->earlySize, smooth);
-    state->params.lateSize = I_flerp(state->params.lateSize, params->lateSize, smooth);
-    delayMatrix = params->delayMatrix;
-    state->params.delayMatrix = delayMatrix;
-    SND_RvDelayInit(state, delayMatrix);
-    dbc = state->params.diffusion * 1.5707964;
-    smootha = cosf(dbc);
-    dba = sinf(dbc);
-    if (IS_NAN(smootha)
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_radverb.cpp", 205, 0, "%s", "!IS_NAN(da)"))
+    state->params.lateSize  = I_flerp(state->params.lateSize,  params->lateSize,  smooth);
+    state->params.delayMatrix = params->delayMatrix;
+    SND_RvDelayInit(state, params->delayMatrix);
+
+    const float angle = state->params.diffusion * 1.5707964f;
+    const float c = cosf(angle);
+    const float s = sinf(angle);
+    iassert(!IS_NAN(c));
+    iassert(!IS_NAN(s));
+    state->lateReflectionCoefs[0][0] =  c;
+    state->lateReflectionCoefs[0][1] =  s;
+    state->lateReflectionCoefs[1][0] =  s;
+    state->lateReflectionCoefs[1][1] = -c;
+    state->lateReflectionCoefs[2][2] = -c;
+    state->lateReflectionCoefs[2][3] =  s;
+    state->lateReflectionCoefs[3][2] =  s;
+    state->lateReflectionCoefs[3][3] =  c;
+
+    float coef[4];
+    for (int i = 0; i < 4; ++i)
     {
-        __debugbreak();
+        coef[i] = I_fmax(0.0f, (state->params.wallReflect[i] - 1.0f) * (float)i * 0.35355338f + 0.70710677f);
+        iassert(!IS_NAN(coef[i]));
     }
-    if (IS_NAN(dba)
-        && !Assert_MyHandler("C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_radverb.cpp", 206, 0, "%s", "!IS_NAN(db)"))
+    static const int earlyPerm[4][4] = {
+        { 0, 3, 2, 1 },
+        { 3, 0, 1, 2 },
+        { 2, 1, 0, 3 },
+        { 1, 2, 3, 0 },
+    };
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 4; ++j)
+            state->earlyReflectionCoefs[i][j] = coef[earlyPerm[i][j]];
+
+    // Direct (unsigned int)(double * float) — Hex-Rays originally typed the
+    // intermediate as _QWORD and earlier port retyped it as float, turning
+    // the int64-truncate-low-32 idiom into a denormal float→uint conversion
+    // that clamped every tap delay to 0.
+    for (int i = 0; i < 4; ++i)
     {
-        __debugbreak();
-    }
-    state->lateReflectionCoefs[0][0] = smootha;
-    state->lateReflectionCoefs[0][1] = dba;
-    state->lateReflectionCoefs[1][0] = dba;
-    //state->lateReflectionCoefs[1][1] = -smootha;
-    state->lateReflectionCoefs[1][1] = -smootha;
-    //state->lateReflectionCoefs[2][2] = -smootha;
-    state->lateReflectionCoefs[2][2] = -smootha;
-    state->lateReflectionCoefs[2][3] = dba;
-    state->lateReflectionCoefs[3][2] = dba;
-    state->lateReflectionCoefs[3][3] = smootha;
-    v7 = 0;
-    smoothb = state->params.wallReflect;
-    do
-    {
-        v19 = (*smoothb - 1.0) * (double)v7 * 0.35355338 + 0.70710677;
-        v8 = I_fmax(0.0, v19);
-        coef[v7] = v8;
-        xa = v8;
-        if (IS_NAN(xa)
-            && !Assert_MyHandler(
-                "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_radverb.cpp",
-                222,
-                0,
-                "%s",
-                "!IS_NAN(coef[i])"))
+        for (int j = 0; j < 4; ++j)
         {
-            __debugbreak();
+            state->earlyReflectionDelays[i][j] =
+                (unsigned int)((double)state->earlyReflectionDelayBase[i][j] * params->earlySize);
+            state->lateReflectionDelays[i][j] =
+                (unsigned int)((double)state->lateReflectionDelayBase[i][j] * params->lateSize);
+            iassert(state->earlyReflectionDelays[i][j] < 0x8000);
+            iassert(state->lateReflectionDelays[i][j] < 0x8000);
         }
-        ++smoothb;
-        ++v7;
-    } while (v7 < 4);
-    v9 = coef[0];
-    v10 = coef[3];
-    v11 = coef[2];
-    v12 = coef[1];
-    state->earlyReflectionCoefs[0][0] = coef[0];
-    state->earlyReflectionCoefs[0][1] = v10;
-    state->earlyReflectionCoefs[0][2] = v11;
-    state->earlyReflectionCoefs[0][3] = v12;
-    state->earlyReflectionCoefs[1][0] = v10;
-    state->earlyReflectionCoefs[1][1] = v9;
-    state->earlyReflectionCoefs[1][2] = v12;
-    state->earlyReflectionCoefs[1][3] = v11;
-    state->earlyReflectionCoefs[2][0] = v11;
-    state->earlyReflectionCoefs[2][1] = v12;
-    state->earlyReflectionCoefs[2][2] = v9;
-    state->earlyReflectionCoefs[2][3] = v10;
-    state->earlyReflectionCoefs[3][0] = v12;
-    state->earlyReflectionCoefs[3][1] = v11;
-    state->earlyReflectionCoefs[3][2] = v10;
-    state->earlyReflectionCoefs[3][3] = v9;
-    v13 = state->earlyReflectionDelays[0];
-    dbb = 4;
-    do
-    {
-        v14 = 4;
-        do
-        {
-            v15 = v13[105];
-            *(__int64 *)&coef[2] = (__int64)((double)v13[89] * params->earlySize);
-            *v13 = coef[2];
-            v16 = (double)(int)v13[105];
-            if (v15 < 0)
-                v16 = v16 + 4294967300.0;
-            v17 = *v13 < 0x8000;
-            *(__int64 *)&coef[2] = (__int64)(v16 * params->lateSize);
-            v13[32] = coef[2];
-            if (!v17
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_radverb.cpp",
-                    252,
-                    0,
-                    "%s",
-                    "state->earlyReflectionDelays[i][j] < SND_RV_DELAY_FRAME_COUNT"))
-            {
-                __debugbreak();
-            }
-            if (v13[32] >= 0x8000
-                && !Assert_MyHandler(
-                    "C:\\projects_pc\\cod\\codsrc\\src\\sound\\snd_radverb.cpp",
-                    253,
-                    0,
-                    "%s",
-                    "state->lateReflectionDelays[i][j] < SND_RV_DELAY_FRAME_COUNT"))
-            {
-                __debugbreak();
-            }
-            ++v13;
-            --v14;
-        } while (v14);
-        --dbb;
-    } while (dbb);
+    }
 }
 
 double __cdecl I_flerp(float a, float b, float w)

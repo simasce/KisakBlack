@@ -347,8 +347,8 @@ void SND_TraceProximity(
 
     //PIXBeginNamedEvent(-1, "proximity");
 
-    // Compute forward angle
-    forwardT = atan2(front[1], front[0]);
+    // Engine angle convention: atan2(X, Y), so sin(t)=X=front[0], cos(t)=Y=front[1].
+    forwardT = atan2(front[0], front[1]);
     if (fabsf(cosf(forwardT) - front[1]) >= SND_EPSILON)
         __debugbreak();
     if (fabsf(sinf(forwardT) - front[0]) >= SND_EPSILON)
