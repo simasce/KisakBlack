@@ -6536,7 +6536,8 @@ void __cdecl CScrCmd_MakeLight(scr_entref_t entref)
     float facingDir[3]; // [esp+114h] [ebp-28h] BYREF
     float facingAngles[3]; // [esp+120h] [ebp-1Ch] BYREF
     fake_centity_s *pFake; // [esp+12Ch] [ebp-10h]
-    float normalizedColor[3]; // [esp+130h] [ebp-Ch] BYREF
+    //float normalizedColor[3]; // [esp+130h] [ebp-Ch] BYREF
+    float normalizedColor[4]; // [esp+130h] [ebp-Ch] BYREF // KISAKTODO? this is technically feeding an invalid 4th color into the [3] but I guess it dont matter
 
     if ( entref.classnum )
     {
@@ -6567,30 +6568,30 @@ void __cdecl CScrCmd_MakeLight(scr_entref_t entref)
     }
     primaryLightIndex = Scr_GetInt(0, SCRIPTINSTANCE_CLIENT);
     light = Com_GetPrimaryLight(primaryLightIndex);
-    pSelf->nextState.index.brushmodel = primaryLightIndex;
-    if ( pSelf->nextState.index.brushmodel != primaryLightIndex
+    pSelf->nextState.index.primaryLight = primaryLightIndex;
+    if ( pSelf->nextState.index.primaryLight != primaryLightIndex
         && !Assert_MyHandler(
                     "C:\\projects_pc\\cod\\codsrc\\src\\cgame\\cg_scr_main.cpp",
                     6802,
                     1,
                     "pSelf->nextState.index.primaryLight == primaryLightIndex\n\t%i, %i",
-                    pSelf->nextState.index.brushmodel,
+                    pSelf->nextState.index.primaryLight,
                     primaryLightIndex) )
     {
         __debugbreak();
     }
-    pSelf->nextState.lerp.u.turret.gunAngles[1] = ColorNormalize(light->color, normalizedColor);
-    Byte4PackRgba(normalizedColor, (unsigned __int8 *)&pSelf->nextState.lerp.u);
+    pSelf->nextState.lerp.u.primaryLight.intensity = ColorNormalize(light->color, normalizedColor);
+    Byte4PackRgba(normalizedColor, pSelf->nextState.lerp.u.primaryLight.colorAndExp);
     pSelf->nextState.lerp.u.primaryLight.colorAndExp[3] = light->exponent;
-    pSelf->nextState.lerp.u.turret.gunAngles[2] = light->radius;
+    pSelf->nextState.lerp.u.primaryLight.radius = light->radius;
     pSelf->nextState.lerp.u.primaryLight.cosHalfFovOuter = light->cosHalfFovOuter;
-    pSelf->nextState.lerp.u.turret.heatVal = light->cosHalfFovInner;
-    pSelf->currentState.u.turret.gunAngles[1] = pSelf->nextState.lerp.u.turret.gunAngles[1];
-    Byte4PackRgba(normalizedColor, (unsigned __int8 *)&pSelf->currentState.u);
+    pSelf->nextState.lerp.u.primaryLight.cosHalfFovInner = light->cosHalfFovInner;
+    pSelf->currentState.u.primaryLight.intensity = pSelf->nextState.lerp.u.primaryLight.intensity;
+    Byte4PackRgba(normalizedColor, pSelf->currentState.u.primaryLight.colorAndExp);
     pSelf->currentState.u.primaryLight.colorAndExp[3] = light->exponent;
-    pSelf->currentState.u.turret.gunAngles[2] = light->radius;
+    pSelf->currentState.u.primaryLight.radius = light->radius;
     pSelf->currentState.u.primaryLight.cosHalfFovOuter = light->cosHalfFovOuter;
-    pSelf->currentState.u.turret.heatVal = light->cosHalfFovInner;
+    pSelf->currentState.u.primaryLight.cosHalfFovInner = light->cosHalfFovInner;
     facingDir[0] = -light->dir[0];
     facingDir[1] = -light->dir[1];
     facingDir[2] = -light->dir[2];

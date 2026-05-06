@@ -42,7 +42,7 @@ const char *const g_FleshTypeName[4] =
 FxImpactTable *__cdecl CG_RegisterImpactEffects(const char *mapname)
 {
     if ( useFastFile->current.enabled )
-        return (FxImpactTable *)((int (__cdecl *)(const char *))CG_RegisterImpactEffects_FastFile)(mapname);
+        return CG_RegisterImpactEffects_FastFile();
     else
         return CG_RegisterImpactEffects_LoadObj(mapname);
 }

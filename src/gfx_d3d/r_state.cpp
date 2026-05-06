@@ -2179,7 +2179,7 @@ void __cdecl R_HW_SetPolygonOffset(IDirect3DDevice9 *device, float scale, float 
             RB_LogPrint("device->SetRenderState( D3DRS_SLOPESCALEDEPTHBIAS, FloatAsInt( &scale ) )\n");
         semaphore = R_AcquireDXDeviceOwnership(0);
 
-        hr = device->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, scale);
+        hr = device->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, LODWORD(scale));
         //hr = ((int (__thiscall *)(IDirect3DDevice9 *, IDirect3DDevice9 *, int, unsigned int))device->SetRenderState)(
         //             device,
         //             device,

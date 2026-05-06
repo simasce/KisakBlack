@@ -100,10 +100,10 @@ void __cdecl FX_BuildSpriteCodeMeshVerts(
         left,
         up,
         rgbaColor,
-        int(0.0),
-        int(0.0),
-        int(1.0),
-        int(1.0));
+        COERCE_INT(0.0f),
+        COERCE_INT(0.0f),
+        COERCE_INT(1.0f),
+        COERCE_INT(1.0f));
 }
 
 void __cdecl FX_BuildQuadStampCodeMeshVerts(

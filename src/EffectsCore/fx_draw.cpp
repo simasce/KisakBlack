@@ -334,10 +334,9 @@ void __cdecl FX_DrawElem_BillboardSprite_NoCull(FxDrawState *draw)
         normal[1] = draw->camera->origin[1] - draw->posWorld[1];
         normal[2] = draw->camera->origin[2] - draw->posWorld[2];
         Vec3Normalize(normal);
-        origin = draw->camera->origin;
-        binormal[0] = origin[34];
-        binormal[1] = origin[35];
-        binormal[2] = origin[36];
+        binormal[0] = draw->camera->axis[2][0];
+        binormal[1] = draw->camera->axis[2][1];
+        binormal[2] = draw->camera->axis[2][2];
         Vec3Cross(binormal, normal, tangent);
         Vec3Normalize(tangent);
     }
@@ -374,10 +373,9 @@ void __cdecl FX_DrawElem_BillboardSprite_NoCull(FxDrawState *draw)
         tangent[1] = -draw->camera->axis[1][1];
         tangent[2] = -draw->camera->axis[1][2];
 
-        v1 = draw->camera->origin;
-        binormal[0] = v1[34];
-        binormal[1] = v1[35];
-        binormal[2] = v1[36];
+        binormal[0] = draw->camera->axis[2][0];
+        binormal[1] = draw->camera->axis[2][1];
+        binormal[2] = draw->camera->axis[2][2];
     }
     FX_GenSpriteVerts(draw, tangent, binormal, normal);
 }
@@ -620,16 +618,16 @@ void __cdecl FX_GenSpriteVerts(FxDrawState *draw, const float *tangent, const fl
         verts->xyz[2] = (float)(v32 * left[2]) + verts->xyz[2];
         verts->color.packed = *(unsigned int *)draw->visState.color;
 
-        if ( (int)((2 * int((float)(v58 * bottomSideSoffset) + s0)) ^ 0x80000000) >> 14 < 0x3FFF )
-            v31 = (int)((2 * int((float)(v58 * bottomSideSoffset) + s0)) ^ 0x80000000) >> 14;
+        if ( (int)((2 * COERCE_INT((float)(v58 * bottomSideSoffset) + s0)) ^ 0x80000000) >> 14 < 0x3FFF )
+            v31 = (int)((2 * COERCE_INT((float)(v58 * bottomSideSoffset) + s0)) ^ 0x80000000) >> 14;
         else
             v31 = 0x3FFF;
         if ( v31 > -16384 )
             v11 = v31;
         else
             v11 = -16384;
-        if ( (int)((2 * int(*(float *)&t0 + dt)) ^ 0x80000000) >> 14 < 0x3FFF )
-            v30 = (int)((2 * int(*(float *)&t0 + dt)) ^ 0x80000000) >> 14;
+        if ( (int)((2 * COERCE_INT(*(float *)&t0 + dt)) ^ 0x80000000) >> 14 < 0x3FFF )
+            v30 = (int)((2 * COERCE_INT(*(float *)&t0 + dt)) ^ 0x80000000) >> 14;
         else
             v30 = 0x3FFF;
         if ( v30 > -16384 )
@@ -648,8 +646,8 @@ void __cdecl FX_GenSpriteVerts(FxDrawState *draw, const float *tangent, const fl
         v26->xyz[1] = (float)(v27 * left[1]) + v28->xyz[1];
         v26->xyz[2] = (float)(v27 * left[2]) + v28->xyz[2];
         verts[1].color.packed = *(unsigned int *)draw->visState.color;
-        if ( (int)((2 * int((float)(v58 * topSideSoffset) + s0)) ^ 0x80000000) >> 14 < 0x3FFF )
-            v25 = (int)((2 * int((float)(v58 * topSideSoffset) + s0)) ^ 0x80000000) >> 14;
+        if ( (int)((2 * COERCE_INT((float)(v58 * topSideSoffset) + s0)) ^ 0x80000000) >> 14 < 0x3FFF )
+            v25 = (int)((2 * COERCE_INT((float)(v58 * topSideSoffset) + s0)) ^ 0x80000000) >> 14;
         else
             v25 = 0x3FFF;
         if ( v25 > -16384 )
@@ -678,8 +676,8 @@ void __cdecl FX_GenSpriteVerts(FxDrawState *draw, const float *tangent, const fl
         v20->xyz[1] = (float)(v21 * left[1]) + v22->xyz[1];
         v20->xyz[2] = (float)(v21 * left[2]) + v22->xyz[2];
         verts[2].color.packed = *(unsigned int *)draw->visState.color;
-        if ( (int)((2 * int((float)((float)(1.0 - topSideSoffset) * v58) + s0)) ^ 0x80000000) >> 14 < 0x3FFF )
-            v19 = (int)((2 * int((float)((float)(1.0 - topSideSoffset) * v58) + s0)) ^ 0x80000000) >> 14;
+        if ( (int)((2 * COERCE_INT((float)((float)(1.0 - topSideSoffset) * v58) + s0)) ^ 0x80000000) >> 14 < 0x3FFF )
+            v19 = (int)((2 * COERCE_INT((float)((float)(1.0 - topSideSoffset) * v58) + s0)) ^ 0x80000000) >> 14;
         else
             v19 = 0x3FFF;
         if ( v19 > -16384 )
@@ -706,16 +704,16 @@ void __cdecl FX_GenSpriteVerts(FxDrawState *draw, const float *tangent, const fl
         verts[3].xyz[0] = (float)(v15 * left[0]) + verts[3].xyz[0];
         v14->xyz[1] = (float)(v15 * left[1]) + v16->xyz[1];
         v14->xyz[2] = (float)(v15 * left[2]) + v16->xyz[2];
-        if ( (int)((2 * int((float)((float)(1.0 - bottomSideSoffset) * v58) + s0)) ^ 0x80000000) >> 14 < 0x3FFF )
-            v13 = (int)((2 * int((float)((float)(1.0 - bottomSideSoffset) * v58) + s0)) ^ 0x80000000) >> 14;
+        if ( (int)((2 * COERCE_INT((float)((float)(1.0 - bottomSideSoffset) * v58) + s0)) ^ 0x80000000) >> 14 < 0x3FFF )
+            v13 = (int)((2 * COERCE_INT((float)((float)(1.0 - bottomSideSoffset) * v58) + s0)) ^ 0x80000000) >> 14;
         else
             v13 = 0x3FFF;
         if ( v13 > -16384 )
             v5 = v13;
         else
             v5 = -16384;
-        if ( (int)((2 * int(*(float *)&t0 + dt)) ^ 0x80000000) >> 14 < 0x3FFF )
-            v12 = (int)((2 * int(*(float *)&t0 + dt)) ^ 0x80000000) >> 14;
+        if ( (int)((2 * COERCE_INT(*(float *)&t0 + dt)) ^ 0x80000000) >> 14 < 0x3FFF )
+            v12 = (int)((2 * COERCE_INT(*(float *)&t0 + dt)) ^ 0x80000000) >> 14;
         else
             v12 = 0x3FFF;
         if ( v12 > -16384 )

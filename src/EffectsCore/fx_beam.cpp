@@ -444,7 +444,7 @@ void __cdecl FX_Beam_GenerateVerts(FxGenerateVertsCmd *cmd)
             *(float *)&s1 = (float)(sLen * 0.5) + *(float *)&sMin;
             *(float *)&t1 = *(float *)&tMin + tLen;
             if ( (int)((2 * s1) ^ 0x80000000) >> 14 < 0x3FFF )
-                v56 = (int)((2 * int((float)(sLen * 0.5) + *(float *)&sMin)) ^ 0x80000000) >> 14;
+                v56 = (int)((2 * COERCE_INT((float)(sLen * 0.5) + *(float *)&sMin)) ^ 0x80000000) >> 14;
             else
                 v56 = 0x3FFF;
             if ( v56 > -16384 )
@@ -568,7 +568,7 @@ void __cdecl FX_Beam_GenerateVerts(FxGenerateVertsCmd *cmd)
                 t1 = tMin;
                 *(float *)&t2 = *(float *)&tMin + tLen;
                 if ( (int)((2 * s1) ^ 0x80000000) >> 14 < 0x3FFF )
-                    v52 = (int)((2 * int((float)((float)((float)segIter * sLen) / (float)segCount) + *(float *)&sMin))
+                    v52 = (int)((2 * COERCE_INT((float)((float)((float)segIter * sLen) / (float)segCount) + *(float *)&sMin))
                                         ^ 0x80000000) >> 14;
                 else
                     v52 = 0x3FFF;
@@ -673,8 +673,8 @@ void __cdecl FX_Beam_GenerateVerts(FxGenerateVertsCmd *cmd)
         {
             *(float *)&s1 = *(float *)&sMin + sLen;
             *(float *)&t1 = (float)(tLen * 0.5) + *(float *)&tMin;
-            if ( (int)((2 * int(*(float *)&sMin + sLen)) ^ 0x80000000) >> 14 < 0x3FFF )
-                v44 = (int)((2 * int(*(float *)&sMin + sLen)) ^ 0x80000000) >> 14;
+            if ( (int)((2 * COERCE_INT(*(float *)&sMin + sLen)) ^ 0x80000000) >> 14 < 0x3FFF )
+                v44 = (int)((2 * COERCE_INT(*(float *)&sMin + sLen)) ^ 0x80000000) >> 14;
             else
                 v44 = 0x3FFF;
             if ( v44 > -16384 )
@@ -698,7 +698,7 @@ void __cdecl FX_Beam_GenerateVerts(FxGenerateVertsCmd *cmd)
             *(float *)&s1 = (float)(sLen * 0.5) + *(float *)&sMin;
             t1 = tMin;
             if ( (int)((2 * s1) ^ 0x80000000) >> 14 < 0x3FFF )
-                v42 = (int)((2 * int((float)(sLen * 0.5) + *(float *)&sMin)) ^ 0x80000000) >> 14;
+                v42 = (int)((2 * COERCE_INT((float)(sLen * 0.5) + *(float *)&sMin)) ^ 0x80000000) >> 14;
             else
                 v42 = 0x3FFF;
             if ( v42 > -16384 )

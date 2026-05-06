@@ -2443,23 +2443,19 @@ void    FX_GenerateMarkVertsForMark_MatrixFromPlacement(
                 const float *viewOffset,
                 float (*outTransform)[3])
 {
-    _BYTE v4[12]; // [esp-Ch] [ebp-6Ch] BYREF
-    DObjSkelMat skelMat; // [esp+0h] [ebp-60h] BYREF
-    DObjAnimMat animMat; // [esp+40h] [ebp-20h]
-    //float retaddr; // [esp+60h] [ebp+0h]
+    DObjAnimMat animMat;
+    DObjSkelMat skelMat;
 
-    //animMat.trans[1] = a1;
-    //animMat.trans[2] = retaddr;
-    skelMat.origin[1] = placement->quat[0];
-    skelMat.origin[2] = placement->quat[1];
-    skelMat.origin[3] = placement->quat[2];
-    animMat.quat[0] = placement->quat[3];
-    animMat.trans[0] = 2.0f;
-    animMat.quat[1] = placement->origin[0];
-    animMat.quat[2] = placement->origin[1];
-    animMat.quat[3] = placement->origin[2];
-    ConvertQuatToSkelMat((const DObjAnimMat *)&skelMat.origin[1], (DObjSkelMat *)v4);
-    DObjSkelMatToMatrix43((const DObjSkelMat *)v4, outTransform);
+    animMat.quat[0] = placement->quat[0];
+    animMat.quat[1] = placement->quat[1];
+    animMat.quat[2] = placement->quat[2];
+    animMat.quat[3] = placement->quat[3];
+    animMat.trans[0] = placement->origin[0];
+    animMat.trans[1] = placement->origin[1];
+    animMat.trans[2] = placement->origin[2];
+    animMat.transWeight = 2.0f;
+    ConvertQuatToSkelMat(&animMat, &skelMat);
+    DObjSkelMatToMatrix43(&skelMat, outTransform);
 }
 
 void __cdecl ConvertQuatToSkelMat(const DObjAnimMat *mat, DObjSkelMat *skelMat)
