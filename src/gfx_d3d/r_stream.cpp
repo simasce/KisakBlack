@@ -1000,9 +1000,9 @@ char __cdecl R_StreamUpdate(const float *viewPos)
     }
 }
 
-void __cdecl R_Stream_AddImagePartImportance(int imagePartIndex, unsigned int importance)
+void __cdecl R_Stream_AddImagePartImportance(int imagePartIndex, float importance)
 {
-    unsigned int v2; // [esp+0h] [ebp-8h]
+    float v2; // [esp+0h] [ebp-8h]
 
     if ((unsigned int)imagePartIndex >= 4224
         && !Assert_MyHandler(
@@ -1016,12 +1016,11 @@ void __cdecl R_Stream_AddImagePartImportance(int imagePartIndex, unsigned int im
         __debugbreak();
     }
 
-    // KISAKTODO: this abuses imageImportance array neighbors, change index to match
-    if ((float)(*(float *)&importance - *(float *)&streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064]) < 0.0)
-        v2 = streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064];
+    if ((float)(importance - *(float *)&streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064]) < 0.0)
+        v2 = *(float *)&streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064];
     else
         v2 = importance;
-    streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064] = v2;
+    *(float *)&streamFrontendGlob.imageImportanceBits[imagePartIndex - 4064] = v2;
     if ((streamFrontendGlob.dynamicImageImportanceBits[(imagePartIndex >> 5) - 4064] & (1 << (imagePartIndex & 0x1F))) == 0)
     {
         streamFrontendGlob.dynamicImageImportanceBits[(imagePartIndex >> 5) - 4064] |= 1 << (imagePartIndex & 0x1F);
@@ -1436,7 +1435,7 @@ char __cdecl R_StreamUpdate_FindImageAndOptimize(const float *viewPos)
     }
 }
 
-void __cdecl R_StreamUpdate_AddInitialImages(unsigned int importance)
+void __cdecl R_StreamUpdate_AddInitialImages(float importance)
 {
     int imagePartIndex; // [esp+4h] [ebp-4h]
 
@@ -1466,10 +1465,8 @@ void R_StreamUpdate_AddForcedImages(float forceImportance, float touchImportance
             {
                 forceBits &= ~mask;
 
-                int part = 1 + bitIndex + 32 * index; // or 1-based as original
-                float importance = (touchBits & mask) ? touchImportance / static_cast<float>(part)
-                    : forceImportance / static_cast<float>(part);
-                R_Stream_AddImagePartImportance(bitIndex + 32 * index, *reinterpret_cast<unsigned int *>(&importance));
+                float importance = (touchBits & mask) ? touchImportance : forceImportance;
+                R_Stream_AddImagePartImportance(bitIndex + 32 * index, importance);
             }
         }
 
@@ -1480,8 +1477,7 @@ void R_StreamUpdate_AddForcedImages(float forceImportance, float touchImportance
             if (useBits & mask)
             {
                 useBits &= ~mask;
-                float zeroImportance = 0.0f;
-                R_Stream_AddImagePartImportance(bitIndex + 32 * index, *reinterpret_cast<unsigned int *>(&zeroImportance));
+                R_Stream_AddImagePartImportance(bitIndex + 32 * index, 0.0f);
             }
         }
     }
@@ -1726,7 +1722,7 @@ void __cdecl R_StreamUpdateForcedModels()
     Sys_LeaveCriticalSection(CRITSECT_STREAM_FORCE_LOAD_COMMAND);
 }
 
-void __cdecl R_StreamTouchImagesFromMaterial(const Material *remoteMaterial, unsigned int importance)
+void __cdecl R_StreamTouchImagesFromMaterial(const Material *remoteMaterial, float importance)
 {
     GfxImage *image; // [esp+4h] [ebp-20h]
     MaterialTextureDef *texDef; // [esp+Ch] [ebp-18h]

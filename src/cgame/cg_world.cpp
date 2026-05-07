@@ -61,8 +61,6 @@ void CG_GetEntityBModelBounds(
     iassert(cent);
     iassert(mins);
     iassert(maxs);
-    iassert(absMins);
-    iassert(absMaxs);
 
     es = &cent->nextState;
     iassert(es->solid);

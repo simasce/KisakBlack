@@ -180,7 +180,7 @@ void __cdecl R_StreamPopSyncDisable();
 void __cdecl R_StreamUpdate_Idle();
 void __cdecl R_StreamUpdate_CompletePreload(void (__cdecl *pumpfunc)());
 char __cdecl R_StreamUpdate(const float *viewPos);
-void __cdecl R_Stream_AddImagePartImportance(int imagePartIndex, unsigned int importance);
+void __cdecl R_Stream_AddImagePartImportance(int imagePartIndex, float importance);
 void __cdecl importance_swap_func(void **a, void **b);
 bool __cdecl importance_compare_func(void *a, void *b);
 void __cdecl importance_merge_sort(void **list, int list_count);
@@ -194,7 +194,7 @@ char __cdecl R_StreamRequestImageAllocation(
                 float importance);
 char __cdecl R_StreamRequestImageRead(pendingRequest *request);
 char __cdecl R_StreamUpdate_FindImageAndOptimize(const float *viewPos);
-void __cdecl R_StreamUpdate_AddInitialImages(unsigned int importance);
+void __cdecl R_StreamUpdate_AddInitialImages(float importance);
 void __cdecl R_StreamUpdate_AddForcedImages(float forceImportance, float touchImportance);
 void R_StreamUpdatePreventedMaterials();
 void R_CheckHighmipAabbs();
@@ -203,7 +203,7 @@ char __cdecl R_StreamUpdate_TryBeginQuery();
 void R_StreamUpdateTouchedModels();
 void __cdecl R_StreamUpdateForXModelTouched(const XModel *model);
 void __cdecl R_StreamUpdateForcedModels();
-void __cdecl R_StreamTouchImagesFromMaterial(const Material *remoteMaterial, unsigned int importance);
+void __cdecl R_StreamTouchImagesFromMaterial(const Material *remoteMaterial, float importance);
 void __cdecl R_StreamUpdatePerClient(const float *viewPos);
 void __cdecl R_StreamUpdateDynamicModels(
                 const float *viewPos,
