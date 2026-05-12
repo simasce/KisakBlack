@@ -20,7 +20,11 @@ int __cdecl Com_GetBuildNumber()
 
 const char *__cdecl Com_GetBuildDisplayName()
 {
+#ifdef _DEBUG
+    return "Call of Duty Multiplayer - Debug";
+#else
     return "Call of Duty Multiplayer - Release";
+#endif
 }
 
 const char *__cdecl Com_GetBuildOfficialNameR()
@@ -40,9 +44,9 @@ const char *__cdecl Com_GetBuildDisplayNameR()
 
     Language = Win_GetLanguage();
     if ( !_stricmp(Language, "japanese") )
-        return "Call of Duty(R) Multiplayer - Release";
+        return Com_GetBuildDisplayName();
     else
-        return "Call of Duty(R) Multiplayer - Release";
+        return Com_GetBuildDisplayName();
 }
 
 const char *__cdecl Com_GetBuildName()
