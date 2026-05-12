@@ -15,6 +15,7 @@ const dvar_t *sd_xa2_num_devices;
 const dvar_t *sd_xa2_can_switch_device;
 const dvar_t *sd_xa2_device_guid;
 const dvar_t *sd_xa2_device_name;
+const dvar_t *sd_xa2_debug;
 
 SoundState g_sd;
 char sd_xa2_device_names[16][256];
@@ -237,11 +238,14 @@ int __cdecl SND_StartAliasStream(SndStartAliasInfo *startAliasInfo, unsigned int
     }
     else
     {
-        Com_PrintError(
-            1,
-            "Tried to play streamed sound '%s' from alias '%s', but it was not found at load time.\n",
-            filename2,
-            alias->name);
+        if (sd_xa2_debug->current.enabled)
+        {
+            Com_PrintError(
+                1,
+                "Tried to play streamed sound '%s' from alias '%s', but it was not found at load time.\n",
+                filename2,
+                alias->name);
+        }
         return SND_SetPlaybackIdNotPlayed(voiceIndex);
     }
 }
@@ -667,6 +671,8 @@ char __cdecl SD_XAudio2EnumerateDevices()
                                                      sd_xa2_device_guid->current.integer,
                                                      0,
                                                      "Available Sound devices");
+
+        sd_xa2_debug = _Dvar_RegisterBool("sd_xa2_debug", false, 0x180u, "Show XAudio2 debug messages and errors");
     }
     //((void (__thiscall *)(IXAudio2 *, IXAudio2 *))xa2->Release)(xa2, xa2);
     xa2->Release();
