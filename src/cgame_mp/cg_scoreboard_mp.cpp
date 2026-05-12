@@ -144,15 +144,15 @@ void __cdecl CG_UpdateMatchScoreboard(int localClientNum)
     if (Flame_GetLocalClientSourceRange())
     {
         CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_RANK_ICON, 0.07f, "", 1, SB_TYPE_INVALID);
-        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_STATUS_ICON, 0.050000001f, "", 1, SB_TYPE_INVALID);
+        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_STATUS_ICON, 0.05f, "", 1, SB_TYPE_INVALID);
         CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_NAME, 0.2f, "", 0, SB_TYPE_INVALID);
-        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_TALKING_ICON, 0.050000001f, "", 0, SB_TYPE_INVALID);
-        currentScoreboardWidthUsed = (float)((float)((float)(0.0 + 0.07f) + 0.050000001f) + 0.2f) + 0.050000001f;
+        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_TALKING_ICON, 0.05f, "", 0, SB_TYPE_INVALID);
+        currentScoreboardWidthUsed = (float)((float)(0.07f + 0.05f) + 0.2f) + 0.05f;
     }
     else
     {
-        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_NAME, 0.44999999f, "", 0, SB_TYPE_INVALID);
-        currentScoreboardWidthUsed = 0.0f + 0.44999999f;
+        CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_NAME, 0.45f, "", 0, SB_TYPE_INVALID);
+        currentScoreboardWidthUsed = 0.45f;
     }
     CG_AddSBColumnToMatchScoreBoard(localClientNum, LCT_SCORE, 0.1f, "CGAME_SB_SCORE", 2, SB_TYPE_INVALID);
     currentScoreboardWidthUseda = currentScoreboardWidthUsed + 0.1f;
