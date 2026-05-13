@@ -1485,7 +1485,7 @@ char __cdecl CL_RequestCACValidate(unsigned __int64 serverId)
         }
         else
         {
-            v5 = MSG_CompressWithZLib(buffer->statsBuffer, 0x9CE8u, to, 0x9CE8u);
+            v5 = MSG_CompressWithZLib(buffer->statsBuffer, LIVE_MAX_CAC_SIZE, to, LIVE_MAX_CAC_SIZE);
             payload[0] = 3;
             payload[1] = 0;
             v8 = v5;

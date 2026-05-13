@@ -9,6 +9,12 @@
 
 #include <demo/demo_common.h>
 
+//#define LIVE_MAX_CAC_SIZE 40168 // 0x9CE8
+#define LIVE_MAX_CAC_SIZE 0xA000
+
+//#define LIVE_COMPRESSED_CAC_SIZE 40172
+#define LIVE_COMPRESSED_CAC_SIZE (LIVE_MAX_CAC_SIZE + 5)
+
 enum fileShareLocation : __int32
 {                                                                             // XREF: fileShareWriteFileInfo/r
     FILESHARE_LOCATION_INVALID = 0x0,
@@ -731,13 +737,13 @@ struct fileShareWriteFileInfo // sizeof=0x34
 
 struct playerNetworkData // sizeof=0x3AD90
 {                                       // XREF: .data:controllerNetworkData/r
-    _BYTE playerStats[40172];
-    _BYTE playerStatsBackup[40172];     // XREF: LiveStorage_GetPersStatsBuffer+81/o
-    _BYTE stableStatsBuffer[40172];     // XREF: LiveStorage_GetPersStatsBuffer+94/o
-    _BYTE basicTrainingStats[40172];    // XREF: LiveStorage_GetPersStatsBuffer+B1/o
+    _BYTE playerStats[LIVE_COMPRESSED_CAC_SIZE];
+    _BYTE playerStatsBackup[LIVE_COMPRESSED_CAC_SIZE];     // XREF: LiveStorage_GetPersStatsBuffer+81/o
+    _BYTE stableStatsBuffer[LIVE_COMPRESSED_CAC_SIZE];     // XREF: LiveStorage_GetPersStatsBuffer+94/o
+    _BYTE basicTrainingStats[LIVE_COMPRESSED_CAC_SIZE];    // XREF: LiveStorage_GetPersStatsBuffer+B1/o
                                         // LiveStorage_GetPersStatsBuffer+117/o
-    _BYTE globalplayerStats[40172];     // XREF: LiveStorage_GetPersStatsBuffer+C5/o
-    _BYTE globalStablePlayerStats[40172];
+    _BYTE globalplayerStats[LIVE_COMPRESSED_CAC_SIZE];     // XREF: LiveStorage_GetPersStatsBuffer+C5/o
+    _BYTE globalStablePlayerStats[LIVE_COMPRESSED_CAC_SIZE];
                                         // XREF: LiveStorage_GetPersStatsBuffer+D8/o
     bool firstTimeRunning;              // XREF: LiveStorage_PlayerStatsFileNotFound+49/w
                                         // LiveStorage_ReadPlayerStatsSuccessful+79/w ...

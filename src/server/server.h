@@ -11,6 +11,9 @@
 
 #define ALL_STATS_PACKETS_RECEIVED 0x7FFFFFFFF
 
+//#define LIVE_MAX_CAC_SIZE 40168 // 0x9CE8
+#define LIVE_MAX_CAC_SIZE 0xA000
+
 struct gentity_s;
 
 enum SignonState // LWSS: not a real enum name!
@@ -128,10 +131,10 @@ struct client_t // sizeof=0x84D00
     int voicePacketCount;
     bool muteList[32];
     bool sendVoice;
-    unsigned __int8 stats[40168];
+    unsigned __int8 stats[LIVE_MAX_CAC_SIZE];
     unsigned __int8 purchasedItems[32];
-    unsigned __int8 globalStats[40168];
-    unsigned __int8 globalStatsStable[40168];
+    unsigned __int8 globalStats[LIVE_MAX_CAC_SIZE];
+    unsigned __int8 globalStatsStable[LIVE_MAX_CAC_SIZE];
     unsigned __int8 modifiedStatBytes[5021];
     // padding byte
     // padding byte

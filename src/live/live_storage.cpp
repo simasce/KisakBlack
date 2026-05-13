@@ -58,7 +58,7 @@ playerFileOperations controllerFileOps[1];
 unsigned __int64 s_tempXuid;
 unsigned __int64 s_XuidOfOtherPlayer;
 int s_lastStatsUpdateTimeForOtherPlayer;
-unsigned __int8 s_tempStatsBuffer[40168];
+unsigned __int8 s_tempStatsBuffer[LIVE_MAX_CAC_SIZE];
 char s_matchRecordBinaryData[66560];
 
 const TaskDefinition task_LiveDeleteUserFile[1] =
@@ -501,7 +501,7 @@ void __cdecl LiveStorage_CorrectStatsError(char *msg)
 
 int __cdecl LiveStorage_GetStatsBufferSize()
 {
-    return 40168;
+    return LIVE_MAX_CAC_SIZE;
 }
 
 unsigned __int8 __cdecl LiveStorage_GetStatsChecksumValid(int controllerIndex, statsLocation playerStatsLocation)
@@ -532,7 +532,7 @@ void __cdecl LiveStorage_SetStatsWriteNeeded(int controllerIndex, bool isWriteNe
 
 int __cdecl LiveStorage_ValidateWithDDL(int controllerIndex, statsLocation location)
 {
-    char backupBuffer[40172]; // [esp+0h] [ebp-9CF8h] BYREF
+    char backupBuffer[LIVE_COMPRESSED_CAC_SIZE]; // [esp+0h] [ebp-9CF8h] BYREF
     char *buffer; // [esp+9CF0h] [ebp-8h]
     int bufferSize; // [esp+9CF4h] [ebp-4h]
 
@@ -548,8 +548,8 @@ int __cdecl LiveStorage_ValidateWithDDL(int controllerIndex, statsLocation locat
         LiveStorage_SetStatsDDLValidated(controllerIndex, location, 1);
         return 1;
     }
-    else if ( DDL_FixBufferVersion(buffer, g_statsDDL, "ddl_mp/stats.ddl", backupBuffer, 40168)
-                 || DDL_FixBufferVersion(buffer, g_statsDDL, "ddl_mp/stats_archive.ddl", backupBuffer, 40168) )
+    else if ( DDL_FixBufferVersion(buffer, g_statsDDL, "ddl_mp/stats.ddl", backupBuffer, LIVE_MAX_CAC_SIZE)
+                 || DDL_FixBufferVersion(buffer, g_statsDDL, "ddl_mp/stats_archive.ddl", backupBuffer, LIVE_MAX_CAC_SIZE) )
     {
         DDL_NoCheckPrintWarning(
             "DDL: Stats buffer updated to version %d for controller index %d.\n",
@@ -1244,7 +1244,7 @@ TaskRecord *__cdecl LiveStorage_ReadStatsBackup(int controllerIndex)
                                                                                                                                     controllerIndex,
                                                                                                                                     STATS_LOCATION_BACKUP,
                                                                                                                                     1);
-    fileInfo->statsBackupFileInfo.bufferSize = 40172;
+    fileInfo->statsBackupFileInfo.bufferSize = LIVE_COMPRESSED_CAC_SIZE;
     fileInfo->statsBackupFileInfo.fileOperationSucessFunction = (void (__cdecl *)(const int, void *))LiveStorage_StatsBackupReadSuccessful;
     fileInfo->statsBackupFileInfo.fileNotFoundFunction = (taskCompleteResults (__cdecl *)(const int, void *))LiveStorage_StatsBackupFileNotFound;
     fileInfo->statsBackupFileInfo.fileTask.m_optional = 1;
@@ -1520,7 +1520,7 @@ TaskRecord *__cdecl LiveStorage_ReadOtherPlayerStats(int controllerIndex, unsign
     fileInfo->isCompressedFile = 1;
     fileInfo->fileTask.m_filename = (char*)"globalstatsCompressed";
     fileInfo->fileBuffer = (unsigned __int8 *)LiveStorage_GetStatsBuffer(controllerIndex, STATS_LOCATION_OTHERPLAYER, 1);
-    fileInfo->bufferSize = 40172;
+    fileInfo->bufferSize = LIVE_COMPRESSED_CAC_SIZE;
     fileInfo->fileOperationSucessFunction = (void (__cdecl *)(const int, void *))LiveStorage_ReadOtherPlayerStatsSuccessful;
     fileInfo->fileNotFoundFunction = (taskCompleteResults (__cdecl *)(const int, void *))LiveStorage_OtherPlayerStatsFileNotFound;
     fileInfo->menuDef = "popup_fetchstats";
@@ -1645,7 +1645,7 @@ void __cdecl LiveStorage_ReadPlayerStatsSuccessful(int controllerIndex)
     wasBasicTraining = xblive_basictraining->current.enabled;
     Dvar_SetBool((dvar_s *)xblive_basictraining, 0);
     StatsBuffer = LiveStorage_GetStatsBuffer(0, STATS_LOCATION_NORMAL, 1);
-    memcpy(StatsBuffer->statsBuffer, s_tempStatsBuffer, 0x9CE8u);
+    memcpy(StatsBuffer->statsBuffer, s_tempStatsBuffer, LIVE_MAX_CAC_SIZE);
     LiveStorage_SetFirstTimeRunning(0);
     LiveStorage_SetStatsFetched(controllerIndex, STATS_LOCATION_FORCE_NORMAL, 1);
     controllerNetworkData[controllerIndex].firstTimeRunning = 0;
@@ -1732,7 +1732,7 @@ TaskRecord *__cdecl LiveStorage_ReadCommonStats(
     {
         memset(s_tempStatsBuffer, 0, sizeof(s_tempStatsBuffer));
         fileInfo->fileBuffer = s_tempStatsBuffer;
-        fileInfo->bufferSize = 40168;
+        fileInfo->bufferSize = LIVE_MAX_CAC_SIZE;
     }
     nestedTask = LiveStorage_ReadDWFile(controllerIndex, fileInfo);
     return LiveStorage_SetupNestedTask(taskDef, controllerIndex, nestedTask, fileInfo);
