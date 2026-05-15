@@ -12576,8 +12576,7 @@ void __cdecl GScr_isTestClient(scr_entref_t entref)
     if ( !ent->client )
         Scr_Error("istestclient: entity must be a player entity", 0);
     IsTestClient = SV_IsTestClient(ent->s.number);
-    //Scr_AddBool(IsTestClient, SCRIPTINSTANCE_SERVER);
-    Scr_AddBool(false, SCRIPTINSTANCE_SERVER); //disabled since bot logic is not yet fully implemented
+    Scr_AddBool(IsTestClient, SCRIPTINSTANCE_SERVER);
 }
 
 void __cdecl GScr_isDemoClient(scr_entref_t entref)
