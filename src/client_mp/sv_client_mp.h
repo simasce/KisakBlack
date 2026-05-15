@@ -79,6 +79,7 @@ void __cdecl SV_UserinfoChanged(client_t *cl);
 void __cdecl SV_UpdateUserinfo_f(client_t *cl);
 void __cdecl SV_MutePlayer_f(client_t *cl);
 void __cdecl SV_UnmutePlayer_f(client_t *cl);
+void __cdecl SV_AddTestClient_f(client_t *cl);
 void __cdecl SV_ExecuteClientCommand(client_t *cl, const char *s, int clientOK, int fromOldServer);
 void __cdecl SV_ClientThink(client_t *cl, usercmd_s *cmd);
 void __cdecl SV_UserMove(client_t *cl, msg_t *msg, int delta);

@@ -50,7 +50,7 @@ struct ucmd_t // sizeof=0xC
     int allowFromOldServer;
 };
 
-ucmd_t ucmds[13] =
+ucmd_t ucmds[14] =
 {
   { "userinfo", &SV_UpdateUserinfo_f, 0 },
   { "disconnect", &SV_Disconnect_f, 1 },
@@ -64,6 +64,7 @@ ucmd_t ucmds[13] =
   { "wwwdl", &SV_WWWDownload_f, 0 },
   { "muteplayer", &SV_MutePlayer_f, 0 },
   { "unmuteplayer", &SV_UnmutePlayer_f, 0 },
+  { "addtestclient", &SV_AddTestClient_f, 0 },
   { NULL, NULL, 0 }
 };
 
@@ -2610,6 +2611,11 @@ void __cdecl SV_UnmutePlayer_f(client_t *cl)
         Com_Printf(0, "Invalid unmute client %i\n", otherClient);
 }
 
+void __cdecl SV_AddTestClient_f(client_t* cl)
+{
+    SV_AddTestClient();
+}
+
 void __cdecl SV_ExecuteClientCommand(client_t *cl, const char *s, int clientOK, int fromOldServer)
 {
     const ucmd_t *u; // [esp+14h] [ebp-4h]
@@ -3258,7 +3264,7 @@ gentity_s *__cdecl SV_AddTestClient()
             return 0;
         }
         else
-        {
+        {   
             dropb->bIsTestClient = 1;
             Com_Printf(
                 15,
