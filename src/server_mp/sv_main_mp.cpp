@@ -34,6 +34,7 @@
 #include <clientscript/cscr_vm.h>
 #include <setjmp.h>
 #include <win32/win_steam.h>
+#include <clientscript/cscr_stringlist.h>
 
 serverStatic_t svs;
 serverStaticHeader_t svsHeader;
@@ -1152,6 +1153,59 @@ void __cdecl SV_UpdatePerformanceFrame(int time)
     }
 }
 
+int SV_FindConfigstringIndex(const char* name)
+{
+    if (!name || !*name)
+        return -1;
+
+    unsigned int stringIndex = SL_FindString(name, SCRIPTINSTANCE_SERVER);
+    if (stringIndex == 0)
+        return -1;
+
+    for (int i = 0; i < MAX_CONFIGSTRINGS; ++i)
+    {
+        unsigned int configstringId = sv.configstrings[i];
+        if (configstringId == stringIndex)
+            return i;
+    }
+
+    return -1;
+}
+
+void SV_BotJoinTeam(client_t* bot)
+{
+    if (bot->header.state == CS_ACTIVE && bot->gentity && bot->wwwFallback == 0)
+    {
+        bot->wwwFallback = 120; //set a random field to our countdown
+    }
+    if (bot->wwwFallback > 1)
+    {
+        int currentTimeout = --bot->wwwFallback;
+
+        if (currentTimeout == 60)
+        {
+            int teamMenuIndex = SV_FindConfigstringIndex("team_marinesopfor") - 2548;
+            if (teamMenuIndex < 0)
+            {
+                Com_PrintWarning(15, "Failed to find menu configstring indices for autoassign. Client will not be assigned to a team.\n");
+                return;
+            }
+            SV_ExecuteClientCommand(bot, va("mr %i %i %s", sv_serverId_value, teamMenuIndex, "autoassign"), 1, 0);
+        }
+
+        if (bot->wwwFallback == 1)
+        {
+            int changeclassMenuIndex = SV_FindConfigstringIndex("changeclass") - 2548;
+            if (changeclassMenuIndex < 0)
+            {
+                Com_PrintWarning(15, "Failed to find menu configstring indices for changeclass. Client will not be assigned to a class.\n");
+                return;
+            }
+            SV_ExecuteClientCommand(bot, va("mr %i %i %s", sv_serverId_value, 8, "cqb_mp,0"), 1, 0); //needs to be called few moments after autoassign
+        }
+    }
+}
+
 void __cdecl SV_UpdateBots()
 {
     int j; // [esp+4h] [ebp-44h]
@@ -1168,8 +1222,9 @@ void __cdecl SV_UpdateBots()
     {
         if ( bot->header.state != CS_FREE && bot->header.state != CS_RECONNECTING && bot->bIsTestClient && !bot->bIsDemoClient )
         {
+            SV_BotJoinTeam(bot);
             SV_BotThink(bot, &botcmd);
-            SV_ClientThink(bot, &botcmd);
+            SV_ClientThink(bot, &botcmd); 
         }
         ++i;
         ++bot;
