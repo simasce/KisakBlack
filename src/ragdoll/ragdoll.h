@@ -7,6 +7,8 @@
 
 #define RAGDOLL_MAX_DEFS 2
 
+#define RAGDOLL_DOBJ_VALID_STATE 2
+
 enum RagdollBodyState : __int32
 {                                       // XREF: RagdollBody/r
     BS_DEAD             = 0x0,
@@ -198,6 +200,11 @@ void __cdecl Ragdoll_InitDvars();
 void __cdecl Ragdoll_Register();
 void __cdecl Ragdoll_Init();
 void __cdecl Ragdoll_Shutdown();
+
+inline RagdollBody *__cdecl Ragdoll_HandleBody(int handle)
+{
+    return (RagdollBody *)handle;
+}
 
 extern const dvar_t *ragdoll_enable;
 extern const dvar_t *ragdoll_debug;

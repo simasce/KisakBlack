@@ -90,5 +90,5 @@ void __cdecl Ragdoll_FilterBonePositions(RagdollBody *body);
 char __cdecl Ragdoll_BodyNewState(RagdollBody *body, RagdollBodyState state);
 void __cdecl Ragdoll_BodyUpdate(int msec, RagdollBody *body);
 void __cdecl Ragdoll_Update(int msec);
-void __cdecl Ragdoll_RemoveConstraintsForRope(phys_free_list<RagdollBody>::T_internal_base *rope_id);
-int __cdecl Ragdoll_GetRBForBone(phys_free_list<RagdollBody>::T_internal_base *entnum, unsigned int boneName);
+void __cdecl Ragdoll_RemoveConstraintsForRope(int rope_id);
+int __cdecl Ragdoll_GetRBForBone(int entnum, unsigned int boneName);
