@@ -1168,7 +1168,7 @@ void R_SkinXModelCmd(SkinXModelCmd *data)
     GfxPackedVertexNormal *normalIn; // [esp-28CCh] [ebp-28D8h]
     GfxPackedVertex *skinVerticesOut; // [esp-28C8h] [ebp-28D4h]
     const XSurface *xsurf; // [esp-28C4h] [ebp-28D0h]
-    DObjSkelMat alignas(16) boneSkelMats[128]; // [esp-28C0h] [ebp-28CCh] BYREF
+    DObjSkelMat alignas(16) boneSkelMats[160]; // [esp-28C0h] [ebp-28CCh] BYREF
     int j; // [esp-30h] [ebp-3Ch]
     GfxModelSkinnedSurface *skinnedSurf; // [esp-24h] [ebp-30h]
     unsigned int i; // [esp-20h] [ebp-2Ch]
@@ -1216,6 +1216,13 @@ void R_SkinXModelCmd(SkinXModelCmd *data)
             boneIndex = skinnedSurf->info.boneIndex;
             const int totalBones = boneIndex + skinnedSurf->info.boneCount;
             const DObjAnimMat *baseMats = &skinnedSurf->info.baseMat[-boneIndex];
+            
+            if (totalBones > 160)
+            {
+                Com_PrintError(16, "R_SkinXModelCmd: totalBones (%d) exceeds boneSkelMats array size (160)\n", totalBones);
+                return; // or continue to skip this surface
+            }
+            
             for (j = boneIndex; j < totalBones; ++j)
             {
                 if ((skinCmd->surfacePartBits[j >> 5] & (0x80000000 >> (j & 0x1F))) == 0)
